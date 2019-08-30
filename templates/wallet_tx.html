@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>{{wallet.name}}</h1>
+<div class="row">
+	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left checked">Transactions</a>
+	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
+	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
+	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
+</div>
+{% set url="https://blockstream.info/" %}
+{% if specter.chain == "test" %}
+{% set url="https://blockstream.info/testnet/" %}
+{% endif %}
+{% if specter.chain == "regtest" %}
+{% set url="#" %}
+{% endif %}
+<br>
+{% if ( wallet.fullbalance ) is not none %}
+<h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
+	{{ "%0.8f" % ( wallet.fullbalance ) | float }}
+	{% if specter.chain !='main' %}t{%endif%}BTC
+	{% if wallet.balance["untrusted_pending"] > 0 %}</span><br><small>
+	( {{ "%0.8f" % wallet.balance["trusted"] | float }} confirmed, {{"%0.8f" % wallet.balance["untrusted_pending"] | float}} pending )
+	{% endif %}
+</small></h1>
+<br>
+<h1>Latest transactions</h1>
+<div class="table-holder">
+	<table>
+		<thead>
+		<tr>
+			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
+		</tr>
+		</thead>
+		<tbody>
+			{% for tx in wallet.transactions %}
+			{%if tx["confirmations"] == 0 %}
+			<tr class="unconfirmed">
+			{%else%}
+			<tr>
+			{%endif%}
+				<td>
+					{%if tx["confirmations"] == 0 %}
+					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+					{% else %}
+					<img src="/static/img/{{tx['category']}}_icon.svg"/>
+					{%endif%}
+				</td>
+				<td class="txid"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="txid"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+				<td>{{tx["amount"]}}</td><td>
+				{%if tx["confirmations"] == 0 %}
+					Pending
+				{% else %}
+					{{tx["confirmations"]}}
+				{% endif %}
+				</td>
+				<td>{{tx["time"] | datetime}}</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+
+{% endblock %}

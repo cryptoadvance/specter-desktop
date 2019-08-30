@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="209px" height="359px" viewBox="0 0 209 359" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>Group</title>
+    <desc>Created with Sketch.</desc>
+    <g id="devices" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group">
+            <rect id="Rectangle" stroke="#FFFFFF" x="0.5" y="0.5" width="208" height="358" rx="19"></rect>
+            <rect id="Rectangle" stroke="#FFFFFF" x="28.5" y="49.5" width="96" height="49" rx="6"></rect>
+            <circle id="Oval" stroke="#FFFFFF" cx="54.5" cy="166.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="104.5" cy="166.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="154.5" cy="166.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="54.5" cy="216.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="104.5" cy="216.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="154.5" cy="216.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="54.5" cy="266.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="104.5" cy="266.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="154.5" cy="266.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="54.5" cy="316.5" r="21.5"></circle>
+            <rect id="Rectangle" stroke-opacity="0.385869565" stroke="#FFFFFF" x="0.5" y="0.5" width="208" height="124" rx="19"></rect>
+            <circle id="Oval" stroke="#FFFFFF" cx="104.5" cy="316.5" r="21.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="154.5" cy="316.5" r="21.5"></circle>
+            <text id="COLDCARD" font-family="Helvetica" font-size="12" font-weight="normal" fill="#F8FEFF" fill-opacity="0.39">
+                <tspan x="20" y="26">COLDCARD</tspan>
+            </text>
+            <circle id="Oval" stroke="#FFFFFF" cx="139.5" cy="60.5" r="5.5"></circle>
+            <circle id="Oval" stroke="#FFFFFF" cx="139.5" cy="90.5" r="5.5"></circle>
+            <path d="M12.3457341,122.625737 L12.3457341,338.305246 C12.3457341,342.723524 15.9274561,346.305246 20.3457341,346.305246 L189.96993,346.305246 C194.388208,346.305246 197.96993,342.723524 197.96993,338.305246 L197.96993,122.625737" id="Path" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+            <path d="M132,106.698453 L195.96993,106.698453" id="Path-2" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+            <path d="M132,101.698453 L195.96993,101.698453" id="Path-2" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+            <path d="M132,46.6984533 L195.96993,46.6984533" id="Path-2" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+            <path d="M132,41.6984533 L195.96993,41.6984533" id="Path-2" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+            <path d="M14.6369556,113.805945 L14.6369556,15.1560431 C14.6369556,12.9469041 16.4278166,11.1560431 18.6369556,11.1560431 L192.182085,11.1560431 C194.391224,11.1560431 196.182085,12.9469041 196.182085,15.1560431 L196.182085,113.805945" id="Path-3" stroke-opacity="0.39" stroke="#FFFFFF"></path>
+        </g>
+    </g>
+</svg>

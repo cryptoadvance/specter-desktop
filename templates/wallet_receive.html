@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>{{wallet.name}}</h1>
+<div class="row">
+	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
+	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio checked">Receive</a>
+	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
+	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
+</div>
+{% set url="https://blockstream.info/" %}
+{% if specter.chain == "test" %}
+{% set url="https://blockstream.info/testnet/" %}
+{% endif %}
+{% if specter.chain == "regtest" %}
+{% set url="#" %}
+{% endif %}
+<br>
+<div class="center">
+<span class="qr-trigger">
+	Address #{{wallet['address_index']+1}}<br>
+	<small>( hover 
+		<img src="/static/img/qr_tiny.svg"/>
+		to verify
+		<div class="qr-popup">
+			<img src="{{qrcode(wallet | derivation)}}">
+		</div>)
+	</small>
+</span><br><br>
+<img src="{{ qrcode( 'bitcoin:'+wallet['address'] ) }}" class="qr alt-qr" width="300px" /><br>
+<br>{{wallet['address']}}
+</div><br><br>
+<form action="./" method="POST">
+	<button type="submit" onclick="showLoader()" name="action" value="newaddress" class="btn centered">Get new address</button>&nbsp; &nbsp; &nbsp; 
+	<!-- <button type="submit" name="action" value="send" class="btn centered action">Send</button> -->
+</form>
+
+<div class="note"><center>Specter can verify this address if you scan derivation path<br>( just hover over <img src="/static/img/qr_tiny.svg"/> symbol above the qr code of the address )</center></div>
+
+{% if (wallet | txonaddr) > 0 %}
+<br>
+<h1>Transactions on this address ( {{wallet | txonaddr}} )</h1>
+<div class="table-holder">
+	<table>
+		<thead>
+		<tr>
+			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
+		</tr>
+		</thead>
+		<tbody>
+			{% for tx in wallet.transactions %}
+			{% if tx['address'] == wallet['address'] %}
+			{%if tx["confirmations"] == 0 %}
+			<tr class="unconfirmed">
+			{%else%}
+			<tr>
+			{%endif%}
+				<td>
+					{%if tx["confirmations"] == 0 %}
+					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+					{% else %}
+					<img src="/static/img/{{tx['category']}}_icon.svg"/>
+					{%endif%}
+				</td>
+				<td class="txid"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="txid"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+				<td>{{tx["amount"]}}</td><td>
+				{%if tx["confirmations"] == 0 %}
+					Pending
+				{% else %}
+					{{tx["confirmations"]}}
+				{% endif %}
+				</td>
+				<td>{{tx["time"] | datetime}}</td></tr>
+			{% endif %}
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+{% endblock %}

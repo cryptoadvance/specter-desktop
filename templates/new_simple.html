@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block main %}
+<form action="./" method="POST">
+
+<div class="center">Name it &nbsp; &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet"></div><br>
+
+
+<h1>Type of the wallet</h1>
+{% if sigs_total %}
+<div class="row center">
+<label>
+	{% if wallet_type=="sh" %}
+	<input type="radio" name="type" value="sh" class="hidden" checked>
+	{% else %}
+	<input type="radio" name="type" value="sh" class="hidden">
+	{%endif%}
+	<div class="btn radio left">Legacy</div>
+</label>
+<label>
+	{% if wallet_type=="sh-wsh" %}
+	<input type="radio" name="type" value="sh-wsh" class="hidden" checked>
+	{% else %}
+	<input type="radio" name="type" value="sh-wsh" class="hidden">
+	{%endif%}
+	<div class="btn radio">Nested Segwit</div>
+</label>
+<label>
+	{% if wallet_type=="wsh" %}
+	<input type="radio" name="type" value="wsh" class="hidden" checked>
+	{% else %}
+	<input type="radio" name="type" value="wsh" class="hidden">
+	{%endif%}
+	<div class="btn radio right">Segwit</div>
+</label>
+{% else %}
+<div class="row center">
+<label>
+	<input type="radio" name="type" value="pkh" class="hidden">
+	<div class="btn radio left">Legacy</div>
+</label>
+<label>
+	<input type="radio" name="type" value="sh-wpkh" class="hidden">
+	<div class="btn radio">Nested Segwit</div>
+</label>
+<label>
+	<input type="radio" name="type" value="wpkh" checked class="hidden">
+	<div class="btn radio right">Segwit</div>
+</label>
+{% endif %}
+</div>
+
+<div class="note"><center>
+	<br><b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.
+</center></div>
+{% if sigs_total %}
+<br>
+<div class="center">
+	Using {%if not cosigner_index %}<input class="inline" type="number" name="sigs_required" min=1 max={{sigs_total}} step=1 value="{{sigs_required}}" />{% else %}<div class="input inline">{{sigs_required}}</div><input type="hidden" name="sigs_required" value="{{sigs_required}}"/> {%endif%}
+	of {%if not cosigner_index %}<input class="inline" type="number" name="sigs_total" min={{2}} max={{sigs_total}} step=1 value="{{sigs_total}}"/>{% else %}<div class="input inline">{{sigs_total}}</div><input type="hidden" name="sigs_total" value="{{sigs_total}}"/> {%endif%} multisig
+	<input type="hidden" name="cosigner_index" value="{{cosigner_index}}"/>
+	{% for cosigner in cosigners %}
+	<input type="hidden" name="cosigner{{loop.index0}}" value="{{cosigner}}"/>
+	{% endfor %}
+</div>
+<br>
+<h1>Pick the device you want to use as signer #{{cosigner_index+1}}</h1>
+{% else %}
+<div class="spacer"></div>
+<h1>Pick the device you want to use</h1>
+{% endif %}
+<div class="row overflow">
+		{% for k in specter.devices.names() %}
+		<label>
+			{% if cosigners and k in cosigners %}{% else %}
+			{% if device["name"] == k %}
+			<input type="radio" name="device" value="{{k}}" class="hidden" checked>
+			{% else %}
+			<input type="radio" name="device" value="{{k}}" class="hidden">
+			{% endif %}
+			{% endif %}
+			{% if cosigners and k in cosigners %}
+			<div class="small-card radio highlighted">
+			{% else %}
+			<div class="small-card radio">
+			{% endif %}
+				<img src="/static/img/{{specter.devices[k]['type']}}_icon.svg" width="18px">
+				{{ k }}
+				{% if cosigners %}
+				{% for cosigner in cosigners %}
+				{% if cosigner==k %}
+				- cosigner {{loop.index}}
+				{% endif %}
+				{% endfor %}
+				{% endif %}
+			</div>
+		</label>
+		{% endfor %}
+</div>
+<button type="submit" name="action" value="device" class="btn centered">Continue</button>
+<div class="note"><br>
+{% if sigs_total %}
+	<center>Remember the order of signers. <b>Order is important.</b> It is another piece of information you need to back up.<br>
+		On the next page we will ask you to choose the next device.</center>
+{% else %}
+	<center>On the next page we will ask you to choose the keys.</center>
+{% endif %}
+</div>
+</form>
+{% endblock %}
