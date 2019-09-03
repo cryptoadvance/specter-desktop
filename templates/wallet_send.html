@@ -36,8 +36,11 @@
 	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="500px"/>
  </div>
 <br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['base64']}}">Download transaction</a>
+<br>
+<br><a class="btn centered" id="scanme">Scan signed transaction</a>
+
 </div>
-<div class="log"><code><pre>{{psbt | prettyjson}}</pre></code></div>
+<!-- <div class="log"><code><pre>{{psbt | prettyjson}}</pre></code></div> -->
 {% endif %}
 </form>
 
@@ -58,6 +61,7 @@
 	const scanner = new QrScanner(video, result => {
 		scanner.stop();
 		document.getElementById("popup").style.display = 'none';
+{% if not psbt %}
 		let addr = result;
 		if(addr.indexOf("bitcoin:") >= 0){
 			addr = addr.substr(addr.indexOf("bitcoin:")+8);
@@ -73,6 +77,34 @@
 				}
 			});
 		}
+{% else %}
+		let psbt0 = "{{psbt['base64']}}";
+		let psbt1 = result;
+
+		let url="/combine/";
+		// console.log(url);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if(xmlHttp.status == 200){
+				console.log(psbt0);
+				console.log(psbt1);
+				console.log(this.responseText);
+				// console.log(this.responseText);
+			  	window.location.replace("../tx/");
+			}else{
+		  		// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+			}
+		}
+		xmlHttp.onerror = function(e){
+			console.log(xmlHttp);
+			err = xmlHttp;
+		}
+		xmlHttp.open("POST", url, true); // true for asynchronous 
+		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1}));
+		// xmlHttp.send(null);
+{% endif %}
 	});
 	document.getElementById("scanme").addEventListener("click", function(){
 		document.getElementById("popup").style.display = 'flex';

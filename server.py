@@ -37,6 +37,18 @@ SINGLE_TYPES = {
 
 ################ routes ####################
 
+@app.route('/combine/', methods=['GET', 'POST'])
+def combine():
+    if request.method == 'POST': # FIXME: ugly...
+        d = request.json
+        psbt0 = d['psbt0'] # request.args.get('psbt0')
+        psbt1 = d['psbt1'] # request.args.get('psbt1')
+        psbt = specter.combine([psbt0, psbt1])
+        raw = specter.finalize(psbt)
+        specter.broadcast(raw["hex"])
+        return 'psbt0: %s<br><br>psbt1: %s<br><br>final: %s<br><br>raw: %s' % (psbt0, psbt1, psbt, raw["hex"])
+    return 'meh'
+
 @app.route('/')
 def index():
     specter.check()

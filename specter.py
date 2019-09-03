@@ -176,6 +176,18 @@ class Specter:
     def info(self):
         return self._info
 
+    def combine(self, psbt_arr):
+        final_psbt = self.cli.combinepsbt(psbt_arr)
+        return final_psbt
+
+    def finalize(self, psbt):
+        final_psbt = self.cli.finalizepsbt(psbt)
+        return final_psbt
+
+    def broadcast(self, raw):
+        res = self.cli.sendrawtransaction(raw)
+        return res
+
     @property
     def chain(self):
         return self._info["chain"]
