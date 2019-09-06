@@ -5,7 +5,7 @@ from collections import OrderedDict
 from descriptor import AddChecksum
 import base64
 
-WALLET_CHUNK = 20
+WALLET_CHUNK = 5
 
 purposes = OrderedDict({
     None: "General",
@@ -390,7 +390,7 @@ class WalletManager:
             }
         ]
         r = self.cli.createwallet(self.cli_path+al, True)
-        r = self.cli.importmulti(args, wallet=self.cli_path+al, timeout=120)
+        r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
         addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
         change_addr = self.cli.deriveaddresses(change_desc, [0, 1])[0]
         o["address"] = addr
@@ -462,7 +462,7 @@ class WalletManager:
             }
         ]
         r = self.cli.createwallet(self.cli_path+al, True)
-        r = self.cli.importmulti(args, wallet=self.cli_path+al, timeout=120)
+        r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
         print(args)
         addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
         o["address"] = addr
