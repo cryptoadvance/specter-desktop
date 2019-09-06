@@ -5,7 +5,7 @@ import requests, json, os
 RPC_PORTS = { "test": 18332, "regtest": 18443, "main": 8332 }
 
 class BitcoinCLI:
-    def __init__(self, user, passwd, host="127.0.0.1", port=18332, protocol="http", path="", timeout=3):
+    def __init__(self, user, passwd, host="127.0.0.1", port=18332, protocol="http", path="", timeout=30):
         path = path.replace("//","/") # just in case
         self.user = user
         self.passwd = passwd

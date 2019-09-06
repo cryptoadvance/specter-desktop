@@ -324,10 +324,10 @@ class WalletManager:
         loadable_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
         not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
         print(not_loaded_wallets)
-        for w in self:
-            if self.cli_path+w["alias"] in not_loaded_wallets:
-                print("loading", w["alias"])
-                self.cli.loadwallet(self.cli_path+w["alias"])
+        for k in self._wallets:
+            if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
+                print("loading", self._wallets[k]["alias"])
+                self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
 
     def get_by_alias(self, fname):
         for dev in self:
