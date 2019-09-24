@@ -26,7 +26,7 @@
 		</div>)
 	</small>
 </span><br><br>
-<img src="{{ qrcode( 'bitcoin:'+wallet['address'] ) }}" class="qr alt-qr" width="300px" /><br>
+<img src="{{ qrcode( 'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) ) }}" class="qr alt-qr" width="300px" /><br>
 <br>{{wallet['address']}}
 </div><br><br>
 <form action="./" method="POST">

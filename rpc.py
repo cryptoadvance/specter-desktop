@@ -2,7 +2,7 @@ import requests, json, os
 
 # TODO: redefine __dir__ and help
 
-RPC_PORTS = { "test": 18332, "regtest": 18443, "main": 8332 }
+RPC_PORTS = { "test": 18332, "regtest": 18443, "main": 8332, 'signet': 38332 }
 
 class BitcoinCLI:
     def __init__(self, user, passwd, host="127.0.0.1", port=18332, protocol="http", path="", timeout=30):

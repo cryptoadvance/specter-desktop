@@ -625,6 +625,7 @@ class Wallet(dict):
                 b -= tx["amount"]
                 if b < 0:
                     break;
+        # Dont reuse change addresses - use getrawchangeaddress instead
         r = self.cli.walletcreatefundedpsbt(extra_inputs, [{address: amount}], 0, 
                                         {   
                                             "includeWatching": True, 

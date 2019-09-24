@@ -14,6 +14,9 @@
 {% if specter.chain == "regtest" %}
 {% set url="#" %}
 {% endif %}
+{% if specter.chain == "signet" %}
+{% set url="https://explorer.bc-2.jp/" %}
+{% endif %}
 <br>
 {% if ( wallet.fullbalance ) is not none %}
 <h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">

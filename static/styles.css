@@ -154,6 +154,9 @@ svg.core.main .main{
 svg.core.regtest .main{
 	fill: #00CAF1;
 }
+svg.core.signet .main{
+	fill: #00CAF1;
+}
 small{
 	font-size: 0.7em;
 }

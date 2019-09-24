@@ -35,12 +35,12 @@
  -->
 	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="500px"/>
  </div>
+<div class="log"><code><pre>{{psbt['base64']}}</pre></code></div>
 <br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['base64']}}">Download transaction</a>
 <br>
 <br><a class="btn centered" id="scanme">Scan signed transaction</a>
 
 </div>
-<!-- <div class="log"><code><pre>{{psbt | prettyjson}}</pre></code></div> -->
 {% endif %}
 </form>
 

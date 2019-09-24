@@ -147,7 +147,7 @@ def new_wallet_simple():
 def new_wallet_multi():
     specter.check()
     name = "Multisig"
-    wallet_type = "sh-wsh"
+    wallet_type = "wsh"
     wallet_name = name
     i = 2
     err = None
