@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="spacer"></div>
+<h1>Select the type of the wallet</h1>
+<div class="row">
+	<a href="./simple/" class="small-card">
+		<img src="/static/img/simple_icon.svg"/>
+		Single key wallet
+	</a>
+	<a href="./multisig/" class="small-card">
+		<img src="/static/img/multisig_icon.svg"/>
+		Multisignature wallet
+	</a>
+</div>
+<div class="note">
+	<center>Multisig is better for larg-ish amounts.</center>
+</div>
+{% endblock %}

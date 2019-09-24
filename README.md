@@ -1,43 +1,46 @@
 # Specter Desktop
 
-## DISCLAIMER
+A flask web GUI for Bitcoin Core to use with airgapped hardware wallets
 
-This software is **WORK IN PROGRESS and NOT READY TO USE YET**. The master branch is empty **until the first release** of the software with core functionality implemented. At the moment all the code is in the [0.0.0-alpha branch](https://github.com/cryptoadvance/specter-desktop/tree/0.0.0-alpha).
+This is the working alpha branch. Random comments, weird pieces of code and comments, not documented, breaking changes etc.
 
-## Why?
+Wait until we merge it to master, then you can use it.
 
-Bitcoin Core has a very powerful command line interface and a wonderful daemon. Using PSBT and HWI it can also work with hardware wallets, but at the moment it is too linux-way. The same applies to multisignature setups. 
+## TODO
 
-The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped hardware wallets.
+- Send transaction:
+  - save psbt that is not finished
+  - upload file and combine psbt
+  - determine who else should sign (just look up pubkeys)
+  - show as qr
+  - work with coldcard to fix their multisig
+- Display cosigners xpubs
+- Migration between app versions?
 
-At the moment we are working on integration of our [Specter-DIY hardware wallet](https://github.com/cryptoadvance/specter-diy) that uses QR codes as a main communication channel, and ColdCard that uses SD cards. Later on we plan to integrate "hot" hardware wallets using [HWI tool](https://github.com/bitcoin-core/HWI) and [Junction](https://github.com/justinmoon/junction).
+### Later:
 
-## Current status
+- Import wallet from coldcard
+- Show addresses QR codes in the PSBT
+- Delete wallets (requires access to the wallet folder - can only unload remotely)
 
-Most of the code is there, app should be ready for alpha testing by September 8th.
+### A bit later:
 
-## A few screenshots
+- proper error handling
+- run flask server from distribution
+- run bitcoind and bitcoin-cli from the distribution
+- bitcoin configuration gui
 
-### Adding a new device
+### Nice to have
 
-![](screenshots/devices.jpg)
+- control fee
+- Tx batching (sendtomany)
+- coin control
+- rbf
+- privacy mode - hide balances and/or menu bar (can be in settings)
+- mobile version
+- use vue js?
+- specter-pi - airgapped bitcoin core for signing on pi
 
-![](screenshots/device_keys.jpg)
+### Far in the future
 
-### Creating a new wallet
-
-![](screenshots/wallets.jpg)
-
-![](screenshots/new_multisig.jpg)
-
-### Wallet interface
-
-![](screenshots/transactions.jpg)
-
-![](screenshots/receive.jpg)
-
-![](screenshots/send.jpg)
-
-### Configuration
-
-![](screenshots/bitcoin-rpc.jpg)
+- remote node over tor - camera requires https, how to solve? (let's encrypt doesn't work)

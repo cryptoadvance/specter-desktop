@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Specter Desktop</title>
+<style type="text/css">
+html, body{
+  margin: 0;
+  padding: 0;
+  background: #192432;
+  /*color: #7f8fa4;*/
+  color: #fff;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: lighter;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+body{
+  flex-direction: column;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+*{
+  box-sizing: border-box;
+}
+img{
+  width: 300px;
+}
+div{
+  margin: 20px;
+}
+.top{
+  -webkit-app-region: drag;
+  height: 70px;
+  width: 100%;
+  /*border: 1px solid red;*/
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+</style>
+  </head>
+  <body>
+    <div class="top">&nbsp;</div>
+    <div>
+      <img src="ca.png">
+    </div>
+    <div id="lbl">
+      Specter Desktop is loading...
+    </div>
+  </body>
+<script type="text/javascript">
+  var err;
+  let url = "http://localhost:25441/";
+  setInterval( () => {
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = function() { 
+        if(xmlHttp.status == 200 || xmlHttp.status == 302){
+          window.location.href = url;
+        }else{
+          document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+        }
+      }
+      xmlHttp.onerror = function(e){
+        document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+        console.log(xmlHttp);
+        err = xmlHttp;
+      }
+      xmlHttp.open("GET", url, true); // true for asynchronous 
+      xmlHttp.send(null);
+  },5000);
+</script>
+</html>

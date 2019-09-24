@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block main %}
+<form action="./" method="POST">
+	<h1>App settings</h1>
+	<div class="card">
+		<h2>Bitcoin JSON-RPC configuration</h2>
+		<br>
+		Username:<br><input type="text" name="username" value="{{username}}">
+		<br><br>
+		Password:<br><input type="text" name="password" value="{{password}}">
+		<br><br>
+		Host:<br>
+		<input type="text" name="host" type="text" value="{{host}}">
+		<br><br>
+		Port:<br>
+		<input type="text" name="port" type="text" value="{{port}}">
+		<div class="note">Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet</div>
+		<div class="row">
+			<button type="submit" class="btn" name="action" value="test">
+				Test
+			</button>&nbsp;
+			<button type="submit" class="btn" name="action" value="save">
+				Save
+			</button>
+		</div>
+		{%if test %}
+		<br><div class="log">Test results:<br>
+<code><pre>
+Process finished with code <b>{{ test.code }}</b>
+{% if test.code == 0 %}
+Output: {{ test.out }}
+{% else %}
+Error message: {{ test.err }}
+{% endif %}</pre></code>
+		</div>
+		{% endif %}
+	</div>
+	<div class="spacer"></div>
+	<div class="card">
+		<h2>Command to run HWI tool</h2>
+		<br>
+		<div>Not implemented yet</div>
+	</div>
+</form>
+{% endblock %}

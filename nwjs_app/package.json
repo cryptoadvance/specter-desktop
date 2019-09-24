@@ -1,0 +1,10 @@
+{
+	"name": "Specter Desktop",
+	"main": "index.html",
+	"window": {
+		"width": 1200,
+		"height": 800,
+		"icon": "icon.png",
+		"frame": true
+	}
+}
