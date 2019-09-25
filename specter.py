@@ -439,6 +439,7 @@ class WalletManager:
             "address_index": 0,
             "keypool": WALLET_CHUNK,
             "address": None,
+            "change_index": 0,
             "change_address": None,
             "change_keypool": WALLET_CHUNK,
         }
@@ -465,7 +466,9 @@ class WalletManager:
         r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
         print(args)
         addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
+        change_addr = self.cli.deriveaddresses(change_desc, [0, 1])[0]
         o["address"] = addr
+        o["change_address"] = change_addr
         if self.working_folder is not None:
             with open(os.path.join(self.working_folder, "%s.json" % al), "w+") as f:
                 f.write(json.dumps(o, indent=4))
@@ -519,6 +522,12 @@ class Wallet(dict):
                 self._dict["change_address"] = self.cli.deriveaddresses(self._dict["change_descriptor"], [index, index+1])[0]
                 if index == self._dict["change_keypool"]-1:
                     self._dict["change_keypool"] = self.keypoolrefill(self._dict["change_keypool"])
+        else:
+            if "change_index" not in self._dict:
+                self._dict["change_index"] = 0
+            index = self._dict["change_index"]
+            self._dict["change_address"] = self.cli.deriveaddresses(self._dict["change_descriptor"], [index, index+1])[0]
+            self._commit()
 
     def getdata(self):
         try:
