@@ -27,14 +27,14 @@
 <br>
 {% else %}
 <div>Sending <b>{{amount}}</b> BTC to <b>{{address}}</b><br><br></div>
-<div class="row">
+<div class="row" style="min-height: 500px;">
 <!-- 	{% set chunk = 700 %}
 	{%for i in range( (psbt["base64"] | length)//chunk+1)%}
 	<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
 	{%endfor%}
  -->
 
-	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="500px"/>
+	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="500px" height="500px"/>
  </div>
 <div class="log"><code><pre>{{psbt['base64']}}</pre></code></div>
 <div class="log"><b id="sigscount">0</b> signatures aquired</div>
