@@ -53,6 +53,9 @@
 </div>
 
 <script type="module">
+{% if psbt %}
+	let psbt0 = "{{psbt['base64']}}";
+{% endif %}
 	import QrScanner from "/static/qr/qr-scanner.min.js";
 	QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
 
@@ -78,7 +81,7 @@
 			});
 		}
 {% else %}
-		let psbt0 = "{{psbt['base64']}}";
+
 		let psbt1 = result;
 
 		let url="/combine/";
@@ -88,9 +91,14 @@
 			if(xmlHttp.status == 200){
 				console.log(psbt0);
 				console.log(psbt1);
-				console.log(this.responseText);
+				let o = JSON.parse(this.responseText);
+				console.log(o);
+				if(o.complete){
+				  	window.location.replace("../tx/");
+				}else{
+					psbt0 = o["psbt"];
+				}
 				// console.log(this.responseText);
-			  	window.location.replace("../tx/");
 			}else{
 		  		// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
 			}

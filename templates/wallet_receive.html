@@ -16,15 +16,9 @@
 {% endif %}
 <br>
 <div class="center">
-<span class="qr-trigger">
+<span>
 	Address #{{wallet['address_index']+1}}<br>
-	<small>( hover 
-		<img src="/static/img/qr_tiny.svg"/>
-		to verify
-		<div class="qr-popup">
-			<img src="{{qrcode(wallet | derivation)}}">
-		</div>)
-	</small>
+	<small>( scan to verify )</small>
 </span><br><br>
 <img src="{{ qrcode( 'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) ) }}" class="qr alt-qr" width="300px" /><br>
 <br>{{wallet['address']}}
@@ -34,7 +28,8 @@
 	<!-- <button type="submit" name="action" value="send" class="btn centered action">Send</button> -->
 </form>
 
-<div class="note"><center>Specter can verify this address if you scan derivation path<br>( just hover over <img src="/static/img/qr_tiny.svg"/> symbol above the qr code of the address )</center></div>
+<div class="note"><center>Specter can verify this address if you scan it.<br>
+It has an address index inluded in the QR code.</center></div>
 
 {% if (wallet | txonaddr) > 0 %}
 <br>
