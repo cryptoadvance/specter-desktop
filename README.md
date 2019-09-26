@@ -2,7 +2,9 @@
 
 ## DISCLAIMER
 
-This software is **WORK IN PROGRESS and NOT READY TO USE YET**.
+This software is **WORK IN PROGRESS and NOT READY TO USE YET**. Currently tested only in Chrome, so in other browsers it may look weird.
+
+If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
 
 ## Why?
 
@@ -18,7 +20,7 @@ Clone the repo, install dependencies:
 
 ```
 git clone https://github.com/cryptoadvance/specter-desktop.git
-pip3 install flask flask_qrcode flask_socketio
+pip3 install flask flask_qrcode flask_socketio requests
 ```
 
 Run the server:
