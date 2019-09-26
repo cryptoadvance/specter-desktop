@@ -81,7 +81,7 @@ def settings():
             return redirect("/")
     else:
         pass
-    return render_template("settings.html", username=user, password=passwd, port=port, host=host, specter=specter, rand=rand)
+    return render_template("settings.html", test=test, username=user, password=passwd, port=port, host=host, specter=specter, rand=rand)
 
 ################# wallet management #####################
 
