@@ -22,7 +22,7 @@
 	<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8">
 	<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
 	<br><br>
-	<button type="submit" onclick="showLoader()" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
+	<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 </div>
 <br>
 {% else %}
