@@ -27,18 +27,18 @@
 <br>
 {% else %}
 <div>Sending <b>{{amount}}</b> BTC to <b>{{address}}</b><br><br></div>
-<div class="row" style="min-height: 500px;">
+<div class="row" style="min-height: 400px;">
 <!-- 	{% set chunk = 700 %}
 	{%for i in range( (psbt["base64"] | length)//chunk+1)%}
 	<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
 	{%endfor%}
  -->
 
-	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="500px" height="500px"/>
+	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px"/>
  </div>
 <div class="log"><code><pre>{{psbt['base64']}}</pre></code></div>
 <div class="log"><b id="sigscount">0</b> signatures aquired</div>
-<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['base64']}}">Download transaction</a>
+<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
 <br>
 <br><a class="btn centered" id="scanme">Scan signed transaction</a>
 <br>

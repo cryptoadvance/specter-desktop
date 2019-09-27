@@ -4,6 +4,8 @@ from helpers import deep_update, load_jsons
 from collections import OrderedDict
 from descriptor import AddChecksum
 import base64
+from serializations import PSBT
+import helpers
 
 WALLET_CHUNK = 5
 
@@ -626,8 +628,34 @@ class Wallet(dict):
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
+        # adding xpub fields for coldcard
+        cc_psbt = PSBT()
+        cc_psbt.deserialize(b64psbt)
+        if self.is_multisig():
+            for k in self._dict["keys"]:
+                key = b'\x01'+helpers.decode_base58(k["xpub"])
+                value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
+                cc_psbt.unknown[key] = value
+        psbt["coldcard"]=cc_psbt.serialize()
         return psbt
 
+def der_to_bytes(derivation):
+    items = derivation.split("/")
+    if len(items) == 0:
+        return b''
+    if items[0] == 'm':
+        items = items[1:]
+    if items[-1] == '':
+        items = items[:-1]
+    res = b''
+    for item in items:
+        index = 0
+        if item[-1] == 'h' or item[-1] == "'":
+            index += 0x80000000
+            item = item[:-1]
+        index += int(item)
+        res += index.to_bytes(4,'big')
+    return res
 
 if __name__ == '__main__':
     # specter = Specter("~/_specter", config={"rpc":{"port":18332}})
