@@ -36,7 +36,8 @@
 
 	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px"/>
  </div>
-<div class="log"><code><pre>{{psbt['base64']}}</pre></code></div>
+<!-- because coldcard psbt is the most complete (includes xpubs) -->
+<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
 <div class="log"><b id="sigscount">0</b> signatures aquired</div>
 <br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
 <br>
