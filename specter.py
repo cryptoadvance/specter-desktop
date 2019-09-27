@@ -1,4 +1,4 @@
-from rpc import BitcoinCLI, RPC_PORTS
+from rpc import BitcoinCLI, RPC_PORTS, autodetect_cli
 import os, json, copy
 from helpers import deep_update, load_jsons
 from collections import OrderedDict
@@ -59,6 +59,23 @@ def alias(name):
     name = name.replace(" ", "_")
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
+def get_cli(conf):
+    if "user" not in conf or conf["user"]=="":
+        conf["autodetect"] = True
+    if conf["autodetect"]:
+        if "port" in conf:
+            cli_arr = autodetect_cli(port=conf["port"])
+        else:
+            cli_arr = autodetect_cli()
+        if len(cli_arr) > 0:
+            cli = cli_arr[0]
+        else:
+            return None
+    else:
+        cli = BitcoinCLI(conf["user"], conf["password"], 
+                          host=conf["host"], port=conf["port"], protocol=conf["protocol"])
+    return cli
+
 class Specter:
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
@@ -74,6 +91,7 @@ class Specter:
         # default config
         self.config = {
             "rpc": {
+                "autodetect": True,
                 "user": None,
                 "password": None,
                 "port": RPC_PORTS["main"],
@@ -107,12 +125,11 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config) # override loaded config
 
-        # check if we have user, password and can connect
-        self._is_configured = bool(self.config["rpc"]["user"] and self.config["rpc"]["password"])
+        self.cli = get_cli(self.config["rpc"])
+        print(self.cli)
+        self._is_configured = (self.cli is not None)
         self._is_running = False
         if self._is_configured:
-            self.cli = BitcoinCLI(self.config["rpc"]["user"], self.config["rpc"]["password"], 
-                                  host=self.config["rpc"]["host"], port=self.config["rpc"]["port"], protocol=self.config["rpc"]["protocol"])
             try:
                 self._info = self.cli.getmininginfo()
                 self._is_running = True
@@ -140,12 +157,12 @@ class Specter:
         except Exception as e:
             print("can't load wallets...", e)
 
-
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
         conf.update(kwargs)
-        cli = BitcoinCLI(conf["user"], conf["password"], 
-                              host=conf["host"], port=conf["port"], protocol=conf["protocol"])
+        cli = get_cli(conf)
+        if cli is None:
+            return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
         try:
             r["out"] = json.dumps(cli.getmininginfo(),indent=4)
