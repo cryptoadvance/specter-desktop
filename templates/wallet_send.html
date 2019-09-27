@@ -41,8 +41,13 @@
 <br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['base64']}}">Download transaction</a>
 <br>
 <br><a class="btn centered" id="scanme">Scan signed transaction</a>
-
+<br>
+<div class="row">
+	<input type="file" id="file" class="inputfile"/>
+	<label for="file" class="btn centered">Upload signed transaction</label>
 </div>
+
+
 {% endif %}
 </form>
 
@@ -53,11 +58,60 @@
 <div class="popup" id="popup">
 	<video muted playsinline id="qr-video" class="video"></video>
 </div>
-
 <script type="module">
 {% if psbt %}
 	let psbt0 = "{{psbt['base64']}}";
 	let sigscount = 0;
+
+	function combine(psbt1){
+		let url="/combine/";
+		// console.log(url);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+				console.log(psbt0);
+				console.log(psbt1);
+				let o = JSON.parse(this.responseText);
+				console.log(o);
+				if(o.complete){
+				  	window.location.replace("../tx/");
+				}else{
+					psbt0 = o["psbt"];
+					sigscount++;
+					document.getElementById("sigscount").innerHTML = sigscount;
+				}
+				// console.log(this.responseText);
+			}else{
+		  		// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+			}
+		}
+		xmlHttp.onerror = function(e){
+			console.log(xmlHttp);
+			// err = xmlHttp;
+		}
+		xmlHttp.open("POST", url, true); // true for asynchronous 
+		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1}));
+		// xmlHttp.send(null);
+	}
+
+	var el = document.getElementById("file");
+
+	el.addEventListener("change", (e) => {
+		let files = el.files;
+	  	console.log(files);
+	  	for(let i=0; i<files.length; i++){
+	  		console.log(files[i].name);
+			let reader = new FileReader();
+	        reader.onload = function(e) {
+	            let str = btoa(reader.result);
+	            combine(str);
+	        }
+	        reader.readAsBinaryString(files[i]);
+	  	}
+	});
+
 {% endif %}
 	import QrScanner from "/static/qr/qr-scanner.min.js";
 	QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
@@ -85,38 +139,8 @@
 		}
 {% else %}
 
-		let psbt1 = result;
+		combine(result);
 
-		let url="/combine/";
-		// console.log(url);
-		var xmlHttp = new XMLHttpRequest();
-		xmlHttp.onreadystatechange = function() { 
-			if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-				console.log(psbt0);
-				console.log(psbt1);
-				let o = JSON.parse(this.responseText);
-				console.log(o);
-				if(o.complete){
-				  	window.location.replace("../tx/");
-				}else{
-					psbt0 = o["psbt"];
-					sigscount++;
-					document.getElementById("sigscount").innerHTML = sigscount;
-				}
-				// console.log(this.responseText);
-			}else{
-		  		// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
-			}
-		}
-		xmlHttp.onerror = function(e){
-			console.log(xmlHttp);
-			err = xmlHttp;
-		}
-		xmlHttp.open("POST", url, true); // true for asynchronous 
-		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1}));
-		// xmlHttp.send(null);
 {% endif %}
 	});
 	document.getElementById("scanme").addEventListener("click", function(){
