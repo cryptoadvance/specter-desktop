@@ -73,6 +73,7 @@ def settings():
         port = request.form['port']
         host = request.form["host"]
         action = request.form['action']
+
         if action == "test":
             test = specter.test_rpc(user=user, password=passwd, port=port, host=host)
         if action == "save":

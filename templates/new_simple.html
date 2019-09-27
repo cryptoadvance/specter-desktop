@@ -9,20 +9,12 @@
 {% if sigs_total %}
 <div class="row center">
 <label>
-	{% if wallet_type=="sh" %}
-	<input type="radio" name="type" value="sh" class="hidden" checked>
-	{% else %}
-	<input type="radio" name="type" value="sh" class="hidden">
-	{%endif%}
-	<div class="btn radio left">Legacy</div>
-</label>
-<label>
 	{% if wallet_type=="sh-wsh" %}
 	<input type="radio" name="type" value="sh-wsh" class="hidden" checked>
 	{% else %}
 	<input type="radio" name="type" value="sh-wsh" class="hidden">
 	{%endif%}
-	<div class="btn radio">Nested Segwit</div>
+	<div class="btn radio left">Nested Segwit</div>
 </label>
 <label>
 	{% if wallet_type=="wsh" %}
@@ -35,12 +27,8 @@
 {% else %}
 <div class="row center">
 <label>
-	<input type="radio" name="type" value="pkh" class="hidden">
-	<div class="btn radio left">Legacy</div>
-</label>
-<label>
 	<input type="radio" name="type" value="sh-wpkh" class="hidden">
-	<div class="btn radio">Nested Segwit</div>
+	<div class="btn radio left">Nested Segwit</div>
 </label>
 <label>
 	<input type="radio" name="type" value="wpkh" checked class="hidden">
