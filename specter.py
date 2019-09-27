@@ -26,35 +26,6 @@ addrtypes = {
     "wsh": "bech32"
 }
 
-def load_bitcoin_conf(path=None):
-    # trying to find bitcoin.conf in default location
-    if path is None:
-        # add other platforms later
-        paths = ["~/Library/Application Support/Bitcoin/", "~/.bitcoin/"]
-        for p in paths:
-            p = os.path.expanduser(p)
-            if os.path.isfile(os.path.join(p, "bitcoin.conf")):
-                path = os.path.join(p, "bitcoin.conf")
-                break
-    if path is None:
-        raise Exception("Didn't find bitcoin.conf in standard folders")
-    with open(path, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
-    conf = {}
-    for line in lines:
-        arr = line.split("#")[0].split("=") # get rid of comments and get values
-        if len(arr) == 2:
-            k = arr[0].strip()
-            v = arr[1].strip()
-            if k.startswith("rpc"): #rpcuser, rpcpassword, rpcport
-                conf[k[3:]] = v
-            if k == "testnet" and v=="1" and "port" not in conf:
-                conf["port"] = RPC_PORTS["test"]
-            if k == "regtest" and v=="1" and "port" not in conf:
-                conf["port"] = RPC_PORTS["regtest"]
-    return conf
-
 def alias(name):
     name = name.replace(" ", "_")
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
@@ -92,8 +63,8 @@ class Specter:
         self.config = {
             "rpc": {
                 "autodetect": True,
-                "user": None,
-                "password": None,
+                "user": "",
+                "password": "",
                 "port": RPC_PORTS["main"],
                 "host": "localhost",        # localhost
                 "protocol": "http"          # https for the future
@@ -110,11 +81,6 @@ class Specter:
         self.check()
 
     def check(self):
-        # bitcoin.conf
-        try:
-            self.config["rpc"].update(load_bitcoin_conf()) # should rize an error if fails
-        except:
-            pass # not a big deal
 
         # config.json file
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):

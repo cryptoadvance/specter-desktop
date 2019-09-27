@@ -30,7 +30,7 @@ cd specter-desktop
 python3 server.py
 ```
 
-Your bitcoin node should have `rpcuser` and `rpcpassword` set in the `bitcoin.conf` file.
+If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
 
 ## A few screenshots
 
