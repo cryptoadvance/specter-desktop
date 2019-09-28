@@ -113,8 +113,7 @@ def autodetect_cli(port=None):
                 if int(cli.port) != port:
                     continue
             try:
-                print(cli.getmininginfo())
-                print("Yey! Bitcoin-cli found!")
+                cli.getmininginfo()
                 available_cli_arr.append(cli)
             except requests.exceptions.RequestException:
                 print("can't connect")

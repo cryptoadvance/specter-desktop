@@ -33,7 +33,6 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
 def get_cli(conf):
-    print(conf)
     if "user" not in conf or conf["user"]=="":
         conf["autodetect"] = True
     if conf["autodetect"]:
@@ -95,7 +94,6 @@ class Specter:
         deep_update(self.config, self.arg_config) # override loaded config
 
         self.cli = get_cli(self.config["rpc"])
-        print("CLI: ", self.cli)
         self._is_configured = (self.cli is not None)
         self._is_running = False
         if self._is_configured:
@@ -113,7 +111,7 @@ class Specter:
             self.wallets = WalletManager(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
         else:
             self.wallets.update(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
-            
+
         if self.devices is None:
             self.devices = DeviceManager(os.path.join(self.data_folder, "devices"))
         else:
@@ -146,7 +144,6 @@ class Specter:
         return r
 
     def update_rpc(self, **kwargs):
-        print(kwargs)
         need_update = False
         for k in kwargs:
             if self.config["rpc"][k] != kwargs[k]:
@@ -308,7 +305,7 @@ class WalletManager:
         loaded_wallets = self.cli.listwallets()
         loadable_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
         not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
-        print(not_loaded_wallets)
+        print("not loaded wallets:", not_loaded_wallets)
         for k in self._wallets:
             if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
@@ -449,7 +446,6 @@ class WalletManager:
         ]
         r = self.cli.createwallet(self.cli_path+al, True)
         r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
-        print(args)
         addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
         change_addr = self.cli.deriveaddresses(change_desc, [0, 1])[0]
         o["address"] = addr

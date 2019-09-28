@@ -464,29 +464,10 @@ def txonaddr(obj):
 
 ############### startup ##################
 
-def run_chrome(timeout):
-    t0 = time.time()
-    t = t0
-    r = None
-    url = "http://localhost:25441/"
-    while t < t0+10 or r is None:
-        try:
-            r = requests.get(url)
-        except:
-            time.sleep(0.2)
-    run_shell(["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome","--app=%s" % url])
-    os._exit(0) # stop server when chrome app is closed
-
 if __name__ == '__main__':
     debug = True
     specter = Specter(DATA_FOLDER)
     specter.check()
-    # also run chrome at start
-    if len(sys.argv) > 1 and sys.argv[-1]=="--app":
-        debug = False # to prevent new windows on reload
-        th = Thread(target=run_chrome, args=(10,))
-        th.start()
-
 
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
