@@ -10,7 +10,7 @@ def get_default_datadir():
     if sys.platform == 'darwin':
         datadir = os.path.join(os.environ['HOME'], "Library/Application Support/Bitcoin/")
     elif sys.platform == 'win32':
-        datadir = os.path.join(os.environ['HOME'], "Bitcoin")
+        datadir = os.path.join(os.environ['APPDATA'], "Bitcoin")
     else:
         datadir = os.path.join(os.environ['HOME'], ".bitcoin")
     return datadir
