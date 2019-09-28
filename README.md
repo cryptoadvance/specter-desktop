@@ -20,7 +20,7 @@ Clone the repo, install dependencies:
 
 ```
 git clone https://github.com/cryptoadvance/specter-desktop.git
-pip3 install flask flask_qrcode flask_socketio requests
+pip3 install flask flask_qrcode requests
 ```
 
 Run the server:

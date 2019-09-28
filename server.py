@@ -6,7 +6,6 @@ from threading import Thread
 
 from flask import Flask, render_template, request, redirect
 from flask_qrcode import QRcode
-from flask_socketio import SocketIO
 
 from helpers import normalize_xpubs, run_shell
 from descriptor import AddChecksum
