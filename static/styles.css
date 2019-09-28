@@ -52,6 +52,7 @@ tr.unconfirmed{
 .row{
 	display: flex;
 	flex-direction: row;
+	flex-shrink: 0;
 	/*flex-grow: 1;*/
 }
 .row.center{
@@ -186,6 +187,7 @@ nav .separator{
 	justify-content: center;
 	cursor: pointer;
 	flex-grow: 1;
+	min-height: 33px;
 }
 .btn:hover{
 	background: #405062;
