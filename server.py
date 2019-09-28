@@ -470,7 +470,7 @@ def txonaddr(obj):
 ############### startup ##################
 
 if __name__ == '__main__':
-    debug = True
+    debug = False
     specter = Specter(DATA_FOLDER)
     specter.check()
 

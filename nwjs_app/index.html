@@ -55,22 +55,23 @@ div{
 <script type="text/javascript">
   var err;
   let url = "http://localhost:25441/";
+  // window.location.href = url;
   setInterval( () => {
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.onreadystatechange = function() { 
         if(xmlHttp.status == 200 || xmlHttp.status == 302){
           window.location.href = url;
         }else{
-          document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+          // document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
         }
       }
       xmlHttp.onerror = function(e){
-        document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
-        console.log(xmlHttp);
-        err = xmlHttp;
+        // document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+        // console.log(xmlHttp);
+        // err = xmlHttp;
       }
       xmlHttp.open("GET", url, true); // true for asynchronous 
       xmlHttp.send(null);
-  },5000);
+  },1000);
 </script>
 </html>

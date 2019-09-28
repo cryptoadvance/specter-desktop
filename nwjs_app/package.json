@@ -1,6 +1,6 @@
 {
 	"name": "Specter Desktop",
-	"main": "index.html",
+	"main": "index.js",
 	"window": {
 		"width": 1200,
 		"height": 800,
