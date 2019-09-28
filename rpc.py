@@ -86,7 +86,6 @@ def get_configs(config=None):
     for cookie in config["cookies"]:
         o = {}
         o.update(default)
-        print(cookie)
         o.update(cookie)
         confs.append(o)
     return confs
@@ -97,7 +96,6 @@ def detect_cli(config=None):
     rpcconfs = get_configs(config)
     cli_arr = []
     for conf in rpcconfs:
-        print(conf)
         cli_arr.append(BitcoinCLI(**conf))
     return cli_arr
 

@@ -33,6 +33,7 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
 def get_cli(conf):
+    print(conf)
     if "user" not in conf or conf["user"]=="":
         conf["autodetect"] = True
     if conf["autodetect"]:
@@ -67,7 +68,7 @@ class Specter:
                 "autodetect": True,
                 "user": "",
                 "password": "",
-                "port": RPC_PORTS["main"],
+                "port": "",
                 "host": "localhost",        # localhost
                 "protocol": "http"          # https for the future
             },
@@ -78,7 +79,7 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.mkdir(data_folder)
 
-        self._info = { "chain": None, "last_chain": None }
+        self._info = { "chain": None }
         # health check: loads config and tests rpc
         self.check()
 
@@ -94,7 +95,7 @@ class Specter:
         deep_update(self.config, self.arg_config) # override loaded config
 
         self.cli = get_cli(self.config["rpc"])
-        print(self.cli)
+        print("CLI: ", self.cli)
         self._is_configured = (self.cli is not None)
         self._is_running = False
         if self._is_configured:
@@ -102,19 +103,17 @@ class Specter:
                 self._info = self.cli.getmininginfo()
                 self._is_running = True
             except:
-                # last_chain is used to manage wallets when can't reach bitcoin-cli
-                last_chain = self._info["chain"]
-                if "last_chain" in self._info and last_chain is None:
-                    last_chain = self.info["last_chain"]
-                self._info = { "chain": None, "last_chain": last_chain }
+                pass
+
+        if not self._is_running:
+            self._info["chain"] = None
 
         chain = self._info["chain"]
-        if chain is None:
-            chain = self._info["last_chain"]
-        if self.wallets is None:
+        if self.wallets is None or chain is None:
             self.wallets = WalletManager(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
         else:
             self.wallets.update(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
+            
         if self.devices is None:
             self.devices = DeviceManager(os.path.join(self.data_folder, "devices"))
         else:
@@ -147,6 +146,7 @@ class Specter:
         return r
 
     def update_rpc(self, **kwargs):
+        print(kwargs)
         need_update = False
         for k in kwargs:
             if self.config["rpc"][k] != kwargs[k]:
