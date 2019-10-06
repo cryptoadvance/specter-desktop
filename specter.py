@@ -401,8 +401,8 @@ class WalletManager:
                 descs[i] = "[%s%s]%s" % (key["fingerprint"], key["derivation"][1:], key["xpub"])
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
-        recv_desc = "multi({},{})".format(sigs_required, ",".join(recv_descs))
-        change_desc = "multi({},{})".format(sigs_required, ",".join(change_descs))
+        recv_desc = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
+        change_desc = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
         for el in arr[::-1]:
             recv_desc = "%s(%s)" % (el, recv_desc)
             change_desc = "%s(%s)" % (el, change_desc)
