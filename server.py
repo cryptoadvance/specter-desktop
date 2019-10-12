@@ -79,9 +79,9 @@ def settings():
         action = request.form['action']
 
         if action == "test":
-            test = specter.test_rpc(user=user, password=passwd, port=port, host=host)
+            test = specter.test_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
         if action == "save":
-            specter.update_rpc(user=user, password=passwd, port=port, host=host)
+            specter.update_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
             specter.check()
             return redirect("/")
     else:
