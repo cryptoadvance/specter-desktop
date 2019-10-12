@@ -25,9 +25,16 @@ pip3 install flask flask_qrcode requests
 
 Run the server:
 
+Linux, Mac, Windows PowerShell:
 ```
-cd specter-desktop
-python3 server.py
+./run.sh
+```
+
+Windows CMD:
+```
+set FLASK_APP=server
+set FLASK_ENV=development
+flask run --port=25441
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
