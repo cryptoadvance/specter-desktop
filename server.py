@@ -39,6 +39,9 @@ SINGLE_TYPES = {
 }
 
 
+specter = Specter(DATA_FOLDER)
+
+
 ################ routes ####################
 
 @app.route('/combine/', methods=['GET', 'POST'])
@@ -465,22 +468,3 @@ def txonaddr(wallet):
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
 
-
-############### startup ##################
-
-if __name__ == '__main__':
-    debug = False
-    specter = Specter(DATA_FOLDER)
-    specter.check()
-
-    # watch templates folder to reload when something changes
-    extra_dirs = ['templates']
-    extra_files = extra_dirs[:]
-    for extra_dir in extra_dirs:
-        for dirname, dirs, files in os.walk(extra_dir):
-            for filename in files:
-                filename = os.path.join(dirname, filename)
-                if os.path.isfile(filename):
-                    extra_files.append(filename)
-
-    app.run(port=25441, debug=debug, extra_files=extra_files)
