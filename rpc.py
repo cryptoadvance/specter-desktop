@@ -68,8 +68,8 @@ def get_configs(config=None):
         default["user"] = config["bitcoin.conf"]["rpcuser"]
     if "rpcpassword" in config["bitcoin.conf"]:
         default["passwd"] = config["bitcoin.conf"]["rpcpassword"]
-    if "rpchost" in config["bitcoin.conf"]:
-        default["host"] = config["bitcoin.conf"]["rpchost"]
+    if "rpcconnect" in config["bitcoin.conf"]:
+        default["host"] = config["bitcoin.conf"]["rpcconnect"]
     if "rpcport" in config["bitcoin.conf"]:
         default["port"] = int(config["bitcoin.conf"]["rpcport"])
     if "user" in default and "passwd" in default:
