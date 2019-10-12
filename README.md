@@ -25,7 +25,7 @@ pip3 install flask flask_qrcode requests
 
 Run the server:
 
-Linux, Mac, Windows PowerShell:
+Linux, Mac:
 ```
 ./run.sh
 ```
@@ -34,6 +34,13 @@ Windows CMD:
 ```
 set FLASK_APP=server
 set FLASK_ENV=development
+flask run --port=25441
+```
+
+Windows PowerShell:
+```
+$env:FLASK_APP = "server"
+$env:FLASK_ENV = "development"
 flask run --port=25441
 ```
 
