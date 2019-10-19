@@ -78,3 +78,7 @@ Started a new hidden service with the address of abcd1234efgh5678.onion
 ```
 
 Point a Tor browser at that onion address and you will have (reasonably?) secure access to your Specter Desktop from anywhere in the world!
+
+Each time Specter Desktop restarts the same onion address will be re-enabled.
+
+If you'd like to discard the existing onion address and force the creation of a new one, simply delete the `.tor_service_key` in the project root and restart Specter Desktop.
