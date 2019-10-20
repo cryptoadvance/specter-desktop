@@ -65,7 +65,12 @@ def index():
     specter.check()
     if len(specter.wallets) > 0:
         return redirect("/wallets/%s" % specter.wallets[specter.wallets.names()[0]]["alias"])
+
     # TODO: add onboarding process
+    if not specter.devices:
+        # For now: can't do anything until a device is registered
+        return redirect("/new_device/")
+
     return render_template("base.html", specter=specter, rand=rand)
 
 @app.route('/settings/', methods=['GET', 'POST'])
