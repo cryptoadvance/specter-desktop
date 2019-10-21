@@ -78,14 +78,10 @@
 			Devices
 		</div>
 		{% for device in specter.devices %}
-		{% if device_alias == device.alias %}
-		<a href="/devices/{{device.alias}}/" class="item active">
-		{% else %}
-		<a href="/devices/{{device.alias}}/" class="item">
-		{% endif %}
-			<img src="/static/img/{{device.type}}_icon.svg" width="18px">
-			<div>{{device.name}}<br><small>{{ device["keys"] | length}} keys</small></div>
-		</a>
+			<a href="/devices/{{device.alias}}/" class="item {% if device_alias == device.alias %} active {% endif %}">
+				<img src="/static/img/{{device.type|lower}}_icon.svg" width="18px">
+				<div>{{device.name}}<br><small>{{ device["keys"] | length}} keys</small></div>
+			</a>
 		{% endfor %}
 		<div class="item">
 			<a href="/new_device/" class="btn">

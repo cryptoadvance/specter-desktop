@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+
+
+{% block main %}
+<form method="POST">
+	<!-- <div class="spacer"></div> -->
+	{% if device %}
+	<h1>Adding keys to {{device["name"]}}</h1>
+	{% else %}
+	<h1>Add new hardware wallet</h1>
+	{% endif %}
+	<div class="card">
+	<form action="." method="POST">
+		<input type="hidden" id="type_id" name="type" />
+		<input type="hidden" id="path_id" name="path" />
+		{% if not device %}
+		<div>Name it &nbsp; &nbsp;<input type="text" id="device_name_id" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device"></div><br>
+		{% endif %}
+		<h2>Hardware wallets:</h2>
+
+		{% if not wallets %}
+			No hardware wallets detected.
+		{% endif %}
+
+		{% for wallet in wallets %}
+			<h3>{{ wallet.type }}</h3>
+			{% if wallet.type == 'keepkey' %}
+				{% if wallet.needs_pin_sent %}
+					<div id="unlock_keepkey">
+						<button id="unlock_with_pin_btn_{{ loop.index }}">unlock with pin</button>
+					</div>
+
+					<div id="keepkey_pin_entry_{{ loop.index }}" class="hidden">
+						<button class="pin_button" value="7">&nbsp;</button>
+						<button class="pin_button" value="8">&nbsp;</button>
+						<button class="pin_button" value="9">&nbsp;</button><br/>
+						<button class="pin_button" value="4">&nbsp;</button>
+						<button class="pin_button" value="5">&nbsp;</button>
+						<button class="pin_button" value="6">&nbsp;</button><br/>
+						<button class="pin_button" value="1">&nbsp;</button>
+						<button class="pin_button" value="2">&nbsp;</button>
+						<button class="pin_button" value="3">&nbsp;</button><br/>
+						<br/>
+						<button id="keepkey_send_pin_btn_{{ loop.index }}">submit</button>
+					</div>
+
+					<div id="unlocked_{{ loop.index }}" class="hidden">
+						Unlocked!
+
+						<button class="btn" id="add_device_{{ loop.index }}">Add device</button>
+					</div>
+				{% elif wallet.error %}
+					{# KeepKey uses 'error' field to convey 'KeepKey is locked' message so 
+						we can't assume an 'error' is actually a problem communicating with
+						the wallet #}
+					{{ wallet.error }}
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+	</form>
+	</div>
+	<div class="note">
+	</div>
+</form>
+{% endblock %}
+
+
+
+{% block scripts %}
+<script type="text/javascript">
+
+	var curType, curPath;
+	var curPin = "";
+
+	var pin_buttons = document.getElementsByClassName("pin_button");
+	for (var i = 0; i < pin_buttons.length; i++) {
+		pin_buttons[i].addEventListener("click", function(event){
+			event.preventDefault();
+			curPin += this.getAttribute("value");
+			console.log(curPin);
+		});
+	}
+
+
+	{% for wallet in wallets %}
+		{% if wallet.type == 'keepkey' %}
+			document.getElementById('unlock_with_pin_btn_{{ loop.index }}').addEventListener("click", async function(event){
+				event.preventDefault();
+				curType = "{{ wallet.type }}";
+				curPath = "{{ wallet.path }}";
+				var formData = new FormData();
+				formData.append("type", curType);
+				formData.append("path", curPath);
+
+				this.style.display = "none";
+
+				const response = await fetch(
+					'/hwi/start_unlock/',
+					{
+						method: 'POST',
+						body: formData
+   					}
+				);
+				const jsonResponse = await response.json();
+				console.log(jsonResponse);
+				if (jsonResponse.success) {
+					document.getElementById('keepkey_pin_entry_{{ loop.index }}').style.display = "block";
+				}
+			});
+		{% endif %}
+
+		document.getElementById('keepkey_send_pin_btn_{{ loop.index }}').addEventListener("click", async function(event) {
+			event.preventDefault();
+			document.getElementById('keepkey_pin_entry_{{ loop.index }}').style.display = "none";
+
+			var formData = new FormData();
+			formData.append("type", curType);
+			formData.append("path", curPath);
+			formData.append("pin", curPin);
+
+			const response = await fetch(
+				'/hwi/send_pin/',
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			const jsonResponse = await response.json();
+			console.log(jsonResponse);
+			if (jsonResponse.success) {
+				document.getElementById('unlocked_{{ loop.index }}').style.display = "block";
+			}
+			curPin = "";
+		});
+
+		document.getElementById('add_device_{{ loop.index }}').addEventListener("click", async function(event) {
+			event.preventDefault();
+			document.getElementById('add_device_{{ loop.index }}').style.display = "none";
+
+			var formData = new FormData();
+			formData.append("device_name", document.getElementById('device_name_id').value);
+			formData.append("type", curType);
+			formData.append("path", curPath);
+			for (var p in formData) {
+				console.log(p);
+			}
+
+			const response = await fetch(
+				'/hwi/new_device/',
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			const jsonResponse = await response.json();
+			console.log(jsonResponse);
+			if (jsonResponse.success) {
+				
+			}
+		});
+	{% endfor %}
+
+</script>
+{% endblock %}

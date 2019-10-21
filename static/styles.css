@@ -189,7 +189,7 @@ nav .separator{
 	flex-grow: 1;
 	min-height: 33px;
 }
-.btn:hover{
+.btn:hover, .pin_button:hover {
 	background: #405062;
 }
 .btn svg{
@@ -199,6 +199,19 @@ nav .separator{
 	stroke: #fff;
 	fill: #fff;
 }
+.pin_button {
+	background: #506072;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	margin: 4px 4px 4px 4px;
+	width: 40px;
+	height: 40px;
+	color: #fff;
+	font-size: 0.85em;
+	text-align: center;
+	cursor: pointer;
+}
+
 .footer{
 	display: flex;
 	flex-direction: column;
@@ -516,4 +529,7 @@ table .btn.hovering{
 }
 table tr:hover .btn.hovering{
 	visibility: visible;
+}
+.hidden {
+	display: none;
 }
