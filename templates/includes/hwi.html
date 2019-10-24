@@ -1,0 +1,163 @@
+{#
+    This include defines various popup modals to manage HWI interaction.
+    Handles all necessary Ajax calls to the server and maintains HWI wallet
+    state (to the extent possible on a given website page).
+
+    Assumes that the general-purpose overlay.html has already been included.
+#}
+
+<div id="hwi_include__loading" class="flex-center">
+    <img src="/static/img/loader_boxes.svg"/>
+</div>
+
+
+{# ====================== INITIALIZATION / UNLOCKING ======================= #}
+<div id="hwi_include__select_device">
+    <h1>Select Hardware Wallet</h1>
+    <div class="flex-center flex-column" id="hwi_include__select_device__content">
+        <button id="hwi_include__select_device__keepkey" class="btn flex-item">KeepKey</button>
+        <button id="hwi_include__select_device__ledger" class="btn flex-item">Ledger</button>
+        <button id="hwi_include__select_device__trezor" class="btn flex-item">Trezor</button>
+    </div>
+    <div class="hidden flex-center" id="hwi_include__select_device__instructions"></div>
+</div>
+
+
+<div id="hwi_include__enter_pin">
+    <h2>Enter PIN</h2>
+</div>
+
+
+
+{# ================================ SIGNING ================================ #}
+
+
+
+<script>
+
+    var hwiCurrentWallet;
+
+    function hwiSelectHWIDevice() {
+        showPageOverlay("hwi_include__select_device");
+    }
+
+
+    async function hwiDetectWallet(type, callback) {
+        /**
+            Tells the server to enumerate the connected HWI devices and find
+            one of the type specified.
+        **/
+        var formData = new FormData();
+        formData.append("type", "keepkey");
+
+        try {
+            const response = await fetch(
+                '/hwi/detect/',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            const jsonResponse = await response.json();
+            console.log(jsonResponse);
+            if (jsonResponse.success) {
+                console.log("keepkey found");
+                callback(jsonResponse);
+            } else {
+                // wait and retry
+                setTimeout(function() {
+                        console.log("Attempting again");
+                        hwiDetectWallet(type, callback);
+                    },
+                    3000
+                );
+            }
+        } catch(e) {
+            console.log("Caught error");
+            console.log(e);
+            callback({ success: false, error: e });
+        }
+    }
+
+
+    async function hwiPromptPin() {
+        /**
+            Tells the server to send the prompt_pin command to the device.
+            KeepKey and Trezor only.
+        **/
+        var formData = new FormData();
+        formData.append("type", hwiCurrentWallet.type);
+        formData.append("path", hwiCurrentWallet.path);
+
+        const response = await fetch(
+            '/hwi/prompt_pin/',
+            {
+                method: 'POST',
+                body: formData
+            }
+        );
+        const jsonResponse = await response.json();
+        console.log(jsonResponse);
+        return jsonResponse;
+    }
+
+
+    function hwiKeepKeyDetectedHandler(jsonResult) {
+        console.log("RESULT!")
+        console.log(jsonResult);
+        if (!jsonResult.success) {
+            alert(jsonResult.error);
+            var loader = document.getElementById("hwi_include__loading");
+            loader.style.display = "none";
+
+            return;
+        }
+        hwiCurrentWallet = jsonResult.wallet;
+
+        if (hwiCurrentWallet.needs_pin_sent) {
+            hwiPromptPin().then(async function(promptResult) {
+                if (promptResult.success) {
+                    hidePageOverlay("hwi_include__select_device");
+                    showPageOverlay("hwi_include__enter_pin");
+                } else {
+                    console.log(promptResult);
+                }
+            });
+
+        } else {
+            // Already unlocked
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+        // Handler when the DOM is fully loaded
+        initPageOverlay("hwi_include__select_device");
+        initPageOverlay("hwi_include__enter_pin");
+
+
+        // =================== FIND / INITIALIZE TARGET HARDWARE WALLET ===================
+        document.getElementById("hwi_include__select_device__keepkey").addEventListener("click", async function(e) {
+            e.preventDefault();
+
+            var loader = document.getElementById("hwi_include__loading");
+            var content = document.getElementById("hwi_include__select_device__content");
+            var instructions = document.getElementById("hwi_include__select_device__instructions");
+            content.style.display = "none";
+            instructions.textContent = "Plug in KeepKey. Detecting...";
+            instructions.style.display = "block";
+
+            console.log(instructions);
+
+            loader.style.display = "flex";
+            document.getElementById("hwi_include__select_device").appendChild(loader);
+
+            var detected = false;
+            hwiDetectWallet("keepkey", hwiKeepKeyDetectedHandler);
+        });
+
+
+
+    });
+
+
+</script>

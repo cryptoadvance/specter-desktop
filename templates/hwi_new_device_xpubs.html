@@ -3,6 +3,7 @@
 
 
 {% block main %}
+{% include "includes/hwi.html" %}
 <form method="POST">
 	<!-- <div class="spacer"></div> -->
 	{% if device %}
@@ -69,6 +70,12 @@
 
 {% block scripts %}
 <script type="text/javascript">
+
+    document.addEventListener("DOMContentLoaded", function(){
+        // Handler when the DOM is fully loaded
+        hwiSelectHWIDevice();
+    });
+
 
 	var curType, curPath;
 	var curPin = "";

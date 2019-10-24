@@ -4,7 +4,7 @@ import random, copy
 from collections import OrderedDict
 from threading import Thread
 
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, Blueprint, render_template, request, redirect, jsonify
 from flask_qrcode import QRcode
 
 from helpers import normalize_xpubs, run_shell
@@ -14,9 +14,6 @@ from rpc import BitcoinCLI, RPC_PORTS
 from specter import Specter, purposes, addrtypes
 from datetime import datetime
 import urllib
-
-from hwilib import commands as hwilib_commands
-from hwilib import base58
 
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
@@ -40,6 +37,11 @@ SINGLE_TYPES = {
     "p2sh-segwit": "P2SH_P2WPKH",
     "bech32": "P2WPKH"
 }
+
+
+
+from views.hwi import hwi_views
+app.register_blueprint(hwi_views, url_prefix='/hwi')
 
 
 ################ routes ####################
@@ -395,98 +397,6 @@ def new_device_xpubs(device_type):
     return render_template("new_device_xpubs.html", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=specter, rand=rand)
 
 
-@app.route('/hwi/new_device/', methods=['GET', 'POST'])
-def hwi_new_device_xpubs():
-    err = None
-    specter.check()
-    wallets = None
-
-    if request.method == 'POST':
-        try:
-            print(request.form)
-
-            device_name = request.form['device_name']
-            if device_name in specter.devices.names():
-                err = "Device with this name already exists"
-            
-            type = request.form.get("type")
-            path = request.form.get("path")
-
-            try:
-                client = hwilib_commands.get_client(type, path)
-                xpubs = ""
-
-                # Extract native and legacy Segwit xpubs and multisig xpub
-                master_xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, master_xpub)
-
-                # And testnet
-                master_xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, master_xpub)
-
-                print(xpubs)
-            except Exception as e:
-                print(e)
-                return jsonify(success=False, error=e)
-
-            normalized, parsed, failed = normalize_xpubs(xpubs)
-            if len(failed) > 0:
-                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-            if err is None:
-                print(normalized)
-                dev = specter.devices.add(name=device_name, device_type="HWI", keys=normalized)
-                return redirect("/devices/%s/" % dev["alias"])
-
-        except Exception as e:
-            print(e)
-
-    else:
-        # get default new name
-        name = "HWI"
-        device_name = name
-        device_type = "HWI"
-        i = 2
-        while device_name in specter.devices.names():
-            device_name = "%s %d" % (name, i)
-            i+=1
-
-        # Query USB for connected HW wallets
-        try:
-            wallets = hwilib_commands.enumerate()
-            print(wallets)
-        except Exception as e:
-            print(e)
-            wallets = None
-
-    return render_template(
-        "hwi_new_device_xpubs.html",
-        wallets=wallets,
-        device_name=device_name,
-        error=err,
-        specter=specter
-    )
-
 def get_key_meta(key):
     k = copy.deepcopy(key)
     k["chain"] = "Mainnet" if k["xpub"].startswith("xpub") else "Testnet"
@@ -529,56 +439,6 @@ def device(device_alias):
     device["keys"].sort(key=lambda x: x["chain"]+x["purpose"], reverse=True)
     return render_template("device.html", device_alias=device_alias, device=device, purposes=purposes, specter=specter, rand=rand)
 
-
-
-############### HWI support ##################
-
-@app.route('/hwi/enumerate/', methods=['GET'])
-def hwi_enumerate():
-    try:
-        wallets = hwilib_commands.enumerate()
-        print(wallets)
-    except Exception as e:
-        print(e)
-        wallets = None
-    return jsonify(wallets)
-
-
-@app.route('/hwi/start_unlock/', methods=['POST'])
-def hwi_start_unlock():
-    print(request.form)
-    type = request.form.get("type")
-    path = request.form.get("path")
-
-    try:
-        client = hwilib_commands.get_client(type, path)
-        if type == "keepkey":
-            # The KeepKey will randomize its pin entry matrix on the device
-            #   but the corresponding digits in the receiving UI always map
-            #   to:
-            #       7 8 9
-            #       4 5 6
-            #       1 2 3
-            status = hwilib_commands.prompt_pin(client)
-            return jsonify(status)
-    except Exception as e:
-        print(e)
-        return jsonify(success=False, error=e)
-
-
-@app.route('/hwi/send_pin/', methods=['POST'])
-def hwi_send_pin():
-    type = request.form.get("type")
-    path = request.form.get("path")
-    pin = request.form.get("pin")
-
-    try:
-        client = hwilib_commands.get_client(type, path)
-        status = hwilib_commands.send_pin(client, pin)
-        return jsonify(status)
-    except Exception as e:
-        print(e)
-        return jsonify(success=False, error=e)
 
 
 ############### filters ##################
@@ -625,6 +485,9 @@ if __name__ == '__main__':
     debug = True
     specter = Specter(DATA_FOLDER)
     specter.check()
+
+    # Attach specter instance so child views (e.g. hwi) can access it
+    app.specter = specter
 
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']

@@ -158,8 +158,11 @@ svg.core.regtest .main{
 svg.core.signet .main{
 	fill: #00CAF1;
 }
-small{
+small, .small{
 	font-size: 0.7em;
+}
+.medium{
+	font-size: 0.85em;
 }
 nav .separator{
 	text-transform: uppercase;
@@ -291,8 +294,22 @@ input:hover{
 	height: 50px;
 	min-height: 50px;
 }
+.hidden{
+	display: none;
+}
 .center{
 	text-align: center;
+}
+.flex-center{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.flex-column{
+	flex-direction: column;
+}
+.flex-item{
+	margin: 0.5em;
 }
 .small-card{
 	min-width: 220px;
