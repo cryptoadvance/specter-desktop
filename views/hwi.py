@@ -5,9 +5,9 @@ import subprocess
 import sys
 
 from flask import Flask, Blueprint, render_template, request, redirect, jsonify, current_app
+from helpers import normalize_xpubs
 from hwilib import commands as hwilib_commands
 from hwilib import base58
-
 
 rand = random.randint(0, 1e32) # to force style refresh
 
@@ -61,107 +61,83 @@ def _enumerate():
         return None
 
 
-@hwi_views.route('/new_device/', methods=['GET', 'POST'])
+@hwi_views.route('/extract_xpubs/', methods=['POST'])
+def hwi_extract_xpubs():
+    specter = get_spector_instance()
+
+    device_name = request.form['device_name']
+    if device_name in specter.devices.names():
+        return jsonify(success=False, error="Device with this name already exists")
+    
+    type = request.form.get("type")
+    path = request.form.get("path")
+
+    try:
+        client = hwilib_commands.get_client(type, path)
+        xpubs = ""
+
+        # Extract nested Segwit
+        master_xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, master_xpub)
+
+        # native Segwit
+        master_xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, master_xpub)
+
+        # Multisig nested Segwit
+        master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, master_xpub)
+
+        # Multisig native Segwit
+        master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, master_xpub)
+
+        # And testnet
+        master_xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
+        master_xpub = base58.xpub_main_2_test(master_xpub)
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, master_xpub)
+
+        master_xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
+        master_xpub = base58.xpub_main_2_test(master_xpub)
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, master_xpub)
+
+        master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
+        master_xpub = base58.xpub_main_2_test(master_xpub)
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, master_xpub)
+
+        master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
+        master_xpub = base58.xpub_main_2_test(master_xpub)
+        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, master_xpub)
+    except Exception as e:
+        print(e)
+        return jsonify(success=False, error=e)
+
+    normalized, parsed, failed = normalize_xpubs(xpubs)
+    if len(failed) > 0:
+        return jsonify(success=False, error="Failed to parse these xpubs:\n" + "\n".join(failed))
+
+    print(normalized)
+    device = specter.devices.add(name=device_name, device_type=type, keys=normalized)
+    return jsonify(success=True, device_alias=device["alias"])
+
+
+
+@hwi_views.route('/new_device/', methods=['GET'])
 def hwi_new_device_xpubs():
     err = None
     specter = get_spector_instance()
     specter.check()
-    wallets = []
-
-    if request.method == 'POST':
-        try:
-            print(request.form)
-
-            device_name = request.form['device_name']
-            if device_name in specter.devices.names():
-                err = "Device with this name already exists"
-            
-            type = request.form.get("type")
-            path = request.form.get("path")
-
-            try:
-                client = hwilib_commands.get_client(type, path)
-                xpubs = ""
-
-                # Extract nested Segwit
-                master_xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, master_xpub)
-
-                # native Segwit
-                master_xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, master_xpub)
-
-                # Multisig nested Segwit
-                master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, master_xpub)
-
-                # Multisig native Segwit
-                master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, master_xpub)
-
-                # And testnet
-                master_xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, master_xpub)
-
-                master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
-                master_xpub = base58.xpub_main_2_test(master_xpub)
-                master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-                xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, master_xpub)
-
-                print(xpubs)
-            except Exception as e:
-                print(e)
-                return jsonify(success=False, error=e)
-
-            normalized, parsed, failed = normalize_xpubs(xpubs)
-            if len(failed) > 0:
-                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-            if err is None:
-                print(normalized)
-                dev = specter.devices.add(name=device_name, device_type="HWI", keys=normalized)
-                return redirect("/devices/%s/" % dev["alias"])
-
-        except Exception as e:
-            print(e)
-
-    else:
-        # get default new name
-        name = "HWI"
-        device_name = name
-        device_type = "HWI"
-        i = 2
-        while device_name in specter.devices.names():
-            device_name = "%s %d" % (name, i)
-            i+=1
-
-        # # Query USB for connected HW wallets
-        # try:
-        #     wallets = hwilib_commands.enumerate()
-        #     print(wallets)
-        # except Exception as e:
-        #     print(e)
-        #     wallets = None
 
     return render_template(
         "hwi_new_device_xpubs.html",
-        wallets=wallets,
-        device_name=device_name,
         error=err,
         specter=specter,
         rand=rand
@@ -191,7 +167,12 @@ def detect():
             print(wallets)
             for wallet in wallets:
                 if wallet.get("type") == type:
-                    return jsonify(success=True, wallet=wallet)
+                    if type == "ledger" and wallet.get("error"):
+                        print(wallet.get("error"))
+                        return jsonify(success=False)
+                    else:
+                        return jsonify(success=True, wallet=wallet)
+            print("type %s not found" % type)
     except Exception as e:
         print(e)
 
