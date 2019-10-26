@@ -81,6 +81,10 @@ def hwi_extract_xpubs():
 
     try:
         client = get_hwi_client(type, path)
+
+        # Client will be configured for testnet if our Specter instance is
+        #   currently connected to testnet. This will prevent us from
+        #   getting mainnet xpubs unless we set is_testnet here:
         client.is_testnet = False
         xpubs = ""
 
