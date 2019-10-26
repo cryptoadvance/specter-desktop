@@ -298,7 +298,8 @@ def wallet_send(wallet_alias):
     specter.check()
     try:
         wallet = specter.wallets.get_by_alias(wallet_alias)
-    except:
+    except Exception as e:
+        print(e)
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     psbt = None
     address = ""
@@ -329,7 +330,7 @@ def wallet_settings(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     cc_file = None
-    if wallet.is_multisig():
+    if wallet.is_multisig:
         CC_TYPES = {
         'legacy': 'BIP45',
         'p2sh-segwit': 'P2WSH-P2SH',
@@ -451,7 +452,7 @@ def timedatetime(s):
 @app.template_filter('derivation')
 def derivation(wallet):
     s = "address=m/0/{}\n".format(wallet['address_index'])
-    if wallet.is_multisig():
+    if wallet.is_multisig:
         s += "type={}".format(MSIG_TYPES[wallet['address_type']])
         for k in wallet['keys']:
             s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
@@ -461,7 +462,7 @@ def derivation(wallet):
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
     # d = wallet["recv_descriptor"].split("#")[0].replace("*",str(wallet["address_index"]))
-    # if wallet.is_multisig():
+    # if wallet.is_multisig:
     #     for k in wallet["keys"]:
     #         d = d.replace(k["xpub"],"m")
     # else:

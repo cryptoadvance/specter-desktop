@@ -243,6 +243,10 @@ class DeviceManager:
         return len(self._devices.keys())
 
 class Device(dict):
+    QR_CODE_TYPES = ['specter', 'other']
+    SD_CARD_TYPES = ['coldcard', 'other']
+    HWI_TYPES = ['keepkey', 'ledger', 'trezor']
+
     def __init__(self, d, manager=None):
         self.manager = manager
         self.update(d)
@@ -417,7 +421,7 @@ class WalletManager:
             "keys": keys,
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
-            "devices": [device["name"] for device in devices],
+            "devices": [],
             "address_type": addrtypes[key_type],
             "address_index": 0,
             "keypool": WALLET_CHUNK,
@@ -426,6 +430,11 @@ class WalletManager:
             "change_address": None,
             "change_keypool": WALLET_CHUNK,
         }
+        for device in devices:
+            o["devices"].append({
+                "name": device["name"],
+                "type": device["type"]
+            })
         self._wallets[al] = o
         args = [
             {
@@ -491,6 +500,26 @@ class Wallet(dict):
         self.update(self._dict)
         self.manager.update()
 
+    def _uses_device_type(self, type_list):
+        if not self.is_multisig:
+            return self.get("device_type") in type_list
+        else:
+            for device in self.get("devices"):
+                if device["type"] in type_list:
+                    return True
+        return False
+
+    @property
+    def uses_qrcode_device(self):
+        return self._uses_device_type(Device.QR_CODE_TYPES)
+    @property
+    def uses_sdcard_device(self):
+        return self._uses_device_type(Device.SD_CARD_TYPES)
+    @property
+    def uses_hwi_device(self):
+        return self._uses_device_type(Device.HWI_TYPES)
+
+    @property
     def is_multisig(self):
         return "sigs_required" in self
 
@@ -628,7 +657,7 @@ class Wallet(dict):
         # adding xpub fields for coldcard
         cc_psbt = PSBT()
         cc_psbt.deserialize(b64psbt)
-        if self.is_multisig():
+        if self.is_multisig:
             for k in self._dict["keys"]:
                 key = b'\x01'+helpers.decode_base58(k["xpub"])
                 value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
@@ -663,4 +692,4 @@ if __name__ == '__main__':
     # print(w.getbalance("*", 0, True))
     # for v in specter.devices:
     #     print(v)
-        # print(v.is_multisig())
+        # print(v.is_multisig)

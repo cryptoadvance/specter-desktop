@@ -244,7 +244,16 @@
     }
 
 
-    function beginDetectWallet(type, instructionText) {
+    function beginDetectWallet(type) {
+        var instructionText;
+        if (type == "keepkey") {
+            instructionText = "Plug in KeepKey.";
+        } else if (type == "ledger") {
+            instructionText = "Plug in Ledger, unlock, and open the Bitcoin app.";
+        } else if (type == "trezor") {
+            instructionText = "Plug in Trezor.";
+        }
+
         // Might not be shown yet
         showPageOverlay("hwi_include__select_device");
 
@@ -261,11 +270,6 @@
         hwiDetectWallet(type, hwiWalletDetectedHandler);
     }
 
-    function beginDetectKeepKey() { beginDetectWallet("keepkey", "Plug in KeepKey."); }
-    function beginDetectLedger() { beginDetectWallet("ledger", "Plug in Ledger, unlock, and open the Bitcoin app."); }
-    function beginDetectTrezor() { beginDetectWallet("trezor", "Plug in Trezor."); }
-
-
 
     document.addEventListener("DOMContentLoaded", function(){
         // Handler when the DOM is fully loaded
@@ -277,15 +281,15 @@
         // ============= FIND / INITIALIZE TARGET HARDWARE WALLET =============
         document.getElementById("hwi_include__select_device__keepkey").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectKeepKey();
+            beginDetectWallet("keepkey");
         });
         document.getElementById("hwi_include__select_device__ledger").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectLedger();
+            beginDetectWallet("ledger");
         });
         document.getElementById("hwi_include__select_device__trezor").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectTrezor();
+            beginDetectWallet("trezor");
         });
 
 
