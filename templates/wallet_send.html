@@ -67,7 +67,7 @@
 	<!-- because coldcard psbt is the most complete (includes xpubs) -->
 	<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
 {% endif %}
-<div class="log"><b id="sigscount">0</b> signatures aquired</div>
+<div class="log"><b id="sigscount">0</b> signatures acquired</div>
 
 {% if wallet.device_type not in ['keepkey', 'ledger', 'trezor'] %}
 	<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>

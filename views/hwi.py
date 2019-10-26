@@ -81,6 +81,7 @@ def hwi_extract_xpubs():
 
     try:
         client = get_hwi_client(type, path)
+        client.is_testnet = False
         xpubs = ""
 
         # Extract nested Segwit
@@ -104,6 +105,7 @@ def hwi_extract_xpubs():
         xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, master_xpub)
 
         # And testnet
+        client.is_testnet = True
         master_xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
         master_xpub = base58.xpub_main_2_test(master_xpub)
         master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
@@ -231,7 +233,6 @@ def hwi_sign_tx():
 
     try:
         client = get_hwi_client(type, path)
-        print(get_spector_instance().chain)
         status = hwilib_commands.signtx(client, psbt)
         print(status)
         return jsonify(status)
