@@ -20,7 +20,7 @@ Clone the repo, install dependencies:
 
 ```
 git clone https://github.com/cryptoadvance/specter-desktop.git
-pip3 install -r requirements.txt
+pip3 install flask flask_qrcode requests
 ```
 
 Run the server:
@@ -57,7 +57,3 @@ If your Bitcoin Core is using a default data folder the app should detect it aut
 ### Configuration
 
 ![](screenshots/bitcoin-rpc.jpg)
-
-
-## Make Specter Desktop available externally over Tor
-see: [tor/README.md](tor/README.md)
