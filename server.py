@@ -15,6 +15,12 @@ from specter import Specter, purposes, addrtypes
 from datetime import datetime
 import urllib
 
+from pathlib import Path
+env_path = Path('.') / '.flaskenv'
+from dotenv import load_dotenv
+load_dotenv(env_path)
+
+
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
     static_folder = os.path.join(sys._MEIPASS, 'static')
@@ -488,4 +494,11 @@ if __name__ == '__main__':
                 if os.path.isfile(filename):
                     extra_files.append(filename)
 
-    app.run(port=25441, debug=debug, extra_files=extra_files)
+    if os.getenv('CONNECT_TOR', False):
+        from tor import tor_util
+        tor_util.run_on_hidden_service(app, port=os.getenv('PORT'), debug=debug, extra_files=extra_files)
+    else:
+        app.run(port=os.getenv('PORT'), debug=debug, extra_files=extra_files)
+
+
+
