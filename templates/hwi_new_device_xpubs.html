@@ -3,7 +3,9 @@
 
 
 {% block main %}
+
 {% include "includes/hwi.html" %}
+
 <form method="POST">
 	<!-- <div class="spacer"></div> -->
 	{% if device %}
@@ -16,7 +18,7 @@
 			<input type="hidden" id="type_id" name="type" />
 			<input type="hidden" id="path_id" name="path" />
 			<div id="connect_container">
-				<h2>Connect hardware wallet</h2>
+				<h2>Connect USB wallet</h2>
 				<br/>
 				<button class="btn" id="connect_btn">Begin</button>
 			</div>

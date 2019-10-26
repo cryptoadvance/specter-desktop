@@ -41,6 +41,13 @@ def get_spector_instance():
     return current_app.specter
 
 
+def get_hwi_client(type, path):
+    is_test = 'test' in get_spector_instance().chain
+    client = hwilib_commands.get_client(type, path)
+    client.is_testnet = is_test
+    return client
+
+
 def _enumerate():
     try:
         # Have to call out to the installed 'hwi' CLI rather than directly calling
@@ -73,7 +80,7 @@ def hwi_extract_xpubs():
     path = request.form.get("path")
 
     try:
-        client = hwilib_commands.get_client(type, path)
+        client = get_hwi_client(type, path)
         xpubs = ""
 
         # Extract nested Segwit
@@ -129,7 +136,6 @@ def hwi_extract_xpubs():
     return jsonify(success=True, device_alias=device["alias"])
 
 
-
 @hwi_views.route('/new_device/', methods=['GET'])
 def hwi_new_device_xpubs():
     err = None
@@ -156,7 +162,6 @@ def hwi_enumerate():
     return jsonify(wallets)
 
 
-
 @hwi_views.route('/detect/', methods=['POST'])
 def detect():
     type = request.form.get("type")
@@ -179,7 +184,6 @@ def detect():
     return jsonify(success=False)
 
 
-
 @hwi_views.route('/prompt_pin/', methods=['POST'])
 def hwi_prompt_pin():
     print(request.form)
@@ -194,7 +198,7 @@ def hwi_prompt_pin():
             #       7 8 9
             #       4 5 6
             #       1 2 3
-            client = hwilib_commands.get_client(type, path)
+            client = get_hwi_client(type, path)
             status = hwilib_commands.prompt_pin(client)
             return jsonify(success=True, status=status)
         else:
@@ -211,8 +215,25 @@ def hwi_send_pin():
     pin = request.form.get("pin")
 
     try:
-        client = hwilib_commands.get_client(type, path)
+        client = get_hwi_client(type, path)
         status = hwilib_commands.send_pin(client, pin)
+        return jsonify(status)
+    except Exception as e:
+        print(e)
+        return jsonify(success=False, error=e)
+
+
+@hwi_views.route('/sign_tx/', methods=['POST'])
+def hwi_sign_tx():
+    type = request.form.get("type")
+    path = request.form.get("path")
+    psbt = request.form.get("psbt")
+
+    try:
+        client = get_hwi_client(type, path)
+        print(get_spector_instance().chain)
+        status = hwilib_commands.signtx(client, psbt)
+        print(status)
         return jsonify(status)
     except Exception as e:
         print(e)

@@ -54,6 +54,7 @@ def combine():
         psbt1 = d['psbt1'] # request.args.get('psbt1')
         psbt = specter.combine([psbt0, psbt1])
         raw = specter.finalize(psbt)
+        print(raw)
         if "hex" in raw:
             specter.broadcast(raw["hex"])
         return json.dumps(raw)

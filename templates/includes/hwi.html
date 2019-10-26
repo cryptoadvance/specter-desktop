@@ -13,7 +13,7 @@
 
 {# ====================== INITIALIZATION / UNLOCKING ======================= #}
 <div id="hwi_include__select_device" class="hidden">
-    <h1>Select Hardware Wallet</h1>
+    <h1>Select USB Wallet</h1>
     <div class="flex-center flex-column" id="hwi_include__select_device__content">
         <button id="hwi_include__select_device__keepkey" class="btn flex-item">KeepKey</button>
         <button id="hwi_include__select_device__ledger" class="btn flex-item">Ledger</button>
@@ -50,7 +50,7 @@
 
 
 <div id="hwi_include__unlocked" class="hidden">
-    <h2>Hardware Wallet Unlocked</h2>
+    <h2>USB Wallet Unlocked</h2>
     <div id="hwi_include__unlocked__content" class="flex-center flex-column">
         <div>
             <br/>
@@ -196,6 +196,37 @@
     }
 
 
+    async function hwiSendPsbt(psbt) {
+        /**
+            Tells the server to enumerate the connected HWI devices and find
+            one of the type specified.
+        **/
+        var formData = new FormData();
+        formData.append("type", hwiCurrentWallet.type);
+        formData.append("path", hwiCurrentWallet.path);
+        formData.append("psbt", psbt);
+
+        try {
+            const response = await fetch(
+                '/hwi/sign_tx/',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            const jsonResponse = await response.json();
+            console.log(jsonResponse);
+            return jsonResponse;
+
+        } catch(e) {
+            console.log("Caught error");
+            console.log(e);
+            return { success: false, error: e };
+        }
+    }
+
+
+
     function hwiTypeToDisplayName(type) {
         if (type == "keepkey") {
             return "KeepKey";
@@ -213,6 +244,29 @@
     }
 
 
+    function beginDetectWallet(type, instructionText) {
+        // Might not be shown yet
+        showPageOverlay("hwi_include__select_device");
+
+        var loader = document.getElementById("hwi_include__loading");
+        var content = document.getElementById("hwi_include__select_device__content");
+        var instructions = document.getElementById("hwi_include__select_device__instructions");
+        content.style.display = "none";
+        instructions.textContent = instructionText + " Detecting...";
+        instructions.style.display = "block";
+
+        loader.style.display = "flex";
+        document.getElementById("hwi_include__select_device").appendChild(loader);
+
+        hwiDetectWallet(type, hwiWalletDetectedHandler);
+    }
+
+    function beginDetectKeepKey() { beginDetectWallet("keepkey", "Plug in KeepKey."); }
+    function beginDetectLedger() { beginDetectWallet("ledger", "Plug in Ledger, unlock, and open the Bitcoin app."); }
+    function beginDetectTrezor() { beginDetectWallet("trezor", "Plug in Trezor."); }
+
+
+
     document.addEventListener("DOMContentLoaded", function(){
         // Handler when the DOM is fully loaded
         initPageOverlay("hwi_include__select_device");
@@ -221,32 +275,17 @@
 
 
         // ============= FIND / INITIALIZE TARGET HARDWARE WALLET =============
-        function beginDetectWallet(type, instructionText) {
-            var loader = document.getElementById("hwi_include__loading");
-            var content = document.getElementById("hwi_include__select_device__content");
-            var instructions = document.getElementById("hwi_include__select_device__instructions");
-            content.style.display = "none";
-            instructions.textContent = instructionText + " Detecting...";
-            instructions.style.display = "block";
-
-            console.log(instructions);
-
-            loader.style.display = "flex";
-            document.getElementById("hwi_include__select_device").appendChild(loader);
-
-            hwiDetectWallet(type, hwiWalletDetectedHandler);
-        }
         document.getElementById("hwi_include__select_device__keepkey").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectWallet("keepkey", "Plug in KeepKey.");
+            beginDetectKeepKey();
         });
         document.getElementById("hwi_include__select_device__ledger").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectWallet("ledger", "Plug in Ledger, unlock, and open the Bitcoin app.");
+            beginDetectLedger();
         });
         document.getElementById("hwi_include__select_device__trezor").addEventListener("click", async function(e) {
             e.preventDefault();
-            beginDetectWallet("trezor", "Plug in Trezor.");
+            beginDetectTrezor();
         });
 
 

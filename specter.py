@@ -344,6 +344,7 @@ class WalletManager:
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
             "device": device["name"],
+            "device_type": device["type"],
             "address_type": addrtypes[key_type],
             "address_index": 0,
             "keypool": WALLET_CHUNK,

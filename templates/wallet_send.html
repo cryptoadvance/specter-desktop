@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 {% block main %}
+
+{% include "includes/hwi.html" %}
+
+<style>
+	.hwi_container{
+		margin-bottom: 2em;
+	}
+</style>
 <h1>{{wallet.name}}</h1>
 <div class="row">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
@@ -27,27 +35,50 @@
 <br>
 {% else %}
 <div>Sending <b>{{amount}}</b> BTC to <b>{{address}}</b><br><br></div>
-<div class="row" style="min-height: 400px;">
-<!-- 	{% set chunk = 700 %}
-	{%for i in range( (psbt["base64"] | length)//chunk+1)%}
-	<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
-	{%endfor%}
- -->
 
-	<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px"/>
- </div>
-<!-- because coldcard psbt is the most complete (includes xpubs) -->
-<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
+{% if wallet.device_type in ['keepkey', 'ledger', 'trezor'] %}
+	<div class="hwi_container flex-center flex-column">
+		Sign transaction with your {{ wallet.device }}:<br/>
+		<br/>
+		<button class="btn" id="hwi_sign_btn">Begin</button>
+	</div>
+
+
+	<div id="hwi_sign_container" class="flex-center flex-column hidden">
+		<h2>Sign Transaction</h2>
+		<div>
+			Sending transaction to {{ wallet.device }}
+		</div>
+		<div class="flex-center">
+		    <img src="/static/img/loader_boxes.svg"/>
+		</div>
+	</div>
+
+{% else %}
+	<div class="row" style="min-height: 400px;">
+	<!-- 	{% set chunk = 700 %}
+		{%for i in range( (psbt["base64"] | length)//chunk+1)%}
+		<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
+		{%endfor%}
+	 -->
+
+		<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px"/>
+	 </div>
+	<!-- because coldcard psbt is the most complete (includes xpubs) -->
+	<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
+{% endif %}
 <div class="log"><b id="sigscount">0</b> signatures aquired</div>
-<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
-<br>
-<br><a class="btn centered" id="scanme">Scan signed transaction</a>
-<br>
-<div class="row">
-	<input type="file" id="file" class="inputfile"/>
-	<label for="file" class="btn centered">Upload signed transaction</label>
-</div>
 
+{% if wallet.device_type not in ['keepkey', 'ledger', 'trezor'] %}
+	<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+	<br>
+	<br><a class="btn centered" id="scanme">Scan signed transaction</a>
+	<br>
+	<div class="row">
+		<input type="file" id="file" class="inputfile"/>
+		<label for="file" class="btn centered">Upload signed transaction</label>
+	</div>
+{% endif %}
 
 {% endif %}
 </form>
@@ -60,7 +91,47 @@
 	<video muted playsinline id="qr-video" class="video"></video>
 </div>
 <script type="module">
+
+{# TODO: Sort out various if/else blocks #}
 {% if psbt %}
+	{% if wallet.device_type in ['keepkey', 'ledger', 'trezor'] %}
+	    document.addEventListener("DOMContentLoaded", function(){
+	    	initPageOverlay("hwi_sign_container");
+
+		    document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
+		        e.preventDefault();
+
+		        {% if wallet.device_type == 'keepkey' %}
+			        beginDetectKeepKey();
+
+		        {% elif wallet.device_type == 'ledger' %}
+			        beginDetectLedger();
+
+		        {% elif wallet.device_type == 'trezor' %}
+			        beginDetectTrezor();
+
+		       	{% endif %}
+
+		    });
+
+
+		    document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
+		        e.preventDefault();
+		        showPageOverlay("hwi_sign_container");
+
+		        const psbt = "{{ psbt['base64'] }}";
+		        var jsonResponse = await hwiSendPsbt(psbt);
+		        if (jsonResponse.psbt !== "undefined") {
+			        combine(jsonResponse.psbt);
+			    } else {
+			    	alert(jsonResponse);
+			    }
+
+		        hidePageOverlay("hwi_sign_container");
+		    });
+		});
+	{% endif %}
+
 	let psbt0 = "{{psbt['base64']}}";
 	let sigscount = 0;
 
@@ -97,23 +168,27 @@
 		// xmlHttp.send(null);
 	}
 
-	var el = document.getElementById("file");
+	{% if wallet.device_type not in ['keepkey', 'ledger', 'trezor'] %}
+		var el = document.getElementById("file");
 
-	el.addEventListener("change", (e) => {
-		let files = el.files;
-	  	console.log(files);
-	  	for(let i=0; i<files.length; i++){
-	  		console.log(files[i].name);
-			let reader = new FileReader();
-	        reader.onload = function(e) {
-	            let str = btoa(reader.result);
-	            combine(str);
-	        }
-	        reader.readAsBinaryString(files[i]);
-	  	}
-	});
+		el.addEventListener("change", (e) => {
+			let files = el.files;
+		  	console.log(files);
+		  	for(let i=0; i<files.length; i++){
+		  		console.log(files[i].name);
+				let reader = new FileReader();
+		        reader.onload = function(e) {
+		            let str = btoa(reader.result);
+		            combine(str);
+		        }
+		        reader.readAsBinaryString(files[i]);
+		  	}
+		});
+	{% endif %}
 
 {% endif %}
+
+{% if wallet.device_type not in ['keepkey', 'ledger', 'trezor'] %}
 	import QrScanner from "/static/qr/qr-scanner.min.js";
 	QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
 
@@ -122,27 +197,27 @@
 	const scanner = new QrScanner(video, result => {
 		scanner.stop();
 		document.getElementById("popup").style.display = 'none';
-{% if not psbt %}
-		let addr = result;
-		if(addr.indexOf("bitcoin:") >= 0){
-			addr = addr.substr(addr.indexOf("bitcoin:")+8);
-		}
-		let arr = addr.split("?");
-		addr = arr[0]
-		document.getElementById("address").value = addr;
-		if(arr.length > 1){
-			arr = arr[1].split("&");
-			arr.forEach((e)=>{
-				if(e.startsWith("amount=")){
-					document.getElementById("amount").value = parseFloat(e.substr(7));
-				}
-			});
-		}
-{% else %}
+		{% if not psbt %}
+			let addr = result;
+			if(addr.indexOf("bitcoin:") >= 0){
+				addr = addr.substr(addr.indexOf("bitcoin:")+8);
+			}
+			let arr = addr.split("?");
+			addr = arr[0]
+			document.getElementById("address").value = addr;
+			if(arr.length > 1){
+				arr = arr[1].split("&");
+				arr.forEach((e)=>{
+					if(e.startsWith("amount=")){
+						document.getElementById("amount").value = parseFloat(e.substr(7));
+					}
+				});
+			}
+		{% else %}
 
-		combine(result);
+			combine(result);
 
-{% endif %}
+		{% endif %}
 	});
 	document.getElementById("scanme").addEventListener("click", function(){
 		document.getElementById("popup").style.display = 'flex';
@@ -152,5 +227,7 @@
 		document.getElementById("popup").style.display = 'none';
 		scanner.stop();
 	});
+{% endif %}
+
 </script>
 {% endblock %}
