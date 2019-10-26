@@ -84,47 +84,42 @@ def hwi_extract_xpubs():
         client.is_testnet = False
         xpubs = ""
 
-        # Extract nested Segwit
-        master_xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
+        master_xpub = client.get_pubkey_at_path('m/0')['xpub']
         master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, master_xpub)
+
+        # Extract nested Segwit
+        xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
+        xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, xpub)
 
         # native Segwit
-        master_xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
+        xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, xpub)
 
         # Multisig nested Segwit
-        master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
+        xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, xpub)
 
         # Multisig native Segwit
-        master_xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
+        xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, xpub)
 
         # And testnet
         client.is_testnet = True
-        master_xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
-        master_xpub = base58.xpub_main_2_test(master_xpub)
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
+        xpub = base58.xpub_main_2_test(xpub)
+        xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, xpub)
 
-        master_xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
-        master_xpub = base58.xpub_main_2_test(master_xpub)
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
+        xpub = base58.xpub_main_2_test(xpub)
+        xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, xpub)
 
-        master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
-        master_xpub = base58.xpub_main_2_test(master_xpub)
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
+        xpub = base58.xpub_main_2_test(xpub)
+        xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, xpub)
 
-        master_xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
-        master_xpub = base58.xpub_main_2_test(master_xpub)
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
-        xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, master_xpub)
+        xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
+        xpub = base58.xpub_main_2_test(xpub)
+        xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, xpub)
     except Exception as e:
         print(e)
         return jsonify(success=False, error=e)
