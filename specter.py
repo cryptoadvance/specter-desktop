@@ -584,7 +584,7 @@ class Wallet(dict):
         desc = self["recv_descriptor"] if not change else self["change_descriptor"]
         args = [
             {
-                "desc": self["recv_descriptor"],
+                "desc": desc,
                 "internal": change, 
                 "range": [start, end], 
                 "timestamp": "now", 
