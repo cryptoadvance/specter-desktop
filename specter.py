@@ -502,7 +502,7 @@ class Wallet(dict):
                 index = self._dict["change_index"]
                 self._dict["change_address"] = self.cli.deriveaddresses(self._dict["change_descriptor"], [index, index+1])[0]
                 if index == self._dict["change_keypool"]-1:
-                    self._dict["change_keypool"] = self.keypoolrefill(self._dict["change_keypool"])
+                    self._dict["change_keypool"] = self.keypoolrefill(self._dict["change_keypool"], change=True)
         else:
             if "change_index" not in self._dict:
                 self._dict["change_index"] = 0
