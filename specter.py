@@ -319,12 +319,27 @@ class WalletManager:
     def names(self):
         return list(self._wallets.keys())
 
-    def create_simple(self, name, key_type, key, device):
+    def _get_intial_wallet_dict(self, name):
         al = alias(name)
         i = 2
         while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)):
             al = alias("%s %d" % (name, i))
             i+=1
+        dic = {
+            "alias": al,
+            "fullpath": os.path.join(self.working_folder, "%s.json" % al),
+            "name": name,
+            "address_index": 0,
+            "keypool": 0,
+            "address": None,
+            "change_index": 0,
+            "change_address": None,
+            "change_keypool": 0,
+        }
+        return dic
+
+    def create_simple(self, name, key_type, key, device):
+        o = self._get_intial_wallet_dict(name)
         arr = key_type.split("-")
         desc = key["xpub"]
         if key["derivation"] is not None:
@@ -336,62 +351,31 @@ class WalletManager:
             change_desc = "%s(%s)" % (el, change_desc)
         recv_desc = AddChecksum(recv_desc)
         change_desc = AddChecksum(change_desc)
-        o = {
+        o.update({
             "type": "simple", 
-            "name": name,
             "description": purposes[key_type],
             "key": key,
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
             "device": device["name"],
             "address_type": addrtypes[key_type],
-            "address_index": 0,
-            "keypool": WALLET_CHUNK,
-            "address": None,
-            "change_index": 0,
-            "change_address": None,
-            "change_keypool": WALLET_CHUNK,
-        }
-        self._wallets[al] = o
-        args = [
-            {
-                "desc": recv_desc, 
-                "internal": False, 
-                "range": [0, WALLET_CHUNK], 
-                "timestamp": "now", 
-                "keypool": True, 
-                "watchonly": True
-            }, 
-            {
-                "desc": change_desc, 
-                "internal": True, 
-                "range": [0, WALLET_CHUNK], 
-                "timestamp": "now", 
-                "keypool": True, 
-                "watchonly": True
-            }
-        ]
-        r = self.cli.createwallet(self.cli_path+al, True)
-        r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
-        addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
-        change_addr = self.cli.deriveaddresses(change_desc, [0, 1])[0]
-        o["address"] = addr
-        o["change_address"] = change_addr
+        })
+        # add wallet to internal dict
+        self._wallets[o["alias"]] = o
+        # create a wallet in Bitcoin Core
+        r = self.cli.createwallet(self.cli_path+o["alias"], True)
+        # save wallet file to disk
         if self.working_folder is not None:
-            fullpath = os.path.join(self.working_folder, "%s.json" % al)
-            with open(fullpath, "w+") as f:
+            with open(o["fullpath"], "w+") as f:
                 f.write(json.dumps(o, indent=4))
-            o["alias"] = al
-            o["fullpath"] = fullpath
+        # update myself - loads wallet files
         self.update()
-        return Wallet(o, self)
+        # get Wallet class instance
+        w = Wallet(o, self)
+        return w
 
     def create_multi(self, name, sigs_required, key_type, keys, devices):
-        al = alias(name)
-        i = 2
-        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)):
-            al = alias("%s %d" % (name, i))
-            i+=1
+        o = self._get_intial_wallet_dict(name)
         # TODO: refactor, ugly
         arr = key_type.split("-")
         descs = [key["xpub"] for key in keys]
@@ -408,9 +392,8 @@ class WalletManager:
             change_desc = "%s(%s)" % (el, change_desc)
         recv_desc = AddChecksum(recv_desc)
         change_desc = AddChecksum(change_desc)
-        o = {
+        o.update({
             "type": "multisig",
-            "name": name,
             "description": "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]),
             "sigs_required": sigs_required,
             "keys": keys,
@@ -418,43 +401,20 @@ class WalletManager:
             "change_descriptor": change_desc,
             "devices": [device["name"] for device in devices],
             "address_type": addrtypes[key_type],
-            "address_index": 0,
-            "keypool": WALLET_CHUNK,
-            "address": None,
-            "change_index": 0,
-            "change_address": None,
-            "change_keypool": WALLET_CHUNK,
-        }
-        self._wallets[al] = o
-        args = [
-            {
-                "desc": recv_desc, 
-                "internal": False, 
-                "range": [0, o["keypool"]], 
-                "timestamp": "now", 
-                "keypool": True, 
-                "watchonly": True
-            }, 
-            {
-                "desc": change_desc, 
-                "internal": True, 
-                "range": [0, o["keypool"]], 
-                "timestamp": "now", 
-                "keypool": True, 
-                "watchonly": True
-            }
-        ]
-        r = self.cli.createwallet(self.cli_path+al, True)
-        r = self.cli.importmulti(args, {"rescan": False}, wallet=self.cli_path+al, timeout=120)
-        addr = self.cli.deriveaddresses(recv_desc, [0, 1])[0]
-        change_addr = self.cli.deriveaddresses(change_desc, [0, 1])[0]
-        o["address"] = addr
-        o["change_address"] = change_addr
+        })
+        # add wallet to internal dict
+        self._wallets[o["alias"]] = o
+        # create a wallet in Bitcoin Core
+        r = self.cli.createwallet(self.cli_path+o["alias"], True)
+        # save wallet file to disk
         if self.working_folder is not None:
-            with open(os.path.join(self.working_folder, "%s.json" % al), "w+") as f:
+            with open(o["fullpath"], "w+") as f:
                 f.write(json.dumps(o, indent=4))
+        # update myself - loads wallet files
         self.update()
-        return self[name]
+        # get Wallet class instance
+        w = Wallet(o, self)
+        return w
 
     def __getitem__(self, name):
         return Wallet(self._wallets[name], manager=self)
@@ -482,13 +442,20 @@ class Wallet(dict):
         self.cli_path = manager.cli_path
         self.cli = manager.cli.wallet(self.cli_path+self["alias"])
         self._dict = d
+        # check if address is known and derive if not
+        # address derivation will also refill the keypool if necessary
+        if self._dict["address"] is None:
+            self._dict["address"] = self.get_address(0)
+        if self._dict["change_address"] is None:
+            self._dict["change_address"] = self.get_address(0, change=True)
         self.getdata()
 
-    def _commit(self):
+    def _commit(self, update_manager=True):
         with open(self["fullpath"], "w") as f:
             f.write(json.dumps(self._dict, indent=4))
         self.update(self._dict)
-        self.manager.update()
+        if update_manager:
+            self.manager.update()
 
     def is_multisig(self):
         return "sigs_required" in self
@@ -496,19 +463,18 @@ class Wallet(dict):
     def _check_change(self):
         addr = self["change_address"]
         if addr is not None:
+            # check if address was used already
             v = self.cli.getreceivedbyaddress(addr, 0)
-            if v > 0:
-                self._dict["change_index"] += 1
-                index = self._dict["change_index"]
-                self._dict["change_address"] = self.cli.deriveaddresses(self._dict["change_descriptor"], [index, index+1])[0]
-                if index == self._dict["change_keypool"]-1:
-                    self._dict["change_keypool"] = self.keypoolrefill(self._dict["change_keypool"], change=True)
+            # if not - just return
+            if v == 0:
+                return
+            self._dict["change_index"] += 1
         else:
             if "change_index" not in self._dict:
                 self._dict["change_index"] = 0
             index = self._dict["change_index"]
-            self._dict["change_address"] = self.cli.deriveaddresses(self._dict["change_descriptor"], [index, index+1])[0]
-            self._commit()
+        self._dict["change_address"] = self.get_address(self._dict["change_index"], change=True)
+        self._commit()
 
     def getdata(self):
         try:
@@ -527,13 +493,23 @@ class Wallet(dict):
 
     def getnewaddress(self):
         self._dict["address_index"] += 1
-        index = self._dict["address_index"]
-        addr = self.cli.deriveaddresses(self._dict["recv_descriptor"], [index, index+1])[0]
-        if index == self._dict["keypool"]-1:
-            self._dict["keypool"] = self.keypoolrefill(self._dict["keypool"])
+        addr = self.get_address(self._dict["address_index"])
         self._dict["address"] = addr
         self._commit()
         return addr
+
+    def get_address(self, index, change=False):
+        # FIXME: refactor wallet dict keys to get rid of this
+        pool, desc = ("keypool", "recv_descriptor")
+        if change:
+            pool, desc = ("change_keypool", "change_descriptor")
+        if self._dict[pool] < index+WALLET_CHUNK:
+            self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
+        if self.is_multisig():
+            # using sortedmulti for addresses
+            sorted_desc = self.sort_descriptor(self[desc], index)
+            return self.cli.deriveaddresses(sorted_desc)[0]
+        return self.cli.deriveaddresses(self._dict[desc], [index, index+1])[0]
 
     def geterror(self):
         if self.cli.r is not None:
@@ -578,21 +554,57 @@ class Wallet(dict):
             return None
         return r["trusted"]+r["untrusted_pending"]
 
+    def sort_descriptor(self, descriptor, index=None):
+        if index is not None:
+            descriptor = descriptor.replace("*", f"{index}")
+        # remove checksum
+        descriptor = descriptor.split("#")[0]
+        # get address (should be already imported to the wallet)
+        address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+        # get pubkeys involved
+        pubkeys = self.cli.getaddressinfo(address)["pubkeys"]
+        # get xpubs from the descriptor
+        arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
+        # getting [wsh] or [sh, wsh]
+        prefix = descriptor.split("(multi(")[0].split("(")
+        sigs_required = arr[0]
+        keys = arr[1:]
+        # sort them according to sortedmulti
+        z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
+        keys = [zz[1] for zz in z]
+        inner = f"{sigs_required},"+",".join(keys)
+        desc = f"multi({inner})"
+        for p in prefix:
+            desc = f"{p}({desc})"
+        return AddChecksum(desc)
+
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
             end = start + WALLET_CHUNK
-        desc = self["recv_descriptor"] if not change else self["change_descriptor"]
+        desc = "recv_descriptor" if not change else "change_descriptor"
+        pool = "keypool" if not change else "change_keypool"
         args = [
             {
-                "desc": desc,
+                "desc": self[desc],
                 "internal": change, 
                 "range": [start, end], 
                 "timestamp": "now", 
                 "keypool": True, 
-                "watchonly": True
+                "watchonly": True,
+                "rescan": False
             }
         ]
         r = self.cli.importmulti(args, timeout=120)
+        # bip67 requires sorted public keys for multisig addresses
+        if self.is_multisig():
+            # we do one at a time
+            args[0].pop("range")
+            for i in range(start, end):
+                sorted_desc = self.sort_descriptor(self[desc], i)
+                args[0]["desc"] = sorted_desc
+                self.cli.importmulti(args, timeout=120)
+        self._dict[pool] = end
+        self._commit(update_manager=False)
         return end
 
     @property    
