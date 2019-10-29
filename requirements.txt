@@ -18,6 +18,7 @@ pyaes==1.6.1
 qrcode==6.1
 requests==2.22.0
 six==1.12.0
+stem==1.7.1
 typing-extensions==3.7.4
 urllib3==1.25.6
 Werkzeug==0.16.0
