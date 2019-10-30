@@ -536,7 +536,7 @@ class Wallet(dict):
             pool, desc = ("change_keypool", "change_descriptor")
         if self._dict[pool] < index+WALLET_CHUNK:
             self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
-        if self.is_multisig():
+        if self.is_multisig:
             # using sortedmulti for addresses
             sorted_desc = self.sort_descriptor(self[desc], index)
             return self.cli.deriveaddresses(sorted_desc)[0]
@@ -627,7 +627,7 @@ class Wallet(dict):
         ]
         r = self.cli.importmulti(args, timeout=120)
         # bip67 requires sorted public keys for multisig addresses
-        if self.is_multisig():
+        if self.is_multisig:
             # we do one at a time
             args[0].pop("range")
             for i in range(start, end):
