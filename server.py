@@ -4,7 +4,7 @@ import random, copy
 from collections import OrderedDict
 from threading import Thread
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, Blueprint, render_template, request, redirect, jsonify
 from flask_qrcode import QRcode
 
 from helpers import normalize_xpubs, run_shell
@@ -47,6 +47,11 @@ SINGLE_TYPES = {
 }
 
 
+
+from views.hwi import hwi_views
+app.register_blueprint(hwi_views, url_prefix='/hwi')
+
+
 ################ routes ####################
 
 @app.route('/combine/', methods=['GET', 'POST'])
@@ -57,6 +62,7 @@ def combine():
         psbt1 = d['psbt1'] # request.args.get('psbt1')
         psbt = specter.combine([psbt0, psbt1])
         raw = specter.finalize(psbt)
+        print(raw)
         if "hex" in raw:
             specter.broadcast(raw["hex"])
         return json.dumps(raw)
@@ -92,9 +98,9 @@ def settings():
         action = request.form['action']
 
         if action == "test":
-            test = specter.test_rpc(user=user, password=passwd, port=port, host=host)
+            test = specter.test_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
         if action == "save":
-            specter.update_rpc(user=user, password=passwd, port=port, host=host)
+            specter.update_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
             specter.check()
             return redirect("/")
     else:
@@ -300,7 +306,8 @@ def wallet_send(wallet_alias):
     specter.check()
     try:
         wallet = specter.wallets.get_by_alias(wallet_alias)
-    except:
+    except Exception as e:
+        print(e)
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     psbt = None
     address = ""
@@ -331,7 +338,7 @@ def wallet_settings(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     cc_file = None
-    if wallet.is_multisig():
+    if wallet.is_multisig:
         CC_TYPES = {
         'legacy': 'BIP45',
         'p2sh-segwit': 'P2WSH-P2SH',
@@ -399,6 +406,7 @@ def new_device_xpubs(device_type):
             return redirect("/devices/%s/" % dev["alias"])
     return render_template("new_device_xpubs.html", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=specter, rand=rand)
 
+
 def get_key_meta(key):
     k = copy.deepcopy(key)
     k["chain"] = "Mainnet" if k["xpub"].startswith("xpub") else "Testnet"
@@ -441,6 +449,8 @@ def device(device_alias):
     device["keys"].sort(key=lambda x: x["chain"]+x["purpose"], reverse=True)
     return render_template("device.html", device_alias=device_alias, device=device, purposes=purposes, specter=specter, rand=rand)
 
+
+
 ############### filters ##################
 
 @app.template_filter('datetime')
@@ -450,7 +460,7 @@ def timedatetime(s):
 @app.template_filter('derivation')
 def derivation(wallet):
     s = "address=m/0/{}\n".format(wallet['address_index'])
-    if wallet.is_multisig():
+    if wallet.is_multisig:
         s += "type={}".format(MSIG_TYPES[wallet['address_type']])
         for k in wallet['keys']:
             s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
@@ -460,7 +470,7 @@ def derivation(wallet):
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
     # d = wallet["recv_descriptor"].split("#")[0].replace("*",str(wallet["address_index"]))
-    # if wallet.is_multisig():
+    # if wallet.is_multisig:
     #     for k in wallet["keys"]:
     #         d = d.replace(k["xpub"],"m")
     # else:
@@ -485,6 +495,9 @@ if __name__ == '__main__':
     specter = Specter(DATA_FOLDER)
     specter.check()
 
+    # Attach specter instance so child views (e.g. hwi) can access it
+    app.specter = specter
+
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
     extra_files = extra_dirs[:]
@@ -495,7 +508,8 @@ if __name__ == '__main__':
                 if os.path.isfile(filename):
                     extra_files.append(filename)
 
-    if os.getenv('CONNECT_TOR', False) and os.getenv('TOR_PASSWORD') is not None:
+    # Note: dotenv doesn't convert bools!
+    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
         from tor import tor_util
         tor_util.run_on_hidden_service(app, port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
     else:

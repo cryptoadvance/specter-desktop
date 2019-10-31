@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+
+
+{% block main %}
+
+{% include "includes/hwi.html" %}
+
+<form method="POST">
+	<!-- <div class="spacer"></div> -->
+	{% if device %}
+	<h1>Adding keys to {{device["name"]}}</h1>
+	{% else %}
+	<h1>Add new hardware wallet</h1>
+	{% endif %}
+	<div class="card">
+		<form action="." method="POST">
+			<input type="hidden" id="type_id" name="type" />
+			<input type="hidden" id="path_id" name="path" />
+			<div id="connect_container">
+				<h2>Connect USB wallet</h2>
+				<br/>
+				<button class="btn" id="connect_btn">Begin</button>
+			</div>
+
+			<div id="extract_xpubs_container" class="hidden">
+				<h2>Extract Xpubs and Add Device:</h2>
+				<br/>
+				{% if not device %}
+				<div>Name it &nbsp; &nbsp;<input type="text" id="device_name_id" name="device_name" class="inline" placeholder="Name your device"></div><br/>
+				<br/>
+				{% endif %}
+				<button class="btn" id="extract_btn">Submit</button>
+			</div>
+
+		</form>
+	</div>
+	<div class="note">
+	</div>
+</form>
+
+
+<div id="extracting_xpubs_loading" class="flex-center hidden">
+	<h2>Extracting Xpubs</h2>
+	<div>
+		<br/>
+		Wait for 10-15 secs...
+	</div>
+	<img src="/static/img/loader_boxes.svg"/>
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+<script>
+
+	document.addEventListener("DOMContentLoaded", function(){
+		// Handler when the DOM is fully loaded
+		initPageOverlay("extracting_xpubs_loading");
+	});
+
+
+	document.getElementById('connect_btn').addEventListener("click", async function(event) {
+		event.preventDefault();
+		hwiSelectHWIDevice();
+	});
+
+
+	document.getElementById('extract_btn').addEventListener("click", async function(event) {
+		event.preventDefault();
+
+		showPageOverlay("extracting_xpubs_loading");
+		
+		var formData = new FormData();
+		formData.append("device_name", document.getElementById('device_name_id').value);
+		formData.append("type", hwiCurrentWallet.type);
+		formData.append("path", hwiCurrentWallet.path);
+
+		const response = await fetch(
+			'/hwi/extract_xpubs/',
+			{
+				method: 'POST',
+				body: formData
+			}
+		);
+		const jsonResponse = await response.json();
+		console.log(jsonResponse);
+		if (jsonResponse.success) {
+			location.href = "/devices/" + jsonResponse.device_alias;
+		} else {
+			alert(jsonResponse.error);
+		}
+	});
+
+
+	document.getElementById('hwi_include__unlocked__submit').addEventListener("click", async function(event) {
+		event.preventDefault();
+
+		var connectContainer = document.getElementById('connect_container');
+		var extractContainer = document.getElementById('extract_xpubs_container');
+		connectContainer.style.display = "none";
+		extractContainer.style.display = "block";
+
+		document.getElementById('device_name_id').value = hwiCurrentWallet.typeDisplay;
+	});
+
+</script>
+{% endblock %}

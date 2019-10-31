@@ -243,6 +243,10 @@ class DeviceManager:
         return len(self._devices.keys())
 
 class Device(dict):
+    QR_CODE_TYPES = ['specter', 'other']
+    SD_CARD_TYPES = ['coldcard', 'other']
+    HWI_TYPES = ['keepkey', 'ledger', 'trezor']
+
     def __init__(self, d, manager=None):
         self.manager = manager
         self.update(d)
@@ -358,6 +362,7 @@ class WalletManager:
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
             "device": device["name"],
+            "device_type": device["type"],
             "address_type": addrtypes[key_type],
         })
         # add wallet to internal dict
@@ -392,6 +397,12 @@ class WalletManager:
             change_desc = "%s(%s)" % (el, change_desc)
         recv_desc = AddChecksum(recv_desc)
         change_desc = AddChecksum(change_desc)
+        devices_list = []
+        for device in devices:
+            devices_list.append({
+                "name": device["name"],
+                "type": device["type"]
+            })
         o.update({
             "type": "multisig",
             "description": "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]),
@@ -399,8 +410,8 @@ class WalletManager:
             "keys": keys,
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
-            "devices": [device["name"] for device in devices],
-            "address_type": addrtypes[key_type],
+            "devices": devices_list,
+            "address_type": addrtypes[key_type]
         })
         # add wallet to internal dict
         self._wallets[o["alias"]] = o
@@ -457,6 +468,26 @@ class Wallet(dict):
         if update_manager:
             self.manager.update()
 
+    def _uses_device_type(self, type_list):
+        if not self.is_multisig:
+            return self.get("device_type") in type_list
+        else:
+            for device in self.get("devices"):
+                if device["type"] in type_list:
+                    return True
+        return False
+
+    @property
+    def uses_qrcode_device(self):
+        return self._uses_device_type(Device.QR_CODE_TYPES)
+    @property
+    def uses_sdcard_device(self):
+        return self._uses_device_type(Device.SD_CARD_TYPES)
+    @property
+    def uses_hwi_device(self):
+        return self._uses_device_type(Device.HWI_TYPES)
+
+    @property
     def is_multisig(self):
         return "sigs_required" in self
 
@@ -505,7 +536,7 @@ class Wallet(dict):
             pool, desc = ("change_keypool", "change_descriptor")
         if self._dict[pool] < index+WALLET_CHUNK:
             self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
-        if self.is_multisig():
+        if self.is_multisig:
             # using sortedmulti for addresses
             sorted_desc = self.sort_descriptor(self[desc], index)
             return self.cli.deriveaddresses(sorted_desc)[0]
@@ -596,7 +627,7 @@ class Wallet(dict):
         ]
         r = self.cli.importmulti(args, timeout=120)
         # bip67 requires sorted public keys for multisig addresses
-        if self.is_multisig():
+        if self.is_multisig:
             # we do one at a time
             args[0].pop("range")
             for i in range(start, end):
@@ -639,7 +670,7 @@ class Wallet(dict):
         # adding xpub fields for coldcard
         cc_psbt = PSBT()
         cc_psbt.deserialize(b64psbt)
-        if self.is_multisig():
+        if self.is_multisig:
             for k in self._dict["keys"]:
                 key = b'\x01'+helpers.decode_base58(k["xpub"])
                 value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
@@ -674,4 +705,4 @@ if __name__ == '__main__':
     # print(w.getbalance("*", 0, True))
     # for v in specter.devices:
     #     print(v)
-        # print(v.is_multisig())
+        # print(v.is_multisig)

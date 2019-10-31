@@ -43,11 +43,16 @@
 			<tr>
 			{%endif%}
 				<td>
-					{%if tx["confirmations"] == 0 %}
-					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+					{# coinbase txs are 'immature' until 100 confs #}
+					{% if tx['category'] == 'immature' %}
+						<img src="/static/img/unconfirmed_receive_icon.svg"/>
 					{% else %}
-					<img src="/static/img/{{tx['category']}}_icon.svg"/>
-					{%endif%}
+						{% if tx["confirmations"] == 0 %}
+						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+						{% else %}
+						<img src="/static/img/{{tx['category']}}_icon.svg"/>
+						{% endif %}
+					{% endif %}
 				</td>
 				<td class="txid"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
 				<td class="txid"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>

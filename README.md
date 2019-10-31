@@ -18,6 +18,10 @@ At the moment we are working on integration of our [Specter-DIY hardware wallet]
 
 Clone the repo, install dependencies:
 
+HWI support requires `libusb` (necessary? Or is `pip install libusb1` sufficient?):
+* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
+* macOS: `brew install libusb`
+
 ```
 git clone https://github.com/cryptoadvance/specter-desktop.git
 pip3 install -r requirements.txt
