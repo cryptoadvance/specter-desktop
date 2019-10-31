@@ -646,7 +646,7 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False):
         if self.fullbalance < amount:
             return None
         extra_inputs = []
@@ -658,11 +658,18 @@ class Wallet(dict):
                 b -= tx["amount"]
                 if b < 0:
                     break;
+
+        # subtract fee from amount of this output:
+        # currently only one address is supported, so either
+        # empty array (subtract from change) or [0]
+        subtract_arr = [0] if subtract else []
+
         # Dont reuse change addresses - use getrawchangeaddress instead
         r = self.cli.walletcreatefundedpsbt(extra_inputs, [{address: amount}], 0, 
                                         {   
                                             "includeWatching": True, 
-                                            "changeAddress": self["change_address"]
+                                            "changeAddress": self["change_address"],
+                                            "subtractFeeFromOutputs": subtract_arr
                                         }, True)
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)

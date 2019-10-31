@@ -318,10 +318,17 @@ def wallet_send(wallet_alias):
         if action == "createpsbt":
             address = request.form['address']
             amount = float(request.form['amount'])
+            subtract = bool(request.form.get("subtract", False))
             # try:
-            psbt = wallet.createpsbt(address, amount)
+            psbt = wallet.createpsbt(address, amount, subtract=subtract)
             if psbt is None:
                 err = "Probably you don't have enough funds, or something else..."
+            else:
+                # calculate new amount if we need to subtract
+                if subtract:
+                    for v in psbt["tx"]["vout"]:
+                        if address in v["scriptPubKey"]["addresses"]:
+                            amount = v["value"]
             # except Exception as e:
             #     print(e)
             #     err = wallet.geterror()

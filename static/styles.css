@@ -273,6 +273,9 @@ input.inline, .input.inline{
 	width: auto;
 	min-width: 300px;
 }
+input[type="checkbox"].inline{
+	min-width: auto;
+}
 input[type="number"].inline, .input.inline{
 	min-width: 30px;
 	width: 80px;
