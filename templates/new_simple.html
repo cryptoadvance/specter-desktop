@@ -71,7 +71,7 @@
 			{% else %}
 			<div class="small-card radio">
 			{% endif %}
-				{% if specter.devices[k]['type'] == 'keepkey' or specter.devices[k]['type'] == 'ledger' %}
+				{% if specter.devices[k]['type'] != 'specter' and specter.devices[k]['type'] != 'coldcard' %}
 					<img src="/static/img/other_icon.svg" width="18px">
 				{% else %}
 					<img src="/static/img/{{specter.devices[k]['type']}}_icon.svg" width="18px">
