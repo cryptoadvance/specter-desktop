@@ -205,7 +205,9 @@
 		});
 	{% endif %}
 
-	{% if wallet.uses_qrcode_device %}
+{% endif %}
+
+{% if not psbt or wallet.uses_qrcode_device %}
 		import QrScanner from "/static/qr/qr-scanner.min.js";
 		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
 
@@ -244,9 +246,9 @@
 			document.getElementById("popup").style.display = 'none';
 			scanner.stop();
 		});
-	{% endif %}
+{% endif %}
 
-	{% if wallet.uses_sdcard_device %}
+{% if psbt and wallet.uses_sdcard_device %}
 		var el = document.getElementById("file");
 
 		el.addEventListener("change", (e) => {
@@ -262,9 +264,8 @@
 		        reader.readAsBinaryString(files[i]);
 		  	}
 		});
-	{% endif %}
-
 {% endif %}
+
 
 </script>
 {% endblock %}
