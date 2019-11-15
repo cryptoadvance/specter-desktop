@@ -3,3 +3,6 @@ __pycache__
 
 .env
 .tor_service_key
+build
+dist
+*.egg-info

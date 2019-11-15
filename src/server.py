@@ -28,7 +28,7 @@ if getattr(sys, 'frozen', False):
     static_folder = os.path.join(sys._MEIPASS, 'static')
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="../templates", static_folder="../static")
 QRcode(app) # enable qr codes generation
 
 DATA_FOLDER = "~/.specter"
@@ -506,7 +506,7 @@ if __name__ == '__main__':
     app.specter = specter
 
     # watch templates folder to reload when something changes
-    extra_dirs = ['templates']
+    extra_dirs = ['../templates']
     extra_files = extra_dirs[:]
     for extra_dir in extra_dirs:
         for dirname, dirs, files in os.walk(extra_dir):
