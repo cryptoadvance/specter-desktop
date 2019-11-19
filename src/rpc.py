@@ -116,9 +116,9 @@ def autodetect_cli(port=None):
                 cli.getmininginfo()
                 available_cli_arr.append(cli)
             except requests.exceptions.RequestException:
-                print("can't connect")
+                pass
             except Exception as e:
-                print("fail...", e)
+                pass
     else:
         print("Bitcoin-cli not found :(")
     print("Detected %d bitcoin daemons" % len(available_cli_arr))

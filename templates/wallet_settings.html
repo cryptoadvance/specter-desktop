@@ -21,8 +21,8 @@
 <a download="{{wallet['name']}}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered">Download ColdCard file</a>
 </div>
 {% endif %}
-<div>
-	<code><pre>{{qr_text}}</pre></code>
+<div style="margin-top:20px;">
+	<code style="max-width: 700px; word-wrap: break-all; overflow-x: scroll; display: block;">{{qr_text}}</code>
 </div>
 <br>
 {% endblock %}

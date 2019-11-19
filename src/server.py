@@ -62,7 +62,6 @@ def combine():
         psbt1 = d['psbt1'] # request.args.get('psbt1')
         psbt = specter.combine([psbt0, psbt1])
         raw = specter.finalize(psbt)
-        print(raw)
         if "hex" in raw:
             specter.broadcast(raw["hex"])
         return json.dumps(raw)
@@ -193,7 +192,6 @@ def new_wallet_multi():
     keys = []
 
     if request.method == 'POST':
-        print(request.form)
         action = request.form['action']
         wallet_name = request.form['wallet_name']
         cosigner_index = int(request.form['cosigner_index'])
@@ -218,7 +216,6 @@ def new_wallet_multi():
             if err is None:
                 cosigner_index += 1
                 cosigners.append(request.form["device"])
-            print(cosigners, len(cosigners), sigs_required)
             if len(cosigners) == sigs_total:
                 devs = []
                 prefix = "tpub"
@@ -273,7 +270,6 @@ def wallet(wallet_alias):
         wallet = specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
-    print(wallet.balance["untrusted_pending"] + wallet.balance["trusted"])
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
         return redirect("/wallets/%s/receive/" % wallet_alias)
     else:
@@ -329,12 +325,6 @@ def wallet_send(wallet_alias):
                     for v in psbt["tx"]["vout"]:
                         if address in v["scriptPubKey"]["addresses"]:
                             amount = v["value"]
-            # except Exception as e:
-            #     print(e)
-            #     err = wallet.geterror()
-            #     if err is None:
-            #         err = "Unknown error"
-            #     print(err, e)
     return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, wallet_alias=wallet_alias, wallet=wallet, specter=specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/settings/')
@@ -345,6 +335,7 @@ def wallet_settings(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     cc_file = None
+    qr_text = wallet["name"]+"&"+descr(wallet)
     if wallet.is_multisig:
         CC_TYPES = {
         'legacy': 'BIP45',
@@ -363,18 +354,12 @@ Format: {}
             )
         for k in wallet['keys']:
             cc_file += "{}: {}\n".format(k['fingerprint'].upper(), k['xpub'])
-        qr_text = "name={}\ntype={}\nm={}\nn={}".format(wallet["name"], MSIG_TYPES[wallet['address_type']], wallet['sigs_required'], len(wallet['keys']))
-        for k in wallet['keys']:
-            qr_text += "\n[{}{}]{}".format(k['fingerprint'], k['derivation'][1:], k['xpub'])
         return render_template("wallet_settings.html", 
                             cc_file=urllib.parse.quote(cc_file), 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=specter, rand=rand, 
                             qr_text=qr_text)
     else:
-        qr_text = "name={}\ntype={}".format(wallet["name"], SINGLE_TYPES[wallet['address_type']])
-        k = wallet["key"]
-        qr_text += "\n[{}{}]{}".format(k['fingerprint'], k['derivation'][1:], k['xpub'])
         return render_template("wallet_settings.html", 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=specter, rand=rand, 
@@ -476,14 +461,6 @@ def derivation(wallet):
         k = wallet['key']
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
-    # d = wallet["recv_descriptor"].split("#")[0].replace("*",str(wallet["address_index"]))
-    # if wallet.is_multisig:
-    #     for k in wallet["keys"]:
-    #         d = d.replace(k["xpub"],"m")
-    # else:
-    #     d = d.replace(wallet["key"]["xpub"],"m")
-    #     pass
-    # return d
 
 @app.template_filter('txonaddr')
 def txonaddr(wallet):
@@ -494,6 +471,11 @@ def txonaddr(wallet):
 @app.template_filter('prettyjson')
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
+
+@app.template_filter('descriptor')
+def descr(wallet):
+    # we always use sortedmulti even though it is not in Bitcoin Core yet
+    return wallet['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
 
 
 ############### startup ##################
