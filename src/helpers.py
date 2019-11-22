@@ -106,10 +106,10 @@ def parse_xpub(xpub):
         xpub = arr[1]
     if derivation is not None:
         if derivation[0]!="[":
-            raise "Missing leading ["
+            raise Exception("Missing leading [")
         arr = derivation[1:].split("/")
         try: 
-            fng = bytes.fromhex(arr[0])
+            fng = bytes.fromhex(arr[0].replace("-","")) # coldcard has hexstrings like 7c-2c-8e-1b
         except:
             raise Exception("Fingerprint is not hex")
         if len(fng) != 4:
@@ -174,8 +174,8 @@ def normalize_xpubs(xpubs):
             x = parse_xpub(line)
             normalized.append(x)
             parsed.append(line)
-        except:
-            failed.append(line)
+        except Exception as e:
+            failed.append(line + "\n" + str(e))
     return (normalized, parsed, failed)
 
 # should work in all python versions

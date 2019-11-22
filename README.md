@@ -34,7 +34,7 @@ Run the server:
 
 ```
 cd specter-desktop
-python3 server.py
+python3 src/server.py
 ```
 
 Run the tests (still very limited):
