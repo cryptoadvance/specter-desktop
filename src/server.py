@@ -499,7 +499,7 @@ if __name__ == '__main__':
 
     # Note: dotenv doesn't convert bools!
     if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
-        from tor import tor_util
+        import tor_util
         tor_util.run_on_hidden_service(app, port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
     else:
         app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)

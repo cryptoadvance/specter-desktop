@@ -34,7 +34,7 @@ Run the server:
 
 ```
 cd specter-desktop
-python3 server.py
+python3 src/server.py
 ```
 
 Run the tests (still very limited):
@@ -74,4 +74,4 @@ If your Bitcoin Core is using a default data folder the app should detect it aut
 
 
 ## Make Specter Desktop available externally over Tor
-see: [tor/README.md](tor/README.md)
+see: [docs/tor.md](docs/tor.md)
