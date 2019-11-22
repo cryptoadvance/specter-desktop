@@ -1,2 +1,8 @@
 __pycache__
 *.pyc
+
+.env
+.tor_service_key
+build
+dist
+*.egg-info

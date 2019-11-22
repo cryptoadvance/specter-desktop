@@ -18,9 +18,16 @@ At the moment we are working on integration of our [Specter-DIY hardware wallet]
 
 Clone the repo, install dependencies:
 
+HWI support requires `libusb` (necessary? Or is `pip install libusb1` sufficient?):
+* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
+* macOS: `brew install libusb`
+
 ```
 git clone https://github.com/cryptoadvance/specter-desktop.git
-pip3 install flask flask_qrcode requests
+cd specter-desktop
+virtualenv --python=python3 .env
+source .env/bin/activate
+pip3 install -r requirements.txt
 ```
 
 Run the server:
@@ -28,6 +35,13 @@ Run the server:
 ```
 cd specter-desktop
 python3 server.py
+```
+
+Run the tests (still very limited):
+
+```
+pip3 install -e .
+pytest
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
@@ -57,3 +71,7 @@ If your Bitcoin Core is using a default data folder the app should detect it aut
 ### Configuration
 
 ![](screenshots/bitcoin-rpc.jpg)
+
+
+## Make Specter Desktop available externally over Tor
+see: [tor/README.md](tor/README.md)

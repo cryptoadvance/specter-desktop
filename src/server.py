@@ -4,7 +4,7 @@ import random, copy
 from collections import OrderedDict
 from threading import Thread
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, Blueprint, render_template, request, redirect, jsonify
 from flask_qrcode import QRcode
 
 from helpers import normalize_xpubs, run_shell
@@ -15,12 +15,20 @@ from specter import Specter, purposes, addrtypes
 from datetime import datetime
 import urllib
 
+from pathlib import Path
+env_path = Path('.') / '.flaskenv'
+from dotenv import load_dotenv
+load_dotenv(env_path)
+
+DEBUG = True
+
+
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
     static_folder = os.path.join(sys._MEIPASS, 'static')
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="../templates", static_folder="../static")
 QRcode(app) # enable qr codes generation
 
 DATA_FOLDER = "~/.specter"
@@ -37,6 +45,11 @@ SINGLE_TYPES = {
     "p2sh-segwit": "P2SH_P2WPKH",
     "bech32": "P2WPKH"
 }
+
+
+
+from views.hwi import hwi_views
+app.register_blueprint(hwi_views, url_prefix='/hwi')
 
 
 ################ routes ####################
@@ -84,9 +97,9 @@ def settings():
         action = request.form['action']
 
         if action == "test":
-            test = specter.test_rpc(user=user, password=passwd, port=port, host=host)
+            test = specter.test_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
         if action == "save":
-            specter.update_rpc(user=user, password=passwd, port=port, host=host)
+            specter.update_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
             specter.check()
             return redirect("/")
     else:
@@ -179,7 +192,6 @@ def new_wallet_multi():
     keys = []
 
     if request.method == 'POST':
-        print(request.form)
         action = request.form['action']
         wallet_name = request.form['wallet_name']
         cosigner_index = int(request.form['cosigner_index'])
@@ -204,7 +216,6 @@ def new_wallet_multi():
             if err is None:
                 cosigner_index += 1
                 cosigners.append(request.form["device"])
-            print(cosigners, len(cosigners), sigs_required)
             if len(cosigners) == sigs_total:
                 devs = []
                 prefix = "tpub"
@@ -259,7 +270,6 @@ def wallet(wallet_alias):
         wallet = specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
-    print(wallet.balance["untrusted_pending"] + wallet.balance["trusted"])
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
         return redirect("/wallets/%s/receive/" % wallet_alias)
     else:
@@ -292,7 +302,8 @@ def wallet_send(wallet_alias):
     specter.check()
     try:
         wallet = specter.wallets.get_by_alias(wallet_alias)
-    except:
+    except Exception as e:
+        print(e)
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     psbt = None
     address = ""
@@ -303,16 +314,17 @@ def wallet_send(wallet_alias):
         if action == "createpsbt":
             address = request.form['address']
             amount = float(request.form['amount'])
+            subtract = bool(request.form.get("subtract", False))
             # try:
-            psbt = wallet.createpsbt(address, amount)
+            psbt = wallet.createpsbt(address, amount, subtract=subtract)
             if psbt is None:
                 err = "Probably you don't have enough funds, or something else..."
-            # except Exception as e:
-            #     print(e)
-            #     err = wallet.geterror()
-            #     if err is None:
-            #         err = "Unknown error"
-            #     print(err, e)
+            else:
+                # calculate new amount if we need to subtract
+                if subtract:
+                    for v in psbt["tx"]["vout"]:
+                        if address in v["scriptPubKey"]["addresses"]:
+                            amount = v["value"]
     return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, wallet_alias=wallet_alias, wallet=wallet, specter=specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/settings/')
@@ -323,7 +335,8 @@ def wallet_settings(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=specter, rand=rand)
     cc_file = None
-    if wallet.is_multisig():
+    qr_text = wallet["name"]+"&"+descr(wallet)
+    if wallet.is_multisig:
         CC_TYPES = {
         'legacy': 'BIP45',
         'p2sh-segwit': 'P2WSH-P2SH',
@@ -341,18 +354,12 @@ Format: {}
             )
         for k in wallet['keys']:
             cc_file += "{}: {}\n".format(k['fingerprint'].upper(), k['xpub'])
-        qr_text = "name={}\ntype={}\nm={}\nn={}".format(wallet["name"], MSIG_TYPES[wallet['address_type']], wallet['sigs_required'], len(wallet['keys']))
-        for k in wallet['keys']:
-            qr_text += "\n[{}{}]{}".format(k['fingerprint'], k['derivation'][1:], k['xpub'])
         return render_template("wallet_settings.html", 
                             cc_file=urllib.parse.quote(cc_file), 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=specter, rand=rand, 
                             qr_text=qr_text)
     else:
-        qr_text = "name={}\ntype={}".format(wallet["name"], SINGLE_TYPES[wallet['address_type']])
-        k = wallet["key"]
-        qr_text += "\n[{}{}]{}".format(k['fingerprint'], k['derivation'][1:], k['xpub'])
         return render_template("wallet_settings.html", 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=specter, rand=rand, 
@@ -390,6 +397,7 @@ def new_device_xpubs(device_type):
             dev = specter.devices.add(name=device_name, device_type=device_type, keys=normalized)
             return redirect("/devices/%s/" % dev["alias"])
     return render_template("new_device_xpubs.html", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=specter, rand=rand)
+
 
 def get_key_meta(key):
     k = copy.deepcopy(key)
@@ -433,6 +441,8 @@ def device(device_alias):
     device["keys"].sort(key=lambda x: x["chain"]+x["purpose"], reverse=True)
     return render_template("device.html", device_alias=device_alias, device=device, purposes=purposes, specter=specter, rand=rand)
 
+
+
 ############### filters ##################
 
 @app.template_filter('datetime')
@@ -442,7 +452,7 @@ def timedatetime(s):
 @app.template_filter('derivation')
 def derivation(wallet):
     s = "address=m/0/{}\n".format(wallet['address_index'])
-    if wallet.is_multisig():
+    if wallet.is_multisig:
         s += "type={}".format(MSIG_TYPES[wallet['address_type']])
         for k in wallet['keys']:
             s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
@@ -451,14 +461,6 @@ def derivation(wallet):
         k = wallet['key']
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
-    # d = wallet["recv_descriptor"].split("#")[0].replace("*",str(wallet["address_index"]))
-    # if wallet.is_multisig():
-    #     for k in wallet["keys"]:
-    #         d = d.replace(k["xpub"],"m")
-    # else:
-    #     d = d.replace(wallet["key"]["xpub"],"m")
-    #     pass
-    # return d
 
 @app.template_filter('txonaddr')
 def txonaddr(wallet):
@@ -470,16 +472,23 @@ def txonaddr(wallet):
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
 
+@app.template_filter('descriptor')
+def descr(wallet):
+    # we always use sortedmulti even though it is not in Bitcoin Core yet
+    return wallet['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
+
 
 ############### startup ##################
 
 if __name__ == '__main__':
-    debug = False
     specter = Specter(DATA_FOLDER)
     specter.check()
 
+    # Attach specter instance so child views (e.g. hwi) can access it
+    app.specter = specter
+
     # watch templates folder to reload when something changes
-    extra_dirs = ['templates']
+    extra_dirs = ['../templates']
     extra_files = extra_dirs[:]
     for extra_dir in extra_dirs:
         for dirname, dirs, files in os.walk(extra_dir):
@@ -488,4 +497,12 @@ if __name__ == '__main__':
                 if os.path.isfile(filename):
                     extra_files.append(filename)
 
-    app.run(port=25441, debug=debug, extra_files=extra_files)
+    # Note: dotenv doesn't convert bools!
+    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
+        from tor import tor_util
+        tor_util.run_on_hidden_service(app, port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
+    else:
+        app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
+
+
+
