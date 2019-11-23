@@ -80,7 +80,6 @@ def encode_base58(s):
 def encode_base58_checksum(s):
     return encode_base58(s + double_sha256(s)[:4]).decode('ascii')
 
-
 def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
     num = 0
     for c in s.encode('ascii'):
@@ -95,6 +94,11 @@ def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
         raise ValueError('bad address: {} {}'.format(
             checksum, double_sha256(combined)[:4]))
     return combined[:-4]
+
+def convert_xpub_prefix(xpub, prefix_bytes):
+    # Update xpub to specified prefix and re-encode
+    b = decode_base58(xpub)
+    return encode_base58_checksum(prefix_bytes + b[4:])
 
 def parse_xpub(xpub):
     r = {"derivation": None}

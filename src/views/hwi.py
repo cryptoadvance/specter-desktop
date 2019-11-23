@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from flask import Flask, Blueprint, render_template, request, redirect, jsonify, current_app
-from helpers import normalize_xpubs
+from helpers import normalize_xpubs, convert_xpub_prefix
 from hwilib import commands as hwilib_commands
 from hwilib import base58
 
@@ -91,39 +91,53 @@ def hwi_extract_xpubs():
         master_xpub = client.get_pubkey_at_path('m/0')['xpub']
         master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
 
+        # HWI calls to client.get_pubkey_at_path() return "xpub"-prefixed xpubs
+        # regardless of derivation path. Update to match SLIP-0132 prefixes.
+        # See:
+        #   https://github.com/satoshilabs/slips/blob/master/slip-0132.md
+
         # Extract nested Segwit
         xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
-        xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, xpub)
+        ypub = convert_xpub_prefix(xpub, b'\x04\x9d\x7c\xb2')
+        xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, ypub)
 
         # native Segwit
         xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
-        xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, xpub)
+        zpub = convert_xpub_prefix(xpub, b'\x04\xb2\x47\x46')
+        xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, zpub)
 
         # Multisig nested Segwit
         xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
-        xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, xpub)
+        Ypub = convert_xpub_prefix(xpub, b'\x02\x95\xb4\x3f')
+        xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, Ypub)
 
         # Multisig native Segwit
         xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
-        xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, xpub)
+        Zpub = convert_xpub_prefix(xpub, b'\x02\xaa\x7e\xd3')
+        xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, Zpub)
 
         # And testnet
         client.is_testnet = True
+
+        # Testnet nested Segwit
         xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
-        xpub = base58.xpub_main_2_test(xpub)
-        xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, xpub)
+        upub = convert_xpub_prefix(xpub, b'\x04\x4a\x52\x62')
+        xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, upub)
 
+        # Testnet native Segwit
         xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
-        xpub = base58.xpub_main_2_test(xpub)
-        xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, xpub)
+        vpub = convert_xpub_prefix(xpub, b'\x04\x5f\x1c\xf6')
+        xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, vpub)
 
+        # Testnet multisig nested Segwit
         xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
-        xpub = base58.xpub_main_2_test(xpub)
-        xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, xpub)
+        Upub = convert_xpub_prefix(xpub, b'\x02\x42\x89\xef')
+        xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, Upub)
 
+        # Testnet multisig native Segwit
         xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
-        xpub = base58.xpub_main_2_test(xpub)
-        xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, xpub)
+        Vpub = convert_xpub_prefix(xpub, b'\x02\x57\x54\x83')
+        xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, Vpub)
     except Exception as e:
         print(e)
         return jsonify(success=False, error=e)
