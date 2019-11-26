@@ -4,6 +4,6 @@ from glob import glob
 
 setup(
     name="specter-desktop", 
-    packages=find_packages('src'),
-    package_dir={'': 'src'}
+    packages=find_packages('src/specter'),
+    package_dir={'': 'src/specter'}
 )
