@@ -1,0 +1,7 @@
+{
+    "blub":"bla",
+    "id":"ID123",
+    "deeper_key": {
+        "someotherkey":"someothervalue"
+    }
+}
