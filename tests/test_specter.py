@@ -24,7 +24,7 @@ def specter_regtest_configured(bitcoin_regtest):
             "user": bitcoin_regtest["rpc_username"],
             "password": bitcoin_regtest["rpc_password"],
             "port": bitcoin_regtest["rpc_port"],
-            "host": "localhost",
+            "host": bitcoin_regtest["rpc_host"],
             "protocol": "http"
         },
     }
