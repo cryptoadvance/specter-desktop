@@ -54,10 +54,14 @@ def start_bitcoind(bitcoind_path, cleanup_at_exit=True, rpc_port=18543):
         # This is not needed
         bitcoind_path += " -datadir={} ".format(datadir) 
         print("    --> About to execute: {}".format(bitcoind_path))
-        bitcoind_proc = subprocess.Popen(bitcoind_path, shell=True)
+        # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
+        bitcoind_proc = subprocess.Popen("exec " + bitcoind_path, shell=True)  
+        print("    --> Running bitcoind-process with pid {}".format(bitcoind_proc.pid))
         def cleanup_bitcoind():
-            bitcoind_proc.kill()
+            bitcoind_proc.kill() # much faster then terminate() and speed is key here over being nice
+            print("    --> Killed bitcoind-process with pid {}".format(bitcoind_proc.pid))
             shutil.rmtree(datadir)
+            print("    --> removed temp-dir")
         if cleanup_at_exit:
             atexit.register(cleanup_bitcoind)
         ip_address = '127.0.0.1'
@@ -122,7 +126,10 @@ def bitcoin_regtest(docker):
     if docker:
         bitcoind_path = 'docker'
     else:
-        bitcoind_path = 'bitcoind ' # Let's take the one on the path for now
+        if os.path.isfile('tests/bitcoin/src/bitcoind'):
+            bitcoind_path = 'tests/bitcoin/src/bitcoind ' # always prefer the self-compiled bitcoind if existing
+        else:
+            bitcoind_path = 'bitcoind ' # Alternatively take the one on the path for now
     btc_conn['rpc'], btc_conn['rpc_username'], btc_conn['rpc_password'], btc_conn['rpc_host'], btc_conn['rpc_port'] = start_bitcoind(bitcoind_path)
     return btc_conn
 
