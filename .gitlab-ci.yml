@@ -1,6 +1,6 @@
 # this image contains python, bitcoind and docker
 # check docker/python-bitcoind on how it's built
-image: registry.gitlab.com/k9ert/specter-desktop/python-bitcoind:latest
+image: registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
 
 variables:
   # Cache documentation: https://docs.gitlab.com/ee/ci/caching/
