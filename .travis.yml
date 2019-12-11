@@ -1,0 +1,46 @@
+language: python
+os: linux
+dist: xenial
+cache:
+    pip: true
+    ccache: true
+    directories:
+        - tests/bitcoin
+
+addons:
+    apt:
+        sources:
+            - sourceline: 'ppa:bitcoin/bitcoin'
+        packages:
+            - libdb4.8-dev
+            - libdb4.8++-dev
+            - build-essential
+            - curl
+            - git
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - gcc-arm-none-eabi
+            - libnewlib-arm-none-eabi
+            - libudev-dev
+            - libtool
+            - autotools-dev
+            - automake
+            - pkg-config
+            - bsdmainutils
+            - libssl-dev
+            - libevent-dev
+            - libboost-system-dev
+            - libboost-filesystem-dev
+            - libboost-chrono-dev
+            - libboost-test-dev
+            - libboost-thread-dev
+            - libusb-1.0-0-dev
+            - protobuf-compiler
+            - cython3
+            - ccache
+
+before_install:
+  - set -o errexit; source ./tests/install_bitcoind.sh
+script: 
+  - pip install -e .
+  - pytest
