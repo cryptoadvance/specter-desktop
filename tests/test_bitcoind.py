@@ -2,7 +2,7 @@ import logging
 
 
 def test_bitcoinddocker_running(caplog):
-    #caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG)
     from bitcoind import BitcoindDockerController
     my_bitcoind = BitcoindDockerController()
     #assert my_bitcoind.detect_bitcoind_container() == True
