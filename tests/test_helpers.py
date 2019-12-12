@@ -18,5 +18,5 @@ def test_load_jsons():
 def test_which():
     from specter import helpers
     assert helpers.which("some_non_existing_binary") == None
-    assert helpers.which("date") == "/usr/bin/date"
+    assert helpers.which("date") == "/bin/date" or helpers.which("date") == "/usr/bin/date" # travis-CI has it on /bin/date
     
