@@ -104,9 +104,9 @@ class BitcoindController:
                 raise Exception("Timeout while trying to reach bitcoind at {} !".format(rpcconn))
     
     @classmethod
-    def construct_bitcoind_cmd(cls, rpcconn, run_docker=True,datadir=None):
+    def construct_bitcoind_cmd(cls, rpcconn, run_docker=True,datadir=None, bitcoind_path='bitcoind'):
         ''' returns a bitcoind-command to run bitcoind '''
-        btcd_cmd = "bitcoind "
+        btcd_cmd = "{} ".format(bitcoind_path)
         btcd_cmd += " -regtest "
         btcd_cmd += " -port=18544 -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcuser,rpcconn.rpcpassword)
@@ -120,16 +120,17 @@ class BitcoindController:
 
 class BitcoindPlainController(BitcoindController):
     ''' A class controlling the bicoind-process directly on the machine '''
-    def __init__(self):
+    def __init__(self, bitcoind_path='bitcoind'):
         super().__init__()
+        self.bitcoind_path = bitcoind_path
         self.rpcconn.set_ipaddress('localhost')
 
     def _start_bitcoind(self, cleanup_at_exit=False):
         datadir = tempfile.mkdtemp()
-        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, run_docker=False, datadir=datadir)
-        logging.debug("About to execute: {}".format(bitcoind_path))
+        bitcoind_cmd = self.construct_bitcoind_cmd(self.rpcconn, run_docker=False, datadir=datadir, bitcoind_path=self.bitcoind_path)
+        logging.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
-        self.bitcoind_proc = subprocess.Popen("exec " + bitcoind_path, shell=True)  
+        self.bitcoind_proc = subprocess.Popen("exec " + bitcoind_cmd, shell=True)  
         logging.debug("Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid))
         def cleanup_bitcoind():
             self.bitcoind_proc.kill() # much faster then terminate() and speed is key here over being nice

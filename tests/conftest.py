@@ -29,30 +29,15 @@ def pytest_generate_tests(metafunc):
         else:
             metafunc.parametrize("docker", [False], scope="module")
 
-def start_bitcoind(bitcoind_path, cleanup_at_exit=True, rpc_port=18543):
-    if bitcoind_path == "docker":
-        bitcoind_controller = BitcoindDockerController()
-    else:
-        bitcoind_controller = BitcoindPlainController()
-    print("    --> Starting bitcoind based on {}".format(bitcoind_path))
-    bitcoind_controller.start_bitcoind(cleanup_at_exit)
-    return bitcoind_controller.rpcconn
-
-
 @pytest.fixture(scope="module")
 def bitcoin_regtest(docker):
     if docker:
-        bitcoind_path = 'docker'
+        bitcoind_controller = BitcoindDockerController()
     else:
         if os.path.isfile('tests/bitcoin/src/bitcoind'):
-            bitcoind_path = 'tests/bitcoin/src/bitcoind ' # always prefer the self-compiled bitcoind if existing
+            bitcoind_controller = BitcoindPlainController(bitcoind_path='tests/bitcoin/src/bitcoind') # always prefer the self-compiled bitcoind if existing
         else:
-            bitcoind_path = 'bitcoind ' # Alternatively take the one on the path for now
-    btc_conn = start_bitcoind(bitcoind_path)
-    return btc_conn
+            bitcoind_controller = BitcoindPlainController() # Alternatively take the one on the path for now
 
-# for testing purposes only
-# This will make all the print-statements available which are not shown up via "pytest --docker"
-# python3 tests/conftest.py
-if __name__ == '__main__':
-    start_bitcoind('docker')
+    bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
+    return bitcoind_controller.rpcconn
