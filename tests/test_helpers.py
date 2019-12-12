@@ -14,3 +14,9 @@ def test_load_jsons():
     assert mydict["ID123"]['alias'] == "some_jsonfile"
     # We also get the fullpath of that file:
     assert mydict["ID123"]['fullpath'] == "./tests/helpers_testdata/some_jsonfile.json"
+
+def test_which():
+    from specter import helpers
+    assert helpers.which("some_non_existing_binary") == None
+    assert helpers.which("date") == "/usr/bin/date"
+    
