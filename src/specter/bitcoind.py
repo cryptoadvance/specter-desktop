@@ -15,11 +15,37 @@ import docker
 from helpers import which
 
 
-@click.command()
-def main():
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+@click.option('--debug/--no-debug', default=False)
+@click.option('--mining/--no-mining', default=True)
+def bitcoind(debug,mining):
+    if debug:
+        logging.getLogger().setLevel(logging.DEBUG)
     click.echo("    --> starting or detecting container")
     my_bitcoind = BitcoindDockerController()
     my_bitcoind.start_bitcoind()
+    click.echo("    --> containerId: %s" % my_bitcoind.btcd_container.id)
+    click.echo("    -->         url: %s" % my_bitcoind.rpcconn.render_url())
+    if mining:
+        click.echo("    --> Now, mining a block every 30 seconds: ")
+        click.echo("    --> ",nl=False)
+        i = 0
+        while True:
+            my_bitcoind.mine()
+            click.echo("%i"% (i%10),nl=False)
+            if i%10 == 9:
+                click.echo(" ",nl=False)
+            i += 1
+            if i >= 50:
+                i=0
+                click.echo(" ")
+                click.echo("    --> ",nl=False)
+            time.sleep(30)
+
 
 class Btcd_conn:
     ''' An object to easily store connection data '''
@@ -27,10 +53,19 @@ class Btcd_conn:
         self.rpcport = rpcport
         self.rpcuser = rpcuser
         self.rpcpassword = rpcpassword
-        self.ipaddress = ipaddress
+        self._ipaddress = ipaddress
 
-    def set_ipaddress(self,ipaddress='localhost'):
-        self.ipaddress = ipaddress
+    @property
+    def ipaddress(self):
+        if self._ipaddress == None:
+            raise Exception("ipadress is none")
+        else:
+            return self._ipaddress
+
+
+    @ipaddress.setter
+    def ipaddress(self,ipaddress):
+        self._ipaddress = ipaddress
 
     def get_rpcconn(self):
         ''' returns a working AuthServiceProxy for the bitcoind '''
@@ -48,9 +83,8 @@ class Btcd_conn:
 
 class BitcoindController:
     ''' A kind of abstract class to simplify running a bitcoind with or without docker '''
-    def __init__(self):
-        self.rpcconn = Btcd_conn()
-
+    def __init__(self, rpcport=18443):
+        self.rpcconn = Btcd_conn(rpcport=rpcport)
         self.bitcoind_exec = which('bitcoind')
 
     def start_bitcoind(self, cleanup_at_exit=False):
@@ -101,14 +135,20 @@ class BitcoindController:
             time.sleep(0.5)
             i = i + 1
             if i > 20:
-                raise Exception("Timeout while trying to reach bitcoind at {} !".format(rpcconn))
+                raise Exception("Timeout while trying to reach bitcoind at rpcport {} !".format(rpcconn))
+        
+    @staticmethod
+    def render_rpc_options(rpcconn):
+        options = " -rpcport={} -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcport, rpcconn.rpcuser,rpcconn.rpcpassword)
+        return options
+
     
     @classmethod
     def construct_bitcoind_cmd(cls, rpcconn, run_docker=True,datadir=None, bitcoind_path='bitcoind'):
         ''' returns a bitcoind-command to run bitcoind '''
         btcd_cmd = "{} ".format(bitcoind_path)
         btcd_cmd += " -regtest "
-        btcd_cmd += " -port=18544 -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport)
+        btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport-1,rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcuser,rpcconn.rpcpassword)
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
@@ -116,14 +156,15 @@ class BitcoindController:
             if datadir == None:
                 datadir = tempfile.mkdtemp()
             btcd_cmd += " -datadir={} ".format(datadir)
+        logging.debug(" constructed bitcoind-command: {}".format(btcd_cmd))
         return btcd_cmd
 
 class BitcoindPlainController(BitcoindController):
     ''' A class controlling the bicoind-process directly on the machine '''
-    def __init__(self, bitcoind_path='bitcoind'):
-        super().__init__()
+    def __init__(self, bitcoind_path='bitcoind', rpcport=18443):
+        super().__init__(rpcport=rpcport)
         self.bitcoind_path = bitcoind_path
-        self.rpcconn.set_ipaddress('localhost')
+        self.rpcconn.ipaddress = 'localhost'
 
     def _start_bitcoind(self, cleanup_at_exit=False):
         datadir = tempfile.mkdtemp()
@@ -147,24 +188,30 @@ class BitcoindPlainController(BitcoindController):
         if not self.check_bitcoind(self.rpcconn):
             return None
         else:
-            raise Exception("There is already a Bitcoind running on port {}".format(self.rpcconn.rpcport))
+            return True
 
 class BitcoindDockerController(BitcoindController):
     ''' A class specifically controlling a docker-based bitcoind-container '''
-    def __init__(self):
+    def __init__(self,rpcport=18443):
         self.btcd_container = None
-        super().__init__()
+        super().__init__(rpcport=rpcport)
         self.docker_exec = which('docker')
         if self.docker_exec == None:
             raise("Docker not existing!")
-        if self.detect_bitcoind_container() != None:
-            _, self.btcd_container = self.detect_bitcoind_container()
-    
+        if self.detect_bitcoind_container(rpcport) != None:
+            rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
+            self.rpcconn = rpcconn
+
     def _start_bitcoind(self, cleanup_at_exit):
         bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn )
         dclient = docker.from_env()
         logging.debug("Running (in docker): {}".format(bitcoind_path))
-        self.btcd_container = dclient.containers.run("registry.gitlab.com/k9ert/specter-desktop/python-bitcoind:latest", bitcoind_path,  ports={'18544/tcp': 18544, '18543/tcp': 18543}, detach=True)
+        ports={
+            '{}/tcp'.format(self.rpcconn.rpcport-1): self.rpcconn.rpcport-1, 
+            '{}/tcp'.format(self.rpcconn.rpcport): self.rpcconn.rpcport
+        }
+        logging.debug("portmapping: {}".format(ports))
+        self.btcd_container = dclient.containers.run("registry.gitlab.com/k9ert/specter-desktop/python-bitcoind:latest", bitcoind_path,  ports=ports, detach=True)
         def cleanup_docker_bitcoind():
             self.btcd_container.stop()
             self.btcd_container.remove()
@@ -172,16 +219,18 @@ class BitcoindDockerController(BitcoindController):
             atexit.register(cleanup_docker_bitcoind)
         logging.debug("Waiting for container {} to come up".format(self.btcd_container.id))
         self.wait_for_container()
-        rpcconn, _ = self.detect_bitcoind_container()
+        rpcconn, _ = self.detect_bitcoind_container(self.rpcconn.rpcport)
         if rpcconn == None:
             raise Exception("Couldn't find container or it died already. Check the logs!")
+        else:
+            self.rpcconn = rpcconn
         
 
     def stop_bitcoind(self):
         if self.btcd_container != None:
             self.btcd_container.reload()
             if self.btcd_container.status == 'running':
-                _, container = self.detect_bitcoind_container()
+                _, container = self.detect_bitcoind_container(self.rpcconn.rpcport)
                 if container == self.btcd_container:
                     self.btcd_container.stop()
                     logging.info("Stopped btcd_container {}".format(self.btcd_container))
@@ -193,7 +242,7 @@ class BitcoindDockerController(BitcoindController):
         if self.btcd_container != None:
             self.btcd_container.reload()
             if self.btcd_container.status == 'running':
-                rpcconn, container = self.detect_bitcoind_container()
+                rpcconn, container = self.detect_bitcoind_container(self.rpcconn.rpcport)
                 if container == self.btcd_container:
                     return rpcconn
                 raise Exception('Ambigious Container running')
@@ -206,7 +255,7 @@ class BitcoindDockerController(BitcoindController):
         return [c for c in d_client.containers.list(all) if c.attrs['Config']['Cmd'][0]=='bitcoind']
 
     @staticmethod
-    def detect_bitcoind_container():
+    def detect_bitcoind_container(with_rpcport):
         ''' checks all the containers for a bitcoind one, parses the arguments and initializes 
             the object accordingly 
             returns rpcconn, btcd_container
@@ -221,16 +270,18 @@ class BitcoindDockerController(BitcoindController):
                 logging.debug("logs of first candidate")
                 logging.debug(all_candidates[0].logs())
             return None
-        btcd_container = potential_btcd_containers[0]
-        logging.info("Found potential container ID={}".format(btcd_container))
-        if btcd_container != None:
+        for btcd_container in potential_btcd_containers:
+            rpcport = int([arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcport' in arg][0].split('=')[1])
+            if rpcport != with_rpcport:
+                logging.debug("checking port {} against searched port {}".format(type(rpcport), type(with_rpcport)))
+                continue
             rpcpassword = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcpassword' in arg][0].split('=')[1]
             rpcuser = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcuser' in arg][0].split('=')[1]
-            rpcport = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcport' in arg][0].split('=')[1]
             ipaddress = btcd_container.attrs['NetworkSettings']['IPAddress']
             rpcconn = Btcd_conn(rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport, ipaddress=ipaddress)
             logging.info("detected container {}".format(btcd_container.id))
             return rpcconn, btcd_container
+        logging.debug("No matching container found")
         return None
 
     
@@ -240,7 +291,7 @@ class BitcoindDockerController(BitcoindController):
         while True:
             ip_address = self.btcd_container.attrs['NetworkSettings']['IPAddress']
             if ip_address.startswith("172"):
-                self.rpcconn.set_ipaddress(ip_address)
+                self.rpcconn.ipaddress = ip_address
                 break
             self.btcd_container.reload()
             time.sleep(0.5)
@@ -248,5 +299,17 @@ class BitcoindDockerController(BitcoindController):
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
 
+    def mine(self, address='n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG', block_count=1):
+        ''' Does mining to the attached address with as many as block_count blocks '''
+        _, container = self.detect_bitcoind_container(self.rpcconn.rpcport)
+        rpc_options = self.render_rpc_options(self.rpcconn)
+        cmd = "bitcoin-cli -regtest {} generatetoaddress {} {}".format(rpc_options, block_count, address)
+        exit_code, output = container.exec_run(cmd)
+        if exit_code != 0:
+            logging.error(output)
+            logging.error("address: {}".format(address))
+            #raise Exception(output)
+        return
+
 if __name__ == "__main__":
-    main()
+    cli()

@@ -1,5 +1,6 @@
 import atexit
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -31,8 +32,9 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture(scope="module")
 def bitcoin_regtest(docker):
+    #logging.getLogger().setLevel(logging.DEBUG)
     if docker:
-        bitcoind_controller = BitcoindDockerController()
+        bitcoind_controller = BitcoindDockerController(rpcport=18543)
     else:
         if os.path.isfile('tests/bitcoin/src/bitcoind'):
             bitcoind_controller = BitcoindPlainController(bitcoind_path='tests/bitcoin/src/bitcoind') # always prefer the self-compiled bitcoind if existing
