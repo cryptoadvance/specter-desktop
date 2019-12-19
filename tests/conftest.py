@@ -13,6 +13,8 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import docker
 from bitcoind import BitcoindDockerController, BitcoindPlainController
 
+from specter import Specter
+
 
 def pytest_addoption(parser):
     ''' Internally called to add options to pytest 
@@ -43,3 +45,30 @@ def bitcoin_regtest(docker):
 
     bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
     return bitcoind_controller.rpcconn
+
+
+@pytest.fixture
+def empty_data_folder():
+    # Make sure that this folder never ever gets a reasonable non-testing use-case
+    data_folder = './test_specter_data_2789334'
+    shutil.rmtree(data_folder, ignore_errors=True) 
+    yield data_folder
+    shutil.rmtree(data_folder, ignore_errors=True)
+
+@pytest.fixture
+def specter_regtest_configured(bitcoin_regtest):
+    # Make sure that this folder never ever gets a reasonable non-testing use-case
+    data_folder = './test_specter_data_3456778'
+    shutil.rmtree(data_folder, ignore_errors=True)
+    config = {
+        "rpc": {
+            "autodetect": False,
+            "user": bitcoin_regtest.rpcuser,
+            "password": bitcoin_regtest.rpcpassword,
+            "port": bitcoin_regtest.rpcport,
+            "host": bitcoin_regtest.ipaddress,
+            "protocol": "http"
+        },
+    }
+    yield Specter(data_folder=data_folder, config=config)
+    shutil.rmtree(data_folder, ignore_errors=True)

@@ -8,43 +8,10 @@ import subprocess
 import tempfile
 import time
 
-import click
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
 import docker
 from helpers import which
-
-
-@click.group()
-def cli():
-    pass
-
-@cli.command()
-@click.option('--debug/--no-debug', default=False)
-@click.option('--mining/--no-mining', default=True)
-def bitcoind(debug,mining):
-    if debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-    click.echo("    --> starting or detecting container")
-    my_bitcoind = BitcoindDockerController()
-    my_bitcoind.start_bitcoind()
-    click.echo("    --> containerId: %s" % my_bitcoind.btcd_container.id)
-    click.echo("    -->         url: %s" % my_bitcoind.rpcconn.render_url())
-    if mining:
-        click.echo("    --> Now, mining a block every 30 seconds: ")
-        click.echo("    --> ",nl=False)
-        i = 0
-        while True:
-            my_bitcoind.mine()
-            click.echo("%i"% (i%10),nl=False)
-            if i%10 == 9:
-                click.echo(" ",nl=False)
-            i += 1
-            if i >= 50:
-                i=0
-                click.echo(" ")
-                click.echo("    --> ",nl=False)
-            time.sleep(30)
 
 
 class Btcd_conn:
@@ -99,8 +66,7 @@ class BitcoindController:
         self._start_bitcoind(cleanup_at_exit)
 
         self.wait_for_bitcoind(self.rpcconn)
-        rpc = self.rpcconn.get_rpcconn()
-        rpc.generatetoaddress(101, rpc.getnewaddress())
+        self.mine(block_count=100)
         return self.rpcconn
 
     def _start_bitcoind(self, cleanup_at_exit):
@@ -112,6 +78,13 @@ class BitcoindController:
     def stop_bitcoind(self):
         raise Exception("This should not be used in the baseclass!")
 
+    def mine(self, address=None, block_count=1):
+        ''' Does mining to the attached address with as many as block_count blocks '''
+        if address == None:
+            address = self.rpcconn.get_rpcconn().getnewaddress()
+        logging.debug("Mining!")
+        self.rpcconn.get_rpcconn().generatetoaddress(block_count, address)
+        
     @staticmethod
     def check_bitcoind(rpcconn):
         ''' returns true if bitcoind is running on that address/port '''
@@ -298,18 +271,3 @@ class BitcoindDockerController(BitcoindController):
             i = i + 1
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
-
-    def mine(self, address='n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG', block_count=1):
-        ''' Does mining to the attached address with as many as block_count blocks '''
-        _, container = self.detect_bitcoind_container(self.rpcconn.rpcport)
-        rpc_options = self.render_rpc_options(self.rpcconn)
-        cmd = "bitcoin-cli -regtest {} generatetoaddress {} {}".format(rpc_options, block_count, address)
-        exit_code, output = container.exec_run(cmd)
-        if exit_code != 0:
-            logging.error(output)
-            logging.error("address: {}".format(address))
-            #raise Exception(output)
-        return
-
-if __name__ == "__main__":
-    cli()
