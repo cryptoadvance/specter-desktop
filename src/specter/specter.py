@@ -590,23 +590,38 @@ class Wallet(dict):
             descriptor = descriptor.replace("*", f"{index}")
         # remove checksum
         descriptor = descriptor.split("#")[0]
+
         # get address (should be already imported to the wallet)
         address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+
         # get pubkeys involved
-        pubkeys = self.cli.getaddressinfo(address)["pubkeys"]
+        address_info = self.cli.getaddressinfo(address)
+        if 'pubkeys' in address_info:
+            pubkeys = address_info["pubkeys"]
+        elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
+            pubkeys = address_info["embedded"]["pubkeys"]
+        else:
+            raise Exception("Could not find 'pubkeys' in address info:\n%s" % json.dumps(address_info, indent=2))
+
         # get xpubs from the descriptor
         arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
+
         # getting [wsh] or [sh, wsh]
         prefix = descriptor.split("(multi(")[0].split("(")
         sigs_required = arr[0]
         keys = arr[1:]
+
         # sort them according to sortedmulti
         z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
         keys = [zz[1] for zz in z]
         inner = f"{sigs_required},"+",".join(keys)
         desc = f"multi({inner})"
+
+        # Write from the inside out
+        prefix.reverse()
         for p in prefix:
             desc = f"{p}({desc})"
+
         return AddChecksum(desc)
 
     def keypoolrefill(self, start, end=None, change=False):
