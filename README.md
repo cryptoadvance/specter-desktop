@@ -1,5 +1,7 @@
 # Specter Desktop
 
+[![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
+
 ## DISCLAIMER
 
 This software is **WORK IN PROGRESS and NOT READY TO USE YET**. Currently tested only in Chrome, so in other browsers it may look weird.
@@ -34,14 +36,15 @@ Run the server:
 
 ```
 cd specter-desktop
-python3 src/server.py
+python3 src/specter/server.py
 ```
 
 Run the tests (still very limited):
 
 ```
 pip3 install -e .
-pytest
+pytest # needs a bitcoind on your path
+pytest --docker # needs a working docker-setup (but not bitcoind)
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.

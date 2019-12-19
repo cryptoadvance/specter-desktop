@@ -1,10 +1,11 @@
-import hashlib
-import subprocess
-
 import collections
-import six
+import hashlib
+import json
+import os
+import subprocess
 from collections import OrderedDict
-import os, json
+
+import six
 
 try:
     collectionsAbc = collections.abc
@@ -182,6 +183,24 @@ def normalize_xpubs(xpubs):
             failed.append(line + "\n" + str(e))
     return (normalized, parsed, failed)
 
+
+def which(program):
+    ''' mimics the "which" command in bash. '''
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, _ = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
 # should work in all python versions
 def run_shell(cmd):
     """
@@ -198,4 +217,3 @@ def run_shell(cmd):
         return { "code": proc.returncode, "out": stdout, "err": stderr }
     except:
         return { "code": 0xf00dbabe, "out": b"", "err": b"Can't run subprocess" }
-

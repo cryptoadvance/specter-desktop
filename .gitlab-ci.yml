@@ -1,0 +1,32 @@
+# this image contains python, bitcoind and docker
+# check docker/python-bitcoind on how it's built
+image: registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
+
+variables:
+  # Cache documentation: https://docs.gitlab.com/ee/ci/caching/
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  # enable per-job and per-branch caching
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+    - .env/
+
+before_script:
+  - docker info # Print out docker version for debugging
+  - python -V  # Print out python version for debugging
+  - apt update
+  - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
+  - pip install virtualenv
+  - virtualenv --python=python3 .env
+  - source .env/bin/activate
+
+test:
+  script:
+    - pip3 install -r requirements.txt
+    - pip3 install -e .
+    # pytest --docker not working? Uncomment this for better debugging:
+    # - python3 tests/conftest.py 
+    - pytest --docker
+
