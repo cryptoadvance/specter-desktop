@@ -646,7 +646,10 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0):
+        """
+            fee_rate: in sat/B. Default (None) bitcoin core sets feeRate automatically.
+        """
         if self.fullbalance < amount:
             return None
         extra_inputs = []
@@ -664,13 +667,23 @@ class Wallet(dict):
         # empty array (subtract from change) or [0]
         subtract_arr = [0] if subtract else []
 
+        options = {   
+            "includeWatching": True, 
+            "changeAddress": self["change_address"],
+            "subtractFeeFromOutputs": subtract_arr
+        }
+        if fee_rate > 0.0:
+            # bitcoin core needs us to convert sat/B to BTC/kB
+            options["feeRate"] = fee_rate / 10 ** 8 * 1024
+
         # Dont reuse change addresses - use getrawchangeaddress instead
-        r = self.cli.walletcreatefundedpsbt(extra_inputs, [{address: amount}], 0, 
-                                        {   
-                                            "includeWatching": True, 
-                                            "changeAddress": self["change_address"],
-                                            "subtractFeeFromOutputs": subtract_arr
-                                        }, True)
+        r = self.cli.walletcreatefundedpsbt(
+            extra_inputs,           # inputs
+            [{address: amount}],    # output
+            0,                      # locktime
+            options,                # options
+            True                    # replaceable
+        )
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
