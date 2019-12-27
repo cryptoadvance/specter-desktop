@@ -15,6 +15,7 @@
 <div id="hwi_include__select_device" class="hidden">
     <h1>Select USB Wallet</h1>
     <div class="flex-center flex-column" id="hwi_include__select_device__content">
+        <button id="hwi_include__select_device__coldcard" class="btn flex-item">Coldcard (USB)</button>
         <button id="hwi_include__select_device__keepkey" class="btn flex-item">KeepKey</button>
         <button id="hwi_include__select_device__ledger" class="btn flex-item">Ledger</button>
         <button id="hwi_include__select_device__trezor" class="btn flex-item">Trezor</button>
@@ -83,6 +84,7 @@
     }
 
 
+    var detectWalletTimeout;
     async function hwiDetectWallet(type, callback) {
         /**
             Tells the server to enumerate the connected HWI devices and find
@@ -106,7 +108,8 @@
                 callback(jsonResponse);
             } else {
                 // wait and retry
-                setTimeout(function() {
+                clearTimeout(detectWalletTimeout);
+                detectWalletTimeout = setTimeout(function() {
                         console.log("Attempting again");
                         hwiDetectWallet(type, callback);
                     },
@@ -116,6 +119,7 @@
         } catch(e) {
             console.log("Caught error");
             console.log(e);
+            clearTimeout(detectWalletTimeout);
             callback({ success: false, error: e });
         }
     }
@@ -198,8 +202,7 @@
 
     async function hwiSendPsbt(psbt) {
         /**
-            Tells the server to enumerate the connected HWI devices and find
-            one of the type specified.
+            Sends the current psbt to the server to relay to the HWI wallet.
         **/
         var formData = new FormData();
         formData.append("type", hwiCurrentWallet.type);
@@ -246,7 +249,9 @@
 
     function beginDetectWallet(type) {
         var instructionText;
-        if (type == "keepkey") {
+        if (type == "coldcard") {
+            instructionText = "Plug in Coldcard and enter PINs";
+        } else if (type == "keepkey") {
             instructionText = "Plug in KeepKey.";
         } else if (type == "ledger") {
             instructionText = "Plug in Ledger, unlock, and open the Bitcoin app.";
@@ -261,7 +266,7 @@
         var content = document.getElementById("hwi_include__select_device__content");
         var instructions = document.getElementById("hwi_include__select_device__instructions");
         content.style.display = "none";
-        instructions.textContent = instructionText + " Detecting...";
+        instructions.innerHTML = instructionText + "<br/><br/>Detecting...";
         instructions.style.display = "block";
 
         loader.style.display = "flex";
@@ -279,6 +284,10 @@
 
 
         // ============= FIND / INITIALIZE TARGET HARDWARE WALLET =============
+        document.getElementById("hwi_include__select_device__coldcard").addEventListener("click", async function(e) {
+            e.preventDefault();
+            beginDetectWallet("coldcard");
+        });
         document.getElementById("hwi_include__select_device__keepkey").addEventListener("click", async function(e) {
             e.preventDefault();
             beginDetectWallet("keepkey");
@@ -331,6 +340,30 @@
             hidePageOverlay("hwi_include__unlocked__submit");
         });
 
+
+
+        // If the overlay is closed, make sure any detection loops are cancelled
+        document.getElementById("page_overlay_popup_cancel_button").addEventListener("click", function(event) {
+            clearTimeout(detectWalletTimeout);
+        });
+
+        document.addEventListener("keyup", function(e) {
+            // Dismiss popup with ESC button
+            if (e.keyCode == 27) {
+                var elem = document.getElementById("page_overlay");
+                // If it's visible... (using jQuery's visibility test)
+                if (!!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length )) {
+                    clearTimeout(detectWalletTimeout);
+                }
+            }
+        });
+
+        document.getElementById("page_overlay").addEventListener("click", function(e) {
+            // Ignore clicks on children
+            if(e.target !== e.currentTarget) return;
+
+            clearTimeout(detectWalletTimeout);
+        });
 
     });
 

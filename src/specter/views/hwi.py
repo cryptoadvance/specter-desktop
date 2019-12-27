@@ -138,8 +138,19 @@ def hwi_extract_xpubs():
         xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
         Vpub = convert_xpub_prefix(xpub, b'\x02\x57\x54\x83')
         xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, Vpub)
+
+        # Do proper cleanup otherwise have to reconnect device to access again
+        client.close()
+
     except Exception as e:
         print(e)
+        if client:
+            try:
+                client.close()
+            except Exception:
+                # We tried...
+                pass
+
         return jsonify(success=False, error=e)
 
     normalized, parsed, failed = normalize_xpubs(xpubs)
@@ -248,8 +259,19 @@ def hwi_sign_tx():
         client = get_hwi_client(type, path)
         status = hwilib_commands.signtx(client, psbt)
         print(status)
+
+        # Do proper cleanup otherwise have to reconnect device to access again
+        client.close()
+
         return jsonify(status)
     except Exception as e:
         print(e)
-        return jsonify(success=False, error=e)
+        if client:
+            try:
+                client.close()
+            except Exception:
+                # We tried...
+                pass
+
+        return jsonify(success=False, error=str(e))
 
