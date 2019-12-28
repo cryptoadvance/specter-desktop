@@ -11,6 +11,10 @@
 		text-align: center;
 		margin-bottom: 2em;
 	}
+	.fee_rate {
+		width: 6em;
+		min-width: 6em;
+	}
 	.hwi_container{
 		margin-bottom: 2em;
 	}
@@ -30,7 +34,7 @@
 	{% if not psbt %}
 		<br><h1>Sending to:</h1>
 		<div class="card">
-			Receipient address:<br>
+			Recipient address:<br>
 			<div class="row">
 				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
 				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
@@ -40,6 +44,11 @@
 			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8">
 			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
 			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
+			<br><br>
+			Fee rate:<br>
+			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25"> sat/B
+			<div class="note">leave blank to set automatically</div>
+			<br><br>
 			<br><br>
 			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 		</div>

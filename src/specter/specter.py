@@ -590,23 +590,38 @@ class Wallet(dict):
             descriptor = descriptor.replace("*", f"{index}")
         # remove checksum
         descriptor = descriptor.split("#")[0]
+
         # get address (should be already imported to the wallet)
         address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+
         # get pubkeys involved
-        pubkeys = self.cli.getaddressinfo(address)["pubkeys"]
+        address_info = self.cli.getaddressinfo(address)
+        if 'pubkeys' in address_info:
+            pubkeys = address_info["pubkeys"]
+        elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
+            pubkeys = address_info["embedded"]["pubkeys"]
+        else:
+            raise Exception("Could not find 'pubkeys' in address info:\n%s" % json.dumps(address_info, indent=2))
+
         # get xpubs from the descriptor
         arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
+
         # getting [wsh] or [sh, wsh]
         prefix = descriptor.split("(multi(")[0].split("(")
         sigs_required = arr[0]
         keys = arr[1:]
+
         # sort them according to sortedmulti
         z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
         keys = [zz[1] for zz in z]
         inner = f"{sigs_required},"+",".join(keys)
         desc = f"multi({inner})"
+
+        # Write from the inside out
+        prefix.reverse()
         for p in prefix:
             desc = f"{p}({desc})"
+
         return AddChecksum(desc)
 
     def keypoolrefill(self, start, end=None, change=False):
@@ -646,7 +661,10 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0):
+        """
+            fee_rate: in sat/B. Default (None) bitcoin core sets feeRate automatically.
+        """
         if self.fullbalance < amount:
             return None
         extra_inputs = []
@@ -664,13 +682,23 @@ class Wallet(dict):
         # empty array (subtract from change) or [0]
         subtract_arr = [0] if subtract else []
 
+        options = {   
+            "includeWatching": True, 
+            "changeAddress": self["change_address"],
+            "subtractFeeFromOutputs": subtract_arr
+        }
+        if fee_rate > 0.0:
+            # bitcoin core needs us to convert sat/B to BTC/kB
+            options["feeRate"] = fee_rate / 10 ** 8 * 1024
+
         # Dont reuse change addresses - use getrawchangeaddress instead
-        r = self.cli.walletcreatefundedpsbt(extra_inputs, [{address: amount}], 0, 
-                                        {   
-                                            "includeWatching": True, 
-                                            "changeAddress": self["change_address"],
-                                            "subtractFeeFromOutputs": subtract_arr
-                                        }, True)
+        r = self.cli.walletcreatefundedpsbt(
+            extra_inputs,           # inputs
+            [{address: amount}],    # output
+            0,                      # locktime
+            options,                # options
+            True                    # replaceable
+        )
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
