@@ -43,7 +43,7 @@ def combine():
 @app.route('/')
 def index():
     app.specter.check()
-    if len(app.app.specter.wallets) > 0:
+    if len(app.specter.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallets[app.specter.wallets.names()[0]]["alias"])
 
     # TODO: add onboarding process

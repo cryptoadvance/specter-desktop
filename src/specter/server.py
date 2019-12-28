@@ -15,14 +15,22 @@ load_dotenv(env_path)
 
 DEBUG = True
 
-
-if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(os.path.realpath(__file__), 'templates')
-    static_folder = os.path.join(os.path.realpath(__file__), 'static')
-    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
-else:
-    app = Flask(__name__, template_folder="templates", static_folder="static")
-QRcode(app) # enable qr codes generation
+def create_app():
+    if getattr(sys, 'frozen', False):
+        template_folder = os.path.join(os.path.realpath(__file__), 'templates')
+        static_folder = os.path.join(os.path.realpath(__file__), 'static')
+        app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+    else:
+        app = Flask(__name__, template_folder="templates", static_folder="static")
+    QRcode(app) # enable qr codes generation
+    specter = Specter(DATA_FOLDER)
+    specter.check()
+    # Attach specter instance so child views (e.g. hwi) can access it
+    app.specter = specter
+    app.register_blueprint(hwi_views, url_prefix='/hwi')
+    with app.app_context():
+        import controller
+    return app
 
 
 DATA_FOLDER = "~/.specter"
@@ -40,21 +48,14 @@ SINGLE_TYPES = {
 
 
 
-app.register_blueprint(hwi_views, url_prefix='/hwi')
-with app.app_context():
-    import controller
+
 
 
 
 ############### startup ##################
 
 if __name__ == '__main__':
-    specter = Specter(DATA_FOLDER)
-    specter.check()
-
-    # Attach specter instance so child views (e.g. hwi) can access it
-    app.specter = specter
-
+    app = create_app()
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
     extra_files = extra_dirs[:]
