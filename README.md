@@ -39,15 +39,9 @@ cd specter-desktop
 python3 src/specter/server.py
 ```
 
-Run the tests (still very limited):
-
-```
-pip3 install -e .
-pytest # needs a bitcoind on your path
-pytest --docker # needs a working docker-setup (but not bitcoind)
-```
-
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
+
+Have a look at [DEVELOPMENT.md](https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md) for further information about hacking on specter-desktop.
 
 ## A few screenshots
 
