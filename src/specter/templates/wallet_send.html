@@ -70,7 +70,7 @@
 					<button class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
 				{% else %}
 					{% for device in wallet.devices %}
-						{% if device.type in ['keepkey', 'ledger', 'trezor'] %}
+						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor'] %}
 							<button class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}">{{ device.name }}</button>
 						{% endif %}
 					{% endfor %}
@@ -187,7 +187,7 @@
 				});
 			{% else %}
 				{% for device in wallet.devices %}
-					{% if device.type in ['keepkey', 'ledger', 'trezor'] %}
+					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor'] %}
 						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
 							e.preventDefault();
 							beginDetectWallet("{{ device.type }}");
@@ -199,14 +199,23 @@
 
 		    document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
 		        e.preventDefault();
+		        if (hwiCurrentWallet.type == 'coldcard') {
+					document.getElementById("hwi_device_name").textContent = 'Coldcard';
+				} else if (hwiCurrentWallet.type == 'keepkey') {
+					document.getElementById("hwi_device_name").textContent = 'KeepKey';
+				} else if (hwiCurrentWallet.type == 'ledger') {
+					document.getElementById("hwi_device_name").textContent = 'Ledger';
+				} else if (hwiCurrentWallet.type == 'trezor') {
+					document.getElementById("hwi_device_name").textContent = 'Trezor';
+				}
 		        showPageOverlay("hwi_sign_container");
 
 		        const psbt = "{{ psbt['base64'] }}";
 		        var jsonResponse = await hwiSendPsbt(psbt);
-		        if (jsonResponse.psbt !== "undefined") {
+				if (jsonResponse.hasOwnProperty('error')) {
+					alert(jsonResponse.error);
+		        } else if (jsonResponse.psbt !== "undefined") {
 			        combine(jsonResponse.psbt);
-			    } else {
-			    	alert(jsonResponse);
 			    }
 
 		        hidePageOverlay("hwi_sign_container");
