@@ -176,6 +176,10 @@ class Specter:
     
     
 class DeviceManager:
+    ''' A DeviceManager mainly manages the persistence of a device-json-structures
+        compliant to helper.load_jsons
+    '''
+    # of them via json-files in an empty data folder
     def __init__(self, data_folder):
         self.update(data_folder)
 
@@ -247,7 +251,7 @@ class Device(dict):
     SD_CARD_TYPES = ['coldcard', 'other']
     HWI_TYPES = ['keepkey', 'ledger', 'trezor']
 
-    def __init__(self, d, manager=None):
+    def __init__(self, d, manager):
         self.manager = manager
         self.update(d)
         self._dict = d
