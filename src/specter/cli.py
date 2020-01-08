@@ -10,8 +10,6 @@ import tempfile
 import time
 
 import click
-from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
-
 import docker
 from bitcoind import BitcoindDockerController
 from server import DATA_FOLDER

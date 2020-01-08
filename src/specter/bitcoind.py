@@ -8,9 +8,8 @@ import subprocess
 import tempfile
 import time
 
-from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
-
 import docker
+from rpc import BitcoinCLI
 from helpers import which
 
 
@@ -34,13 +33,12 @@ class Btcd_conn:
     def ipaddress(self,ipaddress):
         self._ipaddress = ipaddress
 
-    def get_rpcconn(self):
-        ''' returns a working AuthServiceProxy for the bitcoind '''
-        url = self.render_url()
-        rpc = AuthServiceProxy(url)
-        rpc.getblockchaininfo()
-        logging.debug("created bitcoind-url {} is working".format(url))
-        return rpc
+    def get_cli(self):
+        ''' returns a BitcoinCLI '''
+        # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
+        cli = BitcoinCLI(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
+        cli.getblockchaininfo()
+        return cli
 
     def render_url(self):
         return 'http://{}:{}@{}:{}/wallet/'.format(self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport)
@@ -81,21 +79,21 @@ class BitcoindController:
     def mine(self, address=None, block_count=1):
         ''' Does mining to the attached address with as many as block_count blocks '''
         if address == None:
-            address = self.rpcconn.get_rpcconn().getnewaddress()
+            address = self.rpcconn.get_cli().getnewaddress()
         logging.debug("Mining!")
-        self.rpcconn.get_rpcconn().generatetoaddress(block_count, address)
+        self.rpcconn.get_cli().generatetoaddress(block_count, address)
         
     @staticmethod
     def check_bitcoind(rpcconn):
         ''' returns true if bitcoind is running on that address/port '''
         try:
-            rpcconn.get_rpcconn() # that call will also check the connection
+            rpcconn.get_cli() # that call will also check the connection
             return True
         except ConnectionRefusedError:
             return False
         except TypeError:
             return False
-        except JSONRPCException:
+        except Exception:
             return False
 
     @staticmethod

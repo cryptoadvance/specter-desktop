@@ -65,8 +65,36 @@ def test_DeviceManager(empty_data_folder):
     # keys can be added and removed. It will instantly update the underlying json
     # TBD: more explanational tests
 
-def test_WalletManager(empty_data_folder):
-    wm = WalletManager(empty_data_folder,None,"regtest")
-    #wm.create_simple("first_wallet",)
+def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(),"regtest")
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias('trezor')
+    assert device != None
+    key = {
+            "derivation": "m/84h/1h/0h",
+            "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
+            "fingerprint": "1ef4e492",
+            "type": "wpkh",
+            "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
+    }
+    # Lets's create a wallet with the WalletManager
+    wm.create_simple('a_test_wallet','wpkh',key,device)
+    # The wallet-name gets its filename and therfore its alias
+    wallet = wm.get_by_alias('a_test_wallet')
+    assert wallet != None
+    assert wallet.getbalances()['trusted'] == 0
+    assert wallet.getbalances()['untrusted_pending'] == 0
+    # this is a sum of both
+    assert wallet.getfullbalance() == 0
+    address = wallet.getnewaddress()
+    # newly minted coins need 100 blocks to get spendable
+    wallet.cli.generatetoaddress(101, address)
+    # a balance has properties which are caching the result from last call
+    assert wallet.fullbalance == 0
+    assert wallet.getfullbalance() == 50
+    assert wallet.fullbalance == 50
+    
+    assert wallet.getbalance() == 50
+
 
 
