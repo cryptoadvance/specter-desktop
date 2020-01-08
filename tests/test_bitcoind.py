@@ -10,6 +10,9 @@ def test_bitcoinddocker_running(caplog):
     assert rpcconn.get_cli() != None
     assert rpcconn.get_cli().ipaddress != None
     rpcconn.get_cli().getblockchaininfo()
+    # you can use the testcoin_faucet:
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    my_bitcoind.testcoin_faucet(random_address, amount=25, mine_tx=True)
     my_bitcoind.stop_bitcoind()
 
 

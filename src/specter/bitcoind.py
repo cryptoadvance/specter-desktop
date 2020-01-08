@@ -9,7 +9,7 @@ import tempfile
 import time
 
 import docker
-from rpc import BitcoinCLI
+from rpc import BitcoinCLI, RpcError
 from helpers import which
 
 
@@ -67,6 +67,10 @@ class BitcoindController:
         self.mine(block_count=100)
         return self.rpcconn
 
+    def get_cli(self):
+        ''' wrapper for convenience '''
+        return self.rpcconn.get_cli()
+
     def _start_bitcoind(self, cleanup_at_exit):
         raise Exception("This should not be used in the baseclass!")
 
@@ -82,6 +86,29 @@ class BitcoindController:
             address = self.rpcconn.get_cli().getnewaddress()
         logging.debug("Mining!")
         self.rpcconn.get_cli().generatetoaddress(block_count, address)
+    
+    def testcoin_faucet(self, address, amount=20, mine_tx=False):
+        ''' an easy way to get some testcoins '''
+        cli = self.get_cli()
+        
+        
+        test3rdparty_cli = cli.wallet("test3rdparty")
+        try:
+            balance = test3rdparty_cli.getbalance()
+        except RpcError as rpce:
+            # return-codes:
+            # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
+            if rpce.error_code == -18: # RPC_WALLET_NOT_FOUND
+                cli.createwallet("test3rdparty")
+                balance = test3rdparty_cli.getbalance()
+            else:
+                raise rpce
+        if balance < amount:
+            test3rdparty_address = test3rdparty_cli.getnewaddress("test3rdparty")
+            cli.generatetoaddress(102, test3rdparty_address)
+        test3rdparty_cli.sendtoaddress(address,amount)
+        if mine_tx:
+            cli.generatetoaddress(1, test3rdparty_address)
         
     @staticmethod
     def check_bitcoind(rpcconn):

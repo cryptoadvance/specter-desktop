@@ -42,7 +42,7 @@ def bitcoin_regtest(docker):
             bitcoind_controller = BitcoindPlainController() # Alternatively take the one on the path for now
 
     bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
-    return bitcoind_controller.rpcconn
+    return bitcoind_controller
 
 
 @pytest.fixture
@@ -171,10 +171,10 @@ def specter_regtest_configured(bitcoin_regtest):
     config = {
         "rpc": {
             "autodetect": False,
-            "user": bitcoin_regtest.rpcuser,
-            "password": bitcoin_regtest.rpcpassword,
-            "port": bitcoin_regtest.rpcport,
-            "host": bitcoin_regtest.ipaddress,
+            "user": bitcoin_regtest.rpcconn.rpcuser,
+            "password": bitcoin_regtest.rpcconn.rpcpassword,
+            "port": bitcoin_regtest.rpcconn.rpcport,
+            "host": bitcoin_regtest.rpcconn.ipaddress,
             "protocol": "http"
         },
     }
