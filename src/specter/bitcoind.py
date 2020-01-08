@@ -80,18 +80,13 @@ class BitcoindController:
     def stop_bitcoind(self):
         raise Exception("This should not be used in the baseclass!")
 
-    def mine(self, address=None, block_count=1):
+    def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
         ''' Does mining to the attached address with as many as block_count blocks '''
-        if address == None:
-            address = self.rpcconn.get_cli().getnewaddress()
-        logging.debug("Mining!")
         self.rpcconn.get_cli().generatetoaddress(block_count, address)
     
     def testcoin_faucet(self, address, amount=20, mine_tx=False):
         ''' an easy way to get some testcoins '''
         cli = self.get_cli()
-        
-        
         test3rdparty_cli = cli.wallet("test3rdparty")
         try:
             balance = test3rdparty_cli.getbalance()
@@ -146,6 +141,7 @@ class BitcoindController:
         ''' returns a bitcoind-command to run bitcoind '''
         btcd_cmd = "{} ".format(bitcoind_path)
         btcd_cmd += " -regtest "
+        btcd_cmd += " -fallbackfee "
         btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport-1,rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcuser,rpcconn.rpcpassword)
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
