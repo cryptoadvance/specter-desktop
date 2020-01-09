@@ -106,8 +106,9 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     # the most relevant stuff of the above object:
     assert len(psbt['tx']['vin']) == 1 # 1 input
     assert len(psbt['tx']['vout']) == 2 # 2 outputs
-    # Now let's send some money to this wallet
-    bitcoin_regtest.testcoin_faucet(address,40)
+    # Now let's send some money to this wallet (creating 10 more potential inputs)
+    for i in range(0,4): # 40 coins as a whole
+        bitcoin_regtest.testcoin_faucet(address,10)
     assert wallet.getfullbalance() == 90
     assert wallet.getbalances()['untrusted_pending'] == 40
     assert wallet.getbalances()['trusted'] == 50
@@ -126,5 +127,5 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
         pass
     # But wallet.createpsbt supports it (by explicitely specifying inputs)! 
     wallet.createpsbt(random_address, 60, True, 10)
-    print(wallet.cli.listunspent(0,include_unsafeee=True))
-    assert False
+    bitcoin_regtest.mine()
+
