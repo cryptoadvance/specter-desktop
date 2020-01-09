@@ -497,11 +497,19 @@ tbody tr:hover{
 }
 td.xpub{
 	max-width: 300px;
-	overflow-x: scroll;
 }
-td.txid{
+td.tx{
 	max-width: 200px;
+}
+td.scroll{
+	padding: 0 10px;
+}
+td.scroll > *{
+	/* ugly fix for firefox - scrolling child element */
+	display: block;
 	overflow-x: scroll;
+	width: 100%;
+	padding: 20px 0;
 }
 table a{
 	display: inline;

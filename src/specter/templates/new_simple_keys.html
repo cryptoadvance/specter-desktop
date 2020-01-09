@@ -48,7 +48,7 @@
 		</td>
 		<td>{{ purposes[key["type"]] }}</td>
 		<td>{{key["derivation"]}}</td>
-		<td class="xpub">{{key["original"]}}</td>
+		<td class="scroll xpub"><span>{{key["original"]}}</span></td>
 		<td width="120px">
 			<label>
 			<input type="radio" name="key{{outer_loop.index0}}" value="{{key['original']}}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
@@ -102,7 +102,7 @@
 			</td>
 			<td>{{ purposes[key["type"]] }}</td>
 			<td>{{key["derivation"]}}</td>
-			<td class="xpub">{{key["original"]}}</td>
+			<td class="scroll xpub"><span>{{key["original"]}}</span></td>
 			<td width="120px">
 				<form action="./" method="POST">
 					<input type="hidden" name="key" value="{{key['original']}}">
