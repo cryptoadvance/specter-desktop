@@ -5,6 +5,7 @@ Run the tests (still very limited):
 pip3 install -e .
 pytest # needs a bitcoind on your path
 pytest --docker # needs a working docker-setup (but not bitcoind)
+pytest tests/test_specter -k Manager # Run all tests in a specific file matching "Manager"
 ```
 
 # More on the bitcoind requirements

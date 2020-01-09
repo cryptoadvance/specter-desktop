@@ -8,9 +8,8 @@ import subprocess
 import tempfile
 import time
 
-from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
-
 import docker
+from rpc import BitcoinCLI, RpcError
 from helpers import which
 
 
@@ -34,13 +33,12 @@ class Btcd_conn:
     def ipaddress(self,ipaddress):
         self._ipaddress = ipaddress
 
-    def get_rpcconn(self):
-        ''' returns a working AuthServiceProxy for the bitcoind '''
-        url = self.render_url()
-        rpc = AuthServiceProxy(url)
-        rpc.getblockchaininfo()
-        logging.debug("created bitcoind-url {} is working".format(url))
-        return rpc
+    def get_cli(self):
+        ''' returns a BitcoinCLI '''
+        # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
+        cli = BitcoinCLI(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
+        cli.getblockchaininfo()
+        return cli
 
     def render_url(self):
         return 'http://{}:{}@{}:{}/wallet/'.format(self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport)
@@ -69,6 +67,10 @@ class BitcoindController:
         self.mine(block_count=100)
         return self.rpcconn
 
+    def get_cli(self):
+        ''' wrapper for convenience '''
+        return self.rpcconn.get_cli()
+
     def _start_bitcoind(self, cleanup_at_exit):
         raise Exception("This should not be used in the baseclass!")
 
@@ -78,24 +80,42 @@ class BitcoindController:
     def stop_bitcoind(self):
         raise Exception("This should not be used in the baseclass!")
 
-    def mine(self, address=None, block_count=1):
+    def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
         ''' Does mining to the attached address with as many as block_count blocks '''
-        if address == None:
-            address = self.rpcconn.get_rpcconn().getnewaddress()
-        logging.debug("Mining!")
-        self.rpcconn.get_rpcconn().generatetoaddress(block_count, address)
+        self.rpcconn.get_cli().generatetoaddress(block_count, address)
+    
+    def testcoin_faucet(self, address, amount=20, mine_tx=False):
+        ''' an easy way to get some testcoins '''
+        cli = self.get_cli()
+        test3rdparty_cli = cli.wallet("test3rdparty")
+        try:
+            balance = test3rdparty_cli.getbalance()
+        except RpcError as rpce:
+            # return-codes:
+            # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
+            if rpce.error_code == -18: # RPC_WALLET_NOT_FOUND
+                cli.createwallet("test3rdparty")
+                balance = test3rdparty_cli.getbalance()
+            else:
+                raise rpce
+        if balance < amount:
+            test3rdparty_address = test3rdparty_cli.getnewaddress("test3rdparty")
+            cli.generatetoaddress(102, test3rdparty_address)
+        test3rdparty_cli.sendtoaddress(address,amount)
+        if mine_tx:
+            cli.generatetoaddress(1, test3rdparty_address)
         
     @staticmethod
     def check_bitcoind(rpcconn):
         ''' returns true if bitcoind is running on that address/port '''
         try:
-            rpcconn.get_rpcconn() # that call will also check the connection
+            rpcconn.get_cli() # that call will also check the connection
             return True
         except ConnectionRefusedError:
             return False
         except TypeError:
             return False
-        except JSONRPCException:
+        except Exception:
             return False
 
     @staticmethod
@@ -121,6 +141,7 @@ class BitcoindController:
         ''' returns a bitcoind-command to run bitcoind '''
         btcd_cmd = "{} ".format(bitcoind_path)
         btcd_cmd += " -regtest "
+        btcd_cmd += " -fallbackfee=0.0002 "
         btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport-1,rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcuser,rpcconn.rpcpassword)
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "

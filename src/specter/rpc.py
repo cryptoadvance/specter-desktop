@@ -124,6 +124,28 @@ def autodetect_cli(port=None):
     print("Detected %d bitcoin daemons" % len(available_cli_arr))
     return available_cli_arr
 
+class RpcError(Exception):
+    ''' Specifically created for error-handling of the BitcoiCore-API
+        if thrown, check for errors like this:
+        try:
+            cli.does_not_exist()
+        except RpcError as rpce:
+            assert rpce.error_code == -32601
+            assert rpce.error_msg == "Method not found"
+        See for error_codes https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
+    '''
+    def __init__(self, message, response):
+        super(Exception, self).__init__(message)
+        self.status_code = response.status_code
+        try:
+            error = json.loads(response.text)
+            self.status_code = response.status_code
+            self.error_code = error['error']['code']
+            self.error_msg = error['error']['message']
+        except Exception as e:
+            self.error = "UNKNOWN API-ERROR:%s" % response.text
+
+
 class BitcoinCLI:
     def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
         path = path.replace("//","/") # just in case
@@ -172,7 +194,7 @@ class BitcoinCLI:
                 url, data=json.dumps(payload), headers=headers, timeout=timeout)
             self.r = r
             if r.status_code != 200:
-                raise Exception("Server responded with error code %d: %s" % (r.status_code, r.text))
+                raise RpcError("Server responded with error code %d: %s" % (r.status_code, r.text), r)
             r = r.json()
             if r["error"] is not None:
                 raise Exception(r["error"])

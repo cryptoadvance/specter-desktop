@@ -4,7 +4,10 @@ import shutil
 
 import pytest
 
-from specter import Specter, alias, DeviceManager, Device, WalletManager, Wallet
+from rpc import RpcError
+from specter import (Device, DeviceManager, Specter, Wallet, WalletManager,
+                     alias)
+
 
 def test_alias():
     assert alias("wurst 1") == "wurst_1"
@@ -65,8 +68,64 @@ def test_DeviceManager(empty_data_folder):
     # keys can be added and removed. It will instantly update the underlying json
     # TBD: more explanational tests
 
-def test_WalletManager(empty_data_folder):
-    wm = WalletManager(empty_data_folder,None,"regtest")
-    #wm.create_simple("first_wallet",)
+def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(),"regtest")
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias('trezor')
+    assert device != None
+    key = {
+            "derivation": "m/84h/1h/0h",
+            "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
+            "fingerprint": "1ef4e492",
+            "type": "wpkh",
+            "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
+    }
+    # Lets's create a wallet with the WalletManager
+    wm.create_simple('a_test_wallet','wpkh',key,device)
+    # The wallet-name gets its filename and therfore its alias
+    wallet = wm.get_by_alias('a_test_wallet')
+    assert wallet != None
+    assert wallet.getbalances()['trusted'] == 0
+    assert wallet.getbalances()['untrusted_pending'] == 0
+    # this is a sum of both
+    assert wallet.getfullbalance() == 0
+    address = wallet.getnewaddress()
+    # newly minted coins need 100 blocks to get spendable
+    wallet.cli.generatetoaddress(1, address)
+    # let's mine another 100 blocks to get these coins spendable
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    wallet.cli.generatetoaddress(100, random_address)
+    # a balance has properties which are caching the result from last call
+    assert wallet.fullbalance == 0
+    assert wallet.getfullbalance() == 50
+    assert wallet.fullbalance == 50
+    assert wallet.getbalance() == 50
+    # Lets's spend something and create a PSBT to a random address
 
+    psbt = wallet.createpsbt(random_address,10, True, 10)
+    # the most relevant stuff of the above object:
+    assert len(psbt['tx']['vin']) == 1 # 1 input
+    assert len(psbt['tx']['vout']) == 2 # 2 outputs
+    # Now let's send some money to this wallet (creating 10 more potential inputs)
+    for i in range(0,4): # 40 coins as a whole
+        bitcoin_regtest.testcoin_faucet(address,10)
+    assert wallet.getfullbalance() == 90
+    assert wallet.getbalances()['untrusted_pending'] == 40
+    assert wallet.getbalances()['trusted'] == 50
+    # Even though the Bitcoin-API doesn't support spending more than 'trusted'
+    try:
+        wallet.cli.walletcreatefundedpsbt(
+            [],                     # inputs (choose yourself)
+            [{random_address: 60}], # output
+            0,                      # locktime
+            {},                     # options
+            True                    # replaceable
+        )
+        assert False # excpected an exception
+    except RpcError as rpce:
+        assert rpce.error_msg == "Insufficient funds"
+        pass
+    # But wallet.createpsbt supports it (by explicitely specifying inputs)! 
+    wallet.createpsbt(random_address, 60, True, 10)
+    bitcoin_regtest.mine()
 
