@@ -54,8 +54,8 @@
 						{% endif %}
 					{% endif %}
 				</td>
-				<td class="txid"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="txid"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending
