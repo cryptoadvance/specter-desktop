@@ -141,7 +141,7 @@ class BitcoindController:
         ''' returns a bitcoind-command to run bitcoind '''
         btcd_cmd = "{} ".format(bitcoind_path)
         btcd_cmd += " -regtest "
-        btcd_cmd += " -fallbackfee "
+        btcd_cmd += " -fallbackfee=0.0002 "
         btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(rpcconn.rpcport-1,rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(rpcconn.rpcuser,rpcconn.rpcpassword)
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
