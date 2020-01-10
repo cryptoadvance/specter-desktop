@@ -5,7 +5,7 @@ import shutil
 import pytest
 
 from rpc import RpcError
-from specter import (Device, DeviceManager, Specter, Wallet, WalletManager,
+from logic import (Device, DeviceManager, Specter, Wallet, WalletManager,
                      alias)
 
 
@@ -27,7 +27,6 @@ def test_specter(specter_regtest_configured,caplog):
     assert json_return['chain'] == 'regtest'
 
 def test_DeviceManager(empty_data_folder):
-    from specter import DeviceManager
     # A DeviceManager manages devices, specifically the persistence 
     # of them via json-files in an empty data folder
     dm = DeviceManager(data_folder=empty_data_folder)

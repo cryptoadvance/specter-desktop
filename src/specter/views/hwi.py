@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from flask import Flask, Blueprint, render_template, request, redirect, jsonify, current_app
-from helpers import normalize_xpubs, convert_xpub_prefix
+from helpers import normalize_xpubs, convert_xpub_prefix, which
 from hwilib import commands as hwilib_commands
 from hwilib import base58
 
@@ -18,22 +18,7 @@ hwi_views = Blueprint('hwi', __name__, template_folder='templates')
 """
     Support for calling the 'hwi' CLI. See note below in _enumerate()
 """
-HWI_DIR = None
-def _locate_hwi():
-    # Is hwi globally available?
-    returned_output = subprocess.check_output(["which", "hwi"])
-    if not returned_output:
-        # Are we in a virtualenv?
-        virtualenv_bin_dir = sys.executable[:sys.executable.rfind(os.sep)]
-        returned_output = subprocess.check_output(["hwi", "--version"], cwd=virtualenv_bin_dir)
-        if "hwi" not in returned_output.decode("utf-8").lower():
-            print("Could not find 'hwi' executable for HWI hardware wallet support")
-            exit(0)
-        else:
-            HWI_DIR = virtualenv_bin_dir
-
-_locate_hwi()
-
+HWI_EXEC = which("hwi")
 
 
 def get_spector_instance():
@@ -57,10 +42,7 @@ def _enumerate():
         #
         # Restore this line try directly calling enumerate:
         #   wallets = hwilib_commands.enumerate()
-        #
-        # The subprocess call does not run in the current virtualenv so we need to
-        #   locate the 'hwi' executable.
-        returned_output = subprocess.check_output(["hwi", "enumerate"], cwd=HWI_DIR)
+        returned_output = subprocess.check_output([HWI_EXEC, "enumerate"])
         return json.loads(returned_output.decode("utf-8"))
 
     except Exception as e:

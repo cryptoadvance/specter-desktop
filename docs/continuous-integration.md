@@ -34,7 +34,15 @@ start_bitcoind-function:
 
 # Travis-CI
 
-Travis-CI setup is very straightforward. As we're using the build-cache, the bitcoind sources and build is cached. Therefore such a build would only take 2 minutes. If the master-branch has new commits, bitcoind gets automatically rebuilt and the tests are running against the new version (tests/install_bitcoind.sh).
+Travis-CI setup is very straightforward. As we're using the build-cache, the bitcoind sources and build is cached. Therefore such a build would only take 2 minutes. If the master-branch has new commits, bitcoind gets automatically rebuilt and the tests are running against the new version (tests/install_bitcoind.sh).py
+
+# Releasing
+
+We're not yet ready to release (semi-) automatically. The current release-artifact is based on pyinstaller. To create the pyinstaller-artifact:
+```
+$ pyinstaller --onefile  --clean --paths .env/lib/python3.7/site-packages:src/specter  --add-data 'src/specter/templates:templates' --add-binary '.env/bin/hwi:.'  --add-data 'src/specter/static:static' src/specter/server.py
+```
+It would be great to name the app like --name specter-desktop  but the binary created is crashing the app after successfull startup for some unknown reason.
 
 #  Summary
 
