@@ -49,6 +49,10 @@ def get_cli(conf):
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 
+class SpecterError(Exception):
+    ''' A SpecterError contains meaningfull messages which can be passed directly to the user '''
+    pass
+
 class Specter:
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
