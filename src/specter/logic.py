@@ -670,7 +670,7 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, coinselects=[]):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0):
         """
             fee_rate: in sat/B. Default (None) bitcoin core sets feeRate automatically.
         """

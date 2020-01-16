@@ -7,6 +7,7 @@ def test_BitcoinCli(bitcoin_regtest):
     cli = BitcoinCLI(brt.rpcconn.rpcuser, brt.rpcconn.rpcpassword, host=brt.rpcconn.ipaddress, port=brt.rpcconn.rpcport)
     cli.getblockchaininfo()
     # To investigate the Bitcoin API, here are some great resources:
+    # https://bitcoin.org/en/developer-reference#bitcoin-core-apis
     # https://chainquery.com/bitcoin-cli
     # https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line
 

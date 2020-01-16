@@ -104,6 +104,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     psbt = wallet.createpsbt(random_address,10, True, 10)
     # the most relevant stuff of the above object:
     assert len(psbt['tx']['vin']) == 1 # 1 input
+    assert psbt['tx']['vin'][0]['txid'] == "730b41bd1e77b65770bfec73304da5c34cc1bad100394e6f5cc020bb5dbe65fd"
     assert len(psbt['tx']['vout']) == 2 # 2 outputs
     # Now let's send some money to this wallet (creating 10 more potential inputs)
     for i in range(0,4): # 40 coins as a whole
@@ -125,6 +126,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
         assert rpce.error_msg == "Insufficient funds"
         pass
     # But wallet.createpsbt supports it (by explicitely specifying inputs)! 
-    wallet.createpsbt(random_address, 60, True, 10)
-    bitcoin_regtest.mine()
+    psbt = wallet.createpsbt(random_address, 60, True, 10)
+    assert len(psbt['tx']['vin']) == 3
+    assert psbt['tx']['vin'][2]['txid'] == '730b41bd1e77b65770bfec73304da5c34cc1bad100394e6f5cc020bb5dbe65fd'
 

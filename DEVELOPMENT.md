@@ -8,6 +8,14 @@ pytest --docker # needs a working docker-setup (but not bitcoind)
 pytest tests/test_specter -k Manager # Run all tests in a specific file matching "Manager"
 ```
 
+# Developing on tests
+There are some things worth taking a note here, especially if you rely on a specific state on the blockchain for your tests. Bitcoind is started only once for all the tests. Each time it's starting with the genesis-block. This has some implications:
+* The [halving-interval for regtest](https://github.com/bitcoin/bitcoin/blob/99813a9745fe10a58bedd7a4cb721faf14f907a4/src/chainparams.cpp#L258) is only 150-blocks
+* At the same time, still 100 blocks need to be minded in order to make the coins spendable.
+* This combination results in that you can't rely on how many coins get mined if you want some testcoin on your address
+* This also means that it makes a huge difference whether you run a test standalone or together with all other tests
+* Depending on whether you do one or the other, you cannot rely on transactionIDs. So if you run a test standalone twice, you can assert txids but you can't any longer when you run all the tests
+
 # More on the bitcoind requirements
 Developing against a bitcoind-API makes most sense with the [Regtest Mode](https://bitcoin.org/en/developer-examples#regtest-mode). Depending on preferences and usecases, there are three major ways on how this dependency can be fullfilled:
 * Easiest way via Docker
@@ -40,6 +48,8 @@ In order to enable that, you need to activate pytest support by placing a settin
     "python.testing.pytestArgs": ["--docker"]
 }
 ```
+**WARNING**: Make sure to never stop a unittest in between. Simply continue with the test and let it run through. Otherwise the docker-container used for the test won't get cleaned up and your subsequent test-runs will fail with strange issues. If you did that, simply kill the container (```docker ps; docker kill ...```)
+
 More information on python-unit-tests on VS-Code can be found at the [VS-python-documentation](https://code.visualstudio.com/docs/python/testing).
 
 ## Debugging in VS-Code
@@ -77,8 +87,27 @@ You can easily create a .vscode/launch.json file via the debug-window. However t
 
 More information on debugging can be found at the [python-tutorial](https://code.visualstudio.com/docs/python/python-tutorial#_configure-and-run-the-debugger).
 
-# General File Layout
+# Guidelines and (for now) "best practices"
+
+## General File Layout
 Python/flask is not very opinionated and everything is possible. After reading (this)[https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure] and (this)[https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure] we decided for the "src-approach", at least the most obvious parts of it.
 
 setup.py is not (yet) as complex as listed there and setup.cfg is not even (yet?!) existing.
 If you see this to need some improvements, please make it in small steps and explain what the benefits of all of that.
+
+## Some words about dependencies
+As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. 
+
+## Some words specific to the frontend
+Also for that reason, we're avoiding npm and manage javascript dependencies by hand or do stuff manually. Feel free to use plain javascript in pages.
+However, we're planning (or even have started) to use vue.js without using vue.js-components (that would require a build). So feel free to use vue.js but either make a thoughtfull proposal on how to manage the vue.js build or don't use vue.js-components. Also, specter-desktop is not a one-page-app and also doesn't want to become one.
+
+We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that. High level consultancy help on that would be appreciated even so (or especially when) you take the above security/dependency requirements into account.
+
+## Some word about style
+* The icons are coming from https://material.io/resources/icons/?style=baseline
+* Colorizing the icons make them much more expressive. Current favorite colors are:
+  * nice orange #F5A623
+  * nice blue #4A90E2
+* A designer would probably rant about all these bad choices. Professional help, especially in the frontend, is very much appreciated.
+
