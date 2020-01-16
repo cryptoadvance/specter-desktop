@@ -50,7 +50,6 @@ class BitcoindController:
     ''' A kind of abstract class to simplify running a bitcoind with or without docker '''
     def __init__(self, rpcport=18443):
         self.rpcconn = Btcd_conn(rpcport=rpcport)
-        self.bitcoind_exec = which('bitcoind')
 
     def start_bitcoind(self, cleanup_at_exit=False):
         ''' starts bitcoind with a specific rpcport=18543 by default.

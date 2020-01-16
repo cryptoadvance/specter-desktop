@@ -11,7 +11,7 @@ import pytest
 import docker
 from bitcoind import BitcoindDockerController, BitcoindPlainController
 
-from specter import Specter, DeviceManager
+from logic import Specter, DeviceManager
 
 
 def pytest_addoption(parser):

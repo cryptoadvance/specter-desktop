@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from pathlib import Path
@@ -7,7 +8,7 @@ from flask import Flask
 from flask_qrcode import QRcode
 
 from descriptor import AddChecksum
-from specter import Specter
+from logic import Specter
 from views.hwi import hwi_views
 
 env_path = Path('.') / '.flaskenv'
@@ -17,8 +18,12 @@ DEBUG = True
 
 def create_app():
     if getattr(sys, 'frozen', False):
-        template_folder = os.path.join(os.path.realpath(__file__), 'templates')
-        static_folder = os.path.join(os.path.realpath(__file__), 'static')
+
+        # Best understood with the snippet below this section:
+        # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
+        template_folder = os.path.join(sys._MEIPASS, 'templates')
+        static_folder = os.path.join(sys._MEIPASS, 'static')
+        logging.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
         app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")

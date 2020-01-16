@@ -11,7 +11,7 @@ from helpers import normalize_xpubs, run_shell
 from descriptor import AddChecksum
 from rpc import BitcoinCLI, RPC_PORTS
 
-from specter import Specter, purposes, addrtypes
+from logic import Specter, purposes, addrtypes
 from datetime import datetime
 import urllib
 

@@ -1,5 +1,5 @@
 def test_load_jsons():
-    from specter import helpers
+    import helpers
     mydict = helpers.load_jsons("./tests/helpers_testdata")
     assert mydict["some_jsonfile"]["blub"] == "bla"
     assert mydict["some_other_jsonfile"]["bla"] == "blub"
@@ -18,7 +18,11 @@ def test_load_jsons():
     # os.remove(mydict["ID123"]['fullpath'])
 
 def test_which():
-    from specter import helpers
-    assert helpers.which("some_non_existing_binary") == None
+    import helpers
+    try:
+        helpers.which("some_non_existing_binary")
+        assert False, "Whould raise an Exception"
+    except:
+        pass
     assert helpers.which("date") == "/bin/date" or helpers.which("date") == "/usr/bin/date" # travis-CI has it on /bin/date
     

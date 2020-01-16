@@ -560,6 +560,9 @@ class Wallet(dict):
         return None
 
     def getbalance(self, *args, **kwargs):
+        ''' wrapping the cli-call:
+            Returns the total available balance.
+            The available balance is what the wallet considers currently spendable '''
         default_args = ["*", 0, True]
         args = list(args) + default_args[len(args):]
         try:
@@ -568,7 +571,7 @@ class Wallet(dict):
             return None
 
     def getbalances(self, *args, **kwargs):
-        """ 18.1 doesn't support it, so we need to build it ourselves... """
+        ''' 18.1 doesn't support it, so we need to build it ourselves... '''
         r = { 
             "trusted": 0,
             "untrusted_pending": 0,
@@ -584,6 +587,7 @@ class Wallet(dict):
         return r
 
     def getfullbalance(self):
+        ''' Returns sum of trusted balances AND pending transactions '''
         r = self.getbalances()
         if r["trusted"] is None:
             return None
@@ -659,13 +663,14 @@ class Wallet(dict):
 
     @property    
     def fullbalance(self):
+        ''' This is cached. Consider to use getfullbalance '''
         if self.balance is None:
             return None
         if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, coinselects=[]):
         """
             fee_rate: in sat/B. Default (None) bitcoin core sets feeRate automatically.
         """
