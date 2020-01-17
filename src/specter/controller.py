@@ -61,6 +61,9 @@ def settings():
     passwd = rpc["password"]
     port = rpc["port"]
     host = rpc["host"]
+    protocol = "http"
+    if "protocol" in rpc:
+        protocol = rpc["protocol"]
     test = None
     if request.method == 'POST':
         user = request.form['username']
@@ -68,16 +71,41 @@ def settings():
         port = request.form['port']
         host = request.form["host"]
         action = request.form['action']
+        # protocol://host
+        if "://" in host:
+            arr = host.split("://")
+            protocol = arr[0]
+            host = arr[1]
 
         if action == "test":
-            test = app.specter.test_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
+            test = app.specter.test_rpc(user=user,
+                                        password=passwd,
+                                        port=port,
+                                        host=host,
+                                        protocol=protocol,
+                                        autodetect=False
+                                        )
         if action == "save":
-            app.specter.update_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
+            app.specter.update_rpc( user=user,
+                                    password=passwd,
+                                    port=port,
+                                    host=host,
+                                    protocol=protocol,
+                                    autodetect=False
+                                    )
             app.specter.check()
             return redirect("/")
     else:
         pass
-    return render_template("settings.html", test=test, username=user, password=passwd, port=port, host=host, specter=app.specter, rand=rand)
+    return render_template("settings.html",
+                            test=test,
+                            username=user,
+                            password=passwd,
+                            port=port,
+                            host=host,
+                            protocol=protocol,
+                            specter=app.specter,
+                            rand=rand)
 
 ################# wallet management #####################
 
