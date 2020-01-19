@@ -270,6 +270,11 @@ def wallet_receive(wallet_alias):
             wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
+@app.route('/get_fee/<blocks>')
+def fees(blocks):
+    res = app.specter.estimatesmartfee(int(blocks))
+    return res
+
 @app.route('/wallets/<wallet_alias>/send/', methods=['GET', 'POST'])
 def wallet_send(wallet_alias):
     app.specter.check()
@@ -289,10 +294,16 @@ def wallet_send(wallet_alias):
             address = request.form['address']
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
-            if request.form.get('fee_rate'):
-                fee_rate = float(request.form.get('fee_rate'))
+            fee_unit = request.form.get('fee_unit')
+
+            if 'dynamic' in request.form.get('fee_options'):
+                fee_rate = float(request.form.get('fee_rate_dynamic'))
+            else:
+                if request.form.get('fee_rate'):
+                    fee_rate = float(request.form.get('fee_rate'))
+
             # try:
-            psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate)
+            psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit)
             if psbt is None:
                 err = "Probably you don't have enough funds, or something else..."
             else:
