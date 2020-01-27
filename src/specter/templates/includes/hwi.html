@@ -15,6 +15,7 @@
 <div id="hwi_include__select_device" class="hidden">
     <h1>Select USB Wallet</h1>
     <div class="flex-center flex-column" id="hwi_include__select_device__content">
+        <button id="hwi_include__select_device__specter" class="btn flex-item">Specter (USB)</button>
         <button id="hwi_include__select_device__coldcard" class="btn flex-item">Coldcard (USB)</button>
         <button id="hwi_include__select_device__keepkey" class="btn flex-item">KeepKey</button>
         <button id="hwi_include__select_device__ledger" class="btn flex-item">Ledger</button>
@@ -253,6 +254,8 @@
             instructionText = "Plug in Coldcard and enter PINs";
         } else if (type == "keepkey") {
             instructionText = "Plug in KeepKey.";
+        } else if (type == "specter") {
+            instructionText = "Plug in Specter, unlock, and load the key.";
         } else if (type == "ledger") {
             instructionText = "Plug in Ledger, unlock, and open the Bitcoin app.";
         } else if (type == "trezor") {
@@ -284,6 +287,10 @@
 
 
         // ============= FIND / INITIALIZE TARGET HARDWARE WALLET =============
+        document.getElementById("hwi_include__select_device__specter").addEventListener("click", async function(e) {
+            e.preventDefault();
+            beginDetectWallet("specter");
+        });
         document.getElementById("hwi_include__select_device__coldcard").addEventListener("click", async function(e) {
             e.preventDefault();
             beginDetectWallet("coldcard");

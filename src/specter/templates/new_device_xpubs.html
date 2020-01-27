@@ -20,9 +20,15 @@
 		</div>
 		<textarea id="txt" name="xpubs" placeholder="Enter your xpubs here">{{xpubs}}</textarea>
 		<div class="row">
-			<a href="#" class="btn" id="scanme"><img src="/static/img/qr_icon.svg" height="12px"> Scan</a> &nbsp;
+			{%if device_type == "specter" %}
+			<a href="#" class="btn" id="scanme"><img src="/static/img/qr_icon.svg" height="12px"> Scan</a>
+			{% endif %}
+			{%if device_type == "coldcard" %}
 			<input type="file" id="file" class="inputfile" multiple/>
 			<label for="file" class="btn">Choose files</label>
+			{% endif %}
+			&nbsp;
+			<a href="/hwi/new_device/" class="btn" id="askhwi"><img src="/static/img/usb_tiny.svg" height="12px"> Get over USB</a>
 		</div>
 		<br><div class="note">
 		One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
