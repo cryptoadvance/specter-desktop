@@ -1,20 +1,9 @@
 # Specter interaction script
 
-from binascii import b2a_hex
 from hwilib.hwwclient import HardwareWalletClient
 from hwilib.errors import ActionCanceledError, BadArgumentError, DeviceBusyError, DeviceFailureError, UnavailableActionError, common_err_msgs, handle_errors
 from hwilib.base58 import get_xpub_fingerprint, xpub_main_2_test
-from hwilib.serializations import PSBT
-from hashlib import sha256
 from hwilib import base58
-
-import base64
-import hid
-import io
-import sys
-import time
-import struct
-from binascii import hexlify
 
 import serial
 import serial.tools.list_ports
@@ -70,7 +59,6 @@ class SpecterClient(HardwareWalletClient):
     # Must return a base64 encoded string with the signed message
     # The message can be any string. keypath is the bip 32 derivation path for the key to sign with
     def sign_message(self, message, keypath):
-        self.device.check_mitm()
         keypath = keypath.replace('\'', 'h')
         keypath = keypath.replace('H', 'h')
 
