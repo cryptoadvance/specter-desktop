@@ -7,6 +7,7 @@ from hwilib import base58
 
 import serial
 import serial.tools.list_ports
+import socket, time
 
 def xpub_test_2_main(xpub: str) -> str:
     data = base58.decode(xpub)
@@ -22,14 +23,37 @@ class SpecterClient(HardwareWalletClient):
 
     def __init__(self, path, password=''):
         super().__init__(path, password)
+        self.simulator = (":" in path)
+        arr = path.split(":")
+        self.sock_settings = (arr[0], int(arr[1]))
         self.ser = serial.Serial(baudrate=115200, timeout=30)
         self.ser.port = path
 
-    def query(self, data):
-        self.ser.open()
-        self.ser.write((data+'\r').encode('utf-8'))
-        res = self.ser.read_until(b'\r').decode('utf-8')[:-1]
-        self.ser.close()
+    def query(self, data, timeout=None):
+        if self.simulator:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(self.sock_settings)
+            s.send((data+'\r\n').encode('utf-8'))
+            s.setblocking(False)
+            res = ""
+            t0 = time.time()
+            while not ("\r\n" in res):
+                try:
+                    raw = s.recv(10)
+                    res += raw.decode("utf-8")
+                except Exception as e:
+                    time.sleep(0.1)
+                if timeout is not None and time.time() > t0+timeout:
+                    s.close()
+                    raise DeviceBusyError("Timeout")
+            s.close()
+            res = res[:-2]
+        else:
+            self.ser.timeout=timeout
+            self.ser.open()
+            self.ser.write((data+'\r').encode('utf-8'))
+            res = self.ser.read_until(b'\r').decode('utf-8')[:-1]
+            self.ser.close()
         if res == 'user cancel':
             raise ActionCanceledError("User didn't confirm action")
         if "error" in res:
@@ -110,23 +134,27 @@ class SpecterClient(HardwareWalletClient):
 
 def enumerate(password=''):
     results = []
-    ports = [port for port in serial.tools.list_ports.comports() if is_micropython(port)]
+    ports = [port.device for port in serial.tools.list_ports.comports() if is_micropython(port)]
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(("127.0.0.1", 8789))
+        s.close()
+        ports.append("127.0.0.1:8789")
+    except:
+        pass
 
     for port in ports:
         data = {}
 
-        path = port.device
+        path = port
         data['type'] = 'specter'
         data['model'] = 'specter-diy'
         data['path'] = path
         data['needs_passphrase'] = False
 
-        client = None
         client = SpecterClient(path)
         data['fingerprint'] = client.get_fingerprint()
-
-        if client:
-            client.close()
+        client.close()
 
         results.append(data)
     return results
