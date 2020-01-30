@@ -68,8 +68,10 @@
 			<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
 			<br><br>
 			</div>
-			<div>
-				<table style="table-layout:fixed">
+
+			<div id="coinselect">
+				<button v-on:click="toggleExpand" type="button">Coinselection</button>
+				<table style="table-layout:fixed" v-bind:style="{ visibility: coinselectionActive }">
 					<thead>
 					<tr>
 						<th></th><th>TxID</th><th>Address</th><th>Amount</th>
@@ -372,5 +374,24 @@ function loadDynamicFees() {
 {% endif %}
 
 
+</script>
+
+<script>
+var app = new Vue({
+	el: '#coinselect',
+	delimiters: ["[[", "]]"],
+	data: {
+		coinselectionActive: "hidden",
+	},
+	methods: {
+        toggleExpand: function() {
+			if (this.coinselectionActive =="hidden") {
+				this.coinselectionActive ="visible"
+			} else {
+				this.coinselectionActive ="hidden"
+			}
+		}
+   }
+})
 </script>
 {% endblock %}
