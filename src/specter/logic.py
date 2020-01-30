@@ -6,6 +6,7 @@ from descriptor import AddChecksum
 import base64
 from serializations import PSBT
 import helpers
+import random
 
 WALLET_CHUNK = 5
 
@@ -71,7 +72,9 @@ class Specter:
                 "host": "localhost",        # localhost
                 "protocol": "http"          # https for the future
             },
-            # add hwi later?
+            # unique id that will be used in wallets path in Bitcoin Core
+            # empty by default for backward-compatibility
+            "uid": "",
         }
 
         # creating folders if they don't exist
@@ -84,11 +87,17 @@ class Specter:
 
     def check(self):
 
-        # config.json file
+        # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with open(os.path.join(self.data_folder, "config.json"), "r") as f:
                 self.file_config = json.loads(f.read())
                 deep_update(self.config, self.file_config)
+        # otherwise - create one and assign unique id
+        else:
+            if self.config["uid"] == "":
+                self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
+            with open(os.path.join(self.data_folder, "config.json"), "w") as f:
+                f.write(json.dumps(self.config, indent=4))
 
         # init arguments
         deep_update(self.config, self.arg_config) # override loaded config
@@ -108,9 +117,16 @@ class Specter:
 
         chain = self._info["chain"]
         if self.wallets is None or chain is None:
-            self.wallets = WalletManager(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
+            wallets_path = "specter%s/" % self.config["uid"]
+            self.wallets = WalletManager(
+                                os.path.join(self.data_folder, "wallets"), 
+                                self.cli, 
+                                chain=chain,
+                                path=wallets_path)
         else:
-            self.wallets.update(os.path.join(self.data_folder, "wallets"), self.cli, chain=chain)
+            self.wallets.update(os.path.join(self.data_folder, "wallets"), 
+                                self.cli, 
+                                chain=chain)
 
         if self.devices is None:
             self.devices = DeviceManager(os.path.join(self.data_folder, "devices"))
@@ -313,7 +329,7 @@ class WalletManager:
         loaded_wallets = self.cli.listwallets()
         loadable_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
         not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
-        print("not loaded wallets:", not_loaded_wallets)
+        # print("not loaded wallets:", not_loaded_wallets)
         for k in self._wallets:
             if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
