@@ -61,6 +61,9 @@ def settings():
     passwd = rpc["password"]
     port = rpc["port"]
     host = rpc["host"]
+    protocol = "http"
+    if "protocol" in rpc:
+        protocol = rpc["protocol"]
     test = None
     if request.method == 'POST':
         user = request.form['username']
@@ -68,16 +71,41 @@ def settings():
         port = request.form['port']
         host = request.form["host"]
         action = request.form['action']
+        # protocol://host
+        if "://" in host:
+            arr = host.split("://")
+            protocol = arr[0]
+            host = arr[1]
 
         if action == "test":
-            test = app.specter.test_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
+            test = app.specter.test_rpc(user=user,
+                                        password=passwd,
+                                        port=port,
+                                        host=host,
+                                        protocol=protocol,
+                                        autodetect=False
+                                        )
         if action == "save":
-            app.specter.update_rpc(user=user, password=passwd, port=port, host=host, autodetect=False)
+            app.specter.update_rpc( user=user,
+                                    password=passwd,
+                                    port=port,
+                                    host=host,
+                                    protocol=protocol,
+                                    autodetect=False
+                                    )
             app.specter.check()
             return redirect("/")
     else:
         pass
-    return render_template("settings.html", test=test, username=user, password=passwd, port=port, host=host, specter=app.specter, rand=rand)
+    return render_template("settings.html",
+                            test=test,
+                            username=user,
+                            password=passwd,
+                            port=port,
+                            host=host,
+                            protocol=protocol,
+                            specter=app.specter,
+                            rand=rand)
 
 ################# wallet management #####################
 
@@ -270,6 +298,11 @@ def wallet_receive(wallet_alias):
             wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
+@app.route('/get_fee/<blocks>')
+def fees(blocks):
+    res = app.specter.estimatesmartfee(int(blocks))
+    return res
+
 @app.route('/wallets/<wallet_alias>/send/', methods=['GET', 'POST'])
 def wallet_send(wallet_alias):
     app.specter.check()
@@ -289,10 +322,16 @@ def wallet_send(wallet_alias):
             address = request.form['address']
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
-            if request.form.get('fee_rate'):
-                fee_rate = float(request.form.get('fee_rate'))
+            fee_unit = request.form.get('fee_unit')
+
+            if 'dynamic' in request.form.get('fee_options'):
+                fee_rate = float(request.form.get('fee_rate_dynamic'))
+            else:
+                if request.form.get('fee_rate'):
+                    fee_rate = float(request.form.get('fee_rate'))
+
             # try:
-            psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate)
+            psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit)
             if psbt is None:
                 err = "Probably you don't have enough funds, or something else..."
             else:
