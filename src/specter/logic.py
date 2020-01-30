@@ -693,7 +693,7 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
@@ -702,7 +702,6 @@ class Wallet(dict):
         print (fee_unit)
         if fee_unit not in ["SAT_B", "BTC_KB"]:
             raise ValueError('Invalid bitcoin unit')
-
         extra_inputs = []
         if self.balance["trusted"] < amount:
             txlist = self.cli.listunspent(0,0)
@@ -712,6 +711,15 @@ class Wallet(dict):
                 b -= tx["amount"]
                 if b < 0:
                     break;
+        else:
+            txlist = self.cli.listunspent()
+            still_needed = amount
+            for tx in txlist:
+                if tx['txid'] in selected_coins:
+                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    still_needed -= tx["amount"]
+                    if still_needed < 0:
+                        break;
 
         # subtract fee from amount of this output:
         # currently only one address is supported, so either
