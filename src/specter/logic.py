@@ -268,7 +268,7 @@ class DeviceManager:
 class Device(dict):
     QR_CODE_TYPES = ['specter', 'other']
     SD_CARD_TYPES = ['coldcard', 'other']
-    HWI_TYPES = ['keepkey', 'ledger', 'trezor']
+    HWI_TYPES = ['keepkey', 'ledger', 'trezor', 'specter', 'coldcard']
 
     def __init__(self, d, manager):
         self.manager = manager

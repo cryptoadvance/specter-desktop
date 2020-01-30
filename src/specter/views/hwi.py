@@ -9,6 +9,8 @@ from helpers import normalize_xpubs, convert_xpub_prefix, which
 from hwilib import commands as hwilib_commands
 from hwilib import base58
 
+from .specter_hwi import SpecterClient, enumerate as specter_enumerate
+
 rand = random.randint(0, 1e32) # to force style refresh
 
 
@@ -28,7 +30,10 @@ def get_spector_instance():
 
 def get_hwi_client(type, path):
     is_test = 'test' in get_spector_instance().chain
-    client = hwilib_commands.get_client(type, path)
+    if type == "specter":
+        client = SpecterClient(path)
+    else:
+        client = hwilib_commands.get_client(type, path)
     client.is_testnet = is_test
     return client
 
@@ -43,7 +48,9 @@ def _enumerate():
         # Restore this line try directly calling enumerate:
         #   wallets = hwilib_commands.enumerate()
         returned_output = subprocess.check_output([HWI_EXEC, "enumerate"])
-        return json.loads(returned_output.decode("utf-8"))
+        res = json.loads(returned_output.decode("utf-8"))
+        res += specter_enumerate()
+        return res
 
     except Exception as e:
         print(e)
