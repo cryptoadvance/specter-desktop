@@ -186,6 +186,9 @@ class Specter:
         res = self.cli.sendrawtransaction(raw)
         return res
 
+    def estimatesmartfee(self, blocks):
+        return self.cli.estimatesmartfee(blocks)
+
     @property
     def chain(self):
         return self._info["chain"]
@@ -686,12 +689,16 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, coinselects=[]):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", coinselects=[]):
         """
-            fee_rate: in sat/B. Default (None) bitcoin core sets feeRate automatically.
+            fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
         if self.fullbalance < amount:
             return None
+        print (fee_unit)
+        if fee_unit not in ["SAT_B", "BTC_KB"]:
+            raise ValueError('Invalid bitcoin unit')
+
         extra_inputs = []
         if self.balance["trusted"] < amount:
             txlist = self.cli.listunspent(0,0)
@@ -712,7 +719,8 @@ class Wallet(dict):
             "changeAddress": self["change_address"],
             "subtractFeeFromOutputs": subtract_arr
         }
-        if fee_rate > 0.0:
+
+        if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
             options["feeRate"] = fee_rate / 10 ** 8 * 1024
 

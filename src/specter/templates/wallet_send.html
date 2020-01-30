@@ -11,6 +11,9 @@
 		text-align: center;
 		margin-bottom: 2em;
 	}
+        .fee_container {
+                height: 11em;
+        }
 	.fee_rate {
 		width: 6em;
 		min-width: 6em;
@@ -21,6 +24,7 @@
 	.hwi-column-btn {
 		margin: 0.75em;
 	}
+
 </style>
 <h1>{{wallet.name}}</h1>
 <div class="row">
@@ -45,11 +49,26 @@
 			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
 			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
 			<br><br>
+
+			<div class="fee_container">
+			<div>Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)">dynamic</label>
+			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label></div>
+			<br><br>
+			<input type="hidden" id="fee_unit" name="fee_unit" value="">
+			<div id = "fee_manual" style="display:none">
 			Fee rate:<br>
 			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25"> sat/B
 			<div class="note">leave blank to set automatically</div>
 			<br><br>
+			</div>
+			<div id ="fee_dynamic" style="display:block">
+			<div id="blocks"></div>
+			<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
+			<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+			<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
 			<br><br>
+			</div></div>
+
 			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 		</div>
 		<br>
@@ -135,6 +154,53 @@
 <div class="popup" id="popup">
 	<video muted playsinline id="qr-video" class="video"></video>
 </div>
+<script>
+function replace(hide, show) {
+	document.getElementById(hide).style.display="none";
+	document.getElementById(show).style.display="block";
+}
+
+function showFeeOption(myRadio) {
+	if (myRadio.value == "dynamic") {
+		replace("fee_manual", "fee_dynamic")
+		document.getElementById("fee_unit").value = "BTC_KB"
+	}
+	else {
+		replace("fee_dynamic", "fee_manual")
+		document.getElementById("fee_unit").value = "SAT_B"
+	}
+}
+
+function loadDynamicFees() {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			let feesJson = JSON.parse(this.responseText);
+			let blocks = "Dynamic fees are currently not available."
+			if (feesJson.hasOwnProperty('feerate')) {
+				let fee = feesJson.feerate
+				blocks = feesJson.blocks
+				document.getElementById("fee_rate_dynamic_text").innerHTML = fee.toString().concat(" BTC/kB")
+				document.getElementById("fee_rate_dynamic").value = fee
+			}
+			else
+			{
+				document.getElementById("fee_rate_dynamic_text").innerHTML = "will be set by Bitcoin Core automatically"
+				document.getElementById("fee_rate_dynamic").value = 0
+			}
+			document.getElementById("blocks").innerHTML = "Confirmation time: ".concat(blocks, " blocks")
+		}
+	}
+	var request = "/get_fee/".concat(document.getElementById("slider_confTime").value)
+	xhttp.open("GET", request, true);
+	xhttp.send();
+	}
+
+	window.onload = loadDynamicFees;
+	document.getElementById("fee_option_dynamic").checked = true
+	document.getElementById("fee_unit").value = "BTC_KB"
+	document.getElementById("slider_confTime").value = 6
+</script>
 <script type="module">
 
 {% if psbt %}
