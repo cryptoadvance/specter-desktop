@@ -23,6 +23,7 @@ stem==1.7.1
 typing-extensions==3.7.4
 urllib3==1.25.6
 Werkzeug==0.16.0
+serial==0.0.97
 # only for testing currently
 docker==4.1.0
 pytest==5.2.2
