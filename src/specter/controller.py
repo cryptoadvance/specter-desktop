@@ -492,3 +492,7 @@ def txonaddr(obj):
 def descr(wallet):
     # we always use sortedmulti even though it is not in Bitcoin Core yet
     return wallet['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
+
+@app.route('/vuejs/crashcourse/', methods=['GET'])
+def vuejs_crashcourse():
+    return render_template("vuejscrashcourse.html", specter=app.specter, some_Value="Hello Vue.js", some_bool=True, some_array=[{"id":1,"label":"one"},{"id":2,"label":"two"},{"id":3,"label":"three"}])
