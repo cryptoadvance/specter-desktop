@@ -67,7 +67,28 @@
 			<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
 			<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
 			<br><br>
-			</div></div>
+			</div>
+			<div>
+				<table style="table-layout:fixed">
+					<thead>
+					<tr>
+						<th></th><th>TxID</th><th>Address</th><th>Amount</th>
+					</tr>
+					</thead>
+					<tbody>
+						{% for tx in wallet.cli.listunspent() %}
+						<tr>
+							<td>
+								<input type="checkbox" name="coinselect" value="{{tx['txid']}}">
+							</td>
+							<td class="tx scroll"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+							<td class="tx scroll"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+							<td>{{tx["amount"]}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 
 			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 		</div>
