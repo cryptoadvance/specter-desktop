@@ -101,6 +101,7 @@ As a quite young project, we don't have many dependencies yet and as a quite sec
 ## Some words specific to the frontend
 Also for that reason, we're avoiding npm and manage javascript dependencies by hand or do stuff manually. Feel free to use plain javascript in pages.
 However, we're planning (or even have started) to use vue.js without using vue.js-components (that would require a build). So feel free to use vue.js but either make a thoughtfull proposal on how to manage the vue.js build or don't use vue.js-components. Also, specter-desktop is not a one-page-app and also doesn't want to become one.
+This [security-link](https://vuejs.org/v2/guide/security.html) might be interesting when developing vue.js.
 
 We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that. High level consultancy help on that would be appreciated even so (or especially when) you take the above security/dependency requirements into account.
 
