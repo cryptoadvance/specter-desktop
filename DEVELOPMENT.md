@@ -24,6 +24,12 @@ This will also:
 * automatically mine some coins for the addresses found in the wallets at ~/.specter/wallets/regtest/*.json 
 * automatically mine a block every 15 seconds (but not to the wallet-addresses anymore)
 
+After that, you can configure the bitcoin-core-connection in specter-desktop like this:
+* Username: bitcoin
+* Password: secret
+* Host: localhost
+* Port: 18443
+
 # IDE-specific Configuration
 
 ## Unit-Tests in VS-Code
