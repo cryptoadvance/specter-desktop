@@ -711,7 +711,7 @@ class Wallet(dict):
                 b -= tx["amount"]
                 if b < 0:
                     break;
-        else:
+        elif selected_coins != []:
             txlist = self.cli.listunspent()
             still_needed = amount
             for tx in txlist:
@@ -720,6 +720,8 @@ class Wallet(dict):
                     still_needed -= tx["amount"]
                     if still_needed < 0:
                         break;
+            if still_needed > 0:
+                raise SpecterError("Selected coins does not cover Full amount! Please select more coins!")
 
         # subtract fee from amount of this output:
         # currently only one address is supported, so either

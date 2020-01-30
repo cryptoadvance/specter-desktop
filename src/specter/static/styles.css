@@ -192,8 +192,19 @@ nav .separator{
 	flex-grow: 1;
 	min-height: 33px;
 }
+button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
 .btn:hover, .pin_button:hover {
 	background: #405062;
+}
+.btn:not(.disabled):hover {  
+	border: 1px solid #999999;
+	background-color: #cccccc;
+	color: #666666; 
 }
 .btn svg{
 	margin-right: 5px;

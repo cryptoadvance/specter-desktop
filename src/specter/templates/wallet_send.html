@@ -37,7 +37,7 @@
 <form action="./" method="POST" class="full-width">
 	{% if not psbt %}
 		<br><h1>Sending to:</h1>
-		<div class="card">
+		<div class="card" id="coinselect">
 			Recipient address:<br>
 			<div class="row">
 				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
@@ -45,7 +45,7 @@
 			</div>
 			<br><br>
 			Amount:<br>
-			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8">
+			<input type="number" name="amount" v-model="amount" value="[[amount]]" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8">
 			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
 			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
 			<br><br>
@@ -69,7 +69,8 @@
 			<br><br>
 			</div>
 
-			<div id="coinselect">
+			<div>
+				<div class="notification error" v-if="amount > selected_coins_sum && coinselectionActive != 'hidden'"> You need to select more coins to match your amount!</div>
 				<button v-on:click="toggleExpand" type="button">Coinselection</button>
 				<table style="table-layout:fixed" v-bind:style="{ visibility: coinselectionActive }">
 					<thead>
@@ -78,21 +79,19 @@
 					</tr>
 					</thead>
 					<tbody>
-						{% for tx in wallet.cli.listunspent() %}
-						<tr>
+						<tr v-for="tx in unspents" v-bind:key="tx.txid">
 							<td>
-								<input type="checkbox" name="coinselect" value="{{tx['txid']}}">
+								<input type="checkbox" v-model="tx.selected" name="coinselect" v-bind:value="tx.txid">
 							</td>
-							<td class="tx scroll"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-							<td class="tx scroll"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
-							<td>{{tx["amount"]}}</td>
+							<td class="tx scroll"><a target="blank">[[ tx.txid ]]</a></td>
+							<td class="tx scroll"><a target="blank">[[ tx.address ]]}</a></td>
+							<td>[[ tx.amount ]]</td>
 						</tr>
-						{% endfor %}
 					</tbody>
 				</table>
 			</div>
 
-			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
+			<button type="submit" name="action" value="createpsbt" v-bind:disabled="amount > selected_coins_sum && coinselectionActive != 'hidden'" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 		</div>
 		<br>
 	{% else %}
@@ -377,11 +376,24 @@ function loadDynamicFees() {
 </script>
 
 <script>
-var app = new Vue({
+var coinselection = new Vue({
 	el: '#coinselect',
 	delimiters: ["[[", "]]"],
 	data: {
+		unspents: {{ wallet.cli.listunspent()|tojson }},
 		coinselectionActive: "hidden",
+		amount: {{amount}}
+	},
+	computed: {
+		selected_coins_sum: function () {
+            amount_sum = 0
+			for(var i=0;i<this.unspents.length;i++){
+				if (this.unspents[i].selected) {
+					amount_sum += this.unspents[i].amount
+				}
+			}
+			return amount_sum
+        }
 	},
 	methods: {
         toggleExpand: function() {

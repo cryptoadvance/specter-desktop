@@ -6,7 +6,7 @@ import pytest
 
 from rpc import RpcError
 from logic import (Device, DeviceManager, Specter, Wallet, WalletManager,
-                     alias)
+                     alias, SpecterError)
 
 
 def test_alias():
@@ -169,3 +169,9 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     psbt_txs = [ tx['txid'] for tx in psbt['tx']['vin'] ]
     for coin in selected_coins:
         assert coin in psbt_txs
+    # Now let's spend more coins then we have selected. This should result in an exception:
+    try:
+        psbt = wallet.createpsbt(random_address, number_of_coins_to_spend +1, True, 10, selected_coins=selected_coins)
+        assert False, "should throw an exception!"
+    except SpecterError as e:
+        pass
