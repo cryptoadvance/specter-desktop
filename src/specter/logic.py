@@ -50,6 +50,10 @@ def get_cli(conf):
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 
+class SpecterError(Exception):
+    ''' A SpecterError contains meaningfull messages which can be passed directly to the user '''
+    pass
+
 class Specter:
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
@@ -689,7 +693,7 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", coinselects=[]):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
