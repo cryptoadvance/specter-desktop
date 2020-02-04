@@ -117,7 +117,6 @@
 		{% endif %}
 
 
-
 		{# ===================== Possible tx signers' outputs ===================== #}
 		{% if wallet.uses_hwi_device %}
 			<div id="hwi_sign_container" class="flex-center flex-column hidden">
@@ -136,6 +135,10 @@
 				<a class="btn centered" id="scanme">Scan signed transaction</a>
 			</div>
 		{% endif %}
+			<div class="output_option" style="margin-top:20px">
+				<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
+			</div>
+
 
 		{% if wallet.uses_sdcard_device %}
 			<div class="row">
@@ -239,7 +242,15 @@ function loadDynamicFees() {
 		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1}));
 		// xmlHttp.send(null);
 	}
-
+	document.addEventListener("DOMContentLoaded", function(){
+		let el = document.getElementById("pastetx");
+		el.addEventListener("click", function(){
+			let input = prompt("Paste signed transaction here");
+			if(input){
+				combine(input);
+			}
+		});
+	});
 
 	{# ================== Signers' various device support ================== #}
 	{% if wallet.uses_hwi_device %}
