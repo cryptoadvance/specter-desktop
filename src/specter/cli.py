@@ -2,6 +2,7 @@
     via docker.
 '''
 import os
+import sys
 import atexit
 import logging
 import shutil
@@ -23,20 +24,39 @@ def cli():
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
 @click.option('--mining/--no-mining', default=True)
-def bitcoind(debug,mining):
+@click.option('--docker-tag', "docker_tag", default="latest")
+def bitcoind(debug,mining, docker_tag):
     mining_every_x_seconds = 15
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
     click.echo("    --> starting or detecting container")
-    my_bitcoind = BitcoindDockerController()
-    my_bitcoind.start_bitcoind()
-    click.echo("    --> containerId: %s" % my_bitcoind.btcd_container.id)
-    click.echo("    -->         url: %s" % my_bitcoind.rpcconn.render_url())
+    my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
+    try:
+        my_bitcoind.start_bitcoind()
+    except docker.errors.ImageNotFound:
+        click.echo("    --> Image with tag {} does not exist!".format(docker_tag))
+        click.echo("    --> Try to download first with docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(docker_tag))
+        sys.exit(1)
+    tags_of_image = [ image.split(":")[-1]  for image in my_bitcoind.btcd_container.image.tags]
+    if not docker_tag in tags_of_image:
+        click.echo("    --> The running docker container is not the tag you requested!")
+        click.echo("    --> please stop first with docker stop {}".format(my_bitcoind.btcd_container.id))
+        sys.exit(1)
+    click.echo("    --> containerImage: %s" % my_bitcoind.btcd_container.image.tags)
+    click.echo("    -->            url: %s" % my_bitcoind.rpcconn.render_url())
+    click.echo("    --> user, password: bitcoin, secret")
+    click.echo("    -->     host, port: localhost, 18443")
+    click.echo("    -->    bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=secret getblockchaininfo ")
     if mining:
         click.echo("    --> Now, mining a block every %i seconds. Avoid it via --no-mining" % mining_every_x_seconds)
         # Get each address some coins
-        for address in fetch_wallet_addresses_for_mining():
-            my_bitcoind.mine(address=address)
+        try:
+            for address in fetch_wallet_addresses_for_mining():
+                my_bitcoind.mine(address=address)
+        except FileNotFoundError:
+            # might happen if there no ~/.specter folder yet
+            pass
+
         # make them spendable
         my_bitcoind.mine(block_count=100)
         click.echo("    --> ",nl=False)

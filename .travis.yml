@@ -40,6 +40,7 @@ addons:
             - ccache
 
 before_install:
+  - docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
   - set -o errexit; source ./tests/install_bitcoind.sh
 script: 
   - pip install -e .
