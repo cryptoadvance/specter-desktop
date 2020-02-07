@@ -24,10 +24,12 @@ class SpecterClient(HardwareWalletClient):
     def __init__(self, path, password=''):
         super().__init__(path, password)
         self.simulator = (":" in path)
-        arr = path.split(":")
-        self.sock_settings = (arr[0], int(arr[1]))
-        self.ser = serial.Serial(baudrate=115200, timeout=30)
-        self.ser.port = path
+        if self.simulator:
+            arr = path.split(":")
+            self.sock_settings = (arr[0], int(arr[1]))
+        else:
+            self.ser = serial.Serial(baudrate=115200, timeout=30)
+            self.ser.port = path
 
     def query(self, data, timeout=None):
         if self.simulator:
@@ -144,17 +146,18 @@ def enumerate(password=''):
         pass
 
     for port in ports:
-        data = {}
-
-        path = port
-        data['type'] = 'specter'
-        data['model'] = 'specter-diy'
-        data['path'] = path
-        data['needs_passphrase'] = False
-
-        client = SpecterClient(path)
-        data['fingerprint'] = client.get_fingerprint()
-        client.close()
-
-        results.append(data)
+        try:
+            path = port
+            data = {
+                'type': 'specter',
+                'model': 'specter-diy',
+                'path': path,
+                'needs_passphrase': False
+            }
+            client = SpecterClient(path)
+            data['fingerprint'] = client.get_fingerprint()
+            client.close()
+            results.append(data)
+        except:
+            pass
     return results
