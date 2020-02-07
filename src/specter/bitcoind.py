@@ -185,10 +185,11 @@ class BitcoindPlainController(BitcoindController):
 
 class BitcoindDockerController(BitcoindController):
     ''' A class specifically controlling a docker-based bitcoind-container '''
-    def __init__(self,rpcport=18443):
+    def __init__(self,rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
         super().__init__(rpcport=rpcport)
         self.docker_exec = which('docker')
+        self.docker_tag=docker_tag
         if self.docker_exec == None:
             raise("Docker not existing!")
         if self.detect_bitcoind_container(rpcport) != None:
@@ -204,7 +205,8 @@ class BitcoindDockerController(BitcoindController):
             '{}/tcp'.format(self.rpcconn.rpcport): self.rpcconn.rpcport
         }
         logging.debug("portmapping: {}".format(ports))
-        self.btcd_container = dclient.containers.run("registry.gitlab.com/k9ert/specter-desktop/python-bitcoind:latest", bitcoind_path,  ports=ports, detach=True)
+        image = dclient.images.get("registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(self.docker_tag))
+        self.btcd_container = dclient.containers.run("registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(self.docker_tag), bitcoind_path,  ports=ports, detach=True)
         def cleanup_docker_bitcoind():
             self.btcd_container.stop()
             self.btcd_container.remove()
@@ -217,6 +219,7 @@ class BitcoindDockerController(BitcoindController):
             raise Exception("Couldn't find container or it died already. Check the logs!")
         else:
             self.rpcconn = rpcconn
+        return 
         
 
     def stop_bitcoind(self):
