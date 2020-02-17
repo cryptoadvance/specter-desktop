@@ -37,7 +37,7 @@ Run the server:
 
 ```
 cd specter-desktop
-python3 -m specter server
+python3 -m cryptoadvance.specter server
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.

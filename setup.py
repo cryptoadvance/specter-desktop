@@ -1,11 +1,19 @@
-from setuptools import setup, find_packages
 from glob import glob
+
+from setuptools import find_packages, setup
+
+with open('requirements.txt') as f:
+    install_reqs = f.read().strip().split('\n')
+
+
+reqs = [str(ir) for ir in install_reqs if not ir.startswith("#") ]
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="specter-desktop",
+    name="cryptoadvance.specter",
     version="v0.0.11",
     author="Stepan Snigirev",
     author_email="snigirev.stepan@gmail.com",
@@ -17,6 +25,7 @@ setup(
     package_dir={'': 'src'},
     # take METADATA.in into account, include that stuff as well (static/templates)
     include_package_data=True,
+    install_requires=reqs,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

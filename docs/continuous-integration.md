@@ -50,6 +50,7 @@ The alternative would have been to use travis-ci for releasing. In that case we 
 
 ## Old pyinstaller based releases
 The old pyinstaller based artifact will be kept here for the reference:
+(attention, hirarchy changed, so below won't work ootb)
 ```
 $ pyinstaller --onefile  --clean --paths .env/lib/python3.7/site-packages:src/specter  --add-data 'src/specter/templates:templates' --add-binary '.env/bin/hwi:.'  --add-data 'src/specter/static:static' src/specter/server.py
 ```

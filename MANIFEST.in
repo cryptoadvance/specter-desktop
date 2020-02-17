@@ -1,2 +1,2 @@
-recursive-include src/specter/templates *
-recursive-include src/specter/static *
+recursive-include src/cryptoadvance/specter/templates *
+recursive-include src/cryptoadvance/specter/static *

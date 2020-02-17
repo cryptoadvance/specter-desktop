@@ -25,7 +25,7 @@ Developing against a bitcoind-API makes most sense with the [Regtest Mode](https
 In order to make the "docker-way" even easier, there is a python-script which detects a running-docker-bitcoind and/or is booting one up. Use it like this:
 
 ```
-python3 -m specter bitcoind
+python3 -m cryptoadvance.specter bitcoind
 ```
 
 This will also:

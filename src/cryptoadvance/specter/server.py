@@ -33,7 +33,7 @@ def create_app():
     app.specter = specter
     app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
-        import specter.controller
+        from . import controller
     return app
 
 

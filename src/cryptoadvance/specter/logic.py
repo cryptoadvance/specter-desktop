@@ -5,7 +5,7 @@ import os
 import random
 from collections import OrderedDict
 
-import specter.helpers
+from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, load_jsons
 from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
