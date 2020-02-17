@@ -1,5 +1,5 @@
 def test_load_jsons():
-    import helpers
+    import specter.helpers as helpers
     mydict = helpers.load_jsons("./tests/helpers_testdata")
     assert mydict["some_jsonfile"]["blub"] == "bla"
     assert mydict["some_other_jsonfile"]["bla"] == "blub"
@@ -18,7 +18,7 @@ def test_load_jsons():
     # os.remove(mydict["ID123"]['fullpath'])
 
 def test_which():
-    import helpers
+    import specter.helpers as helpers
     try:
         helpers.which("some_non_existing_binary")
         assert False, "Whould raise an Exception"

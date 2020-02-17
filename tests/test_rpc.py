@@ -1,6 +1,6 @@
 import pytest
 
-from rpc import BitcoinCLI, RpcError
+from specter.rpc import BitcoinCLI, RpcError
 
 def test_BitcoinCli(bitcoin_regtest):
     brt = bitcoin_regtest # stupid long name

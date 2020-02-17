@@ -1,12 +1,15 @@
-from rpc import BitcoinCLI, RPC_PORTS, autodetect_cli
-import os, json, copy
-from helpers import deep_update, load_jsons
-from collections import OrderedDict
-from descriptor import AddChecksum
 import base64
-from serializations import PSBT
-import helpers
+import copy
+import json
+import os
 import random
+from collections import OrderedDict
+
+import specter.helpers
+from .descriptor import AddChecksum
+from .helpers import deep_update, load_jsons
+from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
+from .serializations import PSBT
 
 WALLET_CHUNK = 5
 

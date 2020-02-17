@@ -1,25 +1,47 @@
-''' Stuff to control a bitcoind-instance. Either directly by access to a bitcoind-executable or
-    via docker.
-'''
-import os
-import sys
 import atexit
 import logging
-import shutil
-import subprocess
-import tempfile
+import os
+import sys
 import time
 
 import click
-import docker
-from bitcoind import BitcoindDockerController
-from server import DATA_FOLDER
-from helpers import which, load_jsons
 
+import docker
+
+from .bitcoind import (BitcoindDockerController,
+                       fetch_wallet_addresses_for_mining)
+from .helpers import load_jsons, which
+from .server import DATA_FOLDER, create_app
+
+DEBUG = True
 
 @click.group()
 def cli():
     pass
+
+
+@cli.command()
+def server():
+    app = create_app()
+    # watch templates folder to reload when something changes
+    extra_dirs = ['templates']
+    extra_files = extra_dirs[:]
+    for extra_dir in extra_dirs:
+        for dirname, dirs, files in os.walk(extra_dir):
+            for filename in files:
+                filename = os.path.join(dirname, filename)
+                if os.path.isfile(filename):
+                    extra_files.append(filename)
+    
+    # Note: dotenv doesn't convert bools!
+    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
+        import tor_util
+        tor_util.run_on_hidden_service(
+            app, port=os.getenv('PORT'), 
+            debug=DEBUG, extra_files=extra_files
+        )
+    else:
+        app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
@@ -72,19 +94,6 @@ def bitcoind(debug,mining, docker_tag):
                 click.echo(" ")
                 click.echo("    --> ",nl=False)
             time.sleep(mining_every_x_seconds)
-
-def fetch_wallet_addresses_for_mining(data_folder=None):
-    ''' parses all the wallet-jsons in the folder (default ~/.specter/wallets/regtest)
-        and returns an array with the addresses 
-    '''
-    if data_folder == None:
-        data_folder = os.path.expanduser(DATA_FOLDER)
-    wallets = load_jsons(data_folder+"/wallets/regtest")
-    address_array = [ value['address'] for key, value in wallets.items()]
-    # remove duplicates
-    address_array = list( dict.fromkeys(address_array) )
-    return address_array
-
 
 
 

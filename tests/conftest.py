@@ -9,9 +9,9 @@ import time
 
 import pytest
 import docker
-from bitcoind import BitcoindDockerController, BitcoindPlainController
+from specter.bitcoind import BitcoindDockerController, BitcoindPlainController
 
-from logic import Specter, DeviceManager
+from specter.logic import Specter, DeviceManager
 
 
 def pytest_addoption(parser):

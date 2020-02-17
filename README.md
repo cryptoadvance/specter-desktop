@@ -30,13 +30,14 @@ cd specter-desktop
 virtualenv --python=python3 .env
 source .env/bin/activate
 pip3 install -r requirements.txt
+pip3 install -e .
 ```
 
 Run the server:
 
 ```
 cd specter-desktop
-python3 src/specter/server.py
+python3 -m specter server
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.

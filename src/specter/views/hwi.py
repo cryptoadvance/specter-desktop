@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from flask import Flask, Blueprint, render_template, request, redirect, jsonify, current_app
-from helpers import normalize_xpubs, convert_xpub_prefix, which
+from ..helpers import normalize_xpubs, convert_xpub_prefix, which
 from hwilib import commands as hwilib_commands
 from hwilib import base58
 

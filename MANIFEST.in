@@ -1,0 +1,2 @@
+recursive-include src/specter/templates *
+recursive-include src/specter/static *

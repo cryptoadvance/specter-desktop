@@ -7,11 +7,11 @@ from threading import Thread
 from flask import Flask, Blueprint, render_template, request, redirect, jsonify
 from flask_qrcode import QRcode
 
-from helpers import normalize_xpubs, run_shell
-from descriptor import AddChecksum
-from rpc import BitcoinCLI, RPC_PORTS
+from .helpers import normalize_xpubs, run_shell
+from .descriptor import AddChecksum
+from .rpc import BitcoinCLI, RPC_PORTS
 
-from logic import Specter, purposes, addrtypes
+from .logic import Specter, purposes, addrtypes
 from datetime import datetime
 import urllib
 
