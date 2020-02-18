@@ -15,8 +15,8 @@ with open("README.md", "r") as fh:
 setup(
     name="cryptoadvance.specter",
     version="v0.0.11",
-    author="Stepan Snigirev",
-    author_email="snigirev.stepan@gmail.com",
+    author="Stepan Snigirev, Kim Neunert",
+    author_email="snigirev.stepan@gmail.com, kim.neunert@gmail.com",
     description="A GUI for Bitcoin Core optimised to work with airgapped hardware wallets",
     long_description=long_description,
     long_description_content_type="text/markdown",
