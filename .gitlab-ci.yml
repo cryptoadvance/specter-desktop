@@ -49,6 +49,7 @@ release:
     - cat setup.py
     - python3 setup.py sdist bdist_wheel
     # twine ready the password from the env-var TWINE_PASSWORD
-    - ls -l dist && python3 -m twine upload --verbose --user __token__ --repository-url https://test.pypi.org/legacy/ dist/*
+    # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
+    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
 
 
