@@ -38,7 +38,19 @@ Travis-CI setup is very straightforward. As we're using the build-cache, the bit
 
 # Releasing
 
-We're not yet ready to release (semi-) automatically. The current release-artifact is based on pyinstaller. To create the pyinstaller-artifact:
+## pip-based release to pypi
+
+We're about to release (semi-) automatically. The relevant release-artifact is a pip-package which will get released to pypi.org. A manual description of how to create this kind of releases can be found [here](https://packaging.python.org/tutorials/packaging-projects/). 
+
+The automation of that kicks in if someone creates a tag which is named like "vX.Y.Z". This is specified in the gitlab-ci.yml. The release-job will only be triggered in cases of tags. One step will also check that the tag follows the convention above.
+The package upload will need a token. How to obtain the token is described in the packaging-tutorial. It's injected via gitlab-variables. ToDo: put the token on a trusted build-node.
+
+The alternative would have been to use travis-ci for releasing. In that case we would encrypt the token with a private-key from travis and commit to the repo. This looks more safe to me then the above scenario but less safe then the todo, where we're storing the token on the build-node.
+
+
+## Old pyinstaller based releases
+The old pyinstaller based artifact will be kept here for the reference:
+(attention, hirarchy changed, so below won't work ootb)
 ```
 $ pyinstaller --onefile  --clean --paths .env/lib/python3.7/site-packages:src/specter  --add-data 'src/specter/templates:templates' --add-binary '.env/bin/hwi:.'  --add-data 'src/specter/static:static' src/specter/server.py
 ```

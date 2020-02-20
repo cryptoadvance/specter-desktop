@@ -7,14 +7,13 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_qrcode import QRcode
 
-from descriptor import AddChecksum
-from logic import Specter
-from views.hwi import hwi_views
+from .descriptor import AddChecksum
+from .logic import Specter
+from .views.hwi import hwi_views
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
 
-DEBUG = True
 
 def create_app():
     if getattr(sys, 'frozen', False):
@@ -34,7 +33,7 @@ def create_app():
     app.specter = specter
     app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
-        import controller
+        from . import controller
     return app
 
 
@@ -50,30 +49,3 @@ SINGLE_TYPES = {
     "p2sh-segwit": "P2SH_P2WPKH",
     "bech32": "P2WPKH"
 }
-
-
-
-
-############### startup ##################
-
-if __name__ == '__main__':
-    app = create_app()
-    # watch templates folder to reload when something changes
-    extra_dirs = ['templates']
-    extra_files = extra_dirs[:]
-    for extra_dir in extra_dirs:
-        for dirname, dirs, files in os.walk(extra_dir):
-            for filename in files:
-                filename = os.path.join(dirname, filename)
-                if os.path.isfile(filename):
-                    extra_files.append(filename)
-
-    # Note: dotenv doesn't convert bools!
-    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
-        import tor_util
-        tor_util.run_on_hidden_service(
-            app, port=os.getenv('PORT'), 
-            debug=DEBUG, extra_files=extra_files
-        )
-    else:
-        app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)

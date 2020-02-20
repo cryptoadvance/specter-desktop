@@ -4,8 +4,8 @@ import shutil
 
 import pytest
 
-from rpc import RpcError
-from logic import (Device, DeviceManager, Specter, Wallet, WalletManager,
+from cryptoadvance.specter.rpc import RpcError
+from cryptoadvance.specter.logic import (Device, DeviceManager, Specter, Wallet, WalletManager,
                      alias)
 
 

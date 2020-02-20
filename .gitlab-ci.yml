@@ -13,6 +13,10 @@ cache:
     - .cache/pip
     - .env/
 
+stages:
+  - testing
+  - releasing
+
 before_script:
   - docker info # Print out docker version for debugging
   - python -V  # Print out python version for debugging
@@ -23,10 +27,29 @@ before_script:
   - source .env/bin/activate
 
 test:
+  stage: testing
   script:
     - pip3 install -r requirements.txt
     - pip3 install -e .
     # pytest --docker not working? Uncomment this for better debugging:
     # - python3 tests/conftest.py 
     - pytest --docker
+
+release:
+  stage: releasing
+  only: 
+    - tags
+  script:
+    - pip3 install setuptools wheel twine
+    # verifying the version number follows vx.y.z (e.g. "v1.2.3")
+    - if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
+    # set version number in setup.py
+    - echo Releasing $CI_COMMIT_TAG
+    - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
+    - cat setup.py
+    - python3 setup.py sdist bdist_wheel
+    # twine ready the password from the env-var TWINE_PASSWORD
+    # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
+    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
+
 

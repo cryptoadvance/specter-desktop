@@ -1,0 +1,3 @@
+recursive-include src/cryptoadvance/specter/templates *
+recursive-include src/cryptoadvance/specter/static *
+include requirements.txt
