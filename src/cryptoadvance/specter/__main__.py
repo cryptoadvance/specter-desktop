@@ -13,6 +13,10 @@ from .bitcoind import (BitcoindDockerController,
 from .helpers import load_jsons, which
 from .server import DATA_FOLDER, create_app
 
+from daemonize import Daemonize
+from os import path
+import signal
+
 DEBUG = True
 
 @click.group()
@@ -21,7 +25,23 @@ def cli():
 
 
 @cli.command()
-def server():
+@click.option("--daemon", is_flag=True)
+@click.option("--stop", is_flag=True)
+def server(daemon, stop):
+    # we will store our daemon PIN here
+    pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
+    # stop daemon
+    if stop:
+        # check if pid file exists
+        if path.isfile(pid_file):
+            print("Stopping the specter server...")
+            with open(pid_file) as f:
+                pid = int(f.read())
+            os.kill(pid, signal.SIGTERM)
+        else:
+            print(f"Can't find PID file \"{pid_file}\"")
+        return
+
     app = create_app()
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
@@ -33,15 +53,30 @@ def server():
                 if os.path.isfile(filename):
                     extra_files.append(filename)
     
-    # Note: dotenv doesn't convert bools!
-    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
-        import tor_util
-        tor_util.run_on_hidden_service(
-            app, port=os.getenv('PORT'), 
-            debug=DEBUG, extra_files=extra_files
-        )
+    port = int(os.getenv('PORT', 25441))
+
+    def run(debug=False):
+        # Note: dotenv doesn't convert bools!
+        if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
+            import tor_util
+            tor_util.run_on_hidden_service(
+                app, port=port,
+                debug=debug, extra_files=extra_files
+            )
+        else:
+            app.run(port=port, debug=debug, extra_files=extra_files)
+
+    # check if we should run a daemon or not
+    if daemon:
+        print("Starting server in background...")
+        print("* Hopefully running on http://127.0.0.1:%d/" % port)
+        # Note: we can't run flask as a deamon in debug mode,
+        #       so use debug=False by default
+        d = Daemonize(app="specter", pid=pid_file, action=run)
+        d.start()
+    # if not a daemon we can use DEBUG
     else:
-        app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
+        run(DEBUG)
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)

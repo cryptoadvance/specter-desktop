@@ -24,7 +24,7 @@ HWI support requires `libusb` (necessary? Or is `pip install libusb1` sufficient
 * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
 * macOS: `brew install libusb`
 
-```
+```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
 virtualenv --python=python3 .env
@@ -35,9 +35,18 @@ pip3 install -e .
 
 Run the server:
 
-```
+```sh
 cd specter-desktop
 python3 -m cryptoadvance.specter server
+```
+
+You can also run it as a daemon:
+
+```sh
+# start daemon
+python3 -m cryptoadvance.specter server --daemon
+# stop daemon
+python3 -m cryptoadvance.specter server --stop
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
