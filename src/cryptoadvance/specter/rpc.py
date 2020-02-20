@@ -172,6 +172,17 @@ class BitcoinCLI:
     def url(self):
         return "{s.protocol}://{s.user}:{s.passwd}@{s.host}:{s.port}{s.path}".format(s=self)
 
+    def test_connection(self):
+        ''' returns a boolean depending on whether getblockchaininfo() succeeds '''
+        try:
+            self.getblockchaininfo()
+            return True
+        except:
+            return False
+
+    def clone(self):
+        ''' returns a clone of self. Usefull if you want to mess with the properties '''
+        return BitcoinCLI(self.user, self.passwd, self.host, self.port, self.protocol, self.path, self.timeout)
 
     def __getattr__(self, method):
         # if hasattr(self, method):

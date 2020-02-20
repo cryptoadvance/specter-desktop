@@ -11,7 +11,7 @@ import docker
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
 from .helpers import load_jsons, which
-from .server import DATA_FOLDER, create_app
+from .server import DATA_FOLDER, create_app, init_app
 
 DEBUG = True
 
@@ -23,6 +23,8 @@ def cli():
 @cli.command()
 def server():
     app = create_app()
+    app.app_context().push()
+    init_app(app)
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
     extra_files = extra_dirs[:]

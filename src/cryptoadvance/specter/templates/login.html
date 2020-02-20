@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block main %}
+
+
+<form action="{{ url_for('login') }}" method=post role="form">
+    <fieldset>
+        <div class="form-group">
+            <input class="form-control" placeholder="Username" name="username" autofocus>
+        </div>
+        <div class="form-group">
+            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+        </div>
+        <input type="hidden" name="next" value="{{data.next}}">
+        <!-- Change this to a button or input when using this as a form -->
+        <input type=submit value=Login/>
+    </fieldset>
+</form>
+
+{% endblock %}

@@ -11,6 +11,7 @@ import pytest
 import docker
 from cryptoadvance.specter.bitcoind import BitcoindDockerController, BitcoindPlainController
 from cryptoadvance.specter.logic import Specter, DeviceManager
+from cryptoadvance.specter.server import create_app, init_app
 
 
 def pytest_addoption(parser):
@@ -223,3 +224,20 @@ def specter_regtest_configured(bitcoin_regtest):
     }
     yield Specter(data_folder=data_folder, config=config)
     shutil.rmtree(data_folder, ignore_errors=True)
+
+
+@pytest.fixture(scope="module")
+def app():
+    ''' the Flask-App, but uninitialized '''
+    app = create_app()
+    #app = lovac.create_app("lovac.config.CockroachDevelopmentConfig")
+    app.config["TESTING"]=True
+    app.testing = True
+    app.app_context().push()
+    init_app(app)
+    return app
+
+@pytest.fixture(scope="function")
+def client(app):
+    ''' a test_client from an initialized Flask-App '''
+    return app.test_client()
