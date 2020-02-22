@@ -17,6 +17,9 @@ body{
 *{
 	box-sizing: border-box;
 }
+.padded{
+	margin: 20px 0;
+}
 .loader{
 	position: fixed;
 	top: 0;
@@ -57,6 +60,9 @@ tr.unconfirmed{
 }
 .row.center{
 	justify-content: center;
+}
+.row.aligned{
+	align-items: center;
 }
 .holder{
 	height: 100%;
@@ -143,6 +149,7 @@ a.item:hover{
 .item:hover > svg{
 	opacity: 1;
 }
+/* disconnected node */
 svg.core .main{
 	fill: #79869B;
 }
@@ -164,6 +171,34 @@ small, .small{
 .medium{
 	font-size: 0.85em;
 }
+.rescan_progress{
+	opacity: 0.5;
+	padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+	width: 100%;
+}
+.item:hover + .rescan_progress{
+	opacity: 1;
+}
+.rescan_progress > div{
+	background: #F5A623;
+	height: 2px;
+}
+.rescan_progress.test > div{
+	background: #00F100;
+}
+.rescan_progress.main > div{
+	background: #FF9A00;
+}
+.rescan_progress.regtest > div{
+	background: #00CAF1;
+}
+.rescan_progress.signet > div{
+	background: #00CAF1;
+}
+
 nav .separator{
 	text-transform: uppercase;
 	/*text-align: center;*/

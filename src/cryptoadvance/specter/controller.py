@@ -342,13 +342,32 @@ def wallet_send(wallet_alias):
                             amount = v["value"]
     return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
-@app.route('/wallets/<wallet_alias>/settings/')
+@app.route('/wallets/<wallet_alias>/settings/', methods=['GET','POST'])
 def wallet_settings(wallet_alias):
     app.specter.check()
+    error = None
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+    if request.method == "POST":
+        action = request.form['action']
+        if action == "rescanblockchain":
+            startblock = int(request.form['startblock'])
+            try:
+                res = wallet.cli.rescanblockchain(startblock, timeout=1)
+                print(res)
+            except requests.exceptions.ReadTimeout:
+                pass
+            except Exception as e:
+                print(e)
+                error = "%r" % e
+            wallet.getdata()
+        elif action == "abortrescan":
+            res = wallet.cli.abortrescan()
+            if not res:
+                error="Failed to abort rescan. Maybe already complete?"
+            wallet.getdata()
     cc_file = None
     qr_text = wallet["name"]+"&"+descr(wallet)
     if wallet.is_multisig:
@@ -373,11 +392,13 @@ Format: {}
                             cc_file=urllib.parse.quote(cc_file), 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
+                            error=error,
                             qr_text=qr_text)
     else:
         return render_template("wallet_settings.html", 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
+                            error=error,
                             qr_text=qr_text)
 
 ################# devices management #####################
