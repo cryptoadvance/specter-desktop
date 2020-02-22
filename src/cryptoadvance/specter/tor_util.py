@@ -14,7 +14,7 @@ def run_on_hidden_service(app, tor_password=None, tor_port=80, save_address_to=N
         print(' * Connecting to tor')
         controller.authenticate(tor_password)
 
-        key_path = os.path.abspath(os.path.expanduser('~/.tor_service_key'))
+        key_path = os.path.abspath(os.path.expanduser(os.path.join(DATA_FOLDER,'.tor_service_key')))
         tor_service_id = None
 
         if not os.path.exists(key_path):
