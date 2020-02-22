@@ -27,20 +27,31 @@ def cli():
 @cli.command()
 @click.option("--daemon", is_flag=True)
 @click.option("--stop", is_flag=True)
-def server(daemon, stop):
+@click.option("--restart", is_flag=True)
+@click.option("--force", is_flag=True)
+@click.option("--port")
+def server(daemon, stop, restart, force, port=None):
     # we will store our daemon PIN here
     pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
-    # stop daemon
-    if stop:
-        # check if pid file exists
-        if path.isfile(pid_file):
+    # check if pid file exists
+    if path.isfile(pid_file):
+        # if we need to stop daemon
+        if stop or restart:
             print("Stopping the specter server...")
             with open(pid_file) as f:
                 pid = int(f.read())
             os.kill(pid, signal.SIGTERM)
-        else:
+        elif daemon:
+            if not force:
+                print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
+                return
+        if stop:
+            return
+    else:
+        if stop or restart:
             print(f"Can't find PID file \"{pid_file}\"")
-        return
+            if stop:
+                return
 
     app = create_app()
     # watch templates folder to reload when something changes
@@ -53,7 +64,10 @@ def server(daemon, stop):
                 if os.path.isfile(filename):
                     extra_files.append(filename)
     
-    port = int(os.getenv('PORT', 25441))
+    if port is None:
+        port = int(os.getenv('PORT', 25441))
+    else:
+        port = int(port)
 
     def run(debug=False):
         # Note: dotenv doesn't convert bools!
@@ -67,7 +81,7 @@ def server(daemon, stop):
             app.run(port=port, debug=debug, extra_files=extra_files)
 
     # check if we should run a daemon or not
-    if daemon:
+    if daemon or restart:
         print("Starting server in background...")
         print("* Hopefully running on http://127.0.0.1:%d/" % port)
         # Note: we can't run flask as a deamon in debug mode,
