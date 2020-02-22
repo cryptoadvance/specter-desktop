@@ -40,18 +40,21 @@ cd specter-desktop
 python3 -m cryptoadvance.specter server
 ```
 
-You can also run it as a daemon:
+You can also run it as a daemon, using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
+
+An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor:
 
 ```sh
-# start daemon
-python3 -m cryptoadvance.specter server --daemon
-# stop daemon
-python3 -m cryptoadvance.specter server --stop
+python -m cryptoadvance.specter server --tor=mytorpassword --cert=./cert.pem --key=./key.pem --daemon
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file and in the app settings.
 
 Have a look at [DEVELOPMENT.md](https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md) for further information about hacking on specter-desktop.
+
+## Instructions
+
+- Setting up Tor: [docs/tor.md](docs/tor.md)
 
 ## A few screenshots
 
@@ -78,7 +81,3 @@ Have a look at [DEVELOPMENT.md](https://github.com/cryptoadvance/specter-desktop
 ### Configuration
 
 ![](screenshots/bitcoin-rpc.jpg)
-
-
-## Make Specter Desktop available externally over Tor
-see: [docs/tor.md](docs/tor.md)

@@ -1,4 +1,5 @@
 ## Running Specter Desktop over a Tor hidden service
+
 Specter Desktop protects your security and privacy by running on a local server that only talks to your own bitcoin node. But what if you need to check a wallet balance or generate and sign transactions when you're away from your home network?
 
 Configuring your router to let you VPN into your home network is probably the easiest solution.
@@ -14,15 +15,15 @@ Install Tor on the same server that you'll be running Specter Desktop:
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
 ### Configure Tor authentication
-```
+```sh
 $ tor --hash-password "your-tor-passphrase"
 ```
 That returns a password hash such as:
-```
+```sh
 16:CE9058DA89498A4160373C70FF7FFF70CC2E20B6788FC48F5C35B2E85B
 ```
 Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs). Uncomment the `ControlPort` line as well as the `HashedControlPassword` line. Remember to paste in your own hashed password result from above.
-```
+```sh
 ## The port on which Tor will listen for local connections from Tor
 ## controller applications, as documented in control-spec.txt.
 ControlPort 9051
@@ -36,10 +37,18 @@ Restart the Tor service:
 * `sudo /etc/init.d/tor restart` on linux
 * `brew services restart tor` on macOS Homebrew installs
 
+### Running with Tor using command line
 
-### Configure Specter Desktop to connect to Tor
-Update the `.flaskenv` file in the project root. Set `CONNECT_TOR` to 'True' and set `FLASK_ENV` to 'production':
+You can start the server and provide your tor password using `--tor=` flag:
+
+```sh
+$ python3 -m cryptoadvance.specter server --tor=your-tor-passphrase
 ```
+
+### Configure environment variables
+
+Update the `.flaskenv` file in the project root. Set `CONNECT_TOR` to 'True' and set `FLASK_ENV` to 'production':
+```sh
 PORT=25441
 
 # If you want to serve over a Tor hidden service, also set FLASK_ENV=production.
@@ -51,24 +60,27 @@ FLASK_ENV=production
 ```
 
 ### Specify Tor secrets
+
 The Tor password that we hashed above will need to be shared with Specter Desktop.
 
 Copy the example `.env_example` file:
-```
+```sh
 $ cp .env_example .env
 ```
 
 And then edit `.env` and specify `TOR_PASSWORD`:
-```
+```sh
 # The cleartext password that was entered into:
 #   $ tor --hash-password "your-tor-passphrase"
 TOR_PASSWORD=your-tor-passphrase
 ```
 
 ### Launch with Tor
+
 Now just start Specter Desktop as usual:
-```
-$ python server.py
+
+```sh
+$ python3 -m cryptoadvance.specter server
 ```
 
 Amongst the startup output you'll see:
