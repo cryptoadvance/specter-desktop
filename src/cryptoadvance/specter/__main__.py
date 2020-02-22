@@ -87,8 +87,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
 
     protocol = "http"
     kwargs = {
+        "host": host,
         "port": port,
-        "extra_files": extra_files
+        "extra_files": extra_files,
     }
     if cert is not None and key is not None:
         cert = os.path.abspath(cert)
