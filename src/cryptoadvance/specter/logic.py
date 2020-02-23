@@ -332,6 +332,13 @@ class WalletManager:
             self.cli = cli
         if self.working_folder is not None:
             self._wallets = load_jsons(self.working_folder, key="name")
+            try:
+                existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
+                for k in self._wallets:
+                    if self.path+k not in existing_wallets:
+                        self._wallets.pop(w["name"])
+            except:
+                pass
         else:
             self._wallets = {}
 
