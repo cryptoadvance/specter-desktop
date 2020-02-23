@@ -19,8 +19,8 @@
 <form action="." method="POST" class="padded" style="width: 500px">
 	{% if wallet.rescan_progress %}
 		<div class="row aligned">
-			<div style="margin-right: 30px">Rescanning blochchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
-			<button type="submit" name="action" value="abortrescan" class="btn inline">Abort rescan</button>
+			<div style="margin-right: 30px; flex-grow: 1;">Rescanning blochchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
+			<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
 		</div>
 	{% else %}
 		Rescan blockchain from block:<br>
