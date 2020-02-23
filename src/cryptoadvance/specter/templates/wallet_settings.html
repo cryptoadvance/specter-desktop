@@ -7,13 +7,22 @@
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right checked">Settings</a>
 </div>
+<h1>Keypool control</h1>
+<form action="." method="POST" class="padded" style="width: 500px">
+	<div>Currently watching {{wallet["keypool"]}} receiving and {{wallet["change_keypool"]}} change addresses.<div>
+	<div class="row aligned">
+		<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
+		<button type="submit" name="action" value="keypoolrefill" class="btn" style=
+		"max-width: 130px; margin-left: 20px">Add</button>
+	</div>
+</form>
 <form action="." method="POST" class="padded" style="width: 500px">
 	{% if wallet.rescan_progress %}
 		<div class="row aligned">
 			<div style="margin-right: 30px">Rescanning blochchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
 			<button type="submit" name="action" value="abortrescan" class="btn inline">Abort rescan</button>
 		</div>
-		{% else %}
+	{% else %}
 		Rescan blockchain from block:<br>
 		<div class="row aligned">
 			{% if specter.info.chain == "main" %}
@@ -26,12 +35,15 @@
 			<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
 		</div>
 		<div class="note center"><b>481824</b> was the first Segwit block.</div>
-		{% endif %}
+	{% endif %}
 </form>
+
+<h1>Import / Export</h1>
+
 <div class="note center">
 	Import this wallet to the device by scanning QR code below.
 </div>
-<div>
+<div class="center">
 	<img src="{{qrcode(qr_text)}}" class="qr padded" width="400px" />
 </div>
 {% if wallet.is_multisig %}

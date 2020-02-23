@@ -368,6 +368,12 @@ def wallet_settings(wallet_alias):
             if not res:
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
+        elif action == "keypoolrefill":
+            delta = int(request.form['keypooladd'])
+            wallet.keypoolrefill(wallet["keypool"], wallet["keypool"]+delta)
+            wallet.keypoolrefill(wallet["change_keypool"], wallet["change_keypool"]+delta, change=True)
+            wallet.getdata()
+
     cc_file = None
     qr_text = wallet["name"]+"&"+descr(wallet)
     if wallet.is_multisig:
