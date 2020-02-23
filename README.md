@@ -52,9 +52,11 @@ If your Bitcoin Core is using a default data folder the app should detect it aut
 
 Have a look at [DEVELOPMENT.md](https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md) for further information about hacking on specter-desktop.
 
-## Instructions
+## Detailed instructions
 
-- Setting up Tor: [docs/tor.md](docs/tor.md)
+- Beyond local network - how to forward your node through a cheap VPS: [docs/reverse-proxy.md](docs/reverse-proxy.md)
+- Setting up Specter over Tor: [docs/tor.md](docs/tor.md)
+- Using self-signed certificates in local network or Tor: [docs/self-signed-certificates.md](docs/self-signed-certificates.md)
 
 ## A few screenshots
 
