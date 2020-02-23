@@ -13,6 +13,11 @@ body{
 	flex-direction: column;
 	max-width: 100%;
 	height: 100%;
+	--test-color: #00F100;
+	--main-color: #FF9A00;
+	--regtest-color: #00CAF1;
+	--signet-color: #BD10E0;
+	--default-color: #79869B;
 }
 *{
 	box-sizing: border-box;
@@ -144,19 +149,7 @@ a.item:hover{
 	opacity: 1;
 }
 svg.core .main{
-	fill: #79869B;
-}
-svg.core.test .main{
-	fill: #00F100;
-}
-svg.core.main .main{
-	fill: #FF9A00;
-}
-svg.core.regtest .main{
-	fill: #00CAF1;
-}
-svg.core.signet .main{
-	fill: #00CAF1;
+	fill: var(--network-color, #79869B);
 }
 small, .small{
 	font-size: 0.7em;
