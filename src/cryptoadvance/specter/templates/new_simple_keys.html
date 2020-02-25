@@ -16,7 +16,6 @@
 	<input type="hidden" name="type" value="{{wallet_type}}">
 	<input type="hidden" name="sigs_required" value="{{sigs_required}}">
 	<input type="hidden" name="sigs_total" value="{{sigs_total}}">
-	<input type="hidden" name="cosigner_index" value="{{cosigner_index}}">
 {% for device in cosigners %}
 <h1>Signer {{ loop.index }} - {{device["name"]}}</h1>
 {% set outer_loop = loop %}

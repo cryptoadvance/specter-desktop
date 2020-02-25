@@ -34,6 +34,9 @@ body{
 *{
     box-sizing: border-box;
 }
+.padded{
+	margin: 20px 0;
+}
 .loader{
     position: fixed;
     top: 0;
@@ -74,6 +77,9 @@ tr.unconfirmed{
 }
 .row.center{
     justify-content: center;
+}
+.row.aligned{
+	align-items: center;
 }
 .holder{
     height: 100%;
@@ -160,6 +166,7 @@ a.item:hover{
 .item:hover > svg{
     opacity: 1;
 }
+/* disconnected node */
 svg.core .main{
     fill: var(--network-color, #79869B);
 }
@@ -181,6 +188,34 @@ small, .small{
 .medium{
     font-size: 0.85em;
 }
+.rescan_progress{
+	opacity: 0.5;
+	padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+	width: 100%;
+}
+.item:hover + .rescan_progress{
+	opacity: 1;
+}
+.rescan_progress > div{
+	background: #F5A623;
+	height: 2px;
+}
+.rescan_progress.test > div{
+	background: #00F100;
+}
+.rescan_progress.main > div{
+	background: #FF9A00;
+}
+.rescan_progress.regtest > div{
+	background: #00CAF1;
+}
+.rescan_progress.signet > div{
+	background: #00CAF1;
+}
+
 nav .separator{
     text-transform: uppercase;
     /*text-align: center;*/
@@ -464,13 +499,20 @@ input[type="radio"].hidden{
     top: -100px;
     left: -100px;
 }
-input[type="radio"]:checked + .btn.radio, .btn.radio.checked{
+input[type="radio"]:checked + .btn.radio,
+.btn.radio.checked,
+input[type="checkbox"]:checked + .btn.radio
+{
     background: var(--cmap-border-darker);
 }
-input[type="radio"]:checked + .btn{
+input[type="radio"]:checked + .btn,
+input[type="checkbox"]:checked + .btn
+{
     background: var(--cmap-blue-darker);
 }
-input[type="radio"]:checked + .btn.hovering{
+input[type="radio"]:checked + .btn.hovering,
+input[type="checkbox"]:checked + .btn.hovering
+{
     visibility: visible;
 }
 .btn.radio.left{
@@ -479,8 +521,10 @@ input[type="radio"]:checked + .btn.hovering{
 .btn.radio.right{
     border-radius: 0 10px 10px 0;
 }
-input[type="radio"]:checked + .small-card{
-    background: #304052;
+input[type="radio"]:checked + .small-card,
+input[type="checkbox"]:checked + .small-card
+{
+	  background: #304052;
 }
 table{
     border-collapse: collapse;
@@ -573,10 +617,10 @@ table .btn{
     min-width: 0;
 }
 table .btn.hovering{
-    visibility: hidden;
+	opacity: 0.2;
 }
 table tr:hover .btn.hovering{
-    visibility: visible;
+	opacity: 1;
 }
 .hidden {
     display: none;
