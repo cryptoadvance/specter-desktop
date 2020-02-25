@@ -179,7 +179,6 @@ def new_wallet_multi():
     while wallet_name in app.specter.wallets.names():
         wallet_name = "%s %d" % (name, i)
         i+=1
-    device = None
 
     sigs_total = len(app.specter.devices)
     if sigs_total < 2:
@@ -188,21 +187,17 @@ def new_wallet_multi():
     sigs_required = sigs_total*2//3
     if sigs_required < 2:
         sigs_required = 2
-    cosigner_index = 0
     cosigners = []
     keys = []
 
     if request.method == 'POST':
         action = request.form['action']
         wallet_name = request.form['wallet_name']
-        cosigner_index = int(request.form['cosigner_index'])
         sigs_required = int(request.form['sigs_required'])
         sigs_total = int(request.form['sigs_total'])
         if wallet_name in app.specter.wallets.names():
             err = "Wallet already exists"
         wallet_type = request.form['type']
-        for i in range(0, cosigner_index):
-            cosigners.append(request.form['cosigner%d' % i])
         pur = {
             None: "General",
             "wsh": "Segwit (bech32)",
@@ -210,14 +205,10 @@ def new_wallet_multi():
             "sh": "Legacy",
         }
         if action == 'device' and err is None:
-            if "device" not in request.form:
-                err = "Select the device"
+            cosigners = request.form.getlist('devices')
+            if len(cosigners) != sigs_total:
+                err = "Select all the cosigners"
             else:
-                device_name = request.form['device']
-            if err is None:
-                cosigner_index += 1
-                cosigners.append(request.form["device"])
-            if len(cosigners) == sigs_total:
                 devs = []
                 prefix = "tpub"
                 if app.specter.chain == "main":
@@ -231,20 +222,24 @@ def new_wallet_multi():
                 return render_template("new_simple_keys.html", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
-                    sigs_total=sigs_total, cosigner_index=cosigner_index, 
+                    sigs_total=sigs_total, 
                     error=err, specter=app.specter, rand=rand)
         if action == 'key' and err is None:
-            cosigners = [app.specter.devices[k] for k in cosigners]
-            for i in range(0, cosigner_index):
+            cosigners = []
+            devs = []
+            for i in range(sigs_total):
                 try:
                     key = request.form['key%d' % i]
-                    for k in cosigners[i]["keys"]:
+                    cosigner_name = request.form['cosigner%d' % i]
+                    cosigner = app.specter.devices[cosigner_name]
+                    cosigners.append(cosigner)
+                    for k in cosigner["keys"]:
                         if k["original"] == key:
                             keys.append(k)
                             break
                 except:
                     pass
-                devs = []
+            print(keys, cosigners)
             if len(keys) != sigs_total or len(cosigners) != sigs_total:
                 prefix = "tpub"
                 if app.specter.chain == "main":
@@ -257,12 +252,12 @@ def new_wallet_multi():
                 return render_template("new_simple_keys.html", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
-                    sigs_total=sigs_total, cosigner_index=cosigner_index, 
+                    sigs_total=sigs_total, 
                     error=err, specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_multi(wallet_name, sigs_required, wallet_type, keys, cosigners)
             return redirect("/wallets/%s/" % wallet["alias"])
-    return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, device=device, error=err, sigs_required=sigs_required, sigs_total=sigs_total, cosigner_index=cosigner_index, specter=app.specter, rand=rand)
+    return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/')
 def wallet(wallet_alias):
@@ -330,17 +325,21 @@ def wallet_send(wallet_alias):
                 if request.form.get('fee_rate'):
                     fee_rate = float(request.form.get('fee_rate'))
 
-            # try:
-            psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit)
-            if psbt is None:
-                err = "Probably you don't have enough funds, or something else..."
-            else:
-                # calculate new amount if we need to subtract
-                if subtract:
-                    for v in psbt["tx"]["vout"]:
-                        if address in v["scriptPubKey"]["addresses"]:
-                            amount = v["value"]
-    return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+            try:
+                psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit)
+                if psbt is None:
+                    err = "Probably you don't have enough funds, or something else..."
+                else:
+                    # calculate new amount if we need to subtract
+                    if subtract:
+                        for v in psbt["tx"]["vout"]:
+                            if address in v["scriptPubKey"]["addresses"]:
+                                amount = v["value"]
+            except Exception as e:
+                err = "%r" % e
+    return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand, error=err)
 
 @app.route('/wallets/<wallet_alias>/settings/')
 def wallet_settings(wallet_alias):

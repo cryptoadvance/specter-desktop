@@ -447,14 +447,21 @@ input[type="radio"].hidden{
 	top: -100px;
 	left: -100px;
 }
-input[type="radio"]:checked + .btn.radio, .btn.radio.checked{
+input[type="radio"]:checked + .btn.radio,
+.btn.radio.checked,
+input[type="checkbox"]:checked + .btn.radio
+{
 	background: #405062;
 }
-input[type="radio"]:checked + .btn{
+input[type="radio"]:checked + .btn,
+input[type="checkbox"]:checked + .btn
+{
 	background: #3575C0;
 }
-input[type="radio"]:checked + .btn.hovering{
-	visibility: visible;
+input[type="radio"]:checked + .btn.hovering,
+input[type="checkbox"]:checked + .btn.hovering
+{
+	opacity: 1;
 }
 .btn.radio.left{
 	border-radius: 10px 0 0 10px;
@@ -462,7 +469,9 @@ input[type="radio"]:checked + .btn.hovering{
 .btn.radio.right{
 	border-radius: 0 10px 10px 0;
 }
-input[type="radio"]:checked + .small-card{
+input[type="radio"]:checked + .small-card,
+input[type="checkbox"]:checked + .small-card
+{
 	background: #304052;
 }
 table{
@@ -556,10 +565,10 @@ table .btn{
 	min-width: 0;
 }
 table .btn.hovering{
-	visibility: hidden;
+	opacity: 0.2;
 }
 table tr:hover .btn.hovering{
-	visibility: visible;
+	opacity: 1;
 }
 .hidden {
 	display: none;
