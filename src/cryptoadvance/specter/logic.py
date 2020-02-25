@@ -11,7 +11,11 @@ from .helpers import deep_update, load_jsons
 from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
 from .serializations import PSBT
 
-WALLET_CHUNK = 5
+# a gap of 20 addresses is what many wallets do
+WALLET_CHUNK = 20
+# we don't need to scan earlier than that 
+# as we don't support legacy wallets
+FIRST_SEGWIT_BLOCK = 481824
 
 purposes = OrderedDict({
     None: "General",
@@ -153,7 +157,7 @@ class Specter:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
         try:
-            r["out"] = json.dumps(cli.getmininginfo(),indent=4)
+            r["out"] = json.dumps(cli.getblockchaininfo(),indent=4)
             r["err"] = ""
             r["code"] = 0
         except:
@@ -553,11 +557,25 @@ class Wallet(dict):
             self.transactions = self.cli.listtransactions("*", 20, 0, True)[::-1]
         except:
             self.transactions = None
+        try:
+            self.info = self.cli.getwalletinfo()
+        except:
+            self.info = None
         self._check_change()
         return {
             "balance": self.balance,
             "transactions": self.transactions
         }
+
+    @property
+    def rescan_progress(self):
+        """Returns None if rescanblockchain is not launched,
+           value between 0 and 1 otherwise
+        """
+        if self.info is None or "scanning" not in self.info or self.info["scanning"] == False:
+            return None
+        else:
+            return self.info["scanning"]["progress"]
 
     def getnewaddress(self):
         self._dict["address_index"] += 1
@@ -677,11 +695,10 @@ class Wallet(dict):
                 "range": [start, end], 
                 "timestamp": "now", 
                 "keypool": True, 
-                "watchonly": True,
-                "rescan": False
+                "watchonly": True
             }
         ]
-        r = self.cli.importmulti(args, timeout=120)
+        r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
         # bip67 requires sorted public keys for multisig addresses
         if self.is_multisig:
             # we do one at a time
@@ -689,7 +706,7 @@ class Wallet(dict):
             for i in range(start, end):
                 sorted_desc = self.sort_descriptor(self[desc], i)
                 args[0]["desc"] = sorted_desc
-                self.cli.importmulti(args, timeout=120)
+                self.cli.importmulti(args, {"rescan": False}, timeout=120)
         self._dict[pool] = end
         self._commit(update_manager=False)
         return end
