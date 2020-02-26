@@ -3,7 +3,8 @@
 def test_home(client):
     ''' The root of the app '''
     result = client.get('/')
-    assert result.status_code == 401 # UNAUTHORIZED.
+    # By default there is no authentication
+    assert result.status_code == 302 # FOUND.
 
 def test_login_logout(client):
     ''' whether we can login or logout '''

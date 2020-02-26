@@ -64,7 +64,7 @@ class SpecterError(Exception):
 class Specter:
     ''' A central Object mostly holding app-settings '''
     CONFIG_FILE_NAME = "config.json"
-    def __init__(self, data_folder="./data"):
+    def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         self.data_folder = data_folder
@@ -73,6 +73,7 @@ class Specter:
         self.wallets = None
 
         self.file_config = None  # what comes from config file
+        self.arg_config = config # what comes from arguments
 
         # default config
         self.config = {
@@ -111,6 +112,9 @@ class Specter:
                 self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
             self._save()
 
+        # init arguments
+        deep_update(self.config, self.arg_config) # override loaded config
+        
         self.cli = get_cli(self.config["rpc"])
         self._is_configured = (self.cli is not None)
         self._is_running = False
