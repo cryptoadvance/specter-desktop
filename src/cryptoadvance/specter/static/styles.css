@@ -257,7 +257,7 @@ h2{
 	font-size: 1.25em;
 	margin: 0 0 0px 0;
 }
-input, textarea, .input{
+input, textarea, .input, select{
 	border: 1px solid #506072;
 	background: transparent;
 	border-radius: 4px;

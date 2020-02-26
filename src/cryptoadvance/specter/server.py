@@ -55,6 +55,8 @@ def init_app(app):
     specter.check()
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
+    if specter.config['auth'] == "none":
+        app.config["LOGIN_DISABLED"] = True
     app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
         from . import controller
@@ -79,12 +81,15 @@ SINGLE_TYPES = {
 class AuthenticatedUser:
     ''' A minimal implementation implementing the User Class needed for Flask-Login '''
     
+    @property
     def is_authenticated(self):
         return True
-
+        
+    @property
     def is_active(self):
         return True
 
+    @property
     def is_anonymous(self):
         return False
 

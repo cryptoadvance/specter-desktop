@@ -9,7 +9,7 @@ from functools import wraps
 from flask import g, request, redirect, url_for
 
 from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, flash
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 from flask_qrcode import QRcode
 
@@ -32,20 +32,6 @@ DEBUG = True
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
-
-
-def login_required(func):
-    ''' Let's tweak the orig login_required function '''
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if request.method in EXEMPT_METHODS:
-            return func(*args, **kwargs)
-        elif app.config.get('LOGIN_DISABLED'):
-            return func(*args, **kwargs)
-        elif not current_user.is_authenticated:
-            return app.login_manager.unauthorized()
-        return func(*args, **kwargs)
-    return decorated_view
 
 ################ routes ####################
 
@@ -99,23 +85,27 @@ def login():
             app.logger.info("AUDIT: Invalid password login attempt")
             return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
     else:
+        if app.config.get('LOGIN_DISABLED'):
+            return redirect('/')
         return render_template('login.html', specter=app.specter, data={'next':request.args.get('next')})
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    logout_user()
     flash('You were logged out',"info")
-    return render_template('login.html', specter=app.specter, data={'next':request.args.get('next')})
+    return redirect("/login") 
 
 @app.route('/settings/', methods=['GET', 'POST'])
 @login_required
 def settings():
     app.specter.check()
-    rpc = app.specter.config["rpc"]
-    user = rpc["user"]
-    passwd = rpc["password"]
-    port = rpc["port"]
-    host = rpc["host"]
-    protocol = "http"
+    rpc = app.specter.config['rpc']
+    user = rpc['user']
+    passwd = rpc['password']
+    port = rpc['port']
+    host = rpc['host']
+    protocol = 'http'
+    auth = app.specter.config["auth"]
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
@@ -123,7 +113,8 @@ def settings():
         user = request.form['username']
         passwd = request.form['password']
         port = request.form['port']
-        host = request.form["host"]
+        host = request.form['host']
+        auth = request.form['auth']
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -147,6 +138,11 @@ def settings():
                                     protocol=protocol,
                                     autodetect=False
                                     )
+            app.specter.update_auth(auth)
+            if auth == "rpcpassword":
+                app.config['LOGIN_DISABLED'] = False
+            else:
+                app.config['LOGIN_DISABLED'] = True
             app.specter.check()
             return redirect("/")
     else:
@@ -158,6 +154,7 @@ def settings():
                             port=port,
                             host=host,
                             protocol=protocol,
+                            auth=auth,
                             specter=app.specter,
                             rand=rand)
 

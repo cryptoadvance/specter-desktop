@@ -15,6 +15,15 @@
 		Port:<br>
 		<input type="text" name="port" type="text" value="{{port}}">
 		<div class="note">Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet</div>
+		<br>
+		<h2>Miscellanous</h2>
+		<br>
+		Authentication:<br>
+		<select name="auth">
+			<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
+  			<option value="rpcpassword" {% if auth=="rpcpassword" %} selected="selected"{% endif %}>RPC password as Pin</option>
+		</select>
+		<br><br>
 		<div class="row">
 			<button type="submit" class="btn" name="action" value="test">
 				Test

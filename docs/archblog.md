@@ -6,9 +6,9 @@ The ApplicationFactory-pattern is not that straightforward. There are loads of p
 
 (from singleton.py)
 ```python __main__.py
-app = lovac.create_app()
+app = logic.create_app()
 app.app_context().push()
 # (...)
-lovac.init_app(app)
+logic.init_app(app)
 ```
 If you would put everything in the create-call, you can't import code which is dependent on an initialized ApplicationContext, you can't do "from flask import current_app". So you have to push the app_context but on the other side, you don't want to do that from within the create_app-function because this would be a quite shitty side-effect which srews up your whole dependency injection.

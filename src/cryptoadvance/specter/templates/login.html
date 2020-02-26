@@ -4,20 +4,21 @@
 {% endblock %}
 
 {% block main %}
-
-
+<div class="card">
 <form action="{{ url_for('login') }}" method=post role="form">
-    <fieldset>
-        <div class="form-group">
-            <input class="form-control" placeholder="Username" name="username" autofocus>
-        </div>
-        <div class="form-group">
-            <input class="form-control" placeholder="Password" name="password" type="password" value="">
-        </div>
+        <br>
+        <input class="form-control" placeholder="Pin" name="password" type="password" value="">
+        <br>
         <input type="hidden" name="next" value="{{data.next}}">
         <!-- Change this to a button or input when using this as a form -->
-        <input type=submit value=Login/>
-    </fieldset>
+        <br>
+        <div class="row">
+            <button type=submit class="btn" value="Login">
+            Login
+            </button>
+        </div>
 </form>
+</div>
+
 
 {% endblock %}
