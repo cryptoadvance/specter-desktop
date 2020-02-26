@@ -66,8 +66,13 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ''' login '''
+    app.specter.check()
     if request.method == 'POST': 
         # ToDo: check the password via RPC-call
+        if app.specter.cli is None:
+            flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
+            app.logger.info("AUDIT: Failed to check password")
+            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
         cli = app.specter.cli.clone()
         print("Loggning in with"+request.form['password'])
         cli.passwd = request.form['password']
