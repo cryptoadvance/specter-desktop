@@ -333,8 +333,12 @@ function loadDynamicFees() {
 			{% endif %}
 		});
 		document.getElementById("scanme").addEventListener("click", function(){
-			document.getElementById("popup").style.display = 'flex';
-			scanner.start();
+			try{
+				scanner.start();
+				document.getElementById("popup").style.display = 'flex';
+			}catch(e){
+				alert("Can't start the QR scanner!\n\n" + e);
+			}
 		});
 		document.getElementById("popup").addEventListener("click", function(){
 			document.getElementById("popup").style.display = 'none';
