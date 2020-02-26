@@ -3,21 +3,21 @@ import logging
 import os
 import sys
 import time
-from pathlib import Path
 
 import click
+
 import docker
-from dotenv import load_dotenv
 
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
 from .helpers import load_jsons, which
 from .server import DATA_FOLDER, create_app, init_app
 
-DEBUG = True
-env_path = Path('../../../..') / '.flaskenv'
-load_dotenv(env_path)
+from daemonize import Daemonize
+from os import path
+import signal
 
+DEBUG = True
 
 @click.group()
 def cli():
@@ -25,10 +25,47 @@ def cli():
 
 
 @cli.command()
-def server():
+@click.option("--daemon", is_flag=True)
+@click.option("--stop", is_flag=True)
+@click.option("--restart", is_flag=True)
+@click.option("--force", is_flag=True)
+# options below can help to run it on a remote server,
+# but better use nginx
+@click.option("--port") # default - 25441 set to 80 for http, 443 for https
+@click.option("--host", default="127.0.0.1") # set to 0.0.0.0 to make it available outside
+# for https:
+@click.option("--cert")
+@click.option("--key")
+# provide tor password here
+@click.option("--tor")
+def server(daemon, stop, restart, force, port, host, cert, key, tor):
+    # we will store our daemon PIN here
+    pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
+    toraddr_file = path.expanduser(path.join(DATA_FOLDER, "onion.txt"))
+    # check if pid file exists
+    if path.isfile(pid_file):
+        # if we need to stop daemon
+        if stop or restart:
+            print("Stopping the Specter server...")
+            with open(pid_file) as f:
+                pid = int(f.read())
+            os.kill(pid, signal.SIGTERM)
+        elif daemon:
+            if not force:
+                print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
+                return
+        if stop:
+            return
+    else:
+        if stop or restart:
+            print(f"Can't find PID file \"{pid_file}\"")
+            if stop:
+                return
+
     app = create_app()
     app.app_context().push()
     init_app(app)
+
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
     extra_files = extra_dirs[:]
@@ -39,15 +76,67 @@ def server():
                 if os.path.isfile(filename):
                     extra_files.append(filename)
     
-    # Note: dotenv doesn't convert bools!
-    if app.config.get('CONNECT_TOR') == 'True' and os.getenv('TOR_PASSWORD') is not None:
-        import tor_util
-        tor_util.run_on_hidden_service(
-            app, port=app.config.get('PORT'), 
-            debug=DEBUG, extra_files=extra_files
-        )
+    # if port is not defined - get it from environment
+    if port is None:
+        port = int(os.getenv('PORT', 25441))
     else:
-        app.run(port=app.config.get('PORT'), debug=DEBUG, extra_files=extra_files)
+        port = int(port)
+
+    # certificates
+    if cert is None:
+        cert = os.getenv('CERT', None)
+    if key is None:
+        key = os.getenv('KEY', None)
+
+    protocol = "http"
+    kwargs = {
+        "host": host,
+        "port": port,
+        "extra_files": extra_files,
+    }
+    if cert is not None and key is not None:
+        cert = os.path.abspath(cert)
+        key = os.path.abspath(key)
+        kwargs["ssl_context"] = (cert, key)
+        protocol = "https"
+
+    # if tor password is not provided but env variable is set
+    if tor is None and os.getenv('CONNECT_TOR') == 'True':
+        from dotenv import load_dotenv
+        load_dotenv()   # Load the secrets from .env
+        tor = os.getenv('TOR_PASSWORD')
+
+    def run(debug=False):
+        # Note: dotenv doesn't convert bools!
+        if tor is not None:
+            from . import tor_util
+            # if we have certificates
+            if "ssl_context" in kwargs:
+                tor_port = 443
+            else:
+                tor_port = 80
+            tor_util.run_on_hidden_service(app,
+                debug=False,
+                tor_password=tor,
+                tor_port=tor_port,
+                save_address_to=toraddr_file,
+                **kwargs)
+        else:
+            app.run(debug=debug, **kwargs)
+
+    # check if we should run a daemon or not
+    if daemon or restart:
+        print("Starting server in background...")
+        print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
+        if tor is not None:
+            print("* For onion address check the file %s" % toraddr_file)
+        # Note: we can't run flask as a deamon in debug mode,
+        #       so use debug=False by default
+        d = Daemonize(app="specter", pid=pid_file, action=run)
+        d.start()
+    # if not a daemon we can use DEBUG
+    else:
+        run(DEBUG)
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
