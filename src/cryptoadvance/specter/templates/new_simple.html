@@ -51,7 +51,7 @@
 	{% endfor %}
 </div>
 <br>
-<h1>Pick the device you want to use as signer #{{cosigner_index+1}}</h1>
+<h1>Pick the devices you want to use as cosigners</h1>
 {% else %}
 <div class="spacer"></div>
 <h1>Pick the device you want to use</h1>
@@ -59,43 +59,31 @@
 <div class="row overflow">
 		{% for k in specter.devices.names() %}
 		<label>
-			{% if cosigners and k in cosigners %}{% else %}
-			{% if device["name"] == k %}
-			<input type="radio" name="device" value="{{k}}" class="hidden" checked>
+			{% if sigs_total %}
+			<input type="checkbox" name="devices" value="{{k}}" class="hidden">
 			{% else %}
 			<input type="radio" name="device" value="{{k}}" class="hidden">
 			{% endif %}
-			{% endif %}
-			{% if cosigners and k in cosigners %}
-			<div class="small-card radio highlighted">
-			{% else %}
 			<div class="small-card radio">
-			{% endif %}
 				{% if specter.devices[k]['type'] != 'specter' and specter.devices[k]['type'] != 'coldcard' %}
 					<img src="/static/img/other_icon.svg" width="18px">
 				{% else %}
 					<img src="/static/img/{{specter.devices[k]['type']}}_icon.svg" width="18px">
 				{% endif %}
 				{{ k }}
-				{% if cosigners %}
-				{% for cosigner in cosigners %}
-				{% if cosigner==k %}
-				- cosigner {{loop.index}}
-				{% endif %}
-				{% endfor %}
-				{% endif %}
 			</div>
 		</label>
 		{% endfor %}
 </div>
 <button type="submit" name="action" value="device" class="btn centered">Continue</button>
 <div class="note"><br>
+<center>
 {% if sigs_total %}
-	<center>Remember the order of signers. <b>Order is important.</b> It is another piece of information you need to back up.<br>
-		On the next page we will ask you to choose the next device.</center>
+	We use sorted multisig (BIP-67), so <b>order is NOT important.</b><br>
 {% else %}
-	<center>On the next page we will ask you to choose the keys.</center>
+	On the next page we will ask you to choose the keys.
 {% endif %}
+</center>
 </div>
 </form>
 {% endblock %}

@@ -1,6 +1,10 @@
 ''' A config module contains static configuration '''
-import os
 import datetime
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
 try:
     # Python 2.7
     import ConfigParser as configparser
@@ -10,6 +14,9 @@ except ImportError:
 
 # BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
+# Loading env-vars from .flaskenv (4 levels above this file)
+env_path = Path('../../../..') / '.flaskenv'
+load_dotenv(env_path)
 
 def _get_bool_env_var(varname, default=None):
 
@@ -25,6 +32,8 @@ def _get_bool_env_var(varname, default=None):
         return bool(value)
 
 class BaseConfig(object):
+    PORT=os.getenv("PORT",25441)
+    CONNECT_TOR=_get_bool_env_var(os.getenv("CONNECT_TOR","False"))
     pass
 
 class DevelopmentConfig(BaseConfig):
@@ -36,4 +45,3 @@ class TestConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     pass
-    

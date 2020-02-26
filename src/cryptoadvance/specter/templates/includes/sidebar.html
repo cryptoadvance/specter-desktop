@@ -57,6 +57,13 @@
                 <small>{{ wallet.description }}</small>
             </div>
         </a>
+        <div class="rescan_progress {{specter.info.chain}}">
+            <div 
+            {% if wallet.rescan_progress %}
+            style="width: {{wallet.rescan_progress*100}}%"
+            {% endif %}
+            ></div>
+        </div>
         {% endfor %}
         <div class="item">
             <a href="/new_wallet/" class="btn">

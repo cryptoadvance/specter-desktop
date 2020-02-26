@@ -27,7 +27,7 @@
 
 </style>
 <h1>{{wallet.name}}</h1>
-<div class="row">
+<div class="row padded">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
 	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio checked">Send</a>
@@ -36,7 +36,7 @@
 <br>
 <form action="./" method="POST" class="full-width">
 	{% if not psbt %}
-		<br><h1>Sending to:</h1>
+		<h1 class="padded">Sending to:</h1>
 		<div class="card">
 			Recipient address:<br>
 			<div class="row">
@@ -71,7 +71,6 @@
 
 			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
 		</div>
-		<br>
 	{% else %}
 		<div class="tx_info">
 			<div>Sending <b>{{amount}}</b> BTC to <b>{{address}}</b><br><br></div>

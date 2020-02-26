@@ -3,10 +3,11 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 
 import click
-
 import docker
+from dotenv import load_dotenv
 
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
@@ -14,6 +15,9 @@ from .helpers import load_jsons, which
 from .server import DATA_FOLDER, create_app, init_app
 
 DEBUG = True
+env_path = Path('../../../..') / '.flaskenv'
+load_dotenv(env_path)
+
 
 @click.group()
 def cli():
@@ -36,14 +40,14 @@ def server():
                     extra_files.append(filename)
     
     # Note: dotenv doesn't convert bools!
-    if os.getenv('CONNECT_TOR', 'False') == 'True' and os.getenv('TOR_PASSWORD') is not None:
+    if app.config.get('CONNECT_TOR') == 'True' and os.getenv('TOR_PASSWORD') is not None:
         import tor_util
         tor_util.run_on_hidden_service(
-            app, port=os.getenv('PORT'), 
+            app, port=app.config.get('PORT'), 
             debug=DEBUG, extra_files=extra_files
         )
     else:
-        app.run(port=os.getenv('PORT'), debug=DEBUG, extra_files=extra_files)
+        app.run(port=app.config.get('PORT'), debug=DEBUG, extra_files=extra_files)
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
