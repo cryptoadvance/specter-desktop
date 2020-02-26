@@ -144,7 +144,7 @@ def settings():
                                     autodetect=False
                                     )
             app.specter.update_auth(auth)
-            if auth == "rpcpassword":
+            if auth == "rpcpasswordaspin":
                 app.config['LOGIN_DISABLED'] = False
             else:
                 app.config['LOGIN_DISABLED'] = True

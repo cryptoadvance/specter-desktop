@@ -20,7 +20,7 @@ def test_get_cli(specter_regtest_configured):
         "autodetect": False,
         "user": "bitcoin",
         "password": "secret",
-        "port": "18443",
+        "port": specter_regtest_configured.config['rpc']['port'],
         "host": "localhost",
         "protocol": "http"
     }

@@ -35,10 +35,12 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     return app
 
 
-def init_app(app):
+def init_app(app, specter=None):
     '''  see blogpost 19nd Feb 2020 '''
+    app.logger.info("Initializing QRcode")
     QRcode(app) # enable qr codes generation
     # Login via Flask-Login
+    app.logger.info("Initializing LoginManager")
     login_manager = LoginManager()
     login_manager.init_app(app) # Enable Login
     login_manager.login_view = "login" # Enable redirects if unauthorized
@@ -50,13 +52,18 @@ def init_app(app):
         login_user(load_user(""))
     
     app.login = login
-
-    specter = Specter(DATA_FOLDER)
-    specter.check()
+    if specter==None:
+        # the default. If not None, then it got injected for testing
+        app.logger.info("Initializing Specter")
+        specter = Specter(DATA_FOLDER)
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
-    if specter.config['auth'] == "none":
+    if specter.config.get('auth') == "none":
+        app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
+    else:
+        app.logger.info("Login enabled")
+    app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
         from . import controller
