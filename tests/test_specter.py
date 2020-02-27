@@ -16,6 +16,7 @@ def test_alias():
     assert alias("Wurst$ 1") == "wurst_1"
 
 def test_get_cli(specter_regtest_configured):
+    specter_regtest_configured.check()
     rpc_config_data = {
         "autodetect": False,
         "user": "bitcoin",
