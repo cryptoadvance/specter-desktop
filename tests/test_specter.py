@@ -25,6 +25,7 @@ def test_get_cli(specter_regtest_configured):
         "host": "localhost",
         "protocol": "http"
     }
+    print("rpc_config_data: {}".format(rpc_config_data))
     cli = get_cli(rpc_config_data)
     assert cli.getblockchaininfo() 
     assert isinstance(cli, BitcoinCLI)
