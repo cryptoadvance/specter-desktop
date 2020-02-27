@@ -5,14 +5,29 @@ import shutil
 import pytest
 
 from cryptoadvance.specter.rpc import RpcError
-from cryptoadvance.specter.logic import (Device, DeviceManager, Specter, Wallet, WalletManager,
+from cryptoadvance.specter.logic import (get_cli, Device, DeviceManager, Specter, Wallet, WalletManager,
                      alias)
+from cryptoadvance.specter.rpc import BitcoinCLI
 
 
 def test_alias():
     assert alias("wurst 1") == "wurst_1"
     assert alias("wurst_1") == "wurst_1"
     assert alias("Wurst$ 1") == "wurst_1"
+
+def test_get_cli(specter_regtest_configured):
+    rpc_config_data = {
+        "autodetect": False,
+        "user": "bitcoin",
+        "password": "secret",
+        "port": specter_regtest_configured.config['rpc']['port'],
+        "host": "localhost",
+        "protocol": "http"
+    }
+    cli = get_cli(rpc_config_data)
+    assert cli.getblockchaininfo() 
+    assert isinstance(cli, BitcoinCLI)
+    # ToDo test autodetection-features
 
 def test_specter(specter_regtest_configured,caplog): 
     caplog.set_level(logging.DEBUG)

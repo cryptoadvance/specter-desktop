@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block main %}
+<div class="card">
+<form action="{{ url_for('login') }}" method=post role="form">
+        <br>
+        <input class="form-control" placeholder="Pin" name="password" type="password" value="">
+        <br>
+        <input type="hidden" name="next" value="{{data.next}}">
+        <!-- Change this to a button or input when using this as a form -->
+        <br>
+        <div class="row">
+            <button type=submit class="btn" value="Login">
+            Login
+            </button>
+        </div>
+</form>
+</div>
+
+
+{% endblock %}

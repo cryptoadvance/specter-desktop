@@ -62,6 +62,8 @@ class SpecterError(Exception):
     pass
 
 class Specter:
+    ''' A central Object mostly holding app-settings '''
+    CONFIG_FILE_NAME = "config.json"
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
@@ -83,6 +85,7 @@ class Specter:
                 "host": "localhost",        # localhost
                 "protocol": "http"          # https for the future
             },
+            "auth": "none",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -90,7 +93,7 @@ class Specter:
 
         # creating folders if they don't exist
         if not os.path.isdir(data_folder):
-            os.mkdir(data_folder)
+            os.makedirs(data_folder)
 
         self._info = { "chain": None }
         # health check: loads config and tests rpc
@@ -107,12 +110,11 @@ class Specter:
         else:
             if self.config["uid"] == "":
                 self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
-            with open(os.path.join(self.data_folder, "config.json"), "w") as f:
-                f.write(json.dumps(self.config, indent=4))
+            self._save()
 
         # init arguments
         deep_update(self.config, self.arg_config) # override loaded config
-
+        
         self.cli = get_cli(self.config["rpc"])
         self._is_configured = (self.cli is not None)
         self._is_running = False
@@ -169,6 +171,10 @@ class Specter:
                 r["err"] = "Failed to connect"
                 r["code"] = -1
         return r
+    
+    def _save(self):
+        with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
+            f.write(json.dumps(self.config, indent=4))
 
     def update_rpc(self, **kwargs):
         need_update = False
@@ -177,9 +183,15 @@ class Specter:
                 self.config["rpc"][k] = kwargs[k]
                 need_update = True
         if need_update:
-            with open(os.path.join(self.data_folder, "config.json"), "w") as f:
-                f.write(json.dumps(self.config, indent=4))
+            self._save()
             self.check()
+    
+    def update_auth(self, auth):
+        ''' simply persisting the current auth-choice '''
+        if self.config["auth"] != auth:
+            self.config["auth"] = auth
+        self._save()
+            
 
     @property
     def info(self):

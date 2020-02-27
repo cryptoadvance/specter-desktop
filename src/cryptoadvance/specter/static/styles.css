@@ -34,6 +34,25 @@ body{
 *{
     box-sizing: border-box;
 }
+.logout{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    background: rgba(0,0,0,0);
+    color: var(--cmap-blue);
+    padding: 10px 20px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 0 0 0 5px;
+}
+.logout:hover{
+    background: var(--cmap-bg-ligher);
+}
+.logout img{
+    margin-right: 10px;
+}
 .padded{
 	margin: 20px 0;
 }
@@ -303,7 +322,7 @@ h2{
     font-size: 1.25em;
     margin: 0 0 0px 0;
 }
-input, textarea, .input{
+input, textarea, .input, select{
     border: 1px solid var(--cmap-border);
     background: transparent;
     border-radius: 4px;

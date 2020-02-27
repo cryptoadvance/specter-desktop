@@ -151,9 +151,9 @@ class BitcoindController:
         if not run_docker:
             btcd_cmd += " -noprinttoconsole"
             if datadir == None:
-                datadir = tempfile.mkdtemp()
+                datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += " -datadir={} ".format(datadir)
-        logging.debug(" constructed bitcoind-command: {}".format(btcd_cmd))
+        logging.info(" constructed bitcoind-command: {}".format(btcd_cmd))
         return btcd_cmd
 
 class BitcoindPlainController(BitcoindController):
@@ -164,7 +164,7 @@ class BitcoindPlainController(BitcoindController):
         self.rpcconn.ipaddress = 'localhost'
 
     def _start_bitcoind(self, cleanup_at_exit=False):
-        datadir = tempfile.mkdtemp()
+        datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir")
         bitcoind_cmd = self.construct_bitcoind_cmd(self.rpcconn, run_docker=False, datadir=datadir, bitcoind_path=self.bitcoind_path)
         logging.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected

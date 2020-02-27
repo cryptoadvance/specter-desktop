@@ -1,0 +1,102 @@
+<nav class="side">
+    <a href="/settings/" class="item core">
+        <svg class="core {{specter.info.chain}}" height="32" width="32" viewBox="0 0 64 64">
+            <g>
+            <path class="main" d="m63.033,39.744c-4.274,17.143-21.637,27.576-38.782,23.301-17.138-4.274-27.571-21.638-23.295-38.78,4.272-17.145,21.635-27.579,38.775-23.305,17.144,4.274,27.576,21.64,23.302,38.784z"/>
+            <path fill="" d="m46.103,27.444c0.637-4.258-2.605-6.547-7.038-8.074l1.438-5.768-3.511-0.875-1.4,5.616c-0.923-0.23-1.871-0.447-2.813-0.662l1.41-5.653-3.509-0.875-1.439,5.766c-0.764-0.174-1.514-0.346-2.242-0.527l0.004-0.018-4.842-1.209-0.934,3.75s2.605,0.597,2.55,0.634c1.422,0.355,1.679,1.296,1.636,2.042l-1.638,6.571c0.098,0.025,0.225,0.061,0.365,0.117-0.117-0.029-0.242-0.061-0.371-0.092l-2.296,9.205c-0.174,0.432-0.615,1.08-1.609,0.834,0.035,0.051-2.552-0.637-2.552-0.637l-1.743,4.019,4.569,1.139c0.85,0.213,1.683,0.436,2.503,0.646l-1.453,5.834,3.507,0.875,1.439-5.772c0.958,0.26,1.888,0.5,2.798,0.726l-1.434,5.745,3.511,0.875,1.453-5.823c5.987,1.133,10.489,0.676,12.384-4.739,1.527-4.36-0.076-6.875-3.226-8.515,2.294-0.529,4.022-2.038,4.483-5.155zm-8.022,11.249c-1.085,4.36-8.426,2.003-10.806,1.412l1.928-7.729c2.38,0.594,10.012,1.77,8.878,6.317zm1.086-11.312c-0.99,3.966-7.1,1.951-9.082,1.457l1.748-7.01c1.982,0.494,8.365,1.416,7.334,5.553z"/>
+            </g>
+        </svg>
+        <div>
+            Bitcoin Core<br>
+            <small>
+            {{specter.chain}}:
+            {% if specter.info["blocks"] %}
+                {{ specter.info.blocks }} blocks
+            {% else %}
+                {{ specter.info.chain }}
+            {% endif %}
+            </small>
+        </div>
+    </a>
+
+    {% if specter.devices %}
+        <div class="separator">
+            Wallets
+        </div>
+        {% for wallet in specter.wallets %}
+        {% if wallet_alias == wallet.alias %}
+        <a href="/wallets/{{wallet.alias}}/" class="item active">
+        {% else %}
+        <a href="/wallets/{{wallet.alias}}/" class="item">
+        {% endif %}
+            {% if wallet.is_multisig %}
+            <svg width="18px" height="25px" viewBox="0 0 140 170" version="1.1">
+            {% else %}
+            <svg width="18px" height="25px" viewBox="0 50 100 150" version="1.1">
+            {% endif %}
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g id="Group-2" transform="translate(57.000000, 99.500000) rotate(75.000000) translate(-57.000000, -99.500000) translate(-37.000000, 25.000000)">
+                        <path d="M109.318138,82.5452222 C104.547229,67.7885555 91.6308655,57.2118888 76.445411,57.2118888 C57.1872292,57.2118888 41.5363201,74.2485555 41.5363201,95.2118888 C41.5363201,116.175222 57.1872292,133.211889 76.445411,133.211889 C91.6308655,133.211889 104.547229,122.635222 109.318138,107.878555 L134.627229,107.878555 L134.627229,133.211889 L157.899956,133.211889 L157.899956,107.878555 L169.53632,107.878555 L169.53632,82.5452222 L109.318138,82.5452222 Z M76.445411,107.878555 C70.045411,107.878555 64.8090473,102.178555 64.8090473,95.2118888 C64.8090473,88.2452222 70.045411,82.5452222 76.445411,82.5452222 C82.845411,82.5452222 88.0817746,88.2452222 88.0817746,95.2118888 C88.0817746,102.178555 82.845411,107.878555 76.445411,107.878555 Z" id="Shape" fill="#FFFFFF" fill-rule="nonzero" transform="translate(105.536320, 95.211889) rotate(15.000000) translate(-105.536320, -95.211889) "></path>
+                    {% if wallet.is_multisig %}
+                        <path d="M119.379895,40.6029336 C114.608986,25.846267 101.692623,15.2696003 86.5071681,15.2696003 C67.2489863,15.2696003 51.5980772,32.306267 51.5980772,53.2696003 C51.5980772,74.2329336 67.2489863,91.2696003 86.5071681,91.2696003 C101.692623,91.2696003 114.608986,80.6929336 119.379895,65.936267 L144.688986,65.936267 L144.688986,91.2696003 L167.961714,91.2696003 L167.961714,65.936267 L179.598077,65.936267 L179.598077,40.6029336 L119.379895,40.6029336 Z M86.5071681,65.936267 C80.1071681,65.936267 74.8708045,60.236267 74.8708045,53.2696003 C74.8708045,46.3029336 80.1071681,40.6029336 86.5071681,40.6029336 C92.9071681,40.6029336 98.1435318,46.3029336 98.1435318,53.2696003 C98.1435318,60.236267 92.9071681,65.936267 86.5071681,65.936267 Z" id="Shape" fill-opacity="0.53" fill="#FFFFFF" fill-rule="nonzero" transform="translate(115.598077, 53.269600) rotate(-15.000000) translate(-115.598077, -53.269600) "></path>
+                        <circle id="Oval" stroke="#FFFFFF" stroke-width="10" cx="42" cy="64" r="42"></circle>
+                    {% endif %}
+                    </g>
+                </g>
+            </svg>
+            <div class="grow">
+                <div class="row">
+                {{wallet.name}} 
+                {% if specter.chain %}
+                {% if wallet.fullbalance is not none %}
+                <span class="balance">{{ "%0.8f" % (wallet.fullbalance ) | float}}
+                 <!-- {% if specter.chain != "main" %} t{%endif%}BTC -->
+                </span>
+                {%endif%}
+                {%endif%}</div>
+                <small>{{ wallet.description }}</small>
+            </div>
+        </a>
+        <div class="rescan_progress {{specter.info.chain}}">
+            <div 
+            {% if wallet.rescan_progress %}
+            style="width: {{wallet.rescan_progress*100}}%"
+            {% endif %}
+            ></div>
+        </div>
+        {% endfor %}
+        <div class="item">
+            <a href="/new_wallet/" class="btn">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Create new wallet
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="separator">
+        Devices
+    </div>
+    {% for device in specter.devices %}
+        <a href="/devices/{{device.alias}}/" class="item {% if device_alias == device.alias %} active {% endif %}">
+            {% if device.type == "specter" or device.type == "coldcard" %}
+                <img src="/static/img/{{device.type|lower}}_icon.svg" width="18px">
+            {% else %}
+                <img src="/static/img/other_icon.svg" width="18px">
+            {% endif %}
+            <div>{{device.name}}<br><small>{{ device["keys"] | length}} keys</small></div>
+        </a>
+    {% endfor %}
+    <div class="item">
+        <a href="/new_device/" class="btn">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add new device
+        </a>
+    </div>
+    <div class="footer">
+        Brought to you by<br>
+        <a href="https://cryptoadvance.io" target="_blank">
+            <img src="/static/img/ca.png">
+        </a>
+    </div>
+    {% if specter.config.auth!="none" and current_user.is_authenticated %}
+    <a class="logout" href="{{ url_for('logout') }}"><img src="/static/img/exit_from_app-24px.svg" style="width: 24px;"/><div>Logout</div></a>
+    {% endif %}
+</nav>

@@ -4,14 +4,21 @@ import random, copy
 from collections import OrderedDict
 from threading import Thread
 
-from flask import Flask, Blueprint, render_template, request, redirect, jsonify
+
+from functools import wraps
+from flask import g, request, redirect, url_for
+
+from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from flask_login import login_required, login_user, logout_user, current_user
+from flask_login.config import EXEMPT_METHODS
 from flask_qrcode import QRcode
+
 
 from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
 from .rpc import BitcoinCLI, RPC_PORTS
 
-from .logic import Specter, purposes, addrtypes
+from .logic import Specter, purposes, addrtypes, get_cli
 from datetime import datetime
 import urllib
 
@@ -25,9 +32,11 @@ DEBUG = True
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
+
 ################ routes ####################
 
 @app.route('/combine/', methods=['GET', 'POST'])
+@login_required
 def combine():
     if request.method == 'POST': # FIXME: ugly...
         d = request.json
@@ -41,6 +50,7 @@ def combine():
     return 'meh'
 
 @app.route('/')
+@login_required
 def index():
     app.specter.check()
     if len(app.specter.wallets) > 0:
@@ -53,15 +63,54 @@ def index():
 
     return render_template("base.html", specter=app.specter, rand=rand)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    ''' login '''
+    app.specter.check()
+    if request.method == 'POST': 
+        # ToDo: check the password via RPC-call
+        if app.specter.cli is None:
+            flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
+            app.logger.info("AUDIT: Failed to check password")
+            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+        cli = app.specter.cli.clone()
+        print("Loggning in with"+request.form['password'])
+        cli.passwd = request.form['password']
+        if cli.test_connection():
+            app.login()
+            app.logger.info("AUDIT: Successfull Login via RPC-credentials")
+            flash('Logged in successfully.',"info")
+            if request.form.get('next') and request.form.get('next').startswith("http"):
+                response = redirect(request.form['next'])
+            else:
+                response = redirect(url_for('index'))
+            return response
+        else:
+            flash('Invalid username or password', "error")
+            app.logger.info("AUDIT: Invalid password login attempt")
+            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+    else:
+        if app.config.get('LOGIN_DISABLED'):
+            return redirect('/')
+        return render_template('login.html', specter=app.specter, data={'next':request.args.get('next')})
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    flash('You were logged out',"info")
+    return redirect("/login") 
+
 @app.route('/settings/', methods=['GET', 'POST'])
+@login_required
 def settings():
     app.specter.check()
-    rpc = app.specter.config["rpc"]
-    user = rpc["user"]
-    passwd = rpc["password"]
-    port = rpc["port"]
-    host = rpc["host"]
-    protocol = "http"
+    rpc = app.specter.config['rpc']
+    user = rpc['user']
+    passwd = rpc['password']
+    port = rpc['port']
+    host = rpc['host']
+    protocol = 'http'
+    auth = app.specter.config["auth"]
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
@@ -69,7 +118,8 @@ def settings():
         user = request.form['username']
         passwd = request.form['password']
         port = request.form['port']
-        host = request.form["host"]
+        host = request.form['host']
+        auth = request.form['auth']
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -93,6 +143,11 @@ def settings():
                                     protocol=protocol,
                                     autodetect=False
                                     )
+            app.specter.update_auth(auth)
+            if auth == "rpcpasswordaspin":
+                app.config['LOGIN_DISABLED'] = False
+            else:
+                app.config['LOGIN_DISABLED'] = True
             app.specter.check()
             return redirect("/")
     else:
@@ -104,12 +159,14 @@ def settings():
                             port=port,
                             host=host,
                             protocol=protocol,
+                            auth=auth,
                             specter=app.specter,
                             rand=rand)
 
 ################# wallet management #####################
 
 @app.route('/new_wallet/')
+@login_required
 def new_wallet():
     app.specter.check()
     err = None
@@ -119,6 +176,7 @@ def new_wallet():
     return render_template("new_wallet.html", specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/simple/', methods=['GET', 'POST'])
+@login_required
 def new_wallet_simple():
     app.specter.check()
     name = "Simple"
@@ -169,6 +227,7 @@ def new_wallet_simple():
     return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/multisig/', methods=['GET', 'POST'])
+@login_required
 def new_wallet_multi():
     app.specter.check()
     name = "Multisig"
@@ -260,6 +319,7 @@ def new_wallet_multi():
     return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/')
+@login_required
 def wallet(wallet_alias):
     app.specter.check()
     try:
@@ -272,6 +332,7 @@ def wallet(wallet_alias):
         return redirect("/wallets/%s/tx/" % wallet_alias)
 
 @app.route('/wallets/<wallet_alias>/tx/')
+@login_required
 def wallet_tx(wallet_alias):
     app.specter.check()
     try:
@@ -281,6 +342,7 @@ def wallet_tx(wallet_alias):
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
+@login_required
 def wallet_receive(wallet_alias):
     app.specter.check()
     try:
@@ -294,11 +356,13 @@ def wallet_receive(wallet_alias):
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
+@login_required
 def fees(blocks):
     res = app.specter.estimatesmartfee(int(blocks))
     return res
 
 @app.route('/wallets/<wallet_alias>/send/', methods=['GET', 'POST'])
+@login_required
 def wallet_send(wallet_alias):
     app.specter.check()
     try:
@@ -342,6 +406,7 @@ def wallet_send(wallet_alias):
                                                 specter=app.specter, rand=rand, error=err)
 
 @app.route('/wallets/<wallet_alias>/settings/', methods=['GET','POST'])
+@login_required
 def wallet_settings(wallet_alias):
     app.specter.check()
     error = None
@@ -409,11 +474,13 @@ Format: {}
 ################# devices management #####################
 
 @app.route('/new_device/')
+@login_required
 def new_device():
     app.specter.check()
     return render_template("new_device.html", specter=app.specter, rand=rand)
 
 @app.route('/new_device/<device_type>/', methods=['GET', 'POST'])
+@login_required
 def new_device_xpubs(device_type):
     err = None
     app.specter.check()
@@ -451,6 +518,7 @@ def get_key_meta(key):
     return k
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
+@login_required
 def device(device_alias):
     app.specter.check()
     try:
@@ -517,3 +585,6 @@ def txonaddr(obj):
 def descr(wallet):
     # we always use sortedmulti even though it is not in Bitcoin Core yet
     return wallet['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
+
+
+    

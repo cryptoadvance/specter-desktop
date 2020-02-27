@@ -11,6 +11,7 @@ import pytest
 import docker
 from cryptoadvance.specter.bitcoind import BitcoindDockerController, BitcoindPlainController
 from cryptoadvance.specter.logic import Specter, DeviceManager
+from cryptoadvance.specter.server import create_app, init_app
 
 
 def pytest_addoption(parser):
@@ -207,7 +208,7 @@ def device_manager(devices_filled_data_folder):
     return DeviceManager(os.path.join(devices_filled_data_folder,"devices"))
 
 @pytest.fixture
-def specter_regtest_configured(bitcoin_regtest):
+def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     data_folder = './test_specter_data_3456778'
     shutil.rmtree(data_folder, ignore_errors=True)
@@ -220,6 +221,25 @@ def specter_regtest_configured(bitcoin_regtest):
             "host": bitcoin_regtest.rpcconn.ipaddress,
             "protocol": "http"
         },
+        "auth": "none"
     }
-    yield Specter(data_folder=data_folder, config=config)
+    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter.check()
+    yield specter
     shutil.rmtree(data_folder, ignore_errors=True)
+
+
+@pytest.fixture
+def app(specter_regtest_configured):
+    ''' the Flask-App, but uninitialized '''
+    app = create_app()
+    app.app_context().push()
+    app.config["TESTING"]=True
+    app.testing = True
+    init_app(app, specter=specter_regtest_configured)
+    return app
+
+@pytest.fixture
+def client(app):
+    ''' a test_client from an initialized Flask-App '''
+    return app.test_client()
