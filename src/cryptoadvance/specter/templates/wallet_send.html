@@ -97,6 +97,17 @@
 		{% endif %}
 
 		{% if wallet.uses_qrcode_device %}
+			<div class="row padded">
+				<label>
+					<input type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
+					<div class="btn radio left">Compressed PSBT</div>
+				</label>
+				<label>
+					<input type="radio" name="psbt_type" value="full_psbt" class="hidden">
+					<div class="btn radio right">Full PSBT</div>
+				</label>
+			</div>
+
 			<div class="row" style="min-height: 400px;">
 			<!-- 	{% set chunk = 700 %}
 				{%for i in range( (psbt["base64"] | length)//chunk+1)%}
@@ -104,8 +115,25 @@
 				{%endfor%}
 			 -->
 
-				<img src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px"/>
+				<img id="compressed_psbt" src="{{qrcode(psbt['specter'])}}" class="qr broad" width="400px" height="400px"/>
+				<img id="full_psbt" src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px" style="display: none"/>
 			 </div>
+			 <script>
+			 	document.addEventListener("DOMContentLoaded", function(){
+				 	document.forms[0].elements.psbt_type.forEach((o)=>{
+				 		o.addEventListener('change', e=>{
+				 			["compressed_psbt","full_psbt"].forEach(id=>{
+					 			let el = document.getElementById(id);
+					 			if(id==document.forms[0].elements.psbt_type.value){
+					 				el.style.display = "flex";
+					 			}else{
+					 				el.style.display = "none";
+					 			}
+				 			});
+				 		})
+				 	});
+			 	});
+			 </script>
 			<!-- because coldcard psbt is the most complete (includes xpubs) -->
 			<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
 		{% endif %}

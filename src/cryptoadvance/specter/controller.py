@@ -298,7 +298,6 @@ def new_wallet_multi():
                             break
                 except:
                     pass
-            print(keys, cosigners)
             if len(keys) != sigs_total or len(cosigners) != sigs_total:
                 prefix = "tpub"
                 if app.specter.chain == "main":
@@ -420,7 +419,6 @@ def wallet_settings(wallet_alias):
             startblock = int(request.form['startblock'])
             try:
                 res = wallet.cli.rescanblockchain(startblock, timeout=1)
-                print(res)
             except requests.exceptions.ReadTimeout:
                 pass
             except Exception as e:
@@ -439,7 +437,7 @@ def wallet_settings(wallet_alias):
             wallet.getdata()
 
     cc_file = None
-    qr_text = wallet["name"]+"&"+descr(wallet)
+    qr_text = wallet["name"]+"&"+wallet.descriptor
     if wallet.is_multisig:
         CC_TYPES = {
         'legacy': 'BIP45',
@@ -580,11 +578,6 @@ def txonaddr(wallet):
 @app.template_filter('prettyjson')
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
-
-@app.template_filter('descriptor')
-def descr(wallet):
-    # we always use sortedmulti even though it is not in Bitcoin Core yet
-    return wallet['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
 
 
     
