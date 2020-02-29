@@ -11,9 +11,9 @@
 		text-align: center;
 		margin-bottom: 2em;
 	}
-        .fee_container {
-                height: 11em;
-        }
+	.fee_container {
+		height: 11em;
+	}
 	.fee_rate {
 		width: 6em;
 		min-width: 6em;
@@ -88,7 +88,7 @@
 					<button class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
 				{% else %}
 					{% for device in wallet.devices %}
-						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor'] %}
+						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 							<button class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}">{{ device.name }}</button>
 						{% endif %}
 					{% endfor %}
@@ -109,7 +109,7 @@
 			</div>
 
 			<div class="row" style="min-height: 400px;">
-			<!-- 	{% set chunk = 700 %}
+			<!--    {% set chunk = 700 %}
 				{%for i in range( (psbt["base64"] | length)//chunk+1)%}
 				<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
 				{%endfor%}
@@ -149,10 +149,10 @@
 			<div id="hwi_sign_container" class="flex-center flex-column hidden">
 				<h2>Sign Transaction</h2>
 				<div>
-					Sending transaction to <span id="hwi_device_name"></span>
+					Please confirm transaction on your <span id="hwi_device_name">device</span>
 				</div>
 				<div class="flex-center">
-				    <img src="/static/img/loader_boxes.svg"/>
+					<img src="/static/img/loader_boxes.svg"/>
 				</div>
 			</div>
 		{% endif %}
@@ -188,6 +188,10 @@
 function replace(hide, show) {
 	document.getElementById(hide).style.display="none";
 	document.getElementById(show).style.display="block";
+}
+
+function capitalize(str){
+	return str.charAt(0).toUpperCase()+str.substring(1);
 }
 
 function showFeeOption(myRadio) {
@@ -248,7 +252,7 @@ function loadDynamicFees() {
 				let o = JSON.parse(this.responseText);
 				console.log(o);
 				if(o.complete){
-				  	window.location.replace("../tx/");
+					window.location.replace("../tx/");
 				}else{
 					psbt0 = o["psbt"];
 					sigscount++;
@@ -256,7 +260,7 @@ function loadDynamicFees() {
 				}
 				// console.log(this.responseText);
 			}else{
-		  		// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+				// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
 			}
 		}
 		xmlHttp.onerror = function(e){
@@ -279,19 +283,19 @@ function loadDynamicFees() {
 		});
 	});
 
-	{# ================== Signers' various device support ================== #}
+	{# ================== Signers various device support ================== #}
 	{% if wallet.uses_hwi_device %}
-	    document.addEventListener("DOMContentLoaded", function(){
-	    	initPageOverlay("hwi_sign_container");
+		document.addEventListener("DOMContentLoaded", function(){
+			initPageOverlay("hwi_sign_container");
 
-	    	{% if not wallet.is_multisig %}
+			{% if not wallet.is_multisig %}
 				document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
 					e.preventDefault();
 					beginDetectWallet("{{ wallet.device_type }}");
 				});
 			{% else %}
 				{% for device in wallet.devices %}
-					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor'] %}
+					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
 							e.preventDefault();
 							beginDetectWallet("{{ device.type }}");
@@ -300,30 +304,21 @@ function loadDynamicFees() {
 				{% endfor %}
 			{% endif %}
 
+			document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
+				e.preventDefault();
+				document.getElementById("hwi_device_name").textContent = capitalize(hwiCurrentWallet.type);
+				showPageOverlay("hwi_sign_container");
 
-		    document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
-		        e.preventDefault();
-		        if (hwiCurrentWallet.type == 'coldcard') {
-					document.getElementById("hwi_device_name").textContent = 'Coldcard';
-				} else if (hwiCurrentWallet.type == 'keepkey') {
-					document.getElementById("hwi_device_name").textContent = 'KeepKey';
-				} else if (hwiCurrentWallet.type == 'ledger') {
-					document.getElementById("hwi_device_name").textContent = 'Ledger';
-				} else if (hwiCurrentWallet.type == 'trezor') {
-					document.getElementById("hwi_device_name").textContent = 'Trezor';
-				}
-		        showPageOverlay("hwi_sign_container");
-
-		        const psbt = "{{ psbt['base64'] }}";
-		        var jsonResponse = await hwiSendPsbt(psbt);
+				const psbt = "{{ psbt['base64'] }}";
+				var jsonResponse = await hwiSendPsbt(psbt);
 				if (jsonResponse.hasOwnProperty('error')) {
 					alert(jsonResponse.error);
-		        } else if (jsonResponse.psbt !== "undefined") {
-			        combine(jsonResponse.psbt);
-			    }
+				} else if (jsonResponse.psbt !== "undefined") {
+					combine(jsonResponse.psbt);
+				}
 
-		        hidePageOverlay("hwi_sign_container");
-		    });
+				hidePageOverlay("hwi_sign_container");
+			});
 		});
 	{% endif %}
 
@@ -379,16 +374,16 @@ function loadDynamicFees() {
 
 		el.addEventListener("change", (e) => {
 			let files = el.files;
-		  	console.log(files);
-		  	for(let i=0; i<files.length; i++){
-		  		console.log(files[i].name);
+			console.log(files);
+			for(let i=0; i<files.length; i++){
+				console.log(files[i].name);
 				let reader = new FileReader();
-		        reader.onload = function(e) {
-		            let str = btoa(reader.result);
-		            combine(str);
-		        }
-		        reader.readAsBinaryString(files[i]);
-		  	}
+				reader.onload = function(e) {
+					let str = btoa(reader.result);
+					combine(str);
+				}
+				reader.readAsBinaryString(files[i]);
+			}
 		});
 {% endif %}
 
