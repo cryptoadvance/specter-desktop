@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import random
+import hashlib
 from collections import OrderedDict
 
 from . import helpers
@@ -732,6 +733,17 @@ class Wallet(dict):
             return None
         return self.balance["trusted"]+self.balance["untrusted_pending"]
 
+    @property
+    def descriptor(self):
+        return self['recv_descriptor'].split("#")[0].replace("/0/*", "").replace("multi", "sortedmulti")
+
+    @property
+    def fingerprint(self):
+        """ Unique fingerprint of the wallet - first 4 bytes of hash160 of its descriptor """
+        h256 = hashlib.sha256(self.descriptor.encode()).digest()
+        h160 = hashlib.new('ripemd160', h256).digest()
+        return h160[:4]
+
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
@@ -787,6 +799,22 @@ class Wallet(dict):
                 value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
                 cc_psbt.unknown[key] = value
         psbt["coldcard"]=cc_psbt.serialize()
+
+        # removing unnecessary fields for specter
+        # to reduce size of the QR code
+        qr_psbt = PSBT()
+        qr_psbt.deserialize(b64psbt)
+        for inp in qr_psbt.inputs + qr_psbt.outputs:
+            inp.witness_script = b""
+            inp.redeem_script = b""
+            if len(inp.hd_keypaths) > 0:
+                k = list(inp.hd_keypaths.keys())[0]
+                # proprietary field - wallet derivation path
+                # only contains two last derivation indexes - change and index
+                inp.unknown[b"\xfc\xca\x01"+self.fingerprint] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
+                inp.hd_keypaths = {}
+        psbt["specter"]=qr_psbt.serialize()
+        print("PSBT for Specter:", psbt["specter"])
         return psbt
 
 def der_to_bytes(derivation):
