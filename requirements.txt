@@ -24,7 +24,6 @@ stem==1.7.1
 typing-extensions==3.7.4
 urllib3==1.25.6
 Werkzeug==0.16.0
-serial==0.0.97
 pyserial==3.4
 daemonize==2.5.0
 pyOpenSSL==19.1.0
