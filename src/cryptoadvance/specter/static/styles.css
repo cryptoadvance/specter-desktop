@@ -533,6 +533,7 @@ input[type="radio"]:checked + .btn.hovering,
 input[type="checkbox"]:checked + .btn.hovering
 {
     visibility: visible;
+    opacity: 1 !important;
 }
 .btn.radio.left{
     border-radius: 10px 0 0 10px;
