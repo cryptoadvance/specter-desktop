@@ -48,7 +48,11 @@
 </div>
 {% if wallet.is_multisig %}
 <div>
+{% if cc_file %}
 <a download="{{wallet['name']}}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered padded">Download ColdCard file</a>
+{% else %}
+<div class="note">Coldcard file is unavailable - we don't have enough information to generate it</div>
+{% endif %}
 </div>
 {% endif %}
 <div>

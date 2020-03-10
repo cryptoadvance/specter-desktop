@@ -815,6 +815,41 @@ class Wallet(dict):
         print("PSBT for Specter:", psbt["specter"])
         return psbt
 
+    def get_cc_file(self):
+        CC_TYPES = {
+        'legacy': 'BIP45',
+        'p2sh-segwit': 'P2WSH-P2SH',
+        'bech32': 'P2WSH'
+        }
+        # try to find at least one derivation
+        # cc assume the same derivation for all keys :(
+        derivation = None
+        for k in self["keys"]:
+            if "derivation" in k:
+                derivation = k["derivation"].replace("h","'")
+                break
+        if derivation is None:
+            return None
+        cc_file = """# Coldcard Multisig setup file (created on Specter Desktop)
+#
+Name: {}
+Policy: {} of {}
+Derivation: {}
+Format: {}
+""".format(self['name'], self['sigs_required'], 
+            len(self['keys']), derivation,
+            CC_TYPES[self['address_type']]
+            )
+        for k in self['keys']:
+            # cc assumes fingerprint is known
+            fingerprint = None
+            if 'fingerprint' in k:
+                fingerprint = k['fingerprint']
+            if fingerprint is None:
+                return None
+            cc_file += "{}: {}\n".format(fingerprint.upper(), k['xpub'])
+        return cc_file
+
 def der_to_bytes(derivation):
     items = derivation.split("/")
     if len(items) == 0:

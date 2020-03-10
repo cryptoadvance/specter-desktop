@@ -439,25 +439,11 @@ def wallet_settings(wallet_alias):
     cc_file = None
     qr_text = wallet["name"]+"&"+wallet.descriptor
     if wallet.is_multisig:
-        CC_TYPES = {
-        'legacy': 'BIP45',
-        'p2sh-segwit': 'P2WSH-P2SH',
-        'bech32': 'P2WSH'
-        }
-        cc_file = """# Coldcard Multisig setup file (created on Specter Desktop)
-#
-Name: {}
-Policy: {} of {}
-Derivation: {}
-Format: {}
-""".format(wallet['name'], wallet['sigs_required'], 
-            len(wallet['keys']), wallet['keys'][0]["derivation"].replace("h","'"),
-            CC_TYPES[wallet['address_type']]
-            )
-        for k in wallet['keys']:
-            cc_file += "{}: {}\n".format(k['fingerprint'].upper(), k['xpub'])
+        cc_file = wallet.get_cc_file()
+        if cc_file is not None:
+            cc_file = urllib.parse.quote(cc_file)
         return render_template("wallet_settings.html", 
-                            cc_file=urllib.parse.quote(cc_file), 
+                            cc_file=cc_file, 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
                             error=error,
