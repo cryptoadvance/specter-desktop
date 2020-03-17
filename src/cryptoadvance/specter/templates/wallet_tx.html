@@ -7,10 +7,7 @@
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
 </div>
-{% set url="https://blockstream.info/" %}
-{% if specter.chain == "test" %}
-{% set url="https://blockstream.info/testnet/" %}
-{% endif %}
+{% set url=explorer %}
 {% if specter.chain == "regtest" %}
 {% set url="#" %}
 {% endif %}
