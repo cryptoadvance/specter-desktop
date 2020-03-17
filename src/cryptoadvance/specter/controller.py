@@ -110,8 +110,7 @@ def settings():
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
-    mainnet_explorer = app.specter.config["mainnet_explorer"]
-    testnet_explorer = app.specter.config["testnet_explorer"]
+    explorer = app.specter.explorer
     auth = app.specter.config["auth"]
     if "protocol" in rpc:
         protocol = rpc["protocol"]
@@ -121,8 +120,7 @@ def settings():
         passwd = request.form['password']
         port = request.form['port']
         host = request.form['host']
-        mainnet_explorer = request.form["mainnet_explorer"]
-        testnet_explorer = request.form["testnet_explorer"]
+        explorer = request.form["explorer"]
         auth = request.form['auth']
         action = request.form['action']
         # protocol://host
@@ -147,7 +145,7 @@ def settings():
                                     protocol=protocol,
                                     autodetect=False
                                     )
-            app.specter.update_explorers(mainnet_explorer, testnet_explorer)
+            app.specter.update_explorer(explorer)
             app.specter.update_auth(auth)
             if auth == "rpcpasswordaspin":
                 app.config['LOGIN_DISABLED'] = False
@@ -164,8 +162,7 @@ def settings():
                             port=port,
                             host=host,
                             protocol=protocol,
-                            mainnet_explorer=mainnet_explorer,
-                            testnet_explorer=testnet_explorer,
+                            explorer=explorer,
                             auth=auth,
                             specter=app.specter,
                             rand=rand)
@@ -346,10 +343,7 @@ def wallet_tx(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
 
-    explorer = app.specter.config["mainnet_explorer"]
-    if app.specter.chain == "test":
-        explorer = app.specter.config["testnet_explorer"]
-    return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, explorer=explorer, specter=app.specter, rand=rand)
+    return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -363,10 +357,7 @@ def wallet_receive(wallet_alias):
         action = request.form['action']
         if action == "newaddress":
             wallet.getnewaddress()
-    explorer = app.specter.config["mainnet_explorer"]
-    if app.specter.chain == "test":
-        explorer = app.specter.config["testnet_explorer"]
-    return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, explorer=explorer, specter=app.specter, rand=rand)
+    return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
 @login_required

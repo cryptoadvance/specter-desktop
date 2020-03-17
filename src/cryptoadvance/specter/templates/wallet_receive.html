@@ -7,10 +7,6 @@
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
 </div>
-{% set url=explorer %}
-{% if specter.chain == "regtest" %}
-{% set url="#" %}
-{% endif %}
 <div class="center">
 <span>
 	Address #{{wallet['address_index']+1}}<br>
@@ -53,8 +49,8 @@ It has an address index inluded in the QR code.</center></div>
 					<img src="/static/img/{{tx['category']}}_icon.svg"/>
 					{%endif%}
 				</td>
-				<td class="tx scroll"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending

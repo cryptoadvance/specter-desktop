@@ -87,8 +87,12 @@ class Specter:
                 "protocol": "http"          # https for the future
             },
             "auth": "none",
-            "mainnet_explorer": "https://blockstream.info/",
-            "testnet_explorer": "https://blockstream.info/testnet/",
+            "explorers": {
+                "main": "https://blockstream.info/",
+                "test": "https://blockstream.info/testnet/",
+                "regtest": None,
+                "signet": "https://explorer.bc-2.jp/"
+            },
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -195,20 +199,16 @@ class Specter:
             self.config["auth"] = auth
         self._save()
     
-    def update_explorers(self, mainnet_explorer, testnet_explorer):
+    def update_explorer(self, explorer):
         ''' update the block explorers urls '''
 
         # make sure the urls end with a "/"
-        if not mainnet_explorer.endswith("/"):
-            mainnet_explorer += "/"
-        if not testnet_explorer.endswith("/"):
-            testnet_explorer += "/"
+        if not explorer.endswith("/"):
+            explorer += "/"
 
         # update the urls in the app config
-        if self.config["mainnet_explorer"] != mainnet_explorer:
-            self.config["mainnet_explorer"] = mainnet_explorer
-        if self.config["testnet_explorer"] != testnet_explorer:
-            self.config["testnet_explorer"] = testnet_explorer
+        if self.config["explorers"][self.chain] != explorer:
+            self.config["explorers"][self.chain] = explorer
         self._save()
             
 
@@ -234,6 +234,13 @@ class Specter:
     @property
     def chain(self):
         return self._info["chain"]
+
+    @property
+    def explorer(self):
+        if "explorers" in self.config and self.chain in self.config["explorers"]:
+            return self.config["explorers"][self.chain]
+        else:
+            return None
     
     
 class DeviceManager:

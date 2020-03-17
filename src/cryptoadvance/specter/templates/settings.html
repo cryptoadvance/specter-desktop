@@ -24,11 +24,8 @@
   			<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
 		</select>
 		<br><br>
-		Block explorer URL (mainnet):<br>
-		<input type="url" name="mainnet_explorer" value="{{mainnet_explorer}}">
-		<br><br>
-		Block explorer URL (testnet):<br>
-		<input type="url" name="testnet_explorer" value="{{testnet_explorer}}">
+		Block explorer URL ({{specter.chain}}):<br>
+		<input type="url" name="explorer" value="{{explorer}}">
 		<br><br>
 		<div class="row">
 			<button type="submit" class="btn" name="action" value="test">
