@@ -16,13 +16,6 @@ rand = random.randint(0, 1e32) # to force style refresh
 
 hwi_views = Blueprint('hwi', __name__, template_folder='templates')
 
-
-"""
-    Support for calling the 'hwi' CLI. See note below in _enumerate()
-"""
-HWI_EXEC = which("hwi")
-
-
 def get_spector_instance():
     # specter instance is injected into app in server.py's __main__()
     return current_app.specter
@@ -46,9 +39,13 @@ def _enumerate():
         #   nor did the try/except rescue the thread.
         #
         # Restore this line try directly calling enumerate:
-        #   wallets = hwilib_commands.enumerate()
-        returned_output = subprocess.check_output([HWI_EXEC, "enumerate"])
-        res = json.loads(returned_output.decode("utf-8"))
+        # res = hwilib_commands.enumerate()
+        # returned_output = subprocess.check_output([HWI_EXEC, "enumerate"])
+        # res = json.loads(returned_output.decode("utf-8"))
+        res = json.loads(
+                subprocess.check_output(["python3","-c",
+                    "from hwilib.commands import enumerate;import json; print(json.dumps(enumerate()))"
+                ]))
         res += specter_enumerate()
         return res
 
