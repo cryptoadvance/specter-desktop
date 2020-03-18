@@ -87,6 +87,12 @@ class Specter:
                 "protocol": "http"          # https for the future
             },
             "auth": "none",
+            "explorers": {
+                "main": "https://blockstream.info/",
+                "test": "https://blockstream.info/testnet/",
+                "regtest": None,
+                "signet": "https://explorer.bc-2.jp/"
+            },
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -192,6 +198,18 @@ class Specter:
         if self.config["auth"] != auth:
             self.config["auth"] = auth
         self._save()
+    
+    def update_explorer(self, explorer):
+        ''' update the block explorers urls '''
+
+        # make sure the urls end with a "/"
+        if not explorer.endswith("/"):
+            explorer += "/"
+
+        # update the urls in the app config
+        if self.config["explorers"][self.chain] != explorer:
+            self.config["explorers"][self.chain] = explorer
+        self._save()
             
 
     @property
@@ -216,6 +234,13 @@ class Specter:
     @property
     def chain(self):
         return self._info["chain"]
+
+    @property
+    def explorer(self):
+        if "explorers" in self.config and self.chain in self.config["explorers"]:
+            return self.config["explorers"][self.chain]
+        else:
+            return None
     
     
 class DeviceManager:
@@ -348,14 +373,12 @@ class WalletManager:
         if cli is not None:
             self.cli = cli
         if self.working_folder is not None:
-            self._wallets = load_jsons(self.working_folder, key="name")
-            try:
-                existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
-                for k in self._wallets:
-                    if self.path+k not in existing_wallets:
-                        self._wallets.pop(w["name"])
-            except:
-                pass
+            self._wallets = {}
+            wallets = load_jsons(self.working_folder, key="name")
+            existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
+            for k in wallets:
+                if self.cli_path+wallets[k]["alias"] in existing_wallets:
+                    self._wallets[k] = wallets[k]
         else:
             self._wallets = {}
 
@@ -816,6 +839,41 @@ class Wallet(dict):
         psbt["specter"]=qr_psbt.serialize()
         print("PSBT for Specter:", psbt["specter"])
         return psbt
+
+    def get_cc_file(self):
+        CC_TYPES = {
+        'legacy': 'BIP45',
+        'p2sh-segwit': 'P2WSH-P2SH',
+        'bech32': 'P2WSH'
+        }
+        # try to find at least one derivation
+        # cc assume the same derivation for all keys :(
+        derivation = None
+        for k in self["keys"]:
+            if "derivation" in k:
+                derivation = k["derivation"].replace("h","'")
+                break
+        if derivation is None:
+            return None
+        cc_file = """# Coldcard Multisig setup file (created on Specter Desktop)
+#
+Name: {}
+Policy: {} of {}
+Derivation: {}
+Format: {}
+""".format(self['name'], self['sigs_required'], 
+            len(self['keys']), derivation,
+            CC_TYPES[self['address_type']]
+            )
+        for k in self['keys']:
+            # cc assumes fingerprint is known
+            fingerprint = None
+            if 'fingerprint' in k:
+                fingerprint = k['fingerprint']
+            if fingerprint is None:
+                return None
+            cc_file += "{}: {}\n".format(fingerprint.upper(), k['xpub'])
+        return cc_file
 
 def der_to_bytes(derivation):
     items = derivation.split("/")

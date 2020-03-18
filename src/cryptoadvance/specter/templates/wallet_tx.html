@@ -7,16 +7,6 @@
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
 </div>
-{% set url="https://blockstream.info/" %}
-{% if specter.chain == "test" %}
-{% set url="https://blockstream.info/testnet/" %}
-{% endif %}
-{% if specter.chain == "regtest" %}
-{% set url="#" %}
-{% endif %}
-{% if specter.chain == "signet" %}
-{% set url="https://explorer.bc-2.jp/" %}
-{% endif %}
 {% if ( wallet.fullbalance ) is not none %}
 <h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
 	{{ "%0.8f" % ( wallet.fullbalance ) | float }}
@@ -53,8 +43,8 @@
 						{% endif %}
 					{% endif %}
 				</td>
-				<td class="tx scroll"><a target="blank" href="{{url}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{url}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending
