@@ -110,6 +110,7 @@ def settings():
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
+    explorer = app.specter.explorer
     auth = app.specter.config["auth"]
     if "protocol" in rpc:
         protocol = rpc["protocol"]
@@ -119,6 +120,7 @@ def settings():
         passwd = request.form['password']
         port = request.form['port']
         host = request.form['host']
+        explorer = request.form["explorer"]
         auth = request.form['auth']
         action = request.form['action']
         # protocol://host
@@ -143,6 +145,7 @@ def settings():
                                     protocol=protocol,
                                     autodetect=False
                                     )
+            app.specter.update_explorer(explorer)
             app.specter.update_auth(auth)
             if auth == "rpcpasswordaspin":
                 app.config['LOGIN_DISABLED'] = False
@@ -159,6 +162,7 @@ def settings():
                             port=port,
                             host=host,
                             protocol=protocol,
+                            explorer=explorer,
                             auth=auth,
                             specter=app.specter,
                             rand=rand)
@@ -338,6 +342,7 @@ def wallet_tx(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
