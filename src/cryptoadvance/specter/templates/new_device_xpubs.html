@@ -85,7 +85,7 @@ el.addEventListener("change", (e) => {
 	            		let num = json.keystore.ckcc_xfp;
 	            		for(let i=0;i<4;i++){
 	            			prefix += (num % 256).toString(16);
-	            			num = num >> 8;
+	            			num = num >>> 8;
 	            		}
 	            		prefix += json.keystore.derivation.substring(1);
 	            		prefix += "]";
