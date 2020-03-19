@@ -24,9 +24,9 @@
 <div class="note"><center>Specter can verify this address if you scan it.<br>
 It has an address index included in the QR code.</center></div>
 
-{% if (wallet | txonaddr) > 0 %}
+{% if (wallet.txonaddr) > 0 %}
 <div class="padded">
-<h1>Transactions on this address ( {{wallet | txonaddr}} )</h1>
+<h1>Transactions on this address ( {{wallet.txonaddr}} )</h1>
 <div class="table-holder">
 	<table>
 		<thead>

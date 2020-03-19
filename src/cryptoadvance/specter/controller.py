@@ -112,6 +112,7 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
+    avoidreuse = app.specter.config['avoidreuse']
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
@@ -122,6 +123,7 @@ def settings():
         host = request.form['host']
         explorer = request.form["explorer"]
         auth = request.form['auth']
+        avoidreuse = 'avoidreuse' in request.form.keys()
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -151,6 +153,7 @@ def settings():
                 app.config['LOGIN_DISABLED'] = False
             else:
                 app.config['LOGIN_DISABLED'] = True
+            app.specter.update_avoidreuse(avoidreuse)
             app.specter.check()
             return redirect("/")
     else:
@@ -164,6 +167,7 @@ def settings():
                             protocol=protocol,
                             explorer=explorer,
                             auth=auth,
+                            avoidreuse=avoidreuse,
                             specter=app.specter,
                             rand=rand)
 
@@ -357,6 +361,8 @@ def wallet_receive(wallet_alias):
         action = request.form['action']
         if action == "newaddress":
             wallet.getnewaddress()
+    if wallet.txonaddr > 0 and app.specter.config['avoidreuse']:
+        wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
@@ -559,12 +565,6 @@ def derivation(wallet):
         k = wallet['key']
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
-
-@app.template_filter('txonaddr')
-def txonaddr(wallet):
-    addr = wallet["address"]
-    txlist = [tx for tx in wallet.transactions if tx["address"] == addr]
-    return len(txlist)
 
 @app.template_filter('prettyjson')
 def txonaddr(obj):

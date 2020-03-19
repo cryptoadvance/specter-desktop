@@ -93,6 +93,7 @@ class Specter:
                 "regtest": None,
                 "signet": "https://explorer.bc-2.jp/"
             },
+            "avoidreuse": True,
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -209,6 +210,11 @@ class Specter:
         # update the urls in the app config
         if self.config["explorers"][self.chain] != explorer:
             self.config["explorers"][self.chain] = explorer
+
+    def update_avoidreuse(self, avoidreuse):
+        ''' update avoid reuse if changed '''
+        if self.config["avoidreuse"] != avoidreuse:
+            self.config["avoidreuse"] = avoidreuse
         self._save()
             
 
@@ -766,6 +772,12 @@ class Wallet(dict):
         h256 = hashlib.sha256(self.descriptor.encode()).digest()
         h160 = hashlib.new('ripemd160', h256).digest()
         return h160[:4]
+
+    @property
+    def txonaddr(self):
+        addr = self["address"]
+        txlist = [tx for tx in self.transactions if tx["address"] == addr]
+        return len(txlist)
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
