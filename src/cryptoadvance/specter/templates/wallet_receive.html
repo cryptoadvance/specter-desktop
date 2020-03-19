@@ -3,6 +3,7 @@
 <h1>{{wallet.name}}</h1>
 <div class="row padded">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
+	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio">Addresses</a>
 	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio checked">Receive</a>
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
@@ -23,46 +24,4 @@
 
 <div class="note"><center>Specter can verify this address if you scan it.<br>
 It has an address index included in the QR code.</center></div>
-
-{% if (wallet.txonaddr) > 0 %}
-<div class="padded">
-<h1>Transactions on this address ( {{wallet.txonaddr}} )</h1>
-<div class="table-holder">
-	<table>
-		<thead>
-		<tr>
-			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
-		</tr>
-		</thead>
-		<tbody>
-			{% for tx in wallet.transactions %}
-			{% if tx['address'] == wallet['address'] %}
-			{%if tx["confirmations"] == 0 %}
-			<tr class="unconfirmed">
-			{%else%}
-			<tr>
-			{%endif%}
-				<td>
-					{%if tx["confirmations"] == 0 %}
-					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
-					{% else %}
-					<img src="/static/img/{{tx['category']}}_icon.svg"/>
-					{%endif%}
-				</td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
-				<td>{{tx["amount"]}}</td><td>
-				{%if tx["confirmations"] == 0 %}
-					Pending
-				{% else %}
-					{{tx["confirmations"]}}
-				{% endif %}
-				</td>
-				<td>{{tx["time"] | datetime}}</td></tr>
-			{% endif %}
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
-{% endif %}
 {% endblock %}

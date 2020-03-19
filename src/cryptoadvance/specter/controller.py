@@ -112,7 +112,6 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
-    avoidreuse = app.specter.config['avoidreuse']
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
@@ -123,7 +122,6 @@ def settings():
         host = request.form['host']
         explorer = request.form["explorer"]
         auth = request.form['auth']
-        avoidreuse = 'avoidreuse' in request.form.keys()
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -153,7 +151,6 @@ def settings():
                 app.config['LOGIN_DISABLED'] = False
             else:
                 app.config['LOGIN_DISABLED'] = True
-            app.specter.update_avoidreuse(avoidreuse)
             app.specter.check()
             return redirect("/")
     else:
@@ -167,7 +164,6 @@ def settings():
                             protocol=protocol,
                             explorer=explorer,
                             auth=auth,
-                            avoidreuse=avoidreuse,
                             specter=app.specter,
                             rand=rand)
 
@@ -349,6 +345,17 @@ def wallet_tx(wallet_alias):
 
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
+@app.route('/wallets/<wallet_alias>/addresses/')
+@login_required
+def wallet_addresses(wallet_alias):
+    app.specter.check()
+    try:
+        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    except:
+        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
 def wallet_receive(wallet_alias):
@@ -361,7 +368,7 @@ def wallet_receive(wallet_alias):
         action = request.form['action']
         if action == "newaddress":
             wallet.getnewaddress()
-    if wallet.txonaddr > 0 and app.specter.config['avoidreuse']:
+    if wallet.txoncurrentaddr > 0:
         wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 

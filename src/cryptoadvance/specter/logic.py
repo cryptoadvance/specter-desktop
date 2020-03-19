@@ -93,7 +93,6 @@ class Specter:
                 "regtest": None,
                 "signet": "https://explorer.bc-2.jp/"
             },
-            "avoidreuse": True,
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -210,13 +209,6 @@ class Specter:
         # update the urls in the app config
         if self.config["explorers"][self.chain] != explorer:
             self.config["explorers"][self.chain] = explorer
-
-    def update_avoidreuse(self, avoidreuse):
-        ''' update avoid reuse if changed '''
-        if self.config["avoidreuse"] != avoidreuse:
-            self.config["avoidreuse"] = avoidreuse
-        self._save()
-            
 
     @property
     def info(self):
@@ -596,7 +588,7 @@ class Wallet(dict):
         except:
             self.balance = None
         try:
-            self.transactions = self.cli.listtransactions("*", 20, 0, True)[::-1]
+            self.transactions = self.cli.listtransactions("*", 1000, 0, True)[::-1]
         except:
             self.transactions = None
         try:
@@ -752,6 +744,10 @@ class Wallet(dict):
         self._dict[pool] = end
         self._commit(update_manager=False)
         return end
+    
+    def txonaddr(self, addr):
+        txlist = [tx for tx in self.transactions if tx["address"] == addr]
+        return len(txlist)
 
     @property    
     def fullbalance(self):
@@ -774,10 +770,17 @@ class Wallet(dict):
         return h160[:4]
 
     @property
-    def txonaddr(self):
+    def txoncurrentaddr(self):
         addr = self["address"]
-        txlist = [tx for tx in self.transactions if tx["address"] == addr]
-        return len(txlist)
+        return self.txonaddr(addr)
+
+    @property
+    def addresses(self):
+        return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+    
+    @property
+    def change_addresses(self):
+        return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
