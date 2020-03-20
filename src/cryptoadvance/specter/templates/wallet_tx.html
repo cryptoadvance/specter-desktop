@@ -46,7 +46,7 @@
 					{% endif %}
 				</td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{wallet.getaddressname(tx["address"])}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{wallet.getaddressname(tx["address"], -1)}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending

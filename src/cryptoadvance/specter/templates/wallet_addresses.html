@@ -51,7 +51,7 @@
 <br>
 <h1>Address History</h1>
 {% for address in wallet.addresses | reverse %}
-{% set addrlabel = wallet.getaddressname(address) %}
+{% set addrlabel = wallet.getaddressname(address, wallet.addresses | length - loop.index0 - 1) %}
 <div class="table-holder">
 	<br>
 	<form action="./" method="POST">

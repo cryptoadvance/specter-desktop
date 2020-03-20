@@ -10,7 +10,7 @@
 </div>
 <div class="center">
 <form action="./" method="POST">
-	{% set addrlabel = wallet.getaddressname(wallet['address']) %}
+	{% set addrlabel = wallet.getaddressname(wallet['address'], wallet['address_index']) %}
 	<input type="text" autocomplete="off" spellcheck="false" id="label" name="label" value="{{addrlabel}}" style="text-align: center; border: none; font-size: 1.5em;" disabled>
 	<button type="submit" id="save" name="action" value="updatelabel" class="btn centered" style="display: none;">Update</button>
 	<button type="button" id="cancel" onclick="toggleEdit()" class="btn centered" style="display: none;">Cancel</button>
