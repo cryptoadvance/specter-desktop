@@ -756,7 +756,7 @@ class Wallet(dict):
     
     def getaddressname(self, addr):
         address_info = self.cli.getaddressinfo(addr)
-        return addr if address_info["label"] == "" else address_info["label"]
+        return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
 
     @property    
     def fullbalance(self):
