@@ -44,6 +44,9 @@
 				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
 				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
 			</div>
+			<br>
+			Address label (optional):<br>
+			<input type="text" id="label" name="label" value="{{label}}">
 			<br><br>
 			Amount:<br>
 			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8" autocomplete="off">

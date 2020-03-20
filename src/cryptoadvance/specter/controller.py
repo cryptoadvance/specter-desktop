@@ -404,6 +404,8 @@ def wallet_send(wallet_alias):
         action = request.form['action']
         if action == "createpsbt":
             address = request.form['address']
+            if "label" in request.form and request.form['label'] != "":
+                wallet.setlabel(address, request.form["label"])
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
