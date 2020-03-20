@@ -756,7 +756,7 @@ class Wallet(dict):
     
     def getaddressname(self, addr, addr_idx):
         address_info = self.cli.getaddressinfo(addr)
-        if "label" not in address_info or address_info["label"] == "" and addr_idx > -1:
+        if ("label" not in address_info or address_info["label"] == "") and addr_idx > -1:
             self.setlabel(addr, "Address #{}".format(addr_idx))
             address_info["label"] = "Address #{}".format(addr_idx)
         return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
