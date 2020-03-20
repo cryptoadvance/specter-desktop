@@ -777,10 +777,6 @@ class Wallet(dict):
     @property
     def addresses(self):
         return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
-    
-    @property
-    def change_addresses(self):
-        return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """

@@ -18,59 +18,10 @@
 </small></h1>
 <br>
 <h1>Address History</h1>
-{% for address in wallet.addresses %}
+{% for address in wallet.addresses | reverse %}
 <div class="table-holder">
 	<br>
-	<h2> Address: <a style="color: inherit; text-decoration: none;" target="blank" class="tx" href="{{specter.explorer}}address/{{address}}">{{address}}</a></h2>
-	<br>
-	<table>
-		<thead>
-		<tr>
-			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
-		</tr>
-		</thead>
-		<tbody>
-			{% if wallet.txonaddr(address) > 0 %}
-			{% for tx in wallet.transactions %}
-			{% if tx['address'] == address %}
-			{%if tx["confirmations"] == 0 %}
-			<tr class="unconfirmed">
-			{%else%}
-			<tr>
-			{%endif%}
-				<td>
-					{%if tx["confirmations"] == 0 %}
-					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
-					{% else %}
-					<img src="/static/img/{{tx['category']}}_icon.svg"/>
-					{%endif%}
-				</td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{tx["address"]}}</a></td>
-				<td>{{tx["amount"]}}</td><td>
-				{%if tx["confirmations"] == 0 %}
-					Pending
-				{% else %}
-					{{tx["confirmations"]}}
-				{% endif %}
-				</td>
-				<td>{{tx["time"] | datetime}}</td></tr>
-			{% endif %}
-			{% endfor %}
-			{% else %}
-			<td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
-			{% endif %}
-		</tbody>
-	</table>
-</div>
-{% endfor %}
-<br>
-<br>
-<h1>Change Address History</h1>
-{% for address in wallet.change_addresses %}
-<div class="table-holder">
-	<br>
-	<h2> Address: <a style="color: inherit; text-decoration: none;" target="blank" class="tx" href="{{specter.explorer}}address/{{address}}">{{address}}</a></h2>
+	<h2> Address {{ wallet.addresses | length - loop.index0 }}: <a style="color: inherit; text-decoration: none;" target="blank" class="tx" href="{{specter.explorer}}address/{{address}}">{{address}}</a></h2>
 	<br>
 	<table>
 		<thead>
