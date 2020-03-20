@@ -397,6 +397,7 @@ def wallet_send(wallet_alias):
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
     psbt = None
     address = ""
+    label = ""
     amount = 0
     fee_rate = 0.0
     err = None
@@ -404,8 +405,9 @@ def wallet_send(wallet_alias):
         action = request.form['action']
         if action == "createpsbt":
             address = request.form['address']
-            if "label" in request.form and request.form['label'] != "":
-                wallet.setlabel(address, request.form["label"])
+            label = request.form['label']
+            if request.form['label'] != "":
+                wallet.setlabel(address, label)
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
@@ -428,7 +430,7 @@ def wallet_send(wallet_alias):
                                 amount = v["value"]
             except Exception as e:
                 err = "%r" % e
-    return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, 
+    return render_template("wallet_send.html", psbt=psbt, address=address, label=label, amount=amount, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
