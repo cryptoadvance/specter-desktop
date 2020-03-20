@@ -532,6 +532,7 @@ class Wallet(dict):
         # address derivation will also refill the keypool if necessary
         if self._dict["address"] is None:
             self._dict["address"] = self.get_address(0)
+            self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
         self.getdata()
@@ -614,6 +615,7 @@ class Wallet(dict):
     def getnewaddress(self):
         self._dict["address_index"] += 1
         addr = self.get_address(self._dict["address_index"])
+        self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
         self._dict["address"] = addr
         self._commit()
         return addr
@@ -748,6 +750,13 @@ class Wallet(dict):
     def txonaddr(self, addr):
         txlist = [tx for tx in self.transactions if tx["address"] == addr]
         return len(txlist)
+
+    def setlabel(self, addr, label):
+        self.cli.setlabel(addr, label)
+    
+    def getaddressname(self, addr):
+        address_info = self.cli.getaddressinfo(addr)
+        return addr if address_info["label"] == "" else address_info["label"]
 
     @property    
     def fullbalance(self):

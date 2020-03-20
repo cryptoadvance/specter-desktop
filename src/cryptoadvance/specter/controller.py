@@ -345,7 +345,7 @@ def wallet_tx(wallet_alias):
 
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
-@app.route('/wallets/<wallet_alias>/addresses/')
+@app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
 @login_required
 def wallet_addresses(wallet_alias):
     app.specter.check()
@@ -353,7 +353,12 @@ def wallet_addresses(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-
+    if request.method == "POST":
+        action = request.form['action']
+        if action == "updatelabel":
+            label = request.form['label']
+            address = request.form['addr']
+            wallet.setlabel(address, label)
     return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
@@ -368,6 +373,9 @@ def wallet_receive(wallet_alias):
         action = request.form['action']
         if action == "newaddress":
             wallet.getnewaddress()
+        elif action == "updatelabel":
+            label = request.form['label']
+            wallet.setlabel(wallet['address'], label)
     if wallet.txoncurrentaddr > 0:
         wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)

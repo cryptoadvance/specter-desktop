@@ -9,12 +9,16 @@
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
 </div>
 <div class="center">
-<span>
-	Address #{{wallet['address_index']+1}}<br>
-	<small>( scan to verify )</small>
-</span><br><br>
+<form action="./" method="POST">
+	{% set addrlabel = wallet.getaddressname(wallet['address']) %}
+	<input type="text" autocomplete="off" spellcheck="false" id="label" name="label" value="{{addrlabel}}" style="text-align: center; border: none; font-size: 1.5em;" disabled>
+	<button type="submit" id="save" name="action" value="updatelabel" class="btn centered" style="display: none;">Update</button>
+	<button type="button" id="cancel" onclick="toggleEdit()" class="btn centered" style="display: none;">Cancel</button>
+	<button type="button" id="edit" onclick="toggleEdit()" name="action" value="updatelabel" class="btn centered">Edit Label</button>
+</form><br><br>
 <img src="{{ qrcode( 'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) ) }}" class="qr alt-qr" width="300px" />
 <br>
+<small>( scan to verify )</small>
 <div class="padded">{{wallet['address']}}</div>
 </div>
 <form action="./" method="POST">
@@ -24,4 +28,26 @@
 
 <div class="note"><center>Specter can verify this address if you scan it.<br>
 It has an address index included in the QR code.</center></div>
+
+<script>
+	function toggleEdit() {
+		var edit_button_display = document.getElementById("edit").style.display
+		if (edit_button_display === 'none'){
+			document.getElementById("label").disabled = 'true'
+			document.getElementById("label").style.border = 'none'
+			document.getElementById("label").style.fontSize = '1.5em';
+			document.getElementById("label").value = "{{ addrlabel }}"
+			document.getElementById("edit").style.display = 'block'
+			document.getElementById("cancel").style.display = 'none'
+			document.getElementById("save").style.display = 'none'
+		} else{
+			document.getElementById("label").disabled = ''
+			document.getElementById("label").style.removeProperty('border');
+			document.getElementById("label").style.removeProperty('font-size');
+			document.getElementById("edit").style.display = 'none'
+			document.getElementById("cancel").style.display = 'block'
+			document.getElementById("save").style.display = 'block'
+		}
+	}
+</script>
 {% endblock %}
