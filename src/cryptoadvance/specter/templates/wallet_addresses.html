@@ -11,6 +11,9 @@
 		color: #fff;
 		text-decoration: underline;
 	}
+	.table-holder .balance {
+		display: inline;
+	}
 	.label {
 		text-align: left;
 		padding-left: 0;
@@ -28,7 +31,7 @@
 		float: left;
 	}
 	.edit {
-		float: left;
+		float: right;
 		margin-top: 8px;
 	}
 </style>
@@ -48,21 +51,29 @@
 	( {{ "%0.8f" % wallet.balance["trusted"] | float }} confirmed, {{"%0.8f" % wallet.balance["untrusted_pending"] | float}} pending )
 	{% endif %}
 </small></h1>
-<br>
-<h1>Address History</h1>
-{% for address in wallet.addresses | reverse %}
-{% set addrlabel = wallet.getaddressname(address, wallet.addresses | length - loop.index0 - 1) %}
+<div class="row padded">
+	<a href="/wallets/{{wallet['alias']}}/addresses?all=True" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
+	<a href="/wallets/{{wallet['alias']}}/addresses?all=False" class="btn radio right {% if alladdresses != True %}checked{% endif %}">UTXO</a>
+</div>
+{% for address in (wallet.addresses if alladdresses else wallet.utxoaddresses) | reverse %}
+{% if alladdresses or wallet.balanceonaddr(address) > 0 %}
+{% set addrlabel = wallet.getaddressname(address, (wallet.addresses | length - loop.index0 - 1) if alladdresses else -1) %}
 <div class="table-holder">
 	<br>
-	<form action="./" method="POST">
+	<form action="./?all={{alladdresses}}" method="POST">
+		<br>
 		<input type="text" class="label" autocomplete="off" spellcheck="false" id="{{"label" ~ loop.index0}}" name="label" value="{{addrlabel}}" style="border: none; font-size: 1.5em;" disabled />
 		<input type="hidden" name="addr" value="{{address}}"/>
 		<button type="submit" class="btn update" id="{{"save" ~ loop.index0}}" name="action" value="updatelabel">Update</button>
 		<button type="button" class="btn cancel" id="{{"cancel" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Cancel</button>
 		<button type="button" class="btn edit" id="{{"edit" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Edit Label</button>
 		<br>
-		<a target="blank" class="address" href="{{specter.explorer}}address/{{address}}">{{address}}</a>
 	</form><br><br>
+	<a target="blank" class="address" href="{{specter.explorer}}address/{{address}}">{{address}}</a>
+	<p class="balance">Balance: 
+		{{wallet.balanceonaddr(address)}} {% if specter.chain !='main' %}t{%endif%}BTC
+	</p>
+	<br><br>
 	<table>
 		<thead>
 		<tr>
@@ -72,18 +83,23 @@
 		<tbody>
 			{% if wallet.txonaddr(address) > 0 %}
 			{% for tx in wallet.transactions %}
-			{% if tx['address'] == address %}
+			{% if tx["address"] == address and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
 			{%if tx["confirmations"] == 0 %}
 			<tr class="unconfirmed">
 			{%else%}
 			<tr>
 			{%endif%}
 				<td>
-					{%if tx["confirmations"] == 0 %}
-					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+					{# coinbase txs are 'immature' until 100 confs #}
+					{% if tx['category'] == 'immature' %}
+						<img src="/static/img/unconfirmed_receive_icon.svg"/>
 					{% else %}
-					<img src="/static/img/{{tx['category']}}_icon.svg"/>
-					{%endif%}
+						{% if tx["confirmations"] == 0 %}
+						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+						{% else %}
+						<img src="/static/img/{{tx['category']}}_icon.svg"/>
+						{% endif %}
+					{% endif %}
 				</td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{addrlabel}}</a></td>
@@ -103,6 +119,7 @@
 		</tbody>
 	</table>
 </div>
+{% endif %}
 {% endfor %}
 {% endif %}
 <script>

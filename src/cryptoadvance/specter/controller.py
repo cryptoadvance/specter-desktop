@@ -359,7 +359,8 @@ def wallet_addresses(wallet_alias):
             label = request.form['label']
             address = request.form['addr']
             wallet.setlabel(address, label)
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    alladdresses = True if request.args.get('all') != 'False' else False
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required

@@ -589,6 +589,10 @@ class Wallet(dict):
         except:
             self.balance = None
         try:
+            self.utxo = {utxo["txid"]: utxo for utxo in self.cli.listunspent(0)}
+        except:
+            self.utxo = None
+        try:
             self.transactions = self.cli.listtransactions("*", 1000, 0, True)[::-1]
         except:
             self.transactions = None
@@ -599,7 +603,8 @@ class Wallet(dict):
         self._check_change()
         return {
             "balance": self.balance,
-            "transactions": self.transactions
+            "transactions": self.transactions,
+            "utxo": self.utxo
         }
 
     @property
@@ -751,6 +756,13 @@ class Wallet(dict):
         txlist = [tx for tx in self.transactions if tx["address"] == addr]
         return len(txlist)
 
+    def balanceonaddr(self, addr):
+        balancelist = [utxo["amount"] for _, utxo in list(self.utxo.items()) if utxo["address"] == addr]
+        return sum(balancelist)
+
+    def istxspent(self, txid):
+        return txid in self.utxo.keys()
+
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
     
@@ -790,6 +802,18 @@ class Wallet(dict):
     def addresses(self):
         return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
 
+    @property
+    def utxoaddresses(self):
+        return list(dict.fromkeys([
+            utxo["address"] for _,utxo in 
+            sorted(
+                list(self.utxo.items()),
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo[0]
+                )["time"]
+            )
+        ]))
+
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
@@ -820,6 +844,8 @@ class Wallet(dict):
             "changeAddress": self["change_address"],
             "subtractFeeFromOutputs": subtract_arr
         }
+
+        self.setlabel(self["change_address"], "Change #{}".format(self._dict["change_index"]))
 
         if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
