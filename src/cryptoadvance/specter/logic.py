@@ -209,8 +209,6 @@ class Specter:
         # update the urls in the app config
         if self.config["explorers"][self.chain] != explorer:
             self.config["explorers"][self.chain] = explorer
-        self._save()
-            
 
     @property
     def info(self):
@@ -534,6 +532,7 @@ class Wallet(dict):
         # address derivation will also refill the keypool if necessary
         if self._dict["address"] is None:
             self._dict["address"] = self.get_address(0)
+            self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
         self.getdata()
@@ -590,7 +589,7 @@ class Wallet(dict):
         except:
             self.balance = None
         try:
-            self.transactions = self.cli.listtransactions("*", 20, 0, True)[::-1]
+            self.transactions = self.cli.listtransactions("*", 1000, 0, True)[::-1]
         except:
             self.transactions = None
         try:
@@ -616,6 +615,7 @@ class Wallet(dict):
     def getnewaddress(self):
         self._dict["address_index"] += 1
         addr = self.get_address(self._dict["address_index"])
+        self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
         self._dict["address"] = addr
         self._commit()
         return addr
@@ -746,6 +746,20 @@ class Wallet(dict):
         self._dict[pool] = end
         self._commit(update_manager=False)
         return end
+    
+    def txonaddr(self, addr):
+        txlist = [tx for tx in self.transactions if tx["address"] == addr]
+        return len(txlist)
+
+    def setlabel(self, addr, label):
+        self.cli.setlabel(addr, label)
+    
+    def getaddressname(self, addr, addr_idx):
+        address_info = self.cli.getaddressinfo(addr)
+        if ("label" not in address_info or address_info["label"] == "") and addr_idx > -1:
+            self.setlabel(addr, "Address #{}".format(addr_idx))
+            address_info["label"] = "Address #{}".format(addr_idx)
+        return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
 
     @property    
     def fullbalance(self):
@@ -766,6 +780,15 @@ class Wallet(dict):
         h256 = hashlib.sha256(self.descriptor.encode()).digest()
         h160 = hashlib.new('ripemd160', h256).digest()
         return h160[:4]
+
+    @property
+    def txoncurrentaddr(self):
+        addr = self["address"]
+        return self.txonaddr(addr)
+
+    @property
+    def addresses(self):
+        return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """

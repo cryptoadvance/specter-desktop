@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block main %}
+<style>
+	.address {
+		text-decoration: none;
+		color: inherit;
+		float: right;
+		margin-left: 10px;
+	}
+	.address:hover {
+		color: #fff;
+		text-decoration: underline;
+	}
+	.label {
+		text-align: left;
+		padding-left: 0;
+		float: left;
+		width: auto;
+	}
+	.update {
+		display: none;
+		float: left;
+		margin-right: 5px;
+		margin-left: 5px;
+	}
+	.cancel {
+		display: none;
+		float: left;
+	}
+	.edit {
+		float: left;
+		margin-top: 8px;
+	}
+</style>
+<h1>{{wallet.name}}</h1>
+<div class="row padded">
+	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
+	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio checked">Addresses</a>
+	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
+	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
+	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
+</div>
+{% if ( wallet.fullbalance ) is not none %}
+<h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
+	{{ "%0.8f" % ( wallet.fullbalance ) | float }}
+	{% if specter.chain !='main' %}t{%endif%}BTC
+	{% if wallet.balance["untrusted_pending"] > 0 %}</span><br><small>
+	( {{ "%0.8f" % wallet.balance["trusted"] | float }} confirmed, {{"%0.8f" % wallet.balance["untrusted_pending"] | float}} pending )
+	{% endif %}
+</small></h1>
+<br>
+<h1>Address History</h1>
+{% for address in wallet.addresses | reverse %}
+{% set addrlabel = wallet.getaddressname(address, wallet.addresses | length - loop.index0 - 1) %}
+<div class="table-holder">
+	<br>
+	<form action="./" method="POST">
+		<input type="text" class="label" autocomplete="off" spellcheck="false" id="{{"label" ~ loop.index0}}" name="label" value="{{addrlabel}}" style="border: none; font-size: 1.5em;" disabled />
+		<input type="hidden" name="addr" value="{{address}}"/>
+		<button type="submit" class="btn update" id="{{"save" ~ loop.index0}}" name="action" value="updatelabel">Update</button>
+		<button type="button" class="btn cancel" id="{{"cancel" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Cancel</button>
+		<button type="button" class="btn edit" id="{{"edit" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Edit Label</button>
+		<br>
+		<a target="blank" class="address" href="{{specter.explorer}}address/{{address}}">{{address}}</a>
+	</form><br><br>
+	<table>
+		<thead>
+		<tr>
+			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
+		</tr>
+		</thead>
+		<tbody>
+			{% if wallet.txonaddr(address) > 0 %}
+			{% for tx in wallet.transactions %}
+			{% if tx['address'] == address %}
+			{%if tx["confirmations"] == 0 %}
+			<tr class="unconfirmed">
+			{%else%}
+			<tr>
+			{%endif%}
+				<td>
+					{%if tx["confirmations"] == 0 %}
+					<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
+					{% else %}
+					<img src="/static/img/{{tx['category']}}_icon.svg"/>
+					{%endif%}
+				</td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{addrlabel}}</a></td>
+				<td>{{tx["amount"]}}</td><td>
+				{%if tx["confirmations"] == 0 %}
+					Pending
+				{% else %}
+					{{tx["confirmations"]}}
+				{% endif %}
+				</td>
+				<td>{{tx["time"] | datetime}}</td></tr>
+			{% endif %}
+			{% endfor %}
+			{% else %}
+			<td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
+			{% endif %}
+		</tbody>
+	</table>
+</div>
+{% endfor %}
+{% endif %}
+<script>
+	function toggleEdit(id, addrlabel) {
+		var edit_button_display = document.getElementById("edit"+id).style.display
+		if (edit_button_display === 'none'){
+			document.getElementById("label" +id).disabled = 'true'
+			document.getElementById("label" +id).style.border = 'none'
+			document.getElementById("label" + id).style.textAlign = 'left';
+			document.getElementById("label" + id).style.fontSize = '1.5em';
+			document.getElementById("label" +id).value = addrlabel
+			document.getElementById("edit" +id).style.display = 'block'
+			document.getElementById("cancel" +id).style.display = 'none'
+			document.getElementById("save" +id).style.display = 'none'
+		} else{
+			document.getElementById("label" + id).disabled = ''
+			document.getElementById("label" + id).style.removeProperty('border');
+			document.getElementById("label" + id).style.textAlign = 'center';
+			document.getElementById("label" + id).style.removeProperty('font-size');
+			document.getElementById("edit" + id).style.display = 'none'
+			document.getElementById("cancel" + id).style.display = 'block'
+			document.getElementById("save" + id).style.display = 'block'
+		}
+	}
+</script>
+{% endblock %}

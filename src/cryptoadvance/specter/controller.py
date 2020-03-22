@@ -345,6 +345,22 @@ def wallet_tx(wallet_alias):
 
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
+@app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
+@login_required
+def wallet_addresses(wallet_alias):
+    app.specter.check()
+    try:
+        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    except:
+        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+    if request.method == "POST":
+        action = request.form['action']
+        if action == "updatelabel":
+            label = request.form['label']
+            address = request.form['addr']
+            wallet.setlabel(address, label)
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
 def wallet_receive(wallet_alias):
@@ -357,6 +373,11 @@ def wallet_receive(wallet_alias):
         action = request.form['action']
         if action == "newaddress":
             wallet.getnewaddress()
+        elif action == "updatelabel":
+            label = request.form['label']
+            wallet.setlabel(wallet['address'], label)
+    if wallet.txoncurrentaddr > 0:
+        wallet.getnewaddress()
     return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
@@ -376,6 +397,7 @@ def wallet_send(wallet_alias):
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
     psbt = None
     address = ""
+    label = ""
     amount = 0
     fee_rate = 0.0
     err = None
@@ -383,6 +405,9 @@ def wallet_send(wallet_alias):
         action = request.form['action']
         if action == "createpsbt":
             address = request.form['address']
+            label = request.form['label']
+            if request.form['label'] != "":
+                wallet.setlabel(address, label)
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
@@ -405,7 +430,7 @@ def wallet_send(wallet_alias):
                                 amount = v["value"]
             except Exception as e:
                 err = "%r" % e
-    return render_template("wallet_send.html", psbt=psbt, address=address, amount=amount, 
+    return render_template("wallet_send.html", psbt=psbt, address=address, label=label, amount=amount, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
@@ -559,12 +584,6 @@ def derivation(wallet):
         k = wallet['key']
         s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
     return s
-
-@app.template_filter('txonaddr')
-def txonaddr(wallet):
-    addr = wallet["address"]
-    txlist = [tx for tx in wallet.transactions if tx["address"] == addr]
-    return len(txlist)
 
 @app.template_filter('prettyjson')
 def txonaddr(obj):

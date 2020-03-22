@@ -29,6 +29,7 @@
 <h1>{{wallet.name}}</h1>
 <div class="row padded">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
+	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio">Addresses</a>
 	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
 	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio checked">Send</a>
 	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
@@ -43,9 +44,12 @@
 				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
 				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
 			</div>
+			<br>
+			Address label (optional):<br>
+			<input type="text" id="label" name="label" value="{{label}}">
 			<br><br>
 			Amount:<br>
-			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8">
+			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8" autocomplete="off">
 			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
 			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
 			<br><br>
@@ -57,7 +61,7 @@
 			<input type="hidden" id="fee_unit" name="fee_unit" value="">
 			<div id = "fee_manual" style="display:none">
 			Fee rate:<br>
-			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25"> sat/B
+			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
 			<div class="note">leave blank to set automatically</div>
 			<br><br>
 			</div>
