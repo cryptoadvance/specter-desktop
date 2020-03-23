@@ -51,27 +51,43 @@
 	( {{ "%0.8f" % wallet.balance["trusted"] | float }} confirmed, {{"%0.8f" % wallet.balance["untrusted_pending"] | float}} pending )
 	{% endif %}
 </small></h1>
-<div class="row padded">
-	<a href="/wallets/{{wallet['alias']}}/addresses?all=True" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
-	<a href="/wallets/{{wallet['alias']}}/addresses?all=False" class="btn radio right {% if alladdresses != True %}checked{% endif %}">UTXO</a>
+
+<div style="padding: 0 30px; width: 100%;">
+	<div class="row padded" style="width: intrinsic; margin: auto;">
+		<a href="./?all=True&view={{viewtype}}" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
+		<a href="./?all=False&view={{viewtype}}" class="btn radio right {% if alladdresses != True %}checked{% endif %}">UTXO</a>
+	</div>
+	<span>View Type: </span><br>
+	<div class="dropdown" style="margin-top: 5px;">
+		<button class="btn radio dropbtn">{{viewtype|title}} View &#9660;</button>
+		<div class="dropdown-content">
+			<a href="./?all={{alladdresses}}&view=address">Address View</a>
+			<a href="./?all={{alladdresses}}&view=label">Labels View</a>
+		</div>
+	</div>
 </div>
-{% for address in (wallet.addresses if alladdresses else wallet.utxoaddresses) | reverse %}
-{% if alladdresses or wallet.balanceonaddr(address) > 0 %}
-{% set addrlabel = wallet.getaddressname(address, (wallet.addresses | length - loop.index0 - 1) if alladdresses else -1) %}
+{% set isaddrview = viewtype == "address" %}
+{% set accounts = (wallet.addresses if isaddrview else wallet.labels) if alladdresses else (wallet.utxoaddresses if isaddrview else wallet.utxolabels)  %}
+{% for account in accounts | reverse %}
+{% if alladdresses or (wallet.balanceonaddr(account) > 0 if isaddrview else wallet.balanceonlabel(account) > 0) %}
+{% set accountlabel = wallet.getaddressname(account, (wallet.addresses | length - loop.index0 - 1) if alladdresses else -1) if isaddrview else account %}
 <div class="table-holder">
 	<br>
-	<form action="./?all={{alladdresses}}" method="POST">
+	<form action="./?all={{alladdresses}}&view={{viewtype}}" method="POST">
 		<br>
-		<input type="text" class="label" autocomplete="off" spellcheck="false" id="{{"label" ~ loop.index0}}" name="label" value="{{addrlabel}}" style="border: none; font-size: 1.5em;" disabled />
-		<input type="hidden" name="addr" value="{{address}}"/>
+		<input type="text" class="label" autocomplete="off" spellcheck="false" id="{{"label" ~ loop.index0}}" name="label" value="{{accountlabel}}" style="border: none; font-size: 1.5em;" disabled />
+		<input type="hidden" name="account" value="{{account}}"/>
 		<button type="submit" class="btn update" id="{{"save" ~ loop.index0}}" name="action" value="updatelabel">Update</button>
-		<button type="button" class="btn cancel" id="{{"cancel" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Cancel</button>
-		<button type="button" class="btn edit" id="{{"edit" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ addrlabel }}')">Edit Label</button>
+		<button type="button" class="btn cancel" id="{{"cancel" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ accountlabel }}')">Cancel</button>
+		<button type="button" class="btn edit" id="{{"edit" ~ loop.index0}}" onclick="toggleEdit('{{ loop.index0 }}', '{{ accountlabel }}')">Edit Label</button>
 		<br>
 	</form><br><br>
-	<a target="blank" class="address" href="{{specter.explorer}}address/{{address}}">{{address}}</a>
+	{% if isaddrview %}
+	<a target="blank" class="address" href="{{specter.explorer}}address/{{account}}">{{account}}</a>
+	{% endif %}
 	<p class="balance">Balance: 
-		{{wallet.balanceonaddr(address)}} {% if specter.chain !='main' %}t{%endif%}BTC
+		{{"%0.8f" % (wallet.balanceonaddr(account) if isaddrview else wallet.balanceonlabel(account)) | float}} 
+		{% if specter.chain !='main' %}t{%endif%}BTC
 	</p>
 	<br><br>
 	<table>
@@ -81,14 +97,14 @@
 		</tr>
 		</thead>
 		<tbody>
-			{% if wallet.txonaddr(address) > 0 %}
+			{% if (wallet.txonaddr(account) if isaddrview else wallet.txonlabel(account) > 0) %}
 			{% for tx in wallet.transactions %}
-			{% if tx["address"] == address and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
-			{%if tx["confirmations"] == 0 %}
-			<tr class="unconfirmed">
-			{%else%}
-			<tr>
-			{%endif%}
+			{% if (tx["address"] == account or (tx["label"] == account and not isaddrview)) and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
+				{% if tx["confirmations"] == 0 %}
+					<tr class="unconfirmed">
+				{%else%}
+					<tr>
+				{%endif%}
 				<td>
 					{# coinbase txs are 'immature' until 100 confs #}
 					{% if tx['category'] == 'immature' %}
@@ -102,7 +118,7 @@
 					{% endif %}
 				</td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{addrlabel}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{accountlabel}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending
@@ -123,14 +139,14 @@
 {% endfor %}
 {% endif %}
 <script>
-	function toggleEdit(id, addrlabel) {
+	function toggleEdit(id, accountlabel) {
 		var edit_button_display = document.getElementById("edit"+id).style.display
 		if (edit_button_display === 'none'){
 			document.getElementById("label" +id).disabled = 'true'
 			document.getElementById("label" +id).style.border = 'none'
 			document.getElementById("label" + id).style.textAlign = 'left';
 			document.getElementById("label" + id).style.fontSize = '1.5em';
-			document.getElementById("label" +id).value = addrlabel
+			document.getElementById("label" +id).value = accountlabel
 			document.getElementById("edit" +id).style.display = 'block'
 			document.getElementById("cancel" +id).style.display = 'none'
 			document.getElementById("save" +id).style.display = 'none'

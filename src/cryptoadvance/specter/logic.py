@@ -760,11 +760,28 @@ class Wallet(dict):
         balancelist = [utxo["amount"] for _, utxo in list(self.utxo.items()) if utxo["address"] == addr]
         return sum(balancelist)
 
+    def txonlabel(self, label):
+        txlist = [tx for tx in self.transactions if (tx["label"] == label if "label" in tx else tx["address"] == label)]
+        return len(txlist)
+
+    def balanceonlabel(self, label):
+        balancelist = [utxo["amount"] for _, utxo in list(self.utxo.items()) if utxo["label"] == label or utxo["address"] == label]
+        return sum(balancelist)
+
+    def addressesonlabel(self, label):
+        return list(dict.fromkeys(
+            [tx["address"] for tx in self.transactions if (tx["label"] == label if "label" in tx else tx["address"] == label)]
+        ))
+
     def istxspent(self, txid):
         return txid in self.utxo.keys()
 
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
+
+    def getlabel(self, addr):
+        address_info = self.cli.getaddressinfo(addr)
+        return address_info["label"] if "label" in address_info and address_info["label"] != "" else addr
     
     def getaddressname(self, addr, addr_idx):
         address_info = self.cli.getaddressinfo(addr)
@@ -803,9 +820,25 @@ class Wallet(dict):
         return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
 
     @property
+    def labels(self):
+        return list(dict.fromkeys([self.getlabel(addr) for addr in self.addresses]))
+
+    @property
     def utxoaddresses(self):
         return list(dict.fromkeys([
             utxo["address"] for _,utxo in 
+            sorted(
+                list(self.utxo.items()),
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo[0]
+                )["time"]
+            )
+        ]))
+
+    @property
+    def utxolabels(self):
+        return list(dict.fromkeys([
+            utxo["label"] if "label" in utxo and utxo["label"] != "" else utxo["address"] for _,utxo in 
             sorted(
                 list(self.utxo.items()),
                 key = lambda utxo: next(

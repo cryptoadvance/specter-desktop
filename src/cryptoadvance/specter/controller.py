@@ -353,14 +353,20 @@ def wallet_addresses(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+    viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
         if action == "updatelabel":
             label = request.form['label']
-            address = request.form['addr']
-            wallet.setlabel(address, label)
+            account = request.form['account']
+            if viewtype == 'address':
+                wallet.setlabel(account, label)
+            else:
+                for address in wallet.addressesonlabel(account):
+                    wallet.setlabel(address, label)
+                wallet.getdata()
     alladdresses = True if request.args.get('all') != 'False' else False
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, specter=app.specter, rand=rand)
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
