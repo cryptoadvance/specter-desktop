@@ -589,7 +589,7 @@ class Wallet(dict):
         except:
             self.balance = None
         try:
-            self.utxo = {utxo["txid"]: utxo for utxo in self.cli.listunspent(0)}
+            self.utxo = self.cli.listunspent(0)
         except:
             self.utxo = None
         try:
@@ -757,7 +757,7 @@ class Wallet(dict):
         return len(txlist)
 
     def balanceonaddr(self, addr):
-        balancelist = [utxo["amount"] for _, utxo in list(self.utxo.items()) if utxo["address"] == addr]
+        balancelist = [utxo["amount"] for utxo in self.utxo if utxo["address"] == addr]
         return sum(balancelist)
 
     def txonlabel(self, label):
@@ -765,7 +765,7 @@ class Wallet(dict):
         return len(txlist)
 
     def balanceonlabel(self, label):
-        balancelist = [utxo["amount"] for _, utxo in list(self.utxo.items()) if utxo["label"] == label or utxo["address"] == label]
+        balancelist = [utxo["amount"] for utxo in self.utxo if utxo["label"] == label or utxo["address"] == label]
         return sum(balancelist)
 
     def addressesonlabel(self, label):
@@ -774,7 +774,7 @@ class Wallet(dict):
         ))
 
     def istxspent(self, txid):
-        return txid in self.utxo.keys()
+        return txid in [utxo["txid"] for utxo in self.utxo]
 
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
@@ -826,11 +826,11 @@ class Wallet(dict):
     @property
     def utxoaddresses(self):
         return list(dict.fromkeys([
-            utxo["address"] for _,utxo in 
+            utxo["address"] for utxo in 
             sorted(
-                list(self.utxo.items()),
+                self.utxo,
                 key = lambda utxo: next(
-                    tx for tx in self.transactions if tx["txid"] == utxo[0]
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
                 )["time"]
             )
         ]))
@@ -838,11 +838,11 @@ class Wallet(dict):
     @property
     def utxolabels(self):
         return list(dict.fromkeys([
-            utxo["label"] if "label" in utxo and utxo["label"] != "" else utxo["address"] for _,utxo in 
+            utxo["label"] if "label" in utxo and utxo["label"] != "" else utxo["address"] for utxo in 
             sorted(
-                list(self.utxo.items()),
+                self.utxo,
                 key = lambda utxo: next(
-                    tx for tx in self.transactions if tx["txid"] == utxo[0]
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
                 )["time"]
             )
         ]))
