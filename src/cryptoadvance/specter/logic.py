@@ -765,7 +765,7 @@ class Wallet(dict):
         return len(txlist)
 
     def balanceonlabel(self, label):
-        balancelist = [utxo["amount"] for utxo in self.utxo if utxo["label"] == label or utxo["address"] == label]
+        balancelist = [utxo["amount"] for utxo in self.utxo if ("label" in utxo and utxo["label"] == label) or utxo["address"] == label]
         return sum(balancelist)
 
     def addressesonlabel(self, label):
