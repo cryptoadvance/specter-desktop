@@ -816,14 +816,6 @@ class Wallet(dict):
         return self.txonaddr(addr)
 
     @property
-    def addresses(self):
-        return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
-
-    @property
-    def labels(self):
-        return list(dict.fromkeys([self.getlabel(addr) for addr in self.addresses]))
-
-    @property
     def utxoaddresses(self):
         return list(dict.fromkeys([
             utxo["address"] for utxo in 
@@ -846,6 +838,15 @@ class Wallet(dict):
                 )["time"]
             )
         ]))
+
+    @property
+    def addresses(self):
+        addresses = [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+        return list(dict.fromkeys(addresses + self.utxoaddresses))
+
+    @property
+    def labels(self):
+        return list(dict.fromkeys([self.getlabel(addr) for addr in self.addresses]))
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
