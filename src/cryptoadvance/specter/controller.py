@@ -411,7 +411,8 @@ def wallet_send(wallet_alias):
             amount = float(request.form['amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
-
+            selected_coins = request.form.getlist('coinselect')
+            print("selected coins: {}".format(selected_coins))
             if 'dynamic' in request.form.get('fee_options'):
                 fee_rate = float(request.form.get('fee_rate_dynamic'))
             else:
@@ -419,7 +420,7 @@ def wallet_send(wallet_alias):
                     fee_rate = float(request.form.get('fee_rate'))
 
             try:
-                psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit)
+                psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, selected_coins=selected_coins)
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
                 else:
