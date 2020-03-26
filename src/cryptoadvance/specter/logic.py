@@ -641,7 +641,8 @@ class Wallet(dict):
                 # Data is immutable (unless reorg occurs and except of confirmations) and can be saved in a file for permanent caching
                 if txid not in cache[self["name"]]["raw_transactions"]:
                     # Call Bitcoin Core to get the "raw" transaction - allows to read detailed inputs and outputs
-                    raw_tx = self.cli.getrawtransaction(txid, 1)
+                    raw_tx_hex = self.cli.gettransaction(txid)["hex"]
+                    raw_tx = self.cli.decoderawtransaction(raw_tx_hex)
                     # Some data (like fee and category, and when unconfirmed also time) available from the `listtransactions`
                     # command is not available in the `getrawtransacion` - so add it "manually" here.
                     if "fee" in cache[self["name"]]["cli_txs"][txid]:
@@ -663,9 +664,13 @@ class Wallet(dict):
                         # If the tx is a coinbase tx - set `coinbase` to True
                         vin_txid = vin["txid"]
                         vin_vout = vin["vout"]
-                        tx_in = self.cli.getrawtransaction(vin_txid, 1)["vout"][vin_vout]
-                        tx_in["txid"] = vin["txid"]
-                        tx_ins.append(tx_in)
+                        try:
+                            raw_tx_hex = self.cli.gettransaction(vin_txid)["hex"]
+                            tx_in = self.cli.decoderawtransaction(raw_tx_hex)["vout"][vin_vout]
+                            tx_in["txid"] = vin["txid"]
+                            tx_ins.append(tx_in)
+                        except:
+                            pass
                     # For each output in the tx_ins list (the tx inputs in their output "format")
                     # Create object with the address, amount, and whatever the address belongs to the wallet (`internal=True` if it is).
                     raw_tx["from"] = [{"address": out["scriptPubKey"]["addresses"][0], "amount": out["value"], "internal": out["scriptPubKey"]["addresses"][0] in cache[self["name"]]["addresses"]} for out in tx_ins]
@@ -729,6 +734,9 @@ class Wallet(dict):
                 is_self = True
 
                 # Check if the transaction is a `send` or not (if all inputs belong to the wallet)
+                if len(tx["from"]) == 0:
+                    is_send = False
+
                 for fromdata in tx["from"]:
                     if not fromdata["internal"]:
                         is_send = False
