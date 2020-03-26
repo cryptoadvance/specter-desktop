@@ -117,8 +117,9 @@
 						{% endif %}
 					{% endif %}
 				</td>
+				{% set display_address = (tx["destination"]["address"] if ("destination" in tx and tx["destination"] != None) else tx["address"])%}
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{accountlabel}}</a></td>
+				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
 				{%if tx["confirmations"] == 0 %}
 					Pending
