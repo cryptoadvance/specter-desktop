@@ -530,6 +530,7 @@ class Wallet(dict):
         self.cli_path = manager.cli_path
         self.cli = manager.cli.wallet(self.cli_path+self["alias"])
         self._dict = d
+        self.setup_cache()
         # check if address is known and derive if not
         # address derivation will also refill the keypool if necessary
         if self._dict["address"] is None:
@@ -602,7 +603,7 @@ class Wallet(dict):
             if "tx_changed" not in cache[self["name"]]:
                 cache[self["name"]]["tx_changed"] = True
             if "labels" not in cache[self["name"]]:
-                cache[self["name"]]["labels"] = []
+                cache[self["name"]]["labels"] = {}
             if "last_block" not in cache[self["name"]]:
                 cache[self["name"]]["last_block"] = None
         else:
@@ -613,7 +614,7 @@ class Wallet(dict):
                 "addresses": [],
                 "tx_count": None,
                 "tx_changed": True,
-                "labels": [],
+                "labels": {},
                 "last_block": None
             }
 
@@ -1012,6 +1013,8 @@ class Wallet(dict):
 
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
+        if self["name"] not in cache:
+            return
         old_label = cache[self["name"]]["labels"][addr] if addr in cache[self["name"]]["labels"] else addr
         cache[self["name"]]["labels"][addr] = label
         for i, tx in enumerate(self.transactions):
