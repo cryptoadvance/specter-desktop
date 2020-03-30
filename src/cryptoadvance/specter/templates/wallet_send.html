@@ -12,7 +12,7 @@
 		margin-bottom: 2em;
 	}
 	.fee_container {
-		height: 11em;
+		margin-bottom: 20px;
 	}
 	.fee_rate {
 		width: 6em;
@@ -24,7 +24,18 @@
 	.hwi-column-btn {
 		margin: 0.75em;
 	}
-
+	td.tx {
+		width: 100%;
+		max-width: 179px;
+		min-width: 120px;
+	}
+	.checkbox {
+		width: 20px;
+  		height: 20px;
+	}
+	#coinselect {
+		margin-bottom: 10px;
+	}
 </style>
 <h1>{{wallet.name}}</h1>
 <div class="row padded">
@@ -49,11 +60,11 @@
 			<input type="text" id="label" name="label" value="{{label}}">
 			<br><br>
 			Amount:<br>
-			<input type="number" name="amount" v-model="amount" value="[[amount]]" id="amount" v-bind:max="Math.min(wallet_fullbalance,selected_coins_sum)" min=0 step="1e-8" autocomplete="off">
+			<input type="number" name="amount" v-model="amount" value="[[amount]]" id="amount" v-bind:max="max_amount_sendable" min=0 step="1e-8" autocomplete="off">
 			<div class="notification error" v-if="above_wallet_amount || needs_more_selected_coins">
 				<ul>
 					<li v-if="needs_more_selected_coins"> You need to select more coins to match your amount!</li>
-					<li v-if="above_wallet_amount"> You cannot send more then [[wallet_fullbalance]] !</li>
+					<li v-if="above_wallet_amount"> You cannot send more than [[wallet_fullbalance]] !</li>
 				</ul>
 			</div>
 			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
@@ -61,25 +72,29 @@
 			<br><br>
 
 			<div class="fee_container">
-			<div>Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)">dynamic</label>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label></div>
-			<br><br>
-			<input type="hidden" id="fee_unit" name="fee_unit" value="">
-			<div id = "fee_manual" style="display:none">
-			Fee rate:<br>
-			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
-			<div class="note">leave blank to set automatically</div>
-			<br><br>
+				<div>
+					Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
+				</div>
+				<br><br>
+				<input type="hidden" id="fee_unit" name="fee_unit" value="">
+				<div id = "fee_manual" style="display:none">
+					Fee rate:<br>
+					<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
+					<div class="note">leave blank to set automatically</div>
+					<br><br>
+				</div>
+				<div id ="fee_dynamic" style="display:block">
+					<div id="blocks"></div>
+					<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
+					<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+					<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
+					<br><br>
+				</div>
 			</div>
-			<div id ="fee_dynamic" style="display:block">
-			<div id="blocks"></div>
-			<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
-			<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
-			<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
-			<br><br>
 			<div>
-				<button v-on:click="toggleExpand" type="button">Coinselection</button>
-				<table style="table-layout:fixed" v-bind:style="{ display: coinselectionActive }">
+				<button id="coinselect" v-on:click="toggleExpand" type="button" class="btn" v-if="unspents.length>0">Select coins</button>
+				<table style="table-layout:fixed; display: block;" v-if="coinselectionActive">
 					<thead>
 					<tr>
 						<th></th><th>TxID</th><th>Address</th><th>Amount</th>
@@ -88,16 +103,20 @@
 					<tbody>
 						<tr v-for="tx in unspents" v-bind:key="tx.txid">
 							<td>
-								<input type="checkbox" v-model="tx.selected" name="coinselect" v-bind:value="tx.txid">
+								<input class="checkbox" type="checkbox" v-model="tx.selected" name="coinselect" v-bind:value="tx.txid">
 							</td>
-							<td class="tx scroll"><a target="blank">[[ tx.txid ]]</a></td>
-							<td class="tx scroll"><a target="blank">[[ tx.address ]]}</a></td>
+							<td class="tx scroll"><a :href="block_explorer+'tx/'+tx.txid" target="blank">[[ tx.txid ]]</a></td>
+							<td class="tx scroll">
+								<a :href="block_explorer+'address/'+tx.address" target="blank">
+									[[ tx.label != '' ? tx.label : tx.address ]]
+								</a>
+							</td>
 							<td>[[ tx.amount ]]</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
+			<button type="submit" name="action" value="createpsbt" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
 		</div>
 	{% else %}
 		<div class="tx_info">
@@ -423,12 +442,13 @@ document.getElementById("slider_confTime").value = 6
 		delimiters: ["[[", "]]"],
 		data: {
 			unspents: {{ wallet.cli.listunspent()|tojson }},
-			coinselectionActive: "none",
+			coinselectionActive: false,
 			amount: {{amount}},
-			wallet_fullbalance: {{wallet.fullbalance}}
+			wallet_fullbalance: {{wallet.fullbalance}},
+			block_explorer: "{{specter.explorer}}"
 		},
 		computed: {
-			selected_coins_sum: function () {
+			selected_coins_sum: function() {
 				amount_sum = 0
 				for(var i=0;i<this.unspents.length;i++){
 					if (this.unspents[i].selected) {
@@ -438,7 +458,7 @@ document.getElementById("slider_confTime").value = 6
 				return amount_sum
 			},
 			max_amount_sendable: function() {
-				if (this.coinselectionActive =="none") {
+				if (!this.coinselectionActive) {
 					return this.wallet_fullbalance
 				} else {
 					return Math.min(this.selected_coins_sum, this.wallet_fullbalance)
@@ -446,7 +466,7 @@ document.getElementById("slider_confTime").value = 6
 				
 			},
 			needs_more_selected_coins: function() {
-				return this.amount > this.selected_coins_sum && this.coinselectionActive != 'none'
+				return this.amount > this.selected_coins_sum && this.coinselectionActive
 			},
 			above_wallet_amount: function() {
 				return this.amount > this.wallet_fullbalance
@@ -454,19 +474,15 @@ document.getElementById("slider_confTime").value = 6
 		},
 		methods: {
 			toggleExpand: function() {
-				if (this.coinselectionActive =="none") {
-					this.coinselectionActive ="block"
-				} else {
-					this.coinselectionActive ="none"
-					// unselect all choices
+				this.coinselectionActive = !this.coinselectionActive
+				// unselect all choices
+				if (!this.coinselectionActive) {
 					for(var i=0;i<this.unspents.length;i++){
 						this.unspents[i].selected = false
 					}
-					this.selected_coins_sum()
 				}
 			}
 		}
-	
 	})
 	</script>
 
