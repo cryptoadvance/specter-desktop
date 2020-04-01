@@ -69,7 +69,15 @@ def init_app(app, specter=None):
         from . import controller
     return app
 
-
+def create_and_init():
+    ''' This method can be used to fill the FLASK_APP-env variable like
+        export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
+        See Development.md to use this for debugging
+    '''
+    app = create_app()
+    app.app_context().push()
+    init_app(app)
+    return app
 
 
 DATA_FOLDER = "~/.specter"

@@ -52,7 +52,7 @@
 		<div class="card"  id="spend_coins">
 			Recipient address:<br>
 			<div class="row">
-				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
+				<input type="text" id="address" name="address" v-model="address" value="[[address]]"> &nbsp;
 				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
 			</div>
 			<br>
@@ -116,7 +116,7 @@
 					</tbody>
 				</table>
 			</div>
-			<button type="submit" name="action" value="createpsbt" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+			<button type="submit" v-bind:disabled="above_wallet_amount || needs_more_selected_coins || amount != ''" name="action" value="createpsbt" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
 		</div>
 	{% else %}
 		<div class="tx_info">
@@ -443,6 +443,7 @@ document.getElementById("slider_confTime").value = 6
 		data: {
 			unspents: {{ wallet.cli.listunspent()|tojson }},
 			coinselectionActive: false,
+			address: "",
 			amount: {{amount}},
 			wallet_fullbalance: {{wallet.fullbalance}},
 			block_explorer: "{{specter.explorer}}"

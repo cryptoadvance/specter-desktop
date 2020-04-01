@@ -99,7 +99,7 @@ You can easily create a .vscode/launch.json file via the debug-window. However t
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "server.py",
+                "FLASK_APP": "cryptoadvance.specter.server:create_and_init()",
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "0",
                 "PATH": "./.env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
