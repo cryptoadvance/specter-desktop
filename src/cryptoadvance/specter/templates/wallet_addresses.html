@@ -99,8 +99,8 @@
 		<tbody>
 			{% if (wallet.txonaddr(account) if isaddrview else wallet.txonlabel(account) > 0) %}
 			{% for tx in wallet.transactions %}
-			{% if (tx["address"] == account or (tx["label"] == account and not isaddrview)) and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
-				{% if tx["confirmations"] == 0 %}
+			{% if (tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not isaddrview)) and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
+				{% if tx["block_height"] == -1 %}
 					<tr class="unconfirmed">
 				{%else%}
 					<tr>
@@ -110,7 +110,7 @@
 					{% if tx['category'] == 'immature' %}
 						<img src="/static/img/unconfirmed_receive_icon.svg"/>
 					{% else %}
-						{% if tx["confirmations"] == 0 %}
+						{% if tx["block_height"] == -1 %}
 						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
 						{% else %}
 						<img src="/static/img/{{tx['category']}}_icon.svg"/>
@@ -121,10 +121,10 @@
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
 				<td>{{tx["amount"]}}</td><td>
-				{%if tx["confirmations"] == 0 %}
+				{%if tx["block_height"] == -1 %}
 					Pending
 				{% else %}
-					{{tx["confirmations"]}}
+					{{specter.info.blocks - tx["block_height"] + 1}}
 				{% endif %}
 				</td>
 				<td>{{tx["time"] | datetime}}</td></tr>

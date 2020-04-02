@@ -9,10 +9,10 @@ from collections import OrderedDict
 from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, load_jsons
-from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
+from .rpc import RPC_PORTS, autodetect_cli
+from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
 
-cache = {}
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
@@ -56,7 +56,7 @@ def get_cli(conf):
         else:
             return None
     else:
-        cli = BitcoinCLI(conf["user"], conf["password"], 
+        cli = BitcoinCLICached(conf["user"], conf["password"], 
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 
@@ -530,7 +530,6 @@ class Wallet(dict):
         self.cli_path = manager.cli_path
         self.cli = manager.cli.wallet(self.cli_path+self["alias"])
         self._dict = d
-        self.setup_cache()
         # check if address is known and derive if not
         # address derivation will also refill the keypool if necessary
         if self._dict["address"] is None:
@@ -538,6 +537,7 @@ class Wallet(dict):
             self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
+        self.cache_addresses()
         self.getdata()
 
     def _commit(self, update_manager=True):
@@ -586,237 +586,18 @@ class Wallet(dict):
         self._dict["change_address"] = self.get_address(self._dict["change_index"], change=True)
         self._commit()
 
-    def setup_cache(self):
-        """Setup cache if don't exist yet for the wallet
-        """
-        if self["name"] in cache:
-            if "cli_txs" not in cache[self["name"]]:
-                cache[self["name"]]["cli_txs"] = {}
-            if "raw_transactions" not in cache[self["name"]]:
-                cache[self["name"]]["raw_transactions"] = {}
-            if "transactions" not in cache[self["name"]]:
-                cache[self["name"]]["transactions"] = []
-            if "addresses" not in cache[self["name"]]:
-                cache[self["name"]]["addresses"] = []
-            if "tx_count" not in cache[self["name"]]:
-                cache[self["name"]]["tx_count"] = None
-            if "tx_changed" not in cache[self["name"]]:
-                cache[self["name"]]["tx_changed"] = True
-            if "labels" not in cache[self["name"]]:
-                cache[self["name"]]["labels"] = {}
-            if "last_block" not in cache[self["name"]]:
-                cache[self["name"]]["last_block"] = None
-        else:
-            cache[self["name"]] = {
-                "cli_txs": {},
-                "raw_transactions": {},
-                "transactions": [],
-                "addresses": [],
-                "tx_count": None,
-                "tx_changed": True,
-                "labels": {},
-                "last_block": None
-            }
-
-    def cache_cli_txs(self):
-        """Cache Bitcoin Core `listtransactions` result
-        """
-        cache[self["name"]]["cli_txs"] = {tx["txid"]: tx for tx in self.cli_transactions}
-
-    def cache_addresses(self):
-        """Cache wallet addresses
-        """
-        cache[self["name"]]["active_addresses"] = list(dict.fromkeys(self.addresses))
-        cache[self["name"]]["addresses"] = list(dict.fromkeys(self.addresses + self.change_addresses))
-
-    def cache_raw_txs(self):
-        """Cache `raw_transactions` (with full data on all the inputs and outputs of each tx)
-        """
-        # Get list of all tx ids
-        txids = list(dict.fromkeys(cache[self["name"]]["cli_txs"].keys()))
-        tx_count = len(txids)
-        # If there are new transactions (if the transations count changed)
-        if tx_count != cache[self["name"]]["tx_count"]:
-            for txid in txids:
-                # Cache each tx, if not already cached.
-                # Data is immutable (unless reorg occurs and except of confirmations) and can be saved in a file for permanent caching
-                if txid not in cache[self["name"]]["raw_transactions"]:
-                    # Call Bitcoin Core to get the "raw" transaction - allows to read detailed inputs and outputs
-                    raw_tx_hex = self.cli.gettransaction(txid)["hex"]
-                    raw_tx = self.cli.decoderawtransaction(raw_tx_hex)
-                    # Some data (like fee and category, and when unconfirmed also time) available from the `listtransactions`
-                    # command is not available in the `getrawtransacion` - so add it "manually" here.
-                    if "fee" in cache[self["name"]]["cli_txs"][txid]:
-                        raw_tx["fee"] = cache[self["name"]]["cli_txs"][txid]["fee"]
-                    if "category" in cache[self["name"]]["cli_txs"][txid]:
-                        raw_tx["category"] = cache[self["name"]]["cli_txs"][txid]["category"]
-                    if "time" in cache[self["name"]]["cli_txs"][txid]:
-                        raw_tx["time"] = cache[self["name"]]["cli_txs"][txid]["time"]
-
-                    # Loop on the transaction's inputs
-                    # If not a coinbase transaction:
-                    # Get the the output data corresponding to the input (that is: input_txid[output_index])
-                    tx_ins = []
-                    for vin in raw_tx["vin"]:
-                        # If the tx is a coinbase tx - set `coinbase` to True
-                        if "coinbase" in vin:
-                            raw_tx["coinbase"] = True
-                            break
-                        # If the tx is a coinbase tx - set `coinbase` to True
-                        vin_txid = vin["txid"]
-                        vin_vout = vin["vout"]
-                        try:
-                            raw_tx_hex = self.cli.gettransaction(vin_txid)["hex"]
-                            tx_in = self.cli.decoderawtransaction(raw_tx_hex)["vout"][vin_vout]
-                            tx_in["txid"] = vin["txid"]
-                            tx_ins.append(tx_in)
-                        except:
-                            pass
-                    # For each output in the tx_ins list (the tx inputs in their output "format")
-                    # Create object with the address, amount, and whatever the address belongs to the wallet (`internal=True` if it is).
-                    raw_tx["from"] = [{"address": out["scriptPubKey"]["addresses"][0], "amount": out["value"], "internal": out["scriptPubKey"]["addresses"][0] in cache[self["name"]]["addresses"]} for out in tx_ins]
-                    # For each output in the tx (`vout`)
-                    # Create object with the address, amount, and whatever the address belongs to the wallet (`internal=True` if it is).
-                    raw_tx["to"] = [({"address": out["scriptPubKey"]["addresses"][0], "amount": out["value"], "internal": out["scriptPubKey"]["addresses"][0] in cache[self["name"]]["addresses"]}) for out in raw_tx["vout"] if "addresses" in out["scriptPubKey"]]
-                    # Save the raw_transaction to the cache
-                    cache[self["name"]]["raw_transactions"][txid] = raw_tx
-            # Set the tx count to avoid unnecessary indexing
-            cache[self["name"]]["tx_count"] = tx_count
-            # Set the tx changed to indicate the there are new transactions to cache
-            cache[self["name"]]["tx_changed"] = True
-        else:
-            # Set the tx changed to False to avoid unnecessary indexing
-            cache[self["name"]]["tx_changed"] = False
-
-    def cache_labels(self):
-        """Cache labels for addresses (if not cached already)
-        """
-        # This list is updated from the `self.setlabel` method
-        if len(cache[self["name"]]["labels"]) == 0:
-            cache[self["name"]]["labels"] = {address: self.getlabel(address) for address in cache[self["name"]]["addresses"]}
-    
-    def cache_confirmations(self):
-        """Update the confirmations count for txs.
-        """
-        # Get the block count from Bitcoin Core
-        blocks = self.cli.getblockcount()
-        # If there are new blocks since the last cache update
-        if blocks != cache[self["name"]]["last_block"] or cache[self["name"]]["tx_changed"]:
-            # Loop through the cached `transactions` and update its confirmations according to the cached `cli_txs` data 
-            for i in range(0, len(cache[self["name"]]["transactions"])):
-                confs = cache[self["name"]]["cli_txs"][cache[self["name"]]["transactions"][i]["txid"]]["confirmations"]
-                cache[self["name"]]["transactions"][i]["confirmations"] = confs
-
-            # Update last block confirmations were cached for
-            cache[self["name"]]["last_block"] = blocks
-
-    def cache_txs(self):
-        """Caches the transactions list.
-            Cache the inputs and outputs which belong to the user's wallet for each `raw_transaction` 
-            This method relies on a few assumptions regarding the txs format to cache data properly:
-                - In `send` transactions, all inputs belong to the wallet.
-                - In `send` transactions, there is only one output not belonging to the wallet (i.e. only one recipient).
-                - In `coinbase` transactions, there is only one input.
-                - Change addresses are derived from the path used by Specter
-        """
-        # Get the cached `raw_transactions` dict (txid -> tx) as a list of txs
-        transactions = list(sorted(cache[self["name"]]["raw_transactions"].values(), key = lambda tx: tx['time'], reverse=True))
-        result = []
-
-        # If the `raw_transactions` did not change - exit here.
-        if not cache[self["name"]]["tx_changed"]:
-            return
-
-        # Loop through the raw_transactions list
-        for i, tx in enumerate(transactions):
-            # If tx is a user generated one (categories: `send`/ `receive`) and not coinbase (categories: `generated`/ `immature`)
-            if tx["category"] == "send" or tx["category"] == "receive":
-                is_send = True
-                is_self = True
-
-                # Check if the transaction is a `send` or not (if all inputs belong to the wallet)
-                if len(tx["from"]) == 0:
-                    is_send = False
-
-                for fromdata in tx["from"]:
-                    if not fromdata["internal"]:
-                        is_send = False
-
-                # Check if the transaction is a `self-transfer` (if all inputs and all outputs belong to the wallet)
-                for to in tx["to"]:
-                    if not is_send or not to["internal"]:
-                        is_self = False
-                        break
-
-                tx["is_self"] = is_self
-
-                if not is_send or is_self:
-                    for to in tx["to"]:
-                        if to["internal"]:
-                            # Cache received outputs
-                            result.append(self.prepare_tx(tx, to, "receive", destination=None, is_change=(to["address"] in self.change_addresses)))
-
-                if is_send or is_self:
-                    destination = None
-                    for to in tx["to"]:
-                        if to["address"] in self.change_addresses:
-                            # Cache change output
-                            result.append(self.prepare_tx(tx, to, "receive", destination=destination, is_change=True))
-                        elif not to["internal"] or (is_self and to["address"] not in self.change_addresses):
-                            destination = to
-                    for fromdata in tx["from"]:
-                        # Cache sent inputs
-                        result.append(self.prepare_tx(tx, fromdata, "send", destination=destination))
-            else:
-                tx["is_self"] = False
-                # Cache coinbase output
-                result.append(self.prepare_tx(tx, tx["to"][0], tx["category"]))
-
-        # Save the result to the cache
-        cache[self["name"]]["transactions"] = result
-    
-    def prepare_tx(self, tx, output, category, destination=None, is_change=False):
-        tx_clone = tx.copy()
-        tx_clone["destination"] = destination
-        tx_clone["address"] = output["address"]
-        tx_clone["label"] = self.getlabel(tx_clone["address"])
-        tx_clone["amount"] = output["amount"]
-        tx_clone["category"] = category
-        tx_clone["is_change"] = is_change
-        return tx_clone
-
-    def update_cache(self):
-        self.setup_cache()
-        self.cache_cli_txs()
-        self.cache_addresses()
-        self.cache_labels()
-        self.cache_raw_txs()
-        self.cache_txs()
-        self.cache_confirmations()
-
-    def rebuild_cache(self):
-        del cache[self["name"]]
-        self.update_cache()
-
-    @property
-    def transactions(self):
-        if self["name"] not in cache or "transactions" not in cache[self["name"]] or len(cache[self["name"]]["transactions"]) == 0:
-            return self.cli_transactions
-        return cache[self["name"]]["transactions"]
-    
-    @property
-    def cli_transactions(self):
-        return self.cli.listtransactions("*", 1000, 0, True)[::-1]
-
     @property
     def txlist(self):
         txidlist = []
         txlist = []
-        for tx in cache[self["name"]]["transactions"]:
+        for tx in self.transactions:
             if tx["is_change"] == False and (tx["is_self"] or tx["txid"] not in txidlist):
                 txidlist.append(tx["txid"])
                 txlist.append(tx)
         return txlist
+
+    def cache_addresses(self):
+        self.cli.cache.cache_addresses(self.full_addresses, self.change_addresses)
 
     def getdata(self):
         try:
@@ -828,12 +609,13 @@ class Wallet(dict):
         except:
             self.utxo = None
         try:
+            self.transactions = self.cli.listtransactions("*", 1000, 0, True)
+        except:
+            self.transactions = None
+        try:
             self.info = self.cli.getwalletinfo()
         except:
             self.info = None
-
-        if self["name"] not in cache:
-            self.update_cache()
 
         self._check_change()
         return {
@@ -858,6 +640,7 @@ class Wallet(dict):
         self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
         self._dict["address"] = addr
         self._commit()
+        self.cache_addresses()
         return addr
 
     def get_address(self, index, change=False):
@@ -996,16 +779,16 @@ class Wallet(dict):
         return sum(balancelist)
 
     def txonlabel(self, label):
-        txlist = [tx for tx in self.transactions if (tx["label"] == label if "label" in tx else tx["address"] == label)]
+        txlist = [tx for tx in self.transactions if self.getlabel(tx["address"]) == label]
         return len(txlist)
 
     def balanceonlabel(self, label):
-        balancelist = [utxo["amount"] for utxo in self.utxo if ("label" in utxo and utxo["label"] == label) or utxo["address"] == label]
+        balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
         return sum(balancelist)
 
     def addressesonlabel(self, label):
         return list(dict.fromkeys(
-            [tx["address"] for tx in self.transactions if (tx["label"] == label if "label" in tx else tx["address"] == label)]
+            [tx["address"] for tx in self.transactions if self.getlabel(tx["address"]) == label]
         ))
 
     def istxspent(self, txid):
@@ -1013,17 +796,8 @@ class Wallet(dict):
 
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
-        if self["name"] not in cache:
-            return
-        old_label = cache[self["name"]]["labels"][addr] if addr in cache[self["name"]]["labels"] else addr
-        cache[self["name"]]["labels"][addr] = label
-        for i, tx in enumerate(self.transactions):
-            if tx["label"] == old_label if "label" in tx else tx["address"] == old_label:
-                self.transactions[i]["label"] = label
 
     def getlabel(self, addr):
-        if addr in cache[self["name"]]["labels"]:
-            return cache[self["name"]]["labels"][addr]
         address_info = self.cli.getaddressinfo(addr)
         return address_info["label"] if "label" in address_info and address_info["label"] != "" else addr
     
@@ -1065,14 +839,16 @@ class Wallet(dict):
             utxo["address"] for utxo in 
             sorted(
                 self.utxo,
-                key = lambda utxo: cache[self["name"]]["cli_txs"][utxo["txid"]]["time"]
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
+                )["time"]
             )
         ]))
 
     @property
     def utxolabels(self):
         return list(dict.fromkeys([
-            utxo["label"] if "label" in utxo and utxo["label"] != "" else utxo["address"] for utxo in 
+            self.getlabel(utxo["address"]) for utxo in 
             sorted(
                 self.utxo,
                 key = lambda utxo: next(
@@ -1089,6 +865,13 @@ class Wallet(dict):
     @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
+
+    @property
+    def full_addresses(self):
+        addresses = [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+        # This is needed in case the config address_index is incorrect (like might happen when importing old wallet)
+        utxo_addresses = list(dict.fromkeys([utxo["address"] for utxo in self.cli.listunspent(0)]))
+        return addresses + utxo_addresses + self.change_addresses
 
     @property
     def labels(self):

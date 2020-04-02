@@ -28,7 +28,7 @@
 		<tbody>
 			{% if wallet.txlist != [] %}
 			{% for tx in wallet.txlist %}
-			{%if tx["confirmations"] == 0 %}
+			{%if tx["block_height"] == -1 %}
 			<tr class="unconfirmed">
 			{%else%}
 			<tr>
@@ -38,7 +38,7 @@
 					{% if tx['category'] == 'immature' %}
 						<img src="/static/img/unconfirmed_receive_icon.svg"/>
 					{% else %}
-						{% if tx["confirmations"] == 0 %}
+						{% if tx["block_height"] == -1 %}
 						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
 						{% else %}
 						<img src="/static/img/{{tx['category']}}_icon.svg"/>
@@ -50,10 +50,10 @@
 					{{wallet.getaddressname(tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"], -1)}}
 				</a></td>
 				<td>{{tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"]}}</td><td>
-				{%if tx["confirmations"] == 0 %}
+				{%if tx["block_height"] == -1 %}
 					Pending
 				{% else %}
-					{{tx["confirmations"]}}
+					{{specter.info.blocks - tx["block_height"] + 1}}
 				{% endif %}
 				</td>
 				<td>{{tx["time"] | datetime}}</td></tr>

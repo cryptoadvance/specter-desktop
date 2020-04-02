@@ -16,7 +16,6 @@ from flask_qrcode import QRcode
 
 from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
-from .rpc import BitcoinCLI, RPC_PORTS
 
 from .logic import Specter, purposes, addrtypes, get_cli
 from datetime import datetime
@@ -227,7 +226,6 @@ def new_wallet_simple():
                 return render_template("base.html", error="Key not found", specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_simple(wallet_name, wallet_type, key, device)
-            wallet.update_cache()
             return redirect("/wallets/%s/" % wallet["alias"])
     return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
@@ -319,7 +317,6 @@ def new_wallet_multi():
                     error=err, specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_multi(wallet_name, sigs_required, wallet_type, keys, cosigners)
-            wallet.update_cache()
             return redirect("/wallets/%s/" % wallet["alias"])
     return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
 
@@ -331,7 +328,6 @@ def wallet(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-    wallet.update_cache()
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
         return redirect("/wallets/%s/receive/" % wallet_alias)
     else:
@@ -346,7 +342,6 @@ def wallet_tx(wallet_alias):
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
 
-    wallet.update_cache()
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
@@ -357,7 +352,6 @@ def wallet_addresses(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-    wallet.update_cache()
     viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
@@ -381,7 +375,6 @@ def wallet_receive(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-    wallet.update_cache()
     if request.method == "POST":
         action = request.form['action']
         if action == "newaddress":
@@ -408,7 +401,6 @@ def wallet_send(wallet_alias):
     except Exception as e:
         print(e)
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-    wallet.update_cache()
     psbt = None
     address = ""
     label = ""
@@ -457,7 +449,6 @@ def wallet_settings(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
-    wallet.update_cache()
     if request.method == "POST":
         action = request.form['action']
         if action == "rescanblockchain":
@@ -481,7 +472,7 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet["change_keypool"], wallet["change_keypool"]+delta, change=True)
             wallet.getdata()
         elif action == "rebuildcache":
-            wallet.rebuild_cache()
+            wallet.cli.cache.rebuild_cache()
 
     cc_file = None
     qr_text = wallet["name"]+"&"+wallet.descriptor
