@@ -19,10 +19,12 @@ class BitcoinCLICached:
 
     def clone(self):
         ''' returns a clone of self. Usefull if you want to mess with the properties '''
-        return BitcoinCLICached(cli=self.cli)
+        if self.cache:
+            return BitcoinCLICached(cli=self.cli)
+        return BitcoinCLICached(self.cli.user, self.cli.passwd, self.cli.host, self.cli.port, self.cli.protocol, self.cli.path, self.cli.timeout)
     
     def wallet(self, name=""):
-            return BitcoinCLICached(cli=self.cli.wallet(name))
+        return BitcoinCLICached(cli=self.cli.wallet(name))
     
     def listtransactions(self, *args, **kwargs):
         cli_transactions = self.cli.listtransactions(*args, **kwargs)
