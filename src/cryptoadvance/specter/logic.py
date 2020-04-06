@@ -588,6 +588,9 @@ class Wallet(dict):
 
     @property
     def txlist(self):
+        ''' The last 1000 transactions for that wallet - filtering out change addresses transactions and duplicated transactions (except for self-transfers)
+            This list is used for the wallet `txs` tab to list the wallet transacions.
+        '''
         txidlist = []
         txlist = []
         for tx in self.transactions:
@@ -597,6 +600,9 @@ class Wallet(dict):
         return txlist
 
     def cache_addresses(self):
+        ''' Caches the wallet addresses to the CachedCLI
+            This is needed for caching tranactions inputs and outputs baseed on whetever the wallet owns them or if they are change addresses.
+        '''
         self.cli.cache.cache_addresses(self.full_addresses, self.change_addresses)
 
     def getdata(self):
