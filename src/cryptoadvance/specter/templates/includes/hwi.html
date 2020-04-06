@@ -170,6 +170,10 @@
                 }
             });
 
+        } else if (hwiCurrentWallet.code == -18) {
+            // TODO: Support wallet initializing if possible
+            hidePageOverlay("hwi_include__select_device");
+            alert("Could not load device - device is not initialized.")
         } else {
             // Already unlocked
             hidePageOverlay("hwi_include__select_device");

@@ -16,13 +16,13 @@ rand = random.randint(0, 1e32) # to force style refresh
 
 hwi_views = Blueprint('hwi', __name__, template_folder='templates')
 
-def get_spector_instance():
+def get_specter_instance():
     # specter instance is injected into app in server.py's __main__()
     return current_app.specter
 
 
 def get_hwi_client(type, path):
-    is_test = 'test' in get_spector_instance().chain
+    is_test = 'test' in get_specter_instance().chain
     if type == "specter":
         client = SpecterClient(path)
     else:
@@ -56,7 +56,7 @@ def _enumerate():
 
 @hwi_views.route('/extract_xpubs/', methods=['POST'])
 def hwi_extract_xpubs():
-    specter = get_spector_instance()
+    specter = get_specter_instance()
 
     device_name = request.form['device_name']
     if device_name in specter.devices.names():
@@ -151,7 +151,7 @@ def hwi_extract_xpubs():
 @hwi_views.route('/new_device/', methods=['GET'])
 def hwi_new_device_xpubs():
     err = None
-    specter = get_spector_instance()
+    specter = get_specter_instance()
     specter.check()
 
     return render_template(
