@@ -37,50 +37,111 @@
 <br>
 <form action="./" method="POST" class="full-width">
 	{% if not psbt %}
-		<h1 class="padded">Sending to:</h1>
-		<div class="card">
-			Recipient address:<br>
-			<div class="row">
-				<input type="text" id="address" name="address" value="{{address}}"> &nbsp;
-				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
-			</div>
-			<br>
-			Address label (optional):<br>
-			<input type="text" id="label" name="label" value="{{label}}">
-			<br><br>
-			Amount:<br>
-			<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance}}" min=0 step="1e-8" autocomplete="off">
-			<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
-			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
-			<br><br>
-
-			<div class="fee_container">
-			<div>Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)">dynamic</label>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label></div>
-			<br><br>
-			<input type="hidden" id="fee_unit" name="fee_unit" value="">
-			<div id = "fee_manual" style="display:none">
-			Fee rate:<br>
-			<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
-			<div class="note">leave blank to set automatically</div>
-			<br><br>
-			</div>
-			<div id ="fee_dynamic" style="display:block">
-			<div id="blocks"></div>
-			<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
-			<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
-			<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
-			<br><br>
-			</div></div>
-
-			<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
+		<div class="row">
+			<a href="./?pending=False" class="btn radio left {% if not list_psbts %}checked{% endif %}">New</a>
+			<a href="./?pending=True" class="btn radio right {% if list_psbts %}checked{% endif %}">Pending</a>
 		</div>
+		{% if not list_psbts %}
+			<h1 class="padded">Sending to:</h1>
+			<div class="card">
+				Recipient address:<br>
+				<div class="row">
+					<input type="text" id="address" name="address"> &nbsp;
+					<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+				</div>
+				<br>
+				Address label (optional):<br>
+				<input type="text" id="label" name="label" value="{{label}}">
+				<br><br>
+				Amount:<br>
+				<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance - wallet.locked_amount}}" min=0 step="1e-8" autocomplete="off">
+				<div class="note">
+					Available: {{"%.8f" % (wallet.fullbalance - wallet.locked_amount)}}{% if wallet.locked_amount > 0 %};
+					&nbsp;Locked in pending transactions: {{"%.8f" % wallet.locked_amount}}
+					{% endif %}
+				</div>
+				<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
+				<br><br>
+
+				<div class="fee_container">
+				<div>Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)">dynamic</label>
+				<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label></div>
+				<br><br>
+				<input type="hidden" id="fee_unit" name="fee_unit" value="">
+				<div id = "fee_manual" style="display:none">
+				Fee rate:<br>
+				<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
+				<div class="note">leave blank to set automatically</div>
+				<br><br>
+				</div>
+				<div id ="fee_dynamic" style="display:block">
+				<div id="blocks"></div>
+				<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
+				<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+				<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
+				<br><br>
+				</div></div>
+
+				<button type="submit" name="action" value="createpsbt" class="btn centered">Create unsigned transaction</button>&nbsp; &nbsp; &nbsp; 
+			</div>
+		{% else %}
+			<h1 class="padded">Pending Transactions:</h1>
+			<div class="table-holder">
+				<table>
+					<thead>
+					<tr>
+						<th></th><th>Address</th><th>Amount</th><th>Time</th><th>Sigs</th><th>Actions</th>
+					</tr>
+					</thead>
+					<tbody>
+						{% if pending_psbts %}
+							{% for txid in pending_psbts %}
+								{% set pending_psbt = pending_psbts[txid] %}
+								<tr>
+									<td></td>
+									<td class="tx scroll">
+										<a target="blank" href="{{specter.explorer}}address/{{ pending_psbt['address'] }}">
+											{{wallet.getaddressname(pending_psbt["address"], -1)}}
+										</a>
+									</td>
+									<td>
+										{{ pending_psbt["amount"] }}
+									</td>
+									<td>
+										{{ pending_psbt["time"] | datetime }}
+									</td>
+									<td>
+										{{ "{}/{}".format(pending_psbt["sigs_count"], wallet.sigs_required) }}
+									</td>
+									<td width="170px">
+										<form action="./?pending={{list_psbts}}" method="POST">
+											<input type="hidden" name="pending_psbt" value="{{pending_psbt}}">
+											<div class="row">
+												<button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">Open</button>
+												<button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;">Delete</button>
+											</div>
+										</form>
+									</td>
+								</tr>
+							{% endfor %}
+						{% else %}
+							<td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
+						{% endif %}
+					</tbody>
+				</table>
+			</div>
+		{% endif %}
 	{% else %}
 		<div class="tx_info">
-			<div>Sending <b>{{amount}}</b> BTC to <b>{{address}}</b><br><br></div>
+			
+			<div>Sending <b>{{psbt["amount"]}}</b> BTC to<b>
+				<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
+				{{wallet.getaddressname(psbt["address"], -1)}}
+				</a></b><br><br>
+			</div>
 
 			{% if wallet.is_multisig %}
-				<div class="log"><b id="sigscount">0</b> signatures acquired</div>
+				<div class="log"><b id="sigscount">{{psbt["sigs_count"]}}</b> signatures acquired</div>
 			{% endif %}
 		</div>
 
@@ -93,7 +154,9 @@
 				{% else %}
 					{% for device in wallet.devices %}
 						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
-							<button class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}">{{ device.name }}</button>
+							<button class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else ''}}>
+								{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+							</button>
 						{% endif %}
 					{% endfor %}
 				{% endif %}
@@ -143,7 +206,7 @@
 		{% endif %}
 
 		{% if wallet.uses_sdcard_device %}
-			<br><a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+			<br><a class="btn centered" download='to{{psbt["address"]}}{{psbt["amount"]}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
 			<br>
 		{% endif %}
 
@@ -177,6 +240,13 @@
 				<label for="file" class="btn centered">Upload signed transaction</label>
 			</div>
 		{% endif %}
+
+		<div class="row padded">
+			<form action="./" method="POST">
+				<input type="hidden" name="pending_psbt" value="{{psbt}}">
+				<button type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
+			</form>
+		</div>
 
 	{% endif %}
 </form>
@@ -242,11 +312,13 @@ function loadDynamicFees() {
 <script type="module">
 
 {% if psbt %}
+	let currentSigningDevice = '';
+	let currentSigningDeviceNum;
 	let psbt0 = "{{psbt['base64']}}";
-	let sigscount = 0;
+	let sigscount = {{psbt["sigs_count"]}};
 
 	function combine(psbt1){
-		let url="/combine/";
+		let url="/wallets/{{wallet.alias}}/combine/";
 		// console.log(url);
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.onreadystatechange = function() { 
@@ -261,6 +333,10 @@ function loadDynamicFees() {
 					psbt0 = o["psbt"];
 					sigscount++;
 					document.getElementById("sigscount").innerHTML = sigscount;
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).style = "background-color:#303c49;";
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).disabled = true;
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).innerHTML += ' (&#10004;)';
+
 				}
 				// console.log(this.responseText);
 			}else{
@@ -274,7 +350,7 @@ function loadDynamicFees() {
 		xmlHttp.open("POST", url, true); // true for asynchronous 
 		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1}));
+		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1, "txid": "{{psbt['tx']['txid']}}", "device_name": currentSigningDevice}));
 		// xmlHttp.send(null);
 	}
 	document.addEventListener("DOMContentLoaded", function(){
@@ -301,6 +377,8 @@ function loadDynamicFees() {
 				{% for device in wallet.devices %}
 					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
+							currentSigningDevice = "{{ device.name }}"
+							currentSigningDeviceNum = "{{ loop.index }}"
 							e.preventDefault();
 							beginDetectWallet("{{ device.type }}");
 						});

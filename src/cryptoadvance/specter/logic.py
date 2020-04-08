@@ -4,6 +4,7 @@ import json
 import os
 import random
 import hashlib
+from time import time
 from collections import OrderedDict
 
 from . import helpers
@@ -389,6 +390,10 @@ class WalletManager:
             if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
                 self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
+                if "pending_psbts" in self._wallets[k] and len(self._wallets[k]["pending_psbts"]) > 0:
+                    for psbt in self._wallets[k]["pending_psbts"]:
+                        print("lock", self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
+                        Wallet(self._wallets[k], self).cli.lockunspent(False, [utxo for utxo in self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"]])
 
     def get_by_alias(self, fname):
         for dev in self:
@@ -414,6 +419,7 @@ class WalletManager:
             "change_index": 0,
             "change_address": None,
             "change_keypool": 0,
+            "pending_psbts": {}
         }
         return dic
 
@@ -566,6 +572,41 @@ class Wallet(dict):
     @property
     def is_multisig(self):
         return "sigs_required" in self
+
+    @property
+    def sigs_required(self):
+        return 1 if not self.is_multisig else self["sigs_required"]
+
+    @property
+    def pending_psbts(self):
+        if "pending_psbts" not in self._dict:
+            return {}
+        return self._dict["pending_psbts"]
+
+    @property
+    def locked_amount(self):
+        amount = 0
+        for psbt in self.pending_psbts:
+            amount += sum([utxo["witness_utxo"]["amount"] for utxo in self.pending_psbts[psbt]["inputs"]])
+        return amount
+
+    def delete_pending_psbt(self, txid):
+        self.cli.lockunspent(True, self._dict["pending_psbts"][txid]["tx"]["vin"])
+        del self._dict["pending_psbts"][txid]
+        self._commit()
+
+    def update_pending_psbt(self, psbt, txid, device_name):
+        if txid in self._dict["pending_psbts"]:
+            if self._dict["pending_psbts"][txid]["sigs_count"] + 1 == self.sigs_required:
+                self.delete_pending_psbt(txid)
+                return
+            self._dict["pending_psbts"][txid]["sigs_count"] += 1
+            self._dict["pending_psbts"][txid]["base64"] = psbt
+            if device_name:
+                if "devices_signed" not in self._dict["pending_psbts"][txid]:
+                    self._dict["pending_psbts"][txid]["devices_signed"] = []
+                self._dict["pending_psbts"][txid]["devices_signed"].append(device_name)
+            self._commit()
 
     def _check_change(self):
         addr = self["change_address"]
@@ -861,6 +902,18 @@ class Wallet(dict):
                 inp.hd_keypaths = {}
         psbt["specter"]=qr_psbt.serialize()
         print("PSBT for Specter:", psbt["specter"])
+
+        self.cli.lockunspent(False, psbt["tx"]["vin"])
+
+        if "pending_psbts" not in self._dict:
+            self._dict["pending_psbts"] = {}
+        psbt["amount"] = amount
+        psbt["address"] = address
+        psbt["time"] = time()
+        psbt["sigs_count"] = 0
+        self._dict["pending_psbts"][psbt["tx"]["txid"]] = psbt
+        self._commit()
+
         return psbt
 
     def get_cc_file(self):
