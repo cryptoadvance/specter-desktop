@@ -21,12 +21,12 @@ def get_specter_instance():
     return current_app.specter
 
 
-def get_hwi_client(type, path):
+def get_hwi_client(type, path, passphrase=''):
     is_test = 'test' in get_specter_instance().chain
     if type == "specter":
         client = SpecterClient(path)
     else:
-        client = hwilib_commands.get_client(type, path)
+        client = hwilib_commands.get_client(type, path, passphrase)
     client.is_testnet = is_test
     return client
 
@@ -64,9 +64,11 @@ def hwi_extract_xpubs():
     
     type = request.form.get("type")
     path = request.form.get("path")
+    passphrase = request.form.get("passphrase")
+    print(passphrase)
 
     try:
-        client = get_hwi_client(type, path)
+        client = get_hwi_client(type, path, passphrase=passphrase)
 
         # Client will be configured for testnet if our Specter instance is
         #   currently connected to testnet. This will prevent us from
@@ -201,6 +203,8 @@ def hwi_prompt_pin():
     print(request.form)
     type = request.form.get("type")
     path = request.form.get("path")
+    passphrase = request.form.get("passphrase")
+    print('passphrase: {}'.format(passphrase))
 
     try:
         if type == "keepkey" or type == "trezor":
@@ -210,7 +214,7 @@ def hwi_prompt_pin():
             #       7 8 9
             #       4 5 6
             #       1 2 3
-            client = get_hwi_client(type, path)
+            client = get_hwi_client(type, path, passphrase=passphrase)
             status = hwilib_commands.prompt_pin(client)
             return jsonify(success=True, status=status)
         else:
@@ -224,10 +228,11 @@ def hwi_prompt_pin():
 def hwi_send_pin():
     type = request.form.get("type")
     path = request.form.get("path")
+    passphrase = request.form.get("passphrase")
     pin = request.form.get("pin")
 
     try:
-        client = get_hwi_client(type, path)
+        client = get_hwi_client(type, path, passphrase=passphrase)
         status = hwilib_commands.send_pin(client, pin)
         return jsonify(status)
     except Exception as e:
@@ -239,10 +244,11 @@ def hwi_send_pin():
 def hwi_sign_tx():
     type = request.form.get("type")
     path = request.form.get("path")
+    passphrase = request.form.get("passphrase")
     psbt = request.form.get("psbt")
 
     try:
-        client = get_hwi_client(type, path)
+        client = get_hwi_client(type, path, passphrase=passphrase)
         status = hwilib_commands.signtx(client, psbt)
         print(status)
 

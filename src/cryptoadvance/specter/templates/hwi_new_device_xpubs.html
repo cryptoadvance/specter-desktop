@@ -77,6 +77,7 @@
 		formData.append("device_name", document.getElementById('device_name_id').value);
 		formData.append("type", hwiCurrentWallet.type);
 		formData.append("path", hwiCurrentWallet.path);
+		formData.append("passphrase", hwiWalletPassphrase);
 
 		const response = await fetch(
 			'/hwi/extract_xpubs/',
