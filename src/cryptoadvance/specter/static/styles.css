@@ -34,6 +34,9 @@ body{
 *{
     box-sizing: border-box;
 }
+.output_option{
+    margin: 5px;
+}
 .logout{
     position: absolute;
     right: 0px;

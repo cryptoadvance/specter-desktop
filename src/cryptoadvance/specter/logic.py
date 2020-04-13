@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 from . import helpers
 from .descriptor import AddChecksum
-from .helpers import deep_update, load_jsons
+from .helpers import deep_update, load_jsons, get_xpub_fingerprint
 from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
 from .serializations import PSBT
 
@@ -301,7 +301,7 @@ class DeviceManager:
         return self
 
     def __next__(self):
-        arr = list(self._devices.keys())
+        arr = sorted(list(self._devices.keys()))
         if self._n < len(arr):
             v = self._devices[arr[self._n]]
             self._n += 1
@@ -390,10 +390,10 @@ class WalletManager:
                 print("loading", self._wallets[k]["alias"])
                 self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
 
-    def get_by_alias(self, fname):
-        for dev in self:
-            if dev["alias"] == fname:
-                return dev
+    def get_by_alias(self, alias):
+        for w in self:
+            if w["alias"] == alias:
+                return w
 
     def names(self):
         return list(self._wallets.keys())
@@ -510,7 +510,7 @@ class WalletManager:
         return self
 
     def __next__(self):
-        arr = list(self._wallets.keys())
+        arr = sorted(list(self._wallets.keys()))
         if self._n < len(arr):
             v = self._wallets[arr[self._n]]
             self._n += 1
@@ -842,7 +842,15 @@ class Wallet(dict):
         if self.is_multisig:
             for k in self._dict["keys"]:
                 key = b'\x01'+helpers.decode_base58(k["xpub"])
-                value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
+                if "fingerprint" in k and k["fingerprint"] is not None:
+                    fingerprint = bytes.fromhex(k["fingerprint"])
+                else:
+                    fingerprint = helpers.get_xpub_fingerprint(k["xpub"])
+                if "derivation" in k and k["derivation"] is not None:
+                    der = der_to_bytes(k["derivation"])
+                else:
+                    der = b''
+                value = fingerprint+der
                 cc_psbt.unknown[key] = value
         psbt["coldcard"]=cc_psbt.serialize()
 
@@ -873,7 +881,7 @@ class Wallet(dict):
         # cc assume the same derivation for all keys :(
         derivation = None
         for k in self["keys"]:
-            if "derivation" in k:
+            if "derivation" in k and k["derivation"] is not None:
                 derivation = k["derivation"].replace("h","'")
                 break
         if derivation is None:
@@ -894,7 +902,7 @@ Format: {}
             if 'fingerprint' in k:
                 fingerprint = k['fingerprint']
             if fingerprint is None:
-                return None
+                fingerprint = get_xpub_fingerprint(k['xpub']).hex()
             cc_file += "{}: {}\n".format(fingerprint.upper(), k['xpub'])
         return cc_file
 
