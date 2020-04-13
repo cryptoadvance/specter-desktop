@@ -143,6 +143,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     except RpcError as rpce:
         assert rpce.error_msg == "Insufficient funds"
         pass
+    wallet.delete_pending_psbt(psbt["tx"]["txid"])
     # But wallet.createpsbt supports it (by explicitely specifying inputs)! 
     psbt = wallet.createpsbt(random_address, 60, True, 10)
     assert len(psbt['tx']['vin']) == 3

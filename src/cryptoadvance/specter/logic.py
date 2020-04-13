@@ -806,7 +806,7 @@ class Wallet(dict):
             address_info["label"] = "Address #{}".format(addr_idx)
         return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
 
-    @property    
+    @property
     def fullbalance(self):
         ''' This is cached. Consider to use getfullbalance '''
         if self.balance is None:
@@ -821,7 +821,7 @@ class Wallet(dict):
                     locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
         return self.balance["trusted"]+self.balance["untrusted_pending"] + sum(locked)
 
-    @property    
+    @property
     def availablebalance(self):
         ''' This is cached.'''
         if self.balance is None:
