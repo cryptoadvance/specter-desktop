@@ -1,4 +1,4 @@
-from .rpc import BitcoinCLI
+from .rpc import BitcoinCLI, RpcError
 from .corecache import CoreCache
 
 class BitcoinCLICached:
@@ -48,7 +48,12 @@ class BitcoinCLICached:
         return BitcoinCLICached(self.cli.user, self.cli.passwd, self.cli.host, self.cli.port, self.cli.protocol, self.cli.path, self.cli.timeout)
     
     def wallet(self, name=""):
-        return BitcoinCLICached.from_wallet_cli(cli=self.cli.wallet(name))
+        try:
+            return BitcoinCLICached.from_wallet_cli(cli=self.cli.wallet(name))
+        except RpcError as rpce:
+            raise rpce
+        except Exception as e:
+                raise e
     
     def listtransactions(self, *args, **kwargs):
         cli_transactions = self.cli.listtransactions(*args, **kwargs)
@@ -70,4 +75,9 @@ class BitcoinCLICached:
         return self.cli.rescanblockchain(*args, **kwargs)
 
     def __getattr__(self, method):
-        return self.cli.__getattr__(method)
+        try:
+            return self.cli.__getattr__(method)
+        except RpcError as rpce:
+            raise rpce
+        except Exception as e:
+                raise e

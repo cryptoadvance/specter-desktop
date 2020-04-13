@@ -91,17 +91,17 @@ class BitcoindController:
     def testcoin_faucet(self, address, amount=20, mine_tx=False):
         ''' an easy way to get some testcoins '''
         cli = self.get_cli()
-        test3rdparty_cli = cli.wallet("test3rdparty")
         try:
-            balance = test3rdparty_cli.getbalance()
+            test3rdparty_cli = cli.wallet("test3rdparty")
         except RpcError as rpce:
             # return-codes:
             # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
             if rpce.error_code == -18: # RPC_WALLET_NOT_FOUND
                 cli.createwallet("test3rdparty")
-                balance = test3rdparty_cli.getbalance()
+                test3rdparty_cli = cli.wallet("test3rdparty")
             else:
                 raise rpce
+        balance = test3rdparty_cli.getbalance()
         if balance < amount:
             test3rdparty_address = test3rdparty_cli.getnewaddress("test3rdparty")
             cli.generatetoaddress(102, test3rdparty_address)
