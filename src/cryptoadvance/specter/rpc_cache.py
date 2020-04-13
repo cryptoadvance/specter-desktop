@@ -19,6 +19,20 @@ class BitcoinCLICached:
         """
         return cls(cli=cli)
  
+    def scan_addresses(self, wallet):
+        scanning = self.cli.getwalletinfo()["scanning"]
+        if self.cache.scan_addresses or scanning:
+            for tx in self.cli.listtransactions("*", 1000, 0, True):
+                address_info = self.cli.getaddressinfo(tx["address"])
+                if "hdkeypath" in address_info:
+                    path = address_info["hdkeypath"].split('/')
+                    change = int(path[-2]) == 1
+                    while int(path[-1]) > wallet._dict["change_index" if change else "address_index"]:
+                        wallet.getnewaddress(change=change)
+            if not scanning:
+                self.cache.scanning_ended()
+            self.cache.update_addresses(wallet.addresses, change=False)
+            self.cache.update_addresses(wallet.change_addresses, change=True)
 
     @property
     def url(self):
@@ -41,6 +55,19 @@ class BitcoinCLICached:
         if self.cache:
             return self.cache.update_txs(cli_transactions)
         return cli_transactions
+
+    def deriveaddresses(self, *args, **kwargs):
+        addresses = self.cli.deriveaddresses(*args, **kwargs)
+        if self.cache:
+            if "internal" not in kwargs or kwargs["internal"] == True: 
+                change = "change" in kwargs and kwargs["change"] == True
+                self.cache.update_addresses(addresses, change=change)
+        return addresses
+
+    def rescanblockchain(self, *args, **kwargs):
+        if self.cache:
+            self.cache.scanning_started()
+        return self.cli.rescanblockchain(*args, **kwargs)
 
     def __getattr__(self, method):
         return self.cli.__getattr__(method)

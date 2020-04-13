@@ -5,16 +5,15 @@ class CoreCache():
     def __init__(self, cli):
         self.cli = cli
         self.walletname = cli.getwalletinfo()["walletname"]
-        self.wallet_addresses = []
-        self.change_addresses = []
         self.setup_cache()
+
+    @property
+    def change_addresses(self):
+        return self.cache["change_addresses"]
     
-    def cache_addresses(self, full_addresses, change_addresses):
-        """Cache the wallet full addresses list and change only addresses list
-        TODO: Find a better way to retrieve this data without depending on the wallet class
-        """       
-        self.wallet_addresses = full_addresses
-        self.change_addresses = change_addresses
+    @property
+    def wallet_addresses(self):
+        return self.cache["addresses"] + self.change_addresses
 
     def setup_cache(self):
         """Setup cache object for wallet
@@ -26,7 +25,10 @@ class CoreCache():
                 "tx_count": None,
                 "tx_changed": True,
                 "last_block": None,
-                "raw_tx_block_update": {}
+                "raw_tx_block_update": {},
+                "addresses": [],
+                "change_addresses": [],
+                "scan_addresses": True
             }
 
     def cache_raw_txs(self, cli_txs):
@@ -207,6 +209,22 @@ class CoreCache():
         cached_txs = self.cache_txs(raw_txs)
 
         return cached_txs
+
+    def update_addresses(self, addresses, change=False):
+        if change:
+            cache[self.walletname]["change_addresses"] += list(dict.fromkeys(self.cache["change_addresses"] + addresses))
+        else:
+            cache[self.walletname]["addresses"] += list(dict.fromkeys(self.cache["addresses"] + addresses))
+
+    def scanning_started(self):
+        cache[self.walletname]["scan_addresses"] = True
+    
+    def scanning_ended(self):
+        cache[self.walletname]["scan_addresses"] = False
+
+    @property
+    def scan_addresses(self):
+        return self.cache["scan_addresses"]
 
     def rebuild_cache(self):
         del cache[self.walletname]

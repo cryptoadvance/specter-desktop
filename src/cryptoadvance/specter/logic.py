@@ -537,7 +537,7 @@ class Wallet(dict):
             self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
-        self.cache_addresses()
+        self.cli.scan_addresses(self)
         self.getdata()
 
     def _commit(self, update_manager=True):
@@ -599,12 +599,6 @@ class Wallet(dict):
                 txlist.append(tx)
         return txlist
 
-    def cache_addresses(self):
-        ''' Caches the wallet addresses to the CachedCLI
-            This is needed for caching tranactions inputs and outputs baseed on whetever the wallet owns them or if they are change addresses.
-        '''
-        self.cli.cache.cache_addresses(self.full_addresses, self.change_addresses)
-
     def getdata(self):
         try:
             self.balance = self.getbalances()
@@ -640,13 +634,15 @@ class Wallet(dict):
         else:
             return self.info["scanning"]["progress"]
 
-    def getnewaddress(self):
-        self._dict["address_index"] += 1
-        addr = self.get_address(self._dict["address_index"])
-        self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
-        self._dict["address"] = addr
+    def getnewaddress(self, change=False):
+        label = "Change" if change else "Address"
+        index_type = "change_index" if change else "address_index"
+        address_type = "change_address" if change else "address"
+        self._dict[index_type] += 1
+        addr = self.get_address(self._dict[index_type], change=change)
+        self.setlabel(addr, "{} #{}".format(label, self._dict[index_type]))
+        self._dict[address_type] = addr
         self._commit()
-        self.cache_addresses()
         return addr
 
     def get_address(self, index, change=False):
@@ -658,9 +654,9 @@ class Wallet(dict):
             self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
         if self.is_multisig:
             # using sortedmulti for addresses
-            sorted_desc = self.sort_descriptor(self[desc], index)
-            return self.cli.deriveaddresses(sorted_desc)[0]
-        return self.cli.deriveaddresses(self._dict[desc], [index, index+1])[0]
+            sorted_desc = self.sort_descriptor(self[desc], index=index, change=change)
+            return self.cli.deriveaddresses(sorted_desc, change=change)[0]
+        return self.cli.deriveaddresses(self._dict[desc], [index, index+1], change=change)[0]
 
     def geterror(self):
         if self.cli.r is not None:
@@ -709,14 +705,14 @@ class Wallet(dict):
             return None
         return r["trusted"]+r["untrusted_pending"]
 
-    def sort_descriptor(self, descriptor, index=None):
+    def sort_descriptor(self, descriptor, index=None, change=False):
         if index is not None:
             descriptor = descriptor.replace("*", f"{index}")
         # remove checksum
         descriptor = descriptor.split("#")[0]
 
         # get address (should be already imported to the wallet)
-        address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+        address = self.cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
         # get pubkeys involved
         address_info = self.cli.getaddressinfo(address)
@@ -769,7 +765,7 @@ class Wallet(dict):
             # we do one at a time
             args[0].pop("range")
             for i in range(start, end):
-                sorted_desc = self.sort_descriptor(self[desc], i)
+                sorted_desc = self.sort_descriptor(self[desc], index=i, change=change)
                 args[0]["desc"] = sorted_desc
                 self.cli.importmulti(args, {"rescan": False}, timeout=120)
         self._dict[pool] = end
@@ -865,23 +861,19 @@ class Wallet(dict):
 
     @property
     def addresses(self):
-        addresses = [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
-        return list(dict.fromkeys(addresses + self.utxoaddresses))
+        return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+
+    @property
+    def active_addresses(self):
+        return list(dict.fromkeys(self.addresses + self.utxoaddresses))
     
     @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
 
     @property
-    def full_addresses(self):
-        addresses = [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
-        # This is needed in case the config address_index is incorrect (like might happen when importing old wallet)
-        utxo_addresses = list(dict.fromkeys([utxo["address"] for utxo in self.cli.listunspent(0)]))
-        return addresses + utxo_addresses + self.change_addresses
-
-    @property
     def labels(self):
-        return list(dict.fromkeys([self.getlabel(addr) for addr in self.addresses]))
+        return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
