@@ -206,7 +206,9 @@
 		{% endif %}
 
 		{% if wallet.uses_sdcard_device %}
-			<br><a class="btn centered" download='to{{psbt["address"]}}{{psbt["amount"]}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+			<div>
+        <a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+			</div>
 			<br>
 		{% endif %}
 
