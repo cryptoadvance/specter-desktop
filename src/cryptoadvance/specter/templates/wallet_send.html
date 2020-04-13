@@ -54,9 +54,9 @@
 				<input type="text" id="label" name="label" value="{{label}}">
 				<br><br>
 				Amount:<br>
-				<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.fullbalance - wallet.locked_amount}}" min=0 step="1e-8" autocomplete="off">
+				<input type="number" name="amount" value="{{amount}}" id="amount" max="{{wallet.availablebalance}}" min=0 step="1e-8" autocomplete="off">
 				<div class="note">
-					Available: {{"%.8f" % (wallet.fullbalance - wallet.locked_amount)}}{% if wallet.locked_amount > 0 %};
+					Available: {{"%.8f" % wallet.availablebalance}}{% if wallet.locked_amount > 0 %};
 					&nbsp;Locked in pending transactions: {{"%.8f" % wallet.locked_amount}}
 					{% endif %}
 				</div>
@@ -118,7 +118,7 @@
 											<input type="hidden" name="pending_psbt" value="{{pending_psbt}}">
 											<div class="row">
 												<button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">Open</button>
-												<button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;">Delete</button>
+												<button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;" onclick="javascript: form.action='./?pending=True';">Delete</button>
 											</div>
 										</form>
 									</td>

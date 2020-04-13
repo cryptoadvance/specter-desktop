@@ -591,7 +591,11 @@ class Wallet(dict):
         return amount
 
     def delete_pending_psbt(self, txid):
-        self.cli.lockunspent(True, self._dict["pending_psbts"][txid]["tx"]["vin"])
+        try:
+            self.cli.lockunspent(True, self._dict["pending_psbts"][txid]["tx"]["vin"])
+        except:
+            # UTXO was spent
+            pass
         del self._dict["pending_psbts"][txid]
         self._commit()
 
@@ -809,7 +813,28 @@ class Wallet(dict):
             return None
         if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
             return None
-        return self.balance["trusted"]+self.balance["untrusted_pending"]
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data or tx_data["confirmations"] == 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] + sum(locked)
+
+    @property    
+    def availablebalance(self):
+        ''' This is cached.'''
+        if self.balance is None:
+            return None
+        if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
+            return None
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data and tx_data["confirmations"] != 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] - sum(locked)
 
     @property
     def descriptor(self):

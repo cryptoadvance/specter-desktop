@@ -49,9 +49,8 @@ def combine(wallet_alias):
         if "hex" in raw:
             app.specter.broadcast(raw["hex"])
 
-        if wallet.is_multisig:
-            device_name = d['device_name']
-            wallet.update_pending_psbt(psbt, txid, device_name)
+        device_name = d['device_name']
+        wallet.update_pending_psbt(psbt, txid, device_name)
         return json.dumps(raw)
     return 'meh'
 
