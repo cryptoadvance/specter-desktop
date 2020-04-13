@@ -338,9 +338,8 @@ def wallet(wallet_alias):
 @login_required
 def wallet_tx(wallet_alias):
     app.specter.check()
-    try:
-        wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except:
+    wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    if wallet is None:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
 
     return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)

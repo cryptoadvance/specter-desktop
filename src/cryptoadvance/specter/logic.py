@@ -301,7 +301,7 @@ class DeviceManager:
         return self
 
     def __next__(self):
-        arr = list(self._devices.keys())
+        arr = sorted(list(self._devices.keys()))
         if self._n < len(arr):
             v = self._devices[arr[self._n]]
             self._n += 1
@@ -390,10 +390,10 @@ class WalletManager:
                 print("loading", self._wallets[k]["alias"])
                 self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
 
-    def get_by_alias(self, fname):
-        for dev in self:
-            if dev["alias"] == fname:
-                return dev
+    def get_by_alias(self, alias):
+        for w in self:
+            if w["alias"] == alias:
+                return w
 
     def names(self):
         return list(self._wallets.keys())
@@ -510,7 +510,7 @@ class WalletManager:
         return self
 
     def __next__(self):
-        arr = list(self._wallets.keys())
+        arr = sorted(list(self._wallets.keys()))
         if self._n < len(arr):
             v = self._wallets[arr[self._n]]
             self._n += 1
