@@ -16,7 +16,6 @@ from flask_qrcode import QRcode
 
 from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
-from .rpc import BitcoinCLI, RPC_PORTS
 
 from .logic import Specter, purposes, addrtypes, get_cli
 from datetime import datetime
@@ -357,13 +356,20 @@ def wallet_addresses(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+    viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
         if action == "updatelabel":
             label = request.form['label']
-            address = request.form['addr']
-            wallet.setlabel(address, label)
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+            account = request.form['account']
+            if viewtype == 'address':
+                wallet.setlabel(account, label)
+            else:
+                for address in wallet.addressesonlabel(account):
+                    wallet.setlabel(address, label)
+                wallet.getdata()
+    alladdresses = True if request.args.get('all') != 'False' else False
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -479,6 +485,8 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet["keypool"], wallet["keypool"]+delta)
             wallet.keypoolrefill(wallet["change_keypool"], wallet["change_keypool"]+delta, change=True)
             wallet.getdata()
+        elif action == "rebuildcache":
+            wallet.cli.cache.rebuild_cache()
 
     cc_file = None
     qr_text = wallet["name"]+"&"+wallet.descriptor

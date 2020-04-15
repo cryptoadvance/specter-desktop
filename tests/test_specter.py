@@ -7,7 +7,7 @@ import pytest
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.logic import (get_cli, Device, DeviceManager, Specter, Wallet, WalletManager,
                      alias)
-from cryptoadvance.specter.rpc import BitcoinCLI
+from cryptoadvance.specter.rpc_cache import BitcoinCLICached
 
 
 def test_alias():
@@ -29,7 +29,7 @@ def test_get_cli(specter_regtest_configured):
     print("rpc_config_data: {}".format(rpc_config_data))
     cli = get_cli(rpc_config_data)
     assert cli.getblockchaininfo() 
-    assert isinstance(cli, BitcoinCLI)
+    assert isinstance(cli, BitcoinCLICached)
     # ToDo test autodetection-features
 
 def test_specter(specter_regtest_configured,caplog): 

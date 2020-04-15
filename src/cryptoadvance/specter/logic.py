@@ -10,8 +10,10 @@ from collections import OrderedDict
 from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, load_jsons, get_xpub_fingerprint
-from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
+from .rpc import RPC_PORTS, autodetect_cli_confs
+from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
+
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
@@ -47,15 +49,15 @@ def get_cli(conf):
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_arr = autodetect_cli(port=conf["port"])
+            cli_conf_arr = autodetect_cli_confs(port=conf["port"])
         else:
-            cli_arr = autodetect_cli()
-        if len(cli_arr) > 0:
-            cli = cli_arr[0]
+            cli_conf_arr = autodetect_cli_confs()
+        if len(cli_conf_arr) > 0:
+            cli = BitcoinCLICached(**cli_conf_arr[0])
         else:
             return None
     else:
-        cli = BitcoinCLI(conf["user"], conf["password"], 
+        cli = BitcoinCLICached(conf["user"], conf["password"], 
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 
@@ -541,6 +543,7 @@ class Wallet(dict):
             self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
+        self.cli.scan_addresses(self)
         self.getdata()
 
     def _commit(self, update_manager=True):
@@ -628,23 +631,42 @@ class Wallet(dict):
         self._dict["change_address"] = self.get_address(self._dict["change_index"], change=True)
         self._commit()
 
+    @property
+    def txlist(self):
+        ''' The last 1000 transactions for that wallet - filtering out change addresses transactions and duplicated transactions (except for self-transfers)
+            This list is used for the wallet `txs` tab to list the wallet transacions.
+        '''
+        txidlist = []
+        txlist = []
+        for tx in self.transactions:
+            if tx["is_change"] == False and (tx["is_self"] or tx["txid"] not in txidlist):
+                txidlist.append(tx["txid"])
+                txlist.append(tx)
+        return txlist
+
     def getdata(self):
         try:
             self.balance = self.getbalances()
         except:
             self.balance = None
         try:
-            self.transactions = self.cli.listtransactions("*", 1000, 0, True)[::-1]
+            self.utxo = self.cli.listunspent(0)
+        except:
+            self.utxo = None
+        try:
+            self.transactions = self.cli.listtransactions("*", 1000, 0, True)
         except:
             self.transactions = None
         try:
             self.info = self.cli.getwalletinfo()
         except:
             self.info = None
+
         self._check_change()
         return {
             "balance": self.balance,
-            "transactions": self.transactions
+            "transactions": self.transactions,
+            "utxo": self.utxo
         }
 
     @property
@@ -657,11 +679,14 @@ class Wallet(dict):
         else:
             return self.info["scanning"]["progress"]
 
-    def getnewaddress(self):
-        self._dict["address_index"] += 1
-        addr = self.get_address(self._dict["address_index"])
-        self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
-        self._dict["address"] = addr
+    def getnewaddress(self, change=False):
+        label = "Change" if change else "Address"
+        index_type = "change_index" if change else "address_index"
+        address_type = "change_address" if change else "address"
+        self._dict[index_type] += 1
+        addr = self.get_address(self._dict[index_type], change=change)
+        self.setlabel(addr, "{} #{}".format(label, self._dict[index_type]))
+        self._dict[address_type] = addr
         self._commit()
         return addr
 
@@ -674,9 +699,9 @@ class Wallet(dict):
             self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
         if self.is_multisig:
             # using sortedmulti for addresses
-            sorted_desc = self.sort_descriptor(self[desc], index)
-            return self.cli.deriveaddresses(sorted_desc)[0]
-        return self.cli.deriveaddresses(self._dict[desc], [index, index+1])[0]
+            sorted_desc = self.sort_descriptor(self[desc], index=index, change=change)
+            return self.cli.deriveaddresses(sorted_desc, change=change)[0]
+        return self.cli.deriveaddresses(self._dict[desc], [index, index+1], change=change)[0]
 
     def geterror(self):
         if self.cli.r is not None:
@@ -725,14 +750,14 @@ class Wallet(dict):
             return None
         return r["trusted"]+r["untrusted_pending"]
 
-    def sort_descriptor(self, descriptor, index=None):
+    def sort_descriptor(self, descriptor, index=None, change=False):
         if index is not None:
             descriptor = descriptor.replace("*", f"{index}")
         # remove checksum
         descriptor = descriptor.split("#")[0]
 
         # get address (should be already imported to the wallet)
-        address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+        address = self.cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
         # get pubkeys involved
         address_info = self.cli.getaddressinfo(address)
@@ -785,7 +810,7 @@ class Wallet(dict):
             # we do one at a time
             args[0].pop("range")
             for i in range(start, end):
-                sorted_desc = self.sort_descriptor(self[desc], i)
+                sorted_desc = self.sort_descriptor(self[desc], index=i, change=change)
                 args[0]["desc"] = sorted_desc
                 self.cli.importmulti(args, {"rescan": False}, timeout=120)
         self._dict[pool] = end
@@ -796,8 +821,32 @@ class Wallet(dict):
         txlist = [tx for tx in self.transactions if tx["address"] == addr]
         return len(txlist)
 
+    def balanceonaddr(self, addr):
+        balancelist = [utxo["amount"] for utxo in self.utxo if utxo["address"] == addr]
+        return sum(balancelist)
+
+    def txonlabel(self, label):
+        txlist = [tx for tx in self.transactions if self.getlabel(tx["address"]) == label]
+        return len(txlist)
+
+    def balanceonlabel(self, label):
+        balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
+        return sum(balancelist)
+
+    def addressesonlabel(self, label):
+        return list(dict.fromkeys(
+            [tx["address"] for tx in self.transactions if self.getlabel(tx["address"]) == label]
+        ))
+
+    def istxspent(self, txid):
+        return txid in [utxo["txid"] for utxo in self.utxo]
+
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
+
+    def getlabel(self, addr):
+        address_info = self.cli.getaddressinfo(addr)
+        return address_info["label"] if "label" in address_info and address_info["label"] != "" else addr
     
     def getaddressname(self, addr, addr_idx):
         address_info = self.cli.getaddressinfo(addr)
@@ -853,8 +902,44 @@ class Wallet(dict):
         return self.txonaddr(addr)
 
     @property
+    def utxoaddresses(self):
+        return list(dict.fromkeys([
+            utxo["address"] for utxo in 
+            sorted(
+                self.utxo,
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
+                )["time"]
+            )
+        ]))
+
+    @property
+    def utxolabels(self):
+        return list(dict.fromkeys([
+            self.getlabel(utxo["address"]) for utxo in 
+            sorted(
+                self.utxo,
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
+                )["time"]
+            )
+        ]))
+
+    @property
     def addresses(self):
         return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+
+    @property
+    def active_addresses(self):
+        return list(dict.fromkeys(self.addresses + self.utxoaddresses))
+    
+    @property
+    def change_addresses(self):
+        return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
+
+    @property
+    def labels(self):
+        return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
         """
@@ -886,6 +971,8 @@ class Wallet(dict):
             "changeAddress": self["change_address"],
             "subtractFeeFromOutputs": subtract_arr
         }
+
+        self.setlabel(self["change_address"], "Change #{}".format(self._dict["change_index"]))
 
         if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
