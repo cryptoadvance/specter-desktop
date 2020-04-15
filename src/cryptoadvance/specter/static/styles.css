@@ -128,17 +128,21 @@ nav.top{
     -webkit-app-region: drag;
 }
 nav.side{
+    display: flex;
+    min-height: min-content;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-grow: 0;
+}
+#side-content{
     background: var(--cmap-bg-ligher);
     width: 250px;
     max-width: 250px;
     min-width: 250px;
     border-right: 1px solid var(--cmap-bg-lightest);
-    flex-grow: 0;
-    /*padding-top: 30px;*/
     padding-top: 10px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
     overflow-y: scroll;
 }
 main{
@@ -598,12 +602,12 @@ td.scroll > *{
     width: 100%;
     padding: 20px 0;
 }
-table a{
+table a, .address-link{
     display: inline;
     color: inherit;
     text-decoration: none;
 }
-table a:hover{
+table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
 }

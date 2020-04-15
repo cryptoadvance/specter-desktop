@@ -4,6 +4,7 @@ import json
 import os
 import random
 import hashlib
+from time import time
 from collections import OrderedDict
 
 from . import helpers
@@ -391,6 +392,10 @@ class WalletManager:
             if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
                 self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
+                if "pending_psbts" in self._wallets[k] and len(self._wallets[k]["pending_psbts"]) > 0:
+                    for psbt in self._wallets[k]["pending_psbts"]:
+                        print("lock", self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
+                        Wallet(self._wallets[k], self).cli.lockunspent(False, [utxo for utxo in self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"]])
 
     def get_by_alias(self, alias):
         for w in self:
@@ -416,6 +421,7 @@ class WalletManager:
             "change_index": 0,
             "change_address": None,
             "change_keypool": 0,
+            "pending_psbts": {}
         }
         return dic
 
@@ -569,6 +575,45 @@ class Wallet(dict):
     @property
     def is_multisig(self):
         return "sigs_required" in self
+
+    @property
+    def sigs_required(self):
+        return 1 if not self.is_multisig else self["sigs_required"]
+
+    @property
+    def pending_psbts(self):
+        if "pending_psbts" not in self._dict:
+            return {}
+        return self._dict["pending_psbts"]
+
+    @property
+    def locked_amount(self):
+        amount = 0
+        for psbt in self.pending_psbts:
+            amount += sum([utxo["witness_utxo"]["amount"] for utxo in self.pending_psbts[psbt]["inputs"]])
+        return amount
+
+    def delete_pending_psbt(self, txid):
+        try:
+            self.cli.lockunspent(True, self._dict["pending_psbts"][txid]["tx"]["vin"])
+        except:
+            # UTXO was spent
+            pass
+        del self._dict["pending_psbts"][txid]
+        self._commit()
+
+    def update_pending_psbt(self, psbt, txid, device_name):
+        if txid in self._dict["pending_psbts"]:
+            if self._dict["pending_psbts"][txid]["sigs_count"] + 1 == self.sigs_required:
+                self.delete_pending_psbt(txid)
+                return
+            self._dict["pending_psbts"][txid]["sigs_count"] += 1
+            self._dict["pending_psbts"][txid]["base64"] = psbt
+            if device_name:
+                if "devices_signed" not in self._dict["pending_psbts"][txid]:
+                    self._dict["pending_psbts"][txid]["devices_signed"] = []
+                self._dict["pending_psbts"][txid]["devices_signed"].append(device_name)
+            self._commit()
 
     def _check_change(self):
         addr = self["change_address"]
@@ -810,14 +855,35 @@ class Wallet(dict):
             address_info["label"] = "Address #{}".format(addr_idx)
         return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
 
-    @property    
+    @property
     def fullbalance(self):
         ''' This is cached. Consider to use getfullbalance '''
         if self.balance is None:
             return None
         if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
             return None
-        return self.balance["trusted"]+self.balance["untrusted_pending"]
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data or tx_data["confirmations"] == 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] + sum(locked)
+
+    @property
+    def availablebalance(self):
+        ''' This is cached.'''
+        if self.balance is None:
+            return None
+        if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
+            return None
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data and tx_data["confirmations"] != 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] - sum(locked)
 
     @property
     def descriptor(self):
@@ -956,6 +1022,18 @@ class Wallet(dict):
                 inp.hd_keypaths = {}
         psbt["specter"]=qr_psbt.serialize()
         print("PSBT for Specter:", psbt["specter"])
+
+        self.cli.lockunspent(False, psbt["tx"]["vin"])
+
+        if "pending_psbts" not in self._dict:
+            self._dict["pending_psbts"] = {}
+        psbt["amount"] = amount
+        psbt["address"] = address
+        psbt["time"] = time()
+        psbt["sigs_count"] = 0
+        self._dict["pending_psbts"][psbt["tx"]["txid"]] = psbt
+        self._commit()
+
         return psbt
 
     def get_cc_file(self):
