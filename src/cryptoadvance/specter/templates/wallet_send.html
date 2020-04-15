@@ -116,7 +116,7 @@
 					</tbody>
 				</table>
 			</div>
-			<button type="submit" v-bind:disabled="above_wallet_amount || needs_more_selected_coins || amount != ''" name="action" value="createpsbt" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+			<button type="submit" v-bind:disabled="above_wallet_amount || needs_more_selected_coins || amount == ''" || address == ''" name="action" value="createpsbt" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
 		</div>
 	{% else %}
 		<div class="tx_info">
