@@ -420,7 +420,7 @@ def wallet_send(wallet_alias):
                     fee_rate = float(request.form.get('fee_rate'))
 
             try:
-                psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, selected_coins=selected_coins)
+                psbt = wallet.createpsbt(address, amount, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit, selected_coins=selected_coins)
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
                 else:
