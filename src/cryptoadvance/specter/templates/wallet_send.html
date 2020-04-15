@@ -108,7 +108,7 @@
 							<td class="tx scroll"><a :href="block_explorer+'tx/'+tx.txid" target="blank">[[ tx.txid ]]</a></td>
 							<td class="tx scroll">
 								<a :href="block_explorer+'address/'+tx.address" target="blank">
-									[[ tx.label != '' ? tx.label : tx.address ]]
+									[[ tx.label != '' && tx.label != undefined ? tx.label : tx.address ]]
 								</a>
 							</td>
 							<td>[[ tx.amount ]]</td>
