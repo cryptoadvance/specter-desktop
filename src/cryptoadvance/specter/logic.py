@@ -9,7 +9,7 @@ from collections import OrderedDict
 from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, load_jsons, get_xpub_fingerprint
-from .rpc import RPC_PORTS, autodetect_cli
+from .rpc import RPC_PORTS, autodetect_cli_confs
 from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
 
@@ -48,11 +48,11 @@ def get_cli(conf):
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_arr = autodetect_cli(port=conf["port"])
+            cli_conf_arr = autodetect_cli_confs(port=conf["port"])
         else:
-            cli_arr = autodetect_cli()
-        if len(cli_arr) > 0:
-            cli = cli_arr[0]
+            cli_conf_arr = autodetect_cli_confs()
+        if len(cli_conf_arr) > 0:
+            cli = BitcoinCLICached(**cli_conf_arr[0])
         else:
             return None
     else:
