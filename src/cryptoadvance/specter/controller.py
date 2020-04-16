@@ -1,4 +1,4 @@
-import sys, json, os, time, base64
+import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
@@ -16,7 +16,6 @@ from flask_qrcode import QRcode
 
 from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
-from .rpc import BitcoinCLI, RPC_PORTS
 
 from .logic import Specter, purposes, addrtypes, get_cli
 from datetime import datetime
@@ -35,17 +34,22 @@ rand = random.randint(0, 1e32) # to force style refresh
 
 ################ routes ####################
 
-@app.route('/combine/', methods=['GET', 'POST'])
+@app.route('/wallets/<wallet_alias>/combine/', methods=['GET', 'POST'])
 @login_required
-def combine():
+def combine(wallet_alias):
+    wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if request.method == 'POST': # FIXME: ugly...
         d = request.json
         psbt0 = d['psbt0'] # request.args.get('psbt0')
         psbt1 = d['psbt1'] # request.args.get('psbt1')
+        txid = d['txid']
         psbt = app.specter.combine([psbt0, psbt1])
         raw = app.specter.finalize(psbt)
         if "hex" in raw:
             app.specter.broadcast(raw["hex"])
+
+        device_name = d['device_name']
+        wallet.update_pending_psbt(psbt, txid, device_name)
         return json.dumps(raw)
     return 'meh'
 
@@ -352,13 +356,20 @@ def wallet_addresses(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+    viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
         if action == "updatelabel":
             label = request.form['label']
-            address = request.form['addr']
-            wallet.setlabel(address, label)
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+            account = request.form['account']
+            if viewtype == 'address':
+                wallet.setlabel(account, label)
+            else:
+                for address in wallet.addressesonlabel(account):
+                    wallet.setlabel(address, label)
+                wallet.getdata()
+    alladdresses = True if request.args.get('all') != 'False' else False
+    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -400,6 +411,7 @@ def wallet_send(wallet_alias):
     amount = 0
     fee_rate = 0.0
     err = None
+    pending_psbts = None
     if request.method == "POST":
         action = request.form['action']
         if action == "createpsbt":
@@ -429,7 +441,16 @@ def wallet_send(wallet_alias):
                                 amount = v["value"]
             except Exception as e:
                 err = "%r" % e
-    return render_template("wallet_send.html", psbt=psbt, address=address, label=label, amount=amount, 
+        elif action == "openpsbt":
+            psbt = ast.literal_eval(request.form["pending_psbt"])
+        elif action == "deletepsbt":
+            wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
+
+    list_psbts = True if request.args.get('pending') == 'True' else False
+    if list_psbts:
+        pending_psbts = wallet.pending_psbts
+
+    return render_template("wallet_send.html", list_psbts=list_psbts, pending_psbts=pending_psbts, psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
@@ -464,6 +485,8 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet["keypool"], wallet["keypool"]+delta)
             wallet.keypoolrefill(wallet["change_keypool"], wallet["change_keypool"]+delta, change=True)
             wallet.getdata()
+        elif action == "rebuildcache":
+            wallet.cli.cache.rebuild_cache()
 
     cc_file = None
     qr_text = wallet["name"]+"&"+wallet.descriptor
