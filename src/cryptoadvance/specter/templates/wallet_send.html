@@ -12,7 +12,7 @@
 		margin-bottom: 2em;
 	}
 	.fee_container {
-		margin-bottom: 20px;
+		height: 11em;
 	}
 	.fee_rate {
 		width: 6em;
@@ -24,7 +24,7 @@
 	.hwi-column-btn {
 		margin: 0.75em;
 	}
-	td.tx {
+	#coinselection-table .tx {
 		width: 100%;
 		max-width: 179px;
 		min-width: 120px;
@@ -69,10 +69,14 @@
 				<div class="notification error" v-if="above_wallet_amount || needs_more_selected_coins">
 					<ul>
 						<li v-if="needs_more_selected_coins"> You need to select more coins to match your amount!</li>
-						<li v-if="above_wallet_amount"> You cannot send more than [[wallet_fullbalance]] !</li>
+						<li v-if="above_wallet_amount"> You cannot send more than [[wallet_availablebalance]] !</li>
 					</ul>
 				</div>
-				<div class="note">Available: {{"%.8f" % wallet.fullbalance}}</div>
+				<div class="note">
+					Available: {{"%.8f" % wallet.availablebalance}}{% if wallet.locked_amount > 0 %};
+					&nbsp;Locked in pending transactions: {{"%.8f" % wallet.locked_amount}}
+					{% endif %}
+				</div>
 				<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
 				<br><br>
 			
@@ -99,7 +103,7 @@
 				</div>
 				<div>
 					<button id="coinselect" v-on:click="toggleExpand" type="button" class="btn" v-if="unspents.length>0">Select coins</button>
-					<table style="table-layout:fixed; display: block;" v-if="coinselectionActive">
+					<table style="table-layout:fixed; display: block;" v-if="coinselectionActive" id="coinselection-table">
 						<thead>
 						<tr>
 							<th></th><th>TxID</th><th>Address</th><th>Amount</th>
@@ -108,7 +112,7 @@
 						<tbody>
 							<tr v-for="tx in unspents" v-bind:key="tx.txid">
 								<td>
-									<input class="checkbox" type="checkbox" v-model="tx.selected" name="coinselect" v-bind:value="tx.txid">
+									<input class="checkbox" type="checkbox" v-model="tx.selected" name="coinselect" v-bind:value="[tx.txid, tx.vout, tx.amount]">
 								</td>
 								<td class="tx scroll"><a :href="block_explorer+'tx/'+tx.txid" target="blank">[[ tx.txid ]]</a></td>
 								<td class="tx scroll">
@@ -246,7 +250,7 @@
 
 		{% if wallet.uses_sdcard_device %}
 			<div>
-        <a class="btn centered" download='to{{address}}{{amount}}.psbt' href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+        <a class="btn centered" download="to{{psbt['address']}}{{psbt['amount']}}.psbt" href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
 			</div>
 			<br>
 		{% endif %}
@@ -517,11 +521,11 @@ document.getElementById("slider_confTime").value = 6
 		el: '#spend_coins',
 		delimiters: ["[[", "]]"],
 		data: {
-			unspents: {{ wallet.cli.listunspent()|tojson }},
+			unspents: {{ wallet.cli.listunspent(0)|tojson }},
 			coinselectionActive: false,
 			address: "",
 			amount: 0,
-			wallet_fullbalance: {{wallet.fullbalance}},
+			wallet_availablebalance: {{wallet.availablebalance}},
 			block_explorer: "{{specter.explorer}}"
 		},
 		computed: {
@@ -536,9 +540,9 @@ document.getElementById("slider_confTime").value = 6
 			},
 			max_amount_sendable: function() {
 				if (!this.coinselectionActive) {
-					return this.wallet_fullbalance
+					return this.wallet_availablebalance
 				} else {
-					return Math.min(this.selected_coins_sum, this.wallet_fullbalance)
+					return Math.min(this.selected_coins_sum, this.wallet_availablebalance)
 				}
 				
 			},
@@ -546,7 +550,7 @@ document.getElementById("slider_confTime").value = 6
 				return this.amount > this.selected_coins_sum && this.coinselectionActive
 			},
 			above_wallet_amount: function() {
-				return this.amount > this.wallet_fullbalance
+				return this.amount > this.wallet_availablebalance
 			}
 		},
 		methods: {

@@ -961,14 +961,15 @@ class Wallet(dict):
                 if b < 0:
                     break;
         elif selected_coins != []:
-            txlist = self.cli.listunspent()
             still_needed = amount
-            for tx in txlist:
-                if tx['txid'] in selected_coins:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                    still_needed -= tx["amount"]
-                    if still_needed < 0:
-                        break;
+            for coin in selected_coins:
+                coin_txid = coin.split(",")[0]
+                coin_vout = int(coin.split(",")[1])
+                coin_amount = float(coin.split(",")[2])
+                extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
+                still_needed -= coin_amount
+                if still_needed < 0:
+                    break;
             if still_needed > 0:
                 raise SpecterError("Selected coins does not cover Full amount! Please select more coins!")
 

@@ -134,9 +134,7 @@ class CoreCache():
             for i in range(0, len(self.cache["transactions"])):
                 if self.cache["transactions"][i]["txid"] in cache[self.walletname]["raw_tx_block_update"]:
                     cache[self.walletname]["transactions"][i]["block_height"] = cache[self.walletname]["raw_tx_block_update"][cache[self.walletname]["transactions"][i]["txid"]]
-                    del cache[self.walletname]["raw_tx_block_update"][cache[self.walletname]["transactions"][i]["txid"]]
-                    if len(self.cache["raw_tx_block_update"]) == 0:
-                        break
+            cache[self.walletname]["raw_tx_block_update"] = {}
 
         # If the `raw_transactions` did not change - exit here.
         if not self.cache["tx_changed"]:

@@ -177,7 +177,7 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     # Let's spend 500 coins
     assert wallet.getfullbalance() >= 250
     # From this print-statement, let's grab some txids which we'll use for coinselect
-    unspents = wallet.cli.listunspent()
+    unspents = wallet.cli.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:
     selected_coins = [unspents[5]['txid'], 
                     unspents[9]['txid'],
