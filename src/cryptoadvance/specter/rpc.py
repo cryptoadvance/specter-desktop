@@ -90,39 +90,40 @@ def get_configs(config=None):
         confs.append(o)
     return confs
 
-def detect_cli(config=None):
+def detect_cli_confs(config=None):
     if config is None:
         config = get_rpcconfig()
     rpcconfs = get_configs(config)
     cli_arr = []
     for conf in rpcconfs:
-        cli_arr.append(BitcoinCLI(**conf))
+        cli_arr.append(conf)
     return cli_arr
 
-def autodetect_cli(port=None):
+def autodetect_cli_confs(port=None):
     if port == "":
         port = None
     if port is not None:
         port = int(port)
-    cli_arr = detect_cli()
-    available_cli_arr = []
-    if len(cli_arr) > 0:
-        print("trying %d different configs" % len(cli_arr))
-        for cli in cli_arr:
+    conf_arr = detect_cli_confs()
+    available_conf_arr = []
+    if len(conf_arr) > 0:
+        print("trying %d different configs" % len(conf_arr))
+        for conf in conf_arr:
+            cli = BitcoinCLI(**conf)
             if port is not None:
                 if int(cli.port) != port:
                     continue
             try:
                 cli.getmininginfo()
-                available_cli_arr.append(cli)
+                available_conf_arr.append(conf)
             except requests.exceptions.RequestException:
                 pass
             except Exception as e:
                 pass
     else:
         print("Bitcoin-cli not found :(")
-    print("Detected %d bitcoin daemons" % len(available_cli_arr))
-    return available_cli_arr
+    print("Detected %d bitcoin daemons" % len(available_conf_arr))
+    return available_conf_arr
 
 class RpcError(Exception):
     ''' Specifically created for error-handling of the BitcoiCore-API

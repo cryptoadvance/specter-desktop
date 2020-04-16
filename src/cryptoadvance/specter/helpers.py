@@ -62,6 +62,9 @@ VALID_PREFIXES = {
 def double_sha256(s):
     return hashlib.sha256(hashlib.sha256(s).digest()).digest()
 
+def hash160(d):
+    return hashlib.new('ripemd160', hashlib.sha256(d).digest()).digest()
+
 def encode_base58(s):
     # determine how many 0 bytes (b'\x00') s starts with
     count = 0
@@ -102,6 +105,10 @@ def convert_xpub_prefix(xpub, prefix_bytes):
     # Update xpub to specified prefix and re-encode
     b = decode_base58(xpub)
     return encode_base58_checksum(prefix_bytes + b[4:])
+
+def get_xpub_fingerprint(xpub):
+    b = decode_base58(xpub)
+    return hash160(b[-33:])[:4]
 
 def parse_xpub(xpub):
     r = {"derivation": None}

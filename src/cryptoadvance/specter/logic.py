@@ -4,13 +4,16 @@ import json
 import os
 import random
 import hashlib
+from time import time
 from collections import OrderedDict
 
 from . import helpers
 from .descriptor import AddChecksum
-from .helpers import deep_update, load_jsons
-from .rpc import RPC_PORTS, BitcoinCLI, autodetect_cli
+from .helpers import deep_update, load_jsons, get_xpub_fingerprint
+from .rpc import RPC_PORTS, autodetect_cli_confs
+from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
+
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
@@ -46,15 +49,15 @@ def get_cli(conf):
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_arr = autodetect_cli(port=conf["port"])
+            cli_conf_arr = autodetect_cli_confs(port=conf["port"])
         else:
-            cli_arr = autodetect_cli()
-        if len(cli_arr) > 0:
-            cli = cli_arr[0]
+            cli_conf_arr = autodetect_cli_confs()
+        if len(cli_conf_arr) > 0:
+            cli = BitcoinCLICached(**cli_conf_arr[0])
         else:
             return None
     else:
-        cli = BitcoinCLI(conf["user"], conf["password"], 
+        cli = BitcoinCLICached(conf["user"], conf["password"], 
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 
@@ -301,7 +304,7 @@ class DeviceManager:
         return self
 
     def __next__(self):
-        arr = list(self._devices.keys())
+        arr = sorted(list(self._devices.keys()))
         if self._n < len(arr):
             v = self._devices[arr[self._n]]
             self._n += 1
@@ -389,11 +392,15 @@ class WalletManager:
             if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
                 self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
+                if "pending_psbts" in self._wallets[k] and len(self._wallets[k]["pending_psbts"]) > 0:
+                    for psbt in self._wallets[k]["pending_psbts"]:
+                        print("lock", self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
+                        Wallet(self._wallets[k], self).cli.lockunspent(False, [utxo for utxo in self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"]])
 
-    def get_by_alias(self, fname):
-        for dev in self:
-            if dev["alias"] == fname:
-                return dev
+    def get_by_alias(self, alias):
+        for w in self:
+            if w["alias"] == alias:
+                return w
 
     def names(self):
         return list(self._wallets.keys())
@@ -414,6 +421,7 @@ class WalletManager:
             "change_index": 0,
             "change_address": None,
             "change_keypool": 0,
+            "pending_psbts": {}
         }
         return dic
 
@@ -510,7 +518,7 @@ class WalletManager:
         return self
 
     def __next__(self):
-        arr = list(self._wallets.keys())
+        arr = sorted(list(self._wallets.keys()))
         if self._n < len(arr):
             v = self._wallets[arr[self._n]]
             self._n += 1
@@ -535,6 +543,7 @@ class Wallet(dict):
             self.setlabel(self._dict["address"], "Address #0")
         if self._dict["change_address"] is None:
             self._dict["change_address"] = self.get_address(0, change=True)
+        self.cli.scan_addresses(self)
         self.getdata()
 
     def _commit(self, update_manager=True):
@@ -567,6 +576,45 @@ class Wallet(dict):
     def is_multisig(self):
         return "sigs_required" in self
 
+    @property
+    def sigs_required(self):
+        return 1 if not self.is_multisig else self["sigs_required"]
+
+    @property
+    def pending_psbts(self):
+        if "pending_psbts" not in self._dict:
+            return {}
+        return self._dict["pending_psbts"]
+
+    @property
+    def locked_amount(self):
+        amount = 0
+        for psbt in self.pending_psbts:
+            amount += sum([utxo["witness_utxo"]["amount"] for utxo in self.pending_psbts[psbt]["inputs"]])
+        return amount
+
+    def delete_pending_psbt(self, txid):
+        try:
+            self.cli.lockunspent(True, self._dict["pending_psbts"][txid]["tx"]["vin"])
+        except:
+            # UTXO was spent
+            pass
+        del self._dict["pending_psbts"][txid]
+        self._commit()
+
+    def update_pending_psbt(self, psbt, txid, device_name):
+        if txid in self._dict["pending_psbts"]:
+            if self._dict["pending_psbts"][txid]["sigs_count"] + 1 == self.sigs_required:
+                self.delete_pending_psbt(txid)
+                return
+            self._dict["pending_psbts"][txid]["sigs_count"] += 1
+            self._dict["pending_psbts"][txid]["base64"] = psbt
+            if device_name:
+                if "devices_signed" not in self._dict["pending_psbts"][txid]:
+                    self._dict["pending_psbts"][txid]["devices_signed"] = []
+                self._dict["pending_psbts"][txid]["devices_signed"].append(device_name)
+            self._commit()
+
     def _check_change(self):
         addr = self["change_address"]
         if addr is not None:
@@ -583,23 +631,42 @@ class Wallet(dict):
         self._dict["change_address"] = self.get_address(self._dict["change_index"], change=True)
         self._commit()
 
+    @property
+    def txlist(self):
+        ''' The last 1000 transactions for that wallet - filtering out change addresses transactions and duplicated transactions (except for self-transfers)
+            This list is used for the wallet `txs` tab to list the wallet transacions.
+        '''
+        txidlist = []
+        txlist = []
+        for tx in self.transactions:
+            if tx["is_change"] == False and (tx["is_self"] or tx["txid"] not in txidlist):
+                txidlist.append(tx["txid"])
+                txlist.append(tx)
+        return txlist
+
     def getdata(self):
         try:
             self.balance = self.getbalances()
         except:
             self.balance = None
         try:
-            self.transactions = self.cli.listtransactions("*", 1000, 0, True)[::-1]
+            self.utxo = self.cli.listunspent(0)
+        except:
+            self.utxo = None
+        try:
+            self.transactions = self.cli.listtransactions("*", 1000, 0, True)
         except:
             self.transactions = None
         try:
             self.info = self.cli.getwalletinfo()
         except:
             self.info = None
+
         self._check_change()
         return {
             "balance": self.balance,
-            "transactions": self.transactions
+            "transactions": self.transactions,
+            "utxo": self.utxo
         }
 
     @property
@@ -612,11 +679,14 @@ class Wallet(dict):
         else:
             return self.info["scanning"]["progress"]
 
-    def getnewaddress(self):
-        self._dict["address_index"] += 1
-        addr = self.get_address(self._dict["address_index"])
-        self.setlabel(addr, "Address #{}".format(self._dict["address_index"]))
-        self._dict["address"] = addr
+    def getnewaddress(self, change=False):
+        label = "Change" if change else "Address"
+        index_type = "change_index" if change else "address_index"
+        address_type = "change_address" if change else "address"
+        self._dict[index_type] += 1
+        addr = self.get_address(self._dict[index_type], change=change)
+        self.setlabel(addr, "{} #{}".format(label, self._dict[index_type]))
+        self._dict[address_type] = addr
         self._commit()
         return addr
 
@@ -629,9 +699,9 @@ class Wallet(dict):
             self.keypoolrefill(self._dict[pool], index+WALLET_CHUNK, change=change)
         if self.is_multisig:
             # using sortedmulti for addresses
-            sorted_desc = self.sort_descriptor(self[desc], index)
-            return self.cli.deriveaddresses(sorted_desc)[0]
-        return self.cli.deriveaddresses(self._dict[desc], [index, index+1])[0]
+            sorted_desc = self.sort_descriptor(self[desc], index=index, change=change)
+            return self.cli.deriveaddresses(sorted_desc, change=change)[0]
+        return self.cli.deriveaddresses(self._dict[desc], [index, index+1], change=change)[0]
 
     def geterror(self):
         if self.cli.r is not None:
@@ -680,14 +750,14 @@ class Wallet(dict):
             return None
         return r["trusted"]+r["untrusted_pending"]
 
-    def sort_descriptor(self, descriptor, index=None):
+    def sort_descriptor(self, descriptor, index=None, change=False):
         if index is not None:
             descriptor = descriptor.replace("*", f"{index}")
         # remove checksum
         descriptor = descriptor.split("#")[0]
 
         # get address (should be already imported to the wallet)
-        address = self.cli.deriveaddresses(AddChecksum(descriptor))[0]
+        address = self.cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
         # get pubkeys involved
         address_info = self.cli.getaddressinfo(address)
@@ -740,7 +810,7 @@ class Wallet(dict):
             # we do one at a time
             args[0].pop("range")
             for i in range(start, end):
-                sorted_desc = self.sort_descriptor(self[desc], i)
+                sorted_desc = self.sort_descriptor(self[desc], index=i, change=change)
                 args[0]["desc"] = sorted_desc
                 self.cli.importmulti(args, {"rescan": False}, timeout=120)
         self._dict[pool] = end
@@ -751,8 +821,32 @@ class Wallet(dict):
         txlist = [tx for tx in self.transactions if tx["address"] == addr]
         return len(txlist)
 
+    def balanceonaddr(self, addr):
+        balancelist = [utxo["amount"] for utxo in self.utxo if utxo["address"] == addr]
+        return sum(balancelist)
+
+    def txonlabel(self, label):
+        txlist = [tx for tx in self.transactions if self.getlabel(tx["address"]) == label]
+        return len(txlist)
+
+    def balanceonlabel(self, label):
+        balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
+        return sum(balancelist)
+
+    def addressesonlabel(self, label):
+        return list(dict.fromkeys(
+            [tx["address"] for tx in self.transactions if self.getlabel(tx["address"]) == label]
+        ))
+
+    def istxspent(self, txid):
+        return txid in [utxo["txid"] for utxo in self.utxo]
+
     def setlabel(self, addr, label):
         self.cli.setlabel(addr, label)
+
+    def getlabel(self, addr):
+        address_info = self.cli.getaddressinfo(addr)
+        return address_info["label"] if "label" in address_info and address_info["label"] != "" else addr
     
     def getaddressname(self, addr, addr_idx):
         address_info = self.cli.getaddressinfo(addr)
@@ -761,14 +855,35 @@ class Wallet(dict):
             address_info["label"] = "Address #{}".format(addr_idx)
         return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
 
-    @property    
+    @property
     def fullbalance(self):
         ''' This is cached. Consider to use getfullbalance '''
         if self.balance is None:
             return None
         if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
             return None
-        return self.balance["trusted"]+self.balance["untrusted_pending"]
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data or tx_data["confirmations"] == 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] + sum(locked)
+
+    @property
+    def availablebalance(self):
+        ''' This is cached.'''
+        if self.balance is None:
+            return None
+        if self.balance["trusted"] is None or self.balance["untrusted_pending"] is None:
+            return None
+        locked = [0]
+        for psbt in self.pending_psbts:
+            for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
+                tx_data = self.cli.gettransaction(txid)
+                if "confirmations" in tx_data and tx_data["confirmations"] != 0:
+                    locked.append(self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"])
+        return self.balance["trusted"]+self.balance["untrusted_pending"] - sum(locked)
 
     @property
     def descriptor(self):
@@ -787,8 +902,44 @@ class Wallet(dict):
         return self.txonaddr(addr)
 
     @property
+    def utxoaddresses(self):
+        return list(dict.fromkeys([
+            utxo["address"] for utxo in 
+            sorted(
+                self.utxo,
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
+                )["time"]
+            )
+        ]))
+
+    @property
+    def utxolabels(self):
+        return list(dict.fromkeys([
+            self.getlabel(utxo["address"]) for utxo in 
+            sorted(
+                self.utxo,
+                key = lambda utxo: next(
+                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
+                )["time"]
+            )
+        ]))
+
+    @property
     def addresses(self):
         return [self.get_address(idx) for idx in range(0,self._dict["address_index"] + 1)]
+
+    @property
+    def active_addresses(self):
+        return list(dict.fromkeys(self.addresses + self.utxoaddresses))
+    
+    @property
+    def change_addresses(self):
+        return [self.get_address(idx, change=True) for idx in range(0,self._dict["change_index"] + 1)]
+
+    @property
+    def labels(self):
+        return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
     def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
         """
@@ -832,6 +983,8 @@ class Wallet(dict):
             "subtractFeeFromOutputs": subtract_arr
         }
 
+        self.setlabel(self["change_address"], "Change #{}".format(self._dict["change_index"]))
+
         if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
             options["feeRate"] = fee_rate / 10 ** 8 * 1024
@@ -853,7 +1006,15 @@ class Wallet(dict):
         if self.is_multisig:
             for k in self._dict["keys"]:
                 key = b'\x01'+helpers.decode_base58(k["xpub"])
-                value = bytes.fromhex(k["fingerprint"])+der_to_bytes(k["derivation"])
+                if "fingerprint" in k and k["fingerprint"] is not None:
+                    fingerprint = bytes.fromhex(k["fingerprint"])
+                else:
+                    fingerprint = helpers.get_xpub_fingerprint(k["xpub"])
+                if "derivation" in k and k["derivation"] is not None:
+                    der = der_to_bytes(k["derivation"])
+                else:
+                    der = b''
+                value = fingerprint+der
                 cc_psbt.unknown[key] = value
         psbt["coldcard"]=cc_psbt.serialize()
 
@@ -872,6 +1033,18 @@ class Wallet(dict):
                 inp.hd_keypaths = {}
         psbt["specter"]=qr_psbt.serialize()
         print("PSBT for Specter:", psbt["specter"])
+
+        self.cli.lockunspent(False, psbt["tx"]["vin"])
+
+        if "pending_psbts" not in self._dict:
+            self._dict["pending_psbts"] = {}
+        psbt["amount"] = amount
+        psbt["address"] = address
+        psbt["time"] = time()
+        psbt["sigs_count"] = 0
+        self._dict["pending_psbts"][psbt["tx"]["txid"]] = psbt
+        self._commit()
+
         return psbt
 
     def get_cc_file(self):
@@ -884,7 +1057,7 @@ class Wallet(dict):
         # cc assume the same derivation for all keys :(
         derivation = None
         for k in self["keys"]:
-            if "derivation" in k:
+            if "derivation" in k and k["derivation"] is not None:
                 derivation = k["derivation"].replace("h","'")
                 break
         if derivation is None:
@@ -905,7 +1078,7 @@ Format: {}
             if 'fingerprint' in k:
                 fingerprint = k['fingerprint']
             if fingerprint is None:
-                return None
+                fingerprint = get_xpub_fingerprint(k['xpub']).hex()
             cc_file += "{}: {}\n".format(fingerprint.upper(), k['xpub'])
         return cc_file
 

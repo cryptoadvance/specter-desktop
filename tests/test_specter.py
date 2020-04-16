@@ -6,8 +6,9 @@ import pytest
 
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.logic import (get_cli, Device, DeviceManager, Specter, Wallet, WalletManager,
-                     alias, SpecterError)
-from cryptoadvance.specter.rpc import BitcoinCLI
+                     alias)
+from cryptoadvance.specter.rpc_cache import BitcoinCLICached
+from cryptoadvance.specter.logic import SpecterError
 
 
 def test_alias():
@@ -29,7 +30,7 @@ def test_get_cli(specter_regtest_configured):
     print("rpc_config_data: {}".format(rpc_config_data))
     cli = get_cli(rpc_config_data)
     assert cli.getblockchaininfo() 
-    assert isinstance(cli, BitcoinCLI)
+    assert isinstance(cli, BitcoinCLICached)
     # ToDo test autodetection-features
 
 def test_specter(specter_regtest_configured,caplog): 
@@ -143,6 +144,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     except RpcError as rpce:
         assert rpce.error_msg == "Insufficient funds"
         pass
+    wallet.delete_pending_psbt(psbt["tx"]["txid"])
     # But wallet.createpsbt supports it (by explicitely specifying inputs)! 
     psbt = wallet.createpsbt(random_address, 60, True, 10)
     assert len(psbt['tx']['vin']) == 3
