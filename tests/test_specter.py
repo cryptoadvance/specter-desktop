@@ -179,16 +179,18 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     # From this print-statement, let's grab some txids which we'll use for coinselect
     unspents = wallet.cli.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:
-    selected_coins = [unspents[5]['txid'], 
-                    unspents[9]['txid'],
-                    unspents[12]['txid']]
+    selected_coins = [
+        "{},{},{}".format(unspents[5]['txid'], unspents[5]['vout'], unspents[5]['amount']), 
+        "{},{},{}".format(unspents[9]['txid'], unspents[9]['vout'], unspents[9]['amount']),
+        "{},{},{}".format(unspents[12]['txid'], unspents[12]['vout'], unspents[12]['amount'])
+    ]
     selected_coins_amount_sum = unspents[5]['amount'] + unspents[9]['amount'] + unspents[12]['amount']
     number_of_coins_to_spend = selected_coins_amount_sum - 0.1 # Let's spend almost all of them 
     psbt = wallet.createpsbt(random_address, number_of_coins_to_spend, True, 10, selected_coins=selected_coins)
     assert len(psbt['tx']['vin']) == 3
     psbt_txs = [ tx['txid'] for tx in psbt['tx']['vin'] ]
     for coin in selected_coins:
-        assert coin in psbt_txs
+        assert coin.split(",")[0] in psbt_txs
     # Now let's spend more coins then we have selected. This should result in an exception:
     try:
         psbt = wallet.createpsbt(random_address, number_of_coins_to_spend +1, True, 10, selected_coins=selected_coins)
