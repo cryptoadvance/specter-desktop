@@ -219,15 +219,22 @@
 			</div>
 
 			<div class="row" style="min-height: 400px;">
-			<!--    {% set chunk = 700 %}
-				{%for i in range( (psbt["base64"] | length)//chunk+1)%}
-				<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
-				{%endfor%}
-			 -->
+				<script src="/static/vue.min.js"></script>
+				<script src="/static/qr/vue-qrcode.min.js"></script>
 
-				<img id="compressed_psbt" src="{{qrcode(psbt['specter'])}}" class="qr broad" width="400px" height="400px"/>
-				<img id="full_psbt" src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px" style="display: none"/>
-			 </div>
+				<span id="compressed_psbt">
+				<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+				</span>
+				<span id="full_psbt" style="display: none">
+				<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+				</span>
+			</div>
+			<script type = "text/javascript" src = "/static/vue_qr.js"></script>
+			<script>
+			Vue.component(VueQrcode.name, VueQrcode);
+			var vmc = new Vue({ el: '#compressed_psbt'});
+			var vmf = new Vue({ el: '#full_psbt'});
+			</script>
 			 <script>
 			 	document.addEventListener("DOMContentLoaded", function(){
 				 	document.forms[0].elements.psbt_type.forEach((o)=>{
