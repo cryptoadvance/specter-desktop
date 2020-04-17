@@ -348,12 +348,12 @@ function loadDynamicFees() {
 	xhttp.open("GET", request, true);
 	xhttp.send();
 	}
-
-window.onload = loadDynamicFees;
+{% if not psbt and not list_psbts %}
+document.addEventListener("DOMContentLoaded", loadDynamicFees)
 document.getElementById("fee_option_dynamic").checked = true
 document.getElementById("fee_unit").value = "BTC_KB"
 document.getElementById("slider_confTime").value = 6
-
+{% endif %}
 </script>
 <script type="module">
 
