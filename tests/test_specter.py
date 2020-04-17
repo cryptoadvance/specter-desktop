@@ -8,6 +8,7 @@ from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.logic import (get_cli, Device, DeviceManager, Specter, Wallet, WalletManager,
                      alias)
 from cryptoadvance.specter.rpc_cache import BitcoinCLICached
+from cryptoadvance.specter.logic import SpecterError
 
 
 def test_alias():
@@ -149,3 +150,50 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert len(psbt['tx']['vin']) == 3
     assert psbt['tx']['vin'][2]['txid'] == '730b41bd1e77b65770bfec73304da5c34cc1bad100394e6f5cc020bb5dbe65fd'
 
+def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(),"regtest")
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias('specter')
+    key = {
+        "derivation": "m/48h/1h/0h/2h",
+        "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+        "fingerprint": "08686ac6",
+        "type": "wsh",
+        "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
+    }
+    wallet = wm.create_simple('a_second_test_wallet','wpkh',key,device)
+    # Let's fund the wallet with ... let's say 40 blocks a 50 coins each --> 200 coins
+    address = wallet.getnewaddress()
+    assert address == 'bcrt1qtnrv2jpygx2ef3zqfjhqplnycxak2m6ljnhq6z'
+    wallet.cli.generatetoaddress(20, address)
+    # in two addresses
+    address = wallet.getnewaddress()
+    wallet.cli.generatetoaddress(20, address)
+    # newly minted coins need 100 blocks to get spendable
+    # let's mine another 100 blocks to get these coins spendable
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    wallet.cli.generatetoaddress(110, random_address)
+    # Now we have loads of potential inputs
+    # Let's spend 500 coins
+    assert wallet.getfullbalance() >= 250
+    # From this print-statement, let's grab some txids which we'll use for coinselect
+    unspents = wallet.cli.listunspent(0)
+    # Lets take 3 more or less random txs from the unspents:
+    selected_coins = [
+        "{},{},{}".format(unspents[5]['txid'], unspents[5]['vout'], unspents[5]['amount']), 
+        "{},{},{}".format(unspents[9]['txid'], unspents[9]['vout'], unspents[9]['amount']),
+        "{},{},{}".format(unspents[12]['txid'], unspents[12]['vout'], unspents[12]['amount'])
+    ]
+    selected_coins_amount_sum = unspents[5]['amount'] + unspents[9]['amount'] + unspents[12]['amount']
+    number_of_coins_to_spend = selected_coins_amount_sum - 0.1 # Let's spend almost all of them 
+    psbt = wallet.createpsbt(random_address, number_of_coins_to_spend, True, 10, selected_coins=selected_coins)
+    assert len(psbt['tx']['vin']) == 3
+    psbt_txs = [ tx['txid'] for tx in psbt['tx']['vin'] ]
+    for coin in selected_coins:
+        assert coin.split(",")[0] in psbt_txs
+    # Now let's spend more coins then we have selected. This should result in an exception:
+    try:
+        psbt = wallet.createpsbt(random_address, number_of_coins_to_spend +1, True, 10, selected_coins=selected_coins)
+        assert False, "should throw an exception!"
+    except SpecterError as e:
+        pass

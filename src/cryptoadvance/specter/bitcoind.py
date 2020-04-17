@@ -253,7 +253,7 @@ class BitcoindDockerController(BitcoindController):
     def search_bitcoind_container(all=False):
         ''' returns a list of containers which are running bitcoind '''
         d_client = docker.from_env()
-        return [c for c in d_client.containers.list(all) if c.attrs['Config']['Cmd'][0]=='bitcoind']
+        return [c for c in d_client.containers.list(all) if (c.attrs['Config'].get('Cmd')or[""])[0]=='bitcoind']
 
     @staticmethod
     def detect_bitcoind_container(with_rpcport):

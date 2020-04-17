@@ -941,7 +941,7 @@ class Wallet(dict):
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B"):
+    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
@@ -960,6 +960,18 @@ class Wallet(dict):
                 b -= tx["amount"]
                 if b < 0:
                     break;
+        elif selected_coins != []:
+            still_needed = amount
+            for coin in selected_coins:
+                coin_txid = coin.split(",")[0]
+                coin_vout = int(coin.split(",")[1])
+                coin_amount = float(coin.split(",")[2])
+                extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
+                still_needed -= coin_amount
+                if still_needed < 0:
+                    break;
+            if still_needed > 0:
+                raise SpecterError("Selected coins does not cover Full amount! Please select more coins!")
 
         # subtract fee from amount of this output:
         # currently only one address is supported, so either
