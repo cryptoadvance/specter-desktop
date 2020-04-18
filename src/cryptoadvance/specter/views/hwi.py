@@ -65,7 +65,6 @@ def hwi_extract_xpubs():
     type = request.form.get("type")
     path = request.form.get("path")
     passphrase = request.form.get("passphrase")
-    print(passphrase)
 
     try:
         client = get_hwi_client(type, path, passphrase=passphrase)
