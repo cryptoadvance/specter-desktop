@@ -18,7 +18,12 @@ def get_default_datadir():
 def get_rpcconfig():
     path = get_default_datadir()
     config = {
-        "bitcoin.conf": {},
+        "bitcoin.conf": {
+            "default": {},
+            "main": {},
+            "test": {},
+            "regtest": {}
+        },
         "cookies": [],
     }
     if not os.path.isdir(path): # we don't know where to search for files
@@ -28,12 +33,18 @@ def get_rpcconfig():
     if os.path.exists(bitcoin_conf_file):
         try:
             with open(bitcoin_conf_file, 'r') as f:
+                current = config["bitcoin.conf"]["default"]
                 for line in f.readlines():
                     line = line.split("#")[0]
+
+                    for net in config["bitcoin.conf"]:
+                        if f"[{net}]" in line:
+                            current = config["bitcoin.conf"][net]
+
                     if '=' not in line:
                         continue
                     k, v = line.split('=', 1)
-                    config["bitcoin.conf"][k.strip()] = v.strip()
+                    current[k.strip()] = v.strip()
         except:
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {
@@ -64,24 +75,21 @@ def get_configs(config=None):
         config = get_rpcconfig()
     confs = []
     default = {}
-    if "rpcuser" in config["bitcoin.conf"]:
-        default["user"] = config["bitcoin.conf"]["rpcuser"]
-    if "rpcpassword" in config["bitcoin.conf"]:
-        default["passwd"] = config["bitcoin.conf"]["rpcpassword"]
-    if "rpcconnect" in config["bitcoin.conf"]:
-        default["host"] = config["bitcoin.conf"]["rpcconnect"]
-    if "rpcport" in config["bitcoin.conf"]:
-        default["port"] = int(config["bitcoin.conf"]["rpcport"])
-    if "user" in default and "passwd" in default:
-        if "port" in default: # only one bitcoin-cli makes sense in this case
-            confs.append(default)
-            return confs
-        else:
-            for network in RPC_PORTS:
-                o = {"port": RPC_PORTS[network]}
-                o.update(default)
-                confs.append(o)
-            return confs
+    for network in config["bitcoin.conf"]:
+        if "rpcuser" in config["bitcoin.conf"][network]:
+            default["user"] = config["bitcoin.conf"][network]["rpcuser"]
+        if "rpcpassword" in config["bitcoin.conf"][network]:
+            default["passwd"] = config["bitcoin.conf"][network]["rpcpassword"]
+        if "rpcconnect" in config["bitcoin.conf"][network]:
+            default["host"] = config["bitcoin.conf"][network]["rpcconnect"]
+        if "rpcport" in config["bitcoin.conf"][network]:
+            default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
+        if "user" in default and "passwd" in default:
+            if "port" not in config["bitcoin.conf"]["default"]: # only one bitcoin-cli makes sense in this case
+                if network == "default":
+                    continue
+                default["port"] = RPC_PORTS[network]
+            confs.append(default.copy())
     # try cookies now
     for cookie in config["cookies"]:
         o = {}
