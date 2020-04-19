@@ -740,12 +740,13 @@ class Wallet(dict):
                 r["untrusted_pending"] += t["amount"]
             # Bitcoin Core doesn't return locked UTXO with `listunspent` command. 
             # `getbalance` command doesn't return balance from unconfirmed UTXO.
-            # Thus we need to calculate balance in locked unconfirmed UTXO from the pending PSBT data.
-            for psbt in self.pending_psbts:
-                for i, txid in enumerate([tx["txid"] for tx in self.pending_psbts[psbt]["tx"]["vin"]]):
-                    tx_data = self.cli.gettransaction(txid)
-                    if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                        r["untrusted_pending"] += self.pending_psbts[psbt]["inputs"][i]["witness_utxo"]["amount"]
+            # So to imitate `getbalances` we need to add all unconfirmed locked UTXO balance manually with this loop.
+            locked_utxo = self.cli.listlockunspent()
+            for tx in locked_utxo:
+                tx_data = self.cli.gettransaction(tx["txid"])
+                raw_tx = self.cli.decoderawtransaction(tx_data["hex"])
+                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
+                    r["untrusted_pending"] += raw_tx["vout"][tx["vout"]]["value"]
         except:
             r = { "trusted": None, "untrusted_pending": None }
         self.balance = r
