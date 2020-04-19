@@ -20,8 +20,8 @@ def get_rpcconfig():
     config = {
         "bitcoin.conf": {
             "default": {},
-            "mainnet": {},
-            "testnet": {},
+            "main": {},
+            "test": {},
             "regtest": {}
         },
         "cookies": [],
@@ -36,15 +36,11 @@ def get_rpcconfig():
                 current = config["bitcoin.conf"]["default"]
                 for line in f.readlines():
                     line = line.split("#")[0]
-                    if '[main]' in line:
-                        current = config["bitcoin.conf"]["mainnet"]
-                        continue
-                    if '[test]' in line:
-                        current = config["bitcoin.conf"]["testnet"]
-                        continue
-                    if '[regtest]' in line:
-                        current = config["bitcoin.conf"]["regtest"]
-                        continue
+
+                    for net in config["bitcoin.conf"]:
+                        if f"[{net}]" in line:
+                            current = config["bitcoin.conf"][net]
+
                     if '=' not in line:
                         continue
                     k, v = line.split('=', 1)
@@ -89,7 +85,7 @@ def get_configs(config=None):
         if "rpcport" in config["bitcoin.conf"][network]:
             default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
         if "user" in default and "passwd" in default:
-            if "port" not in default: # only one bitcoin-cli makes sense in this case
+            if "port" not in config["bitcoin.conf"]["default"]: # only one bitcoin-cli makes sense in this case
                 if network == "default":
                     continue
                 default["port"] = RPC_PORTS[network]
