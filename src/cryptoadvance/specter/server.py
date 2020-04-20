@@ -5,7 +5,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_qrcode import QRcode
 from flask_login import LoginManager, login_user
 
 from .descriptor import AddChecksum
@@ -38,7 +37,6 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
 def init_app(app, specter=None):
     '''  see blogpost 19nd Feb 2020 '''
     app.logger.info("Initializing QRcode")
-    QRcode(app) # enable qr codes generation
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     login_manager = LoginManager()

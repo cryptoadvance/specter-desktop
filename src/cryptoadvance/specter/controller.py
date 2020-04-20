@@ -11,7 +11,6 @@ from flask import g, request, redirect, url_for
 from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, flash
 from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
-from flask_qrcode import QRcode
 
 
 from .helpers import normalize_xpubs, run_shell

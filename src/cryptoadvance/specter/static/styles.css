@@ -106,13 +106,6 @@ tr.unconfirmed{
 .holder{
     height: 100%;
 }
-.qr{
-    background: #fff;
-    padding: 30px;
-}
-.qr.broad{
-    padding: 40px;
-}
 .side .balance{
     margin-left: auto;
     margin-right: 20px;

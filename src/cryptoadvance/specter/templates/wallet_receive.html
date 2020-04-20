@@ -16,7 +16,16 @@
 	<button type="button" id="cancel" onclick="toggleEdit()" class="btn centered" style="display: none;">Cancel</button>
 	<button type="button" id="edit" onclick="toggleEdit()" name="action" value="updatelabel" class="btn centered">Edit Label</button>
 </form><br><br>
-<img src="{{ qrcode( 'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) ) }}" class="qr alt-qr" width="300px" />
+
+<script src="/static/qr/vue-qrcode.min.js"></script>
+<div id="qrdiv" class="alt-qr">
+	<qrcode value="{{'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) }}" :options="{ width: 300 }" tag="img"></qrcode>
+</div>
+<script>
+	Vue.component(VueQrcode.name, VueQrcode);
+	new Vue({el: "#qrdiv"})
+</script>
+
 <br>
 <small>( scan to verify )</small>
 <div class="padded">{{wallet['address']}}</div>

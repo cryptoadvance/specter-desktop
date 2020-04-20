@@ -31,9 +31,14 @@
 			<td>{{key["derivation"]}}</td>
 			<td width="10" class="qr-trigger">
 				<img src="/static/img/qr_tiny.svg"/>
-				<div class="qr-popup">
-					<img src="{{qrcode('name='+device['name']+'\n'+key['combined'])}}">
+				<script src="/static/qr/vue-qrcode.min.js"></script>
+				<div id="qr_{{loop.index}}" class="qr-popup">
+					<qrcode value="{{'name='+device['name']+'\n'+key['combined']}}" :options="{ width: 200 }" tag="img"></qrcode>
 				</div>
+				<script>
+					Vue.component(VueQrcode.name, VueQrcode);
+					new Vue({el: "#qr_{{loop.index}}"})
+				</script>
 			</td>
 			<td class="xpub scroll"><span>{{key["original"]}}</span></td>
 			<td width="80px">

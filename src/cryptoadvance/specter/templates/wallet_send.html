@@ -219,9 +219,6 @@
 			</div>
 
 			<div class="row" style="min-height: 400px;">
-				<script src="/static/vue.min.js"></script>
-				<script src="/static/qr/vue-qrcode.min.js"></script>
-
 				<span id="compressed_psbt">
 				<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
 				</span>
@@ -229,11 +226,12 @@
 				<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
 				</span>
 			</div>
-			<script type = "text/javascript" src = "/static/vue_qr.js"></script>
+			<script src="/static/qr/vue-qrcode.min.js"></script>
+			<script type="text/javascript" src="/static/vue_qr.js"></script>
 			<script>
-			Vue.component(VueQrcode.name, VueQrcode);
-			var vmc = new Vue({ el: '#compressed_psbt'});
-			var vmf = new Vue({ el: '#full_psbt'});
+				Vue.component(VueQrcode.name, VueQrcode);
+				var vmc = new Vue({ el: '#compressed_psbt'});
+				var vmf = new Vue({ el: '#full_psbt'});
 			</script>
 			 <script>
 			 	document.addEventListener("DOMContentLoaded", function(){
