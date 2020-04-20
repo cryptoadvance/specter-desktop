@@ -1,3 +1,18 @@
+/**
+ * @brief This component splits a large qr (text) into smaller chunks.
+ * E.g. a multisig PSBT is split into individual chunks with headers which
+ * can be animated on a mouse click:
+ *
+ * ["p1of6 Multisig 5&wsh(sortedmulti(1,[f8720f8e/48h/1h/0h/2",
+ * "p2of6 h]tpubDEwGuKMeWUefghYUSEvJkbzKN9hNLTWT56aCThafPMjY",
+ * "p3of6 q2y9L7JQQSrNYx2FoTzFdzAtSHntnGNy4aeDjfLxJa7wKE5czu",
+ * "p4of6 ExXWFzerNsiWo,[9d1dc604/48h/1h/0h/2h]tpubDEAMhNB9p",
+ * "p5of6 UL6Ej2HuiJUU1TDMqHNxRKjGFxLfCB7cmxKjQKXNF4yR8CMpgD",
+ * "p6of6 t5eh5V3XesKDUrcFHYDMz3u3ybWwHSAZZQLjiMAi4oKy6HEg))" ]
+ *
+ * param[in] text
+ * param[in] width
+*/
 Vue.component('qrencode',{
   template : '<div :title="title" v-on:click="clicked()"><qrcode :value="qrval" :options="wd"></qrcode></div>',
   data: function() {
@@ -26,6 +41,9 @@ Vue.component('qrencode',{
       txt_len = this.text.length
       if (txt_len / max_len > 1.0) {
         this.isQRlarge = true
+        /* This algorithm makes all the chunks of about equal length.
+        This makes sure that the last chunk is not (too) different in size
+        which is visually noticeable when animation occurs */
         let number_of_chunks = Math.ceil(txt_len / max_len)
         n = Math.ceil(txt_len / number_of_chunks)
         for (let i = 0; i < txt_len; i += n) {
