@@ -2,6 +2,7 @@ import base64
 import copy
 import json
 import os
+import shutil
 import random
 import hashlib
 from time import time
@@ -10,7 +11,7 @@ from collections import OrderedDict
 from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, load_jsons, get_xpub_fingerprint
-from .rpc import RPC_PORTS, autodetect_cli_confs
+from .rpc import RPC_PORTS, autodetect_cli_confs, get_default_datadir
 from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
 
@@ -406,9 +407,10 @@ class WalletManager:
         return list(self._wallets.keys())
 
     def _get_intial_wallet_dict(self, name):
+        walletsindir = [wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]]
         al = alias(name)
         i = 2
-        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)):
+        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)) or self.cli_path+al in walletsindir:
             al = alias("%s %d" % (name, i))
             i+=1
         dic = {
@@ -509,6 +511,24 @@ class WalletManager:
         # get Wallet class instance
         w = Wallet(o, self)
         return w
+
+    def delete_wallet(self, wallet):
+        print("Deleting {}".format(wallet["alias"]))
+        self.cli.unloadwallet(self.cli_path+wallet["alias"])
+        # Try deleting wallet file
+        if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), self.cli_path+wallet["alias"])):
+            shutil.rmtree(os.path.join(get_default_datadir(), self.cli_path+wallet["alias"]))
+        # Delete JSON
+        if os.path.exists(wallet["fullpath"]):
+            os.remove(wallet["fullpath"])
+
+    def rename_wallet(self, wallet, name):
+        print("Renaming {}".format(wallet["alias"]))
+        wallet["name"] = name
+        if self.working_folder is not None:
+            with open(wallet["fullpath"], "w+") as f:
+                f.write(json.dumps(wallet, indent=4))
+        self.update()
 
     def __getitem__(self, name):
         return Wallet(self._wallets[name], manager=self)

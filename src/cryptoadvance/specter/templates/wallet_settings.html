@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block main %}
-<h1>{{wallet.name}}</h1>
+
+<form action="./" method="POST">
+	<h1 id="nametitle">{{wallet.name}}</h1>
+	<input type="text" class="label" autocomplete="off" spellcheck="false" id="walletname" name="walletname" value="{{wallet.name}}" style="font-size: 1.5em; text-align: center; display: none;" />
+	<button type="submit" class="btn update" id="savename" name="action" value="renamewallet" style="display: none; width: 49.2%;">Update</button>
+	<button type="button" class="btn cancel" id="cancelname" onclick="toggleEdit()" style="display: none; width: 49.2%;">Cancel</button>
+	<button type="button" class="btn edit" id="editname" onclick="toggleEdit()">Edit Wallet Name</button>
+	<br>
+	<a target="blank" class="address" href="{{specter.explorer}}address/{{address}}">{{address}}</a>
+</form>
 <div class="row padded">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
 	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio">Addresses</a>
@@ -66,4 +75,30 @@
 <div>
 	<code style="max-width: 700px; word-wrap: break-all; overflow-x: scroll; display: block; padding: 20px 0;">{{qr_text}}</code>
 </div>
+<h1>Delete Wallet</h1>
+<form action="." method="POST" class="padded" style="width: 500px">
+	<div class="row center">
+		<button type="submit" name="action" value="deletewallet" class="btn danger" style="max-width: 160px;">Delete Wallet</button>
+	</div>
+</form>
+<script>
+	function toggleEdit() {
+		var edit_button_display = document.getElementById("editname").style.display
+		if (edit_button_display === 'none'){
+			document.getElementById("editname").style.display = 'block'
+			document.getElementById("cancelname").style.display = 'none'
+			document.getElementById("savename").style.display = 'none'
+			document.getElementById("nametitle").style.display = 'block'
+			document.getElementById("walletname").style.display = "none"
+		} else {
+			document.getElementById("walletname").style.fontSize = '1.5em';
+			document.getElementById("walletname").value = "{{ wallet.name }}"
+			document.getElementById("walletname").style.display = "block"
+			document.getElementById("editname").style.display = 'none'
+			document.getElementById("cancelname").style.display = 'inline-block'
+			document.getElementById("savename").style.display = 'inline-block'
+			document.getElementById("nametitle").style.display = 'none'
+		}
+	}
+</script>
 {% endblock %}
