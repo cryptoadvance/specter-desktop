@@ -24,6 +24,7 @@ Vue.component('qrencode',{
         title : "",
         isQRlarge : false,
         isQRplaying : false,
+        isQRtoolarge : false,
         wd : { width: 400 }
      }
   },
@@ -32,7 +33,7 @@ Vue.component('qrencode',{
     this.split()
     this.qrval=this.text
     this.wd = {width: this.width}
-    if (this.isQRlarge) {this.title = "Click to animate!"}
+    if (this.isQRlarge && !this.isQRtoolarge) {this.title = "Click to animate!"}
   },
   mounted() {this.init()},
   methods:{
@@ -41,6 +42,7 @@ Vue.component('qrencode',{
       txt_len = this.text.length
       if (txt_len / max_len > 1.0) {
         this.isQRlarge = true
+        if (txt_len >= 2300) {this.isQRtoolarge = true}
         /* This algorithm makes all the chunks of about equal length.
         This makes sure that the last chunk is not (too) different in size
         which is visually noticeable when animation occurs */
@@ -58,6 +60,12 @@ Vue.component('qrencode',{
       }
     },
     animate : function() {
+      if (this.isQRtoolarge) {
+        this.indx++
+        if (this.indx >= this.chunks.length) {this.indx = 0}
+        this.qrval = this.chunks[this.indx]
+        return
+      }
       if (this.isQRplaying == false) {
         this.qrval = this.text
         this.title = "Click to animate!"
