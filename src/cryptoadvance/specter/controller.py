@@ -446,8 +446,14 @@ def wallet_send(wallet_alias):
                                 amount = v["value"]
             except Exception as e:
                 flash(e, "error")
+            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
+            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
     return render_template("wallet_send.html", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
