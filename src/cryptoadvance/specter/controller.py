@@ -32,6 +32,13 @@ from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
 
+########## template injections #############
+@app.context_processor
+def inject_debug():
+    ''' Can be used in all jinja2 templates '''
+    print("DEBUG={}".format(app.config['DEBUG']))
+    return dict(debug=app.config['DEBUG'])
+
 ################ routes ####################
 
 @app.route('/wallets/<wallet_alias>/combine/', methods=['GET', 'POST'])

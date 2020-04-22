@@ -17,7 +17,6 @@ from daemonize import Daemonize
 from os import path
 import signal
 
-DEBUG = True
 
 @click.group()
 def cli():
@@ -106,8 +105,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
         load_dotenv()   # Load the secrets from .env
         tor = os.getenv('TOR_PASSWORD')
 
-    def run(debug=False):
+    def run():
         # Note: dotenv doesn't convert bools!
+        debug = app.config['DEBUG']
         if tor is not None:
             from . import tor_util
             # if we have certificates
@@ -136,7 +136,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
         d.start()
     # if not a daemon we can use DEBUG
     else:
-        run(DEBUG)
+        run()
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
