@@ -488,6 +488,16 @@ def wallet_settings(wallet_alias):
             wallet.getdata()
         elif action == "rebuildcache":
             wallet.cli.cache.rebuild_cache()
+        elif action == "deletewallet":
+            app.specter.wallets.delete_wallet(wallet)
+            response = redirect(url_for('index'))
+            return response
+        elif action == "renamewallet":
+            wallet_name = request.form['walletname']
+            if wallet_name in app.specter.wallets.names():
+                error = "Wallet already exists"
+            else:
+                app.specter.wallets.rename_wallet(wallet, wallet_name)
 
     cc_file = None
     qr_text = wallet["name"]+"&"+wallet.descriptor
