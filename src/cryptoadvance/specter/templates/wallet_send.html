@@ -57,7 +57,7 @@
 			<div class="card"  id="spend_coins">
 				Recipient address:<br>
 				<div class="row">
-					<input type="text" id="address" name="address" v-model="address" :value="address"> &nbsp;
+					<input type="text" id="address" name="address" v-model="address"> &nbsp;
 					<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
 				</div>
 				<br>
@@ -65,7 +65,7 @@
 				<input type="text" id="label" name="label" value="{{label}}">
 				<br><br>
 				Amount:<br>
-				<input type="number" name="amount" v-model="amount" :value="amount" id="amount" v-bind:max="max_amount_sendable" min=0 step="1e-8" autocomplete="off">
+				<input type="number" name="amount" v-model="amount" id="amount" v-bind:max="max_amount_sendable" min=0 step="1e-8" autocomplete="off">
 				<div class="notification error" v-if="above_wallet_amount || needs_more_selected_coins">
 					<ul>
 						<li v-if="needs_more_selected_coins"> You need to select more coins to match your amount!</li>
@@ -516,6 +516,7 @@ document.getElementById("slider_confTime").value = 6
 {% endif %}
 </script>
 
+{% if not psbt %}
 <script>
 	var spend_coins = new Vue({
 		el: '#spend_coins',
@@ -565,7 +566,8 @@ document.getElementById("slider_confTime").value = 6
 			}
 		}
 	})
-	</script>
+</script>
+{% endif %}
 
 
 {% endblock %}
