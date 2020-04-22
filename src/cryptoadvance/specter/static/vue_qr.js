@@ -14,7 +14,8 @@
  * param[in] width
 */
 Vue.component('qrencode',{
-  template : '<div :title="title" v-on:click="clicked()"><qrcode :value="qrval" :options="wd"></qrcode></div>',
+  template : '<div :title="title" v-on:click="clicked()"><qrcode :value="qrval" \
+              :options="wd"></qrcode><div class="note">{{title}}</div></div>',
   data: function() {
      return {
         speed : 300,
