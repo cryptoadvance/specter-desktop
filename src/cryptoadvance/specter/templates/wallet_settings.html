@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block main %}
-
 <form action="./" method="POST">
 	<h1 id="nametitle">{{wallet.name}}</h1>
 	<input type="text" class="label" autocomplete="off" spellcheck="false" id="walletname" name="walletname" value="{{wallet.name}}" style="font-size: 1.5em; text-align: center; display: none;" />
@@ -10,13 +9,9 @@
 		<button type="button" class="btn edit" id="editname" onclick="toggleEdit()">Edit Wallet Name</button>
 	</div>
 </form>
-<div class="row padded">
-	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
-	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio">Addresses</a>
-	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
-	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
-	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right checked">Settings</a>
-</div>
+<h1>{{wallet.name}}</h1>
+{% set active_menuitem = "settings" %}
+{% include "includes/wallet_menu.html" %}
 <h1>Keypool control</h1>
 <form action="." method="POST" class="padded" style="width: 500px">
 	<div>Currently watching {{wallet["keypool"]}} receiving and {{wallet["change_keypool"]}} change addresses.<div>

@@ -402,7 +402,7 @@ def fees(blocks):
     res = app.specter.estimatesmartfee(int(blocks))
     return res
 
-@app.route('/wallets/<wallet_alias>/send/', methods=['GET', 'POST'])
+@app.route('/wallets/<wallet_alias>/send/new', methods=['GET', 'POST'])
 @login_required
 def wallet_send(wallet_alias):
     app.specter.check()
@@ -452,7 +452,7 @@ def wallet_send(wallet_alias):
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
 
-@app.route('/wallets/<wallet_alias>/sendpending/', methods=['GET', 'POST'])
+@app.route('/wallets/<wallet_alias>/send/pending/', methods=['GET', 'POST'])
 @login_required
 def wallet_sendpending(wallet_alias):
     app.specter.check()
