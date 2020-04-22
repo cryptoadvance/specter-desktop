@@ -4,9 +4,11 @@
 <form action="./" method="POST">
 	<h1 id="nametitle">{{wallet.name}}</h1>
 	<input type="text" class="label" autocomplete="off" spellcheck="false" id="walletname" name="walletname" value="{{wallet.name}}" style="font-size: 1.5em; text-align: center; display: none;" />
-	<button type="submit" class="btn update" id="savename" name="action" value="renamewallet" style="display: none; width: 49.2%;">Update</button>
-	<button type="button" class="btn cancel" id="cancelname" onclick="toggleEdit()" style="display: none; width: 49.2%;">Cancel</button>
-	<button type="button" class="btn edit" id="editname" onclick="toggleEdit()">Edit Wallet Name</button>
+	<div class="row">
+		<button type="submit" class="btn update" id="savename" name="action" value="renamewallet" style="display: none; width: 49.2%; margin: 3px;">Update</button>
+		<button type="button" class="btn cancel" id="cancelname" onclick="toggleEdit()" style="display: none; width: 49.2%; margin: 3px;">Cancel</button>
+		<button type="button" class="btn edit" id="editname" onclick="toggleEdit()">Edit Wallet Name</button>
+	</div>
 </form>
 <div class="row padded">
 	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
