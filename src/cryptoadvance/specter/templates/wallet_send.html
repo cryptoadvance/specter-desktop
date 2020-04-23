@@ -209,25 +209,30 @@
 		{% if wallet.uses_qrcode_device %}
 			<div class="row padded">
 				<label>
-					<input type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
+					<input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
 					<div class="btn radio left">Compressed PSBT</div>
 				</label>
 				<label>
-					<input type="radio" name="psbt_type" value="full_psbt" class="hidden">
+					<input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
 					<div class="btn radio right">Full PSBT</div>
 				</label>
 			</div>
 
 			<div class="row" style="min-height: 400px;">
-			<!--    {% set chunk = 700 %}
-				{%for i in range( (psbt["base64"] | length)//chunk+1)%}
-				<img src="{{qrcode((loop.index0 | string)+''+psbt['base64'][loop.index0*chunk:(loop.index0+1)*chunk])}}" class="qr" width="300px"/>
-				{%endfor%}
-			 -->
-
-				<img id="compressed_psbt" src="{{qrcode(psbt['specter'])}}" class="qr broad" width="400px" height="400px"/>
-				<img id="full_psbt" src="{{qrcode(psbt['base64'])}}" class="qr broad" width="400px" height="400px" style="display: none"/>
-			 </div>
+				<span id="compressed_psbt">
+				<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+				</span>
+				<span id="full_psbt" style="display: none">
+				<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+				</span>
+			</div>
+			<script src="/static/qr/vue-qrcode.min.js"></script>
+			<script type="text/javascript" src="/static/vue_qr.js"></script>
+			<script>
+				Vue.component(VueQrcode.name, VueQrcode);
+				var vmc = new Vue({ el: '#compressed_psbt'});
+				var vmf = new Vue({ el: '#full_psbt'});
+			</script>
 			 <script>
 			 	document.addEventListener("DOMContentLoaded", function(){
 				 	document.forms[0].elements.psbt_type.forEach((o)=>{
@@ -348,12 +353,12 @@ function loadDynamicFees() {
 	xhttp.open("GET", request, true);
 	xhttp.send();
 	}
-
-window.onload = loadDynamicFees;
+{% if not psbt and not list_psbts %}
+document.addEventListener("DOMContentLoaded", loadDynamicFees)
 document.getElementById("fee_option_dynamic").checked = true
 document.getElementById("fee_unit").value = "BTC_KB"
 document.getElementById("slider_confTime").value = 6
-
+{% endif %}
 </script>
 <script type="module">
 
