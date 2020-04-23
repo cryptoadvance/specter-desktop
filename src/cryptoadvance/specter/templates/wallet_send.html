@@ -474,11 +474,15 @@ document.getElementById("slider_confTime").value = 6
 				let arr = addr.split("?");
 				addr = arr[0]
 				document.getElementById("address").value = addr;
+				let evt = new Event('input');
+				document.getElementById("address").dispatchEvent(evt);
 				if(arr.length > 1){
 					arr = arr[1].split("&");
 					arr.forEach((e)=>{
 						if(e.startsWith("amount=")){
 							document.getElementById("amount").value = parseFloat(e.substr(7));
+							let evt = new Event('input');
+							document.getElementById("amount").dispatchEvent(evt);
 						}
 					});
 				}
