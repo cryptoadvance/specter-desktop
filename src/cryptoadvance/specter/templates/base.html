@@ -4,7 +4,6 @@
 	<link rel="shortcut icon" type="image/png" href="/static/img/icon.png"/>
 	<title>Specter Desktop</title>
 	<link rel="stylesheet" type="text/css" href="/static/styles.css?{{rand}}">
-	<script src="/static/vue.min.js"></script>
 </head>
 <body>
 {% include "includes/overlay.html" %}
@@ -58,6 +57,13 @@ function hideLoader(){
 // 	e.addEventListener("click", showLoader);
 // });
 </script>
+{% if debug %}
+	<!-- Developer Version of vue.js because debug=true -->
+	<script src="/static/vue.js"></script>
+{% else %}  
+	<script src="/static/vue.min.js"></script>
+{% endif %}
+
 {% block scripts %}
 {% endblock %}
 </body>
