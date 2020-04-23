@@ -125,7 +125,7 @@ nav.side{
     min-height: min-content;
     flex-direction: column;
     justify-content: flex-start;
-    flex-grow: 0;
+    flex-grow: 1;
 }
 #side-content{
     background: var(--cmap-bg-ligher);
@@ -135,7 +135,7 @@ nav.side{
     border-right: 1px solid var(--cmap-bg-lightest);
     padding-top: 10px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     overflow-y: scroll;
 }
 main{
@@ -680,4 +680,31 @@ table tr:hover .btn.hovering{
 }
 .dropdown:hover .dropbtn {
     background: (--cmap-border-darker);
+}
+#side-expand{
+    display: none;
+}
+@media screen and (max-width: 1100px) {
+  #side-content{
+    position: absolute;
+    height: 100%;
+    left: -235px;
+    transition: left 0.3s;
+  }
+  #side-content:hover, #side-content.active{
+    position: absolute;
+    left: 0px;
+  }
+  #side-expand{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #side-content:hover > #side-expand,
+  #side-content.active > #side-expand{
+    /*transform: scaleX(-1);*/
+    display: none;
+  }
 }
