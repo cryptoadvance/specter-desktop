@@ -75,8 +75,7 @@ def hwi_extract_xpubs():
         client.is_testnet = False
         xpubs = ""
 
-        master_xpub = client.get_pubkey_at_path('m/0')['xpub']
-        master_fpr = hwilib_commands.get_xpub_fingerprint_hex(master_xpub)
+        master_fpr = client.get_master_fingerprint_hex()
 
         # HWI calls to client.get_pubkey_at_path() return "xpub"-prefixed xpubs
         # regardless of derivation path. Update to match SLIP-0132 prefixes.
