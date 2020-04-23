@@ -132,7 +132,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
             print("* For onion address check the file %s" % toraddr_file)
         # Note: we can't run flask as a deamon in debug mode,
         #       so use debug=False by default
-        d = Daemonize(app="specter", pid=pid_file, action=run)
+        d = Daemonize(app="specter", pid=pid_file, action=run, auto_close_fds=False)
         d.start()
     # if not a daemon we can use DEBUG
     else:
