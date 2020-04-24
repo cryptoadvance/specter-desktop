@@ -33,6 +33,8 @@ python -m cryptoadvance.specter server --daemon
 python -m cryptoadvance.specter server --stop
 ```
 
+After that, specter will be available at [127.0.0.1:25441/](127.0.0.1:25441/).
+
 You can also run it (as a daemon), using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
 
 An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor:
