@@ -36,7 +36,7 @@
 	}
 </style>
 <h1>{{wallet.name}}</h1>
-{% set active_menuitem = "receive" %}
+{% set active_menuitem = "addresses" %}
 {% include "includes/wallet_menu.html" %}
 {% if ( wallet.fullbalance ) is not none %}
 <h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
