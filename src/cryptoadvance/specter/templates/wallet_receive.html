@@ -1,13 +1,8 @@
 {% extends "base.html" %}
 {% block main %}
 <h1>{{wallet.name}}</h1>
-<div class="row padded">
-	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
-	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio">Addresses</a>
-	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio checked">Receive</a>
-	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
-	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
-</div>
+{% set active_menuitem = "receive" %}
+{% include "includes/wallet_menu.html" %}
 <div class="center">
 <form action="./" method="POST">
 	{% set addrlabel = wallet.getaddressname(wallet['address'], wallet['address_index']) %}
