@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block main %}
+
+{% include "includes/hwi.html" %}
+
+<style>
+	.tx_info {
+		padding: 1em;
+		border: 1px solid #506072;
+		border-radius: 4px;
+		text-align: center;
+		margin-bottom: 2em;
+	}
+	.hwi_container{
+		margin-bottom: 2em;
+	}
+	.hwi-column-btn {
+		margin: 0.75em;
+	}
+	.tx {
+		width: 100%;
+		max-width: 179px;
+		min-width: 120px;
+	}
+	.checkbox {
+		width: 20px;
+  		height: 20px;
+	}
+</style>
+<h1>{{wallet.name}}</h1>
+{% set active_menuitem = "send" %}
+{% include "includes/wallet_menu.html" %}
+<br>
+<form action="./" method="POST" class="full-width">
+	<div class="tx_info">
+		
+		<div>Sending <b>{{psbt["amount"]}}</b> BTC to<b>
+			<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
+			{{wallet.getaddressname(psbt["address"], -1)}}
+			</a></b><br><br>
+		</div>
+
+		{% if wallet.is_multisig %}
+			<div class="log"><b id="sigscount">{{psbt["sigs_count"]}}</b> signatures acquired</div>
+		{% endif %}
+	</div>
+
+	{# ====================== Possible tx signers' inputs ====================== #}
+	{% if wallet.uses_hwi_device %}
+		<div class="hwi_container flex-center flex-column">
+			Sign transaction with your:<br/>
+			{% if not wallet.is_multisig %}
+				<button class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
+			{% else %}
+				{% for device in wallet.devices %}
+					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						<button class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else ''}}>
+							{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+						</button>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+		</div>
+	{% endif %}
+
+	{% if wallet.uses_qrcode_device %}
+		<div class="row padded">
+			<label>
+				<input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
+				<div class="btn radio left">Compressed PSBT</div>
+			</label>
+			<label>
+				<input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
+				<div class="btn radio right">Full PSBT</div>
+			</label>
+		</div>
+
+		<div class="row" style="min-height: 400px;">
+			<span id="compressed_psbt">
+				<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+			</span>
+			<span id="full_psbt" style="display: none">
+				<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+			</span>
+		</div>
+		<script src="/static/qr/vue-qrcode.min.js"></script>
+		<script type="text/javascript" src="/static/vue_qr.js"></script>
+		<script>
+			Vue.component(VueQrcode.name, VueQrcode);
+			var vmc = new Vue({ el: '#compressed_psbt'});
+			var vmf = new Vue({ el: '#full_psbt'});
+		</script>
+		<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			document.forms[0].elements.psbt_type.forEach((o)=>{
+				o.addEventListener('change', e=>{
+					["compressed_psbt","full_psbt"].forEach(id=>{
+						let el = document.getElementById(id);
+						if(id==document.forms[0].elements.psbt_type.value){
+							el.style.display = "flex";
+						}else{
+							el.style.display = "none";
+						}
+					});
+				})
+			});
+		});
+		</script>
+		<!-- because coldcard psbt is the most complete (includes xpubs) -->
+		<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
+	{% endif %}
+
+	{% if wallet.uses_sdcard_device %}
+		<div>
+			<a class="btn centered" download="to{{psbt['address']}}{{psbt['amount']}}.psbt" href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+		</div>
+		<br>
+	{% endif %}
+
+
+	{# ===================== Possible tx signers' outputs ===================== #}
+	{% if wallet.uses_hwi_device %}
+		<div id="hwi_sign_container" class="flex-center flex-column hidden">
+			<h2>Sign Transaction</h2>
+			<div>
+				Please confirm transaction on your <span id="hwi_device_name">device</span>
+			</div>
+			<div class="flex-center">
+				<img src="/static/img/loader_boxes.svg"/>
+			</div>
+		</div>
+	{% endif %}
+
+	{% if wallet.uses_qrcode_device %}
+		<div class="output_option">
+			<a class="btn centered" id="scanme">Scan signed transaction</a>
+		</div>
+	{% endif %}
+		<div class="output_option" style="margin-top:20px">
+			<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
+		</div>
+
+
+	{% if wallet.uses_sdcard_device %}
+		<div class="row">
+			<input type="file" id="file" class="inputfile"/>
+			<label for="file" class="btn centered">Upload signed transaction</label>
+		</div>
+	{% endif %}
+
+	<div class="row padded">
+		<form action="./" method="POST">
+			<input type="hidden" name="pending_psbt" value="{{psbt}}">
+			<button type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
+		</form>
+	</div>
+</form>
+
+{% endblock %}
+
+
+{% block scripts %}
+<div class="popup" id="popup">
+	<video muted playsinline id="qr-video" class="video"></video>
+</div>
+<script>
+
+function capitalize(str){
+	return str.charAt(0).toUpperCase()+str.substring(1);
+}
+
+</script>
+<script type="module">
+	let currentSigningDevice = '';
+	let currentSigningDeviceNum;
+	let psbt0 = "{{psbt['base64']}}";
+	let sigscount = {{psbt["sigs_count"]}};
+
+	function combine(psbt1){
+		let url="/wallets/{{wallet.alias}}/combine/";
+		// console.log(url);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+				console.log(psbt0);
+				console.log(psbt1);
+				let o = JSON.parse(this.responseText);
+				console.log(o);
+				if(o.complete){
+					window.location.replace("../tx/");
+				}else{
+					psbt0 = o["psbt"];
+					sigscount++;
+					document.getElementById("sigscount").innerHTML = sigscount;
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).style = "background-color:#303c49;";
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).disabled = true;
+					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).innerHTML += ' (&#10004;)';
+
+				}
+				// console.log(this.responseText);
+			}else{
+				// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+			}
+		}
+		xmlHttp.onerror = function(e){
+			console.log(xmlHttp);
+			// err = xmlHttp;
+		}
+		xmlHttp.open("POST", url, true); // true for asynchronous 
+		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1, "txid": "{{psbt['tx']['txid']}}", "device_name": currentSigningDevice}));
+		// xmlHttp.send(null);
+	}
+	document.addEventListener("DOMContentLoaded", function(){
+		let el = document.getElementById("pastetx");
+		el.addEventListener("click", function(){
+			let input = prompt("Paste signed transaction here");
+			if(input){
+				combine(input);
+			}
+		});
+	});
+
+	{# ================== Signers various device support ================== #}
+	{% if wallet.uses_hwi_device %}
+		document.addEventListener("DOMContentLoaded", function(){
+			initPageOverlay("hwi_sign_container");
+
+			{% if not wallet.is_multisig %}
+				document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					beginDetectWallet("{{ wallet.device_type }}");
+				});
+			{% else %}
+				{% for device in wallet.devices %}
+					{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
+							currentSigningDevice = "{{ device.name }}"
+							currentSigningDeviceNum = "{{ loop.index }}"
+							e.preventDefault();
+							beginDetectWallet("{{ device.type }}");
+						});
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+
+			document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
+				e.preventDefault();
+				document.getElementById("hwi_device_name").textContent = capitalize(hwiCurrentWallet.type);
+				showPageOverlay("hwi_sign_container");
+
+				const psbt = "{{ psbt['base64'] }}";
+				var jsonResponse = await hwiSendPsbt(psbt);
+				if (jsonResponse.hasOwnProperty('error')) {
+					alert(jsonResponse.error);
+				} else if (jsonResponse.psbt !== "undefined") {
+					combine(jsonResponse.psbt);
+				}
+
+				hidePageOverlay("hwi_sign_container");
+			});
+		});
+	{% endif %}
+
+
+	{% if wallet.uses_qrcode_device %}
+		import QrScanner from "/static/qr/qr-scanner.min.js";
+		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+		const video = document.getElementById('qr-video');
+
+		const scanner = new QrScanner(video, result => {
+			scanner.stop();
+			document.getElementById("popup").style.display = 'none';
+			combine(result);
+		});
+		document.getElementById("scanme").addEventListener("click", function(){
+			try{
+				scanner.start();
+				document.getElementById("popup").style.display = 'flex';
+			}catch(e){
+				alert("Can't start the QR scanner!\n\n" + e);
+			}
+		});
+		document.getElementById("popup").addEventListener("click", function(){
+			document.getElementById("popup").style.display = 'none';
+			scanner.stop();
+		});
+	{% endif %}
+
+	{% if wallet.uses_sdcard_device %}
+		var el = document.getElementById("file");
+
+		el.addEventListener("change", (e) => {
+			let files = el.files;
+			console.log(files);
+			for(let i=0; i<files.length; i++){
+				console.log(files[i].name);
+				let reader = new FileReader();
+				reader.onload = function(e) {
+					let str = btoa(reader.result);
+					combine(str);
+				}
+				reader.readAsBinaryString(files[i]);
+			}
+		});
+	{% endif %}
+</script>
+
+{% endblock %}

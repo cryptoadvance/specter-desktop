@@ -36,13 +36,8 @@
 	}
 </style>
 <h1>{{wallet.name}}</h1>
-<div class="row padded">
-	<a href="/wallets/{{wallet['alias']}}/tx/" class="btn radio left">Transactions</a>
-	<a href="/wallets/{{wallet['alias']}}/addresses/" class="btn radio checked">Addresses</a>
-	<a href="/wallets/{{wallet['alias']}}/receive/" class="btn radio">Receive</a>
-	<a href="/wallets/{{wallet['alias']}}/send/" class="btn radio">Send</a>
-	<a href="/wallets/{{wallet['alias']}}/settings/" class="btn radio right">Settings</a>
-</div>
+{% set active_menuitem = "addresses" %}
+{% include "includes/wallet_menu.html" %}
 {% if ( wallet.fullbalance ) is not none %}
 <h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
 	{{ "%0.8f" % ( wallet.fullbalance ) | float }}
