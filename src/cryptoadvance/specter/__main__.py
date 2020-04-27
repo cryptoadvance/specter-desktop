@@ -105,9 +105,8 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
         load_dotenv()   # Load the secrets from .env
         tor = os.getenv('TOR_PASSWORD')
 
-    def run():
-        # Note: dotenv doesn't convert bools!
-        debug = app.config['DEBUG']
+    # debug is false by default
+    def run(debug=False):
         if tor is not None:
             from . import tor_util
             # if we have certificates
@@ -134,9 +133,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
         #       so use debug=False by default
         d = Daemonize(app="specter", pid=pid_file, action=run)
         d.start()
-    # if not a daemon we can use DEBUG
     else:
-        run()
+        # if not a daemon we can use DEBUG
+        run(app.config['DEBUG'])
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
