@@ -476,6 +476,15 @@ textarea{
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    flex-direction: column;
+}
+#qr-progress{
+    display: none;
+    font-size: 28px;
+    padding: 20px;
+    background: rgba(0,0,0,0.9);
+    margin-top: -50px;
+    z-index: 9999;
 }
 .notification{
     min-width: 200px;
