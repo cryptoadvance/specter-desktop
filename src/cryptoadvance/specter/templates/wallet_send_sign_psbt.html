@@ -198,15 +198,16 @@ function capitalize(str){
 					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).innerHTML += ' (&#10004;)';
 
 				}
-				// console.log(this.responseText);
 			}else{
-				// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+				if(xmlHttp.readyState === 4){
+					console.log(xmlHttp);
+					alert("Server failed to combine transactions!\n" + xmlHttp.response);
+				}
 			}
 		}
-		xmlHttp.onerror = function(e){
-			console.log(xmlHttp);
-			// err = xmlHttp;
-		}
+		// xmlHttp.onerror = function(e){
+		// 	console.log(e);
+		// }
 		xmlHttp.open("POST", url, true); // true for asynchronous 
 		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
