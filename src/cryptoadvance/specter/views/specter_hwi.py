@@ -21,8 +21,8 @@ def is_micropython(port):
 # This class extends the HardwareWalletClient for Specter-specific things
 class SpecterClient(HardwareWalletClient):
 
-    def __init__(self, path, password=''):
-        super().__init__(path, password)
+    def __init__(self, path, password='', expert=False):
+        super().__init__(path, password, expert)
         self.simulator = (":" in path)
         if self.simulator:
             arr = path.split(":")
