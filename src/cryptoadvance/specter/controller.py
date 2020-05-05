@@ -17,6 +17,7 @@ from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
 
 from .logic import Specter, purposes, addrtypes, get_cli
+from .rpc import RpcError
 from datetime import datetime
 import urllib
 
@@ -49,8 +50,13 @@ def combine(wallet_alias):
         psbt0 = d['psbt0'] # request.args.get('psbt0')
         psbt1 = d['psbt1'] # request.args.get('psbt1')
         txid = d['txid']
-        psbt = app.specter.combine([psbt0, psbt1])
-        raw = app.specter.finalize(psbt)
+        try:
+            psbt = app.specter.combine([psbt0, psbt1])
+            raw = app.specter.finalize(psbt)
+        except RpcError as e:
+            return e.error_msg, e.status_code
+        except Exception as e:
+            return "Unknown error: %r" % e, 500
         if "hex" in raw:
             app.specter.broadcast(raw["hex"])
 

@@ -162,6 +162,7 @@
 {% block scripts %}
 <div class="popup" id="popup">
 	<video muted playsinline id="qr-video" class="video"></video>
+	<div id="qr-progress"></div>
 </div>
 <script>
 
@@ -197,15 +198,16 @@ function capitalize(str){
 					document.getElementById("hwi_sign_btn_"+currentSigningDeviceNum).innerHTML += ' (&#10004;)';
 
 				}
-				// console.log(this.responseText);
 			}else{
-				// document.getElementById("lbl").innerHTML = "Connection failed... Trying again...";
+				if(xmlHttp.readyState === 4){
+					console.log(xmlHttp);
+					alert("Server failed to combine transactions!\n" + xmlHttp.response);
+				}
 			}
 		}
-		xmlHttp.onerror = function(e){
-			console.log(xmlHttp);
-			// err = xmlHttp;
-		}
+		// xmlHttp.onerror = function(e){
+		// 	console.log(e);
+		// }
 		xmlHttp.open("POST", url, true); // true for asynchronous 
 		// xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -270,8 +272,57 @@ function capitalize(str){
 
 		const video = document.getElementById('qr-video');
 
+		var partial_qr = {
+			"len": 0, // total number of qr codes scanned
+			"parts": [],
+		};
 		const scanner = new QrScanner(video, result => {
+			// check if it is a partial QR code
+			// syntax: "pMofN data"
+			let re = /p(\d+)of(\d+) (.*)/;
+			let p = result.match(re);
+			if(p){
+				let m = parseInt(p[1]);
+				let n = parseInt(p[2]);
+				let data = p[3];
+				if(m>n){
+					return alert("Invalid QR code! n>m!");
+				}
+				if(partial_qr.len != 0 && partial_qr.len != n){
+					return alert("Number of frames in QR code mismatch!\nHad "+partial_qr.len+", got "+n);
+				}
+				// if it is the first qr code - build array
+				if(partial_qr.len == 0){
+					partial_qr.len = n;
+					// don't change this to new Array()
+					// it's javascript magic... 
+					// https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
+					partial_qr.parts = [...Array(n)];
+					document.getElementById("qr-progress").style.display = 'block';
+					document.getElementById("qr-progress").innerHTML = "";
+				}
+				// fill corresponding part
+				partial_qr.parts[m-1] = data;
+				// display scanning progress
+				let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
+				document.getElementById("qr-progress").innerHTML = s.join("");
+				// check if we still have missing parts
+				if(partial_qr.parts.includes(undefined)){
+					// just return -> we are not ready to combine yet
+					return;
+				}
+				// recombine to result
+				result = partial_qr.parts.join("");
+				// reset partial_qr
+				partial_qr.parts = [];
+				partial_qr.len = 0;
+				// reset progress
+				document.getElementById("qr-progress").innerHTML = "";
+				document.getElementById("qr-progress").style.display = 'none';
+			}
+			// if we are done
 			scanner.stop();
+			document.getElementById("qr-progress").style.display = 'none';
 			document.getElementById("popup").style.display = 'none';
 			combine(result);
 		});
@@ -285,6 +336,8 @@ function capitalize(str){
 		});
 		document.getElementById("popup").addEventListener("click", function(){
 			document.getElementById("popup").style.display = 'none';
+			document.getElementById("qr-progress").innerHTML = "";
+			document.getElementById("qr-progress").style.display = 'none';
 			scanner.stop();
 		});
 	{% endif %}
