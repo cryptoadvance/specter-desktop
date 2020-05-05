@@ -77,8 +77,11 @@ It has an address index included in the QR code.</center></div>
 			const jsonResponse = await response.json();
 			if (jsonResponse.success) {
 				console.log(jsonResponse)
-				if ("{{ wallet['address'] }}" != jsonResponse.status.address) {
-					alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!")
+				if ("{{ wallet['address'] }}" != jsonResponse.status.address &&
+					(("{{ specter.chain }}" != "regtest" || !jsonResponse.status.address.startsWith("tb")) ||
+					"{{ wallet['address'] }}".slice(0, -6) != "bcrt" + jsonResponse.status.address.slice(2, -6))
+				) {
+					alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
 				}
 			} else {
 				alert(jsonResponse.error);
