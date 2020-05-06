@@ -265,3 +265,19 @@ def hwi_sign_tx():
 
         return jsonify(success=False, error=str(e))
 
+@hwi_views.route('/display_address/', methods=['POST'])
+def hwi_display_address():
+    type = request.form.get("type")
+    path = request.form.get("path")
+    passphrase = request.form.get("passphrase")
+    descriptor = request.form.get("descriptor")
+    
+    try:
+        client = get_hwi_client(type, path, passphrase=passphrase)
+        status = hwilib_commands.displayaddress(client, desc=descriptor)
+        if 'error' in status:
+            return jsonify(success=False, error=status['error'])
+        return jsonify(success=True, status=status)
+    except Exception as e:
+        print(e)
+        return jsonify(success=False, error=e)
