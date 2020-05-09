@@ -6,9 +6,29 @@
 {% else %}
 <h1>Select the key of devices to use in {{wallet_name}}.</h1>
 {% endif %}
-
+<div class="center">
+	<div style="display: inline-block; text-align: center; margin-top: 10px;">
+		<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline">
+		<label for="rescan">Scan for existing funds?</label>
+		<div class="tool-tip">
+			<i class="tool-tip__icon">i</i>
+			<p class="tool-tip__info">
+				<span class="info">
+					<span class="info__title">Importing an existing wallet<br></span>
+					Check this option to scan the blockchain for existing wallet balance and history.
+					{% if specter.info["pruned"] %}
+						<span class="warning" style="display: inline-block;">
+							Please Note:<br>You are using a pruned node.<br> Wallet history may not fully appear.
+						</span>
+					{% endif %}
+				</span>
+			</p>
+		</div>
+	</div>
+</div>
+<div class="spacer"></div>
 {% if cosigners %}
-<form action="./" method="POST" class="table-holder">
+<form id="keysform" action="./" method="POST" class="table-holder">
 	<input type="hidden" name="wallet_name" value="{{wallet_name}}">
 	{% for cosigner in cosigners %}
 	<input type="hidden" name="cosigner{{loop.index0}}" value="{{cosigner['name']}}"/>
@@ -72,7 +92,6 @@
 
 {% else %}
 <!-- UGLY COPY-PASTE -->
-<div class="spacer"></div>
 <div class="table-holder">
 	<table>
 		<thead>
@@ -103,7 +122,7 @@
 			<td>{{key["derivation"]}}</td>
 			<td class="scroll xpub"><span>{{key["original"]}}</span></td>
 			<td width="120px">
-				<form action="./" method="POST">
+				<form id="keysform" action="./" method="POST">
 					<input type="hidden" name="key" value="{{key['original']}}">
 					<input type="hidden" name="wallet_name" value="{{wallet_name}}">
 					<input type="hidden" name="device" value="{{device['name']}}">

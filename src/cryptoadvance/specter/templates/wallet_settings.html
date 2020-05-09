@@ -30,14 +30,17 @@
 		Rescan blockchain from block:<br>
 		<div class="row aligned">
 			{% if specter.info.chain == "main" %}
-			{% set startblock=481824 %}
+			{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
 			{% else %}
-			{% set startblock=0 %}
+			{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 			{% endif %}
 
-			<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px">
+			<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
 			<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
 		</div>
+		{% if specter.info['pruned']  %}
+			<div class="note center">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+		{% endif %}
 		<div class="note center"><b>481824</b> was the first Segwit block.</div>
 	{% endif %}
 </form>

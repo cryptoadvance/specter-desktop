@@ -243,6 +243,26 @@ def new_wallet_simple():
                 return render_template("base.html", error="Key not found", specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_simple(wallet_name, wallet_type, key, device)
+            rescan_blockchain = 'rescanblockchain' in request.form
+            if rescan_blockchain:
+                if app.specter.info['chain'] == "main":
+                    if not app.specter.info['pruned'] or app.specter.info['pruneheight'] < 481824:
+                        startblock = 481824
+                    else:
+                        startblock = app.specter.info['pruneheight']
+                else:
+                    if not app.specter.info['pruned']:
+                        startblock = 0
+                    else:
+                        startblock = app.specter.info['pruneheight']
+                try:
+                    wallet.cli.rescanblockchain(startblock, timeout=1)
+                except requests.exceptions.ReadTimeout:
+                    pass
+                except Exception as e:
+                    print(e)
+                    error = "%r" % e
+                wallet.getdata()
             return redirect("/wallets/%s/" % wallet["alias"])
     return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
