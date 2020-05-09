@@ -449,7 +449,7 @@ def wallet_send(wallet_alias):
             label = request.form['label']
             if request.form['label'] != "":
                 wallet.setlabel(address, label)
-            amount = float(request.form['amount'])
+            amount = float(request.form['btc_amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
             selected_coins = request.form.getlist('coinselect')
