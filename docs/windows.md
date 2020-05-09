@@ -1,6 +1,6 @@
 # Running Specter-Desktop on Windows
 
-1. Install Python 3.7 from Microsoft Store (python 3.8 is not supported yet)
+1. Install Python 3.7 from Microsoft Store (python 3.8 is not supported yet). You may need to install [Visual C++ Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) for it.
 2. Install libusb:
 	- Download latest binary from https://libusb.info/
 	- Extract and copy content of MS64 folder to your `Windows\System32` folder
