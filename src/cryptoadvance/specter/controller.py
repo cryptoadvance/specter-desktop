@@ -442,6 +442,7 @@ def wallet_send(wallet_alias):
     label = ""
     amount = 0
     fee_rate = 0.0
+    err = None
     if request.method == "POST":
         action = request.form['action']
         if action == "createpsbt":
@@ -471,18 +472,24 @@ def wallet_send(wallet_alias):
                             if address in v["scriptPubKey"]["addresses"]:
                                 amount = v["value"]
             except Exception as e:
-                flash(e, "error")
-            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
-                                                wallet_alias=wallet_alias, wallet=wallet, 
-                                                specter=app.specter, rand=rand)
+                err = e
+            if err is None:
+                return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                                                    wallet_alias=wallet_alias, wallet=wallet, 
+                                                    specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
             return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
+        elif action == 'deletepsbt':
+            try:
+                wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
+            except Exception as e:
+                flash("Could not delete Pending PSBT!")
     return render_template("wallet_send.html", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
-                                                specter=app.specter, rand=rand)
+                                                specter=app.specter, rand=rand, error=err)
 
 @app.route('/wallets/<wallet_alias>/send/pending/', methods=['GET', 'POST'])
 @login_required
@@ -494,10 +501,12 @@ def wallet_sendpending(wallet_alias):
         print(e)
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
     if request.method == "POST":
-        try:
-            wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
-        except Exception as e:
-            flash("Could not delete Pending PSBT!")
+        action = request.form['action']
+        if action == 'deletepsbt':
+            try:
+                wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
+            except Exception as e:
+                flash("Could not delete Pending PSBT!")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet_sendpending.html", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
