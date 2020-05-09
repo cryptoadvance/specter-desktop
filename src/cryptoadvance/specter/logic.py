@@ -131,7 +131,7 @@ class Specter:
         self._is_running = False
         if self._is_configured:
             try:
-                self._info = self.cli.getmininginfo()
+                self._info = self.cli.getblockchaininfo()
                 self._is_running = True
             except:
                 pass
