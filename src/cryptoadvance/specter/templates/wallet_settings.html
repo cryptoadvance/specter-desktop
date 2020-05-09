@@ -32,7 +32,7 @@
 			{% if specter.info.chain == "main" %}
 			{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
 			{% else %}
-			{% set startblock=0 %}
+			{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 			{% endif %}
 
 			<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
