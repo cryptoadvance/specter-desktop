@@ -11,6 +11,12 @@
 				<span class="info">
 					<span class="info__title">Importing an existing wallet?<br></span>
 					After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.
+					<br>
+					{% if specter.info["pruned"] %}
+						<span class="warning" style="display: inline-block;">
+							Please Note:<br>You are using a pruned node.<br> Wallet history may not fully appear.
+						</span>
+					{% endif %}
 				</span>
             </p>
 		</div>

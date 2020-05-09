@@ -691,6 +691,16 @@ table tr:hover .btn.hovering{
     background: (--cmap-border-darker);
 }
 
+.warning {
+    text-align: center;
+    font-size: 12px;
+    background: #FFCC00b0;
+    padding: 10px;
+    color: #111111;
+    margin: 10px;
+    border-radius: 7px;
+}
+
 /************** Tool Tip Styles ********************************/
 .tool-tip {
     display: inline-block;

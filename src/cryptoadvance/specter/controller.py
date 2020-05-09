@@ -246,7 +246,10 @@ def new_wallet_simple():
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
                 if app.specter.info['chain'] == "main":
-                    startblock = 481824
+                    if not app.specter.info['pruned'] or app.specter.info['pruneheight'] < 481824:
+                        startblock = 481824
+                    else:
+                        startblock = app.specter.info['pruneheight']
                 else:
                     startblock = 0
                 try:
