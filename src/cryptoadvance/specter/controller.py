@@ -251,7 +251,10 @@ def new_wallet_simple():
                     else:
                         startblock = app.specter.info['pruneheight']
                 else:
-                    startblock = 0
+                    if not app.specter.info['pruned']:
+                        startblock = 0
+                    else:
+                        startblock = app.specter.info['pruneheight']
                 try:
                     wallet.cli.rescanblockchain(startblock, timeout=1)
                 except requests.exceptions.ReadTimeout:
