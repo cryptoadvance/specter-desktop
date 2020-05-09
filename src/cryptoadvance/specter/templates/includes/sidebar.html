@@ -1,5 +1,14 @@
 <div id="side-content">
 <nav class="side">
+    {% if specter.info["initialblockdownload"] %}
+        <p style="text-align: center;
+        font-size: 12px;
+        background: #FFCC00b0;
+        padding: 10px;
+        color: #111111;
+        margin: 10px;
+        border-radius: 7px;">⚠️<br>Blockchain is still syncing...<br>Data may be shown incorrectly.</p>
+    {% endif %}
     <a href="/settings/" class="item core">
         <svg class="core {{specter.info.chain}}" height="32" width="32" viewBox="0 0 64 64">
             <g>
@@ -19,7 +28,6 @@
             </small>
         </div>
     </a>
-
     {% if specter.devices %}
         <div class="separator">
             Wallets
