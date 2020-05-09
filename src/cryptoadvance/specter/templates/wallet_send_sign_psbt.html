@@ -34,7 +34,7 @@
 <form action="./" method="POST" class="full-width">
 	<div class="tx_info">
 		
-		<div>Sending <b>{{psbt["amount"]}}</b> BTC to<b>
+		<div>Sending <b>{{'{:.8f}'.format(psbt["amount"]).rstrip("0").rstrip(".")}}</b> BTC to<b>
 			<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
 			{{wallet.getaddressname(psbt["address"], -1)}}
 			</a></b><br><br>

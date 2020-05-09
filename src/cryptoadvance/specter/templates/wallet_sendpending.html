@@ -63,7 +63,7 @@
 										</a>
 									</td>
 									<td>
-										{{ pending_psbt["amount"] }}
+										{{'{:.8f}'.format(pending_psbt["amount"]).rstrip("0").rstrip(".")}}
 									</td>
 									<td>
 										{{ pending_psbt["time"] | datetime }}

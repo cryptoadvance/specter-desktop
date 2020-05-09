@@ -44,7 +44,7 @@
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">
 					{{wallet.getaddressname(tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"], -1)}}
 				</a></td>
-				<td>{{tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"]}}</td><td>
+				<td>{{'{:.8f}'.format(tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"]).rstrip("0").rstrip(".")}}</td><td>
 				{%if tx["block_height"] == -1 %}
 					Pending
 				{% else %}

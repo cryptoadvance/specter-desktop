@@ -115,7 +115,7 @@
 				{% set display_address = (tx["destination"]["address"] if ("destination" in tx and tx["destination"] != None) else tx["address"])%}
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
-				<td>{{tx["amount"]}}</td><td>
+				<td>{{'{:.8f}'.format(tx["amount"]).rstrip("0").rstrip(".")}}</td><td>
 				{%if tx["block_height"] == -1 %}
 					Pending
 				{% else %}
