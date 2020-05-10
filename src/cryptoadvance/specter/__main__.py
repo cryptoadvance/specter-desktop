@@ -13,7 +13,6 @@ from .bitcoind import (BitcoindDockerController,
 from .helpers import load_jsons, which
 from .server import DATA_FOLDER, create_app, init_app
 
-from daemonize import Daemonize
 from os import path
 import signal
 
@@ -125,6 +124,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
 
     # check if we should run a daemon or not
     if daemon or restart:
+        from daemonize import Daemonize
         print("Starting server in background...")
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
         if tor is not None:

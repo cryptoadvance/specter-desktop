@@ -141,7 +141,7 @@ class Specter:
 
         chain = self._info["chain"]
         if self.wallets is None or chain is None:
-            wallets_path = "specter%s/" % self.config["uid"]
+            wallets_path = "specter%s" % self.config["uid"]
             self.wallets = WalletManager(
                                 os.path.join(self.data_folder, "wallets"), 
                                 self.cli, 
@@ -350,7 +350,7 @@ class Device(dict):
 
 class WalletManager:
     # chain is required to manage wallets when bitcoin-cli is not running
-    def __init__(self, data_folder, cli, chain, path="specter/"):
+    def __init__(self, data_folder, cli, chain, path="specter"):
         self.data_folder = data_folder
         self.chain = chain
         self.cli = cli
@@ -379,7 +379,7 @@ class WalletManager:
             wallets = load_jsons(self.working_folder, key="name")
             existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
             for k in wallets:
-                if self.cli_path+wallets[k]["alias"] in existing_wallets:
+                if os.path.join(self.cli_path,wallets[k]["alias"]) in existing_wallets:
                     self._wallets[k] = wallets[k]
         else:
             self._wallets = {}
@@ -390,9 +390,9 @@ class WalletManager:
         not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
         # print("not loaded wallets:", not_loaded_wallets)
         for k in self._wallets:
-            if self.cli_path+self._wallets[k]["alias"] in not_loaded_wallets:
+            if os.path.join(self.cli_path,self._wallets[k]["alias"]) in not_loaded_wallets:
                 print("loading", self._wallets[k]["alias"])
-                self.cli.loadwallet(self.cli_path+self._wallets[k]["alias"])
+                self.cli.loadwallet(os.path.join(self.cli_path,self._wallets[k]["alias"]))
                 if "pending_psbts" in self._wallets[k] and len(self._wallets[k]["pending_psbts"]) > 0:
                     for psbt in self._wallets[k]["pending_psbts"]:
                         print("lock", self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
@@ -410,7 +410,7 @@ class WalletManager:
         walletsindir = [wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]]
         al = alias(name)
         i = 2
-        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)) or self.cli_path+al in walletsindir:
+        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)) or os.path.join(self.cli_path,al) in walletsindir:
             al = alias("%s %d" % (name, i))
             i+=1
         dic = {
@@ -453,7 +453,7 @@ class WalletManager:
         # add wallet to internal dict
         self._wallets[o["alias"]] = o
         # create a wallet in Bitcoin Core
-        r = self.cli.createwallet(self.cli_path+o["alias"], True)
+        r = self.cli.createwallet(os.path.join(self.cli_path,o["alias"]), True)
         # save wallet file to disk
         if self.working_folder is not None:
             with open(o["fullpath"], "w+") as f:
@@ -501,7 +501,7 @@ class WalletManager:
         # add wallet to internal dict
         self._wallets[o["alias"]] = o
         # create a wallet in Bitcoin Core
-        r = self.cli.createwallet(self.cli_path+o["alias"], True)
+        r = self.cli.createwallet(os.path.join(self.cli_path,o["alias"]), True)
         # save wallet file to disk
         if self.working_folder is not None:
             with open(o["fullpath"], "w+") as f:
@@ -514,10 +514,10 @@ class WalletManager:
 
     def delete_wallet(self, wallet):
         print("Deleting {}".format(wallet["alias"]))
-        self.cli.unloadwallet(self.cli_path+wallet["alias"])
+        self.cli.unloadwallet(os.path.join(self.cli_path,wallet["alias"]))
         # Try deleting wallet file
-        if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), self.cli_path+wallet["alias"])):
-            shutil.rmtree(os.path.join(get_default_datadir(), self.cli_path+wallet["alias"]))
+        if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), os.path.join(self.cli_path,wallet["alias"]))):
+            shutil.rmtree(os.path.join(get_default_datadir(), os.path.join(self.cli_path,wallet["alias"])))
         # Delete JSON
         if os.path.exists(wallet["fullpath"]):
             os.remove(wallet["fullpath"])
@@ -554,7 +554,7 @@ class Wallet(dict):
         self.update(d)
         self.manager = manager
         self.cli_path = manager.cli_path
-        self.cli = manager.cli.wallet(self.cli_path+self["alias"])
+        self.cli = manager.cli.wallet(os.path.join(self.cli_path,self["alias"]))
         self._dict = d
         # check if address is known and derive if not
         # address derivation will also refill the keypool if necessary
