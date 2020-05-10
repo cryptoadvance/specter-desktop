@@ -31,10 +31,10 @@
 {% set active_menuitem = "send" %}
 {% include "includes/wallet_menu.html" %}
 <br>
-<form action="./" method="POST" class="full-width">
+<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias)}}" method="POST" class="full-width">
 	<div class="tx_info">
 		
-		<div>Sending <b>{{psbt["amount"]}}</b> BTC to<b>
+		<div>Sending <b>{{psbt["amount"] | btcamount}}</b> BTC to<b>
 			<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
 			{{wallet.getaddressname(psbt["address"], -1)}}
 			</a></b><br><br>
@@ -149,10 +149,8 @@
 	{% endif %}
 
 	<div class="row padded">
-		<form action="./" method="POST">
-			<input type="hidden" name="pending_psbt" value="{{psbt}}">
-			<button type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
-		</form>
+		<input type="hidden" name="pending_psbt" value="{{psbt}}">
+		<button type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
 	</div>
 </form>
 

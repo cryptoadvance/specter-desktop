@@ -52,7 +52,7 @@
                 {{wallet.name}} 
                 {% if specter.chain %}
                 {% if wallet.fullbalance is not none %}
-                <span class="balance">{{ "%0.8f" % (wallet.fullbalance ) | float}}
+                <span class="balance">{{ wallet.fullbalance | btcamount}}
                  <!-- {% if specter.chain != "main" %} t{%endif%}BTC -->
                 </span>
                 {%endif%}
