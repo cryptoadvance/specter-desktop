@@ -680,5 +680,9 @@ def derivation(wallet):
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
 
+@app.template_filter('btcamount')
+def btcamount(value):
+    value = float(value)
+    return "{:.8f}".format(value).rstrip("0").rstrip(".")
 
     

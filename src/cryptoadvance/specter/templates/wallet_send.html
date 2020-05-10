@@ -57,8 +57,8 @@
 		</div>
 		<div class="note">
 			[[Number.parseFloat(amount / (unit == "sat" ? 100000000 : 0.000000001)).toFixed((unit == "sat" ? 8 : 0))]] [[(unit == "sat" ? "BTC" : "sats")]], 
-			Available: {{"%.8f" % wallet.availablebalance}}{% if wallet.locked_amount > 0 %};
-			&nbsp;Locked in pending transactions: {{"%.8f" % wallet.locked_amount}}
+			Available: {{wallet.availablebalance | btcamount}}{% if wallet.locked_amount > 0 %};
+			&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
 			{% endif %}
 		</div>
 		<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>

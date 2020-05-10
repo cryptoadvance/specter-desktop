@@ -40,10 +40,10 @@
 {% include "includes/wallet_menu.html" %}
 {% if ( wallet.fullbalance ) is not none %}
 <h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
-	{{ "%0.8f" % ( wallet.fullbalance ) | float }}
+	{{ wallet.fullbalance | btcamount }}
 	{% if specter.chain !='main' %}t{%endif%}BTC
 	{% if wallet.balance["untrusted_pending"] > 0 %}</span><br><small>
-	( {{ "%0.8f" % wallet.balance["trusted"] | float }} confirmed, {{"%0.8f" % wallet.balance["untrusted_pending"] | float}} pending )
+	( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{wallet.balance["untrusted_pending"] | btcamount}} pending )
 	{% endif %}
 </small></h1>
 
@@ -81,7 +81,7 @@
 	<a target="blank" class="address" href="{{specter.explorer}}address/{{account}}">{{account}}</a>
 	{% endif %}
 	<p class="balance">Balance: 
-		{{"%0.8f" % (wallet.balanceonaddr(account) if isaddrview else wallet.balanceonlabel(account)) | float}} 
+		{{wallet.balanceonaddr(account) if isaddrview else wallet.balanceonlabel(account) | btcamount}} 
 		{% if specter.chain !='main' %}t{%endif%}BTC
 	</p>
 	<br><br>
@@ -115,7 +115,7 @@
 				{% set display_address = (tx["destination"]["address"] if ("destination" in tx and tx["destination"] != None) else tx["address"])%}
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
-				<td>{{'{:.8f}'.format(tx["amount"]).rstrip("0").rstrip(".")}}</td><td>
+				<td>{{tx["amount"] | btcamount}}</td><td>
 				{%if tx["block_height"] == -1 %}
 					Pending
 				{% else %}
