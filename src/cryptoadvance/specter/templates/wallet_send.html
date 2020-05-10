@@ -45,7 +45,10 @@
 		<input type="text" id="label" name="label" value="{{label}}">
 		<br><br>
 		Amount:<br>
-		<input type="number" name="amount" v-model="amount" id="amount" v-bind:max="max_amount_sendable" min=0 step="1e-8" autocomplete="off">
+		<input style="width:200px" type="number" name="amount" v-model="amount" id="amount" v-bind:max="(unit == 'sat' ? max_amount_sendable * 100000000 : max_amount_sendable)" min=0 step="1e-8" autocomplete="off">
+		<input type="hidden" name="btc_amount" :value="(unit == 'btc' ? amount : amount / 100000000)">
+		<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" v-model="unit" value="sat" checked>sats</label>
+		<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" v-model="unit" value="btc">BTC</label>
 		<div class="notification error" v-if="above_wallet_amount || needs_more_selected_coins">
 			<ul>
 				<li v-if="needs_more_selected_coins"> You need to select more coins to match your amount!</li>
@@ -53,8 +56,9 @@
 			</ul>
 		</div>
 		<div class="note">
-			Available: {{"%.8f" % wallet.availablebalance}}{% if wallet.locked_amount > 0 %};
-			&nbsp;Locked in pending transactions: {{"%.8f" % wallet.locked_amount}}
+			[[Number.parseFloat(amount / (unit == "sat" ? 100000000 : 0.000000001)).toFixed((unit == "sat" ? 8 : 0))]] [[(unit == "sat" ? "BTC" : "sats")]], 
+			Available: {{wallet.availablebalance | btcamount}}{% if wallet.locked_amount > 0 %};
+			&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
 			{% endif %}
 		</div>
 		<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
@@ -219,7 +223,8 @@ document.getElementById("popup").addEventListener("click", function(){
 			address: "",
 			amount: 0,
 			wallet_availablebalance: {{wallet.availablebalance}},
-			block_explorer: "{{specter.explorer}}"
+			block_explorer: "{{specter.explorer}}",
+			unit: "sat"
 		},
 		computed: {
 			selected_coins_sum: function() {
@@ -239,10 +244,10 @@ document.getElementById("popup").addEventListener("click", function(){
 				}
 			},
 			needs_more_selected_coins: function() {
-				return this.amount > this.selected_coins_sum && this.coinselectionActive
+				return (this.unit == 'sat' ? this.amount / 100000000 : this.amount) > this.selected_coins_sum && this.coinselectionActive
 			},
 			above_wallet_amount: function() {
-				return this.amount > this.wallet_availablebalance
+				return (this.unit == 'sat' ? this.amount / 100000000 : this.amount) > this.wallet_availablebalance
 			}
 		},
 		methods: {
