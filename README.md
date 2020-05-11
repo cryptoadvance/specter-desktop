@@ -20,6 +20,7 @@ At the moment Specter-Desktop is working with all major Hardware-Wallets includi
 * HWI support requires `libusb` 
  * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
  * macOS: `brew install libusb`
+ * windows: follow instructions in [`windows.md`](docs/windows.md)
 * Install Specter
 ```sh
 pip install cryptoadvance.specter
