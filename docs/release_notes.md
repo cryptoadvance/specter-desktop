@@ -1,4 +1,4 @@
-## v0.3.0 Apr 28, 2020
+## v0.3.0 May 11, 2020
 * #104 - QR-Code animations enable to pass more information in smaller chunks (@gorazdko)
 - #108 - Renaming and Deleting wallets (@benk10)
 - #95 - addresses and utxo-view for better overview of your funds (@benk10)
@@ -6,6 +6,7 @@
 - #101 - Support Device passphrases for HWI-wallets (@benk10)
 - #40 - coin selection to control which utxo you want to spend (@k9ert)
 - #120 - Display Addresses on device (@benk10)
+- #127 - Windows support (@stepansnigirev)
 
 ## v0.2.0 Mar 27, 2020
 - #94 - label addresses to get remember where coins are coming from (@benk10)
