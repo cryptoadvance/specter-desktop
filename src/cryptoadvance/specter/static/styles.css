@@ -586,6 +586,7 @@ table{
 .table-holder{
     padding: 0 30px;
     width: 100%;
+    /*overflow-x: scroll;*/
 }
 .full-width{
     width: 100%;
@@ -799,7 +800,10 @@ a:focus + .tool-tip .tool-tip__info {
     justify-content: center;
     font-size: 14px;
     cursor: pointer;
-  }    
+  }
+  td.xpub{
+    max-width: 230px;
+  }
   @media (hover: hover){
     #side-content:hover{
       position: absolute;
