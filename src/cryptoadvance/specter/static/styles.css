@@ -450,6 +450,11 @@ input:hover{
     margin: 0 auto;
     line-height: 1.5;
 }
+.card .note, .note.full-width{
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+}
 textarea{
     margin-bottom: 5px;
     height: 100px;
