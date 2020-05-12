@@ -824,7 +824,11 @@ a:focus + .tool-tip .tool-tip__info {
     }
   }
 }
-@media (hover: none), (max-width: 580){
+/* touch based devices need a menu button */
+@media (any-hover: none) and (max-width: 1100px), 
+       (any-pointer: coarse) and (max-width: 1100px), 
+       (pointer: none) and (max-width: 1100px), 
+       (max-width: 600){
   #menubtn{
     display: block;
   }
@@ -842,7 +846,7 @@ a:focus + .tool-tip .tool-tip__info {
     display: none;
   }
 }
-@media (max-width: 580px){
+@media (max-width: 600px){
   .card{
     border-width: 0px;
     width: 100%;
