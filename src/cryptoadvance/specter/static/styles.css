@@ -34,6 +34,11 @@ body{
 *{
     box-sizing: border-box;
 }
+ul, li{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
 .output_option{
     margin: 5px;
 }
@@ -124,6 +129,9 @@ nav.row{
     padding: 10px 30px;
     justify-content: center;
 }
+nav.row .btn{
+    width: 200px;
+}
 nav.side{
     display: flex;
     min-height: min-content;
@@ -141,6 +149,7 @@ nav.side{
     display: flex;
     flex-direction: row;
     overflow-y: scroll;
+    z-index: 100;
 }
 main{
     flex-grow: 1;
@@ -352,6 +361,7 @@ input.inline, .input.inline{
 }
 input[type="checkbox"].inline{
     min-width: auto;
+    width: auto;
 }
 input[type="radio"].inline{
     min-width: auto;
@@ -496,9 +506,10 @@ textarea{
 .notification{
     min-width: 200px;
     max-width: 800px;
-    margin: auto;
     position: absolute;
     top: 0;
+    left: 50%;
+    transform:translateX(-50%);
     font-size: 0.7em;
     color: #fff;
     overflow-x: scroll;
@@ -507,6 +518,7 @@ textarea{
     padding: 7px 30px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.7);
     line-height: 1.5;
+    text-align: center;
 }
 .notification.error, .btn.danger{
     background: var(--cmap-red-darker);
@@ -624,10 +636,6 @@ table a, .address-link{
 table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
-}
-table svg.core.test{
-    margin: 0 3px -3px 0;
-    opacity: 0.7;
 }
 .qr-popup{
     /*display: none;*/
@@ -784,7 +792,6 @@ a:focus + .tool-tip .tool-tip__info {
     left: -235px;
     transition: left 0.3s;
     box-shadow: 3px 0px 10px rgba(0,0,0,0.3);
-    z-index: 100;
   }
   #side-expand{
     display: flex;
