@@ -48,10 +48,10 @@
 </small></h1>
 
 <div style="padding: 0 30px; width: 100%;">
-	<div class="row padded" style="width: intrinsic; margin: auto;">
+	<nav class="row">
 		<a href="./?all=True&view={{viewtype}}" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
 		<a href="./?all=False&view={{viewtype}}" class="btn radio right {% if alladdresses != True %}checked{% endif %}">UTXO</a>
-	</div>
+	</nav>
 	<span>View Type: </span><br>
 	<div class="dropdown" style="margin-top: 5px;">
 		<button class="btn radio dropbtn">{{viewtype|title}} View &#9660;</button>

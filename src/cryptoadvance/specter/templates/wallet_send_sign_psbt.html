@@ -64,16 +64,16 @@
 	{% endif %}
 
 	{% if wallet.uses_qrcode_device %}
-		<div class="row padded">
+		<nav class="row">
 			<label>
 				<input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
-				<div class="btn radio left">Compressed PSBT</div>
+				<div class="btn radio left" style="width:200px">Compressed PSBT</div>
 			</label>
 			<label>
 				<input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
-				<div class="btn radio right">Full PSBT</div>
+				<div class="btn radio right" style="width:200px">Full PSBT</div>
 			</label>
-		</div>
+		</nav>
 
 		<div class="row" style="min-height: 400px;">
 			<span id="compressed_psbt">

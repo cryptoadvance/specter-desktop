@@ -1,7 +1,7 @@
-<div class="row padded">
+<nav class="row">
 	<a href="{{ url_for('wallet_tx',wallet_alias=wallet_alias)}}" class="btn radio left {% if active_menuitem == 'transactions' %}checked{% endif %}">Transactions</a>
 	<a href="{{ url_for('wallet_addresses',wallet_alias=wallet_alias)}}" class="btn radio {% if active_menuitem == 'addresses' %}checked{% endif %}">Addresses</a>
 	<a href="{{ url_for('wallet_receive',wallet_alias=wallet_alias)}}" class="btn radio {% if active_menuitem == 'receive' %}checked{% endif %}">Receive</a>
 	<a href="{{ url_for('wallet_send',wallet_alias=wallet_alias)}}" class="btn radio {% if active_menuitem == 'send' %}checked{% endif %}">Send</a>
 	<a href="{{ url_for('wallet_settings',wallet_alias=wallet_alias)}}" class="btn radio right {% if active_menuitem == 'settings' %}checked{% endif %}">Settings</a>
-</div>
+</nav>
