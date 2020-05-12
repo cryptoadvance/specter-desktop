@@ -26,6 +26,16 @@
 		width: 20px;
   		height: 20px;
 	}
+	.tx_details_header {
+		text-align: left;
+		text-decoration: underline;
+	}
+	#tx_details {
+		transition: max-height 0.2s linear;
+		max-height: 0;
+		overflow: hidden;
+		line-height: 1.5;
+	}
 </style>
 <h1>{{wallet.name}}</h1>
 {% set active_menuitem = "send" %}
@@ -41,13 +51,51 @@
 		</div>
 
 		{% if wallet.is_multisig %}
-			<div class="log"><b id="sigscount">{{psbt["sigs_count"]}}</b> signatures acquired</div>
+			<div class="log" style="margin: auto;"><b id="sigscount">{{psbt["sigs_count"]}}</b> signatures acquired</div>
 		{% endif %}
+		<br>
+		<button type="button" class="btn" id="expand_details_btn" style="margin: auto;">Show Details</button>
+		<div id="tx_details">
+			<br>
+			<h2 class="tx_details_header">Transaction Info</h2>
+			<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
+				<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
+				<b>Total fee:</b> {{ (psbt['fee'] * 100000000) |  btcamount }} sats<br>
+				<b>Fee rate:</b> {{ (psbt['fee'] * 100000000 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+				<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
+				<b>Inputs count:</b> {{psbt['tx']['vin']|length}}<br>
+				<b>Outputs count:</b> {{psbt['tx']['vout']|length}}
+			</p>
+			<h2 class="tx_details_header">Inputs ({{psbt['tx']['vin']|length}})</h2>
+			{% for input in psbt['tx']['vin'] %}
+				<p class="tx_info" style="text-align: left; background-color: #131a24;">
+					<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
+					<b>Transaction id:</b><br>
+					<a class="address-link" target="blank" href="{{specter.explorer}}tx/{{input['txid']}}">
+						{{input['txid']}}
+					</a>
+					(Output #{{input['vout']}})<br>
+					<b>Amount:</b> {{psbt['inputs'][loop.index0]['witness_utxo']['amount']}} BTC
+				</p>
+			{% endfor %}
+			<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
+			{% for output in psbt['tx']['vout'] %}
+				<p class="tx_info" style="text-align: left; background-color: #131a24;">
+					<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] != psbt['address'] %}(Change){% endif %}<br><br>
+					<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ output['scriptPubKey']['addresses'][0] }}">
+						{{wallet.getaddressname(output['scriptPubKey']['addresses'][0], -1)}}
+					</a><br>
+					<b>Amount:</b> {{output['value']}} BTC
+				</p>
+			{% endfor %}
+			Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{psbt['base64']}}</textarea>
+			<button type="button" id="copy-raw-psbt-btn" class="btn" style="margin: auto;">Copy Raw PSBT</button>
+		</div>
 	</div>
 
 	{# ====================== Possible tx signers' inputs ====================== #}
 	{% if wallet.uses_hwi_device %}
-		<div class="hwi_container flex-center flex-column">
+		<div class="hwi_container flex-column">
 			Sign transaction with your:<br/>
 			{% if not wallet.is_multisig %}
 				<button class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
@@ -170,6 +218,35 @@ function capitalize(str){
 
 </script>
 <script type="module">
+	var btn = document.getElementById("expand_details_btn");
+	btn.addEventListener("click", function() {
+		var content = this.nextElementSibling;
+		if (content.style.maxHeight) {
+			content.style.maxHeight = null;
+			btn.innerHTML = "Show Details";
+		} else {
+			content.style.maxHeight = content.scrollHeight + "px";
+			btn.innerHTML = "Hide Details";
+		} 
+	});
+
+	var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
+	copyrawPSBTbtn.addEventListener("click", function() {
+		var raw_psbt = document.getElementById("raw-psbt");
+		copyText(raw_psbt)
+	});
+
+	function copyText(element) {
+		try {
+			element.select();
+  			document.execCommand("copy");
+			alert('Copied PSBT');
+		}
+		catch (err) {
+			alert('Unable to copy text');
+		}
+	}
+
 	let currentSigningDevice = '';
 	let currentSigningDeviceNum;
 	let psbt0 = "{{psbt['base64']}}";
