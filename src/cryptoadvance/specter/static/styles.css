@@ -794,9 +794,6 @@ a:focus + .tool-tip .tool-tip__info {
 }
 
 @media (max-width: 1100px){
-  main{
-    padding-left: 15px;
-  }
   #side-content{
     position: absolute;
     height: 100%;
@@ -815,6 +812,9 @@ a:focus + .tool-tip .tool-tip__info {
     max-width: 230px;
   }
   @media (hover: hover){
+    main{
+      padding-left: 15px;
+    }
     #side-content:hover{
       position: absolute;
       left: 0px;
@@ -846,9 +846,6 @@ a:focus + .tool-tip .tool-tip__info {
   .card{
     border-width: 0px;
     width: 100%;
-  }
-  .btn.radio.left, .btn.radio.right{
-    border-radius: 0;
   }
   nav.row{
     padding-left: 0;
