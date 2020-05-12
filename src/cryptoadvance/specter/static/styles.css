@@ -823,23 +823,23 @@ a:focus + .tool-tip .tool-tip__info {
       transform: scaleX(-1);
     }
   }
-  @media (hover: none){
-    #menubtn{
-      display: block;
-    }
-    #side-content.active{
-      position: absolute;
-      left: 0px;
-    }
-    #side-content.active > #side-expand{
-      transform: scaleX(-1);
-    }
-    #side-content{
-      left: -250px;
-    }
-    #side-expand{
-      display: none;
-    }
+}
+@media (hover: none), (max-width: 580){
+  #menubtn{
+    display: block;
+  }
+  #side-content.active{
+    position: absolute;
+    left: 0px;
+  }
+  #side-content.active > #side-expand{
+    transform: scaleX(-1);
+  }
+  #side-content{
+    left: -250px;
+  }
+  #side-expand{
+    display: none;
   }
 }
 @media (max-width: 580px){
