@@ -100,21 +100,7 @@
         </a>
     </div>
 </nav>
-<div id="side-expand" onclick="sideToggle()">
+<div id="side-expand">
     <div>▶</div>
 </div>
 </div>
-<script type="text/javascript">
-function sideToggle(){
-    let el = document.getElementById("side-content");
-    el.classList.toggle("active");
-    el.blur();
-    document.getElementById("side-expand").blur();
-}
-window.addEventListener('load', (event) => {
-    let main = document.getElementsByTagName("main")[0];
-    main.addEventListener('click', (event) => {
-        document.getElementById("side-content").classList.remove("active");
-    });
-});
-</script>

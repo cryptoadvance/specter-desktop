@@ -39,6 +39,12 @@ ul, li{
     margin: 0;
     padding: 0;
 }
+#menubtn{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    opacity: 0.7;
+}
 .output_option{
     margin: 5px;
 }
@@ -783,6 +789,10 @@ a:focus + .tool-tip .tool-tip__info {
 #side-expand{
     display: none;
 }
+#menubtn{
+    display: none;
+}
+
 @media (max-width: 1100px){
   main{
     padding-left: 15px;
@@ -814,12 +824,21 @@ a:focus + .tool-tip .tool-tip__info {
     }
   }
   @media (hover: none){
+    #menubtn{
+      display: block;
+    }
     #side-content.active{
       position: absolute;
       left: 0px;
     }
     #side-content.active > #side-expand{
       transform: scaleX(-1);
+    }
+    #side-content{
+      left: -250px;
+    }
+    #side-expand{
+      display: none;
     }
   }
 }
