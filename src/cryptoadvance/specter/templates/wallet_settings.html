@@ -11,6 +11,7 @@
 </form>
 {% set active_menuitem = "settings" %}
 {% include "includes/wallet_menu.html" %}
+<br>
 <h1>Keypool control</h1>
 <form action="." method="POST" class="padded" style="width: 500px">
 	<div>Currently watching {{wallet["keypool"]}} receiving and {{wallet["change_keypool"]}} change addresses.<div>
@@ -30,25 +31,28 @@
 		Rescan blockchain from block:<br>
 		<div class="row aligned">
 			{% if specter.info.chain == "main" %}
-			{% set startblock=481824 %}
+			{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
 			{% else %}
-			{% set startblock=0 %}
+			{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 			{% endif %}
 
-			<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px">
+			<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
 			<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
 		</div>
+		{% if specter.info['pruned']  %}
+			<div class="note center">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+		{% endif %}
 		<div class="note center"><b>481824</b> was the first Segwit block.</div>
 	{% endif %}
 </form>
-
-<h1>Cahce</h1>
+<br>
+<h1>Cache</h1>
 <form action="." method="POST" class="padded" style="width: 500px">
 	<div class="row center">
 		<button type="submit" name="action" value="rebuildcache" class="btn" style="max-width: 160px;">Rebuild Cache</button>
 	</div>
 </form>
-
+<br>
 <h1>Import / Export</h1>
 
 <div class="note center">
@@ -77,6 +81,7 @@
 <div>
 	<code style="max-width: 700px; word-wrap: break-all; overflow-x: scroll; display: block; padding: 20px 0;">{{qr_text}}</code>
 </div>
+<br>
 <h1>Delete Wallet</h1>
 <form action="." method="POST" class="padded" style="width: 500px">
 	<div class="row center">

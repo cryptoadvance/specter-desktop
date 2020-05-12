@@ -17,6 +17,7 @@ from .helpers import normalize_xpubs, run_shell
 from .descriptor import AddChecksum
 
 from .logic import Specter, purposes, addrtypes, get_cli
+from .rpc import RpcError
 from datetime import datetime
 import urllib
 
@@ -49,8 +50,13 @@ def combine(wallet_alias):
         psbt0 = d['psbt0'] # request.args.get('psbt0')
         psbt1 = d['psbt1'] # request.args.get('psbt1')
         txid = d['txid']
-        psbt = app.specter.combine([psbt0, psbt1])
-        raw = app.specter.finalize(psbt)
+        try:
+            psbt = app.specter.combine([psbt0, psbt1])
+            raw = app.specter.finalize(psbt)
+        except RpcError as e:
+            return e.error_msg, e.status_code
+        except Exception as e:
+            return "Unknown error: %r" % e, 500
         if "hex" in raw:
             app.specter.broadcast(raw["hex"])
 
@@ -237,6 +243,26 @@ def new_wallet_simple():
                 return render_template("base.html", error="Key not found", specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_simple(wallet_name, wallet_type, key, device)
+            rescan_blockchain = 'rescanblockchain' in request.form
+            if rescan_blockchain:
+                if app.specter.info['chain'] == "main":
+                    if not app.specter.info['pruned'] or app.specter.info['pruneheight'] < 481824:
+                        startblock = 481824
+                    else:
+                        startblock = app.specter.info['pruneheight']
+                else:
+                    if not app.specter.info['pruned']:
+                        startblock = 0
+                    else:
+                        startblock = app.specter.info['pruneheight']
+                try:
+                    wallet.cli.rescanblockchain(startblock, timeout=1)
+                except requests.exceptions.ReadTimeout:
+                    pass
+                except Exception as e:
+                    print(e)
+                    error = "%r" % e
+                wallet.getdata()
             return redirect("/wallets/%s/" % wallet["alias"])
     return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
@@ -416,6 +442,7 @@ def wallet_send(wallet_alias):
     label = ""
     amount = 0
     fee_rate = 0.0
+    err = None
     if request.method == "POST":
         action = request.form['action']
         if action == "createpsbt":
@@ -423,7 +450,7 @@ def wallet_send(wallet_alias):
             label = request.form['label']
             if request.form['label'] != "":
                 wallet.setlabel(address, label)
-            amount = float(request.form['amount'])
+            amount = float(request.form['btc_amount'])
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
             selected_coins = request.form.getlist('coinselect')
@@ -445,18 +472,24 @@ def wallet_send(wallet_alias):
                             if address in v["scriptPubKey"]["addresses"]:
                                 amount = v["value"]
             except Exception as e:
-                flash(e, "error")
-            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
-                                                wallet_alias=wallet_alias, wallet=wallet, 
-                                                specter=app.specter, rand=rand)
+                err = e
+            if err is None:
+                return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                                                    wallet_alias=wallet_alias, wallet=wallet, 
+                                                    specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
             return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
+        elif action == 'deletepsbt':
+            try:
+                wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
+            except Exception as e:
+                flash("Could not delete Pending PSBT!")
     return render_template("wallet_send.html", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
-                                                specter=app.specter, rand=rand)
+                                                specter=app.specter, rand=rand, error=err)
 
 @app.route('/wallets/<wallet_alias>/send/pending/', methods=['GET', 'POST'])
 @login_required
@@ -468,10 +501,12 @@ def wallet_sendpending(wallet_alias):
         print(e)
         return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
     if request.method == "POST":
-        try:
-            wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
-        except Exception as e:
-            flash("Could not delete Pending PSBT!")
+        action = request.form['action']
+        if action == 'deletepsbt':
+            try:
+                wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
+            except Exception as e:
+                flash("Could not delete Pending PSBT!")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet_sendpending.html", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -645,5 +680,9 @@ def derivation(wallet):
 def txonaddr(obj):
     return json.dumps(obj, indent=4)
 
+@app.template_filter('btcamount')
+def btcamount(value):
+    value = float(value)
+    return "{:.8f}".format(value).rstrip("0").rstrip(".")
 
     

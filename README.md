@@ -14,12 +14,13 @@ Bitcoin Core has a very powerful command line interface and a wonderful daemon. 
 
 The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped hardware wallets.
 
-At the moment Specter-Desktop is working with all major Hardware-Wallets including [Specter-DIY hardware wallet](https://github.com/cryptoadvance/specter-diy) which uses QR codes as a main communication channel and ColdCard that uses SD cards. Also it already supports "hot" hardware wallets using [HWI tool](https://github.com/bitcoin-core/HWI) and is tested to work with Trezor One. It should also work with Keepkey and Ledger.
+At the moment Specter-Desktop is working with all major Hardware-Wallets including [Specter-DIY hardware wallet](https://github.com/cryptoadvance/specter-diy) which uses QR codes as a main communication channel and ColdCard that uses SD cards. Also it already supports "hot" hardware wallets using [HWI tool](https://github.com/bitcoin-core/HWI) and is tested to work with Trezor One. It should also work with Keepkey and Ledger (Firmware >= 1.6.0).
 
 ## How to run
 * HWI support requires `libusb` 
  * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
  * macOS: `brew install libusb`
+ * windows: follow instructions in [`windows.md`](docs/windows.md)
 * Install Specter
 ```sh
 pip install cryptoadvance.specter
