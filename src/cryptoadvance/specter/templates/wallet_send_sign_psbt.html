@@ -31,10 +31,28 @@
 		text-decoration: underline;
 	}
 	#tx_details {
-		transition: max-height 0.2s linear;
-		max-height: 0;
-		overflow: hidden;
 		line-height: 1.5;
+	}
+	.toggle{
+		display: none;
+	}
+	.togglebtn {
+		margin: auto;
+		width: 180px;
+		text-align: center;
+		background: var(--cmap-border) !important;
+	}
+	input[type="checkbox"] ~ label.togglebtn::before{
+		content: "Show";
+	}
+	input[type="checkbox"]:checked ~ label.togglebtn::before{
+		content: "Hide";
+	}
+	input[type="checkbox"]{
+		display: none;
+	}
+	input[type="checkbox"]:checked ~ .toggle{
+		display: block;
 	}
 </style>
 <h1>{{wallet.name}}</h1>
@@ -54,8 +72,12 @@
 			<div class="log" style="margin: auto;"><b id="sigscount">{{psbt["sigs_count"]}}</b> signatures acquired</div>
 		{% endif %}
 		<br>
-		<button type="button" class="btn" id="expand_details_btn" style="margin: auto;">Show Details</button>
-		<div id="tx_details">
+		<!-- <button type="button" class="btn" id="expand_details_btn" style="margin: auto;">Show Details</button> -->
+		<input type="checkbox" id="showdetails">
+		<label for="showdetails" class="btn togglebtn">
+			&nbsp;transaction details
+		</label>
+		<div class="toggle" id="tx_details">
 			<br>
 			<h2 class="tx_details_header">Transaction Info</h2>
 			<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
@@ -75,6 +97,13 @@
 						{{input['txid']}}
 					</a>
 					(Output #{{input['vout']}})<br>
+					{% set tx = wallet.cli.gettransaction(input['txid']) %}
+					<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ tx['details'][0]['address'] }}">
+						{{tx['details'][0]['address']}}
+					</a><br>
+					{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
+						<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+					{% endif %}
 					<b>Amount:</b> {{psbt['inputs'][loop.index0]['witness_utxo']['amount']}} BTC
 				</p>
 			{% endfor %}
@@ -83,8 +112,11 @@
 				<p class="tx_info" style="text-align: left; background-color: #131a24;">
 					<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] != psbt['address'] %}(Change){% endif %}<br><br>
 					<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ output['scriptPubKey']['addresses'][0] }}">
-						{{wallet.getaddressname(output['scriptPubKey']['addresses'][0], -1)}}
+						{{output['scriptPubKey']['addresses'][0]}}
 					</a><br>
+					{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
+						<b>Label:</b> {{wallet.getlabel(output['scriptPubKey']['addresses'][0])}}<br>
+					{% endif %}
 					<b>Amount:</b> {{output['value']}} BTC
 				</p>
 			{% endfor %}
@@ -218,18 +250,6 @@ function capitalize(str){
 
 </script>
 <script type="module">
-	var btn = document.getElementById("expand_details_btn");
-	btn.addEventListener("click", function() {
-		var content = this.nextElementSibling;
-		if (content.style.maxHeight) {
-			content.style.maxHeight = null;
-			btn.innerHTML = "Show Details";
-		} else {
-			content.style.maxHeight = content.scrollHeight + "px";
-			btn.innerHTML = "Hide Details";
-		} 
-	});
-
 	var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 	copyrawPSBTbtn.addEventListener("click", function() {
 		var raw_psbt = document.getElementById("raw-psbt");
@@ -238,8 +258,14 @@ function capitalize(str){
 
 	function copyText(element) {
 		try {
-			element.select();
+			element.textContent = "{{psbt['base64']}}"
+			var selection = document.getSelection();
+			var range = document.createRange();
+			range.selectNode(element);
+			selection.removeAllRanges();
+			selection.addRange(range);
   			document.execCommand("copy");
+			selection.removeAllRanges();
 			alert('Copied PSBT');
 		}
 		catch (err) {
