@@ -40,7 +40,7 @@
 			<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
 		</div>
 		{% if specter.info['pruned']  %}
-			<div class="note center">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+			<div class="note center full-width">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
 		{% endif %}
 		<div class="note center"><b>481824</b> was the first Segwit block.</div>
 	{% endif %}

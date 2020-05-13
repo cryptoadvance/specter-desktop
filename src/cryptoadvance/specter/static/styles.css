@@ -34,13 +34,23 @@ body{
 *{
     box-sizing: border-box;
 }
+ul, li{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+#menubtn{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    opacity: 0.7;
+}
 .output_option{
     margin: 5px;
 }
 .logout{
-    position: absolute;
-    right: 0px;
-    top: 0px;
+    position: relative;
+    margin-left: auto;
     background: rgba(0,0,0,0);
     color: var(--cmap-blue);
     padding: 10px 20px;
@@ -120,12 +130,20 @@ nav.top{
     border-bottom: 1px solid var(--cmap-bg-lightest);
     -webkit-app-region: drag;
 }
+nav.row{
+    width: 100%;
+    padding: 10px 30px;
+    justify-content: center;
+}
+nav.row .btn{
+    width: 200px;
+}
 nav.side{
     display: flex;
     min-height: min-content;
     flex-direction: column;
     justify-content: flex-start;
-    flex-grow: 0;
+    flex-grow: 1;
 }
 #side-content{
     background: var(--cmap-bg-ligher);
@@ -135,8 +153,9 @@ nav.side{
     border-right: 1px solid var(--cmap-bg-lightest);
     padding-top: 10px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     overflow-y: scroll;
+    z-index: 100;
 }
 main{
     flex-grow: 1;
@@ -145,7 +164,7 @@ main{
     flex-direction: column;
     align-items: center;
     /*justify-content: center;*/
-    padding: 50px 0 20px 0;
+    padding: 0;
     /*padding: 30px 0 20px 0;*/
     overflow-y: scroll;
 }
@@ -245,14 +264,13 @@ nav .separator{
 }
 .item .btn{
     margin: 5px 20px 5px 20px;
-    min-width: 170px;
+    /*min-width: 170px;*/
 }
 .btn{
     background: var(--cmap-border);
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 8px 15px 8px 10px;
-    width: 170px;
     color: #fff;
     font-size: 0.85em;
     text-align: center;
@@ -272,6 +290,9 @@ nav .separator{
 .btn svg path{
     stroke: #fff;
     fill: #fff;
+}
+button.btn{
+    width: 170px;
 }
 .pin_button {
     background: var(--cmap-border);
@@ -346,6 +367,7 @@ input.inline, .input.inline{
 }
 input[type="checkbox"].inline{
     min-width: auto;
+    width: auto;
 }
 input[type="radio"].inline{
     min-width: auto;
@@ -362,6 +384,7 @@ input:hover{
     border: 1px solid #607082;
 }
 .card{
+    max-width: 100%;
     width: 580px;
     border: 1px solid var(--cmap-border);
     border-radius: 4px;
@@ -423,9 +446,14 @@ input:hover{
 }
 .note{
     font-size: 0.7em;
-    width: 400px;
+    max-width: 400px;
     margin: 0 auto;
     line-height: 1.5;
+}
+.card .note, .note.full-width{
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
 }
 textarea{
     margin-bottom: 5px;
@@ -489,9 +517,10 @@ textarea{
 .notification{
     min-width: 200px;
     max-width: 800px;
-    margin: auto;
     position: absolute;
     top: 0;
+    left: 50%;
+    transform:translateX(-50%);
     font-size: 0.7em;
     color: #fff;
     overflow-x: scroll;
@@ -500,6 +529,7 @@ textarea{
     padding: 7px 30px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.7);
     line-height: 1.5;
+    text-align: center;
 }
 .notification.error, .btn.danger{
     background: var(--cmap-red-darker);
@@ -518,6 +548,9 @@ textarea{
     cursor: pointer;
     background: transparent;
     border: 1px solid var(--cmap-border-darker);
+    flex-grow: 1;
+    flex-basis: 0;
+    max-width: 170px;
 }
 .btn.radio:hover{
     background: #304052;
@@ -564,13 +597,16 @@ table{
 .table-holder{
     padding: 0 30px;
     width: 100%;
+    /*overflow-x: scroll;*/
 }
 .full-width{
-    all: inherit;
     width: 100%;
-    height: 100%;
+    /*height: 100%;*/
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 td, th{
     padding: 20px 10px;
@@ -612,10 +648,6 @@ table a, .address-link{
 table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
-}
-table svg.core.test{
-    margin: 0 3px -3px 0;
-    opacity: 0.7;
 }
 .qr-popup{
     /*display: none;*/
@@ -690,7 +722,6 @@ table tr:hover .btn.hovering{
 .dropdown:hover .dropbtn {
     background: (--cmap-border-darker);
 }
-
 .warning {
     text-align: center;
     font-size: 12px;
@@ -758,4 +789,75 @@ table tr:hover .btn.hovering{
 
 a:focus + .tool-tip .tool-tip__info {
     display: inline-block;
+}
+/************** Mobile styles ********************************/
+#side-expand{
+    display: none;
+}
+#menubtn{
+    display: none;
+}
+
+@media (max-width: 1100px){
+  #side-content{
+    position: absolute;
+    height: 100%;
+    left: -235px;
+    transition: left 0.3s;
+    box-shadow: 3px 0px 10px rgba(0,0,0,0.3);
+  }
+  #side-expand{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  td.xpub{
+    max-width: 230px;
+  }
+  @media (hover: hover){
+    main{
+      padding-left: 15px;
+    }
+    #side-content:hover{
+      position: absolute;
+      left: 0px;
+    }
+    #side-content:hover > #side-expand{
+      transform: scaleX(-1);
+    }
+  }
+}
+/* touch based devices need a menu button */
+@media (any-hover: none) and (max-width: 1100px), 
+       (any-pointer: coarse) and (max-width: 1100px), 
+       (pointer: none) and (max-width: 1100px), 
+       (max-width: 600){
+  #menubtn{
+    display: block;
+  }
+  #side-content.active{
+    position: absolute;
+    left: 0px;
+  }
+  #side-content.active > #side-expand{
+    transform: scaleX(-1);
+  }
+  #side-content{
+    left: -250px;
+  }
+  #side-expand{
+    display: none;
+  }
+}
+@media (max-width: 600px){
+  .card{
+    border-width: 0px;
+    width: 100%;
+  }
+  nav.row{
+    padding-left: 0;
+    padding-right: 0;
+  }
 }

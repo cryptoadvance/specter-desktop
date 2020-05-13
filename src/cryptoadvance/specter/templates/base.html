@@ -3,6 +3,7 @@
 <head>
 	<link rel="shortcut icon" type="image/png" href="/static/img/icon.png"/>
 	<title>Specter Desktop</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="/static/styles.css?{{rand}}">
 {% if debug %}
 	<!-- Developer Version of vue.js because debug=true -->
@@ -17,7 +18,14 @@
 	{% block sidebar %}
 	{% include "includes/sidebar.html" %}
 	{% endblock %}
-	<main>
+	<main>		
+		{% if specter.config.auth!="none" and current_user.is_authenticated %}
+		<a class="logout" href="{{ url_for('logout') }}"><img src="/static/img/exit_from_app-24px.svg" style="width: 24px;"/><div>Logout</div></a>
+		{% else %}
+		<div><br><br></div>
+		{% endif %}
+		<img id="menubtn" src="/static/img/menu.svg"/>
+
 		{% with messages = get_flashed_messages() %}
 		{% if messages %}
 			<div class="notification error">
@@ -59,9 +67,21 @@ function showLoader(){
 function hideLoader(){
 	document.getElementById("loader").style.display = "none";
 }
-// document.querySelectorAll("button").forEach((e)=>{
-// 	e.addEventListener("click", showLoader);
-// });
+function sideToggle(){
+    let el = document.getElementById("side-content");
+    el.classList.toggle("active");
+}
+window.addEventListener('load', (event) => {
+    let main = document.getElementsByTagName("main")[0];
+    main.addEventListener('click', (event) => {
+        document.getElementById("side-content").classList.remove("active");
+    });
+    let menubtn = document.getElementById("menubtn");
+    menubtn.addEventListener('click', (event) => {
+    	document.getElementById("side-content").classList.add("active");
+    	event.stopPropagation();
+    });
+});
 </script>
 {% block scripts %}
 {% endblock %}
