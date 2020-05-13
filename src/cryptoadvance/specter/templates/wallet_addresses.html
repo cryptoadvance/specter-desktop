@@ -48,10 +48,10 @@
 </small></h1>
 
 <div style="padding: 0 30px; width: 100%;">
-	<div class="row padded" style="width: intrinsic; margin: auto;">
+	<nav class="row">
 		<a href="./?all=True&view={{viewtype}}" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
 		<a href="./?all=False&view={{viewtype}}" class="btn radio right {% if alladdresses != True %}checked{% endif %}">UTXO</a>
-	</div>
+	</nav>
 	<span>View Type: </span><br>
 	<div class="dropdown" style="margin-top: 5px;">
 		<button class="btn radio dropbtn">{{viewtype|title}} View &#9660;</button>
@@ -88,7 +88,7 @@
 	<table>
 		<thead>
 		<tr>
-			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Confirmations</th><th>Time</th>
+			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Status</th>
 		</tr>
 		</thead>
 		<tbody>
@@ -117,16 +117,15 @@
 				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
 				<td>{{tx["amount"] | btcamount}}</td><td>
 				{%if tx["block_height"] == -1 %}
-					Pending
+					Pending.
 				{% else %}
-					{{specter.info.blocks - tx["block_height"] + 1}}
+					{{specter.info.blocks - tx["block_height"] + 1}} conf.
 				{% endif %}
-				</td>
-				<td>{{tx["time"] | datetime}}</td></tr>
+				({{tx["time"] | datetime}})</td></tr>
 			{% endif %}
 			{% endfor %}
 			{% else %}
-			<td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
+			<td></td><td>No transactions yet.</td><td></td><td></td><td></td>
 			{% endif %}
 		</tbody>
 	</table>

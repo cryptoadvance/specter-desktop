@@ -6,8 +6,8 @@
 
 
 <h1>Type of the wallet</h1>
+<nav class="row">
 {% if sigs_total %}
-<div class="row center">
 <label>
 	{% if wallet_type=="sh-wsh" %}
 	<input type="radio" name="type" value="sh-wsh" class="hidden" checked>
@@ -25,7 +25,6 @@
 	<div class="btn radio right">Segwit</div>
 </label>
 {% else %}
-<div class="row center">
 <label>
 	<input type="radio" name="type" value="sh-wpkh" class="hidden">
 	<div class="btn radio left">Nested Segwit</div>
@@ -35,7 +34,7 @@
 	<div class="btn radio right">Segwit</div>
 </label>
 {% endif %}
-</div>
+</nav>
 
 <div class="note"><center>
 	<br><b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.
