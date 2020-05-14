@@ -69,7 +69,7 @@ def broadcast(wallet_alias):
     if request.method == 'POST':
         d = request.json
         tx = d['tx']
-        if wallet.cli.testmempoolaccept([tx]):
+        if json.loads(wallet.cli.testmempoolaccept([tx]))['allowed']:
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
             return jsonify(success=True)
