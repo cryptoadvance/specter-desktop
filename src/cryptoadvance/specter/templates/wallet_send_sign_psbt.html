@@ -126,7 +126,7 @@
 	</div>
 
 	{# ====================== Possible tx signers' inputs ====================== #}
-	{% if wallet.uses_hwi_device %}
+	{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 		<div class="hwi_container flex-column">
 			Sign transaction with your:<br/>
 			{% if not wallet.is_multisig %}
@@ -216,10 +216,16 @@
 			<a class="btn centered" id="scanme">Scan signed transaction</a>
 		</div>
 	{% endif %}
+	{% if psbt['raw'] %}
+		<p>Transaction is ready to send (&#10004;)</p>
+		<div class="output_option">
+			<a class="btn centered" id="send_tx_btn">Send transaction</a>
+		</div>
+	{% else %}
 		<div class="output_option" style="margin-top:20px">
 			<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
 		</div>
-
+	{% endif %}
 
 	{% if wallet.uses_sdcard_device %}
 		<div class="row">
@@ -228,9 +234,21 @@
 		</div>
 	{% endif %}
 
+	<div id="tx_finalization_container" class="hidden">
+		<h1>Transaction is Ready to Broadcast</h1>
+		<div class="flex-center flex-column">
+			<button id="broadcast_local_btn" class="btn flex-item" style="width: 190px;">Send transaction</button>
+			{% if specter.chain != "regtest" %}
+				<button type="button" id="broadcast_blockstream_btn" class="btn flex-item" style="width: 190px;">Send via blockstream.info</button>
+			{% endif %}
+			<button id="save_psbt_btn" class="btn flex-item" style="width: 190px;">Save as pending</button>
+			<button id="copy_final_tx_btn" class="btn flex-item" style="width: 190px;">Copy raw transaction</button>
+		</div>
+	</div>
+
 	<div class="row padded">
 		<input type="hidden" name="pending_psbt" value="{{psbt}}">
-		<button type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
+		<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
 	</div>
 </form>
 
@@ -253,12 +271,12 @@ function capitalize(str){
 	var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 	copyrawPSBTbtn.addEventListener("click", function() {
 		var raw_psbt = document.getElementById("raw-psbt");
-		copyText(raw_psbt)
+		copyText(raw_psbt, "{{psbt['base64']}}")
 	});
 
-	function copyText(element) {
+	function copyText(element, content) {
 		try {
-			element.textContent = "{{psbt['base64']}}"
+			element.textContent = content
 			var selection = document.getSelection();
 			var range = document.createRange();
 			range.selectNode(element);
@@ -276,7 +294,7 @@ function capitalize(str){
 	let currentSigningDevice = '';
 	let currentSigningDeviceNum;
 	let psbt0 = "{{psbt['base64']}}";
-	let sigscount = {{psbt["sigs_count"]}};
+	let sigscount = parseInt("{{psbt['sigs_count']}}");
 
 	function combine(psbt1){
 		let url="/wallets/{{wallet.alias}}/combine/";
@@ -289,7 +307,7 @@ function capitalize(str){
 				let o = JSON.parse(this.responseText);
 				console.log(o);
 				if(o.complete){
-					window.location.replace("../tx/");
+					finalize(o["hex"]);
 				}else{
 					psbt0 = o["psbt"];
 					sigscount++;
@@ -315,18 +333,115 @@ function capitalize(str){
 		xmlHttp.send(JSON.stringify({"psbt0": psbt0, "psbt1": psbt1, "txid": "{{psbt['tx']['txid']}}", "device_name": currentSigningDevice}));
 		// xmlHttp.send(null);
 	}
-	document.addEventListener("DOMContentLoaded", function(){
-		let el = document.getElementById("pastetx");
-		el.addEventListener("click", function(){
-			let input = prompt("Paste signed transaction here");
-			if(input){
-				combine(input);
-			}
+
+	function finalize(tx) {
+		showPageOverlay("tx_finalization_container");
+
+		document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
+			e.preventDefault();
+			broadcastLocal(tx);
 		});
-	});
+		if ("{{ specter.chain }}" != "regtest") {
+			document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				broadcastBlockstream(tx);
+			});
+		}
+		document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
+			e.preventDefault();
+			hidePageOverlay("tx_finalization_container");
+			window.location.replace("./pending/");
+		});
+		document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
+			e.preventDefault();
+			let el = document.createElement("textarea");
+			el.style.height = '0px';
+			el.style.width = '1px';
+			document.body.appendChild(el);
+			el.value = tx;
+			copyText(el, tx)
+			document.body.removeChild(el);
+		});
+	}
+
+	function broadcastLocal(tx) {
+		let url="/wallets/{{wallet.alias}}/broadcast/";
+		// console.log(url);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+				let o = JSON.parse(this.responseText);
+				console.log(o);
+				if(o.success) {
+					hidePageOverlay("tx_finalization_container");
+					window.location.replace("../tx/");
+				} else {
+					alert("Server failed to broadcast transactions!\n" + o.error);
+				}
+			} else {
+				if(xmlHttp.readyState === 4){
+					console.log(xmlHttp);
+					alert("Server failed to broadcast transactions!\n" + xmlHttp.response);
+				}
+			}
+		}
+
+		xmlHttp.open("POST", url, true); // true for asynchronous 
+		xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+		xmlHttp.send(JSON.stringify({"tx": tx}));
+	}
+
+	function broadcastBlockstream(tx) {
+		let url;
+		if ("{{ specter.chain }}" == "main") {
+			url="https://blockstream.info/api/tx";
+		} else {
+			url="https://blockstream.info/testnet/api/tx";
+		}
+
+		// console.log(url);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+				let o = JSON.parse(this.responseText);
+				console.log(o);
+				var deletePSBTBtn = document.getElementById("deletepsbt_btn");
+				deletePSBTBtn.click();
+				alert("Transaction was sent successfully!");
+			} else {
+				if(xmlHttp.readyState === 4){
+					console.log(xmlHttp);
+					alert("Server failed to broadcast transactions!\n" + xmlHttp.response);
+				}
+			}
+		}
+
+		xmlHttp.open("POST", url, true); // true for asynchronous 
+		xmlHttp.send(tx);
+	}
+
+	if ("{{ psbt['raw'] }}") {
+		document.addEventListener("DOMContentLoaded", function(){
+			initPageOverlay("tx_finalization_container");
+			var sendTxBtn = document.getElementById("send_tx_btn");
+			sendTxBtn.addEventListener("click", function() {
+				finalize("{{psbt['raw']}}");
+			});
+		});
+	} else {
+		document.addEventListener("DOMContentLoaded", function(){
+			let el = document.getElementById("pastetx");
+			el.addEventListener("click", function(){
+				let input = prompt("Paste signed transaction here");
+				if(input){
+					combine(input);
+				}
+			});
+		});
+	}
 
 	{# ================== Signers various device support ================== #}
-	{% if wallet.uses_hwi_device %}
+	{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 		document.addEventListener("DOMContentLoaded", function(){
 			initPageOverlay("hwi_sign_container");
 

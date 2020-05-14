@@ -622,17 +622,16 @@ class Wallet(dict):
         del self._dict["pending_psbts"][txid]
         self._commit()
 
-    def update_pending_psbt(self, psbt, txid, device_name):
+    def update_pending_psbt(self, psbt, txid, raw, device_name):
         if txid in self._dict["pending_psbts"]:
-            if self._dict["pending_psbts"][txid]["sigs_count"] + 1 == self.sigs_required:
-                self.delete_pending_psbt(txid)
-                return
             self._dict["pending_psbts"][txid]["sigs_count"] += 1
             self._dict["pending_psbts"][txid]["base64"] = psbt
             if device_name:
                 if "devices_signed" not in self._dict["pending_psbts"][txid]:
                     self._dict["pending_psbts"][txid]["devices_signed"] = []
                 self._dict["pending_psbts"][txid]["devices_signed"].append(device_name)
+            if "hex" in raw:
+                self._dict["pending_psbts"][txid]["raw"] = raw["hex"]
             self._commit()
 
     def _check_change(self):

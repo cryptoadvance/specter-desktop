@@ -57,13 +57,25 @@ def combine(wallet_alias):
             return e.error_msg, e.status_code
         except Exception as e:
             return "Unknown error: %r" % e, 500
-        if "hex" in raw:
-            app.specter.broadcast(raw["hex"])
-
         device_name = d['device_name']
-        wallet.update_pending_psbt(psbt, txid, device_name)
+        wallet.update_pending_psbt(psbt, txid, raw, device_name)
         return json.dumps(raw)
     return 'meh'
+
+@app.route('/wallets/<wallet_alias>/broadcast/', methods=['GET', 'POST'])
+@login_required
+def broadcast(wallet_alias):
+    wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    if request.method == 'POST':
+        d = request.json
+        tx = d['tx']
+        if wallet.cli.testmempoolaccept([tx]):
+            app.specter.broadcast(tx)
+            wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
+            return jsonify(success=True)
+        else:
+            return jsonify(success=False, error="Failed to broadcast transaction: transaction is invalid")
+    return jsonify(success=False, error="broadcast tx request must use POST")
 
 @app.route('/')
 @login_required
