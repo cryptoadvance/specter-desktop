@@ -271,10 +271,10 @@ function capitalize(str){
 	var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 	copyrawPSBTbtn.addEventListener("click", function() {
 		var raw_psbt = document.getElementById("raw-psbt");
-		copyText(raw_psbt, "{{psbt['base64']}}")
+		copyText(raw_psbt, "{{psbt['base64']}}", "Copied PSBT")
 	});
 
-	function copyText(element, content) {
+	function copyText(element, content, msg) {
 		try {
 			element.textContent = content
 			var selection = document.getSelection();
@@ -284,7 +284,7 @@ function capitalize(str){
 			selection.addRange(range);
   			document.execCommand("copy");
 			selection.removeAllRanges();
-			alert('Copied PSBT');
+			alert(msg);
 		}
 		catch (err) {
 			alert('Unable to copy text');
@@ -359,7 +359,7 @@ function capitalize(str){
 			el.style.width = '1px';
 			document.body.appendChild(el);
 			el.value = tx;
-			copyText(el, tx)
+			copyText(el, tx, 'Copied transaction')
 			document.body.removeChild(el);
 		});
 	}
