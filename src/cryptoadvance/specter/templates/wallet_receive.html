@@ -4,8 +4,8 @@
 {% include "includes/hwi.html" %}
 
 <h1>{{wallet.name}}</h1>
-{% set active_menuitem = "receive" %}
-{% include "includes/wallet_menu.html" %}
+{% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
+{{ wallet_menu("wallet_receive", wallet_alias) }}
 <div class="center">
 <form action="./" method="POST">
 	{% set addrlabel = wallet.getaddressname(wallet['address'], wallet['address_index']) %}

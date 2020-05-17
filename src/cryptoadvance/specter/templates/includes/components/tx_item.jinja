@@ -1,0 +1,46 @@
+{# 
+    tx_item - Transation table row.
+    Parameters:
+    - txid: The transaction ID.
+    - category: The transaction category. Options: 
+                    "send"                  Transactions sent.
+                    "receive"               Non-coinbase transactions received.
+                    "generate"              Coinbase transactions received with more than 100 confirmations.
+                    "immature"              Coinbase transactions received with 100 or fewer confirmations.
+                    "orphan"                Orphaned coinbase transactions received (Not supported).
+    - amount: The transaction amount.
+    - address: The address associated with the transaction.
+    - label: The label of `address` (equal to `address` if no label exists).
+    - block_height: The height of the block the transaction was mined in (-1 if the transaction is still unconfirmed).
+    - time: The time the transaction was sent at (in epoch seconds).
+    - specter: Specter object.
+ #}
+{% macro tx_item(txid, category, amount, address, label, block_height, time, specter) -%}
+    <tr class="{%if block_height == -1 %}unconfirmed{%endif%}">
+        <td>
+            {# coinbase txs are 'immature' until 100 confs #}
+            {% if category == 'immature' %}
+                <img src="/static/img/unconfirmed_receive_icon.svg"/>
+            {% else %}
+                <img src="/static/img/{% if block_height == -1 %}unconfirmed_{% endif %}{{category}}_icon.svg"/>
+            {% endif %}
+        </td>
+        <td class="tx scroll">
+            <a target="blank" href="{{specter.explorer}}tx/{{txid}}">{{txid}}</a>
+        </td>
+        <td class="tx scroll">
+            <a target="blank" href="{{specter.explorer}}address/{{address}}">{{ label }}</a>
+        </td>
+        <td>
+            {{ amount | btcamount }}
+        </td>
+        <td>
+            {%if block_height == -1 %}
+                Pending.
+            {% else %}
+                {{specter.info.blocks - block_height + 1}} conf.
+            {% endif %}
+            ({{ time | datetime }})
+        </td>
+    </tr>
+{%- endmacro %}

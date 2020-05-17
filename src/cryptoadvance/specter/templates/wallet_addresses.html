@@ -36,17 +36,11 @@
 	}
 </style>
 <h1>{{wallet.name}}</h1>
-{% set active_menuitem = "addresses" %}
-{% include "includes/wallet_menu.html" %}
+{% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
+{{ wallet_menu("wallet_addresses", wallet_alias) }}
 {% if ( wallet.fullbalance ) is not none %}
-<h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
-	{{ wallet.fullbalance | btcamount }}
-	{% if specter.chain !='main' %}t{%endif%}BTC
-	{% if wallet.balance["untrusted_pending"] > 0 %}</span><br><small>
-	( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{wallet.balance["untrusted_pending"] | btcamount}} pending )
-	{% endif %}
-</small></h1>
-
+{% from 'includes/components/total_wallet_balances.jinja' import total_wallet_balances %}
+{{ total_wallet_balances(wallet, specter) }}
 <div style="padding: 0 30px; width: 100%;">
 	<nav class="row">
 		<a href="./?all=True&view={{viewtype}}" class="btn radio left {% if alladdresses %}checked{% endif %}">History</a>
@@ -85,66 +79,28 @@
 		{% if specter.chain !='main' %}t{%endif%}BTC
 	</p>
 	<br><br>
-	<table>
-		<thead>
-		<tr>
-			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Status</th>
-		</tr>
-		</thead>
-		<tbody>
-			{% if (wallet.txonaddr(account) if isaddrview else wallet.txonlabel(account) > 0) %}
-			{% for tx in wallet.transactions %}
-			{% if (tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not isaddrview)) and (alladdresses or (wallet.istxspent(tx["txid"]) and tx["category"] != "send")) %}
-				{% if tx["block_height"] == -1 %}
-					<tr class="unconfirmed">
-				{%else%}
-					<tr>
-				{%endif%}
-				<td>
-					{# coinbase txs are 'immature' until 100 confs #}
-					{% if tx['category'] == 'immature' %}
-						<img src="/static/img/unconfirmed_receive_icon.svg"/>
-					{% else %}
-						{% if tx["block_height"] == -1 %}
-						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
-						{% else %}
-						<img src="/static/img/{{tx['category']}}_icon.svg"/>
-						{% endif %}
-					{% endif %}
-				</td>
-				{% set display_address = (tx["destination"]["address"] if ("destination" in tx and tx["destination"] != None) else tx["address"])%}
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{display_address}}">{{wallet.getaddressname(display_address, -1)}}</a></td>
-				<td>{{tx["amount"] | btcamount}}</td><td>
-				{%if tx["block_height"] == -1 %}
-					Pending.
-				{% else %}
-					{{specter.info.blocks - tx["block_height"] + 1}} conf.
-				{% endif %}
-				({{tx["time"] | datetime}})</td></tr>
-			{% endif %}
-			{% endfor %}
-			{% else %}
-			<td></td><td>No transactions yet.</td><td></td><td></td><td></td>
-			{% endif %}
-		</tbody>
-	</table>
+	{% from 'includes/components/tx_table.jinja' import tx_table %}
+	{% from 'includes/components/account_tx_table.jinja' import account_tx_table %}
+    {{ tx_table(
+		not (wallet.txonaddr(account) if isaddrview else wallet.txonlabel(account) > 0),
+		account_tx_table(account, 'history' if alladdresses else 'utxo', viewtype, wallet, specter)
+	) }}
 </div>
 {% endif %}
 {% endfor %}
 {% endif %}
 <script>
 	function toggleEdit(id, accountlabel) {
-		var edit_button_display = document.getElementById("edit"+id).style.display
+		var edit_button_display = document.getElementById("edit" + id).style.display
 		if (edit_button_display === 'none'){
-			document.getElementById("label" +id).disabled = 'true'
-			document.getElementById("label" +id).style.border = 'none'
+			document.getElementById("label" + id).disabled = 'true'
+			document.getElementById("label" + id).style.border = 'none'
 			document.getElementById("label" + id).style.textAlign = 'left';
 			document.getElementById("label" + id).style.fontSize = '1.5em';
-			document.getElementById("label" +id).value = accountlabel
-			document.getElementById("edit" +id).style.display = 'block'
-			document.getElementById("cancel" +id).style.display = 'none'
-			document.getElementById("save" +id).style.display = 'none'
+			document.getElementById("label" + id).value = accountlabel
+			document.getElementById("edit" + id).style.display = 'block'
+			document.getElementById("cancel" + id).style.display = 'none'
+			document.getElementById("save" + id).style.display = 'none'
 		} else{
 			document.getElementById("label" + id).disabled = ''
 			document.getElementById("label" + id).style.removeProperty('border');

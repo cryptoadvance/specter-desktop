@@ -56,8 +56,8 @@
 	}
 </style>
 <h1>{{wallet.name}}</h1>
-{% set active_menuitem = "send" %}
-{% include "includes/wallet_menu.html" %}
+{% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
+{{ wallet_menu("wallet_send", wallet_alias) }}
 <br>
 <form action="{{ url_for('wallet_send',wallet_alias=wallet_alias)}}" method="POST" class="full-width">
 	<div class="tx_info">

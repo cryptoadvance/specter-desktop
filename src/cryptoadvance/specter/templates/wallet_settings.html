@@ -9,8 +9,8 @@
 		<button type="button" class="btn edit" id="editname" onclick="toggleEdit()">Edit Wallet Name</button>
 	</div>
 </form>
-{% set active_menuitem = "settings" %}
-{% include "includes/wallet_menu.html" %}
+{% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
+{{ wallet_menu("wallet_settings", wallet_alias) }}
 <br>
 <h1>Keypool control</h1>
 <form action="." method="POST" class="padded" style="width: 500px">

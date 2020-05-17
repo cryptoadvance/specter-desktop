@@ -1,62 +1,20 @@
 {% extends "base.html" %}
 {% block main %}
 <h1>{{wallet.name}}</h1>
-{% set active_menuitem = "transactions" %}
-{% include "includes/wallet_menu.html" %}
+{% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
+{{ wallet_menu("wallet_tx", wallet_alias) }}
 {% if ( wallet.fullbalance ) is not none %}
-<h1><small style="line-height:30px">Total balance:<br></small><span style="color: #fff">
-	{{ wallet.fullbalance | btcamount }}
-	{% if specter.chain !='main' %}t{%endif%}BTC
-	{% if wallet.balance["untrusted_pending"] > 0 %}</span><br><small>
-	( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcamount }} pending )
-	{% endif %}
-</small></h1>
+{% from 'includes/components/total_wallet_balances.jinja' import total_wallet_balances %}
+{{ total_wallet_balances(wallet, specter) }}
 <br>
 <h1>Latest transactions</h1>
 <div class="table-holder">
-	<table>
-		<thead>
-		<tr>
-			<th></th><th>TxID</th><th>Address</th><th>Amount</th><th>Status</th>
-		</tr>
-		</thead>
-		<tbody>
-			{% if wallet.txlist != [] %}
-			{% for tx in wallet.txlist %}
-			{%if tx["block_height"] == -1 %}
-			<tr class="unconfirmed">
-			{%else%}
-			<tr>
-			{%endif%}
-				<td>
-					{# coinbase txs are 'immature' until 100 confs #}
-					{% if tx['category'] == 'immature' %}
-						<img src="/static/img/unconfirmed_receive_icon.svg"/>
-					{% else %}
-						{% if tx["block_height"] == -1 %}
-						<img src="/static/img/unconfirmed_{{tx['category']}}_icon.svg"/>
-						{% else %}
-						<img src="/static/img/{{tx['category']}}_icon.svg"/>
-						{% endif %}
-					{% endif %}
-				</td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{tx["txid"]}}</a></td>
-				<td class="tx scroll"><a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">
-					{{wallet.getaddressname(tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"], -1)}}
-				</a></td>
-				<td>{{tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"] | btcamount}}</td><td>
-				{%if tx["block_height"] == -1 %}
-					Pending.
-				{% else %}
-					{{specter.info.blocks - tx["block_height"] + 1}} conf.
-				{% endif %}
-				({{tx["time"] | datetime}})</td></tr>
-			{% endfor %}
-			{% else %}
-			<td></td><td>No transactions yet.</td><td></td><td></td><td></td>
-			{% endif %}
-		</tbody>
-	</table>
+	{% from 'includes/components/tx_table.jinja' import tx_table %}
+	{% from 'includes/components/full_tx_table.jinja' import full_tx_table %}
+	{{ tx_table(
+		wallet.txlist == [],
+		full_tx_table(wallet, specter)
+	) }}
 </div>
 {% endif %}
 
