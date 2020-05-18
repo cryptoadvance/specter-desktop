@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 
-{% include "includes/hwi.html" %}
+{% include "includes/hwi.jinja" %}
 
 <style>
 	.tx_info {
@@ -199,18 +199,6 @@
 
 
 	{# ===================== Possible tx signers' outputs ===================== #}
-	{% if wallet.uses_hwi_device %}
-		<div id="hwi_sign_container" class="flex-center flex-column hidden">
-			<h2>Sign Transaction</h2>
-			<div>
-				Please confirm transaction on your <span id="hwi_device_name">device</span>
-			</div>
-			<div class="flex-center">
-				<img src="/static/img/loader_boxes.svg"/>
-			</div>
-		</div>
-	{% endif %}
-
 	{% if wallet.uses_qrcode_device %}
 		<div class="output_option">
 			<a class="btn centered" id="scanme">Scan signed transaction</a>
@@ -234,17 +222,7 @@
 		</div>
 	{% endif %}
 
-	<div id="tx_finalization_container" class="hidden">
-		<h1>Transaction is Ready to Broadcast</h1>
-		<div class="flex-center flex-column">
-			<button id="broadcast_local_btn" class="btn flex-item" style="width: 190px;">Send transaction</button>
-			{% if specter.chain != "regtest" %}
-				<button type="button" id="broadcast_blockstream_btn" class="btn flex-item" style="width: 190px;">Send via blockstream.info</button>
-			{% endif %}
-			<button id="save_psbt_btn" class="btn flex-item" style="width: 190px;">Save as pending</button>
-			<button id="copy_final_tx_btn" class="btn flex-item" style="width: 190px;">Copy raw transaction</button>
-		</div>
-	</div>
+	{% include 'includes/components/overlay/broadcast_tx.jinja' %}
 
 	<div class="row padded">
 		<input type="hidden" name="pending_psbt" value="{{psbt}}">
@@ -335,7 +313,7 @@ function capitalize(str){
 	}
 
 	function finalize(tx) {
-		showPageOverlay("tx_finalization_container");
+		showPageOverlay("tx_broadcast");
 
 		document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
 			e.preventDefault();
@@ -349,7 +327,7 @@ function capitalize(str){
 		}
 		document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
 			e.preventDefault();
-			hidePageOverlay("tx_finalization_container");
+			hidePageOverlay();
 			window.location.replace("./pending/");
 		});
 		document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
@@ -373,7 +351,7 @@ function capitalize(str){
 				let o = JSON.parse(this.responseText);
 				console.log(o);
 				if(o.success) {
-					hidePageOverlay("tx_finalization_container");
+					hidePageOverlay();
 					window.location.replace("../tx/");
 				} else {
 					alert("Server failed to broadcast transactions!\n" + o.error);
@@ -422,7 +400,6 @@ function capitalize(str){
 
 	if ("{{ psbt['raw'] }}") {
 		document.addEventListener("DOMContentLoaded", function(){
-			initPageOverlay("tx_finalization_container");
 			var sendTxBtn = document.getElementById("send_tx_btn");
 			sendTxBtn.addEventListener("click", function() {
 				finalize("{{psbt['raw']}}");
@@ -443,8 +420,6 @@ function capitalize(str){
 	{# ================== Signers various device support ================== #}
 	{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 		document.addEventListener("DOMContentLoaded", function(){
-			initPageOverlay("hwi_sign_container");
-
 			{% if not wallet.is_multisig %}
 				document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
 					e.preventDefault();
@@ -463,10 +438,10 @@ function capitalize(str){
 				{% endfor %}
 			{% endif %}
 
-			document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
+			document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
 				e.preventDefault();
 				document.getElementById("hwi_device_name").textContent = capitalize(hwiCurrentWallet.type);
-				showPageOverlay("hwi_sign_container");
+				showPageOverlay(HWI_POPUPS.SIGN);
 
 				const psbt = "{{ psbt['base64'] }}";
 				var jsonResponse = await hwiSendPsbt(psbt);
@@ -476,7 +451,7 @@ function capitalize(str){
 					combine(jsonResponse.psbt);
 				}
 
-				hidePageOverlay("hwi_sign_container");
+				hidePageOverlay();
 			});
 		});
 	{% endif %}

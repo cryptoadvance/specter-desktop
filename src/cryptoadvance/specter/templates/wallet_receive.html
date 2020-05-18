@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 
-{% include "includes/hwi.html" %}
+{% include "includes/hwi.jinja" %}
 
 <h1>{{wallet.name}}</h1>
 {% from 'includes/components/wallet_menu.jinja' import wallet_menu %}
@@ -30,7 +30,6 @@
 </div>
 <form action="./" method="POST">
 	<button type="submit" onclick="showLoader()" name="action" value="newaddress" class="btn centered">Get new address</button>&nbsp;
-	<!-- <button type="submit" name="action" value="send" class="btn centered action">Send</button> -->
 	{% if wallet['type'] == 'simple' %}
 		<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display Address on Device</button>&nbsp; &nbsp; &nbsp;
 	{% endif %}
@@ -39,27 +38,13 @@
 <div class="note"><center>Specter can verify this address if you scan it.<br>
 It has an address index included in the QR code.</center></div>
 
-
-{% if wallet.uses_hwi_device %}
-<div id="hwi_display_address_container" class="flex-center flex-column hidden">
-	<h2>Confirm Address</h2><br>
-	<div>
-		Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
-		Expected address: {{ wallet['address'] }}
-	</div>
-	<div class="flex-center">
-		<img src="/static/img/loader_boxes.svg"/>
-	</div>
-</div>
-{% endif %}
-
 <script>
 	function displayAddressOnDevice() {
 		beginDetectWallet("{{ wallet['device_type'] }}");
-		document.getElementById("hwi_include__unlocked__submit").addEventListener("click", async function(e) {
+		document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
 			e.preventDefault();
 			document.getElementById("hwi_device_name").textContent = '{{wallet["device_type"]|capitalize}}';
-			showPageOverlay("hwi_display_address_container");
+			showPageOverlay(HWI_POPUPS.DISPLAY_ADDRESS);
 
 			var formData = new FormData();
 			formData.append("type", hwiCurrentWallet.type);
@@ -87,7 +72,7 @@ It has an address index included in the QR code.</center></div>
 				alert(jsonResponse.error);
 			}
 
-			hidePageOverlay("hwi_display_address_container");
+			hidePageOverlay();
 		});
 	}
 

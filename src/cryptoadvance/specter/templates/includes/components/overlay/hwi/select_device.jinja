@@ -1,0 +1,11 @@
+<div id="hwi_select_device" class="hidden">
+    <h1>Select USB Wallet</h1>
+    <div class="flex-center flex-column" id="hwi_select_device__content">
+        <button id="hwi_select_device__specter" class="btn flex-item" onclick="beginDetectWallet('specter')">Specter (USB)</button>
+        <button id="hwi_select_device__coldcard" class="btn flex-item" onclick="beginDetectWallet('coldcard')">Coldcard (USB)</button>
+        <button id="hwi_select_device__keepkey" class="btn flex-item" onclick="beginDetectWallet('keepkey')">KeepKey</button>
+        <button id="hwi_select_device__ledger" class="btn flex-item" onclick="beginDetectWallet('ledger')">Ledger</button>
+        <button id="hwi_select_device__trezor" class="btn flex-item" onclick="beginDetectWallet('trezor')">Trezor</button>
+    </div>
+    <div class="hidden flex-center" id="hwi_select_device__instructions"></div>
+</div>

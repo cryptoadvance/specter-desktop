@@ -1,0 +1,10 @@
+<div id="hwi_display_address" class="flex-center flex-column hidden">
+	<h2>Confirm Address</h2><br>
+	<div>
+		Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
+		Expected address: {% if wallet is defined %} {{ wallet['address'] }} {% endif %}
+	</div>
+	<div class="flex-center">
+		<img src="/static/img/loader_boxes.svg"/>
+	</div>
+</div>

@@ -1,17 +1,14 @@
 {% extends "base.html" %}
 
-
-
 {% block main %}
 
-{% include "includes/hwi.html" %}
+{% include "includes/hwi.jinja" %}
 
 <form method="POST">
-	<!-- <div class="spacer"></div> -->
 	{% if device %}
-	<h1>Adding keys to {{device["name"]}}</h1>
+		<h1>Adding keys to {{device["name"]}}</h1>
 	{% else %}
-	<h1>Add new hardware wallet</h1>
+		<h1>Add new hardware wallet</h1>
 	{% endif %}
 	<div class="card">
 		<form action="." method="POST">
@@ -20,7 +17,7 @@
 			<div id="connect_container">
 				<h2>Connect USB wallet</h2>
 				<br/>
-				<button class="btn" id="connect_btn">Begin</button>
+				<button class="btn" id="connect_btn" type="button" onclick="showPageOverlay(HWI_POPUPS.SELECT)">Begin</button>
 			</div>
 
 			<div id="extract_xpubs_container" class="hidden">
@@ -39,39 +36,14 @@
 	</div>
 </form>
 
-
-<div id="extracting_xpubs_loading" class="flex-center hidden">
-	<h2>Extracting Xpubs</h2>
-	<div>
-		<br/>
-		Wait for 10-15 secs...
-	</div>
-	<img src="/static/img/loader_boxes.svg"/>
-</div>
-
 {% endblock %}
-
-
 
 {% block scripts %}
 <script>
-
-	document.addEventListener("DOMContentLoaded", function(){
-		// Handler when the DOM is fully loaded
-		initPageOverlay("extracting_xpubs_loading");
-	});
-
-
-	document.getElementById('connect_btn').addEventListener("click", async function(event) {
-		event.preventDefault();
-		hwiSelectHWIDevice();
-	});
-
-
 	document.getElementById('extract_btn').addEventListener("click", async function(event) {
 		event.preventDefault();
 
-		showPageOverlay("extracting_xpubs_loading");
+		showPageOverlay(HWI_POPUPS.EXTRACT_XPUBS);
 		
 		var formData = new FormData();
 		formData.append("device_name", document.getElementById('device_name_id').value);
@@ -87,7 +59,6 @@
 			}
 		);
 		const jsonResponse = await response.json();
-		console.log(jsonResponse);
 		if (jsonResponse.success) {
 			location.href = "/devices/" + jsonResponse.device_alias;
 		} else {
@@ -95,17 +66,14 @@
 		}
 	});
 
-
-	document.getElementById('hwi_include__unlocked__submit').addEventListener("click", async function(event) {
+	document.getElementById('hwi_unlocked__submit').addEventListener("click", async function(event) {
 		event.preventDefault();
 
 		var connectContainer = document.getElementById('connect_container');
 		var extractContainer = document.getElementById('extract_xpubs_container');
 		connectContainer.style.display = "none";
 		extractContainer.style.display = "block";
-
 		document.getElementById('device_name_id').value = hwiCurrentWallet.typeDisplay;
 	});
-
 </script>
 {% endblock %}
