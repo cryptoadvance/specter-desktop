@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.jinja" %}
 {% block main %}
 
 {% include "includes/hwi.jinja" %}
@@ -29,7 +29,7 @@
 <div class="padded">{{wallet['address']}}</div>
 </div>
 <form action="./" method="POST">
-	<button type="submit" onclick="showLoader()" name="action" value="newaddress" class="btn centered">Get new address</button>&nbsp;
+	<button type="submit" name="action" value="newaddress" class="btn centered">Get new address</button>&nbsp;
 	{% if wallet['type'] == 'simple' %}
 		<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display Address on Device</button>&nbsp; &nbsp; &nbsp;
 	{% endif %}

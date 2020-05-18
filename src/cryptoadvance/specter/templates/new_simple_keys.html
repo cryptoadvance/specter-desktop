@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.jinja" %}
 {% block main %}
 <div class="spacer"></div>
 {% if device %}
@@ -85,7 +85,7 @@
 <div class="spacer"></div>
 {% endfor %}
 {% if not error %}
-	<button type="submit" onclick="showLoader()" name="action" value="key" class="btn centered action">Create wallet</button>
+	<button type="submit" name="action" value="key" class="btn centered action">Create wallet</button>
 {% endif %}
 </form>
 
@@ -127,7 +127,7 @@
 					<input type="hidden" name="wallet_name" value="{{wallet_name}}">
 					<input type="hidden" name="device" value="{{device['name']}}">
 					<input type="hidden" name="type" value="{{wallet_type}}">
-					<button type="submit" onclick="showLoader()" name="action" value="key" class="btn hovering action">Use this key</button>
+					<button type="submit" name="action" value="key" class="btn hovering action">Use this key</button>
 				</form>
 			</td>
 		</tr>
