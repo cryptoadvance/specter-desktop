@@ -1,0 +1,77 @@
+{% extends "includes/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_settings' %}
+{% block content %}<br>
+	<h1>Keypool control</h1>
+	<form action="." method="POST" class="padded" style="width: 500px">
+		<div>Currently watching {{ wallet["keypool"] }} receiving and {{ wallet["change_keypool"] }} change addresses.<div>
+		<div class="row aligned">
+			<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
+			<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
+		</div>
+	</form>
+
+	<form action="." method="POST" class="padded" style="width: 500px">
+		{% if wallet.rescan_progress %}
+			<div class="row aligned">
+				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blochchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
+				<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
+			</div>
+		{% else %}
+			Rescan blockchain from block:<br>
+			<div class="row aligned">
+				{% if specter.info.chain == "main" %}
+					{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+				{% else %}
+					{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
+				{% endif %}
+				<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
+				<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
+			</div>
+			{% if specter.info['pruned']  %}
+				<div class="note center full-width">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+			{% endif %}
+			<div class="note center"><b>481824</b> was the first Segwit block.</div>
+		{% endif %}
+	</form>
+	<br>
+	<h1>Cache</h1>
+	<form action="." method="POST" class="padded" style="width: 500px">
+		<div class="row center">
+			<button type="submit" name="action" value="rebuildcache" class="btn" style="max-width: 160px;">Rebuild Cache</button>
+		</div>
+	</form>
+	<br>
+
+	<h1>Import / Export</h1>
+	<div class="note center">
+		Import this wallet to the device by scanning QR code below.
+	</div>
+	<div id = "component_qr">
+		<qrencode class = 'center' text="{{qr_text}}" width=400></qrencode>
+	</div>
+	<script src="/static/qr/vue-qrcode.min.js"></script>
+	<script type = "text/javascript" src="/static/vue_qr.js"></script>
+	<script>
+		Vue.component(VueQrcode.name, VueQrcode);
+		var vm = new Vue({el: '#component_qr'});
+	</script>
+
+	{% if wallet.is_multisig %}
+		<div>
+		{% if cc_file %}
+			<a download="{{wallet['name']}}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered padded">Download ColdCard file</a>
+		{% else %}
+			<div class="note">Coldcard file is unavailable - we don't have enough information to generate it</div>
+		{% endif %}
+		</div>
+	{% endif %}
+
+	<div>
+		<code style="max-width: 700px; word-wrap: break-all; overflow-x: scroll; display: block; padding: 20px 0;">{{qr_text}}</code>
+	</div>
+	<br>
+	<form action="." method="POST" class="padded" style="width: 500px">
+		<h1>Delete Wallet</h1>
+		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
+	</form>
+{% endblock %}

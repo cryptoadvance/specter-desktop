@@ -390,7 +390,7 @@ def wallet_tx(wallet_alias):
     if wallet is None:
         return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
 
-    return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    return render_template("wallet_tx.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
 @login_required
@@ -413,7 +413,7 @@ def wallet_addresses(wallet_alias):
                     wallet.setlabel(address, label)
                 wallet.getdata()
     alladdresses = True if request.args.get('all') != 'False' else False
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
+    return render_template("wallet_addresses.jinja", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -432,7 +432,7 @@ def wallet_receive(wallet_alias):
             wallet.setlabel(wallet['address'], label)
     if wallet.txoncurrentaddr > 0:
         wallet.getnewaddress()
-    return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    return render_template("wallet_receive.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
 @login_required
@@ -562,8 +562,8 @@ def wallet_settings(wallet_alias):
             app.specter.wallets.delete_wallet(wallet)
             response = redirect(url_for('index'))
             return response
-        elif action == "renamewallet":
-            wallet_name = request.form['walletname']
+        elif action == "rename":
+            wallet_name = request.form['newtitle']
             if wallet_name in app.specter.wallets.names():
                 error = "Wallet already exists"
             else:
@@ -575,14 +575,14 @@ def wallet_settings(wallet_alias):
         cc_file = wallet.get_cc_file()
         if cc_file is not None:
             cc_file = urllib.parse.quote(cc_file)
-        return render_template("wallet_settings.html", 
+        return render_template("wallet_settings.jinja", 
                             cc_file=cc_file, 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
                             error=error,
                             qr_text=qr_text)
     else:
-        return render_template("wallet_settings.html", 
+        return render_template("wallet_settings.jinja", 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
                             error=error,

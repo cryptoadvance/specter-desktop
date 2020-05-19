@@ -1,0 +1,42 @@
+{# 
+    editable_title - Make #title element editable.
+    Parameters:
+    - title: Page title
+ #}
+{% macro editable_title(title) -%}
+    <form action="./" method="POST">
+        <input type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="font-size: 1.5em; text-align: center; display: none;" />
+        <div class="row">
+            <button type="submit" class="btn update" id="save" name="action" value="rename" style="display: none; width: 49.2%; margin: 3px;">Update</button>
+            <button type="button" class="btn cancel" id="cancel" onclick="toggleEdit()" style="display: none; width: 49.2%; margin: 3px;">Cancel</button>
+            <button type="button" class="btn edit" id="edit" onclick="toggleEdit()">Edit Name</button>
+        </div>
+        <br>
+    </form>
+
+    <script>
+	    function toggleEdit() {
+            var title = document.getElementById("title");
+            var newtitle = document.getElementById("newtitle");
+            var edit = document.getElementById("edit");
+            var cancel = document.getElementById("cancel");
+            var save = document.getElementById("save");
+
+            if (edit.style.display === 'none'){
+                edit.style.display = 'block';
+                cancel.style.display = 'none';
+                save.style.display = 'none';
+                title.style.display = 'block';
+                newtitle.style.display = 'none';
+            } else {
+                newtitle.style.fontSize = '1.5em';
+                newtitle.value = '{{ title }}';
+                newtitle.style.display = 'block';
+                edit.style.display = 'none';
+                cancel.style.display = 'inline-block';
+                save.style.display = 'inline-block';
+                title.style.display = 'none';
+            }
+        }
+    </script>
+{%- endmacro %}
