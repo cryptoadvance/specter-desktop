@@ -499,7 +499,7 @@ def wallet_send(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 flash("Could not delete Pending PSBT!")
-    return render_template("wallet_send.html", psbt=psbt, label=label, 
+    return render_template("wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 

@@ -1,0 +1,271 @@
+{% extends "includes/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_send' %}
+{% block content %}
+	{% include "includes/hwi.jinja" %}
+	<br>
+	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias)}}" method="POST">
+		<nav class="row">
+			<a href="{{ url_for('wallet_send',wallet_alias=wallet_alias)}}" class="btn radio left checked">New</a>
+			<a href="{{ url_for('wallet_sendpending',wallet_alias=wallet_alias)}}" class="btn radio right">Pending</a>
+		</nav>
+		<h1 class="padded">Sending to:</h1>
+		<div class="card"  id="spend_coins">
+			Recipient address:<br>
+			<div class="row">
+				<input type="text" id="address" name="address" id="address" oninput="validateForm()"> &nbsp;
+				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+			</div>
+			<br>
+			Address label (optional):<br>
+			<input type="text" id="label" name="label" value="{{label}}">
+			<br><br>
+			Amount:<br>
+			<input style="width:200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="1e-8" autocomplete="off">
+			<input type="hidden" name="btc_amount" id="btc_amount">
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="sat" onchange="toggleUnit(this)" checked>sat</label>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)">BTC</label>
+			<div class="notification error" id="amount_errors_container" style="display: none;">
+				<ul>
+					<li id="above_selected_coins_error" style="display: none;"> You need to select more coins to match your amount!</li>
+					<li id="above_wallet_balance_error" style="display: none;"> You cannot send more than {{wallet.availablebalance | btcamount}} BTC!</li>
+				</ul>
+			</div>
+			<div class="note">
+				<span id="converted_unit_amount">-</span> <span id="converted_unit_label">sat</span>, 
+				Available: {{wallet.availablebalance | btcamount}};
+				{% if wallet.locked_amount > 0 %}
+					&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
+				{% endif %}
+			</div>
+			<div><label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract from amount</label></div>
+			<br><br>
+		
+			<div class="fee_container">
+				<div>
+					Fees: <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
+				</div>
+				<br><br>
+				<input type="hidden" id="fee_unit" name="fee_unit" value="BTC_KB">
+				<div id = "fee_manual" style="display:none">
+					Fee rate:<br>
+					<input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
+					<div class="note">leave blank to set automatically</div>
+					<br><br>
+				</div>
+				<div id ="fee_dynamic" style="display:block">
+					<div id="blocks"></div>
+					<input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees(this.value)">
+					<input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+					<div> Fee rate: <span id="fee_rate_dynamic_text"></span></div>
+					<br><br>
+				</div>
+			</div>
+			{% set unspents = wallet.cli.listunspent(0) %}
+			<div>
+				{% if unspents | length > 0 %}
+					<button id="coinselect" onclick="toggleExpand()" type="button" class="btn">Select coins</button>
+				{% endif %}
+				<table style="table-layout: fixed; display: none;" id="coin_selection_table">
+					<thead>
+					<tr>
+						<th></th><th>TxID</th><th>Address</th><th>Amount</th>
+					</tr>
+					</thead>
+					<tbody>
+						{% for tx in unspents %}
+							<tr>
+								<td>
+									<input class="checkbox coinselect-checkbox" type="checkbox" name="coinselect" value="{{ [tx['txid'], tx['vout'], tx['amount']]|join(', ') }}"  onchange='updateCoinSelect(this);'>
+								</td>
+								<td class="tx scroll">
+									<a target="blank" href="{{specter.explorer}}tx/{{tx['txid']}}">{{ tx['txid'] }}</a>
+								</td>
+								<td class="tx scroll">
+									<a target="blank" href="{{specter.explorer}}address/{{tx['address']}}">{{ tx['label'] if tx['label'] != '' else tx['address'] }}</a>
+								</td>
+								<td>{{ tx['amount'] | btcamount }}</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+		</div>
+	</form>
+{% endblock %}
+
+
+{% block scripts %}
+	{% include "includes/components/qr_scanner.jinja" %}
+
+	<script>
+		var unit = 'sat';
+		var amount = 0.0;
+		var coinSelectAmount = 0.0;
+
+		function toggleUnit(unitSelected) {
+			unit = unitSelected.value;
+			document.getElementById('converted_unit_label').innerHTML = (unit == 'sat' ? 'BTC' : 'sat');
+			calculateConvertedUnit();
+		}
+
+		function calculateConvertedUnit() {
+			let amountInput = document.getElementById('amount');
+			amount = parseFloat(amountInput.value);
+			let convertedAmount = Number.parseFloat(amount / (unit == 'sat' ? 100000000 : 0.000000001)).toFixed((unit == 'sat' ? 8 : 0));
+			if (convertedAmount == 'NaN') {
+				convertedAmount = '-'
+			}
+			document.getElementById('converted_unit_amount').innerHTML = convertedAmount;
+
+			document.getElementById('btc_amount').value = (unit == 'btc' ? amount : amount / 100000000);
+
+			validateForm();
+		}
+
+		function isAboveWalletBalance() {
+			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.availablebalance }}');
+		}
+
+		function getSpendableAmount() {
+			if (!isCoinSelectionActive()) {
+				return '{{ wallet.availablebalance | btcamount }}';
+			} else {
+				return coinSelectAmount;
+			}
+		}
+
+		function updateCoinSelect(coin) {
+			let coinAmount = parseFloat(coin.value.split(', ')[2]);
+			if (coin.checked) {
+				coinSelectAmount += coinAmount;
+			} else {
+				coinSelectAmount -= coinAmount;
+			}
+			coinSelectAmount = parseFloat(coinSelectAmount.toFixed(8));
+			validateForm();
+		}
+
+		function shouldSelectMoreCoins() {
+			return (unit == 'sat' ? amount / 100000000 : amount) > coinSelectAmount && isCoinSelectionActive()
+		}
+
+		function toggleExpand() {
+			if (isCoinSelectionActive()) {
+				setVisibility('coin_selection_table', 'none');
+			} else {
+				setVisibility('coin_selection_table', 'block');
+
+				let coins = document.getElementsByClassName('coinselect-checkbox');
+				// unselect all choices
+				for(var i = 0; i < coins.length; i++){
+					coins[i].checked = false;
+				}
+			}
+			validateForm();
+		}
+
+		function isCoinSelectionActive() {
+			return document.getElementById("coin_selection_table").style.display !== 'none';
+		}
+
+		// Form validation
+		function validateAmount() {
+			let errorsContainer = document.getElementById('amount_errors_container');
+			let aboveWalletBalanceError = document.getElementById('above_wallet_balance_error');
+			let aboveSelectedCoinsError = document.getElementById('above_selected_coins_error');
+
+			let amountInput = document.getElementById('amount');
+			amountInput.max = getSpendableAmount();
+
+			if (isAboveWalletBalance()) {
+				setVisibility('amount_errors_container', 'block');
+				setVisibility('above_wallet_balance_error', 'block');
+				setVisibility('above_selected_coins_error', 'none');
+				return false;
+			} else if (shouldSelectMoreCoins()) {
+				setVisibility('amount_errors_container', 'block');
+				setVisibility('above_wallet_balance_error', 'none');
+				setVisibility('above_selected_coins_error', 'block');
+				return false;
+			} else {
+				setVisibility('amount_errors_container', 'none');
+				setVisibility('above_wallet_balance_error', 'none');
+				setVisibility('above_selected_coins_error', 'none');
+				return true;
+			}
+		}
+
+		function validateAddress() {
+			let addressInput = document.getElementById('address');
+			if (addressInput.value) {
+				return true;
+			}
+			// TODO: add proper address format validation.
+			return false;
+		}
+
+		function validateForm() {
+			let createPSBTButton = document.getElementById('create_psbt_btn');
+			console.log(((validateAmount() && amount > 0) && validateAddress()))
+			createPSBTButton.disabled = !((validateAmount() && amount > 0) && validateAddress());
+		}
+
+		// Fees options
+
+		document.addEventListener("DOMContentLoaded", loadDynamicFees);
+
+		function showFeeOption(myRadio) {
+			let feeUnit = document.getElementById('fee_unit');
+
+			if (myRadio.value == 'dynamic') {
+				setVisibility('fee_manual', 'none');
+				setVisibility('fee_dynamic', 'block');
+				feeUnit.value = 'BTC_KB'
+			} else {
+				setVisibility('fee_manual', 'block');
+				setVisibility('fee_dynamic', 'none');
+				feeUnit.value = 'SAT_B'
+			}
+		}
+
+		async function fetchDynamicFees() {
+			try {
+				const response = await fetch(
+					'/get_fee/'.concat(document.getElementById('slider_confTime').value),
+					{
+						method: 'GET'
+					}
+				);
+				return await response.json();
+			} catch(e) {
+				console.log('Caught error:', e);
+				return { success: false, error: e };
+			}
+		}
+
+		async function loadDynamicFees() {
+			let feesJSON = await fetchDynamicFees();
+			let blocks = 'Dynamic fees are currently not available.';
+
+			if (feesJSON.hasOwnProperty('blocks')) {
+				let fee = feesJSON.feerate;
+				blocks = feesJSON.blocks + ' blocks';
+				document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' BTC/kB');
+				document.getElementById('fee_rate_dynamic').value = fee;
+			} else {
+				document.getElementById('fee_rate_dynamic_text').innerHTML = 'will be set by Bitcoin Core automatically';
+				document.getElementById('fee_rate_dynamic').value = 0;
+			}
+
+			document.getElementById('blocks').innerHTML = 'Confirmation time: '.concat(blocks);
+		}
+
+		// Utils
+		function setVisibility(id) {
+			document.getElementById(id).style.display = (document.getElementById(id).style.display == 'none' ? 'block' : 'none');
+		}
+
+	</script>
+{% endblock %}

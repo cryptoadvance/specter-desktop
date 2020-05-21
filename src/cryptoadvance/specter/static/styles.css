@@ -732,6 +732,30 @@ table tr:hover .btn.hovering{
     border-radius: 7px;
 }
 
+/************** Send Tab ********************************/
+
+.fee_container {
+    height: 11em;
+}
+.fee_rate {
+    width: 6em;
+    min-width: 6em;
+}
+#coin_selection_table .tx {
+    width: 100%;
+    max-width: 179px;
+    min-width: 120px;
+}
+.checkbox {
+    width: 20px;
+    max-width: 20px;
+    min-width: 20px;
+    height: 20px;
+}
+#coinselect {
+    margin-bottom: 10px;
+}
+
 /************** Overlay Popup ********************************/
 .page_overlay {
     display: none;

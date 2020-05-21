@@ -1,0 +1,46 @@
+<div class="popup" id="popup">
+    <video muted playsinline id="qr-video" class="video"></video>
+</div>
+
+<script type="module">
+    import QrScanner from "/static/qr/qr-scanner.min.js";
+    QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+    const video = document.getElementById('qr-video');
+
+    const scanner = new QrScanner(video, result => {
+        scanner.stop();
+        document.getElementById("popup").style.display = 'none';
+            let addr = result;
+            if(addr.indexOf("bitcoin:") >= 0){
+                addr = addr.substr(addr.indexOf("bitcoin:")+8);
+            }
+            let arr = addr.split("?");
+            addr = arr[0]
+            document.getElementById("address").value = addr;
+            let evt = new Event('input');
+            document.getElementById("address").dispatchEvent(evt);
+            if(arr.length > 1){
+                arr = arr[1].split("&");
+                arr.forEach((e)=>{
+                    if(e.startsWith("amount=")){
+                        document.getElementById("amount").value = parseFloat(e.substr(7));
+                        let evt = new Event('input');
+                        document.getElementById("amount").dispatchEvent(evt);
+                    }
+                });
+            }
+    });
+    document.getElementById("scanme").addEventListener("click", function(){
+        try{
+            scanner.start();
+            document.getElementById("popup").style.display = 'flex';
+        }catch(e){
+            alert("Can't start the QR scanner!\n\n" + e);
+        }
+    });
+    document.getElementById("popup").addEventListener("click", function(){
+        document.getElementById("popup").style.display = 'none';
+        scanner.stop();
+    });
+</script>
