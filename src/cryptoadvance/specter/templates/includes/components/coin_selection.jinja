@@ -40,12 +40,15 @@
         return document.getElementById("coin_selection_table").style.display !== 'none';
     }
 
-    function getSpendableAmount() {
+    function getSpendableAmount(unit) {
+        let spendableAmount;
         if (!isCoinSelectionActive()) {
-            return '{{ wallet.availablebalance | btcamount }}';
+            spendableAmount = '{{ wallet.availablebalance | btcamount }}';
         } else {
-            return coinSelectAmount;
+            spendableAmount = coinSelectAmount;
         }
+
+        return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
     }
 
     function shouldSelectMoreCoins(unit) {

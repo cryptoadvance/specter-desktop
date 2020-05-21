@@ -520,7 +520,7 @@ def wallet_sendpending(wallet_alias):
             except Exception as e:
                 flash("Could not delete Pending PSBT!")
     pending_psbts = wallet.pending_psbts
-    return render_template("wallet_sendpending.html", pending_psbts=pending_psbts,
+    return render_template("wallet_sendpending.jinja", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter) 
 

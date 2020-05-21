@@ -1,0 +1,40 @@
+{# 
+    pending_psbt_item - Pending PSBT table row.
+    Parameters:
+    - pending_psbt: PSBT to show in this row.
+    - wallet_alias: Active wallet alias.
+    - wallet: Wallet object.
+    - specter: Specter object.
+ #}
+{% macro pending_psbt_item(pending_psbt, wallet_alias, wallet, specter) -%}
+    <tr>
+        <td></td>
+        <td class="tx scroll">
+            <a target="blank" href="{{ specter.explorer }}address/{{ pending_psbt['address'] }}">
+                {{ wallet.getaddressname(pending_psbt['address'], -1)}}
+            </a>
+        </td>
+        <td>
+            {{ pending_psbt['amount'] | btcamount }}
+        </td>
+        <td>
+            {{ pending_psbt['time'] | datetime }}
+        </td>
+        <td>
+            {{ '{}/{}'.format(pending_psbt['sigs_count'], wallet.sigs_required) }}
+        </td>
+        <td width="170px">
+            <div class="row">
+                <form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
+                    <button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">Open</button>
+                </form>
+
+                <form action="{{ url_for('wallet_sendpending',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
+                    <button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;" onclick="javascript: form.action='./?pending=True';">Delete</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+{%- endmacro %}
