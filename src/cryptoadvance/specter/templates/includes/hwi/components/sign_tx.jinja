@@ -1,0 +1,32 @@
+{% if psbt is defined %}
+    <div id="hwi_sign_tx" class="flex-center flex-column hidden">
+        <h2>Sign Transaction</h2>
+        <div>
+            Please confirm transaction on your <span id="hwi_device_name">device</span>
+        </div>
+        <div class="flex-center">
+            <img src="/static/img/loader_boxes.svg"/>
+        </div>
+    </div>
+
+    <script>
+        function signTx(callback) {
+            beginDetectWallet("{{ wallet.device_type }}");
+            document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
+                e.preventDefault();
+                document.getElementById("hwi_device_name").textContent = capitalize(hwiCurrentWallet.type);
+                showPageOverlay(HWI_POPUPS.SIGN);
+
+                const psbt = "{{ psbt['base64'] }}";
+                var jsonResponse = await hwiSendPsbt(psbt);
+                if (jsonResponse.hasOwnProperty('error')) {
+                    alert(jsonResponse.error);
+                } else if (jsonResponse.psbt !== "undefined") {
+                    callback(jsonResponse.psbt);
+                }
+
+                hidePageOverlay();
+            });
+        }
+    </script>
+{% endif %}

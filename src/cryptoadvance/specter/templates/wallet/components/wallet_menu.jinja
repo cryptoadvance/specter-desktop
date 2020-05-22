@@ -1,0 +1,17 @@
+{% from 'wallet/components/wallet_menu_item.jinja' import wallet_menu_item %}
+
+{# 
+    wallet_menu - Tabs menu to navigate between the wallet screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'transactions', 'addresses', 'receive', 'send', 'settings'.
+	- wallet_alias: The wallet alias (used in the URL navigation).
+ #}
+{% macro wallet_menu(active_menuitem, wallet_alias) -%}
+	<nav class="row">
+		{{ wallet_menu_item('wallet_tx', 'Transactions', wallet_alias, active_menuitem, isLeft=true) }}
+		{{ wallet_menu_item('wallet_addresses', 'Addresses', wallet_alias, active_menuitem) }}
+		{{ wallet_menu_item('wallet_receive', 'Receive', wallet_alias, active_menuitem) }}
+		{{ wallet_menu_item('wallet_send', 'Send', wallet_alias, active_menuitem) }}
+		{{ wallet_menu_item('wallet_settings', 'Settings', wallet_alias, active_menuitem, isRight=true) }}
+	</nav>
+{%- endmacro %}

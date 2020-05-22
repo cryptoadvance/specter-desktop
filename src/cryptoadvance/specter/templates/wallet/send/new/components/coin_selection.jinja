@@ -1,0 +1,57 @@
+{% set unspents = wallet.cli.listunspent(0) %}
+<div>
+    {% if unspents | length > 0 %}
+        <button id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins</button>
+    {% endif %}
+    {% from 'wallet/send/new/components/coin_selection_table.jinja' import coin_selection_table %}
+    {{ coin_selection_table(unspents, specter) }}
+</div>
+
+<script>
+    var coinSelectAmount = 0.0;
+
+    function toggleExpand() {
+        if (isCoinSelectionActive()) {
+            setVisibility('coin_selection_table', 'none');
+        } else {
+            setVisibility('coin_selection_table', 'block');
+
+            let coins = document.getElementsByClassName('coin_select_checkbox');
+            // unselect all choices
+            for(var i = 0; i < coins.length; i++){
+                coins[i].checked = false;
+            }
+        }
+        validateForm();
+    }
+
+    function updateCoinSelect(coin) {
+        let coinAmount = parseFloat(coin.value.split(', ')[2]);
+        if (coin.checked) {
+            coinSelectAmount += coinAmount;
+        } else {
+            coinSelectAmount -= coinAmount;
+        }
+        coinSelectAmount = parseFloat(coinSelectAmount.toFixed(8));
+        validateForm();
+    }
+
+    function isCoinSelectionActive() {
+        return document.getElementById("coin_selection_table").style.display !== 'none';
+    }
+
+    function getSpendableAmount(unit) {
+        let spendableAmount;
+        if (!isCoinSelectionActive()) {
+            spendableAmount = '{{ wallet.availablebalance | btcamount }}';
+        } else {
+            spendableAmount = coinSelectAmount;
+        }
+
+        return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
+    }
+
+    function shouldSelectMoreCoins(unit) {
+        return (unit == 'sat' ? amount / 100000000 : amount) > coinSelectAmount && isCoinSelectionActive()
+    }
+</script>

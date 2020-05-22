@@ -1,0 +1,28 @@
+{% from 'wallet/history/components/tx_item.jinja' import tx_item %}
+
+{# 
+    full_tx_table - List of the entire wallet transactions hisory
+    Parameters:
+    - wallet: Wallet object
+    - specter: Specter object
+ #}
+{% macro full_tx_table(wallet, specter) -%}
+    {% for tx in wallet.txlist %}
+        {# Display the destination address of the transaction #}
+        {% set tx_address = (tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"]) %}
+        {# Show the amount sent/ received in the transaction (without fees) #}
+        {% set tx_amount = tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"] %}
+        {{
+            tx_item(
+                tx["txid"],
+                tx["category"],
+                tx_amount,
+                tx_address,
+                wallet.getaddressname(tx_address, -1),
+                tx["block_height"],
+                tx["time"],
+                specter
+            )
+        }}
+    {% endfor %}
+{%- endmacro %}

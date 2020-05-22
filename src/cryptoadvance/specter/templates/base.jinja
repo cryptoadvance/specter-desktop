@@ -13,11 +13,11 @@
 		{% endif %}
 	</head>
 	<body>
-	{% include "includes/components/overlay/overlay.html" %}
+	{% include "includes/overlay/overlay.html" %}
 
 	<div class="row holder">
 		{% block sidebar %}
-			{% include "includes/sidebar.jinja" %}
+			{% include "includes/sidebar/sidebar.jinja" %}
 		{% endblock %}
 		<main>		
 			{% if specter.config.auth!="none" and current_user.is_authenticated %}

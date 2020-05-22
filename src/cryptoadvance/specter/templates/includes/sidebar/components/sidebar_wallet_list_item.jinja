@@ -1,0 +1,26 @@
+{# 
+    sidebar_wallet_list_item - Sidebar wallet list item.
+    Parameters:
+    - wallet: Wallet object of the item.
+    - wallet_alias: Active wallet alias.
+    - chain: Chain name specter is connected to. Options: 'main', 'test', 'regtest', 'signet'.
+ #}
+{% macro sidebar_wallet_list_item(wallet, wallet_alias, chain) -%}
+    <a href="/wallets/{{wallet.alias}}/" class="item {% if wallet_alias == wallet.alias %}active{% endif %}">
+        {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
+        <div class="grow">
+            <div class="row">
+                {{wallet.name}} 
+                {% if wallet.fullbalance is not none %}
+                    <span class="balance">{{ wallet.fullbalance | btcamount}}</span>
+                {%endif%}
+            </div>
+            <small>{{ wallet.description }}</small>
+        </div>
+    </a>
+    {% if wallet.rescan_progress %}
+        <div class="rescan_progress {{ chain }}">
+            <div style="width: {{ wallet.rescan_progress * 100 }}%"></div>
+        </div>
+    {% endif %}
+{%- endmacro %}

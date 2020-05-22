@@ -1,0 +1,237 @@
+{#
+    This include defines various popup modals to manage HWI interaction.
+    Handles all necessary Ajax calls to the server and maintains HWI wallet
+    state (to the extent possible on a given website page).
+
+    Assumes that the general-purpose overlay.html has already been included.
+#}
+
+<div id="hwi_loading" class="flex-center hidden">
+    <img src="/static/img/loader_boxes.svg"/>
+</div>
+{% include 'includes/hwi/components/select_device.jinja' %}
+
+{% include 'includes/hwi/components/enter_pin.jinja' %}
+
+{% include 'includes/hwi/components/enter_passphrase.jinja' %}
+
+{% include 'includes/hwi/components/unlocked.jinja' %}
+
+{% include 'includes/hwi/components/extract_pubkeys.jinja' %}
+
+{% include 'includes/hwi/components/display_address.jinja' %}
+
+{% include 'includes/hwi/components/sign_tx.jinja' %}
+
+<script>
+    const HWI_POPUPS = Object.freeze({
+        "SELECT": "hwi_select_device",
+        "PIN": "hwi_enter_pin",
+        "PASSPHRASE": "hwi_enter_passphrase",
+        "UNLOCKED": "hwi_unlocked",
+        "EXTRACT_XPUBS": "hwi_extract_xpubs",
+        "DISPLAY_ADDRESS": "hwi_display_address",
+        "SIGN": "hwi_sign_tx",
+    })
+
+    var detectWalletTimeout;
+    var hwiCurrentWallet;
+    var hwiWalletPIN = "";
+    var hwiWalletPassphrase = "";
+    
+    function beginDetectWallet(type) {
+        var instructionText;
+        switch (type) {
+            case "coldcard":
+                instructionText = "Plug in Coldcard and enter PINs";
+                break;
+            case "keepkey":
+                instructionText = "Plug in KeepKey.";
+                break;
+            case "specter":
+                instructionText = "Plug in Specter, unlock, and load the key.";
+                break;
+            case "ledger":
+                instructionText = "Plug in Ledger, unlock, and open the Bitcoin app.";
+                break;
+            case "trezor":
+                instructionText = "Plug in Trezor.";
+                break;
+        }
+
+        // Might not be shown yet
+        showPageOverlay(HWI_POPUPS.SELECT);
+
+        var loader = document.getElementById("hwi_loading");
+        var content = document.getElementById("hwi_select_device__content");
+        var instructions = document.getElementById("hwi_select_device__instructions");
+        content.style.display = "none";
+        instructions.innerHTML = instructionText + "<br/><br/>Detecting...";
+        instructions.style.display = "block";
+
+        loader.style.display = "flex";
+        document.getElementById("hwi_select_device").appendChild(loader);
+
+        hwiDetectWallet(type, hwiWalletDetectedHandler);
+    }
+
+    async function hwiDetectWallet(type, callback) {
+        /**
+            Tells the server to enumerate the connected HWI devices and find
+            one of the type specified.
+        **/
+        var formData = new FormData();
+        formData.append("type", type);
+        formData.append("passphrase", hwiWalletPassphrase);
+
+        try {
+            const response = await fetch(
+                '/hwi/detect/',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            const jsonResponse = await response.json();
+
+            if (jsonResponse.success) {
+                console.log(type + " found");
+                callback(jsonResponse);
+            } else {
+                // wait and retry
+                clearTimeout(detectWalletTimeout);
+                detectWalletTimeout = setTimeout(function() {
+                        console.log("Attempting again");
+                        hwiDetectWallet(type, callback);
+                    },
+                    3000
+                );
+            }
+        } catch(e) {
+            console.log("Caught error: ", e);
+            clearTimeout(detectWalletTimeout);
+            callback({ success: false, error: e });
+        }
+    }
+
+    async function hwiWalletDetectedHandler(jsonResult) {
+        if (!jsonResult.success) {
+            alert(jsonResult.error);
+            var loader = document.getElementById("hwi_loading");
+            loader.style.display = "none";
+            return;
+        }
+        hwiCurrentWallet = jsonResult.wallet;
+        hwiCurrentWallet.typeDisplay = hwiTypeToDisplayName(hwiCurrentWallet.type);
+
+        if (hwiCurrentWallet.needs_passphrase_sent) {
+            hidePageOverlay();
+            showPageOverlay(HWI_POPUPS.PASSPHRASE);
+        } else if (hwiCurrentWallet.needs_pin_sent) {
+            await hwiPromptPin();
+        } else if (hwiCurrentWallet.code == -18) {
+            // TODO: Support wallet initializing if possible
+            hidePageOverlay();
+            alert("Could not load device - device is not initialized.")
+        } else {
+            // Already unlocked
+            hwiShowUnlocked();
+        }
+    }
+
+    async function hwiPromptPin() {
+        /**
+            Tells the server to send the 'promptpin' command to the device.
+            KeepKey and Trezor only.
+        **/
+        var formData = new FormData();
+        formData.append("type", hwiCurrentWallet.type);
+        formData.append("path", hwiCurrentWallet.path);
+        formData.append("passphrase", hwiWalletPassphrase);
+
+        const response = await fetch(
+            '/hwi/prompt_pin/',
+            {
+                method: 'POST',
+                body: formData
+            }
+        );
+        const jsonResponse = await response.json();
+
+        if (jsonResponse.success) {
+            hidePageOverlay();
+            showPageOverlay(HWI_POPUPS.PIN);
+        } else {
+            console.log(jsonResponse);
+        }
+    }
+
+    async function hwiSendPin() {
+        /**
+            Submits the PIN for the 'sendpin' command to the device.
+            KeepKey and Trezor only.
+        **/
+        var formData = new FormData();
+        formData.append("type", hwiCurrentWallet.type);
+        formData.append("path", hwiCurrentWallet.path);
+        formData.append("pin", hwiWalletPIN);
+        formData.append("passphrase", hwiWalletPassphrase);
+
+        const response = await fetch(
+            '/hwi/send_pin/',
+            {
+                method: 'POST',
+                body: formData
+            }
+        );
+
+        return await response.json();
+    }
+
+    async function hwiSendPsbt(psbt) {
+        /**
+            Sends the current psbt to the server to relay to the HWI wallet.
+        **/
+        var formData = new FormData();
+        formData.append("type", hwiCurrentWallet.type);
+        formData.append("path", hwiCurrentWallet.path);
+        formData.append("passphrase", hwiWalletPassphrase);
+        formData.append("psbt", psbt);
+
+        try {
+            const response = await fetch(
+                '/hwi/sign_tx/',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            const jsonResponse = await response.json();
+            return jsonResponse;
+
+        } catch(e) {
+            console.log("Caught error:", e);
+            return { success: false, error: e };
+        }
+    }
+
+    function hwiTypeToDisplayName(type) {
+        if (type == "keepkey") {
+            return "KeepKey";
+        } else {
+            return type[0].toUpperCase() + type.slice(1);
+        }
+    }
+
+    function hwiShowUnlocked() {
+        hidePageOverlay();
+        var typeDisplay = document.getElementById("hwi_unlocked__type");
+        typeDisplay.textContent = hwiCurrentWallet.typeDisplay;
+
+        showPageOverlay(HWI_POPUPS.UNLOCKED);
+    }
+
+    function onCancelOverlay() {
+        clearTimeout(detectWalletTimeout);
+    }
+</script>

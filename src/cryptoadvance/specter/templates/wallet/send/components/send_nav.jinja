@@ -1,0 +1,15 @@
+{% from 'wallet/components/wallet_menu_item.jinja' import wallet_menu_item %}
+
+{# 
+    send_nav - Tabs menu to navigate between the wallet send New and Pending screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'wallet_send', 'wallet_sendpending'.
+	- wallet_alias: The wallet alias (used in the URL navigation).
+ #}
+{% macro send_nav(active_menuitem, wallet_alias) -%}
+	<br>
+    <nav class="row">
+		{{ wallet_menu_item('wallet_send', 'New', wallet_alias, active_menuitem, isLeft=true) }}
+		{{ wallet_menu_item('wallet_sendpending', 'Pending', wallet_alias, active_menuitem, isRight=true) }}
+	</nav>
+{%- endmacro %}

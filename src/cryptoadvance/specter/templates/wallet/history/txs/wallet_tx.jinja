@@ -1,0 +1,18 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_tx' %}
+{% block content %}
+	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+	{{ total_wallet_balances(wallet, specter) }}
+	<br>
+	<h1>Latest transactions</h1>
+	<div class="table-holder">
+		{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
+		{% from 'wallet/history/txs/components/full_tx_table.jinja' import full_tx_table %}
+		{{
+			tx_table(
+				wallet.txlist == [],
+				full_tx_table(wallet, specter)
+			) 
+		}}
+	</div>
+{% endblock %}

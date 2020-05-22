@@ -1,0 +1,120 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_send' %}
+{% block content %}
+	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
+	{{ send_nav('wallet_send', wallet_alias) }}
+
+	<div class="notification error" id="amount_errors_container" style="display: none;">
+		<ul>
+			<li id="above_selected_coins_error" style="display: none;"> You need to select more coins to match your amount!</li>
+			<li id="above_wallet_balance_error" style="display: none;"> You cannot send more than {{ wallet.availablebalance | btcamount }} BTC!</li>
+		</ul>
+	</div>
+
+	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST">
+		<h1 class="padded">Sending to:</h1>
+		<div class="card">
+			Recipient address:<br>
+			<div class="row">
+				<input type="text" id="address" name="address" id="address" oninput="validateForm()"> &nbsp;
+				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+			</div>
+			<br>
+			Address label (optional):<br>
+			<input type="text" id="label" name="label" value="{{ label }}">
+			<br><br>
+			Amount:<br>
+			<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="1e-8" autocomplete="off">
+			<input type="hidden" name="btc_amount" id="btc_amount">
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="sat" onchange="toggleUnit(this)" checked>sat</label>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)">BTC</label>
+			<div class="note">
+				<span id="converted_unit_amount">-</span> <span id="converted_unit_label">BTC</span>, 
+				Available: {{wallet.availablebalance | btcamount}};
+				{% if wallet.locked_amount > 0 %}
+					&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
+				{% endif %}
+			</div><br>
+			{% include "wallet/send/new/components/fee_selection.jinja" %}
+			{% include "wallet/send/new/components/coin_selection.jinja" %}
+			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+		</div>
+	</form>
+{% endblock %}
+
+
+{% block scripts %}
+	{% include "wallet/components/qr_scanner.jinja" %}
+
+	<script>
+		// Amount and unit
+		var unit = 'sat';
+		var amount = 0.0;
+
+		function toggleUnit(unitSelected) {
+			unit = unitSelected.value;
+			document.getElementById('converted_unit_label').innerHTML = (unit == 'sat' ? 'BTC' : 'sat');
+			calculateConvertedUnit();
+		}
+
+		function calculateConvertedUnit() {
+			let amountInput = document.getElementById('amount');
+			amount = parseFloat(amountInput.value);
+			let convertedAmount = Number.parseFloat(amount / (unit == 'sat' ? 100000000 : 0.000000001)).toFixed((unit == 'sat' ? 8 : 0));
+			if (convertedAmount == 'NaN') {
+				convertedAmount = '-'
+			}
+			document.getElementById('converted_unit_amount').innerHTML = convertedAmount;
+
+			document.getElementById('btc_amount').value = (unit == 'btc' ? amount : amount / 100000000);
+
+			validateForm();
+		}
+
+		function isAboveWalletBalance(unit) {
+			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.availablebalance }}');
+		}
+
+		// Form validation
+		function validateAmount() {
+			let amountInput = document.getElementById('amount');
+			amountInput.max = getSpendableAmount(unit);
+
+			if (isAboveWalletBalance(unit)) {
+				setVisibility('amount_errors_container', 'block');
+				setVisibility('above_wallet_balance_error', 'block');
+				setVisibility('above_selected_coins_error', 'none');
+				return false;
+			} else if (shouldSelectMoreCoins(unit)) {
+				setVisibility('amount_errors_container', 'block');
+				setVisibility('above_wallet_balance_error', 'none');
+				setVisibility('above_selected_coins_error', 'block');
+				return false;
+			} else {
+				setVisibility('amount_errors_container', 'none');
+				setVisibility('above_wallet_balance_error', 'none');
+				setVisibility('above_selected_coins_error', 'none');
+				return true;
+			}
+		}
+
+		function validateAddress() {
+			let addressInput = document.getElementById('address');
+			if (addressInput.value) {
+				return true;
+			}
+			// TODO: add proper address format validation.
+			return false;
+		}
+
+		function validateForm() {
+			let createPSBTButton = document.getElementById('create_psbt_btn');
+			createPSBTButton.disabled = !((validateAmount() && amount > 0) && validateAddress());
+		}
+
+		// Utils
+		function setVisibility(id, visibility) {
+			document.getElementById(id).style.display = visibility;
+		}
+	</script>
+{% endblock %}

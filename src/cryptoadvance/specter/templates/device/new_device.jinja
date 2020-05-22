@@ -1,0 +1,30 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<div class="spacer"></div>
+	<h1>Add New Device</h1>
+	<div class="row">
+		<a href="./coldcard/" class="small-card">
+			<img src="/static/img/coldcard_icon.svg?{{rand}}">
+			ColdCard
+		</a>
+		<a href="./specter/" class="small-card">
+			<img src="/static/img/specter_icon.svg?{{rand}}">
+			DIY Specter
+		</a>
+	</div>
+	<div class="row">
+		<a href="/hwi/new_device/" class="small-card">
+			<img src="/static/img/other_icon.svg?{{rand}}">
+			USB wallet (HWI)
+		</a>
+		<a href="./other/" class="small-card">
+			<img src="/static/img/other_icon.svg?{{rand}}">
+			Other device
+		</a>
+	</div>
+	<br><br>
+	<div class="note">
+		<p>In order to use Bitcoin Core in watch only mode with hardware devices we need to export extended public keys from it.</p>
+		<p>We reccomend using an airgapped hardware wallet - which does not need to be connected directly to your online computer. Airgap is the best way to improve your security.</p>
+	</div>
+{% endblock %}
