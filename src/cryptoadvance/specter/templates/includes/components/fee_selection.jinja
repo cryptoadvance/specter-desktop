@@ -64,7 +64,7 @@
         let feesJSON = await fetchDynamicFees();
         let blocks = 'Dynamic fees are currently not available.';
 
-        if (feesJSON.hasOwnProperty('blocks')) {
+        if (!feesJSON.hasOwnProperty('errors')) {
             let fee = feesJSON.feerate;
             blocks = feesJSON.blocks + ' blocks';
             document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' BTC/kB');

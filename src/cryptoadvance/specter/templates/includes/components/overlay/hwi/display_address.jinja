@@ -12,10 +12,10 @@
 
 	<script>
 		function displayAddressOnDevice() {
-			beginDetectWallet("{{ wallet['device_type'] }}");
+			beginDetectWallet("{{ wallet.device_type }}");
 			document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
 				e.preventDefault();
-				document.getElementById("hwi_device_name").textContent = '{{wallet["device_type"] | capitalize}}';
+				document.getElementById("hwi_device_name").textContent = '{{wallet.device_type | capitalize}}';
 				showPageOverlay(HWI_POPUPS.DISPLAY_ADDRESS);
 
 				var formData = new FormData();

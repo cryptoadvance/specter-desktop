@@ -46,10 +46,10 @@ def inject_debug():
 def combine(wallet_alias):
     wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if request.method == 'POST': # FIXME: ugly...
-        d = request.json
-        psbt0 = d['psbt0'] # request.args.get('psbt0')
-        psbt1 = d['psbt1'] # request.args.get('psbt1')
-        txid = d['txid']
+        psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
+        psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        txid = request.form.get('txid')
+
         try:
             psbt = app.specter.combine([psbt0, psbt1])
             raw = app.specter.finalize(psbt)
@@ -57,7 +57,7 @@ def combine(wallet_alias):
             return e.error_msg, e.status_code
         except Exception as e:
             return "Unknown error: %r" % e, 500
-        device_name = d['device_name']
+        device_name = request.form.get('device_name')
         wallet.update_pending_psbt(psbt, txid, raw, device_name)
         return json.dumps(raw)
     return 'meh'
@@ -67,8 +67,7 @@ def combine(wallet_alias):
 def broadcast(wallet_alias):
     wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if request.method == 'POST':
-        d = request.json
-        tx = d['tx']
+        tx = request.form.get('tx')
         if wallet.cli.testmempoolaccept([tx])[0]['allowed']:
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
@@ -486,12 +485,12 @@ def wallet_send(wallet_alias):
             except Exception as e:
                 err = e
             if err is None:
-                return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                return render_template("wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                     wallet_alias=wallet_alias, wallet=wallet, 
                                                     specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
-            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+            return render_template("wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
         elif action == 'deletepsbt':
