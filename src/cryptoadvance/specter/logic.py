@@ -1,20 +1,20 @@
 import base64
 import copy
-import json
-import os
-import shutil
-import random
 import hashlib
-from time import time
+import json
+import logging
+import os
+import random
+import shutil
 from collections import OrderedDict
+from time import time
 
 from . import helpers
 from .descriptor import AddChecksum
-from .helpers import deep_update, load_jsons, get_xpub_fingerprint
+from .helpers import deep_update, get_xpub_fingerprint, load_jsons
 from .rpc import RPC_PORTS, autodetect_cli_confs, get_default_datadir
 from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
-
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
@@ -133,7 +133,8 @@ class Specter:
             try:
                 self._info = self.cli.getblockchaininfo()
                 self._is_running = True
-            except:
+            except Exception as e:
+                logging.error("Exception %s while specter.check()" % e)
                 pass
 
         if not self._is_running:
@@ -160,7 +161,7 @@ class Specter:
         try:
             self.wallets.load_all()
         except Exception as e:
-            print("can't load wallets...", e)
+            logging.error("can't load wallets: %s " % e)
 
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
@@ -292,6 +293,7 @@ class DeviceManager:
         for dev in self:
             if dev["alias"] == fname:
                 return dev
+        logging.error("Could not find Device %s" % fname)
 
     def remove(self, device):
         os.remove(device["fullpath"])
@@ -381,6 +383,8 @@ class WalletManager:
             for k in wallets:
                 if os.path.join(self.cli_path,wallets[k]["alias"]) in existing_wallets:
                     self._wallets[k] = wallets[k]
+                else:
+                    logging.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallets[k]["alias"])
         else:
             self._wallets = {}
 
@@ -388,20 +392,22 @@ class WalletManager:
         loaded_wallets = self.cli.listwallets()
         loadable_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
         not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
-        # print("not loaded wallets:", not_loaded_wallets)
+        if not_loaded_wallets != []:
+            logging.warn("not loaded wallets:%s" % not_loaded_wallets)
         for k in self._wallets:
             if os.path.join(self.cli_path,self._wallets[k]["alias"]) in not_loaded_wallets:
-                print("loading", self._wallets[k]["alias"])
+                logging.debug("loading %s " % self._wallets[k]["alias"])
                 self.cli.loadwallet(os.path.join(self.cli_path,self._wallets[k]["alias"]))
                 if "pending_psbts" in self._wallets[k] and len(self._wallets[k]["pending_psbts"]) > 0:
                     for psbt in self._wallets[k]["pending_psbts"]:
-                        print("lock", self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
+                        logging.debug("lock %s " % self._wallets[k]["alias"], self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
                         Wallet(self._wallets[k], self).cli.lockunspent(False, [utxo for utxo in self._wallets[k]["pending_psbts"][psbt]["tx"]["vin"]])
 
     def get_by_alias(self, alias):
         for w in self:
             if w["alias"] == alias:
                 return w
+        raise SpecterError("Wallet %s does not exist!" % alias)
 
     def names(self):
         return list(self._wallets.keys())
@@ -513,7 +519,7 @@ class WalletManager:
         return w
 
     def delete_wallet(self, wallet):
-        print("Deleting {}".format(wallet["alias"]))
+        logging.info("Deleting {}".format(wallet["alias"]))
         self.cli.unloadwallet(os.path.join(self.cli_path,wallet["alias"]))
         # Try deleting wallet file
         if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), os.path.join(self.cli_path,wallet["alias"]))):
@@ -523,7 +529,7 @@ class WalletManager:
             os.remove(wallet["fullpath"])
 
     def rename_wallet(self, wallet, name):
-        print("Renaming {}".format(wallet["alias"]))
+        logging.info("Renaming {}".format(wallet["alias"]))
         wallet["name"] = name
         if self.working_folder is not None:
             with open(wallet["fullpath"], "w+") as f:
@@ -969,7 +975,7 @@ class Wallet(dict):
         """
         if self.fullbalance < amount:
             return None
-        print (fee_unit)
+        logging.debug("fee unit: %s" % fee_unit)
         if fee_unit not in ["SAT_B", "BTC_KB"]:
             raise ValueError('Invalid bitcoin unit')
 
@@ -1055,7 +1061,7 @@ class Wallet(dict):
                 inp.unknown[b"\xfc\xca\x01"+self.fingerprint] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
                 inp.hd_keypaths = {}
         psbt["specter"]=qr_psbt.serialize()
-        print("PSBT for Specter:", psbt["specter"])
+        logging.info("PSBT for Specter: %s" % psbt["specter"])
 
         self.cli.lockunspent(False, psbt["tx"]["vin"])
 

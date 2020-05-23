@@ -243,3 +243,22 @@ def run_shell(cmd):
         return { "code": proc.returncode, "out": stdout, "err": stderr }
     except:
         return { "code": 0xf00dbabe, "out": b"", "err": b"Can't run subprocess" }
+
+def set_loglevel(app,loglevel_string):
+    logging.info("Setting Loglevel to %s" % loglevel_string)
+    loglevels = {
+        "WARN": logging.WARN,
+        "INFO": logging.INFO,
+        "DEBUG" : logging.DEBUG
+    }
+    app.logger.setLevel(loglevels[loglevel_string])
+    logging.getLogger().setLevel(loglevels[loglevel_string])
+
+def get_loglevel(app):
+    
+    loglevels = {
+        logging.WARN : "WARN",
+        logging.INFO : "INFO",
+        logging.DEBUG : "DEBUG"
+    }
+    return loglevels[app.logger.getEffectiveLevel()]
