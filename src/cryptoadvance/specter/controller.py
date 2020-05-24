@@ -99,7 +99,7 @@ def login():
         if app.specter.cli is None:
             flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
             app.logger.info("AUDIT: Failed to check password")
-            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
         cli = app.specter.cli.clone()
         print("Loggning in with"+request.form['password'])
         cli.passwd = request.form['password']
@@ -115,11 +115,11 @@ def login():
         else:
             flash('Invalid username or password', "error")
             app.logger.info("AUDIT: Invalid password login attempt")
-            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
     else:
         if app.config.get('LOGIN_DISABLED'):
             return redirect('/')
-        return render_template('login.html', specter=app.specter, data={'next':request.args.get('next')})
+        return render_template('login.jinja', specter=app.specter, data={'next':request.args.get('next')})
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -182,7 +182,7 @@ def settings():
             return redirect("/")
     else:
         pass
-    return render_template("settings.html",
+    return render_template("settings.jinja",
                             test=test,
                             username=user,
                             password=passwd,
@@ -204,7 +204,7 @@ def new_wallet():
     if app.specter.chain is None:
         err = "Configure Bitcoin Core to create wallets"
         return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
-    return render_template("wallet/new_wallet.jinja", specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/simple/', methods=['GET', 'POST'])
 @login_required
@@ -241,7 +241,7 @@ def new_wallet_simple():
                 "sh-wpkh": "Nested Segwit",
                 "pkh": "Legacy",
             }
-            return render_template("new_simple_keys.html", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=dev, error=err, specter=app.specter, rand=rand)
+            return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=dev, error=err, specter=app.specter, rand=rand)
         if action == 'key' and err is None:
             original_xpub = request.form['key']
             device = app.specter.devices[device_name]
@@ -275,7 +275,7 @@ def new_wallet_simple():
                     error = "%r" % e
                 wallet.getdata()
             return redirect("/wallets/%s/" % wallet["alias"])
-    return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet.jinja", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/multisig/', methods=['GET', 'POST'])
 @login_required
@@ -329,7 +329,7 @@ def new_wallet_multi():
                     if len(dev["keys"]) == 0:
                         err = "Device %s doesn't have keys matching this wallet type" % dev["name"]
                     devs.append(dev)
-                return render_template("new_simple_keys.html", purposes=pur, 
+                return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
@@ -358,7 +358,7 @@ def new_wallet_multi():
                     dev["keys"] = [k for k in dev["keys"] if k["xpub"].startswith(prefix) and (k["type"] is None or k["type"] == wallet_type)]
                     devs.append(dev)
                 err="Did you select all the keys?"
-                return render_template("new_simple_keys.html", purposes=pur, 
+                return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
@@ -366,7 +366,7 @@ def new_wallet_multi():
             # create a wallet here
             wallet = app.specter.wallets.create_multi(wallet_name, sigs_required, wallet_type, keys, cosigners)
             return redirect("/wallets/%s/" % wallet["alias"])
-    return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet.jinja", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/')
 @login_required

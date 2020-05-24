@@ -1,0 +1,101 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<div class="spacer"></div>
+	{% if device %}
+		<h1>Select the {{device["name"] }}'s key to use in {{wallet_name}}.</h1>
+	{% else %}
+		<h1>Select the key of devices to use in {{wallet_name}}.</h1>
+	{% endif %}
+	<div class="center">
+		<div style="display: inline-block; text-align: center; margin-top: 10px;">
+			<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline">
+			<label for="rescan">Scan for existing funds?</label>
+			<div class="tool-tip">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">Importing an existing wallet<br></span>
+						Check this option to scan the blockchain for existing wallet balance and history.
+						{% if specter.info["pruned"] %}
+							<span class="warning" style="display: inline-block;">
+								Please Note:<br>You are using a pruned node.<br> Wallet history may not fully appear.
+							</span>
+						{% endif %}
+					</span>
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="spacer"></div>
+	<form id="keysform" action="./" method="POST" class="table-holder">
+		<input type="hidden" name="wallet_name" value="{{ wallet_name }}">
+		<input type="hidden" name="type" value="{{ wallet_type }}">
+		{% if cosigners %}
+			{% for cosigner in cosigners %}
+				<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner['name'] }}"/>
+			{% endfor %}
+			<input type="hidden" name="sigs_required" value="{{ sigs_required }}">
+			<input type="hidden" name="sigs_total" value="{{ sigs_total }}">
+		{% else %}
+			<input type="hidden" name="device" value="{{ device['name'] }}">
+		{% endif %}
+		{% for device in ([device] if not cosigners else cosigners)  %}
+			<h1>Signer {{ loop.index }} - {{device["name"]}}</h1>
+			{% set outer_loop = loop %}
+			{% if device["keys"] | length > 0 %}
+				<div class="table-holder">
+					<table>
+						<thead>
+							<tr>
+								<th>Network</th>
+								<th>Purpose</th>
+								<th>Derivation</th>
+								<th>Key</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for key in device["keys"] %}
+								<tr>
+									<td>
+										{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+										{% if key["xpub"].startswith("xpub") %}
+											{{ bitcoin_svg('main', 16) }} Main
+										{% else %}
+											{{ bitcoin_svg('test', 16) }} Test
+										{% endif %}
+									</td>
+									<td>{{ purposes[key["type"]] }}</td>
+									<td>{{ key["derivation"] }}</td>
+									<td class="scroll xpub"><span>{{key["original"]}}</span></td>
+									<td width="120px">
+										{% if cosigners %}
+											<label>
+												<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key['original'] }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
+												<div class="btn inline hovering">Use this key</div>
+											</label>
+										{% else %}
+											<input type="hidden" name="key" value="{{ key['original'] }}">
+											<button type="submit" name="action" value="key" class="btn hovering action">Use this key</button>
+										{% endif %}
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% else %}
+				<div class="center">Looks like this device doesn't have keys matching this type of wallet.</div>
+			{% endif %}			
+			<div class="spacer"></div>
+		{% endfor %}
+		{% if not error and cosigners %}
+			<button type="submit" name="action" value="key" class="btn centered action">Create wallet</button>
+		{% endif %}
+	</form>
+
+	<div class="spacer"></div>
+	<div class="note">
+		<center>Here we only show <b>{{ purposes[wallet_type] }}</b> and <b>General</b> keys. Follow the standards.</center>
+	</div>
+{% endblock %}
