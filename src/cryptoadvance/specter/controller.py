@@ -45,7 +45,7 @@ def combine(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while combine: %s" % se)
-        return render_template("base.html", error=se, specter=app.specter, rand=rand)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST': # FIXME: ugly...
         psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
         psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
@@ -70,7 +70,7 @@ def broadcast(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while broadcast: %s" % se)
-        return render_template("base.html", error=se, specter=app.specter, rand=rand)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST':
         tx = request.form.get('tx')
         if wallet.cli.testmempoolaccept([tx])[0]['allowed']:
@@ -402,7 +402,7 @@ def wallet_tx(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_tx: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    return render_template("wallet/history/txs/wallet_tx.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
 @login_required
