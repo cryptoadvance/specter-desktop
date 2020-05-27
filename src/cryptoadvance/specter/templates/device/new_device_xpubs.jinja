@@ -44,12 +44,12 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 	</form>
 	</div>
 	<div class="note">
-		{% if device_type == "coldcard" %}
-				<p>Export extended public keys for single-key wallets to the SD card from<br>
-					<b>Advanced → MicroSD Card → Electrum Wallet</b></p>
-				<p>To export multisignature pubkeys go to <br>
-					<b>Settings → Multisig Wallets Export XPUB</b></p>
-				<p>We recommend using Native Segwit.</p>
+		{%if device_type == "coldcard" %}
+			<p>Export extended public keys for single-key wallets to the SD card from<br>
+				<b>Advanced → MicroSD Card → Export Wallet → Electrum Wallet</b></p>
+			<p>To export multisignature pubkeys go to <br>
+				<b>Settings → Multisig Wallets → Export XPUB</b></p>
+			<p>We recommend using Native Segwit.</p>
 		{% elif device_type == "specter" %}
 				<p>Scan QR codes with extended public keys one by one.<br>
 				<p>We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.</p>
@@ -84,7 +84,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 								prefix = "[";
 								let num = json.keystore.ckcc_xfp;
 								for(let i=0;i<4;i++){
-									prefix += (num % 256).toString(16);
+									prefix += ('0' + (num % 256).toString(16)).slice(-2);
 									num = num >>> 8;
 								}
 								prefix += json.keystore.derivation.substring(1);
