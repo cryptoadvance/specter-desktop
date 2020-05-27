@@ -44,9 +44,9 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE</pre>
 	<div class="note">
 {%if device_type == "coldcard" %}
 		<p>Export extended public keys for single-key wallets to the SD card from<br>
-			<b>Advanced → MicroSD Card → Electrum Wallet</b></p>
+			<b>Advanced → MicroSD Card → Export Wallet → Electrum Wallet</b></p>
 		<p>To export multisignature pubkeys go to <br>
-			<b>Settings → Multisig Wallets Export XPUB</b></p>
+			<b>Settings → Multisig Wallets → Export XPUB</b></p>
 		<p>We recommend using Native Segwit.</p>
 {% endif %}
 {%if device_type == "specter" %}
@@ -84,7 +84,7 @@ el.addEventListener("change", (e) => {
 	            		prefix = "[";
 	            		let num = json.keystore.ckcc_xfp;
 	            		for(let i=0;i<4;i++){
-	            			prefix += (num % 256).toString(16);
+	            			prefix += ('0' + (num % 256).toString(16)).slice(-2);
 	            			num = num >>> 8;
 	            		}
 	            		prefix += json.keystore.derivation.substring(1);
