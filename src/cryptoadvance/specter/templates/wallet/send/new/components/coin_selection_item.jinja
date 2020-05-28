@@ -7,7 +7,7 @@
     - label: The label of `address` (equal to `address` if no label exists).
     - specter: Specter object.
  #}
-{% macro coin_selection_item(txid, amount, address, label, specter) -%}
+{% macro coin_selection_item(txid, vout, amount, address, label, specter) -%}
     <tr>
         <td>
             <input class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout, amount] | join(', ') }}"  onchange='updateCoinSelect(this)'>
