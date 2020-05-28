@@ -1,0 +1,34 @@
+{% from 'wallet/history/components/tx_item.jinja' import tx_item %}
+
+{# 
+    account_tx_table - List of transactions hisory of an account (address/ label)
+    Parameters:
+    - account: The address/ label to make the table for.
+    - list_type: Either 'history' (for full transaction list) or 'utxo' (for unspent only list)
+    - group_by: Either 'address' (when `account` is an address) or 'label' (when `account` is a label, which may include multiple addresses)
+    - wallet: Wallet object
+    - specter: Specter object
+ #}
+{% macro account_tx_table(account, list_type, group_by, wallet, specter) -%}
+        {#  Show only transactions belonging to the `account`.
+            If `list_type` is 'utxo', filter out also the spent transactions of the `account` #}
+        {% for tx in wallet.transactions if
+            (tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not group_by == 'address')) and
+            (list_type == 'history' or (wallet.istxspent(tx["txid"]) and tx["category"] != "send"))
+        %}
+            {# If the destination address is known for the transction, display the destination address, otherwise display the `account` address #}
+            {% set tx_address = (tx["destination"]["address"] if ("destination" in tx and tx["destination"] != None) else tx["address"]) %}	
+            {{
+                tx_item(
+                    tx["txid"],
+                    tx["category"],
+                    tx["amount"],
+                    tx_address,
+                    wallet.getaddressname(tx_address, -1),
+                    tx["block_height"],
+                    tx["time"],
+                    specter
+                )
+            }}
+        {% endfor %}
+{%- endmacro %}

@@ -1,0 +1,17 @@
+{# 
+    wallet_menu_item - Wallet navigation bar menu item.
+    Parameters:
+    - tab: The tab name.
+    - title: The tab title.
+    - wallet_alias: The wallet alias (used in the URL navigation).
+    - active_menuitem: Current active tab name.
+    - isLeft: Is the item at the left edge (first item) of the navigation bar?
+    - isRight: Is the item at the right edge (last item) of the navigation bar?
+ #}
+{% macro wallet_menu_item(tab, title, wallet_alias, active_menuitem, isLeft=false, isRight=false) -%}
+	<a 
+        href="{{ url_for(tab, wallet_alias=wallet_alias)}}"
+        class="btn radio {% if isLeft %}left{% endif %} {% if isRight %}right{% endif %} {% if active_menuitem == tab %}checked{% endif %}">
+        {{ title }}
+    </a>
+{%- endmacro %}

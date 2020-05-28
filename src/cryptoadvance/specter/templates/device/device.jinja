@@ -1,0 +1,59 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<h1>Public keys of {{ device.name }}</h1>
+	<div class="table-holder">
+		<table>
+			<thead>
+				<tr>
+					<th>Network</th><th>Purpose</th><th>Derivation</th><th></th><th>Key</th><th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for key in device["keys"] %}
+					<tr>
+						<td>
+							{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+							{% if key["xpub"].startswith("xpub") %}
+								{{ bitcoin_svg('main', 16) }} Main
+							{% else %}
+								{{ bitcoin_svg('test', 16) }} Test
+							{% endif %}
+						</td>
+						<td>{{ purposes[key["type"]] }}</td>
+						<td>{{ key["derivation"] }}</td>
+						<td width="10" class="qr-trigger">
+							<img src="/static/img/qr_tiny.svg"/>
+							<script src="/static/qr/vue-qrcode.min.js"></script>
+							<div id="qr_{{loop.index}}" class="qr-popup">
+								<qrcode value="{{ 'name=' + device['name'] + '\n' + key['combined'] }}" :options="{ width: 200 }" tag="img"></qrcode>
+							</div>
+							<script>
+								Vue.component(VueQrcode.name, VueQrcode);
+								new Vue({el: "#qr_{{loop.index}}"})
+							</script>
+						</td>
+						<td class="xpub scroll">
+							<span>{{ key["original"] }}</span>
+						</td>
+						<td width="80px">
+							<form action="./" method="POST">
+								<input type="hidden" name="key" value="{{key['original']}}">
+								<button type="submit" name="action" value="delete_key" class="btn danger hovering">Delete</button>
+							</form>
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	<div class="spacer"></div>
+	<div class="row">
+		<form action="./" method="POST">
+			<button type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
+		</form>
+		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
+		<form action="./" method="POST">
+			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
+		</form>
+	</div>
+{% endblock %}

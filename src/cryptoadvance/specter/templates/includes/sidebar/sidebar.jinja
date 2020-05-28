@@ -1,0 +1,51 @@
+{% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
+<div id="side-content">
+    <nav class="side">
+        {% if specter.info["initialblockdownload"] %}
+            <p class="warning">⚠️<br>Blockchain is still syncing...<br>Data may be shown incorrectly.</p>
+        {% endif %}
+        <a href="/settings/" class="item core">
+            {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+            {{ bitcoin_svg(specter.info.chain, 32) }}
+            <div>
+                Bitcoin Core<br>
+                <small>
+                    {{specter.chain}}:
+                    {% if specter.info["blocks"] %}
+                        {{ specter.info.blocks }} blocks
+                    {% else %}
+                        {{ specter.info.chain }}
+                    {% endif %}
+                </small>
+            </div>
+        </a>
+        {% if specter.devices and specter.chain %}
+            <div class="separator">
+                Wallets
+            </div>
+            {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
+            {% for wallet in specter.wallets %}
+                {{ sidebar_wallet_list_item(wallet, wallet_alias, specter.info.chain) }}
+            {% endfor %}
+            {{ sidebar_btn('new_wallet', 'Add new wallet') }}
+        {% endif %}
+
+        <div class="separator">
+            Devices
+        </div>
+        {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
+        {% for device in specter.devices %}
+                {{ sidebar_device_list_item(device, device_alias) }}
+        {% endfor %}
+        {{ sidebar_btn('new_device', 'Add new device') }}
+        <div class="footer">
+            Brought to you by<br>
+            <a href="https://cryptoadvance.io" target="_blank">
+                <img src="/static/img/ca.png">
+            </a>
+        </div>
+    </nav>
+    <div id="side-expand">
+        <div>▶</div>
+    </div>
+</div>

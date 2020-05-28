@@ -1,0 +1,19 @@
+
+{# 
+    total_wallet_balances - Title showing the wallet total balance + amount confirmed and unconfirmed (if there is any unconfirmed amount).
+    Parameters:
+    - wallet: Wallet object
+    - specter: Specter object
+ #}
+{% macro total_wallet_balances(wallet, specter) -%}
+    <h1>
+        <small style="line-height:30px">Total balance:</small><br>
+        <span style="color: #fff">
+            {{ wallet.fullbalance | btcamount }}
+            {% if specter.chain !='main' %}t{%endif%}BTC
+        </span>
+        {% if wallet.balance["untrusted_pending"] > 0 %}<br>
+            <small>( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcamount }} pending )</small>
+        {% endif %}
+    </h1>
+{%- endmacro %}

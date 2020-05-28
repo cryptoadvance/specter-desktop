@@ -1,0 +1,535 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_send' %}
+{% block content %}
+	{% include "includes/hwi/hwi.jinja" %}
+	<style>
+		.tx_info {
+			padding: 1em;
+			border: 1px solid #506072;
+			border-radius: 4px;
+			text-align: center;
+			margin-bottom: 2em;
+		}
+		.hwi_container{
+			margin-bottom: 2em;
+		}
+		.hwi-column-btn {
+			margin: 0.75em;
+		}
+		.tx {
+			width: 100%;
+			max-width: 179px;
+			min-width: 120px;
+		}
+		.checkbox {
+			width: 20px;
+			height: 20px;
+		}
+		.tx_details_header {
+			text-align: left;
+			text-decoration: underline;
+		}
+		#tx_details {
+			line-height: 1.5;
+		}
+		.toggle{
+			display: none;
+		}
+		.togglebtn {
+			margin: auto;
+			width: 180px;
+			text-align: center;
+			background: var(--cmap-border) !important;
+		}
+		input[type="checkbox"] ~ label.togglebtn::before{
+			content: "Show";
+		}
+		input[type="checkbox"]:checked ~ label.togglebtn::before{
+			content: "Hide";
+		}
+		input[type="checkbox"]{
+			display: none;
+		}
+		input[type="checkbox"]:checked ~ .toggle{
+			display: block;
+		}
+	</style>
+	<br>
+	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
+		<div class="tx_info">
+			
+			<div>Sending <b>{{ psbt["amount"] | btcamount }}</b> BTC to<b>
+				<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
+				{{ wallet.getaddressname(psbt["address"], -1) }}
+				</a></b><br><br>
+			</div>
+
+			{% if wallet.is_multisig %}
+				<div class="log" style="margin: auto;">
+					<b id="sigscount">{{ psbt['sigs_count'] }}</b> signatures acquired
+				</div>
+			{% endif %}
+			<br>
+
+			<input type="checkbox" id="showdetails">
+			<label for="showdetails" class="btn togglebtn">
+				&nbsp;transaction details
+			</label>
+			<div class="toggle" id="tx_details">
+				<br>
+				<h2 class="tx_details_header">Transaction Info</h2>
+				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
+					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
+					<b>Total fee:</b> {{ (psbt['fee'] * 100000000) |  btcamount }} sats<br>
+					<b>Fee rate:</b> {{ (psbt['fee'] * 100000000 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+					<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
+					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
+					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
+				</p>
+				<h2 class="tx_details_header">Inputs ({{psbt['tx']['vin'] | length}})</h2>
+				{% for input in psbt['tx']['vin'] %}
+					<p class="tx_info" style="text-align: left; background-color: #131a24;">
+						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
+						<b>Transaction id:</b><br>
+						<a class="address-link" target="blank" href="{{specter.explorer}}tx/{{input['txid']}}">
+							{{ input['txid'] }}
+						</a>
+						(Output #{{ input['vout'] }})<br>
+						{% set tx = wallet.cli.gettransaction(input['txid']) %}
+						<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ tx['details'][0]['address'] }}">
+							{{ tx['details'][0]['address'] }}
+						</a><br>
+						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
+							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+						{% endif %}
+						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC
+					</p>
+				{% endfor %}
+				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
+				{% for output in psbt['tx']['vout'] %}
+					<p class="tx_info" style="text-align: left; background-color: #131a24;">
+						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] != psbt['address'] %}(Change){% endif %}<br><br>
+						<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ output['scriptPubKey']['addresses'][0] }}">
+							{{ output['scriptPubKey']['addresses'][0] }}
+						</a><br>
+						{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
+							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
+						{% endif %}
+						<b>Amount:</b> {{ output['value'] }} BTC
+					</p>
+				{% endfor %}
+				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{psbt['base64']}}</textarea>
+				<button type="button" id="copy-raw-psbt-btn" class="btn" style="margin: auto;">Copy Raw PSBT</button>
+			</div>
+		</div>
+
+		{# ====================== Possible tx signers' inputs ====================== #}
+		{# Sign with HWI #}
+		{% if wallet.uses_hwi_device and 'raw' not in psbt %}
+			<div class="hwi_container flex-column">
+				Sign transaction with your:<br/>
+				{% if not wallet.is_multisig %}
+					<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
+				{% else %}
+					{% for device in wallet.devices %}
+						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+							<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{ 'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else '' }}>
+								{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+							</button>
+						{% endif %}
+					{% endfor %}
+				{% endif %}
+			</div>
+		{% endif %}
+
+		{# Sign with QR Code #}
+		{# TODO: Refactor to remove Vue #}
+		{% if wallet.uses_qrcode_device %}
+			<nav class="row">
+				<label>
+					<input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
+					<div class="btn radio left" style="width:200px">Compressed PSBT</div>
+				</label>
+				<label>
+					<input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
+					<div class="btn radio right" style="width:200px">Full PSBT</div>
+				</label>
+			</nav>
+
+			<div class="row" style="min-height: 400px;">
+				<span id="compressed_psbt">
+					<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+				</span>
+				<span id="full_psbt" style="display: none">
+					<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+				</span>
+			</div>
+			<script src="/static/qr/vue-qrcode.min.js"></script>
+			<script type="text/javascript" src="/static/vue_qr.js"></script>
+			<script>
+				Vue.component(VueQrcode.name, VueQrcode);
+				var vmc = new Vue({ el: '#compressed_psbt'});
+				var vmf = new Vue({ el: '#full_psbt'});
+			</script>
+			<script>
+			document.addEventListener("DOMContentLoaded", function(){
+				document.getElementById('send_sign_psbt_form').elements.psbt_type.forEach((o)=>{
+					o.addEventListener('change', e=>{
+						["compressed_psbt","full_psbt"].forEach(id=>{
+							let el = document.getElementById(id);
+							if(id==document.getElementById('send_sign_psbt_form').elements.psbt_type.value){
+								el.style.display = "flex";
+							}else{
+								el.style.display = "none";
+							}
+						});
+					})
+				});
+			});
+			</script>
+			<!-- because coldcard psbt is the most complete (includes xpubs) -->
+			<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
+		{% endif %}
+
+		{# Sign with ColdCard SD card #}
+		{% if wallet.uses_sdcard_device %}
+			<div>
+				<a class="btn centered" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+			</div>
+			<br>
+		{% endif %}
+
+		{# ===================== Possible tx signers' outputs ===================== #}
+		{% if wallet.uses_qrcode_device %}
+			<div class="output_option">
+				<a class="btn centered" id="scanme">Scan signed transaction</a>
+			</div>
+		{% endif %}
+
+		{% if psbt['raw'] %}
+			<p>Transaction is ready to send (&#10004;)</p>
+			<div class="output_option">
+				<a class="btn centered" id="send_tx_btn">Send transaction</a>
+			</div>
+		{% else %}
+			<div class="output_option" style="margin-top:20px">
+				<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
+			</div>
+		{% endif %}
+
+		{% if wallet.uses_sdcard_device %}
+			<div class="row">
+				<input type="file" id="file" class="inputfile"/>
+				<label for="file" class="btn centered">Upload signed transaction</label>
+			</div>
+		{% endif %}
+
+		{% include 'includes/overlay/broadcast_tx.jinja' %}
+
+		<div class="row padded">
+			<input type="hidden" name="pending_psbt" value="{{psbt}}">
+			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
+		</div>
+	</form>
+{% endblock %}
+
+
+{% block scripts %}
+	<div class="popup" id="popup">
+		<video muted playsinline id="qr-video" class="video"></video>
+		<div id="qr-progress"></div>
+	</div>
+
+	{% if wallet.uses_qrcode_device %}
+		<script type="module">
+				import QrScanner from "/static/qr/qr-scanner.min.js";
+				QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+				const video = document.getElementById('qr-video');
+
+				var partial_qr = {
+					"len": 0, // total number of qr codes scanned
+					"parts": [],
+				};
+				const scanner = new QrScanner(video, result => {
+					// check if it is a partial QR code
+					// syntax: "pMofN data"
+					let re = /p(\d+)of(\d+) (.*)/;
+					let p = result.match(re);
+					if(p){
+						let m = parseInt(p[1]);
+						let n = parseInt(p[2]);
+						let data = p[3];
+						if(m>n){
+							return alert("Invalid QR code! n>m!");
+						}
+						if(partial_qr.len != 0 && partial_qr.len != n){
+							return alert("Number of frames in QR code mismatch!\nHad "+partial_qr.len+", got "+n);
+						}
+						// if it is the first qr code - build array
+						if(partial_qr.len == 0){
+							partial_qr.len = n;
+							// don't change this to new Array()
+							// it's javascript magic... 
+							// https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
+							partial_qr.parts = [...Array(n)];
+							document.getElementById("qr-progress").style.display = 'block';
+							document.getElementById("qr-progress").innerHTML = "";
+						}
+						// fill corresponding part
+						partial_qr.parts[m-1] = data;
+						// display scanning progress
+						let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
+						document.getElementById("qr-progress").innerHTML = s.join("");
+						// check if we still have missing parts
+						if(partial_qr.parts.includes(undefined)){
+							// just return -> we are not ready to combine yet
+							return;
+						}
+						// recombine to result
+						result = partial_qr.parts.join("");
+						// reset partial_qr
+						partial_qr.parts = [];
+						partial_qr.len = 0;
+						// reset progress
+						document.getElementById("qr-progress").innerHTML = "";
+						document.getElementById("qr-progress").style.display = 'none';
+					}
+					// if we are done
+					scanner.stop();
+					document.getElementById("qr-progress").style.display = 'none';
+					document.getElementById("popup").style.display = 'none';
+					combine(result);
+				});
+				document.getElementById("scanme").addEventListener("click", function(){
+					try{
+						scanner.start();
+						document.getElementById("popup").style.display = 'flex';
+					}catch(e){
+						alert("Can't start the QR scanner!\n\n" + e);
+					}
+				});
+				document.getElementById("popup").addEventListener("click", function(){
+					document.getElementById("popup").style.display = 'none';
+					document.getElementById("qr-progress").innerHTML = "";
+					document.getElementById("qr-progress").style.display = 'none';
+					scanner.stop();
+				});
+		</script>
+	{% endif %}
+
+	<script>
+		let currentSigningDevice = '';
+		let currentSigningDeviceNum;
+		let psbt0 = "{{ psbt['base64'] }}";
+		let sigscount = parseInt("{{ psbt['sigs_count'] }}");
+
+		function capitalize(str){
+			return str.charAt(0).toUpperCase()+str.substring(1);
+		}
+
+		var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
+		copyrawPSBTbtn.addEventListener("click", function() {
+			var raw_psbt = document.getElementById("raw-psbt");
+			copyText(raw_psbt, "{{psbt['base64']}}", "Copied PSBT")
+		});
+
+		function copyText(element, content, msg) {
+			try {
+				element.textContent = content
+				var selection = document.getSelection();
+				var range = document.createRange();
+				range.selectNode(element);
+				selection.removeAllRanges();
+				selection.addRange(range);
+				document.execCommand("copy");
+				selection.removeAllRanges();
+				alert(msg);
+			}
+			catch (err) {
+				alert('Unable to copy text');
+			}
+		}
+
+		if ("{{ psbt['raw'] }}") {
+			document.addEventListener("DOMContentLoaded", function(){
+				var sendTxBtn = document.getElementById("send_tx_btn");
+				sendTxBtn.addEventListener("click", function() {
+					finalize("{{psbt['raw']}}");
+				});
+			});
+		} else {
+			document.addEventListener("DOMContentLoaded", function(){
+				let el = document.getElementById("pastetx");
+				el.addEventListener("click", function(){
+					let input = prompt("Paste signed transaction here");
+					if(input){
+						combine(input);
+					}
+				});
+			});
+		}
+
+		async function combine(psbt1) {
+			let url = "/wallets/{{ wallet.alias }}/combine/";
+
+			var formData = new FormData();
+			formData.append("psbt0", psbt0);
+			formData.append("psbt1", psbt1);
+			formData.append("txid", "{{ psbt['tx']['txid'] }}");
+			formData.append("device_name", currentSigningDevice);
+
+			try {
+				const response = await fetch(
+					url,
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+
+				const jsonResponse = await response.json();
+
+				if (jsonResponse.complete) {
+					finalize(jsonResponse["hex"]);
+				} else {
+					psbt0 = jsonResponse["psbt"];
+					sigscount++;
+					document.getElementById("sigscount").innerHTML = sigscount;
+					document.getElementById("hwi_sign_btn_" + currentSigningDeviceNum).style = "background-color:#303c49;";
+					document.getElementById("hwi_sign_btn_" + currentSigningDeviceNum).disabled = true;
+					document.getElementById("hwi_sign_btn_" + currentSigningDeviceNum).innerHTML += ' (&#10004;)';
+				}
+			} catch(e) {
+				console.log("Caught error: ", e);
+			}
+		}
+
+		function finalize(tx) {
+			showPageOverlay("tx_broadcast");
+
+			document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				broadcastLocal(tx);
+			});
+
+			if ("{{ specter.chain }}" != "regtest") {
+				document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					broadcastBlockstream(tx);
+				});
+			}
+
+			document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				hidePageOverlay();
+				window.location.replace("./pending/");
+			});
+
+			document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				let el = document.createElement("textarea");
+				el.style.height = '0px';
+				el.style.width = '1px';
+				document.body.appendChild(el);
+				el.value = tx;
+				copyText(el, tx, 'Copied transaction')
+				document.body.removeChild(el);
+			});
+		}
+
+		async function broadcastLocal(tx) {
+			let url="/wallets/{{wallet.alias}}/broadcast/";
+
+			var formData = new FormData();
+			formData.append("tx", tx);
+
+			try {
+				const response = await fetch(
+					url,
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+
+				const jsonResponse = await response.json();
+
+				if (jsonResponse.success) {
+					hidePageOverlay();
+					window.location.replace("../tx/");
+				} else {
+					alert("Server failed to broadcast transactions!\n" + jsonResponse.error);
+				}
+			} catch(e) {
+				alert("Server failed to broadcast transactions!\n" + e);
+			}
+		}
+
+		function broadcastBlockstream(tx) {
+			// TODO: Use fetch instead of XMLHttpRequest
+			let url;
+			if ("{{ specter.chain }}" == "main") {
+				url="https://blockstream.info/api/tx";
+			} else {
+				url="https://blockstream.info/testnet/api/tx";
+			}
+
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.onreadystatechange = function() { 
+				if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+					let o = JSON.parse(this.responseText);
+					var deletePSBTBtn = document.getElementById("deletepsbt_btn");
+					deletePSBTBtn.click();
+					alert("Transaction was sent successfully!");
+				} else {
+					if(xmlHttp.readyState === 4){
+						alert("Server failed to broadcast transactions!\n" + xmlHttp.response);
+					}
+				}
+			}
+
+			xmlHttp.open("POST", url, true); // true for asynchronous 
+			xmlHttp.send(tx);
+		}
+
+		// ================== Signers various device support ==================
+		{% if wallet.uses_hwi_device and 'raw' not in psbt %}
+			document.addEventListener("DOMContentLoaded", function() {
+				{% if not wallet.is_multisig %}
+					document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
+						e.preventDefault();
+						signTx(combine);
+					});
+				{% else %}
+					{% for device in wallet.devices %}
+						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+							document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
+								e.preventDefault();
+								currentSigningDevice = "{{ device.name }}"
+								currentSigningDeviceNum = "{{ loop.index }}"
+								signTx(combine);
+							});
+						{% endif %}
+					{% endfor %}
+				{% endif %}
+			});
+		{% endif %}
+
+		{% if wallet.uses_sdcard_device %}
+			var el = document.getElementById("file");
+
+			el.addEventListener("change", (e) => {
+				let files = el.files;
+				for(let i = 0; i < files.length; i++){
+					let reader = new FileReader();
+					reader.onload = function(e) {
+						let str = btoa(reader.result);
+						combine(str);
+					}
+					reader.readAsBinaryString(files[i]);
+				}
+			});
+		{% endif %}
+	</script>
+{% endblock %}

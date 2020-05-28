@@ -1,0 +1,45 @@
+{% from 'includes/hwi/components/pin_button.jinja' import pin_button %}
+
+<div id="hwi_enter_pin" class="hidden">
+    <h2>Enter PIN</h2>
+    <div id="hwi_enter_pin__content" class="flex-center flex-column">
+        <br/>
+        <div>
+            {{ pin_button(7) }}
+            {{ pin_button(8) }}
+            {{ pin_button(9) }}
+        </div>
+        <div>
+            {{ pin_button(4) }}
+            {{ pin_button(5) }}
+            {{ pin_button(6) }}
+        </div>
+        <div>
+            {{ pin_button(1) }}
+            {{ pin_button(2) }}
+            {{ pin_button(3) }}
+        </div>
+        <br/>
+        <br/>
+        <button id="hwi_enter_pin__submit" class="btn" type="button" onclick="submitPin()">Submit</button>
+    </div>
+</div>
+
+<script>
+    async function submitPin() {
+        var loader = document.getElementById("hwi_loading");
+        var content = document.getElementById("hwi_enter_pin__content");
+        content.style.display = "none";
+        loader.style.display = "flex";
+        document.getElementById("hwi_enter_pin").appendChild(loader);
+
+        var jsonResult = await hwiSendPin();
+        if (jsonResult.success) {
+            hwiShowUnlocked();
+        } else {
+            // pin failed...
+            hidePageOverlay();
+            alert("Error: Failed to validate submitted PIN!");
+        }
+    }
+</script>

@@ -1,0 +1,79 @@
+<div class="fee_container">
+    <div>
+        <label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract fees from amount</label>
+    </div>
+    <br>
+    <div>
+        Fees: 
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
+    </div>
+    <br>
+    <input type="hidden" id="fee_unit" name="fee_unit" value="BTC_KB">
+    <div id = "fee_manual" style="display: none">
+        Fee rate:<br>
+        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min=0 step="0.25" autocomplete="off"> sat/B
+        <div class="note">
+            leave blank to set automatically
+        </div>
+    </div>
+    <div id ="fee_dynamic" style="display: block">
+        <div id="blocks"></div>
+        <input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees()">
+        <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+        <div>
+            Fee rate: <span id="fee_rate_dynamic_text"></span>
+        </div>
+    </div>
+    <br><br>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", loadDynamicFees);
+
+    function showFeeOption(myRadio) {
+        let feeUnit = document.getElementById('fee_unit');
+
+        if (myRadio.value == 'dynamic') {
+            setVisibility('fee_manual', 'none');
+            setVisibility('fee_dynamic', 'block');
+            feeUnit.value = 'BTC_KB'
+        } else {
+            setVisibility('fee_manual', 'block');
+            setVisibility('fee_dynamic', 'none');
+            feeUnit.value = 'SAT_B'
+        }
+    }
+
+    async function fetchDynamicFees() {
+        try {
+            const response = await fetch(
+                '/get_fee/'.concat(document.getElementById('slider_confTime').value),
+                {
+                    method: 'GET'
+                }
+            );
+            return await response.json();
+        } catch(e) {
+            console.log('Caught error:', e);
+            return { success: false, error: e };
+        }
+    }
+
+    async function loadDynamicFees() {
+        let feesJSON = await fetchDynamicFees();
+        let blocks = 'Dynamic fees are currently not available.';
+
+        if (!feesJSON.hasOwnProperty('errors')) {
+            let fee = feesJSON.feerate;
+            blocks = feesJSON.blocks + ' blocks';
+            document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' BTC/kB');
+            document.getElementById('fee_rate_dynamic').value = fee;
+        } else {
+            document.getElementById('fee_rate_dynamic_text').innerHTML = 'will be set by Bitcoin Core automatically';
+            document.getElementById('fee_rate_dynamic').value = 0;
+        }
+
+        document.getElementById('blocks').innerHTML = 'Confirmation time: '.concat(blocks);
+    }
+</script>

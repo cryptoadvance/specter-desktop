@@ -732,6 +732,59 @@ table tr:hover .btn.hovering{
     border-radius: 7px;
 }
 
+/************** Send Tab ********************************/
+
+.fee_container {
+    height: 11em;
+}
+.fee_rate {
+    width: 6em;
+    min-width: 6em;
+}
+#coin_selection_table .tx {
+    width: 100%;
+    max-width: 179px;
+    min-width: 120px;
+}
+.checkbox {
+    width: 20px;
+    max-width: 20px;
+    min-width: 20px;
+    height: 20px;
+}
+#coinselect {
+    margin-bottom: 10px;
+}
+
+/************** Overlay Popup ********************************/
+.page_overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0,0,0, 0.75);
+    z-index: 2;
+}
+.page_overlay_popup {
+    display: none;
+    /*margin: 0 auto;*/
+    max-width: 450px;
+    text-align: center;
+    border-radius: 0.5em;
+    border: 2px solid #313E50;
+    background-color: #192432;
+    z-index: 3;
+    padding: 1.5em;
+}
+.page_overlay_popup_cancel {
+    margin-top: 2em;
+    float: right;
+}
+
 /************** Tool Tip Styles ********************************/
 .tool-tip {
     display: inline-block;

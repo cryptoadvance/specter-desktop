@@ -1,0 +1,11 @@
+<div id="tx_broadcast" class="hidden">
+    <h1>Transaction is Ready to Broadcast</h1>
+    <div class="flex-center flex-column">
+        <button id="broadcast_local_btn" class="btn flex-item" style="width: 190px;">Send transaction</button>
+        {% if specter.chain != "regtest" %}
+            <button type="button" id="broadcast_blockstream_btn" class="btn flex-item" style="width: 190px;">Send via blockstream.info</button>
+        {% endif %}
+        <button id="save_psbt_btn" class="btn flex-item" style="width: 190px;">Save as pending</button>
+        <button id="copy_final_tx_btn" class="btn flex-item" style="width: 190px;">Copy raw transaction</button>
+    </div>
+</div>

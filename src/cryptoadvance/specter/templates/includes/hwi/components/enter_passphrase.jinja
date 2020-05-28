@@ -1,0 +1,30 @@
+<div id="hwi_enter_passphrase" class="hidden">
+    <h2>Enter Passphrase</h2>
+    <div id="hwi_enter_passphrase__content" class="flex-center flex-column">
+        <br/>
+        <div>
+            <input name="passphrase" type="password" id="hwi_enter_passphrase__passphrase" />
+        </div>
+        <br/>
+        <br/>
+        <button id="hwi_enter_passphrase__submit" class="btn" type="button" onclick="submitPassphrase()">Submit</button>
+    </div>
+</div>
+
+<script>
+function submitPassphrase() {
+    var loader = document.getElementById("hwi_loading");
+    var content = document.getElementById("hwi_enter_passphrase__content");
+    content.style.display = "none";
+    loader.style.display = "flex";
+    document.getElementById("hwi_enter_passphrase").appendChild(loader);
+
+    hwiWalletPassphrase = document.getElementById("hwi_enter_passphrase__passphrase").value;
+
+    if (hwiCurrentWallet.needs_pin_sent){
+        hwiPromptPin();
+    } else {
+        hwiShowUnlocked();
+    }
+}
+</script>

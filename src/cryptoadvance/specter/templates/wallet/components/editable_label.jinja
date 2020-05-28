@@ -1,0 +1,41 @@
+{# 
+    editable_label - Sidebar wallet list item.
+    Parameters:
+    - wallet: Wallet object of the item.
+    - wallet_alias: Active wallet alias.
+    - chain: Chain name specter is connected to. Options: 'main', 'test', 'regtest', 'signet'.
+ #}
+{% macro editable_label(label, elementId) -%}
+    <input type="text" class="label" autocomplete="off" spellcheck="false" id="{{'label' ~ elementId }}" name="label" value="{{ label }}" style="border: none; font-size: 1.5em;" disabled />
+    <button type="submit" class="btn update hidden" id="{{ 'save' ~ elementId }}" name="action" value="updatelabel">Update</button>
+    <button type="button" class="btn cancel hidden" id="{{ 'cancel' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">Cancel</button>
+    <button type="button" class="btn edit" id="{{ 'edit' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">Edit Label</button>
+
+    <script>
+        function toggleEdit(id, originalLabel) {
+            var label = document.getElementById("label" + id);
+            var edit = document.getElementById("edit" + id);
+            var cancel = document.getElementById("cancel" + id);
+            var save = document.getElementById("save" + id);
+
+            if (edit.style.display === 'none') {
+                label.disabled = 'true';
+                label.style.border = 'none';
+                label.style.textAlign = '{{ "center" if elementId == -1 else "left" }}';
+                label.style.fontSize = '1.5em';
+                label.value = originalLabel;
+                edit.style.display = 'block';
+                cancel.style.display = 'none';
+                save.style.display = 'none';
+            } else {
+                label.disabled = ''
+                label.style.removeProperty('border');
+                label.style.textAlign = 'center';
+                label.style.removeProperty('font-size');
+                edit.style.display = 'none';
+                cancel.style.display = 'block';
+                save.style.display = 'block';
+            }
+        }
+    </script>
+{%- endmacro %}

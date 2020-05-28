@@ -1,0 +1,51 @@
+{% if wallet is defined %}
+	<div id="hwi_display_address" class="flex-center flex-column hidden">
+		<h2>Confirm Address</h2><br>
+		<div>
+			Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
+			Expected address:  {{ wallet['address'] }}
+		</div>
+		<div class="flex-center">
+			<img src="/static/img/loader_boxes.svg"/>
+		</div>
+	</div>
+
+	<script>
+		function displayAddressOnDevice() {
+			beginDetectWallet("{{ wallet.device_type }}");
+			document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
+				e.preventDefault();
+				document.getElementById("hwi_device_name").textContent = '{{wallet.device_type | capitalize}}';
+				showPageOverlay(HWI_POPUPS.DISPLAY_ADDRESS);
+
+				var formData = new FormData();
+				formData.append("type", hwiCurrentWallet.type);
+				formData.append("path", hwiCurrentWallet.path);
+				formData.append("passphrase", hwiWalletPassphrase);
+				formData.append("descriptor", "{{ wallet['recv_descriptor'].replace('*', wallet['address_index'] | string).split('#')[0] }}");
+
+				const response = await fetch(
+					'/hwi/display_address/',
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+
+				const jsonResponse = await response.json();
+				if (jsonResponse.success) {
+					if ("{{ wallet['address'] }}" != jsonResponse.status.address &&
+						(("{{ specter.chain }}" != "regtest" || !jsonResponse.status.address.startsWith("tb")) ||
+						"{{ wallet['address'] }}".slice(0, -6) != "bcrt" + jsonResponse.status.address.slice(2, -6))
+					) {
+						alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+					}
+				} else {
+					alert(jsonResponse.error);
+				}
+
+				hidePageOverlay();
+			});
+		}
+	</script>
+{% endif %}

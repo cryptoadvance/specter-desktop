@@ -46,10 +46,10 @@ def inject_debug():
 def combine(wallet_alias):
     wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if request.method == 'POST': # FIXME: ugly...
-        d = request.json
-        psbt0 = d['psbt0'] # request.args.get('psbt0')
-        psbt1 = d['psbt1'] # request.args.get('psbt1')
-        txid = d['txid']
+        psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
+        psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        txid = request.form.get('txid')
+
         try:
             psbt = app.specter.combine([psbt0, psbt1])
             raw = app.specter.finalize(psbt)
@@ -57,7 +57,7 @@ def combine(wallet_alias):
             return e.error_msg, e.status_code
         except Exception as e:
             return "Unknown error: %r" % e, 500
-        device_name = d['device_name']
+        device_name = request.form.get('device_name')
         wallet.update_pending_psbt(psbt, txid, raw, device_name)
         return json.dumps(raw)
     return 'meh'
@@ -67,8 +67,7 @@ def combine(wallet_alias):
 def broadcast(wallet_alias):
     wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if request.method == 'POST':
-        d = request.json
-        tx = d['tx']
+        tx = request.form.get('tx')
         if wallet.cli.testmempoolaccept([tx])[0]['allowed']:
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
@@ -89,7 +88,7 @@ def index():
         # For now: can't do anything until a device is registered
         return redirect("/new_device/")
 
-    return render_template("base.html", specter=app.specter, rand=rand)
+    return render_template("base.jinja", specter=app.specter, rand=rand)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -100,7 +99,7 @@ def login():
         if app.specter.cli is None:
             flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
             app.logger.info("AUDIT: Failed to check password")
-            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
         cli = app.specter.cli.clone()
         print("Loggning in with"+request.form['password'])
         cli.passwd = request.form['password']
@@ -116,11 +115,11 @@ def login():
         else:
             flash('Invalid username or password', "error")
             app.logger.info("AUDIT: Invalid password login attempt")
-            return render_template('login.html', specter=app.specter, data={'controller':'controller.login'}), 401
+            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
     else:
         if app.config.get('LOGIN_DISABLED'):
             return redirect('/')
-        return render_template('login.html', specter=app.specter, data={'next':request.args.get('next')})
+        return render_template('login.jinja', specter=app.specter, data={'next':request.args.get('next')})
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -183,7 +182,7 @@ def settings():
             return redirect("/")
     else:
         pass
-    return render_template("settings.html",
+    return render_template("settings.jinja",
                             test=test,
                             username=user,
                             password=passwd,
@@ -204,8 +203,8 @@ def new_wallet():
     err = None
     if app.specter.chain is None:
         err = "Configure Bitcoin Core to create wallets"
-        return render_template("base.html", error=err, specter=app.specter, rand=rand)
-    return render_template("new_wallet.html", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/simple/', methods=['GET', 'POST'])
 @login_required
@@ -242,7 +241,7 @@ def new_wallet_simple():
                 "sh-wpkh": "Nested Segwit",
                 "pkh": "Legacy",
             }
-            return render_template("new_simple_keys.html", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=dev, error=err, specter=app.specter, rand=rand)
+            return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=dev, error=err, specter=app.specter, rand=rand)
         if action == 'key' and err is None:
             original_xpub = request.form['key']
             device = app.specter.devices[device_name]
@@ -252,7 +251,7 @@ def new_wallet_simple():
                     key = k
                     break
             if key is None:
-                return render_template("base.html", error="Key not found", specter=app.specter, rand=rand)
+                return render_template("base.jinja", error="Key not found", specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_simple(wallet_name, wallet_type, key, device)
             rescan_blockchain = 'rescanblockchain' in request.form
@@ -276,7 +275,7 @@ def new_wallet_simple():
                     error = "%r" % e
                 wallet.getdata()
             return redirect("/wallets/%s/" % wallet["alias"])
-    return render_template("new_simple.html", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet.jinja", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
 
 @app.route('/new_wallet/multisig/', methods=['GET', 'POST'])
 @login_required
@@ -294,7 +293,7 @@ def new_wallet_multi():
     sigs_total = len(app.specter.devices)
     if sigs_total < 2:
         err = "You need more devices to do multisig"
-        return render_template("base.html", specter=app.specter, rand=rand)
+        return render_template("base.jinja", specter=app.specter, rand=rand)
     sigs_required = sigs_total*2//3
     if sigs_required < 2:
         sigs_required = 2
@@ -330,7 +329,7 @@ def new_wallet_multi():
                     if len(dev["keys"]) == 0:
                         err = "Device %s doesn't have keys matching this wallet type" % dev["name"]
                     devs.append(dev)
-                return render_template("new_simple_keys.html", purposes=pur, 
+                return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
@@ -359,7 +358,7 @@ def new_wallet_multi():
                     dev["keys"] = [k for k in dev["keys"] if k["xpub"].startswith(prefix) and (k["type"] is None or k["type"] == wallet_type)]
                     devs.append(dev)
                 err="Did you select all the keys?"
-                return render_template("new_simple_keys.html", purposes=pur, 
+                return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
                     cosigners=devs, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
@@ -367,7 +366,7 @@ def new_wallet_multi():
             # create a wallet here
             wallet = app.specter.wallets.create_multi(wallet_name, sigs_required, wallet_type, keys, cosigners)
             return redirect("/wallets/%s/" % wallet["alias"])
-    return render_template("new_simple.html", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
+    return render_template("wallet/new_wallet/new_wallet.jinja", cosigners=cosigners, wallet_type=wallet_type, wallet_name=wallet_name, error=err, sigs_required=sigs_required, sigs_total=sigs_total, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/')
 @login_required
@@ -376,7 +375,7 @@ def wallet(wallet_alias):
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
         return redirect("/wallets/%s/receive/" % wallet_alias)
     else:
@@ -388,9 +387,9 @@ def wallet_tx(wallet_alias):
     app.specter.check()
     wallet = app.specter.wallets.get_by_alias(wallet_alias)
     if wallet is None:
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
 
-    return render_template("wallet_tx.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    return render_template("wallet/history/txs/wallet_tx.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
 @login_required
@@ -399,7 +398,7 @@ def wallet_addresses(wallet_alias):
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
@@ -413,7 +412,7 @@ def wallet_addresses(wallet_alias):
                     wallet.setlabel(address, label)
                 wallet.getdata()
     alladdresses = True if request.args.get('all') != 'False' else False
-    return render_template("wallet_addresses.html", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
+    return render_template("wallet/history/addresses/wallet_addresses.jinja", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -422,7 +421,7 @@ def wallet_receive(wallet_alias):
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == "newaddress":
@@ -432,7 +431,7 @@ def wallet_receive(wallet_alias):
             wallet.setlabel(wallet['address'], label)
     if wallet.txoncurrentaddr > 0:
         wallet.getnewaddress()
-    return render_template("wallet_receive.html", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    return render_template("wallet/receive/wallet_receive.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/get_fee/<blocks>')
 @login_required
@@ -448,7 +447,7 @@ def wallet_send(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except Exception as e:
         print(e)
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     psbt = None
     address = ""
     label = ""
@@ -486,12 +485,12 @@ def wallet_send(wallet_alias):
             except Exception as e:
                 err = e
             if err is None:
-                return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+                return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                     wallet_alias=wallet_alias, wallet=wallet, 
                                                     specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
-            return render_template("wallet_send_sign_psbt.html", psbt=psbt, label=label, 
+            return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
         elif action == 'deletepsbt':
@@ -499,7 +498,7 @@ def wallet_send(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 flash("Could not delete Pending PSBT!")
-    return render_template("wallet_send.html", psbt=psbt, label=label, 
+    return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
@@ -511,7 +510,7 @@ def wallet_sendpending(wallet_alias):
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except Exception as e:
         print(e)
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == 'deletepsbt':
@@ -520,7 +519,7 @@ def wallet_sendpending(wallet_alias):
             except Exception as e:
                 flash("Could not delete Pending PSBT!")
     pending_psbts = wallet.pending_psbts
-    return render_template("wallet_sendpending.html", pending_psbts=pending_psbts,
+    return render_template("wallet/send/pending/wallet_sendpending.jinja", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter) 
 
@@ -533,7 +532,7 @@ def wallet_settings(wallet_alias):
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
     except:
-        return render_template("base.html", error="Wallet not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == "rescanblockchain":
@@ -562,8 +561,8 @@ def wallet_settings(wallet_alias):
             app.specter.wallets.delete_wallet(wallet)
             response = redirect(url_for('index'))
             return response
-        elif action == "renamewallet":
-            wallet_name = request.form['walletname']
+        elif action == "rename":
+            wallet_name = request.form['newtitle']
             if wallet_name in app.specter.wallets.names():
                 error = "Wallet already exists"
             else:
@@ -575,14 +574,14 @@ def wallet_settings(wallet_alias):
         cc_file = wallet.get_cc_file()
         if cc_file is not None:
             cc_file = urllib.parse.quote(cc_file)
-        return render_template("wallet_settings.html", 
+        return render_template("wallet/settings/wallet_settings.jinja", 
                             cc_file=cc_file, 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
                             error=error,
                             qr_text=qr_text)
     else:
-        return render_template("wallet_settings.html", 
+        return render_template("wallet/settings/wallet_settings.jinja", 
                             wallet_alias=wallet_alias, wallet=wallet, 
                             specter=app.specter, rand=rand, 
                             error=error,
@@ -594,7 +593,7 @@ def wallet_settings(wallet_alias):
 @login_required
 def new_device():
     app.specter.check()
-    return render_template("new_device.html", specter=app.specter, rand=rand)
+    return render_template("device/new_device.jinja", specter=app.specter, rand=rand)
 
 @app.route('/new_device/<device_type>/', methods=['GET', 'POST'])
 @login_required
@@ -621,7 +620,7 @@ def new_device_xpubs(device_type):
         if err is None:
             dev = app.specter.devices.add(name=device_name, device_type=device_type, keys=normalized)
             return redirect("/devices/%s/" % dev["alias"])
-    return render_template("new_device_xpubs.html", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+    return render_template("device/new_device_xpubs.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
 
 
 def get_key_meta(key):
@@ -641,7 +640,7 @@ def device(device_alias):
     try:
         device = app.specter.devices.get_by_alias(device_alias)
     except:
-        return render_template("base.html", error="Device not found", specter=app.specter, rand=rand)
+        return render_template("base.jinja", error="Device not found", specter=app.specter, rand=rand)
     if request.method == 'POST':
         action = request.form['action']
         if action == "forget":
@@ -651,7 +650,7 @@ def device(device_alias):
             key = request.form['key']
             device.remove_key(key)
         if action == "add_keys":
-            return render_template("new_device_xpubs.html", device_alias=device_alias, device=device, device_type=device["type"], specter=app.specter, rand=rand)
+            return render_template("device/new_device_xpubs.jinja", device_alias=device_alias, device=device, device_type=device["type"], specter=app.specter, rand=rand)
         if action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
@@ -659,13 +658,13 @@ def device(device_alias):
             err = None
             if len(failed) > 0:
                 err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template("new_device_xpubs.html", device_alias=device_alias, device=device, xpubs=xpubs, device_type=device["type"], error=err, specter=app.specter, rand=rand)
+                return render_template("device/new_device_xpubs.jinja", device_alias=device_alias, device=device, xpubs=xpubs, device_type=device["type"], error=err, specter=app.specter, rand=rand)
             if err is None:
                 device.add_keys(normalized)
     device = copy.deepcopy(device)
     device["keys"] = [get_key_meta(key) for key in device["keys"]]
     device["keys"].sort(key=lambda x: x["chain"]+x["purpose"], reverse=True)
-    return render_template("device.html", device_alias=device_alias, device=device, purposes=purposes, specter=app.specter, rand=rand)
+    return render_template("device/device.jinja", device_alias=device_alias, device=device, purposes=purposes, specter=app.specter, rand=rand)
 
 
 

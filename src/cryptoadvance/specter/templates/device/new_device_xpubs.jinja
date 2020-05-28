@@ -1,0 +1,137 @@
+{% extends "base.jinja" %}
+{% block main %}
+	{% if device %}
+		<h1>Adding keys to {{device["name"]}}</h1>
+	{% else %}
+		<h1>Setting up a new device</h1>
+	{% endif %}
+	<div class="card">
+	<form action="./" method="POST">
+		{% if not device %}
+			<div>Name it &nbsp; &nbsp;
+			<input type="text" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device"></div>
+			<br>
+		{% endif %}
+		<h2>Scan, paste or load xpubs:</h2>
+		<div class="note">
+			{% if not device %}
+				You will be able add more keys later, from the device menu.
+			{% endif %}
+		</div>
+		<textarea id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
+		<div class="row">
+			{% if device_type == "specter" %}
+				<a href="#" class="btn" id="scanme"><img src="/static/img/qr_icon.svg" height="12px"> Scan</a>
+			{% elif device_type == "coldcard" %}
+				<input type="file" id="file" class="inputfile" multiple/>
+				<label for="file" class="btn">Choose files</label>
+			{% endif %}
+			&nbsp;
+			<a href="/hwi/new_device/" class="btn" id="askhwi"><img src="/static/img/usb_tiny.svg" height="12px">Get over USB</a>
+		</div>
+		<br>
+		<div class="note">
+			One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
+			Examples:<br>
+			<pre style="font-size: 1.2em">
+[f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
+[F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
+upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
+			</pre>
+			Loading from file supports ColdCard and Electrum wallet format.<br>
+		</div>
+		<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+	</form>
+	</div>
+	<div class="note">
+		{%if device_type == "coldcard" %}
+			<p>Export extended public keys for single-key wallets to the SD card from<br>
+				<b>Advanced → MicroSD Card → Export Wallet → Electrum Wallet</b></p>
+			<p>To export multisignature pubkeys go to <br>
+				<b>Settings → Multisig Wallets → Export XPUB</b></p>
+			<p>We recommend using Native Segwit.</p>
+		{% elif device_type == "specter" %}
+				<p>Scan QR codes with extended public keys one by one.<br>
+				<p>We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.</p>
+		{% endif %}
+	</div>
+{% endblock %}
+
+{% block scripts %}
+	<div class="popup" id="popup">
+		<video muted playsinline id="qr-video" class="video"></video>
+	</div>
+
+	<script type="text/javascript">
+
+		var el = document.getElementById("file");
+		var txt = document.getElementById("txt");
+
+		el.addEventListener("change", (e) => {
+			files = el.files;
+			console.log(files);
+			for(let i=0; i<files.length; i++){
+				console.log(files[i].name);
+				let reader = new FileReader();
+				reader.onload = function(e) {
+					let str = reader.result
+					if(str.indexOf("{") >= 0){
+						let json = JSON.parse(str);
+						console.log(str);
+						if("keystore" in json){ // ColdCard electrum file
+							let prefix = "";
+							if( ("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)){
+								prefix = "[";
+								let num = json.keystore.ckcc_xfp;
+								for(let i=0;i<4;i++){
+									prefix += ('0' + (num % 256).toString(16)).slice(-2);
+									num = num >>> 8;
+								}
+								prefix += json.keystore.derivation.substring(1);
+								prefix += "]";
+							}
+							let s = prefix + json.keystore.xpub + "\n";
+							txt.value += s;
+						}else if("xfp" in json){ // probably ColdCard multisig file
+							let s = "";
+							for(let k in json){
+								if(k+"_deriv" in json){
+									s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+								}
+							}
+							txt.value += s;
+						}
+					}else{
+						txt.value += str+"\n";
+					}
+				}
+				reader.readAsText(files[i]);
+			}
+		});
+	</script>
+
+	<script type="module">
+		import QrScanner from "/static/qr/qr-scanner.min.js";
+		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+		const video = document.getElementById('qr-video');
+
+		const scanner = new QrScanner(video, result => {
+			scanner.stop();
+			document.getElementById("popup").style.display = 'none';
+			document.getElementById("txt").value += result + "\n";
+		});
+		document.getElementById("scanme").addEventListener("click", function(){
+			try{
+				scanner.start();
+				document.getElementById("popup").style.display = 'flex';
+			}catch(e){
+				alert("Can't start the QR scanner!\n\n" + e);
+			}
+		});
+		document.getElementById("popup").addEventListener("click", function(){
+			document.getElementById("popup").style.display = 'none';
+			scanner.stop();
+		});
+	</script>
+{% endblock %}

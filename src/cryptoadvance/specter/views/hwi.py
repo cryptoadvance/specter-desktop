@@ -155,7 +155,7 @@ def hwi_new_device_xpubs():
     specter.check()
 
     return render_template(
-        "hwi_new_device_xpubs.html",
+        "device/hwi_new_device_xpubs.jinja",
         error=err,
         specter=specter,
         rand=rand

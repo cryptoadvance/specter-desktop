@@ -1,0 +1,30 @@
+{# 
+    tx_table - Empty table component
+    Parameters:
+    - isEmpty: Boolean, true if should show an item indicating empty list, false if should show the list contents.
+    - content: The content of the table (its rows).
+ #}
+{% macro tx_table(isEmpty, content) -%}
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>TxID</th>
+                <th>Address</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+		</thead>
+		<tbody>
+			{% if not isEmpty %}
+                {{ content }}
+            {% else %}
+                <td></td>
+                <td>No transactions yet.</td>
+                <td></td>
+                <td></td>
+                <td></td>
+			{% endif %}
+		</tbody>
+	</table>
+{%- endmacro %}

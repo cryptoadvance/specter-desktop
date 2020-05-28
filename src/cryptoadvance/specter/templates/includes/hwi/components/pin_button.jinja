@@ -1,0 +1,13 @@
+{# 
+    pin_button - Button of the HWI PIN popup.
+    Parameters:
+    - value: PIN number represented (between 1 to 9).
+ #}
+{% macro pin_button(value) -%}
+    <button class="pin_button" value="{{value}}" onclick="pinButtonPressed({{ value }})">&nbsp;</button>
+    <script>
+        function pinButtonPressed(value) {
+                hwiWalletPIN += value;
+        }
+    </script>
+{%- endmacro %}

@@ -1,0 +1,11 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'wallet_send' %}
+{% block content %}
+	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
+	{{ send_nav('wallet_sendpending', wallet_alias) }}
+		<h1 class="padded">Pending Transactions:</h1>
+		<div class="table-holder">
+			{% from 'wallet/send/pending/components/pending_psbt_table.jinja' import pending_psbt_table %}
+			{{ pending_psbt_table(pending_psbts, wallet_alias, wallet, specter) }}
+		</div>
+{% endblock %}

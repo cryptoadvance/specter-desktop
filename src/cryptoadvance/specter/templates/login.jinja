@@ -1,0 +1,18 @@
+{% extends "base.jinja" %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block main %}
+    <div class="card">
+        <form action="{{ url_for('login') }}" method="POST" role="form">
+            <input class="form-control" placeholder="Pin" name="password" type="password" value="">
+            <input type="hidden" name="next" value="{{ data.next }}">
+            <br>
+            <br>
+            <div class="row">
+                <button type="submit" class="btn">Login</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

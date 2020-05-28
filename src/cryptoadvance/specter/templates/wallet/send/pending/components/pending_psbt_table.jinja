@@ -1,0 +1,35 @@
+{% from 'wallet/send/pending/components/pending_psbt_item.jinja' import pending_psbt_item %}
+
+{# 
+    pending_psbt_table - List of the wallet pending PSBTs
+    Parameters:
+    - pending_psbts: List of pending PSBTs.
+    - wallet_alias: Active wallet alias.
+    - wallet: Wallet object
+    - specter: Specter object
+ #}
+{% macro pending_psbt_table(pending_psbts, wallet_alias, wallet, specter) -%}
+    <table>
+        <thead>
+        <tr>
+            <th></th><th>Address</th><th>Amount</th><th>Time</th><th>Sigs</th><th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% if pending_psbts %}
+                {% for txid in pending_psbts %}
+                    {{ 
+                        pending_psbt_item(
+                            pending_psbts[txid],
+                            wallet_alias,
+                            wallet,
+                            specter
+                        )
+                    }}
+                {% endfor %}
+            {% else %}
+                <td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
+            {% endif %}
+        </tbody>
+    </table>
+{%- endmacro %}
