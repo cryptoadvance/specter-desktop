@@ -16,7 +16,7 @@
         <tbody>
             {% for tx in unspents %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['amount'], tx['address'], tx['label'], specter) }}
+                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], specter) }}
             {% endfor %}
         </tbody>
     </table>
