@@ -16,6 +16,7 @@
     - specter: Specter object.
  #}
 {% macro tx_item(txid, category, amount, address, label, block_height, time, specter) -%}
+    {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr class="{%if block_height == -1 %}unconfirmed{%endif%}">
         <td>
             {# coinbase txs are 'immature' until 100 confs #}
@@ -26,10 +27,10 @@
             {% endif %}
         </td>
         <td class="tx scroll">
-            <a target="blank" href="{{specter.explorer}}tx/{{txid}}">{{ txid }}</a>
+            {{ explorer_link('tx', txid, txid, specter.explorer) }}
         </td>
         <td class="tx scroll">
-            <a target="blank" href="{{specter.explorer}}address/{{address}}">{{ label }}</a>
+            {{ explorer_link('address', address, label, specter.explorer) }}
         </td>
         <td>
             {{ amount | btcamount }}

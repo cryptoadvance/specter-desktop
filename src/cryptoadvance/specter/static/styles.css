@@ -731,6 +731,10 @@ table tr:hover .btn.hovering{
     margin: 10px;
     border-radius: 7px;
 }
+.explorer-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
 
 /************** Send Tab ********************************/
 

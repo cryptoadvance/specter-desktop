@@ -26,6 +26,11 @@
 			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
+			<div class="note">
+				Specter does not use the block explorer to get any data whatsoever.
+				This setting is only to allow opening trnsactions and addresses in a block explorer directly from Specter.<br>
+				All data Specter uses still comes directly from the your own connected full node.
+			</div>
 			<br><br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
