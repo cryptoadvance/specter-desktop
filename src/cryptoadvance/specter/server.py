@@ -9,7 +9,6 @@ from flask_login import LoginManager, login_user
 
 from .descriptor import AddChecksum
 from .logic import Specter
-from .views.hwi import hwi_views
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
@@ -62,7 +61,6 @@ def init_app(app, specter=None):
     else:
         app.logger.info("Login enabled")
     app.logger.info("Initializing Controller ...")
-    app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
         from . import controller
     return app

@@ -35,27 +35,17 @@
 	<script>
 		document.getElementById('extract_btn').addEventListener("click", async function(event) {
 			event.preventDefault();
-
 			showPageOverlay(HWI_POPUPS.EXTRACT_XPUBS);
-			
-			var formData = new FormData();
-			formData.append("device_name", document.getElementById('device_name_id').value);
-			formData.append("type", hwiCurrentWallet.type);
-			formData.append("path", hwiCurrentWallet.path);
-			formData.append("passphrase", hwiWalletPassphrase);
 
-			const response = await fetch(
-				'/hwi/extract_xpubs/',
-				{
-					method: 'POST',
-					body: formData
-				}
-			);
-			const jsonResponse = await response.json();
-			if (jsonResponse.success) {
-				location.href = "/devices/" + jsonResponse.device_alias;
-			} else {
-				alert(jsonResponse.error);
+			let result = await hwiSendCommand('extract_xpubs', {
+				device_name: document.getElementById('device_name_id').value,
+				device_type: hwiCurrentWallet.type,
+				path: hwiCurrentWallet.path,
+				passphrase: hwiWalletPassphrase
+			});
+
+			if (result.success) {
+				location.href = "/devices/" + result.data;
 			}
 		});
 

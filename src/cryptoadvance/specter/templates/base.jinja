@@ -47,6 +47,10 @@
 				</div>
 			{% endif %}
 
+			<div class="notification error hidden" id="notificationmsg" style="margin-left: 125px">
+				Error
+			</div>
+
 			{% block main %}
 				{% if error %}
 					<br><br>Something went wrong :(<br><br>{{error}}
@@ -69,6 +73,14 @@
 				event.stopPropagation();
 			});
 		});
+
+		function showError(msg){
+			let el = document.getElementById("notificationmsg");
+			el.classList.add("error");
+			el.classList.remove("primary");
+			el.innerHTML = msg;
+			el.style.display = "block";
+		}
 	</script>
 
 	{% block scripts %}

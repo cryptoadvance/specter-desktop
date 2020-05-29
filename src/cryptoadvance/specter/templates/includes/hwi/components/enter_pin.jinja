@@ -33,13 +33,6 @@
         loader.style.display = "flex";
         document.getElementById("hwi_enter_pin").appendChild(loader);
 
-        var jsonResult = await hwiSendPin();
-        if (jsonResult.success) {
-            hwiShowUnlocked();
-        } else {
-            // pin failed...
-            hidePageOverlay();
-            alert("Error: Failed to validate submitted PIN!");
-        }
+        await hwiSendPin();
     }
 </script>
