@@ -1,5 +1,11 @@
+## v0.4.0 May 31, 2020
+- #112 - Mobile friendly UI (@stepansnigirev)
+- #130 - Showing transacation details while sending (@benk10)
+- #232 - Being able to copy transaction instead of sending via own node (@benk10))
+- A lot of refactorings (especially for template-logic) and tidyups. We also removed some dependencies (@benk10, @stepansnigirev)
+
 ## v0.3.0 May 11, 2020
-* #104 - QR-Code animations enable to pass more information in smaller chunks (@gorazdko)
+- #104 - QR-Code animations enable to pass more information in smaller chunks (@gorazdko)
 - #108 - Renaming and Deleting wallets (@benk10)
 - #95 - addresses and utxo-view for better overview of your funds (@benk10)
 - #100 - Pending PSBTS for partially sign and sign with others devices much later (@benk10)
