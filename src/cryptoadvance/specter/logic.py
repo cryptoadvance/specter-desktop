@@ -93,10 +93,10 @@ class Specter:
             },
             "auth": "none",
             "explorers": {
-                "main": "https://blockstream.info/",
-                "test": "https://blockstream.info/testnet/",
-                "regtest": None,
-                "signet": "https://explorer.bc-2.jp/"
+                "main": "",
+                "test": "",
+                "regtest": "",
+                "signet": ""
             },
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -233,8 +233,8 @@ class Specter:
     def update_explorer(self, explorer):
         ''' update the block explorers urls '''
 
-        # make sure the urls end with a "/"
-        if not explorer.endswith("/"):
+        if explorer and not explorer.endswith("/"):
+            # make sure the urls end with a "/"
             explorer += "/"
 
         # update the urls in the app config
@@ -269,7 +269,7 @@ class Specter:
         if "explorers" in self.config and self.chain in self.config["explorers"]:
             return self.config["explorers"][self.chain]
         else:
-            return None
+            return ""
     
     
 class DeviceManager:
