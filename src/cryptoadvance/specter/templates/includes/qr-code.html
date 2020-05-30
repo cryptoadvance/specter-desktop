@@ -1,0 +1,141 @@
+<!--
+  Custom QR code component.
+  You can use it as a normal html tag, for example:
+  <qr-code value="data-to-encode" style="margin-top:20px;" width="400"></qr-code>
+
+  If the QR code data is larger than 300 bytes it will enable "click to animate" feature.
+  If the QR code data is larger than 2300 bytes it will switch to animated-only mode.
+-->
+<template id="qr-code">
+  <style>
+    .qr-holder{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-code{
+      background: #fff;
+      padding: 20px;
+      margin: auto;
+    }
+    .note{
+      font-size: 0.7em;
+    }
+  </style>
+  <div class="qr-holder">
+  <div class="qr-code"></div>
+  <div class="note">Click to animate</div>
+  </div>
+</template>
+
+<script type="text/javascript" src="/static/qr/qrcode.min.js"></script>
+<script type="text/javascript">
+class QRCodeElement extends HTMLElement {
+  constructor() {
+    super();
+    // Create a shadow root
+    var shadow = this.attachShadow({mode: 'open'});
+    var style = document.getElementById('qr-code').content;
+    var clone = style.cloneNode(true);
+
+    this.el = clone.querySelector(".qr-code");
+    this.note = clone.querySelector(".note");
+    this.qrcode = null;
+    this.animate = false;
+    this.chunks = [];
+    this.maxLen = 300;
+    this.maxStaticLen = 2300;
+    this.isQRlarge = true;
+    this.isQRtoolarge = false;
+    this.idx = 0;
+
+    // Attach the created element to the shadow dom
+    shadow.appendChild(clone);
+
+    this.addEventListener('click', e => {
+      this.animate = !this.animate;
+      this.idx = 0;
+      if(!this.animate){
+        this.qrcode.makeCode(this.getAttribute('value'));
+        if(this.isQRlarge){
+          this.note.innerHTML = "Click to animate";
+        }
+      }
+    });
+    window.setInterval(()=>{
+      if((this.qrcode==null) || this.chunks.length<=1){
+        return;
+      }
+      if(this.animate && this.isQRlarge){
+        this.qrcode.makeCode(this.chunks[this.idx]);
+        this.idx = (this.idx+1) % this.chunks.length;
+        let prefix = "";
+        if(!this.isQRtoolarge){
+          prefix = "Click to stop. ";
+        }
+        this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
+      }
+    },300);
+  }
+  static get observedAttributes() {
+    return ['value','width'];
+  }
+  split(text){
+    if((this.qrcode!=null && text!=null)){
+      this.chunks = [];
+      let txt_len = text.length;
+      if(txt_len / this.maxLen > 1.0){
+        this.isQRlarge = true
+        if (txt_len >= this.maxStaticLen) {this.isQRtoolarge = true}
+        /* This algorithm makes all the chunks of about equal length.
+        This makes sure that the last chunk is not (too) different in size
+        which is visually noticeable when animation occurs */
+        let number_of_chunks = Math.ceil(txt_len / this.maxLen)
+        let n = Math.ceil(txt_len / number_of_chunks)
+        for (let i = 0; i < txt_len; i += n) {
+          this.chunks.push(text.substring(i, i + n));
+        }
+        for (let j=0; j<this.chunks.length; j++) {
+          this.chunks[j] = "p"+(j+1)+"of"+number_of_chunks+" "+this.chunks[j]
+        }
+      }else{
+        this.chunks.push(text)
+      }
+    }
+  }
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if(newValue !== oldValue){
+      var value = this.getAttribute('value');
+      var width = parseInt(this.getAttribute('width').replace("px",""));
+      if(width==NaN){
+        width=400;
+      }
+      this.width = width;
+      if(this.qrcode != null){
+        this.qrcode.clear();
+        this.el.innerHTML="";
+      }
+      this.split(value);
+      if(this.chunks.length == 1){
+        this.isQRlarge = false;
+        this.note.innerHTML = "";
+      }else{
+        this.isQRlarge = true;
+        this.note.innerHTML = "Click to animate";
+      }
+      if(this.isQRtoolarge){
+        value = this.chunks[0];
+        this.animate = true;
+      }
+      this.qrcode = new QRCode(this.el, {
+        "text":   value,
+        "width":  width,
+        "height": width,
+        "correctLevel": QRCode.CorrectLevel.M,
+      });
+    }
+  }
+}
+customElements.define('qr-code', QRCodeElement);
+</script>
