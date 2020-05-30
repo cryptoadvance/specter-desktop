@@ -94,7 +94,7 @@ class Specter:
             "explorers": {
                 "main": "",
                 "test": "",
-                "regtest": None,
+                "regtest": "",
                 "signet": ""
             },
             # unique id that will be used in wallets path in Bitcoin Core
@@ -242,7 +242,7 @@ class Specter:
         if "explorers" in self.config and self.chain in self.config["explorers"]:
             return self.config["explorers"][self.chain]
         else:
-            return None
+            return ""
     
     
 class DeviceManager:
