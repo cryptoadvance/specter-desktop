@@ -46,15 +46,7 @@
 	<div class="note center">
 		Import this wallet to the device by scanning QR code below.
 	</div>
-	<div id = "component_qr">
-		<qrencode class = 'center' text="{{qr_text}}" width=400></qrencode>
-	</div>
-	<script src="/static/qr/vue-qrcode.min.js"></script>
-	<script type = "text/javascript" src="/static/vue_qr.js"></script>
-	<script>
-		Vue.component(VueQrcode.name, VueQrcode);
-		var vm = new Vue({el: '#component_qr'});
-	</script>
+	<qr-code value="{{qr_text}}" width="400"></qr-code>
 
 	{% if wallet.is_multisig %}
 		<div>
