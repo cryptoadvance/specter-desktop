@@ -1,49 +1,10 @@
-from flask import Flask, url_for, render_template, jsonify, request, make_response, redirect, Response, current_app
-import json, subprocess, time, traceback
 from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
 from .helpers import normalize_xpubs, convert_xpub_prefix
-
 from .specter_hwi import SpecterClient, enumerate as specter_enumerate
+from .json_rpc import JSONRPC
 
-class JSONRPC:
-    """
-    Base JSON-RPC class. Add methods to self.exposed_rpc
-    to make it available with jsonrpc() call.
-    """
-    def __init__(self):
-        self.exposed_rpc = {}
-
-    def jsonrpc(self, request):
-        """Processes json-rpc request"""
-        # if it is a list (not bundled) run one by one
-        if isinstance(request, list):
-            responses = []
-            for req in request:
-                responses.append(self.jsonrpc(req))
-            return responses
-        if "id" not in request:
-            request["id"] = None
-        response = { "jsonrpc": "2.0", "id": request["id"] }
-        if "method" not in request:
-            response["error"] = { "code": -32600, "message": "Invalid Request. Request must specify a 'method'." }
-            return response
-        if request["method"] not in self.exposed_rpc:
-            response["error"] = { "code": -32601, "message": "Method not found" }
-            return response
-        method = self.exposed_rpc[request["method"]]
-        try:
-            if "params" not in request:
-                response["result"] = method()
-            elif isinstance(request["params"], list):
-                response["result"] = method(*request["params"]) # list -> *args
-            else:
-                response["result"] = method(**request["params"]) # dict -> **kwargs
-        except Exception as e:
-            traceback.print_exc()
-            response["error"] = { "code": -32000, "message": f"Internal error: {e}" }
-        return response
 
 class HWIBridge(JSONRPC):
     """
@@ -51,7 +12,7 @@ class HWIBridge(JSONRPC):
 
     All methods of this class are callable over JSON-RPC, except _underscored.
     """
-    def __init__(self):
+    def __init__(self, specter):
         self.exposed_rpc = {
             "enumerate": self.enumerate,
             "detect_device": self.detect_device,
@@ -64,6 +25,7 @@ class HWIBridge(JSONRPC):
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
         # devices once per session and save them.
+        self.specter = specter
         self.enumerate()
 
     def enumerate(self):
@@ -120,13 +82,13 @@ class HWIBridge(JSONRPC):
     def extract_xpubs(self, device_name='', device_type=None, path=None, fingerprint=None, passphrase=''):
         if device_name == '':
             raise Exception("Device name must not be empty")
-        elif device_name in current_app.specter.devices.names():
+        elif device_name in self.specter.devices.names():
             raise Exception("A device with this name already exists")
 
         client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase)
-        xpubs = _extract_xpubs_from_client(client)
+        xpubs = self._extract_xpubs_from_client(client)
 
-        device = current_app.specter.devices.add(name=device_name, device_type=device_type, keys=xpubs)
+        device = self.specter.devices.add(name=device_name, device_type=device_type, keys=xpubs)
         return device["alias"]
 
     def display_address(self, descriptor='', device_type=None, path=None, fingerprint=None, passphrase=''):
@@ -184,7 +146,7 @@ class HWIBridge(JSONRPC):
                     client = SpecterClient(device["path"])
                 else:
                     client = hwi_commands.get_client(device_type, path, passphrase)
-                client.is_testnet = 'test' in current_app.specter.chain
+                client.is_testnet = 'test' in self.specter.chain
                 return client
 
     def _extract_xpubs_from_client(self, client):
