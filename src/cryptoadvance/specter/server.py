@@ -62,7 +62,7 @@ def init_app(app, specter=None):
         app.logger.info("Login enabled")
     app.logger.info("Initializing Controller ...")
     with app.app_context():
-        from . import controller
+        from . import controller, hwi_server
     return app
 
 def create_and_init():
