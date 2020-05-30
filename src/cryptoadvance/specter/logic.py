@@ -191,8 +191,6 @@ class Specter:
         except ConnectionError as e:
             logging.error(e)
             r['tests']['connectable'] = False
-            if 'recent_version' in r['tests']:
-                print("NOOOOONE")
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
