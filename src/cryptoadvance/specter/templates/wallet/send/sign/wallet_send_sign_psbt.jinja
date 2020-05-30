@@ -141,7 +141,6 @@
 		{% endif %}
 
 		{# Sign with QR Code #}
-		{# TODO: Refactor to remove Vue #}
 		{% if wallet.uses_qrcode_device %}
 			<nav class="row">
 				<label>
@@ -156,19 +155,12 @@
 
 			<div class="row" style="min-height: 400px;">
 				<span id="compressed_psbt">
-					<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+					<qr-code class='center' value="{{psbt['specter']}}" width="400"></qr-code>
 				</span>
 				<span id="full_psbt" style="display: none">
-					<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+					<qr-code class='center' value="{{psbt['base64']}}" width="400"></qr-code>
 				</span>
 			</div>
-			<script src="/static/qr/vue-qrcode.min.js"></script>
-			<script type="text/javascript" src="/static/vue_qr.js"></script>
-			<script>
-				Vue.component(VueQrcode.name, VueQrcode);
-				var vmc = new Vue({ el: '#compressed_psbt'});
-				var vmf = new Vue({ el: '#full_psbt'});
-			</script>
 			<script>
 			document.addEventListener("DOMContentLoaded", function(){
 				document.getElementById('send_sign_psbt_form').elements.psbt_type.forEach((o)=>{
