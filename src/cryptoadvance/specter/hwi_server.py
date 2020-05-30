@@ -6,15 +6,12 @@ from .hwi_rpc import HWIBridge
 
 rand = random.randint(0, 1e32) # to force style refresh
 
-hwi = None
+hwi = HWIBridge()
 
 @app.route("/hwi_rpc/", methods=["POST"])
 @login_required
 def api():
-    """JSON-RPC for ... anything. In this case - HWI Bridge"""
-    global hwi
-    if hwi is None:
-        hwi = HWIBridge(app.specter)
+    """JSON-RPC for HWI Bridge"""
     try:
         data = json.loads(request.data)
     except:
@@ -24,9 +21,3 @@ def api():
             "id": None
         }), 500
     return jsonify(hwi.jsonrpc(data))
-
-@app.route('/hwi_new_device/')
-@login_required
-def hwi_new_device_xpubs():
-    app.specter.check()
-    return render_template("device/hwi_new_device_xpubs.jinja", specter=app.specter, rand=rand)

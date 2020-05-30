@@ -12,7 +12,7 @@ class HWIBridge(JSONRPC):
 
     All methods of this class are callable over JSON-RPC, except _underscored.
     """
-    def __init__(self, specter):
+    def __init__(self):
         self.exposed_rpc = {
             "enumerate": self.enumerate,
             "detect_device": self.detect_device,
@@ -25,7 +25,6 @@ class HWIBridge(JSONRPC):
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
         # devices once per session and save them.
-        self.specter = specter
         self.enumerate()
 
     def enumerate(self):
@@ -57,7 +56,7 @@ class HWIBridge(JSONRPC):
         if len(res) > 0:
             return res[0]
 
-    def prompt_pin(self, device_type=None, path=None, passphrase=''):
+    def prompt_pin(self, device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
             # The device will randomize its pin entry matrix on the device
             #   but the corresponding digits in the receiving UI always map
@@ -65,37 +64,30 @@ class HWIBridge(JSONRPC):
             #       7 8 9
             #       4 5 6
             #       1 2 3
-            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase)
+            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
             return hwi_commands.prompt_pin(client)
         else:
             raise Exception("Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices" % type)
 
-    def send_pin(self, pin='', device_type=None, path=None, passphrase=''):
+    def send_pin(self, pin='', device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
             if pin == '':
                 raise Exception("Must enter a non-empty PIN")
-            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase)
+            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
             return hwi_commands.send_pin(client, pin)
         else:
             raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % type)
 
-    def extract_xpubs(self, device_name='', device_type=None, path=None, fingerprint=None, passphrase=''):
-        if device_name == '':
-            raise Exception("Device name must not be empty")
-        elif device_name in self.specter.devices.names():
-            raise Exception("A device with this name already exists")
-
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase)
+    def extract_xpubs(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
+        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
         xpubs = self._extract_xpubs_from_client(client)
+        return xpubs
 
-        device = self.specter.devices.add(name=device_name, device_type=device_type, keys=xpubs)
-        return device["alias"]
-
-    def display_address(self, descriptor='', device_type=None, path=None, fingerprint=None, passphrase=''):
+    def display_address(self, descriptor='', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         if descriptor == '':
             raise Exception("Descriptor must not be empty")
 
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase)
+        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
         try:
             status = hwi_commands.displayaddress(client, desc=descriptor)
             client.close()
@@ -110,14 +102,13 @@ class HWIBridge(JSONRPC):
                 client.close()
             raise e
 
-    def sign_tx(self, psbt='', device_type=None, path=None, fingerprint=None, passphrase=''):
+    def sign_tx(self, psbt='', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         if psbt == '':
             raise Exception("PSBT must not be empty")
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase)
+        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
         try:
             status = hwi_commands.signtx(client, psbt)
             client.close()
-            print(status)
             if 'error' in status:
                 raise Exception(status['error'])
             elif 'psbt' in status:
@@ -130,7 +121,7 @@ class HWIBridge(JSONRPC):
             raise e
 
     ######################## HWI Utils ########################
-    def _get_client(self, device_type=None, path=None, fingerprint=None, passphrase=''):
+    def _get_client(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
             """
             Returns a hardware wallet class instance 
             with specific fingerprint or/and path
@@ -146,7 +137,7 @@ class HWIBridge(JSONRPC):
                     client = SpecterClient(device["path"])
                 else:
                     client = hwi_commands.get_client(device_type, path, passphrase)
-                client.is_testnet = 'test' in self.specter.chain
+                client.is_testnet = 'test' in chain
                 return client
 
     def _extract_xpubs_from_client(self, client):
@@ -209,12 +200,8 @@ class HWIBridge(JSONRPC):
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()
-
-            normalized, parsed, failed = normalize_xpubs(xpubs)
-            if len(failed) > 0:
-                raise Exception("Failed to parse these xpubs:\n" + "\n".join(failed))
         except Exception as e:
             if client:
                 client.close()
             raise e
-        return normalized
+        return xpubs

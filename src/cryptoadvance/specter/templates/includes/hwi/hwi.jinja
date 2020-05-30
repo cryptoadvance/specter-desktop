@@ -40,6 +40,10 @@
     var hwiWalletPassphrase = "";
 
     async function hwiSendCommand(command, params) {
+        if (command != 'detect_device' && command != 'enumerate') {
+            params.chain = '{{ specter.chain }}'
+        }
+
         try {
             let data = await fetch('/hwi_rpc/',{
                 method: 'POST',
