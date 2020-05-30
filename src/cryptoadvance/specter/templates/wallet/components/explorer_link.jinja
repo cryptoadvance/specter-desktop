@@ -1,0 +1,15 @@
+{# 
+    explorer_link - A link to block explorer/ copiable text if no explorer is defined
+    Parameters:
+    - type: Either an 'address' or 'tx'.
+    - value: The address/ transaction id.
+    - text: Text to display as the link inner text
+    - explorer: The explorer saved in the settings
+ #}
+{% macro explorer_link(type, value, text, explorer) -%}
+    {% if explorer %}
+        <a target="blank" class="explorer-link" href="{{ explorer }}{{ type }}/{{ value }}">{{ text }}</a>
+    {% else %}
+        <span class="explorer-link" onclick="copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')">{{ text }}</span>
+    {% endif %}
+{%- endmacro %}

@@ -8,15 +8,16 @@
     - specter: Specter object.
  #}
 {% macro coin_selection_item(txid, vout, amount, address, label, specter) -%}
+    {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr>
         <td>
             <input class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout, amount] | join(', ') }}"  onchange='updateCoinSelect(this)'>
         </td>
         <td class="tx scroll">
-            <a target="blank" href="{{ specter.explorer }}tx/{{ txid }}">{{ txid }}</a>
+            {{ explorer_link('tx', txid, txid, specter.explorer) }}
         </td>
         <td class="tx scroll">
-            <a target="blank" href="{{ specter.explorer }}address/{{ address }}">{{ label if label != '' else address }}</a>
+            {{ explorer_link('address', address, (label if label != '' else address), specter.explorer) }}
         </td>
         <td>{{ amount | btcamount }}</td>
     </tr>

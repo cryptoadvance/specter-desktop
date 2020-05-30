@@ -26,14 +26,62 @@
 			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
+			<div class="note">
+				Specter does not use the block explorer to get any data whatsoever.
+				This setting is only to allow opening trnsactions and addresses in a block explorer directly from Specter.<br>
+				All data Specter uses still comes directly from the your own connected full node.
+			</div>
+			<br><br>
+			Log Level:<br>
+			<select name="loglevel">
+				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
+				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
+				<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
+			</select>
 			<br><br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
 			{% if test %}
+				<br><div class="log">Test results:<br>
+				<div style="display: grid;grid-template-columns: auto auto auto;">
+					{% macro tick_or_cross(my_boolean) %}
+					<button disabled> 
+						{% if my_boolean %}
+							<div  style="color:green;">&#x2714;</div> 
+						{% else %} 
+							&#x274C; 
+						{% endif %}
+					</button>
+					{% endmacro %}
+					{% if 'connectable' in test['tests'] %}
+						<div>Connectable</div>
+						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
+						<div> {% if not test['tests']['connectable'] %} Check e.g. <a href="https://bitcoin.stackexchange.com/questions/74337/testnet-bitcoin-connection-refused-111">this article</a> {% endif %}</div>
+					{% endif %}
+
+					{% if 'credentials' in test['tests'] %}
+						<div>Credentials</div>
+						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
+						<div> {% if not test['tests']['credentials'] %} Please double-check your credentials!  {% endif %}</div>
+					{% endif %}
+
+					{% if 'recent_version' in test['tests'] %}
+						<div>Version recent enough</div>
+						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
+						<div> {% if not test['tests']['recent_version'] %} Update your Bitcoin Node to at least version 0.17.  {% endif %}</div>
+					{% endif %}
+					
+					{% if 'wallets' in test['tests'] %}
+						<div>Wallets enabled</div>
+						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
+						<div> {% if not test['tests']['wallets'] %} Make sure to have 'disablewallet=0' in your bitcoin.conf {% endif %} </div>
+					{% endif %}
+
+				</div>
+
 				<br>
-				<div class="log">Test results:<br>
 					<code>
 						<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
 					</code>

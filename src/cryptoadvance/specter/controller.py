@@ -13,10 +13,10 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import normalize_xpubs, run_shell
+from .helpers import normalize_xpubs, run_shell, set_loglevel, get_loglevel
 from .descriptor import AddChecksum
 
-from .logic import Specter, purposes, addrtypes, get_cli
+from .logic import Specter, purposes, addrtypes, get_cli, SpecterError
 from .rpc import RpcError
 from datetime import datetime
 import urllib
@@ -26,8 +26,6 @@ env_path = Path('.') / '.flaskenv'
 from dotenv import load_dotenv
 load_dotenv(env_path)
 
-DEBUG = True
-
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
@@ -35,14 +33,17 @@ rand = random.randint(0, 1e32) # to force style refresh
 @app.context_processor
 def inject_debug():
     ''' Can be used in all jinja2 templates '''
-    print("DEBUG={}".format(app.config['DEBUG']))
     return dict(debug=app.config['DEBUG'])
 
 ################ routes ####################
 @app.route('/wallets/<wallet_alias>/combine/', methods=['GET', 'POST'])
 @login_required
 def combine(wallet_alias):
-    wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    try:
+        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while combine: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST': # FIXME: ugly...
         psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
         psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
@@ -63,7 +64,11 @@ def combine(wallet_alias):
 @app.route('/wallets/<wallet_alias>/broadcast/', methods=['GET', 'POST'])
 @login_required
 def broadcast(wallet_alias):
-    wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    try:
+        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while broadcast: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST':
         tx = request.form.get('tx')
         if wallet.cli.testmempoolaccept([tx])[0]['allowed']:
@@ -99,7 +104,6 @@ def login():
             app.logger.info("AUDIT: Failed to check password")
             return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
         cli = app.specter.cli.clone()
-        print("Loggning in with"+request.form['password'])
         cli.passwd = request.form['password']
         if cli.test_connection():
             app.login()
@@ -137,6 +141,7 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
+    loglevel = get_loglevel(app)
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
@@ -147,6 +152,7 @@ def settings():
         host = request.form['host']
         explorer = request.form["explorer"]
         auth = request.form['auth']
+        loglevel = request.form["loglevel"]
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -176,6 +182,7 @@ def settings():
                 app.config['LOGIN_DISABLED'] = False
             else:
                 app.config['LOGIN_DISABLED'] = True
+            set_loglevel(app,loglevel)
             app.specter.check()
             return redirect("/")
     else:
@@ -189,6 +196,7 @@ def settings():
                             protocol=protocol,
                             explorer=explorer,
                             auth=auth,
+                            loglevel=loglevel,
                             specter=app.specter,
                             rand=rand)
 
@@ -252,8 +260,10 @@ def new_wallet_simple():
                 return render_template("base.jinja", error="Key not found", specter=app.specter, rand=rand)
             # create a wallet here
             wallet = app.specter.wallets.create_simple(wallet_name, wallet_type, key, device)
+            app.logger.info("Created Wallet %s" % wallet_name)
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
+                app.logger.info("Rescanning Blockchain ...")
                 if app.specter.info['chain'] == "main":
                     if not app.specter.info['pruned'] or app.specter.info['pruneheight'] < 481824:
                         startblock = 481824
@@ -267,10 +277,11 @@ def new_wallet_simple():
                 try:
                     wallet.cli.rescanblockchain(startblock, timeout=1)
                 except requests.exceptions.ReadTimeout:
+                    # this is normal behaviour in our usecase
                     pass
                 except Exception as e:
-                    print(e)
-                    error = "%r" % e
+                    app.logger.error("Exception while rescanning blockchain: %e" % e)
+                    err = "%r" % e
                 wallet.getdata()
             return redirect("/wallets/%s/" % wallet["alias"])
     return render_template("wallet/new_wallet/new_wallet.jinja", wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
@@ -372,8 +383,9 @@ def wallet(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except:
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
         return redirect("/wallets/%s/receive/" % wallet_alias)
     else:
@@ -383,10 +395,11 @@ def wallet(wallet_alias):
 @login_required
 def wallet_tx(wallet_alias):
     app.specter.check()
-    wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    if wallet is None:
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
-
+    try:
+        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_tx: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     return render_template("wallet/history/txs/wallet_tx.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
@@ -395,8 +408,9 @@ def wallet_addresses(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except:
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_addresses: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     viewtype = 'address' if request.args.get('view') != 'label' else 'label'
     if request.method == "POST":
         action = request.form['action']
@@ -418,8 +432,9 @@ def wallet_receive(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except:
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_receive: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == "newaddress":
@@ -443,9 +458,9 @@ def wallet_send(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except Exception as e:
-        print(e)
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     psbt = None
     address = ""
     label = ""
@@ -463,7 +478,7 @@ def wallet_send(wallet_alias):
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
             selected_coins = request.form.getlist('coinselect')
-            print("selected coins: {}".format(selected_coins))
+            app.logger.info("selected coins: {}".format(selected_coins))
             if 'dynamic' in request.form.get('fee_options'):
                 fee_rate = float(request.form.get('fee_rate_dynamic'))
             else:
@@ -506,15 +521,16 @@ def wallet_sendpending(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except Exception as e:
-        print(e)
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_sendpending: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == 'deletepsbt':
             try:
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
+                app.logger.error("Could not delete Pending PSBT: %s" % e)
                 flash("Could not delete Pending PSBT!")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet/send/pending/wallet_sendpending.jinja", pending_psbts=pending_psbts,
@@ -529,8 +545,9 @@ def wallet_settings(wallet_alias):
     error = None
     try:
         wallet = app.specter.wallets.get_by_alias(wallet_alias)
-    except:
-        return render_template("base.jinja", error="Wallet not found", specter=app.specter, rand=rand)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_receive: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form['action']
         if action == "rescanblockchain":
@@ -538,9 +555,10 @@ def wallet_settings(wallet_alias):
             try:
                 res = wallet.cli.rescanblockchain(startblock, timeout=1)
             except requests.exceptions.ReadTimeout:
+                # this is normal behaviour in our usecase
                 pass
             except Exception as e:
-                print(e)
+                app.logger.error("%s while rescanblockchain" % e)
                 error = "%r" % e
             wallet.getdata()
         elif action == "abortrescan":
