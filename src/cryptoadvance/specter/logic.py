@@ -6,13 +6,14 @@ import logging
 import os
 import random
 import shutil
+from requests import ConnectionError
 from collections import OrderedDict
 from time import time
 
 from . import helpers
 from .descriptor import AddChecksum
 from .helpers import deep_update, get_xpub_fingerprint, load_jsons
-from .rpc import RPC_PORTS, autodetect_cli_confs, get_default_datadir
+from .rpc import RPC_PORTS, autodetect_cli_confs, get_default_datadir, RpcError
 from .rpc_cache import BitcoinCLICached
 from .serializations import PSBT
 
@@ -170,11 +171,38 @@ class Specter:
         if cli is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
+        r['tests'] = {}
         try:
+            r['tests']['recent_version'] = int(cli.getnetworkinfo()['version']) >= 170000
+            r['tests']['connectable'] = True
+            r['tests']['credentials'] = True
+            try:
+                cli.listwallets()
+                r['tests']['wallets'] = True
+            except RpcError as rpce:
+                logging.error(rpce)
+                if rpce.status_code ==  404:
+                    r['tests']['wallets'] = False
+                else:
+                    raise rpce
             r["out"] = json.dumps(cli.getblockchaininfo(),indent=4)
             r["err"] = ""
             r["code"] = 0
-        except:
+        except ConnectionError as e:
+            logging.error(e)
+            r['tests']['connectable'] = False
+            if 'recent_version' in r['tests']:
+                print("NOOOOONE")
+            r["err"] = "Failed to connect!"
+            r["code"] = -1
+        except RpcError as rpce:
+            logging.error(rpce)
+            if rpce.status_code ==  401:
+                r['tests']['credentials'] = False
+            else:
+                raise rpce
+        except Exception as e:
+            logging.error(e)
             r["out"] = ""
             if cli.r is not None and "error" in cli.r:
                 r["err"] = cli.r["error"]
