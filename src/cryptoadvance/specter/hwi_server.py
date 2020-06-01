@@ -29,7 +29,7 @@ def api():
             "error": { "code": -32700, "message": "Parse error" },
             "id": None
         }), 500
-    if 'forwarded_request' not in data and (app.specter.config['hwi_bridge_url'].startswith('http://') or app.specter.config['hwi_bridge_url'].startswith('https://')):
+    if ('forwarded_request' not in data or not data['forwarded_request']) and (app.specter.config['hwi_bridge_url'].startswith('http://') or app.specter.config['hwi_bridge_url'].startswith('https://')):
             data['forwarded_request'] = True
             requests_session = requests.Session()
             requests_session.headers.update({'origin': request.environ['HTTP_ORIGIN']})
