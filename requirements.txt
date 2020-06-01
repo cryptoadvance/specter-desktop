@@ -3,6 +3,7 @@ chardet==3.0.4
 Click==7.0
 ecdsa>=0.13.3
 Flask==1.1.1
+Flask-Cors==3.0.8
 Flask-Login==0.5.0
 hidapi==0.7.99.post21
 hwi==1.1.0
@@ -27,3 +28,4 @@ pyOpenSSL==19.1.0
 # only for testing currently
 docker==4.1.0
 pytest==5.2.2
+PySocks==1.7.1

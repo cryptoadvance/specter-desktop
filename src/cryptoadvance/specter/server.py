@@ -8,7 +8,9 @@ from flask import Flask
 from flask_login import LoginManager, login_user
 
 from .descriptor import AddChecksum
+from .helpers import hwi_get_config
 from .logic import Specter
+from .hwi_server import hwi_server
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
@@ -33,7 +35,7 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     return app
 
 
-def init_app(app, specter=None):
+def init_app(app, hwibridge=False, specter=None):
     '''  see blogpost 19nd Feb 2020 '''
     app.logger.info("Initializing QRcode")
     # Login via Flask-Login
@@ -61,8 +63,10 @@ def init_app(app, specter=None):
     else:
         app.logger.info("Login enabled")
     app.logger.info("Initializing Controller ...")
-    with app.app_context():
-        from . import controller, hwi_server
+    app.register_blueprint(hwi_server, url_prefix='/hwi')
+    if not hwibridge:
+        with app.app_context():
+            from . import controller
     return app
 
 def create_and_init():

@@ -98,6 +98,7 @@ class Specter:
                 "regtest": "",
                 "signet": ""
             },
+            "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
@@ -240,6 +241,15 @@ class Specter:
         # update the urls in the app config
         if self.config["explorers"][self.chain] != explorer:
             self.config["explorers"][self.chain] = explorer
+
+    def update_hwi_bridge_url(self, url):
+        ''' update the hwi bridge url to use '''
+        if self.config["hwi_bridge_url"] != url:
+            if url and not url.endswith("/"):
+                # make sure the urls end with a "/"
+                url += "/"
+            self.config["hwi_bridge_url"] = url
+        self._save()
 
     @property
     def info(self):

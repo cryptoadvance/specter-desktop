@@ -16,7 +16,7 @@
 			{% include "includes/sidebar/sidebar.jinja" %}
 		{% endblock %}
 		<main>		
-			{% if specter.config.auth != "none" and current_user.is_authenticated %}
+			{% if specter.config.auth != "none" and current_user.is_authenticated and not hwi_bridge %}
 				<a class="logout" href="{{ url_for('logout') }}">
 					<img src="/static/img/exit_from_app-24px.svg" style="width: 24px;"/><div>Logout</div>
 				</a>

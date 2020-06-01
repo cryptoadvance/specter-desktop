@@ -262,3 +262,22 @@ def get_loglevel(app):
         logging.DEBUG : "DEBUG"
     }
     return loglevels[app.logger.getEffectiveLevel()]
+
+def hwi_get_config(specter):
+    config = {
+        'whitelisted_domains': 'http://127.0.0.1:25441'
+    }
+
+    # if config.json file exists - load from it
+    if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
+        with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
+            file_config = json.loads(f.read())
+            deep_update(config, file_config)
+    # otherwise - create one and assign unique id
+    else:
+        save_hwi_bridge_config(specter, config)
+    return config
+
+def save_hwi_bridge_config(specter, config):
+    with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
+        f.write(json.dumps(config, indent=4))

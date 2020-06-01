@@ -141,6 +141,7 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
+    hwi_bridge_url = app.specter.config['hwi_bridge_url']
     loglevel = get_loglevel(app)
     if "protocol" in rpc:
         protocol = rpc["protocol"]
@@ -153,6 +154,7 @@ def settings():
         explorer = request.form["explorer"]
         auth = request.form['auth']
         loglevel = request.form["loglevel"]
+        hwi_bridge_url = request.form['hwi_bridge_url']
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -178,6 +180,7 @@ def settings():
                                     )
             app.specter.update_explorer(explorer)
             app.specter.update_auth(auth)
+            app.specter.update_hwi_bridge_url(hwi_bridge_url)
             if auth == "rpcpasswordaspin":
                 app.config['LOGIN_DISABLED'] = False
             else:
@@ -196,6 +199,7 @@ def settings():
                             protocol=protocol,
                             explorer=explorer,
                             auth=auth,
+                            hwi_bridge_url=hwi_bridge_url,
                             loglevel=loglevel,
                             specter=app.specter,
                             rand=rand)
