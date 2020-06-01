@@ -1,9 +1,21 @@
 import logging
+from cryptoadvance.specter.helpers import which
 
-def test_bitcoinddocker_running(caplog):
+def test_bitcoinddocker_running(caplog, docker):
+
     caplog.set_level(logging.DEBUG)
-    from cryptoadvance.specter.bitcoind import BitcoindDockerController
-    my_bitcoind = BitcoindDockerController(rpcport=18999) # completly different port to not interfere
+    if docker:
+        from cryptoadvance.specter.bitcoind import BitcoindDockerController
+        my_bitcoind = BitcoindDockerController(rpcport=18999) # completly different port to not interfere
+    else:
+        try:
+            which("bitcoind")
+        except:
+            # Skip this test as bitcoind is not available
+            return
+        from cryptoadvance.specter.bitcoind import BitcoindPlainController
+        # This doesn't work if you don't have a bitcoind on the path
+        my_bitcoind = BitcoindPlainController() # completly different port to not interfere    
     #assert my_bitcoind.detect_bitcoind_container() == True
     rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True)
     assert rpcconn.get_cli() != None
