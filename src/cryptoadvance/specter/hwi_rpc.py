@@ -139,7 +139,7 @@ class HWIBridge(JSONRPC):
                     client = hwi_commands.get_client(device_type, path, passphrase)
                 if not client:
                     raise Exception('The device was identified but could not be reached.  Please check it is properly connected and try again')
-                client.is_testnet = 'test' in chain
+                client.is_testnet = chain != 'main'
                 return client
             else:
                 raise Exception('The device could not be found. Please check it is properly connected and try again')
