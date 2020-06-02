@@ -265,7 +265,7 @@ def get_loglevel(app):
 
 def hwi_get_config(specter):
     config = {
-        'whitelisted_domains': 'http://127.0.0.1:25441'
+        'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
 
     # if config.json file exists - load from it
@@ -279,5 +279,8 @@ def hwi_get_config(specter):
     return config
 
 def save_hwi_bridge_config(specter, config):
+    if 'whitelisted_domains' in config and not config['whitelisted_domains'].endswith("/"):
+            # make sure the url end with a "/"
+             config['whitelisted_domains'] += "/"
     with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
         f.write(json.dumps(config, indent=4))
