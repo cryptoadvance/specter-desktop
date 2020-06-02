@@ -55,13 +55,13 @@
 		}
 	</style>
 	<br>
+	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
 	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
 		<div class="tx_info">
 			
 			<div>Sending <b>{{ psbt["amount"] | btcamount }}</b> BTC to<b>
-				<a class="address-link" target="blank" href="{{specter.explorer}}address/{{ psbt['address'] }}">
-				{{ wallet.getaddressname(psbt["address"], -1) }}
-				</a></b><br><br>
+				{{ explorer_link('address', psbt['address'], wallet.getaddressname(psbt["address"], -1), specter.explorer) }}
+				</b><br><br>
 			</div>
 
 			{% if wallet.is_multisig %}
@@ -91,14 +91,12 @@
 					<p class="tx_info" style="text-align: left; background-color: #131a24;">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
 						<b>Transaction id:</b><br>
-						<a class="address-link" target="blank" href="{{specter.explorer}}tx/{{input['txid']}}">
-							{{ input['txid'] }}
-						</a>
+						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
 						{% set tx = wallet.cli.gettransaction(input['txid']) %}
-						<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ tx['details'][0]['address'] }}">
-							{{ tx['details'][0]['address'] }}
-						</a><br>
+						<b>Address:</b>
+						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
+						<br>
 						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
 							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
 						{% endif %}
@@ -109,9 +107,9 @@
 				{% for output in psbt['tx']['vout'] %}
 					<p class="tx_info" style="text-align: left; background-color: #131a24;">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] != psbt['address'] %}(Change){% endif %}<br><br>
-						<b>Address:</b> <a class="address-link" target="blank" href="{{specter.explorer}}address/{{ output['scriptPubKey']['addresses'][0] }}">
-							{{ output['scriptPubKey']['addresses'][0] }}
-						</a><br>
+						<b>Address:</b>
+						{{ explorer_link('address', output['scriptPubKey']['addresses'][0], output['scriptPubKey']['addresses'][0], specter.explorer) }}
+						<br>
 						{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
 							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
 						{% endif %}
@@ -143,7 +141,6 @@
 		{% endif %}
 
 		{# Sign with QR Code #}
-		{# TODO: Refactor to remove Vue #}
 		{% if wallet.uses_qrcode_device %}
 			<nav class="row">
 				<label>
@@ -158,19 +155,12 @@
 
 			<div class="row" style="min-height: 400px;">
 				<span id="compressed_psbt">
-					<qrencode class = 'center' text="{{psbt['specter']}}" width=400></qrencode>
+					<qr-code class='center' value="{{psbt['specter']}}" width="400"></qr-code>
 				</span>
 				<span id="full_psbt" style="display: none">
-					<qrencode class = 'center' text="{{psbt['base64']}}" width=400></qrencode>
+					<qr-code class='center' value="{{psbt['base64']}}" width="400"></qr-code>
 				</span>
 			</div>
-			<script src="/static/qr/vue-qrcode.min.js"></script>
-			<script type="text/javascript" src="/static/vue_qr.js"></script>
-			<script>
-				Vue.component(VueQrcode.name, VueQrcode);
-				var vmc = new Vue({ el: '#compressed_psbt'});
-				var vmf = new Vue({ el: '#full_psbt'});
-			</script>
 			<script>
 			document.addEventListener("DOMContentLoaded", function(){
 				document.getElementById('send_sign_psbt_form').elements.psbt_type.forEach((o)=>{
@@ -331,25 +321,8 @@
 		var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 		copyrawPSBTbtn.addEventListener("click", function() {
 			var raw_psbt = document.getElementById("raw-psbt");
-			copyText(raw_psbt, "{{psbt['base64']}}", "Copied PSBT")
+			copyText("{{psbt['base64']}}", "Copied PSBT")
 		});
-
-		function copyText(element, content, msg) {
-			try {
-				element.textContent = content
-				var selection = document.getSelection();
-				var range = document.createRange();
-				range.selectNode(element);
-				selection.removeAllRanges();
-				selection.addRange(range);
-				document.execCommand("copy");
-				selection.removeAllRanges();
-				alert(msg);
-			}
-			catch (err) {
-				alert('Unable to copy text');
-			}
-		}
 
 		if ("{{ psbt['raw'] }}") {
 			document.addEventListener("DOMContentLoaded", function(){
@@ -428,13 +401,7 @@
 
 			document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
 				e.preventDefault();
-				let el = document.createElement("textarea");
-				el.style.height = '0px';
-				el.style.width = '1px';
-				document.body.appendChild(el);
-				el.value = tx;
-				copyText(el, tx, 'Copied transaction')
-				document.body.removeChild(el);
+				copyText(tx, 'Copied transaction')
 			});
 		}
 

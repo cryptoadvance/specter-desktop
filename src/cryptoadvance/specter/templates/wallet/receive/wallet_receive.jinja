@@ -24,14 +24,7 @@
 		{{ editable_label(address_label, -1) }}
 	</form><br><br>
 
-	<script src="/static/qr/vue-qrcode.min.js"></script>
-	<div id="qrdiv" class="alt-qr">
-		<qrcode value="{{'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) }}" :options="{ width: 300 }" tag="img"></qrcode>
-	</div>
-	<script>
-		Vue.component(VueQrcode.name, VueQrcode);
-		new Vue({el: "#qrdiv"})
-	</script>
+	<qr-code value="{{'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) }}" width="256"></qr-code>
 
 	<br>
 	<div class="note">

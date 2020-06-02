@@ -7,12 +7,11 @@
     - specter: Specter object.
  #}
 {% macro pending_psbt_item(pending_psbt, wallet_alias, wallet, specter) -%}
+    {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr>
         <td></td>
         <td class="tx scroll">
-            <a target="blank" href="{{ specter.explorer }}address/{{ pending_psbt['address'] }}">
-                {{ wallet.getaddressname(pending_psbt['address'], -1)}}
-            </a>
+            {{ explorer_link('address', pending_psbt['address'], wallet.getaddressname(pending_psbt['address'], -1), specter.explorer) }}
         </td>
         <td>
             {{ pending_psbt['amount'] | btcamount }}
