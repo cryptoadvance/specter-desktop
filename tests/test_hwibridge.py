@@ -1,6 +1,6 @@
 import json, requests
 
-def test_malformed_parse_error():
+def test_malformed_parse_error(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=b'malformed')
@@ -10,7 +10,7 @@ def test_malformed_parse_error():
         "id": None
     } == json.loads(req.content)
 
-def test_call_unauthorized_origin():
+def test_call_unauthorized_origin(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://unauthorized_domain.com/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -26,7 +26,7 @@ def test_call_unauthorized_origin():
         "id": None
     } == json.loads(req.content)
 
-def test_call_without_method():
+def test_call_without_method(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -41,7 +41,7 @@ def test_call_without_method():
         "id": 1
     } == json.loads(req.content)
 
-def test_call_non_existing_method():
+def test_call_non_existing_method(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -57,7 +57,7 @@ def test_call_non_existing_method():
         "id": 1
     } == json.loads(req.content)
 
-def test_enumerate_request_success():
+def test_enumerate_request_success(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -69,7 +69,7 @@ def test_enumerate_request_success():
     }))
     assert { "id": 1, "jsonrpc": "2.0", "result": []} == json.loads(req.content)
 
-def test_calling_method_with_non_existing_parameters():
+def test_calling_method_with_non_existing_parameters(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -85,7 +85,7 @@ def test_calling_method_with_non_existing_parameters():
         "id": 1
     } == json.loads(req.content)
 
-def test_call_not_connected_device():
+def test_call_not_connected_device(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
@@ -101,7 +101,7 @@ def test_call_not_connected_device():
         "id": 1
     } == json.loads(req.content)
 
-def test_call_prompt_pin_invalid_device():
+def test_call_prompt_pin_invalid_device(app, client):
     requests_session = requests.Session()
     requests_session.headers.update({ 'origin': 'http://127.0.0.1:25441/' })
     req = requests_session.post('http://127.0.0.1:25441/hwi/api/', data=json.dumps({
