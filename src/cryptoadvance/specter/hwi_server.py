@@ -18,7 +18,7 @@ def api():
     if not('HTTP_ORIGIN' in request.environ and request.environ['HTTP_ORIGIN'] in whitelisted_domains) and '*' not in whitelisted_domains:
         return jsonify({
             "jsonrpc": "2.0",
-            "error": { "code": -32700, "message": "Unauthorized request origin.<br>You must first whitelist this website URL in HWIBridge settings to grant it access." },
+            "error": { "code": -32001, "message": "Unauthorized request origin.<br>You must first whitelist this website URL in HWIBridge settings to grant it access." },
             "id": None
         }), 500
     try:
@@ -30,6 +30,12 @@ def api():
             "id": None
         }), 500
     if ('forwarded_request' not in data or not data['forwarded_request']) and (app.specter.config['hwi_bridge_url'].startswith('http://') or app.specter.config['hwi_bridge_url'].startswith('https://')):
+            if ('HTTP_ORIGIN' not in request.environ):
+                return jsonify({
+                    "jsonrpc": "2.0",
+                    "error": { "code": -32600, "message": "Request must specify its origin or set `forwarded_request` to `true`." },
+                    "id": None
+                }), 500
             data['forwarded_request'] = True
             requests_session = requests.Session()
             requests_session.headers.update({'origin': request.environ['HTTP_ORIGIN']})

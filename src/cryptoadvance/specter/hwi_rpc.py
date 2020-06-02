@@ -67,7 +67,7 @@ class HWIBridge(JSONRPC):
             client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
             return hwi_commands.prompt_pin(client)
         else:
-            raise Exception("Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices" % type)
+            raise Exception("Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices" % device_type)
 
     def send_pin(self, pin='', device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
@@ -76,7 +76,7 @@ class HWIBridge(JSONRPC):
             client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
             return hwi_commands.send_pin(client, pin)
         else:
-            raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % type)
+            raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % device_type)
 
     def extract_xpubs(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
@@ -125,7 +125,7 @@ class HWIBridge(JSONRPC):
             """
             Returns a hardware wallet class instance 
             with specific fingerprint or/and path
-            or None if not connected.
+            or raises a not found error if not connected.
             If found multiple devices return only one.
             """
             # We do not use fingerprint in most cases since if the device is a trezor 
@@ -137,8 +137,12 @@ class HWIBridge(JSONRPC):
                     client = SpecterClient(device["path"])
                 else:
                     client = hwi_commands.get_client(device_type, path, passphrase)
+                if not client:
+                    raise Exception('The device was identified but could not be reached.  Please check it is properly connected and try again')
                 client.is_testnet = 'test' in chain
                 return client
+            else:
+                raise Exception('The device could not be found. Please check it is properly connected and try again')
 
     def _extract_xpubs_from_client(self, client):
         try:
