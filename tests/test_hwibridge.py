@@ -64,6 +64,17 @@ def test_enumerate_request_success(client):
     })
     assert { "id": 1, "jsonrpc": "2.0", "result": [] } == json.loads(req.data)
 
+def test_request_success_localhost_origin(client):
+    client.environ_base['HTTP_ORIGIN'] = 'http://localhost:25441/'
+    req = client.post('http://127.0.0.1:25441/hwi/api/', json={
+        'jsonrpc': '2.0',
+        'method': 'enumerate',
+        'id': 1,
+        'params': {},
+        'forwarded_request': True
+    })
+    assert { "id": 1, "jsonrpc": "2.0", "result": [] } == json.loads(req.data)
+
 def test_calling_method_with_non_existing_parameters(client):
     client.environ_base['HTTP_ORIGIN'] = 'http://127.0.0.1:25441/'
     req = client.post('http://127.0.0.1:25441/hwi/api/', json={

@@ -279,8 +279,13 @@ def hwi_get_config(specter):
     return config
 
 def save_hwi_bridge_config(specter, config):
-    if 'whitelisted_domains' in config and not config['whitelisted_domains'].endswith("/"):
-            # make sure the url end with a "/"
-             config['whitelisted_domains'] += "/"
+    if 'whitelisted_domains' in config:
+        whitelisted_domains = ''
+        for url in config['whitelisted_domains'].split():
+            if not url.endswith("/") and url != '*':
+                # make sure the url end with a "/"
+                url += "/"
+            whitelisted_domains += url.strip() + '\n'
+        config['whitelisted_domains'] = whitelisted_domains
     with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
         f.write(json.dumps(config, indent=4))

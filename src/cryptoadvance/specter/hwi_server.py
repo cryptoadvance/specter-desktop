@@ -14,8 +14,14 @@ hwi = HWIBridge()
 @hwi_server.route("/api/", methods=["POST"])
 def api():
     """JSON-RPC for HWI Bridge"""
-    whitelisted_domains = hwi_get_config(app.specter)['whitelisted_domains'].split(',')
-    if not('HTTP_ORIGIN' in request.environ and request.environ['HTTP_ORIGIN'] in whitelisted_domains) and '*' not in whitelisted_domains:
+    whitelisted_domains = hwi_get_config(app.specter)['whitelisted_domains'].split()
+    for i, url in enumerate(whitelisted_domains):
+        whitelisted_domains[i] = url.replace('http://localhost:', 'http://127.0.0.1:')
+    if '*' not in whitelisted_domains and \
+        not(
+            'HTTP_ORIGIN' in request.environ and \
+            request.environ['HTTP_ORIGIN'].replace('http://localhost:', 'http://127.0.0.1:') in whitelisted_domains
+    ):
         return jsonify({
             "jsonrpc": "2.0",
             "error": { "code": -32001, "message": "Unauthorized request origin.<br>You must first whitelist this website URL in HWIBridge settings to grant it access." },
