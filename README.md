@@ -23,15 +23,15 @@ At the moment Specter-Desktop is working with all major Hardware-Wallets includi
  * windows: follow instructions in [`windows.md`](docs/windows.md)
 * Install Specter
 ```sh
-pip install cryptoadvance.specter
+pip3 install cryptoadvance.specter
 ```
 * Run Specter:
 ```sh
-python -m cryptoadvance.specter server 
+python3 -m cryptoadvance.specter server 
 # Or as a deamon:
-python -m cryptoadvance.specter server --daemon
+python3 -m cryptoadvance.specter server --daemon
 # Stop the daemon again:
-python -m cryptoadvance.specter server --stop
+python3 -m cryptoadvance.specter server --stop
 ```
 
 After that, specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
@@ -41,12 +41,14 @@ You can also run it (as a daemon), using tor, provide ssl certificates to run ov
 An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor:
 
 ```sh
-python -m cryptoadvance.specter server --tor=mytorpassword --cert=./cert.pem --key=./key.pem --daemon
+python3 -m cryptoadvance.specter server --tor=mytorpassword --cert=./cert.pem --key=./key.pem --daemon
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file or set in directly in the specter-app settings.
 
-Have a look at [DEVELOPMENT.md](https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md) for further information about hacking on specter-desktop.
+If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
+
+Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on specter-desktop.
 
 ## Detailed instructions
 

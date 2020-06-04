@@ -16,7 +16,7 @@
 			{% include "includes/sidebar/sidebar.jinja" %}
 		{% endblock %}
 		<main>		
-			{% if specter.config.auth != "none" and current_user.is_authenticated %}
+			{% if specter.config.auth != "none" and current_user.is_authenticated and not hwi_bridge %}
 				<a class="logout" href="{{ url_for('logout') }}">
 					<img src="/static/img/exit_from_app-24px.svg" style="width: 24px;"/><div>Logout</div>
 				</a>
@@ -42,6 +42,10 @@
 				</div>
 			{% endif %}
 
+			<div class="notification error hidden" id="notificationmsg" style="margin-left: 125px">
+				Error
+			</div>
+
 			{% block main %}
 				{% if error %}
 					<br><br>Something went wrong :(<br><br>{{error}}
@@ -64,6 +68,14 @@
 				event.stopPropagation();
 			});
 		});
+
+		function showError(msg) {
+			let el = document.getElementById("notificationmsg");
+			el.classList.add("error");
+			el.classList.remove("primary");
+			el.innerHTML = msg;
+			el.style.display = "block";
+    }
 
 		function copyText(value, msg) {
 			try {

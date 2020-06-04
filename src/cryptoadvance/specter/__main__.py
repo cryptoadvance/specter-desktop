@@ -37,8 +37,9 @@ def cli():
 @click.option("--key")
 # provide tor password here
 @click.option("--tor")
-def server(daemon, stop, restart, force, port, host, cert, key, tor):
-    # we will store our daemon PIN here
+@click.option("--hwibridge", is_flag=True)
+def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
+    # we will store our daemon PID here
     pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
     toraddr_file = path.expanduser(path.join(DATA_FOLDER, "onion.txt"))
     # check if pid file exists
@@ -63,7 +64,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
 
     app = create_app()
     app.app_context().push()
-    init_app(app)
+    init_app(app, hwibridge=hwibridge)
 
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
@@ -98,6 +99,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor):
         key = os.path.abspath(key)
         kwargs["ssl_context"] = (cert, key)
         protocol = "https"
+
+    if hwibridge:
+        app.logger.info("Running HWI Bridge mode, you can configure access to the API at: %s://%s:%d/hwi/settings" % (protocol, host, port))
 
     # if tor password is not provided but env variable is set
     if tor is None and os.getenv('CONNECT_TOR') == 'True':

@@ -8,7 +8,7 @@ def test_home(client):
     assert b'Nothing here' in result.data
     result = client.get('/new_device', follow_redirects=True)
     assert result.status_code == 200 # OK.
-    assert b'Add New Device' in result.data
+    assert b'Setting up a new device' in result.data
     result = client.get('/settings', follow_redirects=True)
     assert result.status_code == 200 # OK.
     assert b'App settings' in result.data

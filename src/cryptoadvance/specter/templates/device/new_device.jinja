@@ -1,30 +1,189 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<div class="spacer"></div>
-	<h1>Add New Device</h1>
-	<div class="row">
-		<a href="./coldcard/" class="small-card">
-			<img src="/static/img/coldcard_icon.svg?{{rand}}">
-			ColdCard
-		</a>
-		<a href="./specter/" class="small-card">
-			<img src="/static/img/specter_icon.svg?{{rand}}">
-			DIY Specter
-		</a>
+	{% include "includes/hwi/hwi.jinja" %}
+	{% if device %}
+		<h1>Adding keys to {{ device["name"] }}</h1>
+	{% else %}
+		<h1>Setting up a new device</h1>
+	{% endif %}
+	<div class="card">
+	<form action="./" method="POST">
+		{% if not device %}
+			<div>
+				Name it &nbsp; &nbsp;
+				<input type="text" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device">
+				<input type="hidden" id="device_type" name="device_type" value="{{ device_type }}">
+			</div>
+			<br>
+		{% endif %}
+		<h2>Scan, paste or load xpubs:</h2>
+		<div class="note">
+			{% if not device %}
+				You will be able add more keys later, from the device menu.
+			{% endif %}
+		</div>
+		<textarea id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
+		<div class="row">
+			<a href="#" class="btn" id="scanme" style="margin: 2px;">
+				<img src="/static/img/qr_icon.svg" height="12px"> Scan
+				<div class="tool-tip">
+					<i class="tool-tip__icon">i</i>
+					<p class="tool-tip__info">
+						<span class="info">
+							<span class="info__title">Using an airgapped Specter DIY with QR codes<br><br></span>
+							Scan QR codes with extended public keys one by one.<br><br>
+							We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.
+						</span>
+					</p>
+				</div>
+			</a>
+			<input type="file" id="file" class="inputfile" multiple/>
+			<label for="file" class="btn" style="margin: 2px;">
+				Choose files
+				<div class="tool-tip">
+					<i class="tool-tip__icon">i</i>
+					<p class="tool-tip__info">
+						<span class="info">
+							<span class="info__title">Using an airgapped ColdCard with MicroSD<br><br></span>
+							Export extended public keys for single-key wallets to the SD card from<br>
+							<b>Advanced → MicroSD Card → Export Wallet → Electrum Wallet</b><br><br>
+							To export multisignature pubkeys go to <br>
+							<b>Settings → Multisig Wallets → Export XPUB</b>
+							We recommend using Native Segwit.
+						</span>
+					</p>
+				</div>
+			</label>
+		</div>
+		<div class="row">
+			<button type="button" onclick="showPageOverlay(HWI_POPUPS.SELECT)" class="btn" style="margin: 2px;" id="askhwi">
+				<img src="/static/img/usb_tiny.svg" height="12px">Get over USB
+			</button>
+		</div>
+		<br>
+		<div class="note">
+			One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
+			Examples:<br>
+			<pre style="font-size: 1.2em">
+[f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
+[F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
+upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
+			</pre>
+			Loading from file supports ColdCard and Electrum wallet format.<br>
+		</div>
+		<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+	</form>
 	</div>
-	<div class="row">
-		<a href="/hwi/new_device/" class="small-card">
-			<img src="/static/img/other_icon.svg?{{rand}}">
-			USB wallet (HWI)
-		</a>
-		<a href="./other/" class="small-card">
-			<img src="/static/img/other_icon.svg?{{rand}}">
-			Other device
-		</a>
+{% endblock %}
+
+{% block scripts %}
+	<div class="popup" id="popup">
+		<video muted playsinline id="qr-video" class="video"></video>
 	</div>
-	<br><br>
-	<div class="note">
-		<p>In order to use Bitcoin Core in watch only mode with hardware devices we need to export extended public keys from it.</p>
-		<p>We reccomend using an airgapped hardware wallet - which does not need to be connected directly to your online computer. Airgap is the best way to improve your security.</p>
-	</div>
+
+	<script type="text/javascript">
+		document.addEventListener("DOMContentLoaded", function(){
+			var el = document.getElementById("file");
+			var txt = document.getElementById("txt");
+
+			if (el != null) {
+				el.addEventListener("change", (e) => {
+					files = el.files;
+					console.log(files);
+					for(let i=0; i<files.length; i++){
+						console.log(files[i].name);
+						let reader = new FileReader();
+						reader.onload = function(e) {
+							let str = reader.result
+							if (str.indexOf("{") >= 0) {
+								let json = JSON.parse(str);
+								console.log(str);
+								if ("keystore" in json) { // ColdCard electrum file
+									let prefix = "";
+									if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
+										prefix = "[";
+										let num = json.keystore.ckcc_xfp;
+										for (let i = 0; i < 4; i++) {
+											prefix += ('0' + (num % 256).toString(16)).slice(-2);
+											num = num >>> 8;
+										}
+										prefix += json.keystore.derivation.substring(1);
+										prefix += "]";
+									}
+									let s = prefix + json.keystore.xpub + "\n";
+									txt.value += s;
+								} else if ("xfp" in json) { // probably ColdCard multisig file
+									let s = "";
+									for (let k in json) {
+										if (k+"_deriv" in json) {
+											s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+										}
+									}
+									txt.value += s;
+								}
+							} else {
+								txt.value += str+"\n";
+							}
+							var deviceType = document.getElementById("device_type");
+							if (deviceType != null) {
+								deviceType.value = "coldcard";
+							}
+						}
+						reader.readAsText(files[i]);
+					}
+				});
+			}
+
+			document.getElementById('hwi_unlocked__submit').addEventListener("click", async function(event) {
+				event.preventDefault();
+				showPageOverlay(HWI_POPUPS.EXTRACT_XPUBS);
+				
+				let result = await hwiSendCommand('extract_xpubs', {
+					device_type: hwiCurrentWallet.type,
+					path: hwiCurrentWallet.path,
+					passphrase: hwiWalletPassphrase
+				});
+				
+				if (result.success) {
+					txt.value += result.data;
+					var deviceType = document.getElementById("device_type");
+					if (deviceType != null) {
+						deviceType.value = hwiCurrentWallet.type;
+					}
+				}
+				hidePageOverlay();
+			});
+		});
+	</script>
+
+	<script type="module">
+		import QrScanner from "/static/qr/qr-scanner.min.js";
+		if (document.getElementById("scanme") != null) {
+			QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+			const video = document.getElementById('qr-video');
+
+			const scanner = new QrScanner(video, result => {
+				scanner.stop();
+				document.getElementById("popup").style.display = 'none';
+				document.getElementById("txt").value += result + "\n";
+				var deviceType = document.getElementById("device_type");
+				if (deviceType != null) {
+					deviceType.value = "specter";
+				}
+			});
+			document.getElementById("scanme").addEventListener("click", function(){
+				try{
+					scanner.start();
+					document.getElementById("popup").style.display = 'flex';
+				}catch(e){
+					alert("Can't start the QR scanner!\n\n" + e);
+				}
+			});
+			document.getElementById("popup").addEventListener("click", function(){
+				document.getElementById("popup").style.display = 'none';
+				scanner.stop();
+			});
+		}
+	</script>
 {% endblock %}

@@ -1,0 +1,24 @@
+{% set hwi_bridge = true %}
+{% extends "base.jinja" %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block main %}
+    <div class="card">
+        <form action="." method="POST" role="form">
+            <h1>HWI Bridge Settings</h1>
+            <label>Whitelisted domains</label>
+            <textarea class="form-control" placeholder="e.i. http://127.0.0.1:25441" name="whitelisted_domains">{{ whitelisted_domains }}</textarea>
+            <div class="note">
+                To whitelist multiple domains, just list them one after another, each in a new line, for example:
+                <br>http://127.0.0.1:25440<br>http://127.0.0.1:25441<br>http://127.0.0.1:25442
+            </div>
+            <br>
+            <br>
+            <div class="row">
+                <button type="submit" class="btn" name="action" value="update">Update</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
