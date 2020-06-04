@@ -17,16 +17,17 @@ def api():
     whitelisted_domains = hwi_get_config(app.specter)['whitelisted_domains'].split()
     for i, url in enumerate(whitelisted_domains):
         whitelisted_domains[i] = url.replace('http://localhost:', 'http://127.0.0.1:')
-    if '*' not in whitelisted_domains and \
-        not(
-            'HTTP_ORIGIN' in request.environ and \
-            request.environ['HTTP_ORIGIN'].replace('http://localhost:', 'http://127.0.0.1:') in whitelisted_domains
-    ):
-        return jsonify({
-            "jsonrpc": "2.0",
-            "error": { "code": -32001, "message": "Unauthorized request origin.<br>You must first whitelist this website URL in HWIBridge settings to grant it access." },
-            "id": None
-        }), 500
+    if '*' not in whitelisted_domains and 'HTTP_ORIGIN' in request.environ:
+        origin_url = request.environ['HTTP_ORIGIN'].replace('http://localhost:', 'http://127.0.0.1:')
+        if not origin_url.endswith("/"):
+                # make sure the url end with a "/"
+                origin_url += "/"
+        if not(origin_url in whitelisted_domains):
+            return jsonify({
+                "jsonrpc": "2.0",
+                "error": { "code": -32001, "message": "Unauthorized request origin.<br>You must first whitelist this website URL in HWIBridge settings to grant it access." },
+                "id": None
+            }), 500
     try:
         data = json.loads(request.data)
     except:
