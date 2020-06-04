@@ -1,6 +1,6 @@
 {% if psbt is defined %}
     <div id="hwi_sign_tx" class="flex-center flex-column hidden">
-        <h2>Sign Transaction</h2>
+        <h2>Sign Transaction</h2><br>
         <div>
             Please confirm transaction on your <span id="hwi_device_name">device</span>
         </div>
@@ -18,12 +18,8 @@
                 showPageOverlay(HWI_POPUPS.SIGN);
 
                 const psbt = "{{ psbt['base64'] }}";
-                var jsonResponse = await hwiSendPsbt(psbt);
-                if (jsonResponse.hasOwnProperty('error')) {
-                    alert(jsonResponse.error);
-                } else if (jsonResponse.psbt !== "undefined") {
-                    callback(jsonResponse.psbt);
-                }
+                var signed_tx = await hwiSendPsbt(psbt);
+                callback(signed_tx)
 
                 hidePageOverlay();
             });

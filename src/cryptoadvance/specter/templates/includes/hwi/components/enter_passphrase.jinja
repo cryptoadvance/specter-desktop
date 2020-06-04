@@ -24,6 +24,7 @@ function submitPassphrase() {
     if (hwiCurrentWallet.needs_pin_sent){
         hwiPromptPin();
     } else {
+        hidePageOverlay();
         hwiShowUnlocked();
     }
 }

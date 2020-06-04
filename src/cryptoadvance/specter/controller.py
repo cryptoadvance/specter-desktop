@@ -29,7 +29,6 @@ load_dotenv(env_path)
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
-
 ########## template injections #############
 @app.context_processor
 def inject_debug():
@@ -37,7 +36,6 @@ def inject_debug():
     return dict(debug=app.config['DEBUG'])
 
 ################ routes ####################
-
 @app.route('/wallets/<wallet_alias>/combine/', methods=['GET', 'POST'])
 @login_required
 def combine(wallet_alias):
@@ -143,6 +141,7 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
+    hwi_bridge_url = app.specter.config['hwi_bridge_url']
     loglevel = get_loglevel(app)
     if "protocol" in rpc:
         protocol = rpc["protocol"]
@@ -155,6 +154,7 @@ def settings():
         explorer = request.form["explorer"]
         auth = request.form['auth']
         loglevel = request.form["loglevel"]
+        hwi_bridge_url = request.form['hwi_bridge_url']
         action = request.form['action']
         # protocol://host
         if "://" in host:
@@ -180,6 +180,7 @@ def settings():
                                     )
             app.specter.update_explorer(explorer)
             app.specter.update_auth(auth)
+            app.specter.update_hwi_bridge_url(hwi_bridge_url)
             if auth == "rpcpasswordaspin":
                 app.config['LOGIN_DISABLED'] = False
             else:
@@ -198,6 +199,7 @@ def settings():
                             protocol=protocol,
                             explorer=explorer,
                             auth=auth,
+                            hwi_bridge_url=hwi_bridge_url,
                             loglevel=loglevel,
                             specter=app.specter,
                             rand=rand)
@@ -607,38 +609,31 @@ def wallet_settings(wallet_alias):
 
 ################# devices management #####################
 
-@app.route('/new_device/')
+@app.route('/new_device/', methods=['GET', 'POST'])
 @login_required
 def new_device():
-    app.specter.check()
-    return render_template("device/new_device.jinja", specter=app.specter, rand=rand)
-
-@app.route('/new_device/<device_type>/', methods=['GET', 'POST'])
-@login_required
-def new_device_xpubs(device_type):
     err = None
     app.specter.check()
-    # get default new name
-    name = device_type.capitalize()
-    device_name = name
-    i = 2
-    while device_name in app.specter.devices.names():
-        device_name = "%s %d" % (name, i)
-        i+=1
-
+    device_type = "other"
+    device_name = ""
     xpubs = ""
     if request.method == 'POST':
+        device_type = request.form['device_type']
         device_name = request.form['device_name']
-        if device_name in app.specter.devices.names():
+        if not device_name:
+            err = "Device name must not be empty"
+        elif device_name in app.specter.devices.names():
             err = "Device with this name already exists"
         xpubs = request.form['xpubs']
+        if not xpubs:
+            err = "xpubs name must not be empty"
         normalized, parsed, failed = normalize_xpubs(xpubs)
         if len(failed) > 0:
             err = "Failed to parse these xpubs:\n" + "\n".join(failed)
         if err is None:
             dev = app.specter.devices.add(name=device_name, device_type=device_type, keys=normalized)
             return redirect("/devices/%s/" % dev["alias"])
-    return render_template("device/new_device_xpubs.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
 
 
 def get_key_meta(key):
@@ -668,7 +663,7 @@ def device(device_alias):
             key = request.form['key']
             device.remove_key(key)
         if action == "add_keys":
-            return render_template("device/new_device_xpubs.jinja", device_alias=device_alias, device=device, device_type=device["type"], specter=app.specter, rand=rand)
+            return render_template("device/new_device.jinja", device_alias=device_alias, device=device, device_type=device["type"], specter=app.specter, rand=rand)
         if action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
@@ -676,7 +671,7 @@ def device(device_alias):
             err = None
             if len(failed) > 0:
                 err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template("device/new_device_xpubs.jinja", device_alias=device_alias, device=device, xpubs=xpubs, device_type=device["type"], error=err, specter=app.specter, rand=rand)
+                return render_template("device/new_device.jinja", device_alias=device_alias, device=device, xpubs=xpubs, device_type=device["type"], error=err, specter=app.specter, rand=rand)
             if err is None:
                 device.add_keys(normalized)
     device = copy.deepcopy(device)
