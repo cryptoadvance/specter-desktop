@@ -1,4 +1,7 @@
-## v0.4.0 May 31, 2020
+## v0.4.1 June 02, 2020
+- #331 - Bugfix for dependency issue preventing proper install on raspiblitz
+
+## v0.4.0 June 02, 2020
 - #112 - Mobile friendly UI (@stepansnigirev)
 - #130 - Showing transacation details while sending (@benk10)
 - #232 - Being able to copy transaction instead of sending via own node (@benk10)
