@@ -2,8 +2,8 @@ import logging
 from cryptoadvance.specter.helpers import which
 
 def test_bitcoinddocker_running(caplog, docker):
-
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
     if docker:
         from cryptoadvance.specter.bitcoind import BitcoindDockerController
         my_bitcoind = BitcoindDockerController(rpcport=18999) # completly different port to not interfere
