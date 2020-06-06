@@ -27,13 +27,25 @@ Run the tests (still very limited):
 
 ```
 pip3 install -e .
-pytest # needs a bitcoind on your path
-pytest --docker # needs a working docker-setup (but not bitcoind)
-pytest tests/test_specter -k Manager # Run all tests in a specific file matching "Manager"
+
+# needs a bitcoind on your path
+pytest 
+
+# needs a working docker-setup (but not bitcoind)
+# prerequsisite: 
+# docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
+pytest --docker 
+
+# Run all the tests in a specific test-file
+pytest tests/test_specter
+
+# Run all tests in a specific file matching "Manager"
+pytest tests/test_specter -k Manager 
 ```
 
 # Developing on tests
-There are some things worth taking a note here, especially if you rely on a specific state on the blockchain for your tests. Bitcoind is started only once for all the tests. Each time it's starting with the genesis-block. This has some implications:
+There are some things worth taking a note here, especially if you rely on a specific state on the blockchain for your tests. Bitcoind is started only once for all the tests. If you run 
+it each time it's starting with the genesis-block. This has some implications:
 * The [halving-interval for regtest](https://github.com/bitcoin/bitcoin/blob/99813a9745fe10a58bedd7a4cb721faf14f907a4/src/chainparams.cpp#L258) is only 150-blocks
 * At the same time, still 100 blocks need to be minded in order to make the coins spendable.
 * This combination results in that you can't rely on how many coins get mined if you want some testcoin on your address
@@ -56,13 +68,15 @@ This will also:
 * automatically mine some coins for the addresses found in the wallets at ~/.specter/wallets/regtest/*.json 
 * automatically mine a block every 15 seconds (but not to the wallet-addresses anymore)
 
+However, this is NOT a prerequisite for running the tests (--docker or not).
+
 After that, you can configure the bitcoin-core-connection in specter-desktop like this:
 * Username: bitcoin
 * Password: secret
 * Host: localhost
 * Port: 18443
 
-# IDE-specific Configuration
+# IDE-specific Configuration (might be outdated)
 
 ## Unit-Tests in VS-Code
 In VS-Code there is a very convenient way of running/debugging the tests:
@@ -126,16 +140,12 @@ setup.py is not (yet) as complex as listed there and setup.cfg is not even (yet?
 If you see this to need some improvements, please make it in small steps and explain what the benefits of all of that.
 
 ## Some words about dependencies
-As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. 
+As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. This is especially true for javascript. We prefer plain javascript over any kind of frameworks.
 
 ## Some words specific to the frontend
-Also for that reason, we're avoiding npm and manage javascript dependencies by hand or do stuff manually. Feel free to use plain javascript in pages.
-However, we're planning (or even have started) to use vue.js without using vue.js-components (that would require a build). So feel free to use vue.js but either make a thoughtful proposal on how to manage the vue.js build or don't use vue.js-components. Also, specter-desktop is not a one-page-app and also doesn't want to become one.
-This [security-link](https://vuejs.org/v2/guide/security.html) might be interesting when developing vue.js.
-
 We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that. High level consultancy help on that would be appreciated even so (or especially when) you take the above security/dependency requirements into account.
 
-## Some word about style
+## Some words about style
 * The icons are coming from https://material.io/resources/icons/?style=baseline
 * Colorizing the icons make them much more expressive. Current favorite colors are:
   * nice orange #F5A623
