@@ -67,6 +67,13 @@ def init_app(app, specter=None):
     app.register_blueprint(hwi_views, url_prefix='/hwi')
     with app.app_context():
         from . import controller
+        if app.config.get("TESTING") and len(app.view_functions) <=9 :
+            # Need to force a reload as otherwise the import is skipped
+            # in pytest, the app is created anew for ech test
+            # But we shouldn't do that if not necessary as this would result in
+            # --> View function mapping is overwriting an existing endpoint function
+            import importlib
+            importlib.reload(controller)
     return app
 
 def create_and_init():
