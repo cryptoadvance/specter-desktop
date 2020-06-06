@@ -278,7 +278,12 @@ class BitcoindDockerController(BitcoindController):
                 continue
             rpcpassword = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcpassword' in arg][0].split('=')[1]
             rpcuser = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcuser' in arg][0].split('=')[1]
-            ipaddress = btcd_container.attrs['NetworkSettings']['IPAddress']
+            if "CI" in os.environ: # this is a predefined variable in gitlab
+                # This works on Linux (direct docker) and gitlab-CI but not on MAC
+                ipaddress = btcd_container.attrs['NetworkSettings']['IPAddress']
+            else:
+                # This works on most machines but not on gitlab-CI
+                ipaddress ="127.0.0.1"
             rpcconn = Btcd_conn(rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport, ipaddress=ipaddress)
             logging.info("detected container {}".format(btcd_container.id))
             return rpcconn, btcd_container
