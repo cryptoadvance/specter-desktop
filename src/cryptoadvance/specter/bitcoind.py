@@ -17,6 +17,7 @@ from .rpc import RpcError
 from .rpc_cache import BitcoinCLICached
 from .helpers import load_jsons
 
+logger = logging.getLogger(__name__)
 
 class Btcd_conn:
     ''' An object to easily store connection data '''
@@ -154,7 +155,7 @@ class BitcoindController:
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += " -datadir={} ".format(datadir)
-        logging.info(" constructed bitcoind-command: {}".format(btcd_cmd))
+        logger.info(" constructed bitcoind-command: {}".format(btcd_cmd))
         return btcd_cmd
 
 class BitcoindPlainController(BitcoindController):
@@ -167,15 +168,15 @@ class BitcoindPlainController(BitcoindController):
     def _start_bitcoind(self, cleanup_at_exit=False):
         datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir")
         bitcoind_cmd = self.construct_bitcoind_cmd(self.rpcconn, run_docker=False, datadir=datadir, bitcoind_path=self.bitcoind_path)
-        logging.debug("About to execute: {}".format(bitcoind_cmd))
+        logger.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
         self.bitcoind_proc = subprocess.Popen("exec " + bitcoind_cmd, shell=True)  
-        logging.debug("Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid))
+        logger.debug("Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid))
         def cleanup_bitcoind():
             self.bitcoind_proc.kill() # much faster then terminate() and speed is key here over being nice
-            logging.debug("Killed bitcoind-process with pid {}".format(self.bitcoind_proc.pid))
+            logger.debug("Killed bitcoind-process with pid {}".format(self.bitcoind_proc.pid))
             shutil.rmtree(datadir)
-            logging.debug("removed temp-dir")
+            logger.debug("removed temp-dir")
         if cleanup_at_exit:
             atexit.register(cleanup_bitcoind)
     
@@ -204,12 +205,12 @@ class BitcoindDockerController(BitcoindController):
     def _start_bitcoind(self, cleanup_at_exit):
         bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn )
         dclient = docker.from_env()
-        logging.debug("Running (in docker): {}".format(bitcoind_path))
+        logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports={
             '{}/tcp'.format(self.rpcconn.rpcport-1): self.rpcconn.rpcport-1, 
             '{}/tcp'.format(self.rpcconn.rpcport): self.rpcconn.rpcport
         }
-        logging.debug("portmapping: {}".format(ports))
+        logger.debug("portmapping: {}".format(ports))
         image = dclient.images.get("registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(self.docker_tag))
         self.btcd_container = dclient.containers.run("registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(self.docker_tag), bitcoind_path,  ports=ports, detach=True)
         def cleanup_docker_bitcoind():
@@ -217,7 +218,7 @@ class BitcoindDockerController(BitcoindController):
             self.btcd_container.remove()
         if cleanup_at_exit:
             atexit.register(cleanup_docker_bitcoind)
-        logging.debug("Waiting for container {} to come up".format(self.btcd_container.id))
+        logger.debug("Waiting for container {} to come up".format(self.btcd_container.id))
         self.wait_for_container()
         rpcconn, _ = self.detect_bitcoind_container(self.rpcconn.rpcport)
         if rpcconn == None:
@@ -234,7 +235,7 @@ class BitcoindDockerController(BitcoindController):
                 _, container = self.detect_bitcoind_container(self.rpcconn.rpcport)
                 if container == self.btcd_container:
                     self.btcd_container.stop()
-                    logging.info("Stopped btcd_container {}".format(self.btcd_container))
+                    logger.info("Stopped btcd_container {}".format(self.btcd_container))
                     return 
         raise Exception('Ambigious Container running')
 
@@ -264,25 +265,25 @@ class BitcoindDockerController(BitcoindController):
         d_client = docker.from_env()
         potential_btcd_containers = BitcoindDockerController.search_bitcoind_container()
         if len(potential_btcd_containers) == 0:
-            logging.debug("could not detect container. Candidates: {}".format(d_client.containers.list()))
+            logger.debug("could not detect container. Candidates: {}".format(d_client.containers.list()))
             all_candidates = BitcoindDockerController.search_bitcoind_container(all=True)
-            logging.debug("could not detect container. All Candidates: {}".format(all_candidates))
+            logger.debug("could not detect container. All Candidates: {}".format(all_candidates))
             if len(all_candidates) > 0:
-                logging.debug("logs of first candidate")
-                logging.debug(all_candidates[0].logs())
+                logger.debug("100 chars of logs of first candidate")
+                logger.debug(all_candidates[0].logs()[0:100])
             return None
         for btcd_container in potential_btcd_containers:
             rpcport = int([arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcport' in arg][0].split('=')[1])
             if rpcport != with_rpcport:
-                logging.debug("checking port {} against searched port {}".format(type(rpcport), type(with_rpcport)))
+                logger.debug("checking port {} against searched port {}".format(type(rpcport), type(with_rpcport)))
                 continue
             rpcpassword = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcpassword' in arg][0].split('=')[1]
             rpcuser = [arg for arg in btcd_container.attrs['Config']['Cmd'] if 'rpcuser' in arg][0].split('=')[1]
             ipaddress = btcd_container.attrs['NetworkSettings']['IPAddress']
             rpcconn = Btcd_conn(rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport, ipaddress=ipaddress)
-            logging.info("detected container {}".format(btcd_container.id))
+            logger.info("detected container {}".format(btcd_container.id))
             return rpcconn, btcd_container
-        logging.debug("No matching container found")
+        logger.debug("No matching container found")
         return None
 
     

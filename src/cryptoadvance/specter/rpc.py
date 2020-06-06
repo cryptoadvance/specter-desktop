@@ -1,5 +1,8 @@
+import logging
 import requests, json, os
 import os, sys, errno
+
+logger = logging.getLogger(__name__)
 
 # TODO: redefine __dir__ and help
 

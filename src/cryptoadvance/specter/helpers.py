@@ -14,6 +14,8 @@ try:
 except:
     collectionsAbc = collections
 
+logger = logging.getLogger(__name__)
+
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
@@ -211,19 +213,19 @@ def which(program):
         # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
         exec_location = os.path.join(sys._MEIPASS, program)
         if is_exe(exec_location):
-            logging.info("Found %s executable in %s" % (program, exec_location))
+            logger.info("Found %s executable in %s" % (program, exec_location))
             return exec_location
 
     fpath, program_name = os.path.split(program)
     if fpath:
         if is_exe(program):
-            logging.info("Found %s executable in %s" % (program, program))
+            logger.info("Found %s executable in %s" % (program, program))
             return program
     else:
         for path in os.environ["PATH"].split(os.pathsep):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
-                logging.info("Found %s executable in %s" % (program, path))
+                logger.info("Found %s executable in %s" % (program, path))
                 return exe_file
     raise Exception("Couldn't find executable %s" % program)
 
@@ -245,14 +247,14 @@ def run_shell(cmd):
         return { "code": 0xf00dbabe, "out": b"", "err": b"Can't run subprocess" }
 
 def set_loglevel(app,loglevel_string):
-    logging.info("Setting Loglevel to %s" % loglevel_string)
+    logger.info("Setting Loglevel to %s" % loglevel_string)
     loglevels = {
         "WARN": logging.WARN,
         "INFO": logging.INFO,
         "DEBUG" : logging.DEBUG
     }
     app.logger.setLevel(loglevels[loglevel_string])
-    logging.getLogger().setLevel(loglevels[loglevel_string])
+    logger.getLogger().setLevel(loglevels[loglevel_string])
 
 def get_loglevel(app):
     

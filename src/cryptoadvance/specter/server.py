@@ -11,6 +11,8 @@ from .descriptor import AddChecksum
 from .logic import Specter
 from .views.hwi import hwi_views
 
+logger = logging.getLogger(__name__)
+
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
 
@@ -26,7 +28,7 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
         # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
         template_folder = os.path.join(sys._MEIPASS, 'templates')
         static_folder = os.path.join(sys._MEIPASS, 'static')
-        logging.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
+        logger.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
         app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
