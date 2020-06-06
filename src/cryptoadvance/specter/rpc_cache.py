@@ -41,6 +41,14 @@ class BitcoinCLICached:
     def url(self):
         return self.cli.url
 
+    @property
+    def passwd(self):
+        return self.cli.passwd
+
+    @passwd.setter
+    def passwd(self,value):
+        self.cli.passwd = value
+
     def test_connection(self):
         return self.cli.test_connection()
 
