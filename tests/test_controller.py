@@ -1,7 +1,10 @@
+import logging
 import pytest
 
-def test_home(client):
+def test_home(caplog, client):
     ''' The root of the app '''
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
     result = client.get('/')
     # By default there is no authentication
     assert result.status_code == 200 # OK.
