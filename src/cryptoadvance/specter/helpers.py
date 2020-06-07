@@ -15,6 +15,9 @@ except:
     collectionsAbc = collections
 
 logger = logging.getLogger(__name__)
+def alias(name):
+    name = name.replace(" ", "_")
+    return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
 def deep_update(d, u):
     for k, v in six.iteritems(u):
@@ -291,3 +294,21 @@ def save_hwi_bridge_config(specter, config):
         config['whitelisted_domains'] = whitelisted_domains
     with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
         f.write(json.dumps(config, indent=4))
+
+def der_to_bytes(derivation):
+    items = derivation.split("/")
+    if len(items) == 0:
+        return b''
+    if items[0] == 'm':
+        items = items[1:]
+    if items[-1] == '':
+        items = items[:-1]
+    res = b''
+    for item in items:
+        index = 0
+        if item[-1] == 'h' or item[-1] == "'":
+            index += 0x80000000
+            item = item[:-1]
+        index += int(item)
+        res += index.to_bytes(4,'big')
+    return res

@@ -5,10 +5,14 @@ import shutil
 import pytest
 
 from cryptoadvance.specter.rpc import RpcError
-from cryptoadvance.specter.logic import (get_cli, Device, DeviceManager, Specter, Wallet, WalletManager,
-                     alias)
+from cryptoadvance.specter.device import Device
+from cryptoadvance.specter.device_manager import DeviceManager
+from cryptoadvance.specter.specter import get_cli, Specter
+from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.wallet_manager import WalletManager
+from cryptoadvance.specter.helpers import alias
 from cryptoadvance.specter.rpc_cache import BitcoinCLICached
-from cryptoadvance.specter.logic import SpecterError
 
 
 def test_alias():
@@ -36,8 +40,8 @@ def test_get_cli(specter_regtest_configured):
 def test_specter(specter_regtest_configured,caplog): 
     caplog.set_level(logging.DEBUG)
     specter_regtest_configured.check()
-    assert specter_regtest_configured.wallets is not None
-    assert specter_regtest_configured.devices is not None
+    assert specter_regtest_configured.wallet_manager is not None
+    assert specter_regtest_configured.device_manager is not None
     assert specter_regtest_configured.config['rpc']['host'] != "None"
     logging.debug("out {}".format(specter_regtest_configured.test_rpc() ))
     json_return = json.loads(specter_regtest_configured.test_rpc()["out"] )
@@ -50,7 +54,7 @@ def test_DeviceManager(empty_data_folder):
     # of them via json-files in an empty data folder
     dm = DeviceManager(data_folder=empty_data_folder)
     # initialisation will load from the folder but i's empty, yet
-    assert len(dm) == 0
+    assert len(dm.devices) == 0
     # a device has a name, a type and a list of keys
     a_key = {
         "derivation": "m/48h/1h/0h/2h",
@@ -64,23 +68,23 @@ def test_DeviceManager(empty_data_folder):
     another_key = {
         'original': 'blub'
     }
-    dm.add("some_name","the_type",[a_key,another_key])
+    dm.add_device("some_name","the_type",[a_key,another_key])
     assert dm.get_by_alias('some_name')['name'] == 'some_name'
     assert dm.get_by_alias('some_name')['type'] == 'the_type'
     assert dm.get_by_alias('some_name')['keys'][0]['fingerprint'] == '08686ac6'
     # Now it has a length of 1
-    assert len(dm) == 1
+    assert len(dm.devices) == 1
     # and is iterable
-    assert [the_type['type'] for the_type in dm] == ['the_type']
+    assert [the_type['type'] for the_type in dm.devices.values()] == ['the_type']
     # The DeviceManager will return Device-Types (subclass of dict)
-    assert type(dm['some_name']) == Device
+    assert type(dm.devices['some_name']) == Device
 
     # A device is mainly a Domain-Object which assumes an underlying 
     # json-file which can be found in the "fullpath"-key
     # It derives from a dict
     # It needs a DeviceManager to be injected and can't reasonable
     # be created on your own.
-    some_device = dm['some_name']
+    some_device = dm.devices['some_name']
     assert some_device['fullpath'] == empty_data_folder + '/some_name.json'
 
     # keys can be added and removed. It will instantly update the underlying json
@@ -101,12 +105,12 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     # Lets's create a wallet with the WalletManager
     wm.create_simple('a_test_wallet','wpkh',key,device)
     # The wallet-name gets its filename and therfore its alias
-    wallet = wm.get_by_alias('a_test_wallet')
+    wallet = wm.wallets['a_test_wallet']
     assert wallet != None
     assert wallet.getbalances()['trusted'] == 0
     assert wallet.getbalances()['untrusted_pending'] == 0
     # this is a sum of both
-    assert wallet.getfullbalance() == 0
+    assert wallet.fullbalance == 0
     address = wallet.getnewaddress()
     # newly minted coins need 100 blocks to get spendable
     wallet.cli.generatetoaddress(1, address)
@@ -114,8 +118,6 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     wallet.cli.generatetoaddress(100, random_address)
     # a balance has properties which are caching the result from last call
-    assert wallet.fullbalance == 0
-    assert wallet.getfullbalance() == 50
     assert wallet.fullbalance == 50
     assert wallet.getbalance() == 50
     # Lets's spend something and create a PSBT to a random address
@@ -128,7 +130,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     # Now let's send some money to this wallet (creating 10 more potential inputs)
     for i in range(0,4): # 40 coins as a whole
         bitcoin_regtest.testcoin_faucet(address,10)
-    assert wallet.getfullbalance() == 90
+    assert wallet.fullbalance == 90
     assert wallet.getbalances()['untrusted_pending'] == 40
     assert wallet.getbalances()['trusted'] == 50
     # Even though the Bitcoin-API doesn't support spending more than 'trusted'
@@ -175,7 +177,7 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     wallet.cli.generatetoaddress(110, random_address)
     # Now we have loads of potential inputs
     # Let's spend 500 coins
-    assert wallet.getfullbalance() >= 250
+    assert wallet.fullbalance >= 250
     # From this print-statement, let's grab some txids which we'll use for coinselect
     unspents = wallet.cli.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:

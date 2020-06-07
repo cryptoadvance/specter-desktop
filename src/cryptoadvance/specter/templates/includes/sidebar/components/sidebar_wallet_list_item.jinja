@@ -10,7 +10,7 @@
         {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
         <div class="grow">
             <div class="row">
-                {{wallet.name}} 
+                {{ wallet.name }} 
                 {% if wallet.fullbalance is not none %}
                     <span class="balance">{{ wallet.fullbalance | btcamount}}</span>
                 {%endif%}

@@ -30,7 +30,7 @@ class BitcoinCLICached:
                 if "hdkeypath" in address_info:
                     path = address_info["hdkeypath"].split('/')
                     change = int(path[-2]) == 1
-                    while int(path[-1]) > wallet._dict["change_index" if change else "address_index"]:
+                    while int(path[-1]) > wallet["change_index" if change else "address_index"]:
                         wallet.getnewaddress(change=change)
             if not scanning:
                 self.cache.scanning_ended()

@@ -62,14 +62,14 @@
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
-			{% for device_name in specter.devices.names() %}
+			{% for device_name in specter.device_manager.names() %}
 				<label>
 					<input type="{{ 'checkbox' if sigs_total else 'radio' }}" name="{{ 'devices' if sigs_total else 'device' }}" value="{{ device_name }}" class="hidden">
 					<div class="small-card radio">
-						{% if specter.devices[device_name]['type'] != 'specter' and specter.devices[device_name]['type'] != 'coldcard' %}
+						{% if specter.device_manager.devices[device_name]['type'] != 'specter' and specter.device_manager.devices[device_name]['type'] != 'coldcard' %}
 							<img src="/static/img/other_icon.svg" width="18px">
 						{% else %}
-							<img src="/static/img/{{ specter.devices[device_name]['type'] }}_icon.svg" width="18px">
+							<img src="/static/img/{{ specter.device_manager.devices[device_name]['type'] }}_icon.svg" width="18px">
 						{% endif %}
 						{{ device_name }}
 					</div>

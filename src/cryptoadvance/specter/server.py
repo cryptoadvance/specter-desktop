@@ -9,7 +9,7 @@ from flask_login import LoginManager, login_user
 
 from .descriptor import AddChecksum
 from .helpers import hwi_get_config
-from .logic import Specter
+from .specter import Specter
 from .hwi_server import hwi_server
 
 logger = logging.getLogger(__name__)
