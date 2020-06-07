@@ -13,7 +13,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import normalize_xpubs, run_shell, set_loglevel, get_loglevel
+from .helpers import normalize_xpubs, run_shell, set_loglevel, get_loglevel, get_version_info
 from .descriptor import AddChecksum
 
 from .logic import Specter, purposes, addrtypes, get_cli, SpecterError
@@ -141,6 +141,11 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config["auth"]
+    version_info={}
+    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
+    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
+    if version_info["upgrade"]:
+        flash("There is a new version available. Consider strongly to upgrade to the new version {}".format(version_info["latest"]))
     hwi_bridge_url = app.specter.config['hwi_bridge_url']
     loglevel = get_loglevel(app)
     if "protocol" in rpc:
@@ -202,6 +207,7 @@ def settings():
                             hwi_bridge_url=hwi_bridge_url,
                             loglevel=loglevel,
                             specter=app.specter,
+                            version_info=version_info,
                             rand=rand)
 
 ################# wallet management #####################
