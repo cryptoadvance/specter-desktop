@@ -24,7 +24,7 @@
                 Wallets
             </div>
             {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
-            {% for wallet in specter.wallet_manager.wallets %}
+            {% for wallet in specter.wallet_manager.wallets_names %}
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}

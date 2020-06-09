@@ -2,7 +2,7 @@ import os, json, logging, shutil
 from collections import OrderedDict
 from .descriptor import AddChecksum
 from .helpers import alias, load_jsons
-from .rpc import get_default_datadir
+from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
 from .wallet import Wallet
 
@@ -35,11 +35,11 @@ class WalletManager:
         self.chain = chain
         self.cli = cli
         self.cli_path = path
+        # try:
+        # except Exception as e:
+        #     logger.error("can't load wallets: %s " % e)
+        # self.load_all()
         self.update(data_folder, cli, chain)
-        try:
-            self._load_all()
-        except Exception as e:
-            logger.error("can't load wallets: %s " % e)
 
     def update(self, data_folder=None, cli=None, chain=None):
         if chain is not None:
@@ -59,33 +59,32 @@ class WalletManager:
         if cli is not None:
             self.cli = cli
 
+        self.wallets = {}
         if self.working_folder is not None:
-            self.wallets = {}
             wallets_files = load_jsons(self.working_folder, key="name")
             existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
+            loaded_wallets = self.cli.listwallets()
+            not_loaded_wallets = [w for w in existing_wallets if w not in loaded_wallets]
             for wallet in wallets_files:
-                if os.path.join(self.cli_path, wallets_files[wallet]["alias"]) in existing_wallets:
-                    self.wallets[wallets_files[wallet]["name"]] = Wallet(wallets_files[wallet], manager=self)
+                wallet_alias = wallets_files[wallet]["alias"]
+                wallet_name = wallets_files[wallet]["name"]
+                if os.path.join(self.cli_path, wallet_alias) in existing_wallets:
+                    if os.path.join(self.cli_path, wallet_alias) in not_loaded_wallets:
+                        try:
+                            logger.debug("loading %s " % wallets_files[wallet]["alias"])
+                            self.cli.loadwallet(os.path.join(self.cli_path, wallet_alias))
+                            self.wallets[wallet_name] = Wallet(wallets_files[wallet], manager=self)
+                            # Lock UTXO of pending PSBTs
+                            if "pending_psbts" in self.wallets[wallet_name] and len(self.wallets[wallet_name]["pending_psbts"]) > 0:
+                                for psbt in self.wallets[wallet_name]["pending_psbts"]:
+                                    logger.debug("lock %s " % wallet_alias, self.wallets[wallet_name]["pending_psbts"][psbt]["tx"]["vin"])
+                                    self.wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in self.wallets[wallet_name]["pending_psbts"][psbt]["tx"]["vin"]])
+                        except RpcError:
+                            logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
+                    elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
+                        self.wallets[wallet_name] = Wallet(wallets_files[wallet], manager=self)
                 else:
-                    logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallets_files[wallet]["alias"])
-        else:
-            self.wallets = {}
-
-    def _load_all(self):
-        loaded_wallets = self.cli.listwallets()
-        loadable_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
-        not_loaded_wallets = [w for w in loadable_wallets if w not in loaded_wallets]
-        if not_loaded_wallets != []:
-            logger.warn("not loaded wallets:%s" % not_loaded_wallets)
-        for k in self.wallets:
-            if os.path.join(self.cli_path, self.wallets[k]["alias"]) in not_loaded_wallets:
-                logger.debug("loading %s " % self.wallets[k]["alias"])
-                self.cli.loadwallet(os.path.join(self.cli_path,self.wallets[k]["alias"]))
-                # Lock UTXO of pending PSBTs
-                if "pending_psbts" in self.wallets[k] and len(self.wallets[k]["pending_psbts"]) > 0:
-                    for psbt in self.wallets[k]["pending_psbts"]:
-                        logger.debug("lock %s " % self.wallets[k]["alias"], self.wallets[k]["pending_psbts"][psbt]["tx"]["vin"])
-                        Wallet(self.wallets[k], self).cli.lockunspent(False, [utxo for utxo in self.wallets[k]["pending_psbts"][psbt]["tx"]["vin"]])
+                    logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
 
     def get_by_alias(self, alias):
         for wallet_name in self.wallets:
