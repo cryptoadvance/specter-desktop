@@ -337,14 +337,18 @@ class Wallet(dict):
 
     def getlabel(self, addr):
         address_info = self.cli.getaddressinfo(addr)
-        return address_info["label"] if "label" in address_info and address_info["label"] != "" else addr
+        # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
+        label = address_info["labels"][0] if "labels" in address_info and (isinstance(address_info["labels"], list) and len(address_info["labels"]) > 0) else addr
+        if label == "":
+            label = addr
+        return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
     
     def getaddressname(self, addr, addr_idx):
         address_info = self.cli.getaddressinfo(addr)
         if ("label" not in address_info or address_info["label"] == "") and addr_idx > -1:
             self.setlabel(addr, "Address #{}".format(addr_idx))
             address_info["label"] = "Address #{}".format(addr_idx)
-        return addr if ("label" not in address_info or address_info["label"] == "") else address_info["label"]
+        return self.getlabel(addr)
 
     @property
     def fullbalance(self):
