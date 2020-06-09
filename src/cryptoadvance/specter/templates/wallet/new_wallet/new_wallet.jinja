@@ -62,7 +62,7 @@
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
-			{% for device_name in specter.device_manager.names() %}
+			{% for device_name in specter.device_manager.devices_names %}
 				<label>
 					<input type="{{ 'checkbox' if sigs_total else 'radio' }}" name="{{ 'devices' if sigs_total else 'device' }}" value="{{ device_name }}" class="hidden">
 					<div class="small-card radio">

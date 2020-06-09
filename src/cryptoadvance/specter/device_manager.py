@@ -26,8 +26,9 @@ class DeviceManager:
         for device in devices_files:
             self.devices[devices_files[device]["name"]] = (Device(devices_files[device], manager=self))
     
-    def names(self):
-        return [device_name for device_name in self.devices]
+    @property
+    def devices_names(self):
+        return sorted(self.devices.keys())
 
     def add_device(self, name, device_type, keys):
         device = {

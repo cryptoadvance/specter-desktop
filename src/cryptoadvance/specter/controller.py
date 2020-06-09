@@ -86,7 +86,7 @@ def broadcast(wallet_alias):
 def index():
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
-        return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.names()[0]]["alias"])
+        return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]]["alias"])
 
     # TODO: add onboarding process
     if len(app.specter.device_manager.devices) == 0:
@@ -226,14 +226,14 @@ def new_wallet_simple():
     wallet_name = name
     i = 2
     err = None
-    while wallet_name in app.specter.wallet_manager.names():
+    while wallet_name in app.specter.wallet_manager.wallets_names:
         wallet_name = "%s %d" % (name, i)
         i += 1
     device = None
     if request.method == 'POST':
         action = request.form['action']
         wallet_name = request.form['wallet_name']
-        if wallet_name in app.specter.wallet_manager.names():
+        if wallet_name in app.specter.wallet_manager.wallets_names:
             err = "Wallet already exists"
         if "device" not in request.form:
             err = "Select the device"
@@ -301,7 +301,7 @@ def new_wallet_multi():
     wallet_name = name
     i = 2
     err = None
-    while wallet_name in app.specter.wallet_manager.names():
+    while wallet_name in app.specter.wallet_manager.wallets_names:
         wallet_name = "%s %d" % (name, i)
         i+=1
 
@@ -320,7 +320,7 @@ def new_wallet_multi():
         wallet_name = request.form['wallet_name']
         sigs_required = int(request.form['sigs_required'])
         sigs_total = int(request.form['sigs_total'])
-        if wallet_name in app.specter.wallet_manager.names():
+        if wallet_name in app.specter.wallet_manager.wallets_names:
             err = "Wallet already exists"
         wallet_type = request.form['type']
         pur = {
@@ -585,7 +585,7 @@ def wallet_settings(wallet_alias):
             return response
         elif action == "rename":
             wallet_name = request.form['newtitle']
-            if wallet_name in app.specter.wallet_manager.names():
+            if wallet_name in app.specter.wallet_manager.wallets_names:
                 error = "Wallet already exists"
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
@@ -624,7 +624,7 @@ def new_device():
         device_name = request.form['device_name']
         if not device_name:
             err = "Device name must not be empty"
-        elif device_name in app.specter.device_manager.names():
+        elif device_name in app.specter.device_manager.devices_names:
             err = "Device with this name already exists"
         xpubs = request.form['xpubs']
         if not xpubs:

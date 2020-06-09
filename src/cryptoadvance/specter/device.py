@@ -10,7 +10,7 @@ class Device(dict):
         self.manager = manager
         self.update(d)
 
-    def update_keys(self, keys):
+    def _update_keys(self, keys):
         self["keys"] = keys
         with open(self["fullpath"], "r") as f:
             content = json.loads(f.read())
@@ -21,7 +21,7 @@ class Device(dict):
 
     def remove_key(self, key):
         keys = [k for k in self["keys"] if k["original"]!=key]
-        self.update_keys(keys)
+        self._update_keys(keys)
 
     def add_keys(self, normalized):
         key_arr = [k["original"] for k in self["keys"]]
@@ -30,4 +30,4 @@ class Device(dict):
             if k["original"] not in key_arr:
                 keys.append(k)
                 key_arr.append(k["original"])
-        self.update_keys(keys)
+        self._update_keys(keys)

@@ -93,8 +93,9 @@ class WalletManager:
                 return self.wallets[wallet_name]
         raise SpecterError("Wallet %s does not exist!" % alias)
 
-    def names(self):
-        return [wallet_name for wallet_name in self.wallets]
+    @property
+    def wallets_names(self):
+        return sorted(self.wallets.keys())
 
     def _get_initial_wallet_dict(self, name):
         walletsindir = [wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]]
