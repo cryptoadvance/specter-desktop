@@ -257,7 +257,7 @@ def set_loglevel(app,loglevel_string):
         "DEBUG" : logging.DEBUG
     }
     app.logger.setLevel(loglevels[loglevel_string])
-    logger.getLogger().setLevel(loglevels[loglevel_string])
+    logger.setLevel(loglevels[loglevel_string])
 
 def get_loglevel(app):
     

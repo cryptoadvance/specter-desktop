@@ -71,7 +71,6 @@ class Specter:
         self.check()
 
     def check(self):
-
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with open(os.path.join(self.data_folder, "config.json"), "r") as f:
@@ -189,14 +188,13 @@ class Specter:
     
     def update_explorer(self, explorer):
         ''' update the block explorers urls '''
-
         if explorer and not explorer.endswith("/"):
             # make sure the urls end with a "/"
             explorer += "/"
-
         # update the urls in the app config
         if self.config["explorers"][self.chain] != explorer:
             self.config["explorers"][self.chain] = explorer
+        self._save()
 
     def update_hwi_bridge_url(self, url):
         ''' update the hwi bridge url to use '''
@@ -206,10 +204,6 @@ class Specter:
                 url += "/"
             self.config["hwi_bridge_url"] = url
         self._save()
-
-    @property
-    def info(self):
-        return self._info
 
     def combine(self, psbt_arr):
         final_psbt = self.cli.combinepsbt(psbt_arr)
@@ -225,6 +219,10 @@ class Specter:
 
     def estimatesmartfee(self, blocks):
         return self.cli.estimatesmartfee(blocks)
+
+    @property
+    def info(self):
+        return self._info
 
     @property
     def chain(self):
