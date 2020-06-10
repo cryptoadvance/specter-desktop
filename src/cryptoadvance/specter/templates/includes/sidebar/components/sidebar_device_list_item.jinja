@@ -6,7 +6,7 @@
  #}
 {% macro sidebar_device_list_item(device, device_alias) -%}
     <a href="/devices/{{device.alias}}/" class="item {% if device_alias == device.alias %}active{% endif %}">
-        {% if device.type == "specter" or device.type == "coldcard" %}
+        {% if device.type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
             <img src="/static/img/{{device.type|lower}}_icon.svg" width="18px">
         {% else %}
             <img src="/static/img/other_icon.svg" width="18px">
