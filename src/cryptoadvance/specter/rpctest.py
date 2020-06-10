@@ -1,6 +1,9 @@
+import logging
 import os, sys, errno
 from rpc import *
 import requests
+
+logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     conf_arr = detect_cli_confs()
