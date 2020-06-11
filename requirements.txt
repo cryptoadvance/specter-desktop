@@ -2,7 +2,7 @@ certifi==2019.9.11
 chardet==3.0.4
 Click==7.0
 ecdsa>=0.13.3
-Flask==1.1.1
+Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-Login==0.5.0
 hidapi==0.7.99.post21
