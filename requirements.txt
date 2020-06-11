@@ -19,7 +19,7 @@ python-dotenv==0.13.0
 requests==2.22.0
 six==1.12.0
 stem==1.7.1
-typing-extensions==3.7.4
+typing-extensions==3.7.4.2
 urllib3==1.25.9
 Werkzeug==0.16.0
 pyserial==3.4
