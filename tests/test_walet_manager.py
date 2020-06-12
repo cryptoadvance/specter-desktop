@@ -6,7 +6,7 @@ from cryptoadvance.specter.wallet_manager import WalletManager
 
 
 def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(), "regtest")
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('trezor')
     assert device != None
@@ -58,7 +58,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert len(wm.wallets) == 1
 
 def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(),"regtest")
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('specter')
     key = {

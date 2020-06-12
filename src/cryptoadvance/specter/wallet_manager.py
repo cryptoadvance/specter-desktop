@@ -30,11 +30,12 @@ addrtypes = {
 
 class WalletManager:
     # chain is required to manage wallets when bitcoin-cli is not running
-    def __init__(self, data_folder, cli, chain, path="specter"):
+    def __init__(self, data_folder, cli, chain, device_manager, path="specter"):
         self.data_folder = data_folder
         self.chain = chain
         self.cli = cli
         self.cli_path = path
+        self.device_manager = device_manager
         # try:
         # except Exception as e:
         #     logger.error("can't load wallets: %s " % e)
@@ -73,7 +74,7 @@ class WalletManager:
                         try:
                             logger.debug("loading %s " % wallets_files[wallet]["alias"])
                             self.cli.loadwallet(os.path.join(self.cli_path, wallet_alias))
-                            self.wallets[wallet_name] = Wallet(wallets_files[wallet], manager=self)
+                            self.wallets[wallet_name] = Wallet(wallets_files[wallet], self.device_manager, manager=self)
                             # Lock UTXO of pending PSBTs
                             if "pending_psbts" in self.wallets[wallet_name] and len(self.wallets[wallet_name]["pending_psbts"]) > 0:
                                 for psbt in self.wallets[wallet_name]["pending_psbts"]:
@@ -82,7 +83,7 @@ class WalletManager:
                         except RpcError:
                             logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
                     elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
-                        self.wallets[wallet_name] = Wallet(wallets_files[wallet], manager=self)
+                        self.wallets[wallet_name] = Wallet(wallets_files[wallet], self.device_manager, manager=self)
                 else:
                     logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
 
@@ -119,21 +120,18 @@ class WalletManager:
 
     def _create_wallet(self, wallet_dict):
         self.cli.createwallet(os.path.join(self.cli_path, wallet_dict["alias"]), True)
+        # add wallet to internal dict
+        self.wallets[wallet_dict["name"]] = Wallet(wallet_dict, self.device_manager, manager=self)
         # save wallet file to disk
         if self.working_folder is not None:
-            with open(wallet_dict["fullpath"], "w+") as f:
-                f.write(json.dumps(wallet_dict, indent=4))
-        # add wallet to internal dict
-        self.wallets[wallet_dict["name"]] = Wallet(wallet_dict, manager=self)
+            self.wallets[wallet_dict["name"]].save_to_file()
         # get Wallet class instance
-        return Wallet(wallet_dict, manager=self)
+        return Wallet(wallet_dict, self.device_manager, manager=self)
 
     def create_simple(self, name, key_type, key, device):
         wallet = self._get_initial_wallet_dict(name)
         arr = key_type.split("-")
-        desc = key["xpub"]
-        if key["derivation"] is not None:
-            desc = "[%s%s]%s" % (key["fingerprint"], key["derivation"][1:], key["xpub"])
+        desc = key.metadata['combined']
         recv_desc = "%s/0/*" % desc
         change_desc = "%s/1/*" % desc
         for el in arr[::-1]:
@@ -144,11 +142,10 @@ class WalletManager:
         wallet.update({
             "type": "simple", 
             "description": purposes[key_type],
-            "key": key,
+            "key": key.json,
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
-            "device": device["name"],
-            "device_type": device["type"],
+            "device": device,
             "address_type": addrtypes[key_type],
         })
 
@@ -158,11 +155,7 @@ class WalletManager:
         wallet = self._get_initial_wallet_dict(name)
         # TODO: refactor, ugly
         arr = key_type.split("-")
-        descs = [key["xpub"] for key in keys]
-        for i, desc in enumerate(descs):
-            key = keys[i]
-            if key["derivation"] is not None:
-                descs[i] = "[%s%s]%s" % (key["fingerprint"], key["derivation"][1:], key["xpub"])
+        descs = [key.metadata['combined'] for key in keys]
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
         recv_desc = "multi({},{})".format(sigs_required, ",".join(recv_descs))
@@ -172,20 +165,14 @@ class WalletManager:
             change_desc = "%s(%s)" % (el, change_desc)
         recv_desc = AddChecksum(recv_desc)
         change_desc = AddChecksum(change_desc)
-        devices_list = []
-        for device in devices:
-            devices_list.append({
-                "name": device["name"],
-                "type": device["type"]
-            })
         wallet.update({
             "type": "multisig",
             "description": "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]),
             "sigs_required": sigs_required,
-            "keys": keys,
+            "keys": [key.json for key in keys],
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
-            "devices": devices_list,
+            "devices": devices,
             "address_type": addrtypes[key_type]
         })
 
@@ -206,6 +193,5 @@ class WalletManager:
         logger.info("Renaming {}".format(wallet["alias"]))
         wallet["name"] = name
         if self.working_folder is not None:
-            with open(wallet["fullpath"], "w+") as f:
-                f.write(json.dumps(wallet, indent=4))
+            wallet.save_to_file()
         self.update()

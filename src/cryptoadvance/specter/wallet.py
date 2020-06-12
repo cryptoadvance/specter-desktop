@@ -1,7 +1,7 @@
-import hashlib, json, logging, os
+import copy, hashlib, json, logging, os
 from time import time
 from .descriptor import AddChecksum
-from .device import Device
+from .devices.device import Device
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint
 from .serializations import PSBT
 from .specter_error import SpecterError
@@ -11,11 +11,23 @@ from .specter_error import SpecterError
 WALLET_CHUNK = 20
 
 class Wallet(dict):
-    def __init__(self, d, manager=None):
+    def __init__(self, d, device_manager, manager=None):
         self.update(d)
         self.manager = manager
         self.cli_path = manager.cli_path
         self.cli = manager.cli.wallet(os.path.join(self.cli_path,self["alias"]))
+        self.device_manager = device_manager
+        if 'device' in self:
+            self['device'] = self.device_manager.get_by_alias(self['device'])
+            # TODO: Make sure to properly warn the user
+            # if self['device'] is None:
+            #     raise Exception('Error: the device used by the wallet could not be found')
+        if 'devices' in self:
+            self['devices'] = [self.device_manager.get_by_alias(device) for device in self['devices']]
+            # TODO: Make sure to properly warn the user
+            # if None in self['devices']:
+            #     logger.error('Error: one or more of the devices used by this wallet could not be found')
+
         # check if address is known and derive if not
         # address derivation will also refill the keypool if necessary
         if self["address"] is None:
@@ -60,18 +72,27 @@ class Wallet(dict):
         self._commit()
 
     def _commit(self, update_manager=True):
-        with open(self["fullpath"], "w") as f:
-            f.write(json.dumps(self, indent=4))
+        self.save_to_file()
         self.update(self)
         if update_manager:
             self.manager.update()
 
+    def save_to_file(self):
+        wallet_copy = copy.copy(self)
+        if 'device' in wallet_copy:
+                if isinstance(wallet_copy['device'], Device):
+                    wallet_copy['device'] = wallet_copy['device'].alias
+        if 'devices' in wallet_copy:
+            wallet_copy['devices'] = [device.alias for device in wallet_copy['devices']]
+        with open(wallet_copy["fullpath"], "w+") as f:
+            f.write(json.dumps(wallet_copy, indent=4))
+
     def _uses_device_type(self, type_list):
         if not self.is_multisig:
-            return self["device_type"] in type_list
+            return self["device"].device_type in type_list
         else:
             for device in self["devices"]:
-                if device["type"] in type_list:
+                if device.device_type in type_list:
                     return True
         return False
 
@@ -398,8 +419,8 @@ class Wallet(dict):
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
         if self.fullbalance < amount:
-            return None
-        print (fee_unit)
+            raise SpecterError('The wallet does not have sufficient funds to make the transaction.')
+
         if fee_unit not in ["SAT_B", "BTC_KB"]:
             raise ValueError('Invalid bitcoin unit')
 
@@ -411,7 +432,7 @@ class Wallet(dict):
                 extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
                 b -= tx["amount"]
                 if b < 0:
-                    break;
+                    break
         elif selected_coins != []:
             still_needed = amount
             for coin in selected_coins:
@@ -421,7 +442,7 @@ class Wallet(dict):
                 extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
                 still_needed -= coin_amount
                 if still_needed < 0:
-                    break;
+                    break
             if still_needed > 0:
                 raise SpecterError("Selected coins does not cover Full amount! Please select more coins!")
 
@@ -430,7 +451,7 @@ class Wallet(dict):
         # empty array (subtract from change) or [0]
         subtract_arr = [0] if subtract else []
 
-        options = {   
+        options = {
             "includeWatching": True, 
             "changeAddress": self["change_address"],
             "subtractFeeFromOutputs": subtract_arr
@@ -453,6 +474,8 @@ class Wallet(dict):
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
+
+        # TODO: Move to Coldcard device class
         # adding xpub fields for coldcard
         cc_psbt = PSBT()
         cc_psbt.deserialize(b64psbt)
@@ -471,6 +494,7 @@ class Wallet(dict):
                 cc_psbt.unknown[key] = value
         psbt["coldcard"]=cc_psbt.serialize()
 
+        # TODO: Move to Specter device class
         # removing unnecessary fields for specter
         # to reduce size of the QR code
         qr_psbt = PSBT()
@@ -487,6 +511,8 @@ class Wallet(dict):
         psbt["specter"]=qr_psbt.serialize()
         print("PSBT for Specter:", psbt["specter"])
 
+
+        # TODO: Move into save_pending_psbt method
         self.cli.lockunspent(False, psbt["tx"]["vin"])
 
         if "pending_psbts" not in self:
@@ -500,6 +526,7 @@ class Wallet(dict):
 
         return psbt
 
+    # TODO: Move to Coldcard device class
     def get_cc_file(self):
         CC_TYPES = {
         'legacy': 'BIP45',

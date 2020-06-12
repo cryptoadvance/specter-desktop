@@ -127,10 +127,10 @@
 			<div class="hwi_container flex-column">
 				Sign transaction with your:<br/>
 				{% if not wallet.is_multisig %}
-					<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device }}</button>
+					<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device.name }}</button>
 				{% else %}
 					{% for device in wallet.devices %}
-						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 							<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{ 'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else '' }}>
 								{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
 							</button>
@@ -466,16 +466,16 @@
 				{% if not wallet.is_multisig %}
 					document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
 						e.preventDefault();
-						signTx(combine);
+						signTx(combine, '{{ wallet["device"].device_type }}');
 					});
 				{% else %}
 					{% for device in wallet.devices %}
-						{% if device.type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 							document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
 								e.preventDefault();
 								currentSigningDevice = "{{ device.name }}"
 								currentSigningDeviceNum = "{{ loop.index }}"
-								signTx(combine);
+								signTx(combine, '{{ device.device_type }}');
 							});
 						{% endif %}
 					{% endfor %}

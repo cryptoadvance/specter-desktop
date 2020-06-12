@@ -3,6 +3,7 @@ import requests
 import random, copy
 from collections import OrderedDict
 from threading import Thread
+from .devices.key import Key
 
 
 from functools import wraps
@@ -241,25 +242,25 @@ def new_wallet_simple():
             device_name = request.form['device']
         wallet_type = request.form['type']
         if action == 'device' and err is None:
-            dev = copy.deepcopy(app.specter.device_manager.devices[device_name])
+            device = copy.deepcopy(app.specter.device_manager.devices[device_name])
             prefix = "tpub"
             if app.specter.chain == "main":
                 prefix = "xpub"
-            allowed_types = [None, wallet_type]
-            dev["keys"] = [k for k in dev["keys"] if k["xpub"].startswith(prefix) and k["type"] in allowed_types]
+            allowed_types = ['', wallet_type]
+            device.keys = [key for key in device.keys if key.xpub.startswith(prefix) and key.key_type in allowed_types]
             pur = {
-                None: "General",
+                '': "General",
                 "wpkh": "Segwit (bech32)",
                 "sh-wpkh": "Nested Segwit",
                 "pkh": "Legacy",
             }
-            return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=dev, error=err, specter=app.specter, rand=rand)
+            return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, wallet_type=wallet_type, wallet_name=wallet_name, device=device, error=err, specter=app.specter, rand=rand)
         if action == 'key' and err is None:
             original_xpub = request.form['key']
             device = app.specter.device_manager.devices[device_name]
             key = None
-            for k in device["keys"]:
-                if k["original"] == original_xpub:
+            for k in device.keys:
+                if k.original == original_xpub:
                     key = k
                     break
             if key is None:
@@ -334,32 +335,33 @@ def new_wallet_multi():
             if len(cosigners) != sigs_total:
                 err = "Select all the cosigners"
             else:
-                devs = []
+                devices = []
                 prefix = "tpub"
                 if app.specter.chain == "main":
                     prefix = "xpub"
                 for k in cosigners:
-                    dev = copy.deepcopy(app.specter.device_manager.devices[k])
-                    dev["keys"] = [k for k in dev["keys"] if k["xpub"].startswith(prefix) and (k["type"] is None or k["type"] == wallet_type)]
-                    if len(dev["keys"]) == 0:
-                        err = "Device %s doesn't have keys matching this wallet type" % dev["name"]
-                    devs.append(dev)
+                    device = copy.deepcopy(app.specter.device_manager.devices[k])
+                    allowed_types = ['', wallet_type]
+                    device.keys = [key for key in device.keys if key.xpub.startswith(prefix) and key.key_type in allowed_types]
+                    if len(device.keys) == 0:
+                        err = "Device %s doesn't have keys matching this wallet type" % device.name
+                    devices.append(device)
                 return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
-                    cosigners=devs, keys=keys, sigs_required=sigs_required, 
+                    cosigners=devices, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
                     error=err, specter=app.specter, rand=rand)
         if action == 'key' and err is None:
             cosigners = []
-            devs = []
+            devices = []
             for i in range(sigs_total):
                 try:
                     key = request.form['key%d' % i]
                     cosigner_name = request.form['cosigner%d' % i]
                     cosigner = app.specter.device_manager.devices[cosigner_name]
                     cosigners.append(cosigner)
-                    for k in cosigner["keys"]:
-                        if k["original"] == key:
+                    for k in cosigner.keys:
+                        if k.original == key:
                             keys.append(k)
                             break
                 except:
@@ -368,14 +370,15 @@ def new_wallet_multi():
                 prefix = "tpub"
                 if app.specter.chain == "main":
                     prefix = "xpub"
-                for k in cosigners:
-                    dev = copy.deepcopy(k)
-                    dev["keys"] = [k for k in dev["keys"] if k["xpub"].startswith(prefix) and (k["type"] is None or k["type"] == wallet_type)]
-                    devs.append(dev)
-                err="Did you select all the keys?"
+                for cosigner in cosigners:
+                    device = copy.deepcopy(cosigner)
+                    allowed_types = ['', wallet_type]
+                    device.keys = [key for key in device.keys if key.xpub.startswith(prefix) and key.key_type in allowed_types]
+                    devices.append(device)
+                err = "Did you select all the keys?"
                 return render_template("wallet/new_wallet/new_wallet_keys.jinja", purposes=pur, 
                     wallet_type=wallet_type, wallet_name=wallet_name, 
-                    cosigners=devs, keys=keys, sigs_required=sigs_required, 
+                    cosigners=devices, keys=keys, sigs_required=sigs_required, 
                     sigs_total=sigs_total, 
                     error=err, specter=app.specter, rand=rand)
             # create a wallet here
@@ -629,24 +632,13 @@ def new_device():
         xpubs = request.form['xpubs']
         if not xpubs:
             err = "xpubs name must not be empty"
-        normalized, parsed, failed = normalize_xpubs(xpubs)
+        keys, failed = Key.parse_xpubs(xpubs)
         if len(failed) > 0:
             err = "Failed to parse these xpubs:\n" + "\n".join(failed)
         if err is None:
-            dev = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=normalized)
-            return redirect("/devices/%s/" % dev["alias"])
+            device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
+            return redirect("/devices/%s/" % device.alias)
     return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
-
-
-def get_key_meta(key):
-    k = copy.deepcopy(key)
-    k["chain"] = "Mainnet" if k["xpub"].startswith("xpub") else "Testnet"
-    k["purpose"] = purposes[k["type"]]
-    if k["derivation"] is not None:
-        k["combined"] = "[%s%s]%s" % (k["fingerprint"], k["derivation"][1:], k["xpub"])
-    else:
-        k["combined"] = k["xpub"]
-    return k
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required
@@ -663,23 +655,22 @@ def device(device_alias):
             return redirect("/")
         if action == "delete_key":
             key = request.form['key']
-            device.remove_key(key)
+            device.remove_key(Key.from_json({ 'original': key }))
         if action == "add_keys":
-            return render_template("device/new_device.jinja", device_alias=device_alias, device=device, device_type=device["type"], specter=app.specter, rand=rand)
+            return render_template("device/new_device.jinja", device=device, specter=app.specter, rand=rand)
         if action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
-            normalized, parsed, failed = normalize_xpubs(xpubs)
+            keys, failed = Key.parse_xpubs(xpubs)
             err = None
             if len(failed) > 0:
                 err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template("device/new_device.jinja", device_alias=device_alias, device=device, xpubs=xpubs, device_type=device["type"], error=err, specter=app.specter, rand=rand)
+                return render_template("device/new_device.jinja", device=device, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
             if err is None:
-                device.add_keys(normalized)
+                device.add_keys(keys)
     device = copy.deepcopy(device)
-    device["keys"] = [get_key_meta(key) for key in device["keys"]]
-    device["keys"].sort(key=lambda x: x["chain"]+x["purpose"], reverse=True)
-    return render_template("device/device.jinja", device_alias=device_alias, device=device, purposes=purposes, specter=app.specter, rand=rand)
+    device.keys.sort(key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True)
+    return render_template("device/device.jinja", device=device, purposes=purposes, specter=app.specter, rand=rand)
 
 
 
@@ -689,22 +680,7 @@ def device(device_alias):
 def timedatetime(s):
     return format(datetime.fromtimestamp(s), "%d.%m.%Y %H:%M")
 
-@app.template_filter('derivation')
-def derivation(wallet):
-    s = "address=m/0/{}\n".format(wallet['address_index'])
-    if wallet.is_multisig:
-        s += "type={}".format(MSIG_TYPES[wallet['address_type']])
-        for k in wallet['keys']:
-            s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
-    else:
-        s += "type={}".format(SINGLE_TYPES[wallet['address_type']])
-        k = wallet['key']
-        s += "\n{}{}".format(k['fingerprint'], k['derivation'][1:])
-    return s
-
 @app.template_filter('btcamount')
 def btcamount(value):
     value = float(value)
     return "{:.8f}".format(value).rstrip("0").rstrip(".")
-
-    

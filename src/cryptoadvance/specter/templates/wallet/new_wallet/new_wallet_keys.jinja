@@ -2,7 +2,7 @@
 {% block main %}
 	<div class="spacer"></div>
 	{% if device %}
-		<h1>Select the {{device["name"] }}'s key to use in {{wallet_name}}.</h1>
+		<h1>Select the {{device.name }}'s key to use in {{wallet_name}}.</h1>
 	{% else %}
 		<h1>Select the key of devices to use in {{wallet_name}}.</h1>
 	{% endif %}
@@ -32,17 +32,17 @@
 		<input type="hidden" name="type" value="{{ wallet_type }}">
 		{% if cosigners %}
 			{% for cosigner in cosigners %}
-				<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner['name'] }}"/>
+				<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner.name }}"/>
 			{% endfor %}
 			<input type="hidden" name="sigs_required" value="{{ sigs_required }}">
 			<input type="hidden" name="sigs_total" value="{{ sigs_total }}">
 		{% else %}
-			<input type="hidden" name="device" value="{{ device['name'] }}">
+			<input type="hidden" name="device" value="{{ device.name }}">
 		{% endif %}
 		{% for device in ([device] if not cosigners else cosigners)  %}
-			<h1>Signer {{ loop.index }} - {{device["name"]}}</h1>
+			<h1>Signer {{ loop.index }} - {{ device.name }}</h1>
 			{% set outer_loop = loop %}
-			{% if device["keys"] | length > 0 %}
+			{% if device.keys | length > 0 %}
 				<div class="table-holder">
 					<table>
 						<thead>
@@ -55,27 +55,27 @@
 							</tr>
 						</thead>
 						<tbody>
-							{% for key in device["keys"] %}
+							{% for key in device.keys %}
 								<tr>
 									<td>
 										{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-										{% if key["xpub"].startswith("xpub") %}
+										{% if key.xpub.startswith("xpub") %}
 											{{ bitcoin_svg('main', 16) }} Main
 										{% else %}
 											{{ bitcoin_svg('test', 16) }} Test
 										{% endif %}
 									</td>
-									<td>{{ purposes[key["type"]] }}</td>
-									<td>{{ key["derivation"] }}</td>
-									<td class="scroll xpub"><span>{{key["original"]}}</span></td>
+									<td>{{ purposes[key.key_type] }}</td>
+									<td>{{ key.derivation }}</td>
+									<td class="scroll xpub"><span>{{ key.original }}</span></td>
 									<td width="120px">
 										{% if cosigners %}
 											<label>
-												<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key['original'] }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
+												<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
 												<div class="btn inline hovering">Use this key</div>
 											</label>
 										{% else %}
-											<input type="hidden" name="key" value="{{ key['original'] }}">
+											<input type="hidden" name="key" value="{{ key.original }}">
 											<button type="submit" name="action" value="key" class="btn hovering action">Use this key</button>
 										{% endif %}
 									</td>

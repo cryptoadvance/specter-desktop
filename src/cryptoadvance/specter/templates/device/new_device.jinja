@@ -2,7 +2,7 @@
 {% block main %}
 	{% include "includes/hwi/hwi.jinja" %}
 	{% if device %}
-		<h1>Adding keys to {{ device["name"] }}</h1>
+		<h1>Adding keys to {{ device.name }}</h1>
 	{% else %}
 		<h1>Setting up a new device</h1>
 	{% endif %}

@@ -100,12 +100,18 @@ class Specter:
             self._info["chain"] = None
 
         chain = self._info["chain"]
+        if self.device_manager is None:
+            self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices"))
+        else:
+            self.device_manager.update()
+
         if self.wallet_manager is None or chain is None:
             wallets_path = "specter%s" % self.config["uid"]
             self.wallet_manager = WalletManager(
                 os.path.join(self.data_folder, "wallets"), 
                 self.cli, 
-                chain=chain,
+                chain,
+                self.device_manager,
                 path=wallets_path
             )
         else:
@@ -114,11 +120,6 @@ class Specter:
                 self.cli, 
                 chain=chain
             )
-
-        if self.device_manager is None:
-            self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices"))
-        else:
-            self.device_manager.update(os.path.join(self.data_folder, "devices"))
 
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])

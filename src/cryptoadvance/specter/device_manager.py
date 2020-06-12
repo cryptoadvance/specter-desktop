@@ -1,5 +1,5 @@
 import os, json, logging
-from .device import Device
+from .devices.device import Device
 from .helpers import alias, load_jsons
 
 
@@ -11,10 +11,6 @@ class DeviceManager:
     '''
     # of them via json-files in an empty data folder
     def __init__(self, data_folder):
-        self.update(data_folder)
-
-    def update(self, data_folder=None):
-        self.devices = {}
         if data_folder is not None:
             self.data_folder = data_folder
             if data_folder.startswith("~"):
@@ -22,40 +18,51 @@ class DeviceManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
+        self.update()
+
+    def update(self):
+        self.devices = {}
         devices_files = load_jsons(self.data_folder, key="name")
-        for device in devices_files:
-            self.devices[devices_files[device]["name"]] = (Device(devices_files[device], manager=self))
+        for device_alias in devices_files:
+            fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
+            self.devices[devices_files[device_alias]["name"]] = Device.from_json(
+                devices_files[device_alias],
+                self,
+                default_alias=device_alias,
+                default_fullpath=fullpath
+            )
     
     @property
     def devices_names(self):
         return sorted(self.devices.keys())
 
     def add_device(self, name, device_type, keys):
-        device = {
-            "name": name,
-            "type": device_type,
-            "keys": []
-        }
-        fname = alias(name)
+        device_alias = alias(name)
+        fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
         i = 2
-        while os.path.isfile(os.path.join(self.data_folder, "%s.json" % fname)):
-            fname = alias("%s %d" % (name, i))
-            i+=1
+        while os.path.isfile(fullpath):
+            device_alias = alias("%s %d" % (name, i))
+            fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
+            i += 1
+        # remove duplicated keys if any exist
+        non_dup_keys = []
+        for key in keys:
+            if key not in non_dup_keys:
+                non_dup_keys.append(key)
+        keys = non_dup_keys
+        device = Device(name, device_alias, device_type, keys, fullpath, self)
+        with open(fullpath, "w") as file:
+            file.write(json.dumps(device.json, indent=4))
 
-        for k in keys:
-            if k["original"] not in [k["original"] for k in device["keys"]]:
-                device["keys"].append(k)
-        with open(os.path.join(self.data_folder, "%s.json" % fname), "w") as f:
-            f.write(json.dumps(device, indent=4))
         self.update() # reload files
-        return self.devices[name]
+        return device
 
-    def get_by_alias(self, fname):
+    def get_by_alias(self, device_alias):
         for device_name in self.devices:
-            if self.devices[device_name]["alias"] == fname:
+            if self.devices[device_name].alias == device_alias:
                 return self.devices[device_name]
-        logger.error("Could not find Device %s" % fname)
+        logger.error("Could not find Device %s" % device_alias)
 
     def remove_device(self, device):
-        os.remove(device["fullpath"])
+        os.remove(device.fullpath)
         self.update()

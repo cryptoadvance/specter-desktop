@@ -12,29 +12,31 @@
 
 	<script>
 		function displayAddressOnDevice() {
-			beginDetectWallet("{{ wallet.device_type }}");
-			document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
-				e.preventDefault();
-				document.getElementById("hwi_device_name").textContent = '{{ wallet.device_type | capitalize }}';
-				showPageOverlay(HWI_POPUPS.DISPLAY_ADDRESS);
+			{% if 'device' in wallet %}
+				beginDetectWallet("{{ wallet['device'].device_type }}");
+				document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
+					e.preventDefault();
+					document.getElementById("hwi_device_name").textContent = '{{ wallet.device.device_type | capitalize }}';
+					showPageOverlay(HWI_POPUPS.DISPLAY_ADDRESS);
 
-				let result = await hwiSendCommand('display_address', {
-					device_type: hwiCurrentWallet.type,
-					path: hwiCurrentWallet.path,
-					passphrase: hwiWalletPassphrase,
-					descriptor: "{{ wallet['recv_descriptor'].replace('*', wallet['address_index'] | string).split('#')[0] }}",
-				});
+					let result = await hwiSendCommand('display_address', {
+						device_type: hwiCurrentWallet.type,
+						path: hwiCurrentWallet.path,
+						passphrase: hwiWalletPassphrase,
+						descriptor: "{{ wallet['recv_descriptor'].replace('*', wallet['address_index'] | string).split('#')[0] }}",
+					});
 
-				if (result.success) {
-					if ("{{ wallet['address'] }}" != result.data &&
-						(("{{ specter.chain }}" != "regtest" || !result.data.startsWith("tb")) ||
-						"{{ wallet['address'] }}".slice(0, -6) != "bcrt" + result.data.slice(2, -6))
-					) {
-						alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+					if (result.success) {
+						if ("{{ wallet['address'] }}" != result.data &&
+							(("{{ specter.chain }}" != "regtest" || !result.data.startsWith("tb")) ||
+							"{{ wallet['address'] }}".slice(0, -6) != "bcrt" + result.data.slice(2, -6))
+						) {
+							alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+						}
 					}
-				}
-				hidePageOverlay();
-			});
+					hidePageOverlay();
+				});
+			{% endif %}
 		}
 	</script>
 {% endif %}
