@@ -67,7 +67,7 @@ def combine(wallet_alias):
 @login_required
 def broadcast(wallet_alias):
     try:
-        wallet = app.specter.wallets.get_by_alias(wallet_alias)
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while broadcast: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
