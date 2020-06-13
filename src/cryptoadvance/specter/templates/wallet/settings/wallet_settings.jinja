@@ -3,7 +3,7 @@
 {% block content %}<br>
 	<h1>Keypool control</h1>
 	<form action="." method="POST" class="padded" style="width: 500px">
-		<div>Currently watching {{ wallet["keypool"] }} receiving and {{ wallet["change_keypool"] }} change addresses.<div>
+		<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.<div>
 		<div class="row aligned">
 			<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
 			<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
@@ -51,7 +51,7 @@
 	{% if wallet.is_multisig %}
 		<div>
 		{% if cc_file %}
-			<a download="{{wallet['name']}}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered padded">Download ColdCard file</a>
+			<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered padded">Download ColdCard file</a>
 		{% else %}
 			<div class="note">Coldcard file is unavailable - we don't have enough information to generate it</div>
 		{% endif %}

@@ -60,7 +60,7 @@
 		<div class="tx_info">
 			
 			<div>Sending <b>{{ psbt["amount"] | btcamount }}</b> BTC to<b>
-				{{ explorer_link('address', psbt['address'], wallet.getaddressname(psbt["address"], -1), specter.explorer) }}
+				{{ explorer_link('address', psbt['address'], wallet.get_address_name(psbt["address"], -1), specter.explorer) }}
 				</b><br><br>
 			</div>
 
@@ -126,17 +126,13 @@
 		{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 			<div class="hwi_container flex-column">
 				Sign transaction with your:<br/>
-				{% if not wallet.is_multisig %}
-					<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn">{{ wallet.device.name }}</button>
-				{% else %}
-					{% for device in wallet.devices %}
-						{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
-							<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{ 'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else '' }}>
-								{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
-							</button>
-						{% endif %}
-					{% endfor %}
-				{% endif %}
+				{% for device in wallet.devices %}
+					{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						<button type="button" class="btn hwi-column-btn" id="hwi_sign_btn_{{ loop.index }}" {{ 'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else '' }}>
+							{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+						</button>
+					{% endif %}
+				{% endfor %}
 			</div>
 		{% endif %}
 
@@ -463,23 +459,17 @@
 		// ================== Signers various device support ==================
 		{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 			document.addEventListener("DOMContentLoaded", function() {
-				{% if not wallet.is_multisig %}
-					document.getElementById("hwi_sign_btn").addEventListener("click", async function(e) {
-						e.preventDefault();
-						signTx(combine, '{{ wallet["device"].device_type }}');
-					});
-				{% else %}
-					{% for device in wallet.devices %}
-						{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
-							document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
-								e.preventDefault();
-								currentSigningDevice = "{{ device.name }}"
-								currentSigningDeviceNum = "{{ loop.index }}"
-								signTx(combine, '{{ device.device_type }}');
-							});
-						{% endif %}
-					{% endfor %}
-				{% endif %}
+				// TODO: Make sure this works for single sig too
+				{% for device in wallet.devices %}
+					{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
+						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {
+							e.preventDefault();
+							currentSigningDevice = "{{ device.name }}"
+							currentSigningDeviceNum = "{{ loop.index }}"
+							signTx(combine, '{{ device.device_type }}');
+						});
+					{% endif %}
+				{% endfor %}
 			});
 		{% endif %}
 

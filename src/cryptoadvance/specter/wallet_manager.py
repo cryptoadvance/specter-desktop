@@ -4,7 +4,7 @@ from .descriptor import AddChecksum
 from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
-from .wallet import Wallet
+from .wallets.wallet import Wallet
 
 
 logger = logging.getLogger(__name__)
@@ -36,13 +36,13 @@ class WalletManager:
         self.cli = cli
         self.cli_path = path
         self.device_manager = device_manager
-        # try:
-        # except Exception as e:
-        #     logger.error("can't load wallets: %s " % e)
-        # self.load_all()
+        self.is_loading = False
         self.update(data_folder, cli, chain)
 
     def update(self, data_folder=None, cli=None, chain=None):
+        if self.is_loading:
+            return
+        self.is_loading = True
         if chain is not None:
             self.chain = chain
         if data_folder is not None:
@@ -74,22 +74,23 @@ class WalletManager:
                         try:
                             logger.debug("loading %s " % wallets_files[wallet]["alias"])
                             self.cli.loadwallet(os.path.join(self.cli_path, wallet_alias))
-                            self.wallets[wallet_name] = Wallet(wallets_files[wallet], self.device_manager, manager=self)
+                            self.wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
                             # Lock UTXO of pending PSBTs
-                            if "pending_psbts" in self.wallets[wallet_name] and len(self.wallets[wallet_name]["pending_psbts"]) > 0:
-                                for psbt in self.wallets[wallet_name]["pending_psbts"]:
-                                    logger.debug("lock %s " % wallet_alias, self.wallets[wallet_name]["pending_psbts"][psbt]["tx"]["vin"])
-                                    self.wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in self.wallets[wallet_name]["pending_psbts"][psbt]["tx"]["vin"]])
+                            if len(self.wallets[wallet_name].pending_psbts) > 0:
+                                for psbt in self.wallets[wallet_name].pending_psbts:
+                                    logger.debug("lock %s " % wallet_alias, self.wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"])
+                                    self.wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in self.wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"]])
                         except RpcError:
                             logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
                     elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
-                        self.wallets[wallet_name] = Wallet(wallets_files[wallet], self.device_manager, manager=self)
+                        self.wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
                 else:
                     logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
+        self.is_loading = False
 
     def get_by_alias(self, alias):
         for wallet_name in self.wallets:
-            if self.wallets[wallet_name]["alias"] == alias:
+            if self.wallets[wallet_name].alias == alias:
                 return self.wallets[wallet_name]
         raise SpecterError("Wallet %s does not exist!" % alias)
 
@@ -108,25 +109,26 @@ class WalletManager:
             "alias": al,
             "fullpath": os.path.join(self.working_folder, "%s.json" % al),
             "name": name,
-            "address_index": 0,
+            "address_index": -1,
             "keypool": 0,
-            "address": None,
-            "change_index": 0,
-            "change_address": None,
+            "address": '',
+            "change_index": -1,
+            "change_address": '',
             "change_keypool": 0,
             "pending_psbts": {}
         }
         return dic
 
+    # TODO: Refactor wallet creation. Maybe...
     def _create_wallet(self, wallet_dict):
         self.cli.createwallet(os.path.join(self.cli_path, wallet_dict["alias"]), True)
         # add wallet to internal dict
-        self.wallets[wallet_dict["name"]] = Wallet(wallet_dict, self.device_manager, manager=self)
+        self.wallets[wallet_dict["name"]] = Wallet.from_json(wallet_dict, self.device_manager, self)
         # save wallet file to disk
         if self.working_folder is not None:
             self.wallets[wallet_dict["name"]].save_to_file()
         # get Wallet class instance
-        return Wallet(wallet_dict, self.device_manager, manager=self)
+        return self.wallets[wallet_dict["name"]]
 
     def create_simple(self, name, key_type, key, device):
         wallet = self._get_initial_wallet_dict(name)
@@ -142,15 +144,17 @@ class WalletManager:
         wallet.update({
             "type": "simple", 
             "description": purposes[key_type],
-            "key": key.json,
+            "sigs_required": 1,
+            "keys": [key.json],
             "recv_descriptor": recv_desc,
             "change_descriptor": change_desc,
-            "device": device,
+            "devices": [device],
             "address_type": addrtypes[key_type],
         })
 
         return self._create_wallet(wallet)
 
+    # TODO: Refactor to sorted descriptor
     def create_multi(self, name, sigs_required, key_type, keys, devices):
         wallet = self._get_initial_wallet_dict(name)
         # TODO: refactor, ugly
@@ -158,8 +162,8 @@ class WalletManager:
         descs = [key.metadata['combined'] for key in keys]
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
-        recv_desc = "multi({},{})".format(sigs_required, ",".join(recv_descs))
-        change_desc = "multi({},{})".format(sigs_required, ",".join(change_descs))
+        recv_desc = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
+        change_desc = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
         for el in arr[::-1]:
             recv_desc = "%s(%s)" % (el, recv_desc)
             change_desc = "%s(%s)" % (el, change_desc)
@@ -179,19 +183,19 @@ class WalletManager:
         return self._create_wallet(wallet)
 
     def delete_wallet(self, wallet):
-        logger.info("Deleting {}".format(wallet["alias"]))
-        self.cli.unloadwallet(os.path.join(self.cli_path,wallet["alias"]))
+        logger.info("Deleting {}".format(wallet.alias))
+        self.cli.unloadwallet(os.path.join(self.cli_path, wallet.alias))
         # Try deleting wallet file
-        if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), os.path.join(self.cli_path,wallet["alias"]))):
-            shutil.rmtree(os.path.join(get_default_datadir(), os.path.join(self.cli_path,wallet["alias"])))
+        if get_default_datadir() and os.path.exists(os.path.join(get_default_datadir(), os.path.join(self.cli_path, wallet.alias))):
+            shutil.rmtree(os.path.join(get_default_datadir(), os.path.join(self.cli_path, wallet.alias)))
         # Delete JSON
-        if os.path.exists(wallet["fullpath"]):
-            os.remove(wallet["fullpath"])
+        if os.path.exists(wallet.fullpath):
+            os.remove(wallet.fullpath)
         self.update()
 
     def rename_wallet(self, wallet, name):
-        logger.info("Renaming {}".format(wallet["alias"]))
-        wallet["name"] = name
+        logger.info("Renaming {}".format(wallet.alias))
+        wallet.name = name
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()

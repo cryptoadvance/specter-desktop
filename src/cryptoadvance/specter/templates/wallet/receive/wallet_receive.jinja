@@ -19,12 +19,12 @@
 
 	<div class="center">
 	<form action="./" method="POST">
-		{% set address_label = wallet.getaddressname(wallet['address'], wallet['address_index']) %}
+		{% set address_label = wallet.get_address_name(wallet.address, wallet.address_index) %}
 		{% from 'wallet/components/editable_label.jinja' import editable_label %}
 		{{ editable_label(address_label, -1) }}
 	</form><br><br>
 
-	<qr-code value="{{'bitcoin:'+wallet['address']+'?index='+(wallet['address_index']|string) }}" width="256"></qr-code>
+	<qr-code value="{{'bitcoin:' + wallet.address + '?index='+(wallet.address_index | string) }}" width="256"></qr-code>
 
 	<br>
 	<div class="note">
@@ -33,11 +33,11 @@
 			It has an address index included in the QR code.
 		</center>
 	</div>
-	<div class="padded">{{wallet['address']}}</div>
+	<div class="padded">{{ wallet.address }}</div>
 	</div>
 	<form action="./" method="POST">
 		<button type="submit" name="action" value="newaddress" class="btn centered">Get new address</button>&nbsp;
-		{% if wallet['type'] == 'simple' %}
+		{% if not wallet.is_multisig %}
 			<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display Address on Device</button>&nbsp; &nbsp; &nbsp;
 		{% endif %}
 	</form>

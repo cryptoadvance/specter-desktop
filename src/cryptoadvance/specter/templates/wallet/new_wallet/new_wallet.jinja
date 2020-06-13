@@ -52,7 +52,7 @@
 				{% endif %} multisig
 				<input type="hidden" name="cosigner_index" value="{{ cosigner_index }}"/>
 				{% for cosigner in cosigners %}
-					<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner }}"/>
+					<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner.alias }}"/>
 				{% endfor %}
 			</div>
 			<br>
@@ -64,7 +64,7 @@
 		<div class="row overflow">
 			{% for device_name in specter.device_manager.devices_names %}
 				<label>
-					<input type="{{ 'checkbox' if sigs_total else 'radio' }}" name="{{ 'devices' if sigs_total else 'device' }}" value="{{ device_name }}" class="hidden">
+					<input type="{{ 'checkbox' if sigs_total else 'radio' }}" name="{{ 'devices' if sigs_total else 'device' }}" value="{{ specter.device_manager.devices[device_name].alias }}" class="hidden">
 					<div class="small-card radio">
 						{% if specter.device_manager.devices[device_name]['type'] in ['specter', 'coldcard', 'trezor', 'ledger'] %}
 							<img src="/static/img/{{ specter.device_manager.devices[device_name]['type'] }}_icon.svg" width="18px">

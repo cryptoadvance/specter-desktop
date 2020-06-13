@@ -1,7 +1,7 @@
 import os
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.wallets.wallet import Wallet
 from cryptoadvance.specter.wallet_manager import WalletManager
 
 
@@ -27,7 +27,6 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     wallet.cli.generatetoaddress(100, random_address)
     # a balance has properties which are caching the result from last call
     assert wallet.fullbalance == 50
-    assert wallet.getbalance() == 50
    
     # You can create a multisig wallet with the wallet manager like this
     second_device = device_manager.get_by_alias('specter')
@@ -46,12 +45,12 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
 
     # You can rename a wallet using the wallet manager using `rename_wallet`, passing the wallet object and the new name to assign to it
     wm.rename_wallet(multisig_wallet, 'new_name_test_wallet')
-    assert multisig_wallet['name'] == 'new_name_test_wallet'
+    assert multisig_wallet.name == 'new_name_test_wallet'
     assert wm.wallets_names == ['a_test_wallet', 'new_name_test_wallet']
     
     # you can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
     # it will delete the json and attempt to remove it from Bitcoin Core
-    wallet_fullpath = multisig_wallet['fullpath']
+    wallet_fullpath = multisig_wallet.fullpath
     assert os.path.exists(wallet_fullpath)
     wm.delete_wallet(multisig_wallet)
     assert not os.path.exists(wallet_fullpath)

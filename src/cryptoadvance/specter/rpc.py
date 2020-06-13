@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
     ##### WORKING WITH WALLETS #########
 
-    print(cli.getbalance(wallet=""))
+    # print(cli.getbalance(wallet=""))
 
     # or
 
