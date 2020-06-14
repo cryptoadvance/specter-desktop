@@ -459,7 +459,6 @@
 		// ================== Signers various device support ==================
 		{% if wallet.uses_hwi_device and 'raw' not in psbt %}
 			document.addEventListener("DOMContentLoaded", function() {
-				// TODO: Make sure this works for single sig too
 				{% for device in wallet.devices %}
 					{% if device.device_type in ['coldcard', 'keepkey', 'ledger', 'trezor', 'specter'] %}
 						document.getElementById("hwi_sign_btn_{{ loop.index }}").addEventListener("click", async function(e) {

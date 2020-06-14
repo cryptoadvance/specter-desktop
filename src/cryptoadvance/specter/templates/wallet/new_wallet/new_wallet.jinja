@@ -42,8 +42,8 @@
 				<label>
 					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ specter.device_manager.devices[device_name].alias }}" class="hidden">
 					<div class="small-card radio">
-						{% if specter.device_manager.devices[device_name]['type'] in ['specter', 'coldcard', 'trezor', 'ledger'] %}
-							<img src="/static/img/{{ specter.device_manager.devices[device_name]['type'] }}_icon.svg" width="18px">
+						{% if specter.device_manager.devices[device_name].device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+							<img src="/static/img/{{ specter.device_manager.devices[device_name].device_type }}_icon.svg" width="18px">
 						{% else %}
 							<img src="/static/img/other_icon.svg" width="18px">
 						{% endif %}
@@ -58,7 +58,6 @@
 			<center>
 				{% if wallet_type == 'multisig' %}
 					We use sorted multisig (BIP-67), so <b>order is NOT important.</b><br>
-				{# TODO: Maybe show this also for multisig creation??? #}
 				{% else %}
 					On the next page we will ask you to choose the keys.
 				{% endif %}

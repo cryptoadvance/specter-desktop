@@ -511,7 +511,7 @@ class Wallet():
 
         return psbt
 
-    # TODO: Move to Coldcard device class
+    # TODO: Move to Coldcard class(?)
     def get_cc_file(self):
         CC_TYPES = {
         'legacy': 'BIP45',
