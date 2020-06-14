@@ -1,5 +1,8 @@
+import logging
 from .rpc import BitcoinCLI, RpcError
 from .corecache import CoreCache
+
+logger = logging.getLogger(__name__)
 
 class BitcoinCLICached:
     def __init__(self, user="", passwd="", host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, cli=None, **kwargs):
@@ -37,6 +40,14 @@ class BitcoinCLICached:
     @property
     def url(self):
         return self.cli.url
+
+    @property
+    def passwd(self):
+        return self.cli.passwd
+
+    @passwd.setter
+    def passwd(self,value):
+        self.cli.passwd = value
 
     def test_connection(self):
         return self.cli.test_connection()
