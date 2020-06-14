@@ -37,7 +37,6 @@ class Wallet():
     ):
         self.name = name
         self.alias = alias
-        # TODO: Wallet description is unnecessary, consider removing
         self.description = description
         self.address_type = address_type
         self.address = address
@@ -396,14 +395,14 @@ class Wallet():
 
     # NOTE: Only needed for QR (should be moved)
     @property
-    def descriptor(self):
+    def qr_descriptor(self):
         return self.recv_descriptor.split("#")[0].replace("/0/*", "")
 
     # NOTE: Only needed for QR (should be moved)
     @property
     def fingerprint(self):
         """ Unique fingerprint of the wallet - first 4 bytes of hash160 of its descriptor """
-        h256 = hashlib.sha256(self.descriptor.encode()).digest()
+        h256 = hashlib.sha256(self.qr_descriptor.encode()).digest()
         h160 = hashlib.new('ripemd160', h256).digest()
         return h160[:4]
 
@@ -485,42 +484,12 @@ class Wallet():
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
 
-        # TODO: Move to Coldcard device class
-        # adding xpub fields for coldcard
-        cc_psbt = PSBT()
-        cc_psbt.deserialize(b64psbt)
-        if self.is_multisig:
-            for k in self.keys:
-                key = b'\x01' + decode_base58(k.xpub)
-                if k.fingerprint != '':
-                    fingerprint = bytes.fromhex(k.fingerprint)
-                else:
-                    fingerprint = get_xpub_fingerprint(k.xpub)
-                if k.derivation != '':
-                    der = der_to_bytes(k.derivation)
-                else:
-                    der = b''
-                value = fingerprint + der
-                cc_psbt.unknown[key] = value
-        psbt["coldcard"] = cc_psbt.serialize()
+        if self.uses_sdcard_device:
+            psbt["sdcard"] = Device.create_sdcard_psbt(b64psbt, self.keys)
 
-        # TODO: Move to Specter device class
-        # removing unnecessary fields for specter
-        # to reduce size of the QR code
-        qr_psbt = PSBT()
-        qr_psbt.deserialize(b64psbt)
-        for inp in qr_psbt.inputs + qr_psbt.outputs:
-            inp.witness_script = b""
-            inp.redeem_script = b""
-            if len(inp.hd_keypaths) > 0:
-                k = list(inp.hd_keypaths.keys())[0]
-                # proprietary field - wallet derivation path
-                # only contains two last derivation indexes - change and index
-                inp.unknown[b"\xfc\xca\x01" + self.fingerprint] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
-                inp.hd_keypaths = {}
-        psbt["specter"] = qr_psbt.serialize()
+        if self.uses_qrcode_device:
+            psbt["qrcode"] = Device.create_qrcode_psbt(b64psbt, self.fingerprint)
 
-        # TODO: Move into save_pending_psbt method
         psbt["amount"] = amount
         psbt["address"] = address
         psbt["time"] = time()

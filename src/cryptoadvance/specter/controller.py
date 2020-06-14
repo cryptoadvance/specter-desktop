@@ -14,8 +14,6 @@ from flask_login.config import EXEMPT_METHODS
 
 
 from .helpers import get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel
-from .descriptor import AddChecksum
-
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -572,7 +570,7 @@ def wallet_settings(wallet_alias):
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
     cc_file = None
-    qr_text = wallet.name + "&" + wallet.descriptor
+    qr_text = wallet.name + "&" + wallet.qr_descriptor
     if wallet.is_multisig:
         cc_file = wallet.get_cc_file()
         if cc_file is not None:

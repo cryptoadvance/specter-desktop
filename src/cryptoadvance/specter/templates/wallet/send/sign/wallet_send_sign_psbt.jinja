@@ -151,7 +151,7 @@
 
 			<div class="row" style="min-height: 400px;">
 				<span id="compressed_psbt">
-					<qr-code class='center' value="{{psbt['specter']}}" width="400"></qr-code>
+					<qr-code class='center' value="{{psbt['qrcode']}}" width="400"></qr-code>
 				</span>
 				<span id="full_psbt" style="display: none">
 					<qr-code class='center' value="{{psbt['base64']}}" width="400"></qr-code>
@@ -174,13 +174,13 @@
 			});
 			</script>
 			<!-- because coldcard psbt is the most complete (includes xpubs) -->
-			<div class="log"><code><pre>{{psbt['coldcard']}}</pre></code></div>
+			<div class="log"><code><pre>{{ psbt['sdcard'] }}</pre></code></div>
 		{% endif %}
 
 		{# Sign with ColdCard SD card #}
 		{% if wallet.uses_sdcard_device %}
 			<div>
-				<a class="btn centered" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64,{{psbt['coldcard']}}">Download transaction</a>
+				<a class="btn centered" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64,{{psbt['sdcard']}}">Download transaction</a>
 			</div>
 			<br>
 		{% endif %}

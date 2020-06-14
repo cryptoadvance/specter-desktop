@@ -1,4 +1,6 @@
 import json
+from ..helpers import decode_base58, hash160
+from ..serializations import PSBT
 from .key import Key
 
 
@@ -51,3 +53,60 @@ class Device:
             if key not in self.keys:
                 self.keys.append(key)
         self._update_keys()
+
+    @staticmethod
+    def create_sdcard_psbt(base64_psbt, keys):
+        sdcard_psbt = PSBT()
+        sdcard_psbt.deserialize(base64_psbt)
+        if len(keys) > 1:
+            for k in keys:
+                key = b'\x01' + decode_base58(k.xpub)
+                if k.fingerprint != '':
+                    fingerprint = bytes.fromhex(k.fingerprint)
+                else:
+                    fingerprint = _get_xpub_fingerprint(k.xpub)
+                if k.derivation != '':
+                    der = _der_to_bytes(k.derivation)
+                else:
+                    der = b''
+                value = fingerprint + der
+                sdcard_psbt.unknown[key] = value
+        return sdcard_psbt.serialize()
+
+    @staticmethod
+    def create_qrcode_psbt(base64_psbt, fingerprint):
+        qr_psbt = PSBT()
+        qr_psbt.deserialize(base64_psbt)
+        for inp in qr_psbt.inputs + qr_psbt.outputs:
+            inp.witness_script = b""
+            inp.redeem_script = b""
+            if len(inp.hd_keypaths) > 0:
+                k = list(inp.hd_keypaths.keys())[0]
+                # proprietary field - wallet derivation path
+                # only contains two last derivation indexes - change and index
+                inp.unknown[b"\xfc\xca\x01" + fingerprint] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
+                inp.hd_keypaths = {}
+        return qr_psbt.serialize()
+
+
+def _get_xpub_fingerprint(xpub):
+    b = decode_base58(xpub)
+    return hash160(b[-33:])[:4]
+
+def _der_to_bytes(derivation):
+    items = derivation.split("/")
+    if len(items) == 0:
+        return b''
+    if items[0] == 'm':
+        items = items[1:]
+    if items[-1] == '':
+        items = items[:-1]
+    res = b''
+    for item in items:
+        index = 0
+        if item[-1] == 'h' or item[-1] == "'":
+            index += 0x80000000
+            item = item[:-1]
+        index += int(item)
+        res += index.to_bytes(4,'big')
+    return res

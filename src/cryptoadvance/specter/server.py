@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager, login_user
 
-from .descriptor import AddChecksum
 from .helpers import hwi_get_config
 from .specter import Specter
 from .hwi_server import hwi_server
