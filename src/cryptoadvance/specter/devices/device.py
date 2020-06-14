@@ -54,6 +54,13 @@ class Device:
                 self.keys.append(key)
         self._update_keys()
 
+    def wallets(self, wallet_manager):
+        wallets = []
+        for wallet in wallet_manager.wallets.values():
+            if self in wallet.devices:
+                wallets.append(wallet)
+        return wallets
+
     @staticmethod
     def create_sdcard_psbt(base64_psbt, keys):
         sdcard_psbt = PSBT()
@@ -87,6 +94,12 @@ class Device:
                 inp.unknown[b"\xfc\xca\x01" + fingerprint] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
                 inp.hd_keypaths = {}
         return qr_psbt.serialize()
+
+    def __eq__(self, other):
+        return self.alias == other.alias
+
+    def __hash__(self):
+        return hash(self.alias)
 
 
 def _get_xpub_fingerprint(xpub):

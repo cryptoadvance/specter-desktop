@@ -620,15 +620,20 @@ def new_device():
 @login_required
 def device(device_alias):
     app.specter.check()
+    err = None
     try:
         device = app.specter.device_manager.get_by_alias(device_alias)
     except:
         return render_template("base.jinja", error="Device not found", specter=app.specter, rand=rand)
+    wallets = device.wallets(app.specter.wallet_manager)
     if request.method == 'POST':
         action = request.form['action']
         if action == "forget":
-            app.specter.device_manager.remove_device(device)
-            return redirect("/")
+            if len(wallets) != 0:
+                err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format([wallet.name for wallet in wallets])
+            else:
+                app.specter.device_manager.remove_device(device)
+                return redirect("/")
         if action == "delete_key":
             key = request.form['key']
             device.remove_key(Key.from_json({ 'original': key }))
@@ -646,7 +651,7 @@ def device(device_alias):
                 device.add_keys(keys)
     device = copy.deepcopy(device)
     device.keys.sort(key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True)
-    return render_template("device/device.jinja", device=device, purposes=purposes, specter=app.specter, rand=rand)
+    return render_template("device/device.jinja", device=device, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
 
 
 
