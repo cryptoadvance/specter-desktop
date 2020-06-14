@@ -4,7 +4,7 @@ from .descriptor import AddChecksum
 from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
-from .wallets.wallet import Wallet
+from .wallet import Wallet
 
 
 logger = logging.getLogger(__name__)

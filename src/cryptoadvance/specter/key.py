@@ -1,5 +1,5 @@
-from ..helpers import decode_base58, encode_base58_checksum
 from collections import OrderedDict
+from .helpers import decode_base58, encode_base58_checksum
 
 
 purposes = OrderedDict({

@@ -1,11 +1,11 @@
 import copy, hashlib, json, logging, os
 from time import time
-from ..descriptor import AddChecksum
-from ..devices.device import Device
-from ..devices.key import Key
-from ..helpers import decode_base58, der_to_bytes, get_xpub_fingerprint
-from ..serializations import PSBT
-from ..specter_error import SpecterError
+from .descriptor import AddChecksum
+from .device import Device
+from .key import Key
+from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint
+from .serializations import PSBT
+from .specter_error import SpecterError
 
 
 # a gap of 20 addresses is what many wallets do

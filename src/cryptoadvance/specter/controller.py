@@ -3,7 +3,7 @@ import requests
 import random, copy
 from collections import OrderedDict
 from threading import Thread
-from .devices.key import Key
+from .key import Key
 
 from functools import wraps
 from flask import g, request, redirect, url_for

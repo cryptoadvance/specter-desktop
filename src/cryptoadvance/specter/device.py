@@ -1,6 +1,6 @@
 import json
-from ..helpers import decode_base58, hash160
-from ..serializations import PSBT
+from .helpers import decode_base58, hash160
+from .serializations import PSBT
 from .key import Key
 
 

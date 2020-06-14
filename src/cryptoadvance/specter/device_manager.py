@@ -1,5 +1,5 @@
 import os, json, logging
-from .devices.device import Device
+from .device import Device
 from .helpers import alias, load_jsons
 
 
