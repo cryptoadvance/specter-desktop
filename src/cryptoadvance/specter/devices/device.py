@@ -96,6 +96,8 @@ class Device:
         return qr_psbt.serialize()
 
     def __eq__(self, other):
+        if other is None:
+            return False
         return self.alias == other.alias
 
     def __hash__(self):

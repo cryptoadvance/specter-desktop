@@ -35,6 +35,7 @@ class Wallet():
         device_manager,
         manager
     ):
+        old_format_detected = False
         self.name = name
         self.alias = alias
         self.description = description
@@ -46,12 +47,23 @@ class Wallet():
         self.keypool = keypool
         self.change_keypool = change_keypool
         self.recv_descriptor = recv_descriptor
+        # Migrate from older format
+        if len(keys) > 1 and 'sortedmulti' not in recv_descriptor:
+            self.recv_descriptor = AddChecksum(self.recv_descriptor.replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
         self.change_descriptor = change_descriptor
+        # Migrate from older format
+        if len(keys) > 1 and 'sortedmulti' not in change_descriptor:
+            self.change_descriptor = AddChecksum(self.change_descriptor.replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
         self.keys = keys
         self.devices = [(device if isinstance(device, Device) else device_manager.get_by_alias(device)) for device in devices]
-        if None in devices:
-            # TODO: Implement migration from the use of names to the use of aliases
-            raise Exception('A device used by this wallet could not have been found!')
+        if None in self.devices:
+            # Migrate from older format using name
+            self.devices = [(device_manager.devices[(device['name'] if isinstance(device, dict) else device)] if (device['name'] if isinstance(device, dict) else device) in device_manager.devices else None) for device in devices]
+            if None in self.devices:
+                raise Exception('A device used by this wallet could not have been found!')
+            old_format_detected = True
         self.sigs_required = sigs_required
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
@@ -65,6 +77,8 @@ class Wallet():
 
         self.cli.scan_addresses(self)
         self.getdata()
+        if old_format_detected:
+            self.save_to_file()
 
     @classmethod
     def from_json(cls, wallet_dict, device_manager, manager, default_alias='', default_fullpath=''):
@@ -330,7 +344,6 @@ class Wallet():
 
     @property
     def utxo_addresses(self):
-        print(self.utxo)
         return list(dict.fromkeys([
             utxo["address"] for utxo in 
             sorted(
