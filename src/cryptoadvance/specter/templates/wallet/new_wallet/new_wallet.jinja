@@ -7,25 +7,14 @@
 		<br>
 		<h1>Type of the wallet</h1>
 		<nav class="row">
-			{% if sigs_total %}
-				<label>
-					<input type="radio" name="type" value="sh-wsh" class="hidden" {% if wallet_type == "sh-wsh" %}checked{% endif %}>
-					<div class="btn radio left">Nested Segwit</div>
-				</label>
-				<label>
-					<input type="radio" name="type" value="wsh" class="hidden" {% if wallet_type == "wsh" %}checked{% endif %}>
-					<div class="btn radio right">Segwit</div>
-				</label>
-			{% else %}
-				<label>
-					<input type="radio" name="type" value="sh-wpkh" class="hidden">
-					<div class="btn radio left">Nested Segwit</div>
-				</label>
-				<label>
-					<input type="radio" name="type" value="wpkh" checked class="hidden">
-					<div class="btn radio right">Segwit</div>
-				</label>
-			{% endif %}
+			<label>
+				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}" class="hidden">
+				<div class="btn radio left">Nested Segwit</div>
+			</label>
+			<label>
+				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked class="hidden">
+				<div class="btn radio right">Segwit</div>
+			</label>
 		</nav>
 
 		<div class="note">
@@ -33,27 +22,14 @@
 				<br><b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.
 			</center>
 		</div>
-		{% if sigs_total %}
+		{% if wallet_type == 'multisig' %}
 			<br>
 			<div class="center">
 				Using 
-				{% if not cosigner_index %}
-					<input class="inline" type="number" name="sigs_required" min=1 max="{{ sigs_total }}" step=1 value="{{ sigs_required }}" />
-				{% else %}
-					<div class="input inline">{{ sigs_required }}</div>
-					<input type="hidden" name="sigs_required" value="{{ sigs_required }}"/>
-				{% endif %}
+				<input class="inline" type="number" name="sigs_required" min=1 max="{{ sigs_total }}" step=1 value="{{ sigs_required }}" />
+				<input type="hidden" name="sigs_required" value="{{ sigs_required }}"/>
 				of 
-				{% if not cosigner_index %}
-					<input class="inline" type="number" name="sigs_total" min=2 max="{{ sigs_total }}" step=1 value="{{ sigs_total }}"/>
-				{% else %}
-					<div class="input inline">{{ sigs_total }}</div>
-					<input type="hidden" name="sigs_total" value="{{sigs_total}}"/>
-				{% endif %} multisig
-				<input type="hidden" name="cosigner_index" value="{{ cosigner_index }}"/>
-				{% for cosigner in cosigners %}
-					<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner.alias }}"/>
-				{% endfor %}
+				<input class="inline" type="number" name="sigs_total" min=2 max="{{ sigs_total }}" step=1 value="{{ sigs_total }}"/>
 			</div>
 			<br>
 			<h1>Pick the devices you want to use as cosigners</h1>
@@ -64,7 +40,7 @@
 		<div class="row overflow">
 			{% for device_name in specter.device_manager.devices_names %}
 				<label>
-					<input type="{{ 'checkbox' if sigs_total else 'radio' }}" name="{{ 'devices' if sigs_total else 'device' }}" value="{{ specter.device_manager.devices[device_name].alias }}" class="hidden">
+					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ specter.device_manager.devices[device_name].alias }}" class="hidden">
 					<div class="small-card radio">
 						{% if specter.device_manager.devices[device_name]['type'] in ['specter', 'coldcard', 'trezor', 'ledger'] %}
 							<img src="/static/img/{{ specter.device_manager.devices[device_name]['type'] }}_icon.svg" width="18px">
@@ -80,8 +56,9 @@
 		<br>
 		<div class="note">
 			<center>
-				{% if sigs_total %}
+				{% if wallet_type == 'multisig' %}
 					We use sorted multisig (BIP-67), so <b>order is NOT important.</b><br>
+				{# TODO: Maybe show this also for multisig creation??? #}
 				{% else %}
 					On the next page we will ask you to choose the keys.
 				{% endif %}

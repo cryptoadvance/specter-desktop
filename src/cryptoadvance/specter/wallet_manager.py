@@ -98,89 +98,58 @@ class WalletManager:
     def wallets_names(self):
         return sorted(self.wallets.keys())
 
-    def _get_initial_wallet_dict(self, name):
+    def create_wallet(self, name, sigs_required, key_type, keys, devices):
         walletsindir = [wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]]
-        al = alias(name)
+        wallet_alias = alias(name)
         i = 2
-        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % al)) or os.path.join(self.cli_path,al) in walletsindir:
-            al = alias("%s %d" % (name, i))
+        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % wallet_alias)) or os.path.join(self.cli_path, wallet_alias) in walletsindir:
+            wallet_alias = alias("%s %d" % (name, i))
             i += 1
-        dic = {
-            "alias": al,
-            "fullpath": os.path.join(self.working_folder, "%s.json" % al),
-            "name": name,
-            "address_index": -1,
-            "keypool": 0,
-            "address": '',
-            "change_index": -1,
-            "change_address": '',
-            "change_keypool": 0,
-            "pending_psbts": {}
-        }
-        return dic
 
-    # TODO: Refactor wallet creation. Maybe...
-    def _create_wallet(self, wallet_dict):
-        self.cli.createwallet(os.path.join(self.cli_path, wallet_dict["alias"]), True)
-        # add wallet to internal dict
-        self.wallets[wallet_dict["name"]] = Wallet.from_json(wallet_dict, self.device_manager, self)
-        # save wallet file to disk
-        if self.working_folder is not None:
-            self.wallets[wallet_dict["name"]].save_to_file()
-        # get Wallet class instance
-        return self.wallets[wallet_dict["name"]]
-
-    def create_simple(self, name, key_type, key, device):
-        wallet = self._get_initial_wallet_dict(name)
-        arr = key_type.split("-")
-        desc = key.metadata['combined']
-        recv_desc = "%s/0/*" % desc
-        change_desc = "%s/1/*" % desc
-        for el in arr[::-1]:
-            recv_desc = "%s(%s)" % (el, recv_desc)
-            change_desc = "%s(%s)" % (el, change_desc)
-        recv_desc = AddChecksum(recv_desc)
-        change_desc = AddChecksum(change_desc)
-        wallet.update({
-            "type": "simple", 
-            "description": purposes[key_type],
-            "sigs_required": 1,
-            "keys": [key.json],
-            "recv_descriptor": recv_desc,
-            "change_descriptor": change_desc,
-            "devices": [device],
-            "address_type": addrtypes[key_type],
-        })
-
-        return self._create_wallet(wallet)
-
-    # TODO: Refactor to sorted descriptor
-    def create_multi(self, name, sigs_required, key_type, keys, devices):
-        wallet = self._get_initial_wallet_dict(name)
-        # TODO: refactor, ugly
         arr = key_type.split("-")
         descs = [key.metadata['combined'] for key in keys]
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
-        recv_desc = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
-        change_desc = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
+        if len(keys) > 1:
+            recv_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
+            change_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
+        else:
+            recv_descriptor = recv_descs[0]
+            change_descriptor = change_descs[0]
         for el in arr[::-1]:
-            recv_desc = "%s(%s)" % (el, recv_desc)
-            change_desc = "%s(%s)" % (el, change_desc)
-        recv_desc = AddChecksum(recv_desc)
-        change_desc = AddChecksum(change_desc)
-        wallet.update({
-            "type": "multisig",
-            "description": "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]),
-            "sigs_required": sigs_required,
-            "keys": [key.json for key in keys],
-            "recv_descriptor": recv_desc,
-            "change_descriptor": change_desc,
-            "devices": devices,
-            "address_type": addrtypes[key_type]
-        })
+            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
+            change_descriptor = "%s(%s)" % (el, change_descriptor)
+        recv_descriptor = AddChecksum(recv_descriptor)
+        change_descriptor = AddChecksum(change_descriptor)
 
-        return self._create_wallet(wallet)
+        self.cli.createwallet(os.path.join(self.cli_path, wallet_alias), True)
+
+        self.wallets[name] = Wallet(
+            name,
+            wallet_alias,
+            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]) if len(keys) > 1 else purposes[key_type],
+            addrtypes[key_type],
+            '',
+            -1,
+            '',
+            -1,
+            0,
+            0,
+            recv_descriptor,
+            change_descriptor,
+            keys,
+            devices,
+            sigs_required,
+            {},
+            os.path.join(self.working_folder, "%s.json" % wallet_alias),
+            self.device_manager,
+            self
+        )
+        # save wallet file to disk
+        if self.working_folder is not None:
+            self.wallets[name].save_to_file()
+        # get Wallet class instance
+        return self.wallets[name]
 
     def delete_wallet(self, wallet):
         logger.info("Deleting {}".format(wallet.alias))

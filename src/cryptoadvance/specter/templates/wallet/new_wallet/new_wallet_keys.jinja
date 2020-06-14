@@ -65,15 +65,10 @@
 									<td>{{ key.derivation }}</td>
 									<td class="scroll xpub"><span>{{ key.original }}</span></td>
 									<td width="120px">
-										{% if cosigners %}
-											<label>
-												<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
-												<div class="btn inline hovering">Use this key</div>
-											</label>
-										{% else %}
-											<input type="hidden" name="key" value="{{ key.original }}">
-											<button type="submit" name="action" value="key" class="btn hovering action">Use this key</button>
-										{% endif %}
+										<label>
+											<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
+											<div class="btn inline hovering">Use this key</div>
+										</label>
 									</td>
 								</tr>
 							{% endfor %}

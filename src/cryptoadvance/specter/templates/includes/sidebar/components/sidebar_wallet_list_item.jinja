@@ -13,7 +13,7 @@
                 {{ wallet.name }} 
                 {% if wallet.fullbalance is not none %}
                     <span class="balance">{{ wallet.fullbalance | btcamount}}</span>
-                {%endif%}
+                {% endif %}
             </div>
             <small>{{ wallet.description }}</small>
         </div>

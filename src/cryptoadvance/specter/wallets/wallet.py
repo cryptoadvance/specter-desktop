@@ -31,7 +31,6 @@ class Wallet():
         devices,
         sigs_required,
         pending_psbts,
-        wallet_type,
         fullpath,
         device_manager,
         manager
@@ -54,8 +53,6 @@ class Wallet():
         if None in devices:
             # TODO: Implement migration from the use of names to the use of aliases
             raise Exception('A device used by this wallet could not have been found!')
-        # TODO: Wallet type is unnecessary, consider removing
-        self.wallet_type = wallet_type
         self.sigs_required = sigs_required
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
@@ -83,13 +80,14 @@ class Wallet():
         change_keypool = wallet_dict['change_keypool'] if 'change_keypool' in wallet_dict else 0
         sigs_required = wallet_dict['sigs_required'] if 'sigs_required' in wallet_dict else 1
         pending_psbts = wallet_dict['pending_psbts'] if 'pending_psbts' in wallet_dict else {}
-        wallet_type = wallet_dict['type'] if 'type' in wallet_dict else ''
         fullpath = wallet_dict['fullpath'] if 'fullpath' in wallet_dict else default_fullpath
 
         try:
             address_type = wallet_dict['address_type']
             recv_descriptor = wallet_dict['recv_descriptor']
             change_descriptor = wallet_dict['change_descriptor']
+
+            # Part of migration from old to new format
             if 'keys' in wallet_dict:
                 keys = [Key.from_json(key_dict) for key_dict in wallet_dict['keys']]
             else:
@@ -118,7 +116,6 @@ class Wallet():
             devices,
             sigs_required,
             pending_psbts,
-            wallet_type,
             fullpath,
             device_manager,
             manager
@@ -162,7 +159,6 @@ class Wallet():
             "change_descriptor": self.change_descriptor,
             "keys": [key.json for key in self.keys],
             "devices": [device.alias for device in self.devices],
-            "type": self.wallet_type,
             "sigs_required": self.sigs_required,
             "pending_psbts": self.pending_psbts,
             "fullpath": self.fullpath,
