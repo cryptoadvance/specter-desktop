@@ -33,9 +33,9 @@ class Wallet():
         pending_psbts,
         fullpath,
         device_manager,
-        manager
-    ):
+        manager,
         old_format_detected = False
+    ):
         self.name = name
         self.alias = alias
         self.description = description
@@ -47,23 +47,11 @@ class Wallet():
         self.keypool = keypool
         self.change_keypool = change_keypool
         self.recv_descriptor = recv_descriptor
-        # Migrate from older format
-        if len(keys) > 1 and 'sortedmulti' not in recv_descriptor:
-            self.recv_descriptor = AddChecksum(self.recv_descriptor.replace('multi', 'sortedmulti').split('#')[0])
-            old_format_detected = True
         self.change_descriptor = change_descriptor
-        # Migrate from older format
-        if len(keys) > 1 and 'sortedmulti' not in change_descriptor:
-            self.change_descriptor = AddChecksum(self.change_descriptor.replace('multi', 'sortedmulti').split('#')[0])
-            old_format_detected = True
         self.keys = keys
         self.devices = [(device if isinstance(device, Device) else device_manager.get_by_alias(device)) for device in devices]
         if None in self.devices:
-            # Migrate from older format using name
-            self.devices = [(device_manager.devices[(device['name'] if isinstance(device, dict) else device)] if (device['name'] if isinstance(device, dict) else device) in device_manager.devices else None) for device in devices]
-            if None in self.devices:
-                raise Exception('A device used by this wallet could not have been found!')
-            old_format_detected = True
+            raise Exception('A device used by this wallet could not have been found!')
         self.sigs_required = sigs_required
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
@@ -80,6 +68,36 @@ class Wallet():
         if old_format_detected:
             self.save_to_file()
 
+    @staticmethod
+    def parse_old_format(wallet_dict, device_manager):
+        old_format_detected = False
+        new_dict = {}
+        new_dict.update(wallet_dict)
+        if 'key' in wallet_dict:
+            new_dict['keys'] = [wallet_dict['key']]
+            del new_dict['key']
+            old_format_detected = True
+        if 'device' in wallet_dict:
+            new_dict['devices'] = [wallet_dict['device']]
+            del new_dict['device']
+            old_format_detected = True
+        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['recv_descriptor']:
+            new_dict['recv_descriptor'] = AddChecksum(new_dict['recv_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
+        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['change_descriptor']:
+            new_dict['change_descriptor'] = AddChecksum(new_dict['change_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
+        devices = [device_manager.get_by_alias(device) for device in new_dict['devices']]
+        if None in devices:
+            devices = [((device['name'] if isinstance(device, dict) else device) if (device['name'] if isinstance(device, dict) else device) in device_manager.devices else None) for device in new_dict['devices']]
+            if None in devices:
+                raise Exception('A device used by this wallet could not have been found!')
+            else:
+                new_dict['devices'] = [device_manager.devices[device].alias for device in devices]
+            old_format_detected = True
+        new_dict['old_format_detected'] = old_format_detected
+        return new_dict
+
     @classmethod
     def from_json(cls, wallet_dict, device_manager, manager, default_alias='', default_fullpath=''):
         name = wallet_dict['name'] if 'name' in wallet_dict else ''
@@ -95,20 +113,14 @@ class Wallet():
         pending_psbts = wallet_dict['pending_psbts'] if 'pending_psbts' in wallet_dict else {}
         fullpath = wallet_dict['fullpath'] if 'fullpath' in wallet_dict else default_fullpath
 
+        wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager)
+
         try:
             address_type = wallet_dict['address_type']
             recv_descriptor = wallet_dict['recv_descriptor']
             change_descriptor = wallet_dict['change_descriptor']
-
-            # Part of migration from old to new format
-            if 'keys' in wallet_dict:
-                keys = [Key.from_json(key_dict) for key_dict in wallet_dict['keys']]
-            else:
-                keys = [Key.from_json(wallet_dict['key'])]
-            if 'devices' in wallet_dict:
-                devices = wallet_dict['devices']
-            else:
-                devices = [wallet_dict['device']]
+            keys = [Key.from_json(key_dict) for key_dict in wallet_dict['keys']]
+            devices = wallet_dict['devices']
         except:
             Exception('Could not construct a Wallet object from the data provided.')
 
@@ -131,7 +143,8 @@ class Wallet():
             pending_psbts,
             fullpath,
             device_manager,
-            manager
+            manager,
+            old_format_detected=wallet_dict['old_format_detected']
         )
 
     def getdata(self):
