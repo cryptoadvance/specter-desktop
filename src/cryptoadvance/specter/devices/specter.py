@@ -1,15 +1,15 @@
-from .coldcard import ColdCard
+from .sd_card_device import SDCardDevice
 from ..serializations import PSBT
 
 
-class Specter(ColdCard):
+class Specter(SDCardDevice):
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
-        ColdCard.__init__(self, name, alias, 'specter', keys, fullpath, manager)
+        SDCardDevice.__init__(self, name, alias, 'specter', keys, fullpath, manager)
         self.sd_card_support = False
         self.qr_code_support = True
 
     def create_psbts(self, base64_psbt, wallet):
-        psbts = ColdCard.create_psbts(self, base64_psbt, wallet)
+        psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
         qr_psbt = PSBT()
         qr_psbt.deserialize(base64_psbt)
         for inp in qr_psbt.inputs + qr_psbt.outputs:
