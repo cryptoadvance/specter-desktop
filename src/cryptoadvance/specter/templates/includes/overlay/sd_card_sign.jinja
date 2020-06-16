@@ -1,0 +1,23 @@
+<div id="{{ device.alias }}_sign_tx_file" class="flex-center flex-column hidden">
+    <h2>Sign Transaction with file</h2><br>
+    <a class="btn centered" style="margin: 15px auto;" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64,{{ device_psbts['sdcard'] }}">Download transaction</a>
+    <input type="file" id="{{ device.alias }}_signing_file" class="inputfile"/>
+    <label for="{{ device.alias }}_signing_file" class="btn centered" style="margin: 15px auto;">Upload signed transaction</label>
+</div>
+
+<script>
+    var el = document.getElementById("{{ device.alias }}_signing_file");
+
+    el.addEventListener("change", (e) => {
+        let files = el.files;
+        for (let i = 0; i < files.length; i++) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                hidePageOverlay();
+                let str = btoa(reader.result);
+                combine(str);
+            }
+            reader.readAsBinaryString(files[i]);
+        }
+    });
+</script>

@@ -1,9 +1,27 @@
 import os, json, logging
 from .device import Device
+from .devices.coldcard import ColdCard
+from .devices.trezor import Trezor
+from .devices.ledger import Ledger
+from .devices.keepkey import Keepkey
+from .devices.specter import Specter
 from .helpers import alias, load_jsons
 
 
 logger = logging.getLogger(__name__)
+
+device_classes = {
+    'coldcard': ColdCard,
+    'trezor': Trezor,
+    'keepkey': Keepkey,
+    'ledger': Ledger,
+    'specter': Specter
+}
+
+def get_device_class(device_type):
+    if device_type in device_classes:
+        return device_classes[device_type]
+    return Device
 
 class DeviceManager:
     ''' A DeviceManager mainly manages the persistence of a device-json-structures
@@ -25,13 +43,13 @@ class DeviceManager:
         devices_files = load_jsons(self.data_folder, key="name")
         for device_alias in devices_files:
             fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
-            self.devices[devices_files[device_alias]["name"]] = Device.from_json(
+            self.devices[devices_files[device_alias]["name"]] = get_device_class(devices_files[device_alias]["type"]).from_json(
                 devices_files[device_alias],
                 self,
                 default_alias=device_alias,
                 default_fullpath=fullpath
             )
-    
+
     @property
     def devices_names(self):
         return sorted(self.devices.keys())
@@ -50,7 +68,7 @@ class DeviceManager:
             if key not in non_dup_keys:
                 non_dup_keys.append(key)
         keys = non_dup_keys
-        device = Device(name, device_alias, device_type, keys, fullpath, self)
+        device = get_device_class(device_type)(name, device_alias, device_type, keys, fullpath, self)
         with open(fullpath, "w") as file:
             file.write(json.dumps(device.json, indent=4))
 

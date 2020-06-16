@@ -509,13 +509,6 @@ class Wallet():
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
-
-        if self.uses_sdcard_device:
-            psbt["sdcard"] = Device.create_sdcard_psbt(b64psbt, self.keys)
-
-        if self.uses_qrcode_device:
-            psbt["qrcode"] = Device.create_qrcode_psbt(b64psbt, self.fingerprint)
-
         psbt["amount"] = amount
         psbt["address"] = address
         psbt["time"] = time()
