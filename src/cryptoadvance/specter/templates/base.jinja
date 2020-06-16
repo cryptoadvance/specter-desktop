@@ -25,7 +25,7 @@
 			{% endif %}
 			<img id="menubtn" src="/static/img/menu.svg"/>
 
-			{% with messages = get_flashed_messages() %}
+			{% with messages = get_flashed_messages() | unique %}
 				{% if messages %}
 					<div class="notification error">
 						<ul>
