@@ -4,7 +4,7 @@
 
 The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped (offline) hardware wallets. 
 
-We first wanted to make a new hardware wallet, but after we understood that everything can be hacked, we decided to build a user-friendly Multisig Desktop App and nice DIY Hardware wallet.
+We first wanted to make a new hardware wallet (HWW), but after we understood that everything can be hacked, we decided to build a user-friendly Multisig Desktop App and nice DIY Hardware Wallet.
 
 **Why is that good for Bitcoin?**
 
@@ -129,7 +129,13 @@ Waveshare QR scanner is recommended as it has a good quality/price ratio.
 
 Do not use it on mainnet yet unless it's only being used as one of the signers in multisig setup! But feel free to experiment with it on testnet, regtest or signet.
 
-## *Currently there is a `specter_hwi.py` file, which implements the HWIClient for Specter-DIY **(???)**. Is there any reason you didn't add that directly to HWI?*
+## *I'm wondering what if someone takes the device? How does Specter-DIY approach this scenario?*
+
+It supports passphrases as an additional security layer, but currently it has two modes of operation - agnostic when your secrets are not stored on the device and you need to enter recovery phrase every time you use the device, and reckless when it is stored on flash and can be extracted. 
+
+We are working on smartcard support so you could store your keys on removable secure element in a credit card form factor, as well as an option to encrypt secrets with a key stored on the SD card. See this recently opened [issue](https://github.com/cryptoadvance/specter-diy/issues/64) thanks to @Thomas1378 in the Telegram chat!
+
+## *Currently there is a `specter_hwi.py` file, which implements the HWIClient for Specter-DIY. Is there any reason you didn't add that directly to HWI?*
 
 Putting it into HWI means: "this is a hardware wallet people should consider using for real". Currently, we would strongly advice NOT to use USB with specter-DIY, but to use QR codes instead.
 
@@ -224,13 +230,15 @@ No, but you need to enable wallets! `disablewallet=0`
 
 ## FUTURE FEATURES
 
-## *Will specter-desktop ever be a signer?*
+## *Will Specter-Desktop ever be a full Hot-Wallet?*
 
 Right now it’s only with external wallets, but there is an open issue for hot wallet.
 
 We have plans to add new device type "this computer", see this [issue](https://github.com/cryptoadvance/specter-desktop/issues/58)
 
 At the moment it is more like a coordinator app. For signing we have [specter-diy](https://github.com/cryptoadvance/specter-diy)
+
+*Comment: Still open for discussion - details are being discussed!*
 
 ## *How are you guys planning to do airgapped firmware updates via QR codes?*
 
