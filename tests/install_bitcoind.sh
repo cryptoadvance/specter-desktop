@@ -35,7 +35,6 @@ else
         echo "    --> Pinned: $PINNED! Checkout not needed!"
     else
         echo "    --> Pinned: $PINNED! Checkout needed!"
-        git pull
         git checkout $PINNED
         bitcoind_setup_needed=true
     fi
