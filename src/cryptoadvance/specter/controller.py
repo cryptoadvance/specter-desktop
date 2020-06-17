@@ -13,7 +13,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel
+from .helpers import get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel, get_version_info
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -82,6 +82,7 @@ def broadcast(wallet_alias):
 @app.route('/')
 @login_required
 def index():
+    notify_upgrade()
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
@@ -132,6 +133,7 @@ def logout():
 @app.route('/settings/', methods=['GET', 'POST'])
 @login_required
 def settings():
+    current_version = notify_upgrade()
     app.specter.check()
     rpc = app.specter.config['rpc']
     user = rpc['user']
@@ -202,6 +204,7 @@ def settings():
                             hwi_bridge_url=hwi_bridge_url,
                             loglevel=loglevel,
                             specter=app.specter,
+                            current_version=current_version,
                             rand=rand)
 
 ################# wallet management #####################
@@ -663,3 +666,16 @@ def timedatetime(s):
 def btcamount(value):
     value = float(value)
     return "{:.8f}".format(value).rstrip("0").rstrip(".")
+
+def notify_upgrade():
+    ''' If a new version is available, notifies the user via flash 
+        that there is an upgrade to specter.desktop
+        :return the current version
+    '''
+    version_info={}
+    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
+    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
+    if version_info["upgrade"]:
+        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]))
+    return version_info["current"]
+
