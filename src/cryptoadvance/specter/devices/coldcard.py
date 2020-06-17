@@ -1,3 +1,4 @@
+import urllib
 from .sd_card_device import SDCardDevice
 from ..helpers import get_xpub_fingerprint
 
@@ -12,12 +13,13 @@ class ColdCard(SDCardDevice):
         SDCardDevice.__init__(self, name, alias, 'coldcard', keys, fullpath, manager)
         self.sd_card_support = True
         self.qr_code_support = False
+        self.wallet_export_type = 'file'
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
         return psbts
 
-    def get_wallet_file(self, wallet):
+    def export_wallet(self, wallet):
         CC_TYPES = {
         'legacy': 'BIP45',
         'p2sh-segwit': 'P2WSH-P2SH',
@@ -48,4 +50,4 @@ Format: {}
             if fingerprint == '':
                 fingerprint = get_xpub_fingerprint(k.xpub).hex()
             cc_file += "{}: {}\n".format(fingerprint.upper(), k.xpub)
-        return cc_file
+        return urllib.parse.quote(cc_file)

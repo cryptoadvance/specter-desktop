@@ -569,24 +569,22 @@ def wallet_settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-    cc_file = None
-    qr_text = wallet.name + "&" + wallet.qr_descriptor
-    if wallet.is_multisig:
-        cc_file = wallet.get_cc_file()
-        if cc_file is not None:
-            cc_file = urllib.parse.quote(cc_file)
         return render_template("wallet/settings/wallet_settings.jinja", 
-                            cc_file=cc_file, 
-                            wallet_alias=wallet_alias, wallet=wallet, 
-                            specter=app.specter, rand=rand, 
-                            error=error,
-                            qr_text=qr_text)
+            wallet_alias=wallet_alias,
+            wallet=wallet, 
+            specter=app.specter,
+            rand=rand, 
+            error=error
+        )
     else:
-        return render_template("wallet/settings/wallet_settings.jinja", 
-                            wallet_alias=wallet_alias, wallet=wallet, 
-                            specter=app.specter, rand=rand, 
-                            error=error,
-                            qr_text=qr_text)
+        return render_template(
+            "wallet/settings/wallet_settings.jinja", 
+            wallet_alias=wallet_alias,
+            wallet=wallet, 
+            specter=app.specter,
+            rand=rand, 
+            error=error
+        )
 
 ################# devices management #####################
 

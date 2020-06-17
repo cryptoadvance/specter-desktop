@@ -419,19 +419,6 @@ class Wallet():
         balance = self.available_balance
         return balance["trusted"] + balance["untrusted_pending"]
 
-    # NOTE: Only needed for QR (should be moved)
-    @property
-    def qr_descriptor(self):
-        return self.recv_descriptor.split("#")[0].replace("/0/*", "")
-
-    # NOTE: Only needed for QR (should be moved)
-    @property
-    def fingerprint(self):
-        """ Unique fingerprint of the wallet - first 4 bytes of hash160 of its descriptor """
-        h256 = hashlib.sha256(self.qr_descriptor.encode()).digest()
-        h160 = hashlib.new('ripemd160', h256).digest()
-        return h160[:4]
-
     @property
     def addresses(self):
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
@@ -516,37 +503,3 @@ class Wallet():
         self.save_pending_psbt(psbt)
 
         return psbt
-
-    # TODO: Move to Coldcard class(?)
-    def get_cc_file(self):
-        CC_TYPES = {
-        'legacy': 'BIP45',
-        'p2sh-segwit': 'P2WSH-P2SH',
-        'bech32': 'P2WSH'
-        }
-        # try to find at least one derivation
-        # cc assume the same derivation for all keys :(
-        derivation = None
-        for k in self.keys:
-            if k.derivation != '':
-                derivation = k.derivation.replace("h","'")
-                break
-        if derivation is None:
-            return None
-        cc_file = """# Coldcard Multisig setup file (created on Specter Desktop)
-#
-Name: {}
-Policy: {} of {}
-Derivation: {}
-Format: {}
-""".format(self.name, self.sigs_required, 
-            len(self.keys), derivation,
-            CC_TYPES[self.address_type]
-            )
-        for k in self.keys:
-            # cc assumes fingerprint is known
-            fingerprint = k.fingerprint
-            if fingerprint == '':
-                fingerprint = get_xpub_fingerprint(k.xpub).hex()
-            cc_file += "{}: {}\n".format(fingerprint.upper(), k.xpub)
-        return cc_file

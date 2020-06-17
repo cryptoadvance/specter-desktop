@@ -42,26 +42,25 @@
 	</form>
 	<br>
 
-	<h1>Import / Export</h1>
+	<h1>Export To Device</h1>
 	<div class="note center">
-		Import this wallet to the device by scanning QR code below.
+		Import this wallet to a device by scanning its QR code or importing its data file.
 	</div>
-	<qr-code value="{{qr_text}}" width="400"></qr-code>
 
-	{% if wallet.is_multisig %}
-		<div>
-		{% if cc_file %}
-			<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{cc_file}}" class="btn centered padded">Download ColdCard file</a>
-		{% else %}
-			<div class="note">Coldcard file is unavailable - we don't have enough information to generate it</div>
+	{% for device in wallet.devices %}
+		{% if device.exportable_to_wallet %}
+			{% if device.wallet_export_type == 'file' %}
+				<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}" class="btn centered padded">Download {{ device.name }} file</a>
+			{% elif device.wallet_export_type == 'qr' %}
+				<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+				<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+					<h1>Scan this with your {{ device.name }} device </h1>
+					<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
+				</div>
+			{% endif %}
 		{% endif %}
-		</div>
-	{% endif %}
+	{% endfor %}
 
-	<div>
-		<code style="max-width: 700px; word-wrap: break-all; overflow-x: scroll; display: block; padding: 20px 0;">{{qr_text}}</code>
-	</div>
-	<br>
 	<form action="." method="POST" class="padded" style="width: 500px">
 		<h1>Delete Wallet</h1>
 		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
