@@ -6,3 +6,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: technote-space/toc-generator@v2
+        env:
+          TARGET_PATHS: README.md, docs/faq.md
