@@ -1,5 +1,8 @@
 # Frequently Asked Questions
 
+<!-- START doctoc -->
+<!-- END doctoc -->
+
 ## ABOUT THE PROJECT
 
 The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped (offline) hardware wallets. 
