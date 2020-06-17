@@ -3,7 +3,7 @@ from time import time
 from .descriptor import AddChecksum
 from .device import Device
 from .key import Key
-from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint
+from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor
 from .serializations import PSBT
 from .specter_error import SpecterError
 
@@ -80,12 +80,6 @@ class Wallet():
         if 'device' in wallet_dict:
             new_dict['devices'] = [wallet_dict['device']]
             del new_dict['device']
-            old_format_detected = True
-        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['recv_descriptor']:
-            new_dict['recv_descriptor'] = AddChecksum(new_dict['recv_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
-            old_format_detected = True
-        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['change_descriptor']:
-            new_dict['change_descriptor'] = AddChecksum(new_dict['change_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
             old_format_detected = True
         devices = [device_manager.get_by_alias(device) for device in new_dict['devices']]
         if None in devices:
@@ -295,7 +289,10 @@ class Wallet():
         if pool < index + WALLET_CHUNK:
             self.keypoolrefill(pool, index + WALLET_CHUNK, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        return self.cli.deriveaddresses(desc, [index, index+1])[0]
+        if self.is_multisig:
+            desc = sort_descriptor(self.cli, desc, index=index, change=change)
+            return self.cli.deriveaddresses(desc)[0]
+        return self.cli.deriveaddresses(desc, [index, index + 1])[0]
 
     @property
     def balance(self):
@@ -319,7 +316,15 @@ class Wallet():
                 "watchonly": True
             }
         ]
-        self.cli.importmulti(args, {"rescan": False}, timeout=120)
+        r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+        # bip67 requires sorted public keys for multisig addresses
+        if self.is_multisig:
+            # we do one at a time
+            args[0].pop("range")
+            for i in range(start, end):
+                sorted_desc = sort_descriptor(self.cli, desc, index=i, change=change)
+                args[0]["desc"] = sorted_desc
+                self.cli.importmulti(args, {"rescan": False}, timeout=120)
         if change:
             self.change_keypool = end
         else:
