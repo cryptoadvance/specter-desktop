@@ -10,7 +10,8 @@ import time
 import pytest
 import docker
 from cryptoadvance.specter.bitcoind import BitcoindDockerController, BitcoindPlainController
-from cryptoadvance.specter.logic import Specter, DeviceManager
+from cryptoadvance.specter.device_manager import DeviceManager
+from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
 
 

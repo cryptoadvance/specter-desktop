@@ -43,7 +43,7 @@
     function getSpendableAmount(unit) {
         let spendableAmount;
         if (!isCoinSelectionActive()) {
-            spendableAmount = '{{ wallet.availablebalance | btcamount }}';
+            spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
         } else {
             spendableAmount = coinSelectAmount;
         }

@@ -1,0 +1,125 @@
+<form id="{{ device.alias }}_sign_tx_qr" class="flex-center flex-column hidden">
+    <nav class="row">
+        <label>
+            <input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
+            <div class="btn radio left" style="width:200px">Compressed PSBT</div>
+        </label>
+        <label>
+            <input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
+            <div class="btn radio right" style="width:200px">Full PSBT</div>
+        </label>
+    </nav>
+
+    <div class="row" style="min-height: 400px;">
+        <span id="compressed_psbt">
+            <qr-code class='center' value="{{ device_psbts['qrcode'] }}" width="400"></qr-code>
+        </span>
+        <span id="full_psbt" style="display: none">
+            <qr-code class='center' value="{{ psbt['base64'] }}" width="400"></qr-code>
+        </span>
+    </div>
+    <button id="{{ device.alias }}_qr_scan_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                Scan signed transaction
+    </button>
+    <script>
+    document.addEventListener("DOMContentLoaded", function(){
+        document.getElementById('{{ device.alias }}_sign_tx_qr').elements.psbt_type.forEach((o)=>{
+            o.addEventListener('change', e => {
+                ["compressed_psbt","full_psbt"].forEach(id => {
+                    let el = document.getElementById(id);
+                    if (id == document.getElementById('{{ device.alias }}_sign_tx_qr').elements.psbt_type.value) {
+                        el.style.display = "flex";
+                    } else {
+                        el.style.display = "none";
+                    }
+                });
+            })
+        });
+    });
+    </script>
+    <!-- because coldcard psbt is the most complete (includes xpubs) -->
+    <div class="log"><code><pre>{{ device_psbts['sdcard'] }}</pre></code></div>
+
+    <div id="qr_code_sign_popup" class="popup">
+        <video muted playsinline id="qr-video" class="video"></video>
+        <div id="qr-progress"></div>
+    </div>
+
+    <script type="module">
+        import QrScanner from "/static/qr/qr-scanner.min.js";
+        QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+        const video = document.getElementById('qr-video');
+
+        var partial_qr = {
+            "len": 0, // total number of qr codes scanned
+            "parts": [],
+        };
+        const scanner = new QrScanner(video, result => {
+            // check if it is a partial QR code
+            // syntax: "pMofN data"
+            let re = /p(\d+)of(\d+) (.*)/;
+            let p = result.match(re);
+            if(p) {
+                let m = parseInt(p[1]);
+                let n = parseInt(p[2]);
+                let data = p[3];
+                if(m > n) {
+                    return alert("Invalid QR code! n>m!");
+                }
+                if(partial_qr.len != 0 && partial_qr.len != n){
+                    return alert("Number of frames in QR code mismatch!\nHad "+partial_qr.len+", got "+n);
+                }
+                // if it is the first qr code - build array
+                if(partial_qr.len == 0){
+                    partial_qr.len = n;
+                    // don't change this to new Array()
+                    // it's javascript magic... 
+                    // https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
+                    partial_qr.parts = [...Array(n)];
+                    document.getElementById("qr-progress").style.display = 'block';
+                    document.getElementById("qr-progress").innerHTML = "";
+                }
+                // fill corresponding part
+                partial_qr.parts[m-1] = data;
+                // display scanning progress
+                let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
+                document.getElementById("qr-progress").innerHTML = s.join("");
+                // check if we still have missing parts
+                if(partial_qr.parts.includes(undefined)){
+                    // just return -> we are not ready to combine yet
+                    return;
+                }
+                // recombine to result
+                result = partial_qr.parts.join("");
+                // reset partial_qr
+                partial_qr.parts = [];
+                partial_qr.len = 0;
+                // reset progress
+                document.getElementById("qr-progress").innerHTML = "";
+                document.getElementById("qr-progress").style.display = 'none';
+            }
+            // if we are done
+            scanner.stop();
+            document.getElementById("qr-progress").style.display = 'none';
+            document.getElementById("qr_code_sign_popup").style.display = 'none';
+            hidePageOverlay();
+            combine(result);
+        });
+        document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("click", function(event) {
+            try {
+                event.preventDefault();
+                scanner.start();
+                document.getElementById("qr_code_sign_popup").style.display = 'flex';
+            } catch(e) {
+                alert("Can't start the QR scanner!\n\n" + e);
+            }
+        });
+        document.getElementById("qr_code_sign_popup").addEventListener("click", function() {
+            document.getElementById("qr_code_sign_popup").style.display = 'none';
+            document.getElementById("qr-progress").innerHTML = "";
+            document.getElementById("qr-progress").style.display = 'none';
+            scanner.stop();
+        });
+    </script>
+</form>

@@ -10,14 +10,13 @@
     </div>
 
     <script>
-        function signTx(callback) {
-            beginDetectWallet("{{ wallet.device_type }}");
+        function signTx(callback, device_type, psbt) {
+            beginDetectWallet(device_type);
             document.getElementById("hwi_unlocked__submit").addEventListener("click", async function(e) {
                 e.preventDefault();
-                document.getElementById("hwi_device_name").textContent = capitalize(hwiCurrentWallet.type);
+                document.getElementById("hwi_device_name").textContent = capitalize(device_type);
                 showPageOverlay(HWI_POPUPS.SIGN);
 
-                const psbt = "{{ psbt['base64'] }}";
                 var signed_tx = await hwiSendPsbt(psbt);
                 callback(signed_tx)
 

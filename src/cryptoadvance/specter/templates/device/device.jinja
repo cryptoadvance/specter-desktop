@@ -9,28 +9,28 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for key in device["keys"] %}
+				{% for key in device.keys %}
 					<tr>
 						<td>
 							{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-							{% if key["xpub"].startswith("xpub") %}
+							{% if key.xpub.startswith("xpub") %}
 								{{ bitcoin_svg('main', 16) }} Main
 							{% else %}
 								{{ bitcoin_svg('test', 16) }} Test
 							{% endif %}
 						</td>
-						<td>{{ purposes[key["type"]] }}</td>
-						<td>{{ key["derivation"] }}</td>
+						<td>{{ purposes[key.key_type] }}</td>
+						<td>{{ key.derivation }}</td>
 						<td width="10" class="qr-trigger">
 							<img src="/static/img/qr_tiny.svg"/>
-							<qr-code class="qr-popup" value="{{ 'name=' + device['name'] + '\n' + key['combined'] }}" width="200"></qr-code>
+							<qr-code class="qr-popup" value="{{ 'name=' + device.name + '\n' + key.metadata['combined'] }}" width="200"></qr-code>
 						</td>
 						<td class="xpub scroll">
-							<span>{{ key["original"] }}</span>
+							<span>{{ key.original }}</span>
 						</td>
 						<td width="80px">
 							<form action="./" method="POST">
-								<input type="hidden" name="key" value="{{key['original']}}">
+								<input type="hidden" name="key" value="{{ key.original }}">
 								<button type="submit" name="action" value="delete_key" class="btn danger hovering">Delete</button>
 							</form>
 						</td>
@@ -48,5 +48,6 @@
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
 		</form>
+		{# TODO: Add wallets used in #}
 	</div>
 {% endblock %}

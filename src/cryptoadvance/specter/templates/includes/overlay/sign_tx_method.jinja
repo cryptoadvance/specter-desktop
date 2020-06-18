@@ -1,0 +1,54 @@
+{#
+    sign_tx_method - Popup to choose how to sign for a device.
+    Parameters:
+    - wallet: The wallet object used.
+    - device: The device object used.
+    - psbt: The psbt to be signed.
+ #}
+{% macro sign_tx_method(wallet, device, psbt) -%}
+    {% set device_psbts = device.create_psbts(psbt['base64'], wallet) %}
+    <div id="{{ device.alias }}_sign_tx_method" class="flex-center flex-column hidden">
+        <h2>Sign Transaction</h2><br>
+        <div>
+            Please choose a signing method for your {{ device.name }} device.
+        </div>
+        {% if device.hwi_support %}
+            <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                <img src="/static/img/usb_tiny.svg" height="12px">Sign via USB (HWI)
+            </button>
+            <script>
+                document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    signTx(combine, '{{ device.device_type }}', '{{ device_psbts["hwi"] }}');
+                });
+            </script>
+        {% endif %}
+        {% if device.sd_card_support %}
+            {% include "includes/overlay/sd_card_sign.jinja" %}
+            <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                Sign with SD Card file
+            </button>
+            <script>
+                document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    showPageOverlay('{{ device.alias }}_sign_tx_file')
+                });
+            </script>
+        {% endif %}
+        {% if device.qr_code_support %}
+            {% include "includes/overlay/qr_code_sign.jinja" %}
+            <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                Sign with QR codes
+            </button>
+            <script>
+                document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    showPageOverlay('{{ device.alias }}_sign_tx_qr')
+                });
+            </script>
+        {% endif %}
+    </div>
+{%- endmacro %}
