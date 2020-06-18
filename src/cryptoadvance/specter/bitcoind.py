@@ -72,6 +72,13 @@ class BitcoindController:
         self.mine(block_count=100)
         return self.rpcconn
 
+
+    def version(self):
+        ''' Returns the version of bitcoind, e.g. "v0.19.1" '''
+        version = self.get_cli().getnetworkinfo()['subversion']
+        version = version.replace('/','').replace('Satoshi:','v')
+        return version
+
     def get_cli(self):
         ''' wrapper for convenience '''
         return self.rpcconn.get_cli()

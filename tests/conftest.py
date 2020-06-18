@@ -20,6 +20,7 @@ def pytest_addoption(parser):
         see pytest_generate_tests(metafunc) on how to check that
     '''
     parser.addoption("--docker", action="store_true", help="run bitcoind in docker")
+    parser.addoption('--bitcoind-version', action='store', default='v0.19.1', help='setup environment: development')
 
 def pytest_generate_tests(metafunc):
     #ToDo: use custom compiled version of bitcoind
@@ -32,17 +33,20 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="module")
 
 @pytest.fixture(scope="module")
-def bitcoin_regtest(docker):
+def bitcoin_regtest(docker, request):
     #logging.getLogger().setLevel(logging.DEBUG)
+    requested_version = request.config.getoption("--bitcoind-version")
     if docker:
-        bitcoind_controller = BitcoindDockerController(rpcport=18543)
+        bitcoind_controller = BitcoindDockerController(rpcport=18543, docker_tag=requested_version)
     else:
         if os.path.isfile('tests/bitcoin/src/bitcoind'):
             bitcoind_controller = BitcoindPlainController(bitcoind_path='tests/bitcoin/src/bitcoind') # always prefer the self-compiled bitcoind if existing
         else:
             bitcoind_controller = BitcoindPlainController() # Alternatively take the one on the path for now
-
     bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
+    running_version = bitcoind_controller.version()
+    requested_version = request.config.getoption("--bitcoind-version")
+    assert(running_version != requested_version, "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"%(running_version,requested_version))
     return bitcoind_controller
 
 
