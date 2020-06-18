@@ -678,4 +678,3 @@ def notify_upgrade():
     if version_info["upgrade"]:
         flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]))
     return version_info["current"]
-
