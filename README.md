@@ -17,6 +17,9 @@
 
 # Specter Desktop
 
+    "A specter is haunting the modern world, the specter of crypto anarchy."
+    The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
+ 
 [![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
 
 ## DISCLAIMER
@@ -35,20 +38,24 @@ At the moment Specter-Desktop is working with all major Hardware-Wallets includi
 
 ## How to run
 * HWI support requires `libusb` 
- * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
- * macOS: `brew install libusb`
- * windows: follow instructions in [`windows.md`](docs/windows.md)
-* Install Specter
+  * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
+  * macOS: `brew install libusb`
+  * windows: follow instructions in [`windows.md`](docs/windows.md)
+ * Install Specter
 ```sh
 pip3 install cryptoadvance.specter
 ```
-* Run Specter:
+* Run Specter
 ```sh
 python3 -m cryptoadvance.specter server 
 # Or as a deamon:
 python3 -m cryptoadvance.specter server --daemon
 # Stop the daemon again:
 python3 -m cryptoadvance.specter server --stop
+```
+* Upgrade Specter
+```sh
+pip3 install cryptoadvance.specter --upgrade
 ```
 
 After that, specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
