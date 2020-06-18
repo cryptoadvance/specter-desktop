@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Specter Desktop](#specter-desktop)
+  - [DISCLAIMER](#disclaimer)
+  - [Why?](#why)
+  - [How to run](#how-to-run)
+  - [Detailed instructions](#detailed-instructions)
+  - [A few screenshots](#a-few-screenshots)
+    - [Adding a new device](#adding-a-new-device)
+    - [Creating a new wallet](#creating-a-new-wallet)
+    - [Wallet interface](#wallet-interface)
+    - [Configuration](#configuration)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Specter Desktop
 
 [![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
