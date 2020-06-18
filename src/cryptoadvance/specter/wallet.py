@@ -82,6 +82,12 @@ class Wallet():
             del new_dict['device']
             old_format_detected = True
         devices = [device_manager.get_by_alias(device) for device in new_dict['devices']]
+        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['recv_descriptor']:
+            new_dict['recv_descriptor'] = AddChecksum(new_dict['recv_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
+        if len(new_dict['keys']) > 1 and 'sortedmulti' not in new_dict['change_descriptor']:
+            new_dict['change_descriptor'] = AddChecksum(new_dict['change_descriptor'].replace('multi', 'sortedmulti').split('#')[0])
+            old_format_detected = True
         if None in devices:
             devices = [((device['name'] if isinstance(device, dict) else device) if (device['name'] if isinstance(device, dict) else device) in device_manager.devices else None) for device in new_dict['devices']]
             if None in devices:

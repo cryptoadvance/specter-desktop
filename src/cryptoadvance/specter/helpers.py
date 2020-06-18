@@ -242,7 +242,6 @@ def sort_descriptor(cli, descriptor, index=None, change=False):
     # remove checksum
     descriptor = descriptor.split("#")[0]
     # get address (should be already imported to the wallet)
-    print(descriptor)
     address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
     # get pubkeys involved
