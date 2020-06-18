@@ -290,8 +290,14 @@ class Wallet():
             self.keypoolrefill(pool, index + WALLET_CHUNK, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         if self.is_multisig:
-            desc = sort_descriptor(self.cli, desc, index=index, change=change)
-            return self.cli.deriveaddresses(desc)[0]
+            try:
+                # first try with sortedmulti
+                addr = self.cli.deriveaddresses(desc, [index, index+1])[0]
+            except:
+                # if sortedmulti is not supported
+                desc = sort_descriptor(self.cli, desc, index=index, change=change)
+                addr = self.cli.deriveaddresses(desc)[0]
+            return addr
         return self.cli.deriveaddresses(desc, [index, index + 1])[0]
 
     @property
@@ -316,15 +322,37 @@ class Wallet():
                 "watchonly": True
             }
         ]
-        r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+        if not self.is_multisig:
+            r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
         # bip67 requires sorted public keys for multisig addresses
-        if self.is_multisig:
-            # we do one at a time
-            args[0].pop("range")
-            for i in range(start, end):
-                sorted_desc = sort_descriptor(self.cli, desc, index=i, change=change)
-                args[0]["desc"] = sorted_desc
-                self.cli.importmulti(args, {"rescan": False}, timeout=120)
+        else:
+            # try if sortedmulti is supported
+            r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+            # doesn't raise, but instead returns "success": False
+            if not r[0]['success']:
+                # first import normal multi
+                # remove checksum
+                desc = desc.split("#")[0]
+                # switch to multi
+                desc = desc.replace("sortedmulti", "multi")
+                # add checksum
+                desc = AddChecksum(desc)
+                # update descriptor
+                args[0]["desc"] = desc
+                r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+                # make a batch of single addresses to import
+                arg = args[0]
+                # remove range key
+                arg.pop("range")
+                batch = []
+                for i in range(start, end):
+                    sorted_desc = sort_descriptor(self.cli, desc, index=i, change=change)
+                    # create fresh object
+                    obj = {}
+                    obj.update(arg)
+                    obj.update({"desc": sorted_desc})
+                    batch.append(obj)
+                r = self.cli.importmulti(batch, {"rescan": False}, timeout=120)
         if change:
             self.change_keypool = end
         else:

@@ -236,40 +236,40 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     return devices
 
 def sort_descriptor(cli, descriptor, index=None, change=False):
-        if index is not None:
-            descriptor = descriptor.replace("*", f"{index}")
-        # remove checksum
-        descriptor = descriptor.split("#")[0]
-        # get address (should be already imported to the wallet)
-        address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
+    descriptor.replace("sortedmulti", "multi")
+    if index is not None:
+        descriptor = descriptor.replace("*", f"{index}")
+    # remove checksum
+    descriptor = descriptor.split("#")[0]
+    # get address (should be already imported to the wallet)
+    address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
-        # get pubkeys involved
-        address_info = cli.getaddressinfo(address)
-        if 'pubkeys' in address_info:
-            pubkeys = address_info["pubkeys"]
-        elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
-            pubkeys = address_info["embedded"]["pubkeys"]
-        else:
-            raise Exception("Could not find 'pubkeys' in address info:\n%s" % json.dumps(address_info, indent=2))
+    # get pubkeys involved
+    address_info = cli.getaddressinfo(address)
+    if 'pubkeys' in address_info:
+        pubkeys = address_info["pubkeys"]
+    elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
+        pubkeys = address_info["embedded"]["pubkeys"]
+    else:
+        raise Exception("Could not find 'pubkeys' in address info:\n%s" % json.dumps(address_info, indent=2))
 
-        # get xpubs from the descriptor
-        descriptor = descriptor.replace('sortedmulti', 'multi')
-        arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
+    # get xpubs from the descriptor
+    arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
 
-        # getting [wsh] or [sh, wsh]
-        prefix = descriptor.split("(multi(")[0].split("(")
-        sigs_required = arr[0]
-        keys = arr[1:]
+    # getting [wsh] or [sh, wsh]
+    prefix = descriptor.split("(multi(")[0].split("(")
+    sigs_required = arr[0]
+    keys = arr[1:]
 
-        # sort them according to sortedmulti
-        z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
-        keys = [zz[1] for zz in z]
-        inner = f"{sigs_required},"+",".join(keys)
-        desc = f"multi({inner})"
+    # sort them according to sortedmulti
+    z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
+    keys = [zz[1] for zz in z]
+    inner = f"{sigs_required},"+",".join(keys)
+    desc = f"multi({inner})"
 
-        # Write from the inside out
-        prefix.reverse()
-        for p in prefix:
-            desc = f"{p}({desc})"
+    # Write from the inside out
+    prefix.reverse()
+    for p in prefix:
+        desc = f"{p}({desc})"
 
-        return AddChecksum(desc)
+    return AddChecksum(desc)

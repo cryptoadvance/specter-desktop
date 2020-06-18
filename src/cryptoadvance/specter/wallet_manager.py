@@ -111,8 +111,8 @@ class WalletManager:
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
         if len(keys) > 1:
-            recv_descriptor = "multi({},{})".format(sigs_required, ",".join(recv_descs))
-            change_descriptor = "multi({},{})".format(sigs_required, ",".join(change_descs))
+            recv_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
+            change_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
         else:
             recv_descriptor = recv_descs[0]
             change_descriptor = change_descs[0]

@@ -32,7 +32,6 @@ class Specter(SDCardDevice):
 def get_wallet_qr_descriptor(wallet):
         return wallet.recv_descriptor.split("#")[0].replace("/0/*", "")
 
-@property
 def get_wallet_fingerprint(wallet):
     """ Unique fingerprint of the wallet - first 4 bytes of hash160 of its descriptor """
     h256 = hashlib.sha256(get_wallet_qr_descriptor(wallet).encode()).digest()
