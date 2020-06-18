@@ -236,12 +236,13 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     return devices
 
 def sort_descriptor(cli, descriptor, index=None, change=False):
-    descriptor.replace("sortedmulti", "multi")
+    descriptor = descriptor.replace("sortedmulti", "multi")
     if index is not None:
         descriptor = descriptor.replace("*", f"{index}")
     # remove checksum
     descriptor = descriptor.split("#")[0]
     # get address (should be already imported to the wallet)
+    print(descriptor)
     address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
     # get pubkeys involved
