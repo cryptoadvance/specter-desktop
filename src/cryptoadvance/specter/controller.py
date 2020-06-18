@@ -71,12 +71,13 @@ def broadcast(wallet_alias):
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST':
         tx = request.form.get('tx')
-        if wallet.cli.testmempoolaccept([tx])[0]['allowed']:
+        res = wallet.cli.testmempoolaccept([tx])[0]
+        if res['allowed']:
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
             return jsonify(success=True)
         else:
-            return jsonify(success=False, error="Failed to broadcast transaction: transaction is invalid")
+            return jsonify(success=False, error="Failed to broadcast transaction: transaction is invalid\n%s" % res["reject-reason"])
     return jsonify(success=False, error="broadcast tx request must use POST")
 
 @app.route('/')
