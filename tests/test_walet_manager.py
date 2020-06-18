@@ -1,7 +1,8 @@
 import os
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.wallets.wallet import Wallet
+from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.wallet_manager import WalletManager
 
 
@@ -11,12 +12,12 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     device = device_manager.get_by_alias('trezor')
     assert device != None
     # Lets's create a wallet with the WalletManager
-    wm.create_simple('a_test_wallet', 'wpkh', device['keys'][5], device)
+    wm.create_wallet('a_test_wallet', 1, 'wpkh', [device.keys[5]], [device])
     # The wallet-name gets its filename and therefore its alias
     wallet = wm.wallets['a_test_wallet']
     assert wallet != None
-    assert wallet.getbalances()['trusted'] == 0
-    assert wallet.getbalances()['untrusted_pending'] == 0
+    assert wallet.balance['trusted'] == 0
+    assert wallet.balance['untrusted_pending'] == 0
     # this is a sum of both
     assert wallet.fullbalance == 0
     address = wallet.getnewaddress()
@@ -30,7 +31,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
    
     # You can create a multisig wallet with the wallet manager like this
     second_device = device_manager.get_by_alias('specter')
-    multisig_wallet = wm.create_multi('a_multisig_test_wallet', 1, 'wsh', [device['keys'][7], second_device['keys'][0]], [device, second_device])
+    multisig_wallet = wm.create_wallet('a_multisig_test_wallet', 1, 'wsh', [device.keys[7], second_device.keys[0]], [device, second_device])
 
     assert len(wm.wallets) == 2
     assert multisig_wallet != None
@@ -60,14 +61,14 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('specter')
-    key = {
+    key = Key.from_json({
         "derivation": "m/48h/1h/0h/2h",
         "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
         "fingerprint": "08686ac6",
         "type": "wsh",
         "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
-    }
-    wallet = wm.create_simple('a_second_test_wallet','wpkh',key,device)
+    })
+    wallet = wm.create_wallet('a_second_test_wallet', 1, 'wpkh', [key], [device])
     # Let's fund the wallet with ... let's say 40 blocks a 50 coins each --> 200 coins
     address = wallet.getnewaddress()
     assert address == 'bcrt1qtnrv2jpygx2ef3zqfjhqplnycxak2m6ljnhq6z'

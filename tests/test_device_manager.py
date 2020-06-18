@@ -1,6 +1,6 @@
 import os
-from cryptoadvance.specter.devices.device import Device
-from cryptoadvance.specter.devices.key import Key
+from cryptoadvance.specter.device import Device
+from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.device_manager import DeviceManager
 
 
