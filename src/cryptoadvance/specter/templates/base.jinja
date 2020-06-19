@@ -29,7 +29,7 @@
 				{% if messages %}
 					<div class="notification error">
 						<ul>
-						{% for message in messages %}
+						{% for message in messages | unique %}
 							<li>{{ message }}</li>
 						{% endfor %}
 						</ul>
