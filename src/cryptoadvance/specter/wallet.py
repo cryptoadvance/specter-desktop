@@ -384,7 +384,7 @@ class Wallet():
 
     def addresses_on_label(self, label):
         return list(dict.fromkeys(
-            [tx["address"] for tx in self.transactions if self.getlabel(tx["address"]) == label]
+            [address for address in (self.addresses + self.change_addresses) if self.getlabel(address) == label]
         ))
 
     def is_tx_spent(self, txid):
@@ -424,16 +424,14 @@ class Wallet():
     def getlabel(self, address):
         address_info = self.cli.getaddressinfo(address)
         # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
-        label = address_info["labels"][0] if "labels" in address_info and (isinstance(address_info["labels"], list) and len(address_info["labels"]) > 0) else address
+        label = address_info["labels"][0] if "labels" in address_info and (isinstance(address_info["labels"], list) and len(address_info["labels"]) > 0) and "label" not in address_info else address
         if label == "":
             label = address
         return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
     
     def get_address_name(self, address, addr_idx):
-        address_info = self.cli.getaddressinfo(address)
-        if ("label" not in address_info or address_info["label"] == "") and addr_idx > -1:
+        if self.getlabel(address) == address and addr_idx > -1:
             self.setlabel(address, "Address #{}".format(addr_idx))
-            address_info["label"] = "Address #{}".format(addr_idx)
         return self.getlabel(address)
 
     @property

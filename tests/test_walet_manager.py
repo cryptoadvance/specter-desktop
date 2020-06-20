@@ -1,4 +1,4 @@
-import os
+import json, os
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
@@ -98,11 +98,120 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     psbt_txs = [ tx['txid'] for tx in psbt['tx']['vin'] ]
     for coin in selected_coins:
         assert coin.split(",")[0] in psbt_txs
-    # Now let's spend more coins then we have selected. This should result in an exception:
+
+    # Now let's spend more coins than we have selected. This should result in an exception:
     try:
         psbt = wallet.createpsbt(random_address, number_of_coins_to_spend +1, True, 10, selected_coins=selected_coins)
         assert False, "should throw an exception!"
     except SpecterError as e:
         pass
+
+    assert wallet.locked_amount == selected_coins_amount_sum
+    assert len(wallet.cli.listlockunspent()) == 3
+    assert wallet.full_available_balance == wallet.fullbalance - selected_coins_amount_sum
+
+    wallet.delete_pending_psbt(psbt['tx']['txid'])
+    assert wallet.locked_amount == 0
+    assert len(wallet.cli.listlockunspent()) == 0
+    assert wallet.full_available_balance == wallet.fullbalance
+
+def test_wallet_sortedmulti(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    device = device_manager.get_by_alias('trezor')
+    second_device = device_manager.get_by_alias('specter')
+    for i in range(2):
+        if i == 0:
+            multisig_wallet = wm.create_wallet('a_multisig_test_wallet', 1, 'wsh', [device.keys[7], second_device.keys[0]], [device, second_device])
+        else:
+            multisig_wallet = wm.create_wallet('a_multisig_test_wallet', 1, 'wsh', [second_device.keys[0], device.keys[7]], [second_device, device])
+
+        address = multisig_wallet.address
+        address_info = multisig_wallet.cli.getaddressinfo(address)
+        assert address_info['pubkeys'][0] < address_info['pubkeys'][1]
+        
+        another_address = multisig_wallet.getnewaddress()
+        another_address_info = multisig_wallet.cli.getaddressinfo(another_address)
+        assert another_address_info['pubkeys'][0] < another_address_info['pubkeys'][1]
+        
+        third_address = multisig_wallet.get_address(30)
+        third_address_info = multisig_wallet.cli.getaddressinfo(third_address)
+        assert third_address_info['pubkeys'][0] < third_address_info['pubkeys'][1]
+
+        change_address = multisig_wallet.change_address
+        change_address_info = multisig_wallet.cli.getaddressinfo(change_address)
+        assert change_address_info['pubkeys'][0] < change_address_info['pubkeys'][1]
+
+        another_change_address = multisig_wallet.get_address(30, change=True)
+        another_change_address_info = multisig_wallet.cli.getaddressinfo(another_change_address)
+        assert another_change_address_info['pubkeys'][0] < another_change_address_info['pubkeys'][1]
+
+def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias('specter')
+    key = Key.from_json({
+        "derivation": "m/48h/1h/0h/2h",
+        "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+        "fingerprint": "08686ac6",
+        "type": "wsh",
+        "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
+    })
+    wallet = wm.create_wallet('a_second_test_wallet', 1, 'wpkh', [key], [device])
+
+    address = wallet.address
+    assert wallet.getlabel(address) == 'Address #0'
+    wallet.setlabel(address, 'Random label')
+    assert wallet.getlabel(address) == 'Random label'
+
+    wallet.cli.generatetoaddress(20, address)
+
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    wallet.cli.generatetoaddress(100, random_address)
+    
+    wallet.getdata()
+
+    address_balance = wallet.fullbalance
+    assert len(wallet.utxo) == 20
+    assert wallet.tx_on_current_address == 20
+    assert wallet.balance_on_address(address) == address_balance
+    assert wallet.balance_on_label('Random label') == address_balance
+    assert wallet.addresses_on_label('Random label') == [address]
+    assert wallet.utxo_addresses == [address]
+    assert wallet.utxo_labels == ['Random label']
+    assert wallet.utxo_addresses == [address]
+
+    new_address = wallet.getnewaddress()
+    wallet.setlabel(new_address, '')
+    wallet.cli.generatetoaddress(20, new_address)
+
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    wallet.cli.generatetoaddress(100, random_address)
+
+    wallet.getdata()
+
+    assert len(wallet.utxo) == 40
+    assert wallet.tx_on_current_address == 20
+    assert wallet.tx_on_address(address) == 20
+    assert wallet.balance_on_address(new_address) == wallet.fullbalance - address_balance
+    assert wallet.utxo_addresses == [address, new_address]
+    assert wallet.utxo_labels == ['Random label', new_address]
+    assert wallet.utxo_addresses == [address, new_address]
+    assert wallet.get_address_name(new_address, -1) == new_address
+    assert wallet.get_address_name(new_address, 5) == 'Address #5'
+    assert wallet.get_address_name(address, 5) == 'Random label'
+
+    wallet.setlabel(new_address, '')
+    third_address = wallet.getnewaddress()
+
+    wallet.getdata()
+    assert wallet.labels == ['Random label', new_address, 'Address #2']
+    assert wallet.utxo_labels == ['Random label', new_address]
+    assert wallet.addresses == [address, new_address, third_address]
+    assert wallet.utxo_addresses == [address, new_address]
+
+    wallet.setlabel(third_address, 'Random label')
+    wallet.getdata()
+    assert wallet.addresses_on_label('Random label') == [address, third_address]
+
 
 # TODO: Add more tests of the Wallet object
