@@ -787,7 +787,7 @@ class PSBT(object):
 
         # make sure that we got an unsigned tx
         if self.tx.is_null():
-            raise PSBTSerializationError("No unsigned trasaction was provided")
+            raise PSBTSerializationError("No unsigned transaction was provided")
 
         # Read input data
         for txin in self.tx.vin:

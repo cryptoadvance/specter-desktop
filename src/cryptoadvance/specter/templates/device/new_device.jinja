@@ -2,7 +2,7 @@
 {% block main %}
 	{% include "includes/hwi/hwi.jinja" %}
 	{% if device %}
-		<h1>Adding keys to {{ device["name"] }}</h1>
+		<h1>Adding keys to {{ device.name }}</h1>
 	{% else %}
 		<h1>Setting up a new device</h1>
 	{% endif %}
@@ -12,9 +12,19 @@
 			<div>
 				Name it &nbsp; &nbsp;
 				<input type="text" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device">
-				<input type="hidden" id="device_type" name="device_type" value="{{ device_type }}">
 			</div>
 			<br>
+			<span>Device Type: </span>
+			<fieldset style="border:none; display: inline;"> 
+				<select name="device_type" id="device_type">
+					<option value="other">Other</option>
+					<option value="coldcard">ColdCard</option>
+					<option value="keepkey">Keepkey</option>
+					<option value="ledger">Ledger</option>                
+					<option value="trezor">Trezor</option>                
+					<option value="specter">Specter</option>                
+				</select>
+			</fieldset>
 		{% endif %}
 		<h2>Scan, paste or load xpubs:</h2>
 		<div class="note">
@@ -124,10 +134,6 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 							} else {
 								txt.value += str+"\n";
 							}
-							var deviceType = document.getElementById("device_type");
-							if (deviceType != null) {
-								deviceType.value = "coldcard";
-							}
 						}
 						reader.readAsText(files[i]);
 					}
@@ -167,10 +173,6 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				scanner.stop();
 				document.getElementById("popup").style.display = 'none';
 				document.getElementById("txt").value += result + "\n";
-				var deviceType = document.getElementById("device_type");
-				if (deviceType != null) {
-					deviceType.value = "specter";
-				}
 			});
 			document.getElementById("scanme").addEventListener("click", function(){
 				try{

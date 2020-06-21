@@ -7,7 +7,7 @@
 	<div class="notification error" id="amount_errors_container" style="display: none;">
 		<ul>
 			<li id="above_selected_coins_error" style="display: none;"> You need to select more coins to match your amount!</li>
-			<li id="above_wallet_balance_error" style="display: none;"> You cannot send more than {{ wallet.availablebalance | btcamount }} BTC!</li>
+			<li id="above_wallet_balance_error" style="display: none;"> You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!</li>
 		</ul>
 	</div>
 
@@ -30,7 +30,7 @@
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)">BTC</label>
 			<div class="note">
 				<span id="converted_unit_amount">-</span> <span id="converted_unit_label">BTC</span>, 
-				Available: {{wallet.availablebalance | btcamount}};
+				Available: {{wallet.full_available_balance | btcamount}};
 				{% if wallet.locked_amount > 0 %}
 					&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
 				{% endif %}
@@ -72,7 +72,7 @@
 		}
 
 		function isAboveWalletBalance(unit) {
-			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.availablebalance }}');
+			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.full_available_balance }}');
 		}
 
 		// Form validation

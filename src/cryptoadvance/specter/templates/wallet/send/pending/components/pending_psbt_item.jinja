@@ -11,7 +11,7 @@
     <tr>
         <td></td>
         <td class="tx scroll">
-            {{ explorer_link('address', pending_psbt['address'], wallet.getaddressname(pending_psbt['address'], -1), specter.explorer) }}
+            {{ explorer_link('address', pending_psbt['address'], wallet.get_address_name(pending_psbt['address'], -1), specter.explorer) }}
         </td>
         <td>
             {{ pending_psbt['amount'] | btcamount }}

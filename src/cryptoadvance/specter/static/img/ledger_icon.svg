@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="21px" viewBox="0 0 16 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>ledger</title>
+    <desc>Created with Sketch.</desc>
+    <g id="devices" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="ledger" transform="translate(0.000000, -0.500000)" stroke="#FFFFFF">
+            <path d="M10.25,13.9526279 L9.5,15.251666 L9.5,20.5 L14.5,20.5 L14.5,6.59141201 L13.75,7.89045012 L13.75,18.5 L10.25,18.5 L10.25,13.9526279 Z M14.5,1.75572517 L14.5,1.5 L14.2443613,1.5 C14.3345576,1.58129245 14.4198114,1.66668673 14.5,1.75572517 Z M9.55146006,1.5 L9.5,1.5 L9.5,1.54745061 C9.51701302,1.53144286 9.53416749,1.51562569 9.55146006,1.5 Z" id="Combined-Shape" fill="#FFFFFF"></path>
+            <path d="M5.89807621,19.660254 L10.8980762,19.660254 L10.8980762,3.16025404 C10.8980762,1.77954216 9.77878809,0.660254038 8.39807621,0.660254038 C7.01736434,0.660254038 5.89807621,1.77954216 5.89807621,3.16025404 L5.89807621,19.660254 Z" id="Rectangle" transform="translate(8.398076, 10.160254) rotate(30.000000) translate(-8.398076, -10.160254) "></path>
+            <rect id="Rectangle" fill="#FFFFFF" x="15" y="15.5" width="1" height="1"></rect>
+            <rect id="Rectangle" fill="#FFFFFF" x="15" y="6.5" width="1" height="1"></rect>
+        </g>
+    </g>
+</svg>
