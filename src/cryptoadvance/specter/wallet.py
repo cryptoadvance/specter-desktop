@@ -195,24 +195,6 @@ class Wallet():
             f.write(json.dumps(self.json, indent=4))
         self.manager.update()
 
-    def _uses_device_type(self, type_list):
-        for device in self.devices:
-            if device.device_type in type_list:
-                return True
-        return False
-
-    @property
-    def uses_qrcode_device(self):
-        return self._uses_device_type(Device.QR_CODE_TYPES)
-
-    @property
-    def uses_sdcard_device(self):
-        return self._uses_device_type(Device.SD_CARD_TYPES)
-
-    @property
-    def uses_hwi_device(self):
-        return self._uses_device_type(Device.HWI_TYPES)
-
     @property
     def is_multisig(self):
         return len(self.keys) > 1

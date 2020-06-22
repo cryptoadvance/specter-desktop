@@ -5,9 +5,6 @@ from .key import Key
 
 
 class Device:
-    QR_CODE_TYPES = ['specter', 'other']
-    SD_CARD_TYPES = ['coldcard', 'other']
-    HWI_TYPES = ['keepkey', 'ledger', 'trezor', 'specter', 'coldcard']
 
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
         self.name = name
