@@ -213,5 +213,38 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.getdata()
     assert wallet.addresses_on_label('Random label') == [address, third_address]
 
+def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias('specter')
+    key = Key.from_json({
+        "derivation": "m/48h/1h/0h/2h",
+        "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+        "fingerprint": "08686ac6",
+        "type": "wsh",
+        "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
+    })
+    wallet = wm.create_wallet('a_second_test_wallet', 1, 'wpkh', [key], [device])
+
+    address = wallet.address
+    change_address = wallet.change_address
+    assert wallet.addresses == [address]
+    assert wallet.change_addresses == [change_address]
+    assert wallet.active_addresses == [address]
+    assert wallet.labels == ['Address #0']
+
+    wallet.cli.generatetoaddress(20, change_address)
+    random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+    wallet.cli.generatetoaddress(110, random_address)
+    wallet.getdata()
+
+    # new change address should be genrated automatically after receiving
+    # assert wallet.change_addresses == [change_address, wallet.change_address]
+    # This will not work here since Bitcoin Core doesn't count mining rewards in `getreceivedbyaddress`
+    # See: https://github.com/bitcoin/bitcoin/issues/14654
+
+    assert wallet.active_addresses == [address, change_address]
+    # labels should return only active addresses
+    assert wallet.labels == ['Address #0', 'Change #0']
 
 # TODO: Add more tests of the Wallet object
