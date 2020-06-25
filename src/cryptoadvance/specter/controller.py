@@ -13,7 +13,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import alias, get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel, get_version_info
+from .helpers import alias, get_devices_with_keys_by_type, hash_password, get_loglevel, get_version_info, run_shell, set_loglevel, verify_password
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -99,7 +99,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ''' login '''
-    app.specter.check(None)
+    app.specter.check()
     if request.method == 'POST':
         if app.specter.config['auth'] == 'rpcpasswordaspin' or (app.specter.config['auth'] == 'usernamepassword' and request.form['username'] == 'admin'):
             # TODO: check the password via RPC-call
@@ -114,14 +114,13 @@ def login():
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
         elif app.specter.config['auth'] == 'usernamepassword':
-            # TODO: Hash passwords - no cleartext!
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form['username']
             password = request.form['password']
             user_id = alias(username)
             user = User.get_user(app.specter, user_id)
             if user:
-                if user.password == password:
+                if verify_password(user.password, password):
                     app.login(user_id)
                     return redirect_login(request)
         # Either invalid method or incorrect credentials
@@ -147,14 +146,13 @@ def register():
     app.specter.check()
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        password = hash_password(request.form['password'])
         otp = request.form['otp']
         user_id = alias(username)
         user = User.get_user(app.specter, user_id)
         if user:
             flash('Username is already taken, please choose another one', "error")
             return redirect('/register?otp={}'.format(otp))
-        # TODO: Verify and delete OTP
         if app.specter.burn_new_user_otp(otp):
             config = {
                 "explorers": {

@@ -107,8 +107,7 @@ class Specter:
         else:
             user_folder_id = ''
 
-        if self.config['auth'] != 'usernamepassword' or user:
-            print("devices{}".format(user_folder_id))
+        if self.config['auth'] != 'usernamepassword' or (user and not user.is_anonymous):
             if self.device_manager is None:
                 self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
             else:
