@@ -13,11 +13,12 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel, get_version_info
+from .helpers import alias, get_devices_with_keys_by_type, run_shell, set_loglevel, get_loglevel, get_version_info
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
 from .rpc import RpcError
+from .user import User
 from datetime import datetime
 import urllib
 
@@ -98,43 +99,92 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ''' login '''
-    app.specter.check()
-    if request.method == 'POST': 
-        # ToDo: check the password via RPC-call
-        if app.specter.cli is None:
-            flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
-            app.logger.info("AUDIT: Failed to check password")
-            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
-        cli = app.specter.cli.clone()
-        cli.passwd = request.form['password']
-        if cli.test_connection():
-            app.login()
-            app.logger.info("AUDIT: Successfull Login via RPC-credentials")
-            flash('Logged in successfully.',"info")
-            if request.form.get('next') and request.form.get('next').startswith("http"):
-                response = redirect(request.form['next'])
-            else:
-                response = redirect(url_for('index'))
-            return response
-        else:
-            flash('Invalid username or password', "error")
-            app.logger.info("AUDIT: Invalid password login attempt")
-            return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
+    app.specter.check(None)
+    if request.method == 'POST':
+        if app.specter.config['auth'] == 'rpcpasswordaspin' or (app.specter.config['auth'] == 'usernamepassword' and request.form['username'] == 'admin'):
+            # TODO: check the password via RPC-call
+            if app.specter.cli is None:
+                flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
+                app.logger.info("AUDIT: Failed to check password")
+                return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
+            cli = app.specter.cli.clone()
+            cli.passwd = request.form['password']
+            if cli.test_connection():
+                app.login('admin')
+                app.logger.info("AUDIT: Successfull Login via RPC-credentials")
+                return redirect_login(request)
+        elif app.specter.config['auth'] == 'usernamepassword':
+            # TODO: Hash passwords - no cleartext!
+            # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
+            username = request.form['username']
+            password = request.form['password']
+            user_id = alias(username)
+            user = User.get_user(app.specter, user_id)
+            if user:
+                if user.password == password:
+                    app.login(user_id)
+                    return redirect_login(request)
+        # Either invalid method or incorrect credentials
+        flash('Invalid username or password', "error")
+        app.logger.info("AUDIT: Invalid password login attempt")
+        return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
     else:
         if app.config.get('LOGIN_DISABLED'):
             return redirect('/')
         return render_template('login.jinja', specter=app.specter, data={'next':request.args.get('next')})
 
+def redirect_login(request):
+    flash('Logged in successfully.',"info")
+    if request.form.get('next') and request.form.get('next').startswith("http"):
+        response = redirect(request.form['next'])
+    else:
+        response = redirect(url_for('index'))
+    return response
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    ''' register '''
+    app.specter.check()
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        otp = request.form['otp']
+        user_id = alias(username)
+        user = User.get_user(app.specter, user_id)
+        if user:
+            flash('Username is already taken, please choose another one', "error")
+            return redirect('/register?otp={}'.format(otp))
+        # TODO: Verify and delete OTP
+        if app.specter.burn_new_user_otp(otp):
+            config = {
+                "explorers": {
+                    "main": "",
+                    "test": "",
+                    "regtest": "",
+                    "signet": "",
+                },
+                "hwi_bridge_url": "/hwi/api/",
+            }
+            user = User(user_id, username, password, config)
+            user.save_info(app.specter)
+            return redirect('/login')
+        else:
+            flash('Invalid registration link, please request a new link from the node operator.', 'error')
+            return redirect('/register?otp={}'.format(otp))
+    return render_template('register.jinja', specter=app.specter)
+
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
     flash('You were logged out',"info")
+    app.specter.clear_user_session()
     return redirect("/login") 
 
 @app.route('/settings/', methods=['GET', 'POST'])
 @login_required
 def settings():
     current_version = notify_upgrade()
+    print(current_user)
     app.specter.check()
     rpc = app.specter.config['rpc']
     user = rpc['user']
@@ -143,22 +193,25 @@ def settings():
     host = rpc['host']
     protocol = 'http'
     explorer = app.specter.explorer
-    auth = app.specter.config["auth"]
-    hwi_bridge_url = app.specter.config['hwi_bridge_url']
+    auth = app.specter.config['auth']
+    hwi_bridge_url = app.specter.hwi_bridge_url
+    new_otp = -1
     loglevel = get_loglevel(app)
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
     if request.method == 'POST':
-        user = request.form['username']
-        passwd = request.form['password']
-        port = request.form['port']
-        host = request.form['host']
-        explorer = request.form["explorer"]
-        auth = request.form['auth']
-        loglevel = request.form["loglevel"]
-        hwi_bridge_url = request.form['hwi_bridge_url']
         action = request.form['action']
+        explorer = request.form['explorer']
+        hwi_bridge_url = request.form['hwi_bridge_url']
+        if current_user.is_admin:
+            user = request.form['username']
+            passwd = request.form['password']
+            port = request.form['port']
+            host = request.form['host']
+            auth = request.form['auth']
+            loglevel = request.form['loglevel']
+            
         # protocol://host
         if "://" in host:
             arr = host.split("://")
@@ -173,26 +226,33 @@ def settings():
                                         protocol=protocol,
                                         autodetect=False
                                         )
-        if action == "save":
-            app.specter.update_rpc( user=user,
-                                    password=passwd,
-                                    port=port,
-                                    host=host,
-                                    protocol=protocol,
-                                    autodetect=False
-                                    )
-            app.specter.update_explorer(explorer)
-            app.specter.update_auth(auth)
-            app.specter.update_hwi_bridge_url(hwi_bridge_url)
-            if auth == "rpcpasswordaspin":
-                app.config['LOGIN_DISABLED'] = False
-            else:
-                app.config['LOGIN_DISABLED'] = True
-            set_loglevel(app,loglevel)
+        elif action == "save":
+            if current_user.is_admin:
+                app.specter.update_rpc( user=user,
+                                        password=passwd,
+                                        port=port,
+                                        host=host,
+                                        protocol=protocol,
+                                        autodetect=False
+                                        )
+                app.specter.update_auth(auth)
+                if auth == "rpcpasswordaspin" or auth == "usernamepassword":
+                    app.config['LOGIN_DISABLED'] = False
+                else:
+                    app.config['LOGIN_DISABLED'] = True
+                set_loglevel(app,loglevel)
+
+            app.specter.update_explorer(explorer, current_user)
+            app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
             app.specter.check()
             return redirect("/")
-    else:
-        pass
+        elif action == "adduser":
+            if current_user.is_admin:
+                new_otp = random.randint(100000, 999999)
+                app.specter.add_new_user_otp({ 'otp': new_otp, 'created_at': time.time() })
+                flash('New user link generated successfully: {}register?otp={}'.format(request.url_root, new_otp), 'info')
+            else:
+                flash('Error: Only the admin account can issue new registration links.', 'error')
     return render_template("settings.jinja",
                             test=test,
                             username=user,
@@ -203,6 +263,7 @@ def settings():
                             explorer=explorer,
                             auth=auth,
                             hwi_bridge_url=hwi_bridge_url,
+                            new_otp=new_otp,
                             loglevel=loglevel,
                             specter=app.specter,
                             current_version=current_version,

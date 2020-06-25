@@ -178,12 +178,34 @@ def get_version_info():
 
     return current_version, latest_version, latest_version != current_version
 
+def get_users_json(specter):
+    users = [
+        {
+            'id': 'admin',
+            'username': 'admin'
+        }
+    ]
+        
+
+    # if users.json file exists - load from it
+    if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
+        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+            users = json.loads(f.read())
+    # otherwise - create one and assign unique id
+    else:
+        save_users_json(specter, users)
+    return users
+
+def save_users_json(specter, users):
+    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+        f.write(json.dumps(users, indent=4))
+
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
 
-    # if config.json file exists - load from it
+    # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
         with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
             file_config = json.loads(f.read())
