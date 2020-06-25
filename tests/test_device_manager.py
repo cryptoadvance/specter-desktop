@@ -2,6 +2,7 @@ import os
 from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.device_manager import DeviceManager
+from cryptoadvance.specter.wallet_manager import WalletManager
 
 
 def test_DeviceManager(empty_data_folder):
@@ -95,3 +96,20 @@ def test_DeviceManager(empty_data_folder):
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
     assert some_device.keys[1] == another_key
+
+def test_device_wallets(bitcoin_regtest, devices_filled_data_folder, device_manager):
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(), "regtest", device_manager)
+    device = device_manager.get_by_alias('trezor')
+    assert len(device.wallets(wm)) == 0
+    wallet = wm.create_wallet('a_test_wallet', 1, 'wpkh', [device.keys[5]], [device])
+    assert len(device.wallets(wm)) == 1
+    assert device.wallets(wm)[0].alias == wallet.alias
+    second_device = device_manager.get_by_alias('specter')
+    multisig_wallet = wm.create_wallet('a_multisig_test_wallet', 1, 'wsh', [device.keys[7], second_device.keys[0]], [device, second_device])
+
+    assert len(device.wallets(wm)) == 2
+    assert device.wallets(wm)[0].alias == wallet.alias
+    assert device.wallets(wm)[1].alias == multisig_wallet.alias
+
+    assert len(second_device.wallets(wm)) == 1
+    assert second_device.wallets(wm)[0].alias == multisig_wallet.alias
