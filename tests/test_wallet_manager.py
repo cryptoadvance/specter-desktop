@@ -193,9 +193,9 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     assert wallet.tx_on_current_address == 20
     assert wallet.tx_on_address(address) == 20
     assert wallet.balance_on_address(new_address) == wallet.fullbalance - address_balance
-    assert wallet.utxo_addresses == [address, new_address]
-    assert wallet.utxo_labels == ['Random label', new_address]
-    assert wallet.utxo_addresses == [address, new_address]
+    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
+    assert sorted(wallet.utxo_labels) == sorted(['Random label', new_address])
+    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
     assert wallet.get_address_name(new_address, -1) == new_address
     assert wallet.get_address_name(new_address, 5) == 'Address #5'
     assert wallet.get_address_name(address, 5) == 'Random label'
@@ -204,14 +204,14 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     third_address = wallet.getnewaddress()
 
     wallet.getdata()
-    assert wallet.labels == ['Random label', new_address, 'Address #2']
-    assert wallet.utxo_labels == ['Random label', new_address]
-    assert wallet.addresses == [address, new_address, third_address]
-    assert wallet.utxo_addresses == [address, new_address]
+    assert sorted(wallet.labels) == sorted(['Random label', new_address, 'Address #2'])
+    assert sorted(wallet.utxo_labels) == sorted(['Random label', new_address])
+    assert sorted(wallet.addresses) == sorted([address, new_address, third_address])
+    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
 
     wallet.setlabel(third_address, 'Random label')
     wallet.getdata()
-    assert wallet.addresses_on_label('Random label') == [address, third_address]
+    assert sorted(wallet.addresses_on_label('Random label')) == sorted([address, third_address])
 
 def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
