@@ -5,6 +5,7 @@ def test_home(caplog, client):
     ''' The root of the app '''
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
+    login(client, 'secret')
     result = client.get('/')
     # By default there is no authentication
     assert result.status_code == 200 # OK.
@@ -24,11 +25,10 @@ def test_home(caplog, client):
 def test_login_logout(caplog, app, client):
     ''' whether we can login or logout '''
     caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
-    app.config['LOGIN_DISABLED'] = False
     result = client.get('/login', follow_redirects=False)
 
     assert result.status_code == 200
-    assert b'Pin' in result.data
+    assert b'Password' in result.data
     result = login(client, 'secret')
     assert b'Logged in successfully.' in result.data
     result = logout(client)

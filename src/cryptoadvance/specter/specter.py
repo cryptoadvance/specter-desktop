@@ -268,7 +268,7 @@ class Specter:
     @property
     def explorer(self):
         # TODO: Unify for user and admin
-        if current_user.is_admin:
+        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
             if "explorers" in self.config and self.chain in self.config["explorers"]:
                 return self.config["explorers"][self.chain]
             else:
@@ -282,7 +282,7 @@ class Specter:
     @property
     def hwi_bridge_url(self):
         # TODO: Unify for user and admin
-        if current_user.is_admin:
+        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
             if "hwi_bridge_url" in self.config:
                 return self.config["hwi_bridge_url"]
             else:

@@ -101,6 +101,10 @@ def login():
     ''' login '''
     app.specter.check()
     if request.method == 'POST':
+        if app.specter.config['auth'] == 'none':
+            app.login('admin')
+            app.logger.info("AUDIT: Successfull Login no credentials")
+            return redirect_login(request)
         if app.specter.config['auth'] == 'rpcpasswordaspin' or (app.specter.config['auth'] == 'usernamepassword' and request.form['username'] == 'admin'):
             # TODO: check the password via RPC-call
             if app.specter.cli is None:
@@ -182,7 +186,6 @@ def logout():
 @login_required
 def settings():
     current_version = notify_upgrade()
-    print(current_user)
     app.specter.check()
     rpc = app.specter.config['rpc']
     user = rpc['user']
