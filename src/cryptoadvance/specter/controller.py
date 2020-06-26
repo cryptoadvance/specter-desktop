@@ -132,6 +132,7 @@ def login():
         return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
     else:
         if app.config.get('LOGIN_DISABLED'):
+            app.login('admin')
             return redirect('/')
         return render_template('login.jinja', specter=app.specter, data={'next':request.args.get('next')})
 
