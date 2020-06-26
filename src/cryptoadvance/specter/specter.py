@@ -189,6 +189,9 @@ class Specter:
     
     def update_explorer(self, explorer):
         ''' update the block explorers urls '''
+        # we don't know what chain to change
+        if not self.chain:
+            return
         if explorer and not explorer.endswith("/"):
             # make sure the urls end with a "/"
             explorer += "/"
