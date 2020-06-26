@@ -194,6 +194,8 @@ def settings():
     protocol = 'http'
     explorer = app.specter.explorer
     auth = app.specter.config['auth']
+    if auth == 'none':
+        app.login('admin')
     hwi_bridge_url = app.specter.hwi_bridge_url
     new_otp = -1
     loglevel = get_loglevel(app)
