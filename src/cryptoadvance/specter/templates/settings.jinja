@@ -36,8 +36,8 @@
 				{% if specter.config['auth'] == 'usernamepassword' %}
 					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
 					<br>
+					<span class="note">Default is username: admin, password: admin.</span><br>
 				{% endif %}
-				<span class="note">Default is username: admin, password: admin.</span><br>
 			{% endif %}
 			{% if specter.config['auth'] == 'usernamepassword' %}
 				Specter Username:<br><input type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
