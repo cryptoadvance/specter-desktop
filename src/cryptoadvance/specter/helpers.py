@@ -182,7 +182,9 @@ def get_users_json(specter):
     users = [
         {
             'id': 'admin',
-            'username': 'admin'
+            'username': 'admin',
+            'password': hash_password('admin'),
+            'is_admin': True
         }
     ]
         

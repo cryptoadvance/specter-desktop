@@ -19,6 +19,13 @@
 				<br>
 				<h2>Miscellanous</h2>
 				<br>
+				Log Level:<br>
+				<select name="loglevel">
+					<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
+					<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
+					<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
+				</select>
+				<br><br>
 				Authentication:<br>
 				<select name="auth">
 					<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
@@ -30,13 +37,12 @@
 					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
 					<br>
 				{% endif %}
-				Log Level:<br>
-				<select name="loglevel">
-					<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
-					<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
-					<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
-				</select>
-				<br><br>
+				<span class="note">Default is username: admin, password: admin.</span><br>
+			{% endif %}
+			{% if specter.config['auth'] == 'usernamepassword' %}
+				Specter Username:<br><input type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
+				Specter Password:<br><input type="password" name="specter_password" type="text" placeholder="Set new password"><br>	
+				<br><br>			
 			{% endif %}
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
@@ -45,7 +51,7 @@
 				This setting is only to allow opening trnsactions and addresses in a block explorer directly from Specter.<br>
 				All data Specter uses still comes directly from the your own connected full node.
 			</div>
-			<br><br>
+			<br>
 			HWI Bridge URL:<br>
 			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
 			<div class="note">

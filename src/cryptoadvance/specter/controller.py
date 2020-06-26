@@ -105,7 +105,7 @@ def login():
             app.login('admin')
             app.logger.info("AUDIT: Successfull Login no credentials")
             return redirect_login(request)
-        if app.specter.config['auth'] == 'rpcpasswordaspin' or (app.specter.config['auth'] == 'usernamepassword' and request.form['username'] == 'admin'):
+        if app.specter.config['auth'] == 'rpcpasswordaspin':
             # TODO: check the password via RPC-call
             if app.specter.cli is None:
                 flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
@@ -121,11 +121,10 @@ def login():
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form['username']
             password = request.form['password']
-            user_id = alias(username)
-            user = User.get_user(app.specter, user_id)
+            user = User.get_user_by_name(app.specter, username)
             if user:
                 if verify_password(user.password, password):
-                    app.login(user_id)
+                    app.login(user.id)
                     return redirect_login(request)
         # Either invalid method or incorrect credentials
         flash('Invalid username or password', "error")
@@ -153,8 +152,7 @@ def register():
         password = hash_password(request.form['password'])
         otp = request.form['otp']
         user_id = alias(username)
-        user = User.get_user(app.specter, user_id)
-        if user:
+        if User.get_user(app.specter, user_id) or User.get_user_by_name(app.specter, username):
             flash('Username is already taken, please choose another one', "error")
             return redirect('/register?otp={}'.format(otp))
         if app.specter.burn_new_user_otp(otp):
@@ -205,6 +203,12 @@ def settings():
         action = request.form['action']
         explorer = request.form['explorer']
         hwi_bridge_url = request.form['hwi_bridge_url']
+        if 'specter_username' in request.form:
+                specter_username = request.form['specter_username']
+                specter_password = request.form['specter_password']
+        else:
+            specter_username = None
+            specter_password = None
         if current_user.is_admin:
             user = request.form['username']
             passwd = request.form['password']
@@ -228,6 +232,29 @@ def settings():
                                         autodetect=False
                                         )
         elif action == "save":
+            if specter_username:
+                if current_user.username != specter_username:
+                    if User.get_user_by_name(app.specter, specter_username):
+                        flash('Username is already taken, please choose another one', "error")
+                        return render_template("settings.jinja",
+                            test=test,
+                            username=user,
+                            password=passwd,
+                            port=port,
+                            host=host,
+                            protocol=protocol,
+                            explorer=explorer,
+                            auth=auth,
+                            hwi_bridge_url=hwi_bridge_url,
+                            new_otp=new_otp,
+                            loglevel=loglevel,
+                            specter=app.specter,
+                            current_version=current_version,
+                            rand=rand)
+                current_user.username = specter_username
+                if specter_password:
+                    current_user.password = hash_password(specter_password)
+                current_user.save_info(app.specter)
             if current_user.is_admin:
                 app.specter.update_rpc( user=user,
                                         password=passwd,
