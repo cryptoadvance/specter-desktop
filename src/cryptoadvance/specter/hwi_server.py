@@ -1,5 +1,5 @@
 import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, render_template, request
+from flask import Blueprint, Flask, jsonify, redirect, render_template, request
 from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
@@ -10,6 +10,10 @@ hwi_server = Blueprint('hwi_server', __name__)
 CORS(hwi_server)
 rand = random.randint(0, 1e32) # to force style refresh
 hwi = HWIBridge()
+
+@hwi_server.route("/", methods=["GET"])
+def index():
+    return redirect('/hwi/settings')
 
 @hwi_server.route("/api/", methods=["POST"])
 def api():

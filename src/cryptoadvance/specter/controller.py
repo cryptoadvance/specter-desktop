@@ -184,7 +184,22 @@ def logout():
 @app.route('/settings/', methods=['GET'])
 @login_required
 def settings():
-    return redirect("/settings/general")
+    if current_user.is_admin:
+        return redirect("/settings/bitcoin_core")
+    else:
+        return redirect("/settings/general")
+
+@app.route('/settings/hwi', methods=['GET'])
+@login_required
+def hwi_settings():
+    current_version = notify_upgrade()
+    app.specter.check()
+    return render_template(
+        "settings/hwi_settings.jinja",
+        specter=app.specter,
+        current_version=current_version,
+        rand=rand
+    )
 
 @app.route('/settings/general', methods=['GET', 'POST'])
 @login_required
@@ -208,7 +223,6 @@ def general_settings():
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
             app.specter.check()
-            return redirect("/")
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
@@ -270,7 +284,6 @@ def bitcoin_core_settings():
                     autodetect=False
                 )
             app.specter.check()
-            return redirect("/")
 
     return render_template(
         "settings/bitcoin_core_settings.jinja",
@@ -330,7 +343,6 @@ def auth_settings():
                     app.config['LOGIN_DISABLED'] = True
 
             app.specter.check()
-            return redirect("/")
         elif action == "adduser":
             if current_user.is_admin:
                 new_otp = random.randint(100000, 999999)
