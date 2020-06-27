@@ -47,10 +47,10 @@
         try {
             let hwiURL = '/hwi/api/'
             if (
-                '{{ specter.config.hwi_bridge_url }}'.startsWith('http://localhost') ||
-                '{{ specter.config.hwi_bridge_url }}'.startsWith('http://127.0.0.1')
+                '{{ specter.hwi_bridge_url }}'.startsWith('http://localhost') ||
+                '{{ specter.hwi_bridge_url }}'.startsWith('http://127.0.0.1')
             ) {
-                hwiURL = '{{ specter.config.hwi_bridge_url }}'
+                hwiURL = '{{ specter.hwi_bridge_url }}'
             }
             let data = await fetch(hwiURL,{
                 method: 'POST',

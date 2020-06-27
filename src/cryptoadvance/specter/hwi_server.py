@@ -36,7 +36,7 @@ def api():
             "error": { "code": -32700, "message": "Parse error" },
             "id": None
         }), 500
-    if ('forwarded_request' not in data or not data['forwarded_request']) and (app.specter.config['hwi_bridge_url'].startswith('http://') or app.specter.config['hwi_bridge_url'].startswith('https://')):
+    if ('forwarded_request' not in data or not data['forwarded_request']) and (app.specter.hwi_bridge_url.startswith('http://') or app.specter.hwi_bridge_url.startswith('https://')):
             if ('HTTP_ORIGIN' not in request.environ):
                 return jsonify({
                     "jsonrpc": "2.0",
@@ -46,11 +46,11 @@ def api():
             data['forwarded_request'] = True
             requests_session = requests.Session()
             requests_session.headers.update({'origin': request.environ['HTTP_ORIGIN']})
-            if '.onion/' in app.specter.config['hwi_bridge_url']:
+            if '.onion/' in app.specter.hwi_bridge_url:
                 requests_session.proxies = {}
                 requests_session.proxies['http'] = 'socks5h://localhost:9050'
                 requests_session.proxies['https'] = 'socks5h://localhost:9050'
-            forwarded_request = requests_session.post(app.specter.config['hwi_bridge_url'], data=json.dumps(data))
+            forwarded_request = requests_session.post(app.specter.hwi_bridge_url, data=json.dumps(data))
             response = json.loads(forwarded_request.content)
             return jsonify(response)
 

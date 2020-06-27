@@ -3,27 +3,47 @@
 	<form action="./" method="POST">
 		<h1>App settings - Specter Desktop {{ current_version }}</h1>
 		<div class="card">
-			<h2>Bitcoin JSON-RPC configuration</h2>
-			<br>
-			Username:<br><input type="text" name="username" value="{{ username }}">
-			<br><br>
-			Password:<br><input type="password" name="password" value="{{ password }}">
-			<br><br>
-			Host:<br><input type="text" name="host" type="text" value="{{ protocol }}://{{ host }}">
-			<br><br>
-			Port:<br><input type="text" name="port" type="text" value="{{ port }}">
-			<div class="note">
-				Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
+			{% if specter.config.auth == "none" or current_user.is_admin %}
+				<h2>Bitcoin JSON-RPC configuration</h2>
+				<br>
+				Username:<br><input type="text" name="username" value="{{ username }}">
+				<br><br>
+				Password:<br><input type="password" name="password" value="{{ password }}">
+				<br><br>
+				Host:<br><input type="text" name="host" type="text" value="{{ protocol }}://{{ host }}">
+				<br><br>
+				Port:<br><input type="text" name="port" type="text" value="{{ port }}">
+				<div class="note">
+					Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
+				</div>
+				<br>
+				<h2>Miscellanous</h2>
+				<br>
+				Log Level:<br>
+				<select name="loglevel">
+					<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
+					<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
+					<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
+				</select>
+				<br><br>
+				Authentication:<br>
+				<select name="auth" onchange="toggleUsernamePassword(this)">
+					<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
+					<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
+					<option value="usernamepassword" {% if auth=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
+				</select>
+				<br><br>
+				{% if specter.config['auth'] == 'usernamepassword' %}
+					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
+					<br>
+					<span class="note">Default is username: admin, password: admin.</span><br>
+				{% endif %}
+			{% endif %}
+			<div id="usernamepassword" class="{% if specter.config['auth'] != 'usernamepassword' %}hidden{% endif %}">
+				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
+				Specter Password:<br><input id="specter_password" type="password" name="specter_password" type="text" placeholder="Set new password"><br>	
+				<br><br>
 			</div>
-			<br>
-			<h2>Miscellanous</h2>
-			<br>
-			Authentication:<br>
-			<select name="auth">
-				<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
-				<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
-			</select>
-			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="note">
@@ -31,7 +51,7 @@
 				This setting is only to allow opening trnsactions and addresses in a block explorer directly from Specter.<br>
 				All data Specter uses still comes directly from the your own connected full node.
 			</div>
-			<br><br>
+			<br>
 			HWI Bridge URL:<br>
 			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
 			<div class="note">
@@ -40,13 +60,6 @@
 				If you are user Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.
 				Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
 			</div>
-			<br><br>
-			Log Level:<br>
-			<select name="loglevel">
-				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
-				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
-				<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
-			</select>
 			<br><br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
@@ -98,4 +111,21 @@
 			{% endif %}
 		</div>
 	</form>
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		function toggleUsernamePassword(select) {
+            var usernamepasswordDiv = document.getElementById("usernamepassword");
+            var specterUsername = document.getElementById("specter_username");
+            var specterPassword = document.getElementById("specter_password");
+            if (select.options[select.selectedIndex].value === 'usernamepassword'){
+                usernamepasswordDiv.style.display = 'block';
+            } else {
+                usernamepasswordDiv.style.display = 'none';
+                specterUsername.value = '{{ current_user.username }}';
+                specterPassword.value = '';
+            }
+        }
+	</script>
 {% endblock %}
