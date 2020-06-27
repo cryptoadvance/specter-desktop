@@ -1,0 +1,17 @@
+{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
+
+{# 
+    settings_menu - Tabs menu to navigate between the settings screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
+    - current_user: The current user.
+ #}
+{% macro settings_menu(active_menuitem, current_user) -%}
+	<nav class="row">
+		{{ settings_menu_item('general_settings', 'General', active_menuitem, isLeft=true) }}
+		{% if current_user.is_admin %}
+			{{ settings_menu_item('bitcoin_core_settings', 'Bitcoin Core', active_menuitem) }}
+		{% endif %}
+		{{ settings_menu_item('auth_settings', 'Auth', active_menuitem, isRight=true) }}
+	</nav>
+{%- endmacro %}
