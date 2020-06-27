@@ -1,0 +1,42 @@
+{% extends "base.jinja" %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block main %}
+    <div class="card">
+        <h1>Register to the Specter Node</h1>
+        <form action="{{ url_for('register') }}" method="POST" role="form">
+            {% if specter.config['auth'] == 'usernamepassword' %}
+                <input class="form-control" placeholder="Username" name="username" type="text" value=""><br><br>
+            {% endif %}
+            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+            <input type="hidden" name="otp" value="" id="otp">
+            <br>
+            <br>
+            <div class="row">
+                <button type="submit" class="btn">Register</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function getqueryParameter(ji) {
+            hu = window.location.search.substring(1);
+            gy = hu.split("&");
+
+            for (i=0; i<gy.length; i++) {
+                ft = gy[i].split("=");
+                if (ft[0] == ji) {
+                    return ft[1];
+                }
+            }
+        }
+        var otp = getqueryParameter("otp");
+        if (otp !== undefined) {
+            document.getElementById("otp").value = otp;
+        }
+    </script>
+{% endblock %}

@@ -29,6 +29,9 @@ class DeviceManager:
     '''
     # of them via json-files in an empty data folder
     def __init__(self, data_folder):
+        self.update(data_folder=data_folder)
+
+    def update(self, data_folder=None):
         if data_folder is not None:
             self.data_folder = data_folder
             if data_folder.startswith("~"):
@@ -36,9 +39,6 @@ class DeviceManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
-        self.update()
-
-    def update(self):
         self.devices = {}
         devices_files = load_jsons(self.data_folder, key="name")
         for device_alias in devices_files:

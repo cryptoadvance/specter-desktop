@@ -1,4 +1,4 @@
-import collections, copy, hashlib, json, logging, os, six, subprocess, sys
+import binascii, collections, copy, hashlib, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
 from .descriptor import AddChecksum
 
@@ -178,12 +178,36 @@ def get_version_info():
 
     return current_version, latest_version, latest_version != current_version
 
+def get_users_json(specter):
+    users = [
+        {
+            'id': 'admin',
+            'username': 'admin',
+            'password': hash_password('admin'),
+            'is_admin': True
+        }
+    ]
+        
+
+    # if users.json file exists - load from it
+    if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
+        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+            users = json.loads(f.read())
+    # otherwise - create one and assign unique id
+    else:
+        save_users_json(specter, users)
+    return users
+
+def save_users_json(specter, users):
+    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+        f.write(json.dumps(users, indent=4))
+
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
 
-    # if config.json file exists - load from it
+    # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
         with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
             file_config = json.loads(f.read())
@@ -273,3 +297,17 @@ def sort_descriptor(cli, descriptor, index=None, change=False):
         desc = f"{p}({desc})"
 
     return AddChecksum(desc)
+
+def hash_password(password):
+    """Hash a password for storing."""
+    salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
+    pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
+    return { 'salt': salt.decode(), 'pwdhash': pwdhash }
+
+def verify_password(stored_password, provided_password):
+    """Verify a stored password against one provided by user"""
+    pwdhash = hashlib.pbkdf2_hmac('sha256', 
+                                  provided_password.encode('utf-8'), 
+                                  stored_password['salt'].encode(), 
+                                  10000)
+    return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])

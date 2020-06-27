@@ -4,6 +4,8 @@ from .rpc import autodetect_cli_confs, RpcError
 from .rpc_cache import BitcoinCLICached
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
+from .user import User
+from flask_login import current_user
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +72,7 @@ class Specter:
         # health check: loads config and tests rpc
         self.check()
 
-    def check(self):
+    def check(self, user=current_user):
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with open(os.path.join(self.data_folder, "config.json"), "r") as f:
@@ -100,26 +102,36 @@ class Specter:
             self._info["chain"] = None
 
         chain = self._info["chain"]
-        if self.device_manager is None:
-            self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices"))
+        if hasattr(user, 'is_admin'):
+            user_folder_id = '_' + user.id if user and not user.is_admin else ''
         else:
-            self.device_manager.update()
+            user_folder_id = ''
 
-        if self.wallet_manager is None or chain is None:
-            wallets_path = "specter%s" % self.config["uid"]
-            self.wallet_manager = WalletManager(
-                os.path.join(self.data_folder, "wallets"), 
-                self.cli, 
-                chain,
-                self.device_manager,
-                path=wallets_path
-            )
-        else:
-            self.wallet_manager.update(
-                os.path.join(self.data_folder, "wallets"), 
-                self.cli, 
-                chain=chain
-            )
+        if self.config['auth'] != 'usernamepassword' or (user and not user.is_anonymous):
+            if self.device_manager is None:
+                self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
+            else:
+                self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
+
+            if self.wallet_manager is None or chain is None:
+                wallets_path = "specter%s" % self.config["uid"]
+                self.wallet_manager = WalletManager(
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
+                    self.cli, 
+                    chain,
+                    self.device_manager,
+                    path=wallets_path
+                )
+            else:
+                self.wallet_manager.update(
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
+                    self.cli, 
+                    chain=chain
+                )
+
+    def clear_user_session(self):
+        self.device_manager = None
+        self.wallet_manager = None
 
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
@@ -187,7 +199,7 @@ class Specter:
             self.config["auth"] = auth
         self._save()
     
-    def update_explorer(self, explorer):
+    def update_explorer(self, explorer, user):
         ''' update the block explorers urls '''
         # we don't know what chain to change
         if not self.chain:
@@ -196,18 +208,42 @@ class Specter:
             # make sure the urls end with a "/"
             explorer += "/"
         # update the urls in the app config
-        if self.config["explorers"][self.chain] != explorer:
-            self.config["explorers"][self.chain] = explorer
+        if user.id == 'admin':
+            if self.config["explorers"][self.chain] != explorer:
+                self.config["explorers"][self.chain] = explorer
+            self._save()
+        else:
+            user.set_explorer(self, explorer)
+
+    def update_hwi_bridge_url(self, url, user):
+        ''' update the hwi bridge url to use '''
+        if url and not url.endswith("/"):
+            # make sure the urls end with a "/"
+            url += "/"
+        if user.id == 'admin':
+            self.config["hwi_bridge_url"] = url
+            self._save()
+        else:
+            user.set_hwi_bridge_url(self, url)
+
+    def add_new_user_otp(self, otp_dict):
+        ''' adds an OTP for user registration '''
+        if 'new_user_otps' not in self.config:
+                self.config['new_user_otps'] = []
+        self.config['new_user_otps'].append(otp_dict)
         self._save()
 
-    def update_hwi_bridge_url(self, url):
-        ''' update the hwi bridge url to use '''
-        if self.config["hwi_bridge_url"] != url:
-            if url and not url.endswith("/"):
-                # make sure the urls end with a "/"
-                url += "/"
-            self.config["hwi_bridge_url"] = url
-        self._save()
+    def burn_new_user_otp(self, otp):
+        ''' validates an OTP for user registration and removes it if valid'''
+        if 'new_user_otps' not in self.config:
+                return False
+        for i, otp_dict in enumerate(self.config['new_user_otps']):
+            # TODO: Validate OTP did not expire based on created_at
+            if otp_dict['otp'] == int(otp):
+                del self.config['new_user_otps'][i]
+                self._save()
+                return True
+        return False
 
     def combine(self, psbt_arr):
         final_psbt = self.cli.combinepsbt(psbt_arr)
@@ -234,7 +270,28 @@ class Specter:
 
     @property
     def explorer(self):
-        if "explorers" in self.config and self.chain in self.config["explorers"]:
-            return self.config["explorers"][self.chain]
+        # TODO: Unify for user and admin
+        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
+            if "explorers" in self.config and self.chain in self.config["explorers"]:
+                return self.config["explorers"][self.chain]
+            else:
+                return ""
         else:
-            return ""
+            if "explorers" in current_user.config and self.chain in current_user.config["explorers"]:
+                return current_user.config["explorers"][self.chain]
+            else:
+                return ""
+
+    @property
+    def hwi_bridge_url(self):
+        # TODO: Unify for user and admin
+        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
+            if "hwi_bridge_url" in self.config:
+                return self.config["hwi_bridge_url"]
+            else:
+                return ""
+        else:
+            if "hwi_bridge_url" in current_user.config:
+                return current_user.config["hwi_bridge_url"]
+            else:
+                return ""
