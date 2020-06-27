@@ -15,7 +15,7 @@ def test_home(caplog, client):
     assert b'Setting up a new device' in result.data
     result = client.get('/settings', follow_redirects=True)
     assert result.status_code == 200 # OK.
-    assert b'App settings' in result.data
+    assert b'General settings' in result.data
     result = client.get('/new_wallet', follow_redirects=True)
     assert result.status_code == 200 # OK.
     assert b'Select the type of the wallet' in result.data
