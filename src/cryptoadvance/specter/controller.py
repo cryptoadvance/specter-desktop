@@ -53,6 +53,8 @@ def combine(wallet_alias):
         try:
             psbt = app.specter.combine([psbt0, psbt1])
             raw = app.specter.finalize(psbt)
+            if "psbt" not in raw:
+                raw["psbt"] = psbt
         except RpcError as e:
             return e.error_msg, e.status_code
         except Exception as e:
@@ -584,6 +586,7 @@ def wallet_send(wallet_alias):
                                                     specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
+            print(psbt)
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
@@ -591,6 +594,8 @@ def wallet_send(wallet_alias):
             try:
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
+                print(e)
+                print(request.form["pending_psbt"])
                 flash("Could not delete Pending PSBT!")
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
