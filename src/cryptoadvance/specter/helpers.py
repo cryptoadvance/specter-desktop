@@ -300,19 +300,14 @@ def sort_descriptor(cli, descriptor, index=None, change=False):
 
 def hash_password(password):
     """Hash a password for storing."""
-    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-    pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), 
-                                salt, 10000)
-    pwdhash = binascii.hexlify(pwdhash)
-    return (salt + pwdhash).decode('ascii')
+    salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
+    pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
+    return { 'salt': salt.decode(), 'pwdhash': pwdhash }
 
 def verify_password(stored_password, provided_password):
     """Verify a stored password against one provided by user"""
-    salt = stored_password[:64]
-    stored_password = stored_password[64:]
-    pwdhash = hashlib.pbkdf2_hmac('sha512', 
+    pwdhash = hashlib.pbkdf2_hmac('sha256', 
                                   provided_password.encode('utf-8'), 
-                                  salt.encode('ascii'), 
+                                  stored_password['salt'].encode(), 
                                   10000)
-    pwdhash = binascii.hexlify(pwdhash).decode('ascii')
-    return pwdhash == stored_password
+    return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])
