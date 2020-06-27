@@ -190,6 +190,7 @@
 				el.addEventListener("click", function(){
 					let input = prompt("Paste signed transaction here");
 					if(input){
+						currentSigningDevice = '';
 						combine(input);
 					}
 				});
@@ -220,9 +221,11 @@
 					psbt0 = jsonResponse["psbt"];
 					sigscount++;
 					document.getElementById("sigscount").innerHTML = sigscount;
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').style = "background-color:#303c49;";
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').disabled = true;
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').innerHTML += ' (&#10004;)';
+					if(currentSigningDevice != ''){
+						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').style = "background-color:#303c49;";
+						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').disabled = true;
+						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').innerHTML += ' (&#10004;)';
+					}
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
 				}
