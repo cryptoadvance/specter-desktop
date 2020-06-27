@@ -22,10 +22,35 @@
     .note{
       font-size: 0.7em;
     }
+    .copy{
+      display: none;
+      height: 26px;
+      width: 26px;
+      color: #000;
+      margin: 0;
+      margin-bottom: -26px;
+      margin-left: auto;
+      z-index: 3;
+      cursor: pointer;
+      border-radius: 3px;
+      box-sizing: border-box;
+      background: rgba(255,255,255,0.7);
+      padding: 3px;
+    }
+    .qr-holder:hover .copy{
+      display: block;
+    }
+    .copy:hover{
+      background: rgba(255,255,255,1);
+    }
+    .copy img{
+      width: 10px;
+    }
   </style>
   <div class="qr-holder">
-  <div class="qr-code"></div>
-  <div class="note">Click to animate</div>
+    <a class="copy"><img src="/static/img/content_copy-24px.svg"></a>
+    <div class="qr-code"></div>
+    <div class="note">Click to animate</div>
   </div>
 </template>
 
@@ -50,6 +75,8 @@ class QRCodeElement extends HTMLElement {
     this.isQRtoolarge = false;
     this.idx = 0;
 
+    this.copybtn = clone.querySelector(".copy");
+
     // Attach the created element to the shadow dom
     shadow.appendChild(clone);
 
@@ -62,6 +89,11 @@ class QRCodeElement extends HTMLElement {
           this.note.innerHTML = "Click to animate";
         }
       }
+    });
+    this.copybtn.addEventListener('click', e=>{
+      e.cancelBubble = true;
+      var value = this.getAttribute('value');
+      copyText(value, "QR code content is copied!");
     });
     window.setInterval(()=>{
       if((this.qrcode==null) || this.chunks.length<=1){
