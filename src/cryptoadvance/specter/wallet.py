@@ -522,3 +522,56 @@ class Wallet():
         self.save_pending_psbt(psbt)
 
         return psbt
+
+    def importpsbt(self, b64psbt):
+        # TODO: check maybe some of the inputs are already locked
+        psbt = self.cli.decodepsbt(b64psbt)
+        psbt['base64'] = b64psbt
+        amount = 0
+        address = None
+        # get output address and amount
+        for out in psbt["tx"]["vout"]:
+            if "addresses" not in out["scriptPubKey"] or len(out["scriptPubKey"]["addresses"]) == 0:
+                # TODO: we need to handle it somehow differently
+                raise SpecterError("Sending to raw scripts is not supported yet")
+            addr = out["scriptPubKey"]["addresses"][0]
+            info = self.cli.getaddressinfo(addr)
+            # check if it's a change
+            if info["iswatchonly"] or info["ismine"]:
+                continue
+            # if not - this is out address
+            # ups, more than one sending address
+            if address is not None:
+                # TODO: we need to have multiple address support 
+                raise SpecterError("Sending to multiple addresses is not supported yet")
+            address = addr
+            amount += out["value"]
+        # detect signatures
+        sigcount = min([
+            (0 if "partial_signatures" not in inp else len(inp["partial_signatures"]))
+            for inp in psbt["inputs"]])
+        psbt["devices_signed"] = []
+        # check who already signed
+        for i, key in enumerate(self.keys):
+            sigs = 0
+            for inp in psbt["inputs"]:
+                if "bip32_derivs" not in inp:
+                    # how are we going to sign it???
+                    break
+                if "partial_signatures" not in inp:
+                    # nothing to update - no signatures for this input
+                    break
+                for der in inp["bip32_derivs"]:
+                    if der["master_fingerprint"] == key.fingerprint:
+                        if der["pubkey"] in inp["partial_signatures"]:
+                            sigs += 1
+            # ok we have all signatures from this key (device)
+            if sigs >= len(psbt["inputs"]):
+                # assuming that order of self.devices and self.keys is the same
+                psbt["devices_signed"].append(self.devices[i].name)
+        psbt["amount"] = amount
+        psbt["address"] = address
+        psbt["time"] = time()
+        psbt["sigs_count"] = sigcount
+        self.save_pending_psbt(psbt)
+        return psbt

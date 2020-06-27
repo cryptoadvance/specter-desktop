@@ -584,6 +584,12 @@ def wallet_send(wallet_alias):
                 return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                     wallet_alias=wallet_alias, wallet=wallet, 
                                                     specter=app.specter, rand=rand)
+        elif action == "importpsbt":
+            b64psbt = request.form["rawpsbt"]
+            psbt = wallet.importpsbt(b64psbt)
+            return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
@@ -595,6 +601,20 @@ def wallet_send(wallet_alias):
             except Exception as e:
                 flash("Could not delete Pending PSBT!")
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand, error=err)
+
+@app.route('/wallets/<wallet_alias>/send/import')
+@login_required
+def wallet_importpsbt(wallet_alias):
+    app.specter.check()
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    err = None
+    return render_template("wallet/send/import/wallet_importpsbt.jinja", 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
