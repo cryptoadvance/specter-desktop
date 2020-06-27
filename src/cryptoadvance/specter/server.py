@@ -7,16 +7,17 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager, login_user
 
-from .descriptor import AddChecksum
 from .helpers import hwi_get_config
-from .logic import Specter
+from .specter import Specter
 from .hwi_server import hwi_server
+from .user import User
 
 logger = logging.getLogger(__name__)
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
 
+DATA_FOLDER = "~/.specter"
 
 def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     # Enables injection of a different config via Env-Variable
@@ -42,21 +43,22 @@ def init_app(app, hwibridge=False, specter=None):
     app.logger.info("Initializing QRcode")
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
+    if specter == None:
+        # the default. If not None, then it got injected for testing
+        app.logger.info("Initializing Specter")
+        specter = Specter(DATA_FOLDER)
+
     login_manager = LoginManager()
     login_manager.init_app(app) # Enable Login
     login_manager.login_view = "login" # Enable redirects if unauthorized
     @login_manager.user_loader
-    def load_user(user_id):
-        return AuthenticatedUser()
-    # let's make it a bit more convenient
-    def login():
-        login_user(load_user(""))
+    def user_loader(id):
+        return User.get_user(specter, id)
+
+    def login(id):
+        login_user(user_loader(id))
     
     app.login = login
-    if specter==None:
-        # the default. If not None, then it got injected for testing
-        app.logger.info("Initializing Specter")
-        specter = Specter(DATA_FOLDER)
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
     if specter.config.get('auth') == "none":
@@ -87,35 +89,3 @@ def create_and_init():
     app.app_context().push()
     init_app(app)
     return app
-
-
-DATA_FOLDER = "~/.specter"
-
-MSIG_TYPES = {
-    "legacy": "P2SH",
-    "p2sh-segwit": "P2SH_P2WSH",
-    "bech32": "P2WSH"
-}
-SINGLE_TYPES = {
-    "legacy": "P2PKH",
-    "p2sh-segwit": "P2SH_P2WPKH",
-    "bech32": "P2WPKH"
-}
-
-class AuthenticatedUser:
-    ''' A minimal implementation implementing the User Class needed for Flask-Login '''
-    
-    @property
-    def is_authenticated(self):
-        return True
-        
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return "there-is-only-one-User"

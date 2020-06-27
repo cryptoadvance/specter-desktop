@@ -11,7 +11,7 @@ import docker
 
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
-from .helpers import load_jsons, which
+from .helpers import which
 from .server import DATA_FOLDER, create_app, init_app
 
 from os import path

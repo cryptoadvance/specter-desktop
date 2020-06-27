@@ -1,13 +1,7 @@
-import collections
-import hashlib
-import json
-import logging
-import os
-import subprocess
-import sys
+import binascii, collections, copy, hashlib, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
+from .descriptor import AddChecksum
 
-import six
 
 try:
     collectionsAbc = collections.abc
@@ -15,6 +9,9 @@ except:
     collectionsAbc = collections
 
 logger = logging.getLogger(__name__)
+def alias(name):
+    name = name.replace(" ", "_")
+    return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
 def deep_update(d, u):
     for k, v in six.iteritems(u):
@@ -43,23 +40,6 @@ def load_jsons(folder, key=None):
     return dd
 
 BASE58_ALPHABET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-VALID_PREFIXES = {
-    b"\x04\x35\x87\xcf": {   # testnet
-        b"\x04\x35\x87\xcf": None, # unknown, maybe pkh
-        b"\x04\x4a\x52\x62": "sh-wpkh",
-        b"\x04\x5f\x1c\xf6": "wpkh",
-        b"\x02\x42\x89\xef": "sh-wsh",
-        b"\x02\x57\x54\x83": "wsh",
-    },
-    b"\x04\x88\xb2\x1e": {   # mainnet
-        b"\x04\x88\xb2\x1e": None, #unknown, maybe pkh
-        b"\x04\x9d\x7c\xb2": "sh-wpkh",
-        b"\x04\xb2\x47\x46": "wpkh",
-        b"\x02\x95\xb4\x3f": "sh-wsh",
-        b"\x02\xaa\x7e\xd3": "wsh",
-    }
-}
 
 def double_sha256(s):
     return hashlib.sha256(hashlib.sha256(s).digest()).digest()
@@ -111,89 +91,6 @@ def convert_xpub_prefix(xpub, prefix_bytes):
 def get_xpub_fingerprint(xpub):
     b = decode_base58(xpub)
     return hash160(b[-33:])[:4]
-
-def parse_xpub(xpub):
-    r = {"derivation": None}
-    derivation = None
-    arr = xpub.strip().split("]")
-    r["original"] = arr[-1]
-    if len(arr) > 1:
-        derivation = arr[0].replace("'","h").lower()
-        xpub = arr[1]
-    if derivation is not None:
-        if derivation[0]!="[":
-            raise Exception("Missing leading [")
-        arr = derivation[1:].split("/")
-        try: 
-            fng = bytes.fromhex(arr[0].replace("-","")) # coldcard has hexstrings like 7c-2c-8e-1b
-        except:
-            raise Exception("Fingerprint is not hex")
-        if len(fng) != 4:
-            raise Exception("Incorrect fingerprint length")
-        r["fingerprint"] = arr[0]
-        for der in arr[1:]:
-            if der[-1] == "h":
-                der = der[:-1]
-            try:
-                i = int(der)
-            except:
-                print("index")
-                raise Exception("Incorrect index")
-            arr[0] = "m"
-            r["derivation"] = "/".join(arr)
-    # checking xpub prefix and defining key type
-    b = decode_base58(xpub, num_bytes=82)
-    prefix = b[:4]
-    is_valid = False
-    key_type = None
-    for k in VALID_PREFIXES:
-        if prefix in VALID_PREFIXES[k].keys():
-            key_type = VALID_PREFIXES[k][prefix]
-            prefix = k
-            is_valid = True
-            break
-    if not is_valid:
-        raise Exception("Invalid xpub prefix: %s", prefix.hex())
-
-    # defining key type from derivation
-    if r["derivation"] is not None and key_type is None:
-        arr = r["derivation"].split("/")
-        purpose = arr[1]
-        if purpose == "44h":
-            key_type = "pkh"
-        elif purpose == "49h":
-            key_type = "sh-wpkh"
-        elif purpose == "84h":
-            key_type = "wpkh"
-        elif purpose == "45h":
-            key_type = "sh"
-        elif purpose == "48h":
-            if len(arr)>=5:
-                if arr[4] == "1h":
-                    key_type = "sh-wsh"
-                elif arr[4] == "2h":
-                    key_type = "wsh"
-    r["type"] = key_type
-
-    b = prefix + b[4:]
-    r["xpub"] = encode_base58_checksum(b)
-    return r
-
-def normalize_xpubs(xpubs):
-    xpubs = xpubs
-    lines = [l.strip() for l in xpubs.split("\n") if len(l) > 0]
-    parsed = []
-    failed = []
-    normalized = []
-    for line in lines:
-        try:
-            x = parse_xpub(line)
-            normalized.append(x)
-            parsed.append(line)
-        except Exception as e:
-            failed.append(line + "\n" + str(e))
-    return (normalized, parsed, failed)
-
 
 def which(program):
     ''' mimics the "which" command in bash but even for stuff not on the path.
@@ -254,7 +151,7 @@ def set_loglevel(app,loglevel_string):
         "DEBUG" : logging.DEBUG
     }
     app.logger.setLevel(loglevels[loglevel_string])
-    logger.getLogger().setLevel(loglevels[loglevel_string])
+    logger.setLevel(loglevels[loglevel_string])
 
 def get_loglevel(app):
     
@@ -281,12 +178,36 @@ def get_version_info():
 
     return current_version, latest_version, latest_version != current_version
 
+def get_users_json(specter):
+    users = [
+        {
+            'id': 'admin',
+            'username': 'admin',
+            'password': hash_password('admin'),
+            'is_admin': True
+        }
+    ]
+        
+
+    # if users.json file exists - load from it
+    if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
+        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+            users = json.loads(f.read())
+    # otherwise - create one and assign unique id
+    else:
+        save_users_json(specter, users)
+    return users
+
+def save_users_json(specter, users):
+    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+        f.write(json.dumps(users, indent=4))
+
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
 
-    # if config.json file exists - load from it
+    # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
         with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
             file_config = json.loads(f.read())
@@ -307,3 +228,86 @@ def save_hwi_bridge_config(specter, config):
         config['whitelisted_domains'] = whitelisted_domains
     with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
         f.write(json.dumps(config, indent=4))
+
+def der_to_bytes(derivation):
+    items = derivation.split("/")
+    if len(items) == 0:
+        return b''
+    if items[0] == 'm':
+        items = items[1:]
+    if items[-1] == '':
+        items = items[:-1]
+    res = b''
+    for item in items:
+        index = 0
+        if item[-1] == 'h' or item[-1] == "'":
+            index += 0x80000000
+            item = item[:-1]
+        index += int(item)
+        res += index.to_bytes(4,'big')
+    return res
+
+def get_devices_with_keys_by_type(app, cosigners, wallet_type):
+    devices = []
+    prefix = "tpub"
+    if app.specter.chain == "main":
+        prefix = "xpub"
+    for cosigner in cosigners:
+        device = copy.deepcopy(cosigner)
+        allowed_types = ['', wallet_type]
+        device.keys = [key for key in device.keys if key.xpub.startswith(prefix) and key.key_type in allowed_types]
+        devices.append(device)
+    return devices
+
+def sort_descriptor(cli, descriptor, index=None, change=False):
+    descriptor = descriptor.replace("sortedmulti", "multi")
+    if index is not None:
+        descriptor = descriptor.replace("*", f"{index}")
+    # remove checksum
+    descriptor = descriptor.split("#")[0]
+    # get address (should be already imported to the wallet)
+    address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
+
+    # get pubkeys involved
+    address_info = cli.getaddressinfo(address)
+    if 'pubkeys' in address_info:
+        pubkeys = address_info["pubkeys"]
+    elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
+        pubkeys = address_info["embedded"]["pubkeys"]
+    else:
+        raise Exception("Could not find 'pubkeys' in address info:\n%s" % json.dumps(address_info, indent=2))
+
+    # get xpubs from the descriptor
+    arr = descriptor.split("(multi(")[1].split(")")[0].split(",")
+
+    # getting [wsh] or [sh, wsh]
+    prefix = descriptor.split("(multi(")[0].split("(")
+    sigs_required = arr[0]
+    keys = arr[1:]
+
+    # sort them according to sortedmulti
+    z = sorted(zip(pubkeys,keys), key=lambda x: x[0])
+    keys = [zz[1] for zz in z]
+    inner = f"{sigs_required},"+",".join(keys)
+    desc = f"multi({inner})"
+
+    # Write from the inside out
+    prefix.reverse()
+    for p in prefix:
+        desc = f"{p}({desc})"
+
+    return AddChecksum(desc)
+
+def hash_password(password):
+    """Hash a password for storing."""
+    salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
+    pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
+    return { 'salt': salt.decode(), 'pwdhash': pwdhash }
+
+def verify_password(stored_password, provided_password):
+    """Verify a stored password against one provided by user"""
+    pwdhash = hashlib.pbkdf2_hmac('sha256', 
+                                  provided_password.encode('utf-8'), 
+                                  stored_password['salt'].encode(), 
+                                  10000)
+    return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])

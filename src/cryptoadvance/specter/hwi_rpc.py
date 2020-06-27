@@ -1,7 +1,7 @@
 from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
-from .helpers import normalize_xpubs, convert_xpub_prefix
+from .helpers import convert_xpub_prefix
 from .specter_hwi import SpecterClient, enumerate as specter_enumerate
 from .json_rpc import JSONRPC
 

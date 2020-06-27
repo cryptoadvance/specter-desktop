@@ -27,7 +27,7 @@ def test_which(caplog):
     import cryptoadvance.specter.helpers as helpers
     try:
         helpers.which("some_non_existing_binary")
-        assert False, "Whould raise an Exception"
+        assert False, "Should raise an Exception"
     except:
         pass
     assert helpers.which("date") == "/bin/date" or helpers.which("date") == "/usr/bin/date" # travis-CI has it on /bin/date

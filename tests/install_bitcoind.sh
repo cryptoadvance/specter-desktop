@@ -18,8 +18,8 @@ fi
 # Determine if we need to pull. From https://stackoverflow.com/a/3278427
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
-if [ -f ../bitcoin_pin ]; then
-    PINNED=$(cat ../bitcoin_pin)
+if cat ../../pytest.ini | grep "addopts = --bitcoind-version" ; then
+    PINNED=$(cat ../../pytest.ini | grep "addopts = --bitcoind-version" | cut -d' ' -f4)
 fi
 if [ -z $PINNED ]; then
     REMOTE=$(git rev-parse "$UPSTREAM")
@@ -35,7 +35,6 @@ else
         echo "    --> Pinned: $PINNED! Checkout not needed!"
     else
         echo "    --> Pinned: $PINNED! Checkout needed!"
-        git pull
         git checkout $PINNED
         bitcoind_setup_needed=true
     fi

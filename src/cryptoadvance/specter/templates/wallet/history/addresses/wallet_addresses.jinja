@@ -51,10 +51,10 @@
 	{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
 	{% from 'wallet/history/addresses/components/account_tx_table.jinja' import account_tx_table %}
 	{% set is_address_view = viewtype == "address" %}
-	{% set accounts = (wallet.active_addresses if is_address_view else wallet.labels) if alladdresses else (wallet.utxoaddresses if is_address_view else wallet.utxolabels)  %}
+	{% set accounts = (wallet.active_addresses if is_address_view else wallet.labels) if alladdresses else (wallet.utxo_addresses if is_address_view else wallet.utxo_labels)  %}
 	{% for account in accounts | reverse %}
-		{% if alladdresses or (wallet.balanceonaddr(account) > 0 if is_address_view else wallet.balanceonlabel(account) > 0) %}
-			{% set account_label = wallet.getaddressname(account, (wallet.active_addresses | length - loop.index0 - 1) if alladdresses else -1) if is_address_view else account %}
+		{% if alladdresses or (wallet.balance_on_address(account) > 0 if is_address_view else wallet.balance_on_label(account) > 0) %}
+			{% set account_label = wallet.get_address_name(account, (wallet.active_addresses | length - loop.index0 - 1) if alladdresses else -1) if is_address_view else account %}
 			<div class="table-holder">
 				<br>
 				<form action="./?all={{alladdresses}}&view={{viewtype}}" method="POST">
@@ -67,13 +67,13 @@
 					<span class="address">{{ explorer_link('address', account, account, specter.explorer) }}</span>
 				{% endif %}
 				<p class="balance">Balance: 
-					{{wallet.balanceonaddr(account) if is_address_view else wallet.balanceonlabel(account) | btcamount}} 
+					{{wallet.balance_on_address(account) if is_address_view else wallet.balance_on_label(account) | btcamount}} 
 					{% if specter.chain !='main' %}t{%endif%}BTC
 				</p>
 				<br><br>
 				{{ 
 					tx_table(
-						not (wallet.txonaddr(account) if is_address_view else wallet.txonlabel(account) > 0),
+						not (wallet.tx_on_address(account) if is_address_view else wallet.tx_on_label(account) > 0),
 						account_tx_table(account, 'history' if alladdresses else 'utxo', viewtype, wallet, specter)
 					) 
 				}}
