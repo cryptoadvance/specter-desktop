@@ -215,17 +215,19 @@ class Wallet():
         del self.pending_psbts[txid]
         self.save_to_file()
 
-    def update_pending_psbt(self, psbt, txid, raw, device_name):
+    def update_pending_psbt(self, psbt, txid, raw):
         if txid in self.pending_psbts:
-            self.pending_psbts[txid]["sigs_count"] += 1
             self.pending_psbts[txid]["base64"] = psbt
-            if device_name:
-                if "devices_signed" not in self.pending_psbts[txid]:
-                    self.pending_psbts[txid]["devices_signed"] = []
-                self.pending_psbts[txid]["devices_signed"].append(device_name)
+            decodedpsbt = self.cli.decodepsbt(psbt)
+            signed_devices = self.get_signed_devices(decodedpsbt)
+            self.pending_psbts[txid]["sigs_count"] = len(signed_devices)
+            self.pending_psbts[txid]["devices_signed"] = [dev.name for dev in signed_devices]
             if "hex" in raw:
                 self.pending_psbts[txid]["raw"] = raw["hex"]
             self.save_to_file()
+            return self.pending_psbts[txid]
+        else:
+            raise SpecterError("Can't find pending PSBT with this txid")
 
     def save_pending_psbt(self, psbt):
         self.pending_psbts[psbt["tx"]["txid"]] = psbt
@@ -523,6 +525,28 @@ class Wallet():
 
         return psbt
 
+    def get_signed_devices(self, decodedpsbt):
+        signed_devices = []
+        # check who already signed
+        for i, key in enumerate(self.keys):
+            sigs = 0
+            for inp in decodedpsbt["inputs"]:
+                if "bip32_derivs" not in inp:
+                    # how are we going to sign it???
+                    break
+                if "partial_signatures" not in inp:
+                    # nothing to update - no signatures for this input
+                    break
+                for der in inp["bip32_derivs"]:
+                    if der["master_fingerprint"] == key.fingerprint:
+                        if der["pubkey"] in inp["partial_signatures"]:
+                            sigs += 1
+            # ok we have all signatures from this key (device)
+            if sigs >= len(decodedpsbt["inputs"]):
+                # assuming that order of self.devices and self.keys is the same
+                signed_devices.append(self.devices[i])
+        return signed_devices
+
     def importpsbt(self, b64psbt):
         # TODO: check maybe some of the inputs are already locked
         psbt = self.cli.decodepsbt(b64psbt)
@@ -547,31 +571,11 @@ class Wallet():
             address = addr
             amount += out["value"]
         # detect signatures
-        sigcount = min([
-            (0 if "partial_signatures" not in inp else len(inp["partial_signatures"]))
-            for inp in psbt["inputs"]])
-        psbt["devices_signed"] = []
-        # check who already signed
-        for i, key in enumerate(self.keys):
-            sigs = 0
-            for inp in psbt["inputs"]:
-                if "bip32_derivs" not in inp:
-                    # how are we going to sign it???
-                    break
-                if "partial_signatures" not in inp:
-                    # nothing to update - no signatures for this input
-                    break
-                for der in inp["bip32_derivs"]:
-                    if der["master_fingerprint"] == key.fingerprint:
-                        if der["pubkey"] in inp["partial_signatures"]:
-                            sigs += 1
-            # ok we have all signatures from this key (device)
-            if sigs >= len(psbt["inputs"]):
-                # assuming that order of self.devices and self.keys is the same
-                psbt["devices_signed"].append(self.devices[i].name)
+        signed_devices = self.get_signed_devices(psbt)
+        psbt["devices_signed"] = [dev.name for dev in signed_devices]
         psbt["amount"] = amount
         psbt["address"] = address
         psbt["time"] = time()
-        psbt["sigs_count"] = sigcount
+        psbt["sigs_count"] = len(signed_devices)
         self.save_pending_psbt(psbt)
         return psbt

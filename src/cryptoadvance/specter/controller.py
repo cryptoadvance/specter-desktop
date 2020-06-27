@@ -59,8 +59,12 @@ def combine(wallet_alias):
             return e.error_msg, e.status_code
         except Exception as e:
             return "Unknown error: %r" % e, 500
-        device_name = request.form.get('device_name')
-        wallet.update_pending_psbt(psbt, txid, raw, device_name)
+        psbt = wallet.update_pending_psbt(psbt, txid, raw)
+        devices = []
+        # we get names, but need aliases
+        if "devices_signed" in psbt:
+            devices = [dev.alias for dev in wallet.devices if dev.name in psbt["devices_signed"]]
+        raw["devices"] = devices
         return json.dumps(raw)
     return 'meh'
 

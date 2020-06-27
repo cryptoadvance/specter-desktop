@@ -219,13 +219,19 @@
 				console.log(jsonResponse)
 				if("psbt" in jsonResponse){						
 					psbt0 = jsonResponse["psbt"];
-					sigscount++;
-					document.getElementById("sigscount").innerHTML = sigscount;
-					if(currentSigningDevice != ''){
-						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').style = "background-color:#303c49;";
-						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').disabled = true;
-						document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').innerHTML += ' (&#10004;)';
+					if("devices" in jsonResponse){
+						jsonResponse["devices"].forEach(alias => {
+							let el = document.getElementById(alias + '_tx_sign_btn');
+							el.style = "background-color:#303c49;";
+							// if not disabled yet - disable
+							if(!el.disabled){
+								el.disabled = true;
+								el.innerHTML += ' (&#10004;)';
+							}
+						});
+						sigscount = jsonResponse["devices"].length;
 					}
+					document.getElementById("sigscount").innerHTML = sigscount;
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
 				}
