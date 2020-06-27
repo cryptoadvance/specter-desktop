@@ -514,6 +514,14 @@ textarea{
     margin-top: -50px;
     z-index: 9999;
 }
+@keyframes appear {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+@keyframes disappear {
+  from {opacity: 1;}
+  to {opacity: 0;}
+}
 .notification{
     min-width: 200px;
     max-width: 800px;
@@ -530,9 +538,13 @@ textarea{
     box-shadow: 0 3px 3px rgba(0,0,0,0.7);
     line-height: 1.5;
     text-align: center;
+    animation-duration: 0.2s;
 }
 .notification.error, .btn.danger{
     background: var(--cmap-red-darker);
+}
+.notification.primary{
+    background: var(--cmap-blue-darker);
 }
 .btn.danger:hover{
     background: var(--cmap-red);

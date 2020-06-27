@@ -42,7 +42,7 @@
 				</div>
 			{% endif %}
 
-			<div class="notification error hidden" id="notificationmsg" style="margin-left: 125px">
+			<div class="notification error hidden" id="notificationmsg" style="z-index: 999;">
 				Error
 			</div>
 
@@ -69,13 +69,30 @@
 			});
 		});
 
-		function showError(msg) {
+		function showError(msg, timeout=0) {
+			notify(msg, timeout, "error");
+		}
+		function notify(msg, timeout=0, cls="primary") {
 			let el = document.getElementById("notificationmsg");
-			el.classList.add("error");
+			el.style.opacity = 0;
+			el.classList.remove("error");
 			el.classList.remove("primary");
+			el.classList.add(cls);
 			el.innerHTML = msg;
 			el.style.display = "block";
-    }
+			el.style["animation-name"]="appear";
+			el.style.opacity = 1;
+			if(timeout > 0){
+				window.setTimeout(()=>{
+					el.style.opacity = 0;
+					el.style["animation-name"]="disappear";
+					window.setTimeout(()=>{
+						el.style.display = "none";
+						el.innerHTML = "Nothing...";
+					}, 200);
+				},timeout);
+			}
+		}
 
 		function copyText(value, msg) {
 			try {
@@ -90,10 +107,10 @@
 				document.execCommand("copy");
 				selection.removeAllRanges();
 				document.getElementsByTagName("body")[0].removeChild(element);
-				alert(msg);
+				notify(msg, 3000);
 			}
 			catch (err) {
-				alert('Unable to copy text');
+				showError('Unable to copy text', 3000);
 			}
 		}
 	</script>
