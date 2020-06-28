@@ -1,0 +1,16 @@
+{# 
+    settings_menu_item - Settings navigation bar menu item.
+    Parameters:
+    - tab: The tab name.
+    - title: The tab title.
+    - active_menuitem: Current active tab name.
+    - isLeft: Is the item at the left edge (first item) of the navigation bar?
+    - isRight: Is the item at the right edge (last item) of the navigation bar?
+ #}
+{% macro settings_menu_item(tab, title, active_menuitem, isLeft=false, isRight=false) -%}
+	<a 
+        href="{{ url_for(tab)}}"
+        class="btn radio {% if isLeft %}left{% endif %} {% if isRight %}right{% endif %} {% if active_menuitem == tab %}checked{% endif %}">
+        {{ title }}
+    </a>
+{%- endmacro %}
