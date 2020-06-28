@@ -1,0 +1,71 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST">
+		<h1>Bitoin Core settings - Specter Desktop {{ current_version }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('bitcoin_core_settings', current_user) }}
+		<div class="card" style="margin: 20px auto;">
+			<h2>Bitcoin JSON-RPC configuration</h2>
+			<br>
+			Username:<br><input type="text" name="username" value="{{ username }}">
+			<br><br>
+			Password:<br><input type="password" name="password" value="{{ password }}">
+			<br><br>
+			Host:<br><input type="text" name="host" type="text" value="{{ protocol }}://{{ host }}">
+			<br><br>
+			Port:<br><input type="text" name="port" type="text" value="{{ port }}">
+			<div class="note">
+				Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
+			</div>
+			<br>
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
+				<button type="submit" class="btn" name="action" value="save">Save</button>
+			</div>
+			{% if test %}
+				<br><div class="log">Test results:<br>
+				<div style="display: grid;grid-template-columns: auto auto auto;">
+					{% macro tick_or_cross(my_boolean) %}
+					<button disabled> 
+						{% if my_boolean %}
+							<div  style="color:green;">&#x2714;</div> 
+						{% else %} 
+							&#x274C; 
+						{% endif %}
+					</button>
+					{% endmacro %}
+					{% if 'connectable' in test['tests'] %}
+						<div>Connectable</div>
+						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
+						<div> {% if not test['tests']['connectable'] %} Check e.g. <a href="https://bitcoin.stackexchange.com/questions/74337/testnet-bitcoin-connection-refused-111">this article</a> {% endif %}</div>
+					{% endif %}
+
+					{% if 'credentials' in test['tests'] %}
+						<div>Credentials</div>
+						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
+						<div> {% if not test['tests']['credentials'] %} Please double-check your credentials!  {% endif %}</div>
+					{% endif %}
+
+					{% if 'recent_version' in test['tests'] %}
+						<div>Version recent enough</div>
+						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
+						<div> {% if not test['tests']['recent_version'] %} Update your Bitcoin Node to at least version 0.17.  {% endif %}</div>
+					{% endif %}
+					
+					{% if 'wallets' in test['tests'] %}
+						<div>Wallets enabled</div>
+						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
+						<div> {% if not test['tests']['wallets'] %} Make sure to have 'disablewallet=0' in your bitcoin.conf {% endif %} </div>
+					{% endif %}
+
+				</div>
+
+				<br>
+					<code>
+						<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
+					</code>
+				</div>
+			{% endif %}
+		</div>
+	</form>
+{% endblock %}

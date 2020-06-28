@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, redirect
 from flask_login import LoginManager, login_user
 
 from .helpers import hwi_get_config
@@ -78,6 +78,10 @@ def init_app(app, hwibridge=False, specter=None):
                 # --> View function mapping is overwriting an existing endpoint function
                 import importlib
                 importlib.reload(controller)
+    else:
+        @app.route("/", methods=["GET"])
+        def index():
+            return redirect('/hwi/settings')
     return app
 
 def create_and_init():
