@@ -153,7 +153,7 @@
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
 
 		<div class="row padded">
-			<input type="hidden" name="pending_psbt" value="{{psbt}}">
+			<input type="hidden" name="pending_psbt" value='{{psbt|tojson|safe}}'>
 			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
 		</div>
 	</form>
@@ -174,7 +174,7 @@
 		var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 		copyrawPSBTbtn.addEventListener("click", function() {
 			var raw_psbt = document.getElementById("raw-psbt");
-			copyText("{{ psbt['base64'] }}", "Copied PSBT")
+			copyText(raw_psbt.value, "Copied PSBT")
 		});
 
 		if ("{{ psbt['raw'] }}") {
@@ -190,6 +190,7 @@
 				el.addEventListener("click", function(){
 					let input = prompt("Paste signed transaction here");
 					if(input){
+						currentSigningDevice = '';
 						combine(input);
 					}
 				});
@@ -216,15 +217,26 @@
 
 				const jsonResponse = await response.json();
 				console.log(jsonResponse)
+				if("psbt" in jsonResponse){						
+					psbt0 = jsonResponse["psbt"];
+					if("devices" in jsonResponse){
+						jsonResponse["devices"].forEach(alias => {
+							let el = document.getElementById(alias + '_tx_sign_btn');
+							el.style = "background-color:#303c49;";
+							// if not disabled yet - disable
+							if(!el.disabled){
+								el.disabled = true;
+								el.innerHTML += ' (&#10004;)';
+							}
+						});
+						sigscount = jsonResponse["devices"].length;
+					}
+					document.getElementById("sigscount").innerHTML = sigscount;
+					// add signatures to raw-psbt textarea for export
+					document.getElementById("raw-psbt").value = psbt0;
+				}
 				if (jsonResponse.complete) {
 					finalize(jsonResponse["hex"]);
-				} else {
-					psbt0 = jsonResponse["psbt"];
-					sigscount++;
-					document.getElementById("sigscount").innerHTML = sigscount;
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').style = "background-color:#303c49;";
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').disabled = true;
-					document.getElementById(currentSigningDeviceAlias + '_tx_sign_btn').innerHTML += ' (&#10004;)';
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
