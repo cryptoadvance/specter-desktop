@@ -20,13 +20,8 @@ def test_home(caplog, client):
     assert result.status_code == 200 # OK.
     assert b'Select the type of the wallet' in result.data
 
-
-
-def test_login_logout(caplog, app, client):
-    ''' whether we can login or logout '''
-    caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
+    # Login logout testing
     result = client.get('/login', follow_redirects=False)
-
     assert result.status_code == 200
     assert b'Password' in result.data
     result = login(client, 'secret')
