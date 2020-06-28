@@ -1,0 +1,7 @@
+{% extends "base.jinja" %}
+{% block main %}
+		<h1>HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('hwi_settings', current_user) }}
+		<iframe src="/hwi/settings" style="min-height: 475px; width: 100%; margin: 0px;" frameBorder="0"></iframe>
+{% endblock %}
