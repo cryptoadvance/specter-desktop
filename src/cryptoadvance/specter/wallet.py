@@ -577,5 +577,8 @@ class Wallet():
         psbt["address"] = address
         psbt["time"] = time()
         psbt["sigs_count"] = len(signed_devices)
+        raw = self.cli.finalizepsbt(b64psbt)
+        if "hex" in raw:
+            psbt["raw"] = raw["hex"]
         self.save_pending_psbt(psbt)
         return psbt

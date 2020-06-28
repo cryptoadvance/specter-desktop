@@ -590,7 +590,11 @@ def wallet_send(wallet_alias):
                                                     specter=app.specter, rand=rand)
         elif action == "importpsbt":
             b64psbt = request.form["rawpsbt"]
-            psbt = wallet.importpsbt(b64psbt)
+            try:
+                psbt = wallet.importpsbt(b64psbt)
+            except Exception as e:
+                flash("Could not import PSBT: %s" % e)
+                return redirect(url_for('wallet_importpsbt', wallet_alias=wallet_alias))
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
