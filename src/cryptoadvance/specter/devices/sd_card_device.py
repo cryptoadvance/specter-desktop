@@ -1,6 +1,6 @@
 from .hwi_device import HWIDevice
 from ..helpers import decode_base58, get_xpub_fingerprint, hash160
-from ..serializations import PSBT
+from hwilib.serializations import PSBT
 
 
 class SDCardDevice(HWIDevice):
