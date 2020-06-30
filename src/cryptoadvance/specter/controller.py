@@ -33,11 +33,9 @@ rand = random.randint(0, 1e32) # to force style refresh
 @app.before_request
 def selfcheck():
     """check status before every request"""
-    # request is available
-    app.specter.check()
-    auth = app.specter.config['auth']
-    if auth == 'none':
+    if app.config.get('LOGIN_DISABLED'):
         app.login('admin')
+    app.specter.check()
 
 ########## template injections #############
 @app.context_processor
