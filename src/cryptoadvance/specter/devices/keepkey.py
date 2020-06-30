@@ -5,3 +5,4 @@ class Keepkey(HWIDevice):
         HWIDevice.__init__(self, name, alias, 'keepkey', keys, fullpath, manager)
         self.sd_card_support = False
         self.qr_code_support = False
+        self.supports_hwi_multisig_display_address = True
