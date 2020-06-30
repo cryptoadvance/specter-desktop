@@ -231,7 +231,9 @@
 						});
 						sigscount = jsonResponse["devices"].length;
 					}
-					document.getElementById("sigscount").innerHTML = sigscount;
+					if(sigscount > 1){
+						document.getElementById("sigscount").innerHTML = sigscount;
+					}
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
 				}

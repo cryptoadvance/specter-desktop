@@ -1,5 +1,5 @@
 import copy, json, logging, os, random
-from .helpers import deep_update
+from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_cli_confs, RpcError
 from .rpc_cache import BitcoinCLICached
 from .device_manager import DeviceManager
@@ -246,6 +246,8 @@ class Specter:
         return False
 
     def combine(self, psbt_arr):
+        # backward compatibility with current Core psbt parser
+        psbt_arr = [clean_psbt(psbt) for psbt in psbt_arr]
         final_psbt = self.cli.combinepsbt(psbt_arr)
         return final_psbt
 

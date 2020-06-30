@@ -4,7 +4,8 @@ from .descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor
-from .serializations import PSBT
+from hwilib.serializations import PSBT, CTransaction
+from io import BytesIO
 from .specter_error import SpecterError
 
 
@@ -524,6 +525,21 @@ class Wallet():
         self.save_pending_psbt(psbt)
 
         return psbt
+
+    def fill_psbt(self, b64psbt):
+        psbt = PSBT()
+        psbt.deserialize(b64psbt)
+        for i, inp in enumerate(psbt.tx.vin):
+            txid = inp.prevout.hash.to_bytes(32,'big').hex()
+            try:
+                res = self.cli.gettransaction(txid)
+            except:
+                raise SpecterError("Can't find previous transaction in the wallet.")
+            stream = BytesIO(bytes.fromhex(res["hex"]))
+            prevtx = CTransaction()
+            prevtx.deserialize(stream)
+            psbt.inputs[i].non_witness_utxo = prevtx
+        return psbt.serialize()
 
     def get_signed_devices(self, decodedpsbt):
         signed_devices = []
