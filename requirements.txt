@@ -6,7 +6,7 @@ Flask==1.1.1
 Flask-Cors==3.0.8
 Flask-Login==0.5.0
 hidapi==0.7.99.post21
-hwi==1.1.1
+hwi==1.1.2
 idna==2.8
 itsdangerous==1.1.0
 Jinja2==2.10.3
