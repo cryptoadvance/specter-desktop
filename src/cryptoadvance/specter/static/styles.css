@@ -629,6 +629,21 @@ td.scroll > *{
     width: 100%;
     padding: 20px 0;
 }
+td.scroll > *::-webkit-scrollbar,
+#side-content::-webkit-scrollbar,
+main::-webkit-scrollbar,
+pre::-webkit-scrollbar{
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+td.scroll > *,
+#side-content,
+main,pre{
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  scrollbar-height: none;  /* Firefox */
+}
+
 table a, .address-link{
     display: inline;
     color: inherit;
