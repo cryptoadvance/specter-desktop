@@ -179,7 +179,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					scanner.start();
 					document.getElementById("popup").style.display = 'flex';
 				}catch(e){
-					alert("Can't start the QR scanner!\n\n" + e);
+					showError("Can't start the QR scanner!\n\n" + e);
 				}
 			});
 			document.getElementById("popup").addEventListener("click", function(){

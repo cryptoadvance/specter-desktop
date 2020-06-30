@@ -42,7 +42,7 @@
 						(("{{ specter.chain }}" != "regtest" || !result.data.startsWith("tb")) ||
 						"{{ wallet.address }}".slice(0, -6) != "bcrt" + result.data.slice(2, -6))
 					) {
-						alert("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+						showError("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
 					}
 				}
 				hidePageOverlay();
