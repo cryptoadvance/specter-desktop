@@ -24,6 +24,7 @@
 {% include 'includes/hwi/components/sign_tx.jinja' %}
 
 <script>
+    const HWI_DEVICES_TYPES = ['coldcard', 'keepkey', 'ledger', 'specter', 'trezor'];
     const HWI_POPUPS = Object.freeze({
         "SELECT": "hwi_select_device",
         "PIN": "hwi_enter_pin",
@@ -32,7 +33,7 @@
         "EXTRACT_XPUBS": "hwi_extract_xpubs",
         "DISPLAY_ADDRESS": "hwi_display_address",
         "SIGN": "hwi_sign_tx",
-    })
+    });
 
     var detectWalletTimeout;
     var hwiCurrentWallet;

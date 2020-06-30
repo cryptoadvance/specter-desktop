@@ -14,6 +14,7 @@ class ColdCard(SDCardDevice):
         self.sd_card_support = True
         self.qr_code_support = False
         self.wallet_export_type = 'file'
+        self.supports_hwi_multisig_display_address = True
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
