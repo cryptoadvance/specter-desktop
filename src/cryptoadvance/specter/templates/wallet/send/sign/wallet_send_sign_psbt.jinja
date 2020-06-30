@@ -291,10 +291,10 @@
 					hidePageOverlay();
 					window.location.replace("../tx/");
 				} else {
-					alert("Server failed to broadcast transactions!\n" + jsonResponse.error);
+					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
 				}
 			} catch(e) {
-				alert("Server failed to broadcast transactions!\n" + e);
+				showError("Server failed to broadcast transactions!\n" + e);
 			}
 		}
 
@@ -313,10 +313,10 @@
 					let o = JSON.parse(this.responseText);
 					var deletePSBTBtn = document.getElementById("deletepsbt_btn");
 					deletePSBTBtn.click();
-					alert("Transaction was sent successfully!");
+					showNotification("Transaction was sent successfully!");
 				} else {
 					if(xmlHttp.readyState === 4){
-						alert("Server failed to broadcast transactions!\n" + xmlHttp.response);
+						showError("Server failed to broadcast transactions!\n" + xmlHttp.response);
 					}
 				}
 			}
