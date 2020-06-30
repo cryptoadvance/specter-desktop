@@ -8,6 +8,12 @@
 
     const video = document.getElementById('qr-video');
 
+    // we don't have access to showError from module
+    function triggerError(msg){
+        let event = new CustomEvent('errormsg', { detail: {message: msg} });
+        document.dispatchEvent(event);
+    }
+
     const scanner = new QrScanner(video, result => {
         scanner.stop();
         document.getElementById("popup").style.display = 'none';
@@ -36,7 +42,7 @@
             scanner.start();
             document.getElementById("popup").style.display = 'flex';
         }catch(e){
-            alert("Can't start the QR scanner!\n\n" + e);
+            triggerError("Can't start the QR scanner!<br>" + e);
         }
     });
     document.getElementById("popup").addEventListener("click", function(){

@@ -134,7 +134,7 @@
                     await hwiPromptPin();
                 } else if (hwiCurrentWallet.code == -18) {
                     // TODO: Support wallet initializing if possible
-                    alert("Could not load device - device is not initialized.")
+                    showError("Could not load device - device is not initialized.")
                 } else {
                     // Already unlocked
                     hidePageOverlay();
