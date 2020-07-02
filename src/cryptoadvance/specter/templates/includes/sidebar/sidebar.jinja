@@ -10,24 +10,30 @@
             <div>
                 Bitcoin Core<br>
                 <small>
-                    {{specter.chain}}:
-                    {% if specter.info["blocks"] %}
-                        {{ specter.info.blocks }} blocks
+                    {% if specter.chain %}
+                        {{specter.chain}}:
+                        {% if specter.info["blocks"] %}
+                            {{ specter.info.blocks }} blocks
+                        {% else %}
+                            {{ specter.info.chain }}
+                        {% endif %}
                     {% else %}
-                        {{ specter.info.chain }}
+                        Unavailable. Click to configure.
                     {% endif %}
                 </small>
             </div>
         </a>
+        <div class="separator">
+            Wallets
+        </div>
         {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
-            <div class="separator">
-                Wallets
-            </div>
             {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
             {% for wallet in specter.wallet_manager.wallets_names %}
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}
+        {% else %}
+            <p class="warning">⚠️<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
         {% endif %}
 
         <div class="separator">
