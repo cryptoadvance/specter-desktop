@@ -32,6 +32,8 @@
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}
+        {% elif specter.chain %}
+            <p class="warning">⚠️<br>Create at least one device to enable wallets.</p>
         {% else %}
             <p class="warning">⚠️<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
         {% endif %}
