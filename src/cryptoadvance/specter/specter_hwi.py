@@ -19,7 +19,7 @@ class SpecterClient(HardwareWalletClient):
     This abstract class defines the methods
     that hardware wallet subclasses should implement.
     """
-    TIMEOUT = 0.1
+    TIMEOUT = 0.3
     def __init__(self, path: str, password:str="", expert:bool=False) -> None:
         super().__init__(path, password, expert)
         self.simulator = (":" in path)
