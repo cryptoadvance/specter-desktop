@@ -63,7 +63,7 @@ class SpecterClient(HardwareWalletClient):
         Return {"psbt": <base64 psbt string>}.
         """
         # this one can hang for quite some time
-        signed_tx = self.query("sign %s" % tx.serialize())
+        signed_tx = self.query("sign %s" % psbt.serialize())
         return {'psbt': signed_tx}
 
     def sign_message(self, message: str, bip32_path: str) -> Dict[str, str]:
@@ -75,7 +75,7 @@ class SpecterClient(HardwareWalletClient):
 
         Return {"signature": <base64 signature string>}.
         """
-        sig = self.query('signmessage %s %s' % (keypath, message))
+        sig = self.query('signmessage %s %s' % (bip32_path, message))
         return {"signature": sig}
 
     def display_address(
