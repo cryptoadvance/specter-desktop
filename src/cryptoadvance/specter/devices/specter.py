@@ -5,7 +5,7 @@ from hwilib.serializations import PSBT
 
 class Specter(HWIDevice):
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
-        super().__init__(self, name, alias, 'specter', keys, fullpath, manager)
+        super().__init__(name, alias, 'specter', keys, fullpath, manager)
         self.exportable_to_wallet = True
         self.sd_card_support = False
         self.qr_code_support = True
