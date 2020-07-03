@@ -41,7 +41,7 @@
 		{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
 			{% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
 		{% endfor %}
-		{% if supports_hwi_multisig_display_address != [] %}
+		{% if supports_hwi_multisig_display_address != [] or not wallet.is_multisig %}
 			<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display Address on Device</button><br>
 			<p class="note center">Multsig address on-device display is only available for ColdCard, KeepKey, and Trezor devices.</p>
 		{% endif %}
