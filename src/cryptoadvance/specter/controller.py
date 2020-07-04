@@ -13,7 +13,9 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import alias, get_devices_with_keys_by_type, hash_password, get_loglevel, get_version_info, run_shell, set_loglevel, verify_password
+from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
+                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+                      verify_password, bcur2base64)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -35,7 +37,6 @@ def selfcheck():
     """check status before every request"""
     if app.config.get('LOGIN_DISABLED'):
         app.login('admin')
-    app.specter.check()
 
 ########## template injections #############
 @app.context_processor
@@ -55,6 +56,10 @@ def combine(wallet_alias):
     if request.method == 'POST': # FIXME: ugly...
         psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
         psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        if "UR:BYTES/" in psbt0:
+            psbt0 = bcur2base64(psbt0)
+        if "UR:BYTES/" in psbt1:
+            psbt1 = bcur2base64(psbt1)
         txid = request.form.get('txid')
 
         try:
@@ -98,6 +103,7 @@ def broadcast(wallet_alias):
 @login_required
 def index():
     notify_upgrade()
+    app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
 
@@ -111,6 +117,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ''' login '''
+    app.specter.check()
     if request.method == 'POST':
         if app.specter.config['auth'] == 'none':
             app.login('admin')
@@ -158,6 +165,7 @@ def redirect_login(request):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     ''' register '''
+    app.specter.check()
     if request.method == 'POST':
         username = request.form['username']
         password = hash_password(request.form['password'])
@@ -203,6 +211,7 @@ def settings():
 @login_required
 def hwi_settings():
     current_version = notify_upgrade()
+    app.specter.check()
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,
@@ -214,6 +223,7 @@ def hwi_settings():
 @login_required
 def general_settings():
     current_version = notify_upgrade()
+    app.specter.check()
     explorer = app.specter.explorer
     hwi_bridge_url = app.specter.hwi_bridge_url
     loglevel = get_loglevel(app)
@@ -245,6 +255,7 @@ def general_settings():
 @login_required
 def bitcoin_core_settings():
     current_version = notify_upgrade()
+    app.specter.check()
     if not current_user.is_admin:
         flash('Only an admin is allowed to access this page.', 'error')
         return redirect("/")
@@ -309,6 +320,7 @@ def bitcoin_core_settings():
 @login_required
 def auth_settings():
     current_version = notify_upgrade()
+    app.specter.check()
     auth = app.specter.config['auth']
     new_otp = -1
     if request.method == 'POST':
@@ -369,6 +381,7 @@ def auth_settings():
 @app.route('/new_wallet/')
 @login_required
 def new_wallet_type():
+    app.specter.check()
     err = None
     if app.specter.chain is None:
         err = "Configure Bitcoin Core to create wallets"
@@ -383,6 +396,7 @@ def new_wallet(wallet_type):
     if wallet_type not in wallet_types:
         err = "Unknown wallet type requested"
         return render_template("base.jinja", specter=app.specter, rand=rand)
+    app.specter.check()
     name = wallet_type.title()
     wallet_name = name
     i = 2
@@ -523,6 +537,7 @@ def new_wallet(wallet_type):
 @app.route('/wallets/<wallet_alias>/')
 @login_required
 def wallet(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -536,6 +551,7 @@ def wallet(wallet_alias):
 @app.route('/wallets/<wallet_alias>/tx/')
 @login_required
 def wallet_tx(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -546,6 +562,7 @@ def wallet_tx(wallet_alias):
 @app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
 @login_required
 def wallet_addresses(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -569,6 +586,7 @@ def wallet_addresses(wallet_alias):
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
 def wallet_receive(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -594,6 +612,7 @@ def fees(blocks):
 @app.route('/wallets/<wallet_alias>/send/new', methods=['GET', 'POST'])
 @login_required
 def wallet_send(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -666,6 +685,7 @@ def wallet_send(wallet_alias):
 @app.route('/wallets/<wallet_alias>/send/import')
 @login_required
 def wallet_importpsbt(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -679,6 +699,7 @@ def wallet_importpsbt(wallet_alias):
 @app.route('/wallets/<wallet_alias>/send/pending/', methods=['GET', 'POST'])
 @login_required
 def wallet_sendpending(wallet_alias):
+    app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -701,6 +722,7 @@ def wallet_sendpending(wallet_alias):
 @app.route('/wallets/<wallet_alias>/settings/', methods=['GET','POST'])
 @login_required
 def wallet_settings(wallet_alias):
+    app.specter.check()
     error = None
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
@@ -765,6 +787,7 @@ def wallet_settings(wallet_alias):
 @app.route('/new_device/', methods=['GET', 'POST'])
 @login_required
 def new_device():
+    app.specter.check()
     err = None
     device_type = "other"
     device_name = ""
@@ -790,6 +813,7 @@ def new_device():
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required
 def device(device_alias):
+    app.specter.check()
     err = None
     try:
         device = app.specter.device_manager.get_by_alias(device_alias)

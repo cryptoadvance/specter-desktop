@@ -69,10 +69,14 @@ class Specter:
             os.makedirs(data_folder)
 
         self._info = { "chain": None }
+        self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
 
     def check(self, user=current_user):
+        if self.is_checking:
+            return
+        self.is_checking = True
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with open(os.path.join(self.data_folder, "config.json"), "r") as f:
@@ -128,6 +132,7 @@ class Specter:
                     self.cli, 
                     chain=chain
                 )
+        self.is_checking = False
 
     def clear_user_session(self):
         self.device_manager = None
