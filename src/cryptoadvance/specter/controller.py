@@ -13,7 +13,9 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import alias, get_devices_with_keys_by_type, hash_password, get_loglevel, get_version_info, run_shell, set_loglevel, verify_password
+from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
+                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+                      verify_password, bcur2base64)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -55,6 +57,10 @@ def combine(wallet_alias):
     if request.method == 'POST': # FIXME: ugly...
         psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
         psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        if "UR:BYTES/" in psbt0:
+            psbt0 = bcur2base64(psbt0)
+        if "UR:BYTES/" in psbt1:
+            psbt1 = bcur2base64(psbt1)
         txid = request.form.get('txid')
 
         try:
