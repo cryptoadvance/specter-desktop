@@ -67,9 +67,17 @@
         const scanner = new QrScanner(video, result => {
             // check if it is a partial QR code
             // syntax: "pMofN data"
-            let re = /p(\d+)of(\d+) (.*)/;
-            let p = result.match(re);
-            if(p) {
+            let re1 = /p(\d+)of(\d+) (.*)/;
+            let p1 = result.match(re1);
+            // check if it is a partial BC-UR QR code
+            // syntax: "UR:BYTES/MOFN/HSH/CHUNK"
+            let re2 = /UR:BYTES\/(\d+)OF(\d+)\/(.*)/;
+            let p2 = result.match(re2);
+            if(p1 || p2) {
+                let p = p1;
+                if(p2){
+                    p = p2;
+                }
                 let m = parseInt(p[1]);
                 let n = parseInt(p[2]);
                 let data = p[3];
@@ -90,7 +98,14 @@
                     document.getElementById("qr-progress").innerHTML = "";
                 }
                 // fill corresponding part
-                partial_qr.parts[m-1] = data;
+                if(p1){
+                    partial_qr.parts[m-1] = data;
+                }else{
+                    // we ignore the checksum for now
+                    // as the standard is not finalized yet
+                    let arr = data.split("/");
+                    partial_qr.parts[m-1] = arr[arr.length-1];
+                }
                 // display scanning progress
                 let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
                 document.getElementById("qr-progress").innerHTML = s.join("");
@@ -101,6 +116,10 @@
                 }
                 // recombine to result
                 result = partial_qr.parts.join("");
+                // bcur
+                if(p2){
+                    result = "UR:BYTES/"+result;
+                }
                 // reset partial_qr
                 partial_qr.parts = [];
                 partial_qr.len = 0;

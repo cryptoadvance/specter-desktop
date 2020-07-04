@@ -2,6 +2,7 @@ import binascii, collections, copy, hashlib, json, logging, os, six, subprocess,
 from collections import OrderedDict
 from .descriptor import AddChecksum
 from hwilib.serializations import PSBT
+from .bcur import bcur_decode
 
 try:
     collectionsAbc = collections.abc
@@ -319,3 +320,7 @@ def clean_psbt(b64psbt):
         if inp.witness_utxo is not None and inp.non_witness_utxo is not None:
             inp.non_witness_utxo = None
     return psbt.serialize()
+
+def bcur2base64(encoded):
+    raw = bcur_decode(encoded.split("/")[-1])
+    return binascii.b2a_base64(raw).strip()
