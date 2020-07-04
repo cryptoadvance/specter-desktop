@@ -11,8 +11,9 @@ class Cobo(Device):
         self.qr_code_support = True
 
     def create_psbts(self, base64_psbt, wallet):
-    	# TODO - convert to bc-ur
-    	raw_psbt = a2b_base64(base64_psbt)
-    	
-        psbts = { 'qrcode': base64_psbt }
+        # TODO - convert to bc-ur
+        raw_psbt = a2b_base64(base64_psbt)
+        enc, hsh = bcur.bcur_encode(raw_psbt)
+        psbt = ("ur:bytes/"+enc).upper()
+        psbts = { 'qrcode': psbt }
         return psbts

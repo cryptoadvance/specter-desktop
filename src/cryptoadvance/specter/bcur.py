@@ -1,4 +1,7 @@
 ### bc-ur encoding stuff
+from io import BytesIO
+import hashlib
+
 CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 def bech32_polymod(values):
@@ -123,17 +126,63 @@ def bc32decode(bc32:str)->bytes:
         return None
     return bytes(convertbits(res[:-6],5,8,False))
 
+def cbor_encode(data):
+    l = len(data)
+    if l<=23:
+        prefix = bytes([0x40+l])
+    elif l<=255:
+        prefix = bytes([0x58, l])
+    elif l<=65535:
+        prefix = b'\x59'+l.to_bytes(2, 'big')
+    else:
+        prefix = b'\x60'+l.to_bytes(4, 'big')
+    return prefix+data
+
+def cbor_decode(data):
+    s = BytesIO(data)
+    b = s.read(1)[0]
+    if b >= 0x40 and b < 0x58:
+        l = b-0x40
+        return s.read(l)
+    if b == 0x58:
+        l = s.read(1)[0]
+        return s.read(l)
+    if b == 0x59:
+        l = int.from_bytes(s.read(2),'big')
+        return s.read(l)
+    if b == 0x60:
+        l = int.from_bytes(s.read(4),'big')
+        return s.read(l)
+    return None
+
+def bcur_encode(data):
+    """Returns bcur encoded string and hash digest"""
+    cbor = cbor_encode(data)
+    enc = bc32encode(cbor)
+    h = hashlib.sha256(cbor).digest()
+    enc_hash = bc32encode(h)
+    return enc, enc_hash
+
+def bcur_decode(data, checksum=None):
+    """Returns decoded data, verifies hash digest if provided"""
+    cbor = bc32decode(data)
+    if checksum is not None:
+        h = bc32decode(checksum)
+        assert h == hashlib.sha256(cbor).digest()
+    return cbor_decode(cbor)
+
 if __name__ == '__main__':
     from binascii import a2b_base64
     b64 = "cHNidP8BAHEBAAAAAfPQ5Rpeu5nH0TImK4Sbu9lxIOGEynRadywPxaPyhnTwAAAAAAD/////AkoRAAAAAAAAFgAUFCYoQzGSRmYVAuZNuXF0OrPg9jWIEwAAAAAAABYAFOZMlwM1sZGLivwOcOh77amAlvD5AAAAAAABAR+tKAAAAAAAABYAFM4u9V5WG+Fe9l3MefmYEX4ULWAWIgYDA+jO+oOuN37ABK67BA/+SuuR/57c7OkyfyR7hR34FDsYccBxUlQAAIAAAACAAAAAgAAAAAAFAAAAACICApJMZBvzWiavLN7nievKQoylwPoffLkXZUIgGHF4HgwaGHHAcVJUAACAAAAAgAAAAIABAAAACwAAAAAA"
     raw = a2b_base64(b64)
-    enc = bc32encode(raw)
+    enc, enc_hash = bcur_encode(raw)
+    dec = bcur_decode(enc, enc_hash)
+    assert (dec == raw)
     testres = [
         "tyq3wurnvf607qgqwyqsqqqqq8eapeg6t6aen373xgnzhpymh0vhzg8psn98gknh9s8utgljse60qqqqqqqqpllllllsyjs3qqqqqqqqqqtqq9q5yc5yxvvjgenp2qhxfkuhzap6k0s0vdvgzvqqqqqqqqqpvqq5uexfwqe4kxgchzhupecws7ld4xqfdu8eqqqqqqqq",
         "qyq3ltfgqqqqqqqqqqtqq9xw9m64u4smu900vhwv08uesyt7zskkq93zqcps86xwl2p6udm7cqz2awcyplly46u3l70dem8fxfljg7u9rhupgwccw8q8z5j5qqqgqqqqqzqqqqqqsqqqqqqqq5qqqqqqygpq9yjvvsdlxk3x4ukdaeufa09y9r99crap7l9ezaj5ygqc",
         "w9upurq6rpcuqu2j2sqqpqqqqqqgqqqqqzqqzqqqqq9sqqqqqqqqmkdau4"
     ]
-    print(raw.hex())
-    print(bc32decode("".join(testres)).hex())
-# wpekya8lqyq8zqgqqqqqru7su5d9awueclgnyf3tsjdmhkt3yrscfjn5tfmjcr7950egva8sqqqqqqqqllllllczfggsqqqqqqqqq9sqzs2zv2zrxxfyves4qtnymwt3wsat8c8kxkypxqqqqqqqqqqkqq2wvnyhqv6mryvt3t7quu8g00k6nqyk7rusqqqqqqqqzqgl455qqqqqqqqqq9sqzn8zaa272cd7zhhkthx8n7vcz9lpgttqzc3qvqcrar804qawxalvqp9whvzqllj2awgll8kuan5nyley0wz3m7q58vv8rsr32f2qqqyqqqqqpqqqqqqgqqqqqqqq2qqqqqqzyqszjfxxgxlntgn27tx7u7y7hjjz3jjup7sl0ju3we2zyqv8z7q7psdpsuwqw9f9gqqqsqqqqqyqqqqqpqqpqqqqqzcqqqqqqqq0s6h0x
-# ur:bytes/1of3/hlwjxjx550k4nnfdl5py2tn3vnh6g60slnw5dmld6ktrkkz200as49spg5/tyq3wurnvf607qgqwyqsqqqqq8eapeg6t6aen373xgnzhpymh0vhzg8psn98gknh9s8utgljse60qqqqqqqqpllllllsyjs3qqqqqqqqqqtqq9q5yc5yxvvjgenp2qhxfkuhzap6k0s0vdvgzvqqqqqqqqqpvqq5uexfwqe4kxgchzhupecws7ld4xqfdu8eqqqqqqqq
+    testhash = "hlwjxjx550k4nnfdl5py2tn3vnh6g60slnw5dmld6ktrkkz200as49spg5"
+    assert (enc_hash == testhash)
+    assert (enc=="".join(testres))
