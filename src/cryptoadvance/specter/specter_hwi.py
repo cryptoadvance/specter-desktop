@@ -38,7 +38,6 @@ class SpecterClient(HardwareWalletClient):
             raise UnavailableActionError(res[7:])
         elif res.startswith("error: "):
             raise BadArgumentError(res[7:])
-        print(data, "\n->", res)
         return res
 
     def get_master_fingerprint_hex(self) -> str:
