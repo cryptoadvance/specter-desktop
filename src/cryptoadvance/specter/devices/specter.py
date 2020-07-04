@@ -14,8 +14,6 @@ class Specter(HWIDevice):
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
-        # spected doesn't support non-witness utxo yet
-        psbts["hwi"] = base64_psbt
         qr_psbt = PSBT()
         qr_psbt.deserialize(base64_psbt)
         for inp in qr_psbt.inputs + qr_psbt.outputs:
