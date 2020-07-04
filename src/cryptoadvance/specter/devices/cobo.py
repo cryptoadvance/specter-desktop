@@ -14,6 +14,6 @@ class Cobo(Device):
         # TODO - convert to bc-ur
         raw_psbt = a2b_base64(base64_psbt)
         enc, hsh = bcur.bcur_encode(raw_psbt)
-        psbt = ("ur:bytes/"+enc).upper()
+        psbt = ("ur:bytes/%s/%s"% (hsh, enc)).upper()
         psbts = { 'qrcode': psbt }
         return psbts
