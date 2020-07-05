@@ -27,10 +27,10 @@
 			<img id="menubtn" src="/static/img/menu.svg"/>
 
 			<div id="messages">
-			{% with messages = get_flashed_messages() %}
+			{% with messages = get_flashed_messages(with_categories=True) %}
 				{% if messages %}
-					{% for message in messages | unique %}
-						<message-box type="error">{{ message }}</message-box>
+					{% for category, message in messages | unique %}
+						<message-box type="{{ category }}">{{ message }}</message-box>
 					{% endfor %}
 				{% endif %}
 			{% endwith %}

@@ -663,7 +663,7 @@ def wallet_send(wallet_alias):
                 b64psbt = request.form["rawpsbt"]
                 psbt = wallet.importpsbt(b64psbt)
             except Exception as e:
-                flash("Could not import PSBT: %s" % e)
+                flash("Could not import PSBT: %s" % e, "error")
                 return redirect(url_for('wallet_importpsbt', wallet_alias=wallet_alias))
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -677,7 +677,7 @@ def wallet_send(wallet_alias):
             try:
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
@@ -712,7 +712,7 @@ def wallet_sendpending(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet/send/pending/wallet_sendpending.jinja", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -869,5 +869,5 @@ def notify_upgrade():
     version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
     app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
     if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]))
+        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
     return version_info["current"]
