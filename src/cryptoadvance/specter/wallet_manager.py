@@ -60,7 +60,7 @@ class WalletManager:
         if cli is not None:
             self.cli = cli
 
-        self.wallets = {}
+        wallets = {}
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
             existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
@@ -74,18 +74,19 @@ class WalletManager:
                         try:
                             logger.debug("loading %s " % wallets_files[wallet]["alias"])
                             self.cli.loadwallet(os.path.join(self.cli_path, wallet_alias))
-                            self.wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                            wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
                             # Lock UTXO of pending PSBTs
-                            if len(self.wallets[wallet_name].pending_psbts) > 0:
-                                for psbt in self.wallets[wallet_name].pending_psbts:
-                                    logger.debug("lock %s " % wallet_alias, self.wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"])
-                                    self.wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in self.wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"]])
+                            if len(wallets[wallet_name].pending_psbts) > 0:
+                                for psbt in wallets[wallet_name].pending_psbts:
+                                    logger.debug("lock %s " % wallet_alias, wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"])
+                                    wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"]])
                         except RpcError:
                             logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
                     elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
-                        self.wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                        wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
                 else:
                     logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
+        self.wallets = wallets
         self.is_loading = False
 
     def get_by_alias(self, alias):
