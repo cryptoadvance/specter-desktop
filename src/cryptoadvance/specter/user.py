@@ -1,3 +1,4 @@
+import os, shutil
 from flask_login import UserMixin
 from .helpers import get_users_json, save_users_json
 from .specter_error import SpecterError
@@ -37,6 +38,15 @@ class User(UserMixin):
             if user.username == username:
                 return user
 
+    @classmethod
+    def get_all_users(cls, specter):
+        users_dicts = get_users_json(specter)
+        users = []
+        for user_dict in users_dicts:
+            user = User.from_json(user_dict)
+            users.append(user)
+        return users
+
     @property
     def json(self):
         user_dict = {
@@ -49,14 +59,18 @@ class User(UserMixin):
             user_dict['config'] = self.config
         return user_dict
 
-    def save_info(self, specter):
+    def save_info(self, specter, delete=False):
         users = get_users_json(specter)
         existing = False
         for i in range(len(users)):
             if users[i]['id'] == self.id:
-                users[i] = self.json
-                existing = True
-        if not existing:
+                if not delete:
+                    users[i] = self.json
+                    existing = True
+                else:
+                    del users[i]
+                break
+        if not existing and not delete:
             users.append(self.json)
         
         save_users_json(specter, users)
@@ -68,3 +82,12 @@ class User(UserMixin):
     def set_hwi_bridge_url(self, specter, url):
         self.config['hwi_bridge_url'] = url
         self.save_info(specter)
+
+    def delete(self, specter):
+        devices_datadir_path = os.path.join(os.path.join(specter.data_folder, "devices_{}".format(self.id)))
+        wallets_datadir_path = os.path.join(os.path.join(specter.data_folder, "wallets_{}".format(self.id)))
+        if os.path.exists(devices_datadir_path):
+            shutil.rmtree(devices_datadir_path)
+        if os.path.exists(wallets_datadir_path):
+            shutil.rmtree(wallets_datadir_path)
+        self.save_info(specter, delete=True)

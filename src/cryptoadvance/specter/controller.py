@@ -323,18 +323,21 @@ def auth_settings():
     app.specter.check()
     auth = app.specter.config['auth']
     new_otp = -1
+    users = None
+    if current_user.is_admin and auth == "usernamepassword":
+        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
     if request.method == 'POST':
         action = request.form['action']
-        if 'specter_username' in request.form:
+
+        if action == "save":
+            if 'specter_username' in request.form:
                 specter_username = request.form['specter_username']
                 specter_password = request.form['specter_password']
-        else:
-            specter_username = None
-            specter_password = None
-        if current_user.is_admin:
-            auth = request.form['auth']
-            
-        if action == "save":
+            else:
+                specter_username = None
+                specter_password = None
+            if current_user.is_admin:
+                auth = request.form['auth']
             if specter_username:
                 if current_user.username != specter_username:
                     if User.get_user_by_name(app.specter, specter_username):
@@ -343,6 +346,7 @@ def auth_settings():
                             "settings/auth_settings.jinja",
                             auth=auth,
                             new_otp=new_otp,
+                            users=users,
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand
@@ -366,10 +370,23 @@ def auth_settings():
                 flash('New user link generated successfully: {}register?otp={}'.format(request.url_root, new_otp), 'info')
             else:
                 flash('Error: Only the admin account can issue new registration links.', 'error')
+        elif action == "deleteuser":
+            delete_user = request.form['deleteuser']
+            if current_user.is_admin:
+                user = User.get_user(app.specter, delete_user)
+                if user:
+                    user.delete(app.specter)
+                    users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+                    flash('User {} was deleted successfully'.format(user.username), 'info')
+                else:
+                    flash('Error: failed to delete user, invalid user ID was given', 'error')
+            else:
+                flash('Error: Only the admin account can delete users', 'error')
     return render_template(
         "settings/auth_settings.jinja",
         auth=auth,
         new_otp=new_otp,
+        users=users,
         specter=app.specter,
         current_version=current_version,
         rand=rand
