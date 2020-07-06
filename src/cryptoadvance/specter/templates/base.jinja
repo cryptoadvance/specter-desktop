@@ -10,8 +10,8 @@
 	{% if specter.config.auth == "none" or current_user.is_authenticated %}
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
-		{% include "includes/message-box.html" %}
 	{% endif %}
+	{% include "includes/message-box.html" %}
 	<div class="row holder">
 		{% block sidebar %}
 			{% include "includes/sidebar/sidebar.jinja" %}
