@@ -3,7 +3,7 @@
 {% block content %}<br>
 	<h1>Keypool control</h1>
 	<form action="." method="POST" class="padded" style="width: 500px">
-		<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.<div>
+		<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
 		<div class="row aligned">
 			<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
 			<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
@@ -33,6 +33,22 @@
 			<div class="note center"><b>481824</b> was the first Segwit block.</div>
 		{% endif %}
 	</form>
+	<br>
+	<h1>Wallet Devices</h1>
+	<div class="row overflow">
+		{% for device in wallet.devices %}
+			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
+				<div class="small-card radio">
+					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+						<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
+					{% else %}
+						<img src="/static/img/other_icon.svg" width="18px">
+					{% endif %}
+					{{ device.name }}
+				</div>
+			</a>
+		{% endfor %}
+	</div>
 	<br>
 	<h1>Cache</h1>
 	<form action="." method="POST" class="padded" style="width: 500px">
