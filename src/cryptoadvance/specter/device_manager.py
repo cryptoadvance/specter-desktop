@@ -41,16 +41,17 @@ class DeviceManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
-        self.devices = {}
+        devices = {}
         devices_files = load_jsons(self.data_folder, key="name")
         for device_alias in devices_files:
             fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
-            self.devices[devices_files[device_alias]["name"]] = get_device_class(devices_files[device_alias]["type"]).from_json(
+            devices[devices_files[device_alias]["name"]] = get_device_class(devices_files[device_alias]["type"]).from_json(
                 devices_files[device_alias],
                 self,
                 default_alias=device_alias,
                 default_fullpath=fullpath
             )
+        self.devices = devices
 
     @property
     def devices_names(self):
