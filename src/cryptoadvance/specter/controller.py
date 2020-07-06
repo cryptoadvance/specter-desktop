@@ -323,18 +323,21 @@ def auth_settings():
     app.specter.check()
     auth = app.specter.config['auth']
     new_otp = -1
+    users = None
+    if current_user.is_admin and auth == "usernamepassword":
+        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
     if request.method == 'POST':
         action = request.form['action']
-        if 'specter_username' in request.form:
+
+        if action == "save":
+            if 'specter_username' in request.form:
                 specter_username = request.form['specter_username']
                 specter_password = request.form['specter_password']
-        else:
-            specter_username = None
-            specter_password = None
-        if current_user.is_admin:
-            auth = request.form['auth']
-            
-        if action == "save":
+            else:
+                specter_username = None
+                specter_password = None
+            if current_user.is_admin:
+                auth = request.form['auth']
             if specter_username:
                 if current_user.username != specter_username:
                     if User.get_user_by_name(app.specter, specter_username):
@@ -343,6 +346,7 @@ def auth_settings():
                             "settings/auth_settings.jinja",
                             auth=auth,
                             new_otp=new_otp,
+                            users=users,
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand
@@ -366,10 +370,23 @@ def auth_settings():
                 flash('New user link generated successfully: {}register?otp={}'.format(request.url_root, new_otp), 'info')
             else:
                 flash('Error: Only the admin account can issue new registration links.', 'error')
+        elif action == "deleteuser":
+            delete_user = request.form['deleteuser']
+            if current_user.is_admin:
+                user = User.get_user(app.specter, delete_user)
+                if user:
+                    user.delete(app.specter)
+                    users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+                    flash('User {} was deleted successfully'.format(user.username), 'info')
+                else:
+                    flash('Error: failed to delete user, invalid user ID was given', 'error')
+            else:
+                flash('Error: Only the admin account can delete users', 'error')
     return render_template(
         "settings/auth_settings.jinja",
         auth=auth,
         new_otp=new_otp,
+        users=users,
         specter=app.specter,
         current_version=current_version,
         rand=rand
@@ -663,7 +680,7 @@ def wallet_send(wallet_alias):
                 b64psbt = request.form["rawpsbt"]
                 psbt = wallet.importpsbt(b64psbt)
             except Exception as e:
-                flash("Could not import PSBT: %s" % e)
+                flash("Could not import PSBT: %s" % e, "error")
                 return redirect(url_for('wallet_importpsbt', wallet_alias=wallet_alias))
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -677,7 +694,7 @@ def wallet_send(wallet_alias):
             try:
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
@@ -712,7 +729,7 @@ def wallet_sendpending(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet/send/pending/wallet_sendpending.jinja", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -869,5 +886,5 @@ def notify_upgrade():
     version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
     app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
     if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]))
+        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
     return version_info["current"]
