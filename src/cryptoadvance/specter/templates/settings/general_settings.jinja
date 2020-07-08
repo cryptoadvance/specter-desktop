@@ -1,0 +1,39 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST">
+		<h1>General settings - Specter Desktop {{ current_version }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('general_settings', current_user) }}
+		<div class="card" style="margin: 20px auto;">
+			Block explorer URL ({{ specter.chain }}):<br>
+			<input type="text" name="explorer" value="{{ explorer }}">
+			<div class="note">
+				Specter does not use the block explorer to get any data whatsoever.
+				This setting is only to allow opening trnsactions and addresses in a block explorer directly from Specter.<br>
+				All data Specter uses still comes directly from the your own connected full node.
+			</div>
+			<br>
+			HWI Bridge URL:<br>
+			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
+			<div class="note">
+				Specter uses the HWI tool to communicted with hardware devices via USB connection.<br>
+				If you connect the USB directly to the machine you are running Specter on, leave the default value here (/hwi/api/).<br>
+				If you are user Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.
+				Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
+			</div>
+			<br><br>
+			{% if current_user.is_admin %}
+			Log Level:<br>
+			<select name="loglevel">
+				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
+				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
+				<option value="DEBUG" {% if loglevel=="DEBUG" %} selected="selected"{% endif %}>DEBUG</option>
+			</select>
+			<br><br>
+			{% endif %}
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="save">Save</button>
+			</div>
+		</div>
+	</form>
+{% endblock %}

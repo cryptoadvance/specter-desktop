@@ -22,10 +22,35 @@
     .note{
       font-size: 0.7em;
     }
+    .copy{
+      display: none;
+      height: 26px;
+      width: 26px;
+      color: #000;
+      margin: 0;
+      margin-bottom: -26px;
+      margin-left: auto;
+      z-index: 3;
+      cursor: pointer;
+      border-radius: 3px;
+      box-sizing: border-box;
+      background: rgba(255,255,255,0.7);
+      padding: 3px;
+    }
+    .qr-holder:hover .copy{
+      display: block;
+    }
+    .copy:hover{
+      background: rgba(255,255,255,1);
+    }
+    .copy img{
+      width: 10px;
+    }
   </style>
   <div class="qr-holder">
-  <div class="qr-code"></div>
-  <div class="note">Click to animate</div>
+    <a class="copy"><img src="/static/img/content_copy-24px.svg"></a>
+    <div class="qr-code"></div>
+    <div class="note">Click to animate</div>
   </div>
 </template>
 
@@ -50,6 +75,8 @@ class QRCodeElement extends HTMLElement {
     this.isQRtoolarge = false;
     this.idx = 0;
 
+    this.copybtn = clone.querySelector(".copy");
+
     // Attach the created element to the shadow dom
     shadow.appendChild(clone);
 
@@ -57,11 +84,18 @@ class QRCodeElement extends HTMLElement {
       this.animate = !this.animate;
       this.idx = 0;
       if(!this.animate){
-        this.qrcode.makeCode(this.getAttribute('value'));
+        let value = this.getAttribute('value');
+        value = this.maybe_remove_checksum(value);
+        this.qrcode.makeCode(value);
         if(this.isQRlarge){
           this.note.innerHTML = "Click to animate";
         }
       }
+    });
+    this.copybtn.addEventListener('click', e=>{
+      e.cancelBubble = true;
+      var value = this.getAttribute('value');
+      copyText(value, "QR code content is copied!");
     });
     window.setInterval(()=>{
       if((this.qrcode==null) || this.chunks.length<=1){
@@ -81,8 +115,20 @@ class QRCodeElement extends HTMLElement {
   static get observedAttributes() {
     return ['value','width'];
   }
+  maybe_remove_checksum(value){
+    // this is bc-ur, remove checksum for static QR
+    if(value.includes("UR:") || value.includes("ur:")){
+      let arr = value.split("/")
+      // no sequential part - remove checksum
+      if(arr.length == 3){
+        value = arr[0]+"/"+arr[2];
+      }
+    }
+    return value;
+  }
   split(text){
     if((this.qrcode!=null && text!=null)){
+      let is_bcur = (text.includes("UR:") || text.includes("ur:"));
       this.chunks = [];
       let txt_len = text.length;
       if(txt_len / this.maxLen > 1.0){
@@ -91,13 +137,27 @@ class QRCodeElement extends HTMLElement {
         /* This algorithm makes all the chunks of about equal length.
         This makes sure that the last chunk is not (too) different in size
         which is visually noticeable when animation occurs */
-        let number_of_chunks = Math.ceil(txt_len / this.maxLen)
-        let n = Math.ceil(txt_len / number_of_chunks)
-        for (let i = 0; i < txt_len; i += n) {
-          this.chunks.push(text.substring(i, i + n));
+        let payload = text;
+        if(is_bcur){
+          let arr = text.split("/");
+          // payload length
+          payload = arr[arr.length-1];
         }
-        for (let j=0; j<this.chunks.length; j++) {
-          this.chunks[j] = "p"+(j+1)+"of"+number_of_chunks+" "+this.chunks[j]
+        let number_of_chunks = Math.ceil(payload.length / this.maxLen)
+        let n = Math.ceil(payload.length / number_of_chunks)
+        for (let i = 0; i < payload.length; i += n) {
+          this.chunks.push(payload.substring(i, i + n));
+        }
+        if(is_bcur){
+          let arr = text.split("/");
+          for (let j=0; j<this.chunks.length; j++) {
+            // ur:bytes/1of3/checksum/payload
+            this.chunks[j] = arr[0]+"/"+(j+1)+"of"+number_of_chunks+"/"+arr[1]+"/"+this.chunks[j];
+          }
+        }else{
+          for (let j=0; j<this.chunks.length; j++) {
+            this.chunks[j] = "p"+(j+1)+"of"+number_of_chunks+" "+this.chunks[j];
+          }
         }
       }else{
         this.chunks.push(text)
@@ -124,9 +184,13 @@ class QRCodeElement extends HTMLElement {
         this.isQRlarge = true;
         this.note.innerHTML = "Click to animate";
       }
+      // we have to use chunks
       if(this.isQRtoolarge){
         value = this.chunks[0];
         this.animate = true;
+      }else{
+        // if this is bc-ur, remove checksum for static QR
+        value = this.maybe_remove_checksum(value);
       }
       this.qrcode = new QRCode(this.el, {
         "text":   value,

@@ -50,4 +50,22 @@
 		</form>
 		{# TODO: Add wallets used in #}
 	</div>
+	<br>
+	{% if wallets %}
+		<h1>Wallets Using This Device</h1>
+		<div class="row overflow">
+			{% for wallet in wallets %}
+				<a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
+					<div class="small-card radio">
+						{% if wallet.is_multisig %}
+							<img src="/static/img/multisig_icon.svg" width="18px">
+						{% else %}
+							<img src="/static/img/simple_icon.svg" width="18px">
+						{% endif %}
+						{{ wallet.name }}
+					</div>
+				</a>
+			{% endfor %}
+		</div>
+	{% endif %}
 {% endblock %}

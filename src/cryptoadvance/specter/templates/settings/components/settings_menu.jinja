@@ -1,0 +1,20 @@
+{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
+
+{# 
+    settings_menu - Tabs menu to navigate between the settings screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
+    - current_user: The current user.
+ #}
+{% macro settings_menu(active_menuitem, current_user) -%}
+	<nav class="row">
+		{% if current_user.is_admin %}
+			{{ settings_menu_item('bitcoin_core_settings', 'Bitcoin Core', active_menuitem, isLeft=true) }}
+		{% endif %}
+		{{ settings_menu_item('general_settings', 'General', active_menuitem, isLeft=not current_user.is_admin) }}
+		{{ settings_menu_item('auth_settings', 'Authentication', active_menuitem, isRight=not current_user.is_admin) }}
+		{% if current_user.is_admin %}
+			{{ settings_menu_item('hwi_settings', 'HWI Bridge', active_menuitem, isRight=true) }}
+		{% endif %}
+	</nav>
+{%- endmacro %}

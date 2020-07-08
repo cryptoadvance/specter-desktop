@@ -11,6 +11,7 @@
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
 	{% endif %}
+	{% include "includes/message-box.html" %}
 	<div class="row holder">
 		{% block sidebar %}
 			{% include "includes/sidebar/sidebar.jinja" %}
@@ -25,25 +26,17 @@
 			{% endif %}
 			<img id="menubtn" src="/static/img/menu.svg"/>
 
-			{% with messages = get_flashed_messages() %}
+			<div id="messages">
+			{% with messages = get_flashed_messages(with_categories=True) %}
 				{% if messages %}
-					<div class="notification error">
-						<ul>
-						{% for message in messages | unique %}
-							<li>{{ message }}</li>
-						{% endfor %}
-						</ul>
-					</div>
+					{% for category, message in messages | unique %}
+						<message-box type="{{ category }}">{{ message }}</message-box>
+					{% endfor %}
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<div class="notification error">
-					ERROR: {{error}}
-				</div>
+				<message-box type="error">ERROR: {{error}}</message-box>
 			{% endif %}
-
-			<div class="notification error hidden" id="notificationmsg" style="margin-left: 125px">
-				Error
 			</div>
 
 			{% block main %}
@@ -69,13 +62,32 @@
 			});
 		});
 
-		function showError(msg) {
-			let el = document.getElementById("notificationmsg");
-			el.classList.add("error");
-			el.classList.remove("primary");
+		document.addEventListener("errormsg", (e)=>{
+			if(!("timeout" in e.detail)){
+				e.detail.timeout = 0;
+			}
+			showError(e.detail.message, e.detail.timeout);
+		});
+		document.addEventListener("notification", (e)=>{
+			if(!("timeout" in e.detail)){
+				e.detail.timeout = 0;
+			}
+			showNotification(e.detail.message, e.detail.timeout);
+		});
+		function showError(msg, timeout=0) {
+			return showNotification(msg, timeout, "error");
+		}
+		function showNotification(msg, timeout=3000, type="primary") {
+			let el = document.createElement("message-box");
+			el.setAttribute("type", type);
+			el.setAttribute("timeout", timeout);
 			el.innerHTML = msg;
-			el.style.display = "block";
-    }
+			document.getElementById("messages").appendChild(el);
+			el.addEventListener('click', (e)=>{
+				document.getElementById("messages").removeChild(el);
+			});
+			return el;
+		}
 
 		function copyText(value, msg) {
 			try {
@@ -90,10 +102,10 @@
 				document.execCommand("copy");
 				selection.removeAllRanges();
 				document.getElementsByTagName("body")[0].removeChild(element);
-				alert(msg);
+				showNotification(msg);
 			}
 			catch (err) {
-				alert('Unable to copy text');
+				showError('Unable to copy text');
 			}
 		}
 	</script>

@@ -1,5 +1,5 @@
 import copy, json, logging, os, random
-from .helpers import deep_update
+from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_cli_confs, RpcError
 from .rpc_cache import BitcoinCLICached
 from .device_manager import DeviceManager
@@ -69,10 +69,14 @@ class Specter:
             os.makedirs(data_folder)
 
         self._info = { "chain": None }
+        self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
 
     def check(self, user=current_user):
+        if self.is_checking:
+            return
+        self.is_checking = True
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with open(os.path.join(self.data_folder, "config.json"), "r") as f:
@@ -113,7 +117,7 @@ class Specter:
             else:
                 self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
 
-            if self.wallet_manager is None or chain is None:
+            if self.wallet_manager is None:
                 wallets_path = "specter%s" % self.config["uid"]
                 self.wallet_manager = WalletManager(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
@@ -128,6 +132,7 @@ class Specter:
                     self.cli, 
                     chain=chain
                 )
+        self.is_checking = False
 
     def clear_user_session(self):
         self.device_manager = None
@@ -246,6 +251,8 @@ class Specter:
         return False
 
     def combine(self, psbt_arr):
+        # backward compatibility with current Core psbt parser
+        psbt_arr = [clean_psbt(psbt) for psbt in psbt_arr]
         final_psbt = self.cli.combinepsbt(psbt_arr)
         return final_psbt
 

@@ -20,9 +20,10 @@
 					<option value="other">Other</option>
 					<option value="coldcard">ColdCard</option>
 					<option value="keepkey">Keepkey</option>
-					<option value="ledger">Ledger</option>                
-					<option value="trezor">Trezor</option>                
-					<option value="specter">Specter</option>                
+					<option value="ledger">Ledger</option>
+					<option value="trezor">Trezor</option>
+					<option value="specter">Specter</option>
+					<option value="cobo">Cobo Vault</option>
 				</select>
 			</fieldset>
 		{% endif %}
@@ -172,14 +173,36 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			const scanner = new QrScanner(video, result => {
 				scanner.stop();
 				document.getElementById("popup").style.display = 'none';
-				document.getElementById("txt").value += result + "\n";
+				let deviceType = document.getElementById("device_type");
+				// cobo uses json format
+				if(result.includes("{")){
+					let obj = JSON.parse(result);
+					if( ("ExtPubKey" in obj) && 
+						("AccountKeyPath" in obj) && 
+						("MasterFingerprint" in obj)){
+						console.log(obj);
+						let path = obj.AccountKeyPath.replace(/'/g,'h');
+						let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+						document.getElementById("txt").value += str+"\n";
+						if (deviceType != null) {
+							deviceType.value = 'cobo';
+						}
+					}else{
+						showError("Unknown key format");
+					}
+				}else{
+					document.getElementById("txt").value += result + "\n";
+					if (deviceType != null) {
+						deviceType.value = 'specter';
+					}
+				}
 			});
 			document.getElementById("scanme").addEventListener("click", function(){
 				try{
 					scanner.start();
 					document.getElementById("popup").style.display = 'flex';
 				}catch(e){
-					alert("Can't start the QR scanner!\n\n" + e);
+					showError("Can't start the QR scanner!\n\n" + e);
 				}
 			});
 			document.getElementById("popup").addEventListener("click", function(){

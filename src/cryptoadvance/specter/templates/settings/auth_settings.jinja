@@ -1,0 +1,61 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST">
+		<h1>Authentication settings - Specter Desktop {{ current_version }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('auth_settings', current_user) }}
+		<div class="card" style="margin: 20px auto;">
+			{% if specter.config.auth == "none" or current_user.is_admin %}
+				Authentication:<br>
+				<select name="auth" onchange="toggleUsernamePassword(this)">
+					<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
+					<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
+					<option value="usernamepassword" {% if auth=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
+				</select>
+				<br><br>
+			{% endif %}
+			<div id="usernamepassword" class="{% if specter.config['auth'] != 'usernamepassword' %}hidden{% endif %}">
+				{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
+					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
+					<br>
+					<span class="note">Default is username: admin, password: admin.</span><br>
+				{% endif %}
+				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
+				Specter Password:<br><input id="specter_password" type="password" name="specter_password" type="text" placeholder="Set new password"><br>	
+				<br><br>
+				{% if users %}
+					<h2>Users:</h2>
+					{% for user in users %}
+						<form action="?" method="POST">
+							<div style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
+							<span style="line-height: 35px; vertical-align: middle;"><b>Username:</b> {{ user.username }}</span>
+							<button type="submit" name="action" value="deleteuser" class="btn danger" style="float: right; ">Delete User</button>
+							<input type="hidden" name="deleteuser" value="{{ user.id }}">
+							</div>
+						</form>
+					{% endfor %}
+				{% endif %}
+			</div>			
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="save">Save</button>
+			</div>
+		</div>
+	</form>
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		function toggleUsernamePassword(select) {
+            var usernamepasswordDiv = document.getElementById("usernamepassword");
+            var specterUsername = document.getElementById("specter_username");
+            var specterPassword = document.getElementById("specter_password");
+            if (select.options[select.selectedIndex].value === 'usernamepassword'){
+                usernamepasswordDiv.style.display = 'block';
+            } else {
+                usernamepasswordDiv.style.display = 'none';
+                specterUsername.value = '{{ current_user.username }}';
+                specterPassword.value = '';
+            }
+        }
+	</script>
+{% endblock %}

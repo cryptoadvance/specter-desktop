@@ -10,6 +10,7 @@
 	<br>
     <nav class="row">
 		{{ wallet_menu_item('wallet_send', 'New', wallet_alias, active_menuitem, isLeft=true) }}
-		{{ wallet_menu_item('wallet_sendpending', 'Unsigned', wallet_alias, active_menuitem, isRight=true) }}
+		{{ wallet_menu_item('wallet_sendpending', 'Unsigned', wallet_alias, active_menuitem) }}
+		{{ wallet_menu_item('wallet_importpsbt', 'Import', wallet_alias, active_menuitem, isRight=true) }}
 	</nav>
 {%- endmacro %}

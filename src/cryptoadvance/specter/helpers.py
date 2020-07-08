@@ -1,7 +1,8 @@
 import binascii, collections, copy, hashlib, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
 from .descriptor import AddChecksum
-
+from hwilib.serializations import PSBT
+from .bcur import bcur_decode
 
 try:
     collectionsAbc = collections.abc
@@ -311,3 +312,15 @@ def verify_password(stored_password, provided_password):
                                   stored_password['salt'].encode(), 
                                   10000)
     return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])
+
+def clean_psbt(b64psbt):
+    psbt = PSBT()
+    psbt.deserialize(b64psbt)
+    for inp in psbt.inputs:
+        if inp.witness_utxo is not None and inp.non_witness_utxo is not None:
+            inp.non_witness_utxo = None
+    return psbt.serialize()
+
+def bcur2base64(encoded):
+    raw = bcur_decode(encoded.split("/")[-1])
+    return binascii.b2a_base64(raw).strip()

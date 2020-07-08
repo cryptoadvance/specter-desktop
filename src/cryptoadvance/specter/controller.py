@@ -13,7 +13,9 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import alias, get_devices_with_keys_by_type, hash_password, get_loglevel, get_version_info, run_shell, set_loglevel, verify_password
+from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
+                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+                      verify_password, bcur2base64)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -29,6 +31,12 @@ load_dotenv(env_path)
 
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
+
+@app.before_request
+def selfcheck():
+    """check status before every request"""
+    if app.config.get('LOGIN_DISABLED'):
+        app.login('admin')
 
 ########## template injections #############
 @app.context_processor
@@ -48,17 +56,27 @@ def combine(wallet_alias):
     if request.method == 'POST': # FIXME: ugly...
         psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
         psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        if "UR:BYTES/" in psbt0:
+            psbt0 = bcur2base64(psbt0)
+        if "UR:BYTES/" in psbt1:
+            psbt1 = bcur2base64(psbt1)
         txid = request.form.get('txid')
 
         try:
             psbt = app.specter.combine([psbt0, psbt1])
             raw = app.specter.finalize(psbt)
+            if "psbt" not in raw:
+                raw["psbt"] = psbt
         except RpcError as e:
             return e.error_msg, e.status_code
         except Exception as e:
             return "Unknown error: %r" % e, 500
-        device_name = request.form.get('device_name')
-        wallet.update_pending_psbt(psbt, txid, raw, device_name)
+        psbt = wallet.update_pending_psbt(psbt, txid, raw)
+        devices = []
+        # we get names, but need aliases
+        if "devices_signed" in psbt:
+            devices = [dev.alias for dev in wallet.devices if dev.name in psbt["devices_signed"]]
+        raw["devices"] = devices
         return json.dumps(raw)
     return 'meh'
 
@@ -181,44 +199,82 @@ def logout():
     app.specter.clear_user_session()
     return redirect("/login") 
 
-@app.route('/settings/', methods=['GET', 'POST'])
+@app.route('/settings/', methods=['GET'])
 @login_required
 def settings():
+    if current_user.is_admin:
+        return redirect("/settings/bitcoin_core")
+    else:
+        return redirect("/settings/general")
+
+@app.route('/settings/hwi', methods=['GET'])
+@login_required
+def hwi_settings():
     current_version = notify_upgrade()
     app.specter.check()
+    return render_template(
+        "settings/hwi_settings.jinja",
+        specter=app.specter,
+        current_version=current_version,
+        rand=rand
+    )
+
+@app.route('/settings/general', methods=['GET', 'POST'])
+@login_required
+def general_settings():
+    current_version = notify_upgrade()
+    app.specter.check()
+    explorer = app.specter.explorer
+    hwi_bridge_url = app.specter.hwi_bridge_url
+    loglevel = get_loglevel(app)
+    if request.method == 'POST':
+        action = request.form['action']
+        explorer = request.form['explorer']
+        hwi_bridge_url = request.form['hwi_bridge_url']
+        if current_user.is_admin:
+            loglevel = request.form['loglevel']
+        
+        if action == "save":
+            if current_user.is_admin:
+                set_loglevel(app,loglevel)
+
+            app.specter.update_explorer(explorer, current_user)
+            app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
+            app.specter.check()
+    return render_template(
+        "settings/general_settings.jinja",
+        explorer=explorer,
+        hwi_bridge_url=hwi_bridge_url,
+        loglevel=loglevel,
+        specter=app.specter,
+        current_version=current_version,
+        rand=rand
+    )
+
+@app.route('/settings/bitcoin_core', methods=['GET', 'POST'])
+@login_required
+def bitcoin_core_settings():
+    current_version = notify_upgrade()
+    app.specter.check()
+    if not current_user.is_admin:
+        flash('Only an admin is allowed to access this page.', 'error')
+        return redirect("/")
     rpc = app.specter.config['rpc']
     user = rpc['user']
     passwd = rpc['password']
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
-    explorer = app.specter.explorer
-    auth = app.specter.config['auth']
-    if auth == 'none':
-        app.login('admin')
-    hwi_bridge_url = app.specter.hwi_bridge_url
-    new_otp = -1
-    loglevel = get_loglevel(app)
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
     if request.method == 'POST':
         action = request.form['action']
-        explorer = request.form['explorer']
-        hwi_bridge_url = request.form['hwi_bridge_url']
-        if 'specter_username' in request.form:
-                specter_username = request.form['specter_username']
-                specter_password = request.form['specter_password']
-        else:
-            specter_username = None
-            specter_password = None
         if current_user.is_admin:
             user = request.form['username']
             passwd = request.form['password']
             port = request.form['port']
             host = request.form['host']
-            auth = request.form['auth']
-            loglevel = request.form['loglevel']
             
         # protocol://host
         if "://" in host:
@@ -227,56 +283,86 @@ def settings():
             host = arr[1]
 
         if action == "test":
-            test = app.specter.test_rpc(user=user,
-                                        password=passwd,
-                                        port=port,
-                                        host=host,
-                                        protocol=protocol,
-                                        autodetect=False
-                                        )
+            test = app.specter.test_rpc(
+                user=user,
+                password=passwd,
+                port=port,
+                host=host,
+                protocol=protocol,
+                autodetect=False
+            )
         elif action == "save":
+            if current_user.is_admin:
+                app.specter.update_rpc(
+                    user=user,
+                    password=passwd,
+                    port=port,
+                    host=host,
+                    protocol=protocol,
+                    autodetect=False
+                )
+            app.specter.check()
+
+    return render_template(
+        "settings/bitcoin_core_settings.jinja",
+        test=test,
+        username=user,
+        password=passwd,
+        port=port,
+        host=host,
+        protocol=protocol,
+        specter=app.specter,
+        current_version=current_version,
+        rand=rand
+    )
+
+@app.route('/settings/auth', methods=['GET', 'POST'])
+@login_required
+def auth_settings():
+    current_version = notify_upgrade()
+    app.specter.check()
+    auth = app.specter.config['auth']
+    new_otp = -1
+    users = None
+    if current_user.is_admin and auth == "usernamepassword":
+        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+    if request.method == 'POST':
+        action = request.form['action']
+
+        if action == "save":
+            if 'specter_username' in request.form:
+                specter_username = request.form['specter_username']
+                specter_password = request.form['specter_password']
+            else:
+                specter_username = None
+                specter_password = None
+            if current_user.is_admin:
+                auth = request.form['auth']
             if specter_username:
                 if current_user.username != specter_username:
                     if User.get_user_by_name(app.specter, specter_username):
                         flash('Username is already taken, please choose another one', "error")
-                        return render_template("settings.jinja",
-                            test=test,
-                            username=user,
-                            password=passwd,
-                            port=port,
-                            host=host,
-                            protocol=protocol,
-                            explorer=explorer,
+                        return render_template(
+                            "settings/auth_settings.jinja",
                             auth=auth,
-                            hwi_bridge_url=hwi_bridge_url,
                             new_otp=new_otp,
-                            loglevel=loglevel,
+                            users=users,
                             specter=app.specter,
                             current_version=current_version,
-                            rand=rand)
+                            rand=rand
+                        )
                 current_user.username = specter_username
                 if specter_password:
                     current_user.password = hash_password(specter_password)
                 current_user.save_info(app.specter)
             if current_user.is_admin:
-                app.specter.update_rpc( user=user,
-                                        password=passwd,
-                                        port=port,
-                                        host=host,
-                                        protocol=protocol,
-                                        autodetect=False
-                                        )
                 app.specter.update_auth(auth)
                 if auth == "rpcpasswordaspin" or auth == "usernamepassword":
                     app.config['LOGIN_DISABLED'] = False
                 else:
                     app.config['LOGIN_DISABLED'] = True
-                set_loglevel(app,loglevel)
 
-            app.specter.update_explorer(explorer, current_user)
-            app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
             app.specter.check()
-            return redirect("/")
         elif action == "adduser":
             if current_user.is_admin:
                 new_otp = random.randint(100000, 999999)
@@ -284,21 +370,28 @@ def settings():
                 flash('New user link generated successfully: {}register?otp={}'.format(request.url_root, new_otp), 'info')
             else:
                 flash('Error: Only the admin account can issue new registration links.', 'error')
-    return render_template("settings.jinja",
-                            test=test,
-                            username=user,
-                            password=passwd,
-                            port=port,
-                            host=host,
-                            protocol=protocol,
-                            explorer=explorer,
-                            auth=auth,
-                            hwi_bridge_url=hwi_bridge_url,
-                            new_otp=new_otp,
-                            loglevel=loglevel,
-                            specter=app.specter,
-                            current_version=current_version,
-                            rand=rand)
+        elif action == "deleteuser":
+            delete_user = request.form['deleteuser']
+            if current_user.is_admin:
+                user = User.get_user(app.specter, delete_user)
+                if user:
+                    user.delete(app.specter)
+                    users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+                    flash('User {} was deleted successfully'.format(user.username), 'info')
+                else:
+                    flash('Error: failed to delete user, invalid user ID was given', 'error')
+            else:
+                flash('Error: Only the admin account can delete users', 'error')
+    return render_template(
+        "settings/auth_settings.jinja",
+        auth=auth,
+        new_otp=new_otp,
+        users=users,
+        specter=app.specter,
+        current_version=current_version,
+        rand=rand
+    )
+
 
 ################# wallet management #####################
 
@@ -582,6 +675,16 @@ def wallet_send(wallet_alias):
                 return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
                                                     wallet_alias=wallet_alias, wallet=wallet, 
                                                     specter=app.specter, rand=rand)
+        elif action == "importpsbt":
+            try:
+                b64psbt = request.form["rawpsbt"]
+                psbt = wallet.importpsbt(b64psbt)
+            except Exception as e:
+                flash("Could not import PSBT: %s" % e, "error")
+                return redirect(url_for('wallet_importpsbt', wallet_alias=wallet_alias))
+            return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
         elif action == "openpsbt":
             psbt = ast.literal_eval(request.form["pending_psbt"])
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, label=label, 
@@ -591,8 +694,22 @@ def wallet_send(wallet_alias):
             try:
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand, error=err)
+
+@app.route('/wallets/<wallet_alias>/send/import')
+@login_required
+def wallet_importpsbt(wallet_alias):
+    app.specter.check()
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    err = None
+    return render_template("wallet/send/import/wallet_importpsbt.jinja", 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
@@ -612,7 +729,7 @@ def wallet_sendpending(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
-                flash("Could not delete Pending PSBT!")
+                flash("Could not delete Pending PSBT!", "error")
     pending_psbts = wallet.pending_psbts
     return render_template("wallet/send/pending/wallet_sendpending.jinja", pending_psbts=pending_psbts,
                                                 wallet_alias=wallet_alias, wallet=wallet, 
@@ -687,8 +804,8 @@ def wallet_settings(wallet_alias):
 @app.route('/new_device/', methods=['GET', 'POST'])
 @login_required
 def new_device():
-    err = None
     app.specter.check()
+    err = None
     device_type = "other"
     device_name = ""
     xpubs = ""
@@ -769,5 +886,5 @@ def notify_upgrade():
     version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
     app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
     if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]))
+        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
     return version_info["current"]

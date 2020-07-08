@@ -1,0 +1,104 @@
+<!--
+  Custom message box component.
+  You can use it as a normal html tag, for example:
+  <message-box type="error">error happened!!!</message-box>
+-->
+<template id="messagebox">
+  <style>
+    .main{
+        min-width: 200px;
+        max-width: 800px;
+        font-size: 0.7em;
+        color: #fff;
+        overflow-x: scroll;
+        background: var(--cmap-bg-lightest);
+        border-radius: 0 0 4px 4px;
+        padding: 7px 30px;
+        box-shadow: 0 3px 3px rgba(0,0,0,0.7);
+        line-height: 1.5;
+        text-align: center;
+        animation-duration: 0.2s;
+        background: var(--cmap-blue-darker);
+        margin-bottom: 3px;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        scrollbar-height: none;  /* Firefox */
+    }
+    .main.error{
+        background: var(--cmap-red-darker);
+    }
+    a{
+      cursor: pointer;
+      float:right;
+      margin: -5px -22px;
+      opacity: 0.7;
+    }
+    a:hover{
+      opacity: 1;
+    }
+    @keyframes appear {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes disappear {
+      from {opacity: 1;}
+      to {opacity: 0;}
+    }
+    .main::-webkit-scrollbar{
+      display: none;
+    }
+  </style>
+  <div class="main">
+    <a class="close">⨉</a>
+    <slot>
+     Error: Something bad happened!
+    </slot>
+  </div>
+</template>
+
+<script type="text/javascript">
+class MessageBoxElement extends HTMLElement {
+  constructor() {
+    super();
+    // Create a shadow root
+    var shadow = this.attachShadow({mode: 'open'});
+    var style = document.getElementById('messagebox').content;
+    var clone = style.cloneNode(true);
+    this.main = clone.querySelector(".main");
+    clone.querySelector("a").addEventListener('click', e=>{
+      this.close();
+    });
+    // Attach the created element to the shadow dom
+    shadow.appendChild(clone);
+  }
+  static get observedAttributes() {
+    return ['type', 'timeout'];
+  }
+  close(){
+    this.main.style.opacity = 0;
+    this.main.style["animation-name"]="disappear";
+    window.setTimeout(()=>{
+      this.main.style.display = "none";
+    }, 200);
+  }
+  connectedCallback(){
+    this.main.style.opacity = 0;
+    this.main.style["animation-name"]="appear";
+    this.main.style.opacity = 1;
+  }
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    var type = this.getAttribute('type');
+    var timeout = parseInt(this.getAttribute('timeout'));
+    this.main.classList.remove("error");
+    if(type=="error"){
+      this.main.classList.add("error");
+    }
+    if(timeout > 0){
+      setTimeout(()=>{
+        this.close();
+      }, timeout);
+    }
+  }
+}
+customElements.define('message-box', MessageBoxElement);
+</script>
