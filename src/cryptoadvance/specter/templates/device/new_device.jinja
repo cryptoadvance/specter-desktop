@@ -14,18 +14,7 @@
 				<input type="text" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device">
 			</div>
 			<br>
-			<span>Device Type: </span>
-			<fieldset style="border:none; display: inline;"> 
-				<select name="device_type" id="device_type">
-					<option value="other">Other</option>
-					<option value="coldcard">ColdCard</option>
-					<option value="keepkey">Keepkey</option>
-					<option value="ledger">Ledger</option>
-					<option value="trezor">Trezor</option>
-					<option value="specter">Specter</option>
-					<option value="cobo">Cobo Vault</option>
-				</select>
-			</fieldset>
+			{% include "device/components/device_type.jinja" %}
 		{% endif %}
 		<h2>Scan, paste or load xpubs:</h2>
 		<div class="note">

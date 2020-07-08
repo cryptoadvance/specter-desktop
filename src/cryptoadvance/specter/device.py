@@ -56,6 +56,12 @@ class Device:
                 wallets.append(wallet)
         return wallets
 
+    def set_type(self, device_type):
+        self.device_type = device_type
+        with open(self.fullpath, "w") as f:
+            f.write(json.dumps(self.json,indent=4))
+        self.manager.update()
+
     def __eq__(self, other):
         if other is None:
             return False
