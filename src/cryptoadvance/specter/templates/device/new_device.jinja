@@ -7,7 +7,7 @@
 		<h1>Setting up a new device</h1>
 	{% endif %}
 	<div class="card">
-	<form action="./" method="POST">
+	<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
 		{% if not device %}
 			<div>
 				Name it &nbsp; &nbsp;
@@ -15,6 +15,7 @@
 			</div>
 			<br>
 			{% include "device/components/device_type.jinja" %}
+			<p class="warning hidden" id="type_reminder">⚠️<br>Please make sure to choose the device type before continuing</p>
 		{% endif %}
 		<h2>Scan, paste or load xpubs:</h2>
 		<div class="note">
@@ -77,6 +78,27 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 {% endblock %}
 
 {% block scripts %}
+	<script type="text/javascript">
+		let warningSeen = false;
+		function checkType() {
+			var deviceType = document.getElementById("device_type");
+			if (deviceType.value == 'other' && !warningSeen) {
+				warningSeen = true;
+				type_reminder.style.display = 'block';
+			} else {
+				return true;
+			}
+			return false;
+		}
+		document.addEventListener("DOMContentLoaded", function(){
+			var deviceType = document.getElementById("device_type");
+			var typeReminder = document.getElementById("type_reminder");
+
+			deviceType.addEventListener("change", function() {
+				type_reminder.style.display = 'none';
+			}, false);
+		});
+	</script>
 	<div class="popup" id="popup">
 		<video muted playsinline id="qr-video" class="video"></video>
 	</div>
