@@ -2,8 +2,10 @@
 {% block main %}
 	<h1>{{ device.name }}</h1>
 	<form action="./" method="POST">
-		{% include "device/components/device_type.jinja" %}
-		<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="float: right;">Update</button>
+		<div class="row">
+			{% include "device/components/device_type.jinja" %}
+			<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="height:15px; align-self:center;">Update</button>
+		</div>
 	</form>
 	<br>
 	<div class="table-holder">
