@@ -1,6 +1,13 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<h1>Public keys of {{ device.name }}</h1>
+	<h1>{{ device.name }}</h1>
+	<form action="./" method="POST">
+		<div class="row">
+			{% include "device/components/device_type.jinja" %}
+			<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="height:15px; align-self:center;">Update</button>
+		</div>
+	</form>
+	<br>
 	<div class="table-holder">
 		<table>
 			<thead>
@@ -68,4 +75,23 @@
 			{% endfor %}
 		</div>
 	{% endif %}
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			var deviceType = document.getElementById("device_type");
+			if (deviceType != null) {
+				deviceType.value = '{{ device.device_type }}';
+			}
+			deviceType.addEventListener("change", function() {
+				var setTypeButton = document.getElementById("settype");
+				if (deviceType.value != '{{ device.device_type }}') {
+					setTypeButton.style.display = 'block';
+				} else {
+                	setTypeButton.style.display = 'none';
+				}
+			}, false);
+		});
+	</script>
 {% endblock %}

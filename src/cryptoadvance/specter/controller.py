@@ -845,12 +845,12 @@ def device(device_alias):
             else:
                 app.specter.device_manager.remove_device(device)
                 return redirect("/")
-        if action == "delete_key":
+        elif action == "delete_key":
             key = request.form['key']
             device.remove_key(Key.from_json({ 'original': key }))
-        if action == "add_keys":
+        elif action == "add_keys":
             return render_template("device/new_device.jinja", device=device, specter=app.specter, rand=rand)
-        if action == "morekeys":
+        elif action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
             keys, failed = Key.parse_xpubs(xpubs)
@@ -860,6 +860,9 @@ def device(device_alias):
                 return render_template("device/new_device.jinja", device=device, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
             if err is None:
                 device.add_keys(keys)
+        elif action == "settype":
+            device_type = request.form['device_type']
+            device.set_type(device_type)
     device = copy.deepcopy(device)
     device.keys.sort(key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True)
     return render_template("device/device.jinja", device=device, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
