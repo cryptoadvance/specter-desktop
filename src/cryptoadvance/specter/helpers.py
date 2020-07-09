@@ -169,7 +169,6 @@ def get_version_info():
     '''
     name="cryptoadvance.specter"
     try:
-        raise RuntimeError("asd")
         latest_version = str(subprocess.run([sys.executable, '-m', 'pip', 'install', '{}==random'.format(name)], capture_output=True, text=True))
         latest_version = latest_version[latest_version.find('(from versions:')+15:]
         latest_version = latest_version[:latest_version.find(')')]
