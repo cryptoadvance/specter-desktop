@@ -28,11 +28,20 @@
 			<input type="hidden" name="btc_amount" id="btc_amount">
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="sat" onchange="toggleUnit(this)" checked>sat</label>
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)">BTC</label>
-			<div class="note">
-				<span id="converted_unit_amount">-</span> <span id="converted_unit_label">BTC</span>, 
-				Available: {{wallet.full_available_balance | btcamount}};
+			<div>
+				<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">BTC</span>, 
+				<span class="note">Available: {{wallet.full_available_balance | btcamount}};</span>
 				{% if wallet.locked_amount > 0 %}
-					&nbsp;Locked in pending transactions: {{wallet.locked_amount | btcamount}}
+					<span class="note" >&nbsp;Waiting in usigned transactions: {{wallet.locked_amount | btcamount}}</span>
+					<div class="tool-tip" style="text-align: center;">
+						<i class="tool-tip__icon">i</i>
+						<p class="tool-tip__info">
+							<span class="info">
+								<span class="info__title">Funds waiting in usigned transactions<br><br></span>
+								To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transaction you have no need for.
+							</span>
+						</p>
+					</div>
 				{% endif %}
 			</div><br>
 			{% include "wallet/send/new/components/fee_selection.jinja" %}
