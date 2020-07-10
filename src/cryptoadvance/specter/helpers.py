@@ -43,14 +43,14 @@ def deep_update(d, u):
             d[k] = v
     return d
 
-@locked(fslock)
 def load_jsons(folder, key=None):
     files = [f for f in os.listdir(folder) if f.endswith(".json")]
     files.sort(key=lambda x: os.path.getmtime(os.path.join(folder, x)))
     dd = OrderedDict()
     for fname in files:
-        with open(os.path.join(folder, fname)) as f:
-            d = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(folder, fname)) as f:
+                d = json.loads(f.read())
         if key is None:
             dd[fname[:-5]] = d
         else:
@@ -203,7 +203,6 @@ def get_version_info():
         # we just don't show the version
         return "Unknown version", "Unknown version", False
 
-@locked(fslock)
 def get_users_json(specter):
     users = [
         {
@@ -216,35 +215,34 @@ def get_users_json(specter):
 
     # if users.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-            users = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+                users = json.loads(f.read())
     # otherwise - create one and assign unique id
     else:
         save_users_json(specter, users)
     return users
 
-@locked(fslock)
 def save_users_json(specter, users):
-    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-        f.write(json.dumps(users, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+            f.write(json.dumps(users, indent=4))
 
-@locked(fslock)
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
-
     # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
-        with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
-            file_config = json.loads(f.read())
-            deep_update(config, file_config)
+        with fslock:
+            with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
+                file_config = json.loads(f.read())
+                deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
         save_hwi_bridge_config(specter, config)
     return config
 
-@locked(fslock)
 def save_hwi_bridge_config(specter, config):
     if 'whitelisted_domains' in config:
         whitelisted_domains = ''
@@ -254,8 +252,9 @@ def save_hwi_bridge_config(specter, config):
                 url += "/"
             whitelisted_domains += url.strip() + '\n'
         config['whitelisted_domains'] = whitelisted_domains
-    with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
-        f.write(json.dumps(config, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
+            f.write(json.dumps(config, indent=4))
 
 def der_to_bytes(derivation):
     items = derivation.split("/")
