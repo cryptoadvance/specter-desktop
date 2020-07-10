@@ -1,3 +1,15 @@
+## v0.5.3 July 10, 2020
+- Bugfix: Fix potential crashes and issues due to multi-threading race conditions (#205) (@stepansnigirev)
+- Bugfix: Fix crash if current Specter version could not be obtained (#202) (@stepansnigirev)
+- Bugfix: Fix potential issue with wallets not being properly loaded (#197) (@ben-kaufman)
+- Feature: User management panel for admin to manage the list of existing users (in multi-user mode) (#194) (@ben-kaufman)
+- UI: Fix notification UI in coin-selection and login screens (#192, #195) (@stepansnigirev)
+- UI: Fix some notification messages showing up as error messages (#193) (@ben-kaufman)
+- UI: List the devices used in a wallet and the wallets using a certain device (#196) (@ben-kaufman)
+- UI: Allow changing device type and warn if non was selected on device setup (#201) (@ben-kaufman)
+- UI: Clarify why funds are not available when already used in an unsigned transaction and how to free them (#204) (@ben-kaufman)
+- UI: Indicate selected device on the sidebar (#206) (@stepansnigirev)
+
 ## v0.5.2 July 5, 2020
 - Devices: [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) single-sig support (#189) (@stepansnigirev)
 - Devices: Support Specter-DIY [v1.2.0](https://github.com/cryptoadvance/specter-diy/releases/tag/v1.2.0) (#188) (@stepansnigirev)
