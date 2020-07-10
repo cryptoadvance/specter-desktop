@@ -76,62 +76,62 @@ class Specter:
         self.check()
 
     def check(self, user=current_user):
-        with self.lock:
-            # if config.json file exists - load from it
-            if os.path.isfile(os.path.join(self.data_folder, "config.json")):
+        # if config.json file exists - load from it
+        if os.path.isfile(os.path.join(self.data_folder, "config.json")):
+            with self.lock:
                 with open(os.path.join(self.data_folder, "config.json"), "r") as f:
                     self.file_config = json.loads(f.read())
                     deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
+        else:
+            if self.config["uid"] == "":
+                self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
+            self._save()
+
+        # init arguments
+        deep_update(self.config, self.arg_config) # override loaded config
+        
+        self.cli = get_cli(self.config["rpc"])
+        self._is_configured = (self.cli is not None)
+        self._is_running = False
+        if self._is_configured:
+            try:
+                self._info = self.cli.getblockchaininfo()
+                self._is_running = True
+            except Exception as e:
+                logger.error("Exception %s while specter.check()" % e)
+                pass
+
+        if not self._is_running:
+            self._info["chain"] = None
+
+        chain = self._info["chain"]
+        if hasattr(user, 'is_admin'):
+            user_folder_id = '_' + user.id if user and not user.is_admin else ''
+        else:
+            user_folder_id = ''
+
+        if self.config['auth'] != 'usernamepassword' or (user and not user.is_anonymous):
+            if self.device_manager is None:
+                self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
             else:
-                if self.config["uid"] == "":
-                    self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
-                self._save()
+                self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
 
-            # init arguments
-            deep_update(self.config, self.arg_config) # override loaded config
-            
-            self.cli = get_cli(self.config["rpc"])
-            self._is_configured = (self.cli is not None)
-            self._is_running = False
-            if self._is_configured:
-                try:
-                    self._info = self.cli.getblockchaininfo()
-                    self._is_running = True
-                except Exception as e:
-                    logger.error("Exception %s while specter.check()" % e)
-                    pass
-
-            if not self._is_running:
-                self._info["chain"] = None
-
-            chain = self._info["chain"]
-            if hasattr(user, 'is_admin'):
-                user_folder_id = '_' + user.id if user and not user.is_admin else ''
+            if self.wallet_manager is None:
+                wallets_path = "specter%s" % self.config["uid"]
+                self.wallet_manager = WalletManager(
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
+                    self.cli, 
+                    chain,
+                    self.device_manager,
+                    path=wallets_path
+                )
             else:
-                user_folder_id = ''
-
-            if self.config['auth'] != 'usernamepassword' or (user and not user.is_anonymous):
-                if self.device_manager is None:
-                    self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
-                else:
-                    self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
-
-                if self.wallet_manager is None:
-                    wallets_path = "specter%s" % self.config["uid"]
-                    self.wallet_manager = WalletManager(
-                        os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                        self.cli, 
-                        chain,
-                        self.device_manager,
-                        path=wallets_path
-                    )
-                else:
-                    self.wallet_manager.update(
-                        os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                        self.cli, 
-                        chain=chain
-                    )
+                self.wallet_manager.update(
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
+                    self.cli, 
+                    chain=chain
+                )
 
     def clear_user_session(self):
         self.device_manager = None
