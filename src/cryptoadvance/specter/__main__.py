@@ -134,7 +134,6 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
 
     # check if we should run a daemon or not
     if daemon or restart:
-        # from daemonize import Daemonize
         print("Starting server in background...")
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
         if tor is not None:
