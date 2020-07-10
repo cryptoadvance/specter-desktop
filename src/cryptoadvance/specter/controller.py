@@ -849,7 +849,8 @@ def device(device_alias):
             key = request.form['key']
             device.remove_key(Key.from_json({ 'original': key }))
         elif action == "add_keys":
-            return render_template("device/new_device.jinja", device=device, specter=app.specter, rand=rand)
+            return render_template("device/new_device.jinja", 
+                    device=device, device_alias=device_alias, specter=app.specter, rand=rand)
         elif action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
@@ -857,7 +858,8 @@ def device(device_alias):
             err = None
             if len(failed) > 0:
                 err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template("device/new_device.jinja", device=device, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+                return render_template("device/new_device.jinja", 
+                        device=device, device_alias=device_alias, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
             if err is None:
                 device.add_keys(keys)
         elif action == "settype":
@@ -865,7 +867,8 @@ def device(device_alias):
             device.set_type(device_type)
     device = copy.deepcopy(device)
     device.keys.sort(key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True)
-    return render_template("device/device.jinja", device=device, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
+    return render_template("device/device.jinja", 
+            device=device, device_alias=device_alias, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
 
 
 
