@@ -50,6 +50,11 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             with open(pid_file) as f:
                 pid = int(f.read())
             os.kill(pid, signal.SIGTERM)
+            time.sleep(0.3)
+            try:
+                os.remove(pid_file)
+            except Exception as e:
+                print(e)
         elif daemon:
             if not force:
                 print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
@@ -129,14 +134,13 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
 
     # check if we should run a daemon or not
     if daemon or restart:
-        from daemonize import Daemonize
+        # from daemonize import Daemonize
         print("Starting server in background...")
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
         if tor is not None:
             print("* For onion address check the file %s" % toraddr_file)
-        # Note: we can't run flask as a deamon in debug mode,
-        #       so use debug=False by default
-        d = Daemonize(app="specter", pid=pid_file, action=run)
+        from .daemon import Daemon
+        d = Daemon(pid_file, run)
         d.start()
     else:
         # if not a daemon we can use DEBUG

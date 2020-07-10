@@ -3,6 +3,24 @@ from collections import OrderedDict
 from .descriptor import AddChecksum
 from hwilib.serializations import PSBT
 from .bcur import bcur_decode
+import threading
+
+def locked(customlock):
+    """
+    @locked(lock) decorator.
+    Make sure you are not calling 
+    @locked function from another @locked function
+    with the same lock argument.
+    """
+    def wrapper(fn):
+        def wrapper_fn(*args, **kwargs):
+            with customlock:
+                return fn(*args, **kwargs)
+        return wrapper_fn
+    return wrapper
+
+# use this for all fs operations
+fslock = threading.Lock()
 
 try:
     collectionsAbc = collections.abc
@@ -25,6 +43,7 @@ def deep_update(d, u):
             d[k] = v
     return d
 
+@locked(fslock)
 def load_jsons(folder, key=None):
     files = [f for f in os.listdir(folder) if f.endswith(".json")]
     files.sort(key=lambda x: os.path.getmtime(os.path.join(folder, x)))
@@ -184,6 +203,7 @@ def get_version_info():
         # we just don't show the version
         return "Unknown version", "Unknown version", False
 
+@locked(fslock)
 def get_users_json(specter):
     users = [
         {
@@ -193,7 +213,6 @@ def get_users_json(specter):
             'is_admin': True
         }
     ]
-        
 
     # if users.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
@@ -204,10 +223,12 @@ def get_users_json(specter):
         save_users_json(specter, users)
     return users
 
+@locked(fslock)
 def save_users_json(specter, users):
     with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
         f.write(json.dumps(users, indent=4))
 
+@locked(fslock)
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
@@ -223,6 +244,7 @@ def hwi_get_config(specter):
         save_hwi_bridge_config(specter, config)
     return config
 
+@locked(fslock)
 def save_hwi_bridge_config(specter, config):
     if 'whitelisted_domains' in config:
         whitelisted_domains = ''

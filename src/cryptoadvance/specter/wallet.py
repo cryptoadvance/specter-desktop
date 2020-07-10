@@ -7,13 +7,13 @@ from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_des
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
-
+import threading
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
 
 class Wallet():
-
+    lock = threading.Lock()
     def __init__(
         self,
         name,
@@ -192,8 +192,9 @@ class Wallet():
         }
 
     def save_to_file(self):
-        with open(self.fullpath, "w+") as f:
-            f.write(json.dumps(self.json, indent=4))
+        with self.lock:
+            with open(self.fullpath, "w+") as f:
+                f.write(json.dumps(self.json, indent=4))
         self.manager.update()
 
     @property
