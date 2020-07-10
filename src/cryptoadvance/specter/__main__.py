@@ -54,7 +54,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             try:
                 os.remove(pid_file)
             except Exception as e:
-                print(e)
+                pass
         elif daemon:
             if not force:
                 print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
@@ -140,8 +140,11 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
         if tor is not None:
             print("* For onion address check the file %s" % toraddr_file)
-        from .daemon import Daemon
-        d = Daemon(pid_file, run)
+        # macOS + python3.7 is buggy
+        if sys.platform=="darwin" and (sys.version_info.major==3 and sys.version_info.minor < 8):
+            print("* WARNING: --daemon mode might not work properly in python 3.7 and lower on MacOS. Upgrade to python 3.8+")
+        from daemonize import Daemonize
+        d = Daemonize(app="specter", pid=pid_file, action=run)
         d.start()
     else:
         # if not a daemon we can use DEBUG
