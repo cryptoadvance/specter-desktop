@@ -79,11 +79,9 @@ class Specter:
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with self.lock:
-                print("lock check")
                 with open(os.path.join(self.data_folder, "config.json"), "r") as f:
                     self.file_config = json.loads(f.read())
                     deep_update(self.config, self.file_config)
-            print("unlock check")
             # otherwise - create one and assign unique id
         else:
             if self.config["uid"] == "":
@@ -187,10 +185,8 @@ class Specter:
     
     def _save(self):
         with self.lock:
-            print("lock save")
             with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
                 f.write(json.dumps(self.config, indent=4))
-        print("unlock save")
 
     def update_rpc(self, **kwargs):
         need_update = False
