@@ -3,6 +3,24 @@ from collections import OrderedDict
 from .descriptor import AddChecksum
 from hwilib.serializations import PSBT
 from .bcur import bcur_decode
+import threading
+
+# use this for all fs operations
+fslock = threading.Lock()
+
+def locked(customlock=fslock):
+    """
+    @locked(lock) decorator.
+    Make sure you are not calling 
+    @locked function from another @locked function
+    with the same lock argument.
+    """
+    def wrapper(fn):
+        def wrapper_fn(*args, **kwargs):
+            with customlock:
+                return fn(*args, **kwargs)
+        return wrapper_fn
+    return wrapper
 
 try:
     collectionsAbc = collections.abc
@@ -30,8 +48,9 @@ def load_jsons(folder, key=None):
     files.sort(key=lambda x: os.path.getmtime(os.path.join(folder, x)))
     dd = OrderedDict()
     for fname in files:
-        with open(os.path.join(folder, fname)) as f:
-            d = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(folder, fname)) as f:
+                d = json.loads(f.read())
         if key is None:
             dd[fname[:-5]] = d
         else:
@@ -193,31 +212,32 @@ def get_users_json(specter):
             'is_admin': True
         }
     ]
-        
 
     # if users.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-            users = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+                users = json.loads(f.read())
     # otherwise - create one and assign unique id
     else:
         save_users_json(specter, users)
     return users
 
 def save_users_json(specter, users):
-    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-        f.write(json.dumps(users, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+            f.write(json.dumps(users, indent=4))
 
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
-
     # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
-        with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
-            file_config = json.loads(f.read())
-            deep_update(config, file_config)
+        with fslock:
+            with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
+                file_config = json.loads(f.read())
+                deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
         save_hwi_bridge_config(specter, config)
@@ -232,8 +252,9 @@ def save_hwi_bridge_config(specter, config):
                 url += "/"
             whitelisted_domains += url.strip() + '\n'
         config['whitelisted_domains'] = whitelisted_domains
-    with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
-        f.write(json.dumps(config, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
+            f.write(json.dumps(config, indent=4))
 
 def der_to_bytes(derivation):
     items = derivation.split("/")

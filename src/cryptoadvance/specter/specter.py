@@ -6,7 +6,7 @@ from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from .user import User
 from flask_login import current_user
-
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,8 @@ def get_cli(conf):
 class Specter:
     ''' A central Object mostly holding app-settings '''
     CONFIG_FILE_NAME = "config.json"
+    # use this lock for all fs operations
+    lock = threading.Lock()
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
@@ -74,15 +76,13 @@ class Specter:
         self.check()
 
     def check(self, user=current_user):
-        if self.is_checking:
-            return
-        self.is_checking = True
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
-            with open(os.path.join(self.data_folder, "config.json"), "r") as f:
-                self.file_config = json.loads(f.read())
-                deep_update(self.config, self.file_config)
-        # otherwise - create one and assign unique id
+            with self.lock:
+                with open(os.path.join(self.data_folder, "config.json"), "r") as f:
+                    self.file_config = json.loads(f.read())
+                    deep_update(self.config, self.file_config)
+            # otherwise - create one and assign unique id
         else:
             if self.config["uid"] == "":
                 self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
@@ -132,7 +132,6 @@ class Specter:
                     self.cli, 
                     chain=chain
                 )
-        self.is_checking = False
 
     def clear_user_session(self):
         self.device_manager = None
@@ -185,8 +184,9 @@ class Specter:
         return r
     
     def _save(self):
-        with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
-            f.write(json.dumps(self.config, indent=4))
+        with self.lock:
+            with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
+                f.write(json.dumps(self.config, indent=4))
 
     def update_rpc(self, **kwargs):
         need_update = False

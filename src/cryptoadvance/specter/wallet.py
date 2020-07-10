@@ -3,17 +3,16 @@ from time import time
 from .descriptor import AddChecksum
 from .device import Device
 from .key import Key
-from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor
+from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
-
+import threading
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
 
 class Wallet():
-
     def __init__(
         self,
         name,
@@ -192,8 +191,9 @@ class Wallet():
         }
 
     def save_to_file(self):
-        with open(self.fullpath, "w+") as f:
-            f.write(json.dumps(self.json, indent=4))
+        with fslock:
+            with open(self.fullpath, "w+") as f:
+                f.write(json.dumps(self.json, indent=4))
         self.manager.update()
 
     @property
