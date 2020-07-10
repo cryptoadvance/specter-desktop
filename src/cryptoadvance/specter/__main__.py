@@ -59,6 +59,8 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             if not force:
                 print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
                 return
+            else:
+                os.remove(pid_file)
         if stop:
             return
     else:

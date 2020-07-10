@@ -5,7 +5,10 @@ from hwilib.serializations import PSBT
 from .bcur import bcur_decode
 import threading
 
-def locked(customlock):
+# use this for all fs operations
+fslock = threading.Lock()
+
+def locked(customlock=fslock):
     """
     @locked(lock) decorator.
     Make sure you are not calling 
@@ -18,9 +21,6 @@ def locked(customlock):
                 return fn(*args, **kwargs)
         return wrapper_fn
     return wrapper
-
-# use this for all fs operations
-fslock = threading.Lock()
 
 try:
     collectionsAbc = collections.abc
