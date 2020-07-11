@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from .helpers import decode_base58, encode_base58_checksum
+from .helpers import decode_base58, encode_base58_checksum, get_xpub_fingerprint
 
 
 purposes = OrderedDict({
@@ -31,6 +31,12 @@ VALID_PREFIXES = {
 
 class Key:
     def __init__(self, original, fingerprint, derivation, key_type, xpub):
+        if key_type is None:
+            key_type = ""
+        if fingerprint is None or fingerprint == '':
+            fingerprint = get_xpub_fingerprint(original).hex()
+        if derivation is None:
+            derivation = ''
         if key_type not in purposes:
             raise Exception('Invalid key type specified: {}.')
         self.original = original
@@ -69,15 +75,18 @@ class Key:
             if len(fng) != 4:
                 raise Exception("Incorrect fingerprint length")
             fingerprint = derivation_path[0]
-            for path in derivation_path[1:]:
-                if path[-1] == "h":
-                    path = path[:-1]
-                try:
-                    i = int(path)
-                except:
-                    raise Exception("Incorrect index")
-                derivation_path[0] = "m"
-                derivation = "/".join(derivation_path)
+            if len(derivation_path) > 1:
+                for path in derivation_path[1:]:
+                    if path[-1] == "h":
+                        path = path[:-1]
+                    try:
+                        i = int(path)
+                    except:
+                        raise Exception("Incorrect index")
+                    derivation_path[0] = "m"
+                    derivation = "/".join(derivation_path)
+            else:
+                derivation = ''
 
         # checking xpub prefix and defining key type
         xpub_bytes = decode_base58(xpub, num_bytes=82)
@@ -135,7 +144,7 @@ class Key:
     def metadata(self):
         metadata = {}
         metadata["chain"] = "Mainnet" if self.xpub.startswith("xpub") else "Testnet"
-        metadata["purpose"] = purposes[self.key_type]
+        metadata["purpose"] = self.purpose
         if self.derivation is not None:
             metadata["combined"] = "[%s%s]%s" % (self.fingerprint, self.derivation[1:], self.xpub)
         else:
@@ -151,6 +160,10 @@ class Key:
             'type': self.key_type,
             'xpub': self.xpub
         }
+
+    @property
+    def purpose(self):
+        return purposes[self.key_type]
 
     def __eq__(self, other):
         return self.original == other.original
