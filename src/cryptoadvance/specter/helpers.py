@@ -1,9 +1,10 @@
 import binascii, collections, copy, hashlib, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
 from .descriptor import AddChecksum
-from hwilib.serializations import PSBT
+from hwilib.serializations import PSBT, CTransaction
 from .bcur import bcur_decode
 import threading
+from io import BytesIO
 
 # use this for all fs operations
 fslock = threading.Lock()
@@ -350,3 +351,12 @@ def clean_psbt(b64psbt):
 def bcur2base64(encoded):
     raw = bcur_decode(encoded.split("/")[-1])
     return binascii.b2a_base64(raw).strip()
+
+def get_txid(tx):
+    b = BytesIO(bytes.fromhex(tx))
+    t = CTransaction()
+    t.deserialize(b)
+    for inp in t.vin:
+        inp.scriptSig = b""
+    t.rehash()
+    return t.hash
