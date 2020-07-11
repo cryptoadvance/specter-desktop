@@ -213,8 +213,9 @@ class Wallet():
         except:
             # UTXO was spent
             pass
-        del self.pending_psbts[txid]
-        self.save_to_file()
+        if txid in self.pending_psbts:
+            del self.pending_psbts[txid]
+            self.save_to_file()
 
     def update_pending_psbt(self, psbt, txid, raw):
         if txid in self.pending_psbts:

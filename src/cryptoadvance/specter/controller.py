@@ -15,7 +15,7 @@ from flask_login.config import EXEMPT_METHODS
 
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64)
+                      verify_password, bcur2base64, get_txid)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -93,7 +93,7 @@ def broadcast(wallet_alias):
         res = wallet.cli.testmempoolaccept([tx])[0]
         if res['allowed']:
             app.specter.broadcast(tx)
-            wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
+            wallet.delete_pending_psbt(get_txid(tx))
             return jsonify(success=True)
         else:
             return jsonify(success=False, error="Failed to broadcast transaction: transaction is invalid\n%s" % res["reject-reason"])
