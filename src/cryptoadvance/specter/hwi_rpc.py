@@ -1,10 +1,13 @@
 from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
-from .helpers import convert_xpub_prefix
+from .helpers import convert_xpub_prefix, locked
 from .specter_hwi import SpecterClient, enumerate as specter_enumerate
 from .json_rpc import JSONRPC
+import threading
 
+# use this lock for all hwi operations
+hwilock = threading.Lock()
 
 class HWIBridge(JSONRPC):
     """
@@ -27,6 +30,7 @@ class HWIBridge(JSONRPC):
         # devices once per session and save them.
         self.enumerate()
 
+    @locked(hwilock)
     def enumerate(self):
         """
         Returns a list of all connected devices (dicts).
@@ -56,6 +60,7 @@ class HWIBridge(JSONRPC):
         if len(res) > 0:
             return res[0]
 
+    @locked(hwilock)
     def prompt_pin(self, device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
             # The device will randomize its pin entry matrix on the device
@@ -69,6 +74,7 @@ class HWIBridge(JSONRPC):
         else:
             raise Exception("Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices" % device_type)
 
+    @locked(hwilock)
     def send_pin(self, pin='', device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
             if pin == '':
@@ -78,11 +84,13 @@ class HWIBridge(JSONRPC):
         else:
             raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % device_type)
 
+    @locked(hwilock)
     def extract_xpubs(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
         xpubs = self._extract_xpubs_from_client(client)
         return xpubs
 
+    @locked(hwilock)
     def display_address(self, descriptor='', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         if descriptor == '':
             raise Exception("Descriptor must not be empty")
@@ -102,6 +110,7 @@ class HWIBridge(JSONRPC):
                 client.close()
             raise e
 
+    @locked(hwilock)
     def sign_tx(self, psbt='', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         if psbt == '':
             raise Exception("PSBT must not be empty")

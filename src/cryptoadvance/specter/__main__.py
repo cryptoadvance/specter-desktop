@@ -50,10 +50,17 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             with open(pid_file) as f:
                 pid = int(f.read())
             os.kill(pid, signal.SIGTERM)
+            time.sleep(0.3)
+            try:
+                os.remove(pid_file)
+            except Exception as e:
+                pass
         elif daemon:
             if not force:
                 print(f"PID file \"{pid_file}\" already exists. Use --force to overwrite")
                 return
+            else:
+                os.remove(pid_file)
         if stop:
             return
     else:
@@ -129,13 +136,14 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
 
     # check if we should run a daemon or not
     if daemon or restart:
-        from daemonize import Daemonize
         print("Starting server in background...")
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
         if tor is not None:
             print("* For onion address check the file %s" % toraddr_file)
-        # Note: we can't run flask as a deamon in debug mode,
-        #       so use debug=False by default
+        # macOS + python3.7 is buggy
+        if sys.platform=="darwin" and (sys.version_info.major==3 and sys.version_info.minor < 8):
+            print("* WARNING: --daemon mode might not work properly in python 3.7 and lower on MacOS. Upgrade to python 3.8+")
+        from daemonize import Daemonize
         d = Daemonize(app="specter", pid=pid_file, action=run)
         d.start()
     else:

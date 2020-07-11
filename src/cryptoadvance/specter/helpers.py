@@ -1,8 +1,27 @@
 import binascii, collections, copy, hashlib, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
 from .descriptor import AddChecksum
-from hwilib.serializations import PSBT
+from hwilib.serializations import PSBT, CTransaction
 from .bcur import bcur_decode
+import threading
+from io import BytesIO
+
+# use this for all fs operations
+fslock = threading.Lock()
+
+def locked(customlock=fslock):
+    """
+    @locked(lock) decorator.
+    Make sure you are not calling 
+    @locked function from another @locked function
+    with the same lock argument.
+    """
+    def wrapper(fn):
+        def wrapper_fn(*args, **kwargs):
+            with customlock:
+                return fn(*args, **kwargs)
+        return wrapper_fn
+    return wrapper
 
 try:
     collectionsAbc = collections.abc
@@ -30,8 +49,9 @@ def load_jsons(folder, key=None):
     files.sort(key=lambda x: os.path.getmtime(os.path.join(folder, x)))
     dd = OrderedDict()
     for fname in files:
-        with open(os.path.join(folder, fname)) as f:
-            d = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(folder, fname)) as f:
+                d = json.loads(f.read())
         if key is None:
             dd[fname[:-5]] = d
         else:
@@ -168,16 +188,21 @@ def get_version_info():
         the latest version and whether you should upgrade 
     '''
     name="cryptoadvance.specter"
-    latest_version = str(subprocess.run([sys.executable, '-m', 'pip', 'install', '{}==random'.format(name)], capture_output=True, text=True))
-    latest_version = latest_version[latest_version.find('(from versions:')+15:]
-    latest_version = latest_version[:latest_version.find(')')]
-    latest_version = latest_version.replace(' ','').split(',')[-1]
+    try:
+        latest_version = str(subprocess.run([sys.executable, '-m', 'pip', 'install', '{}==random'.format(name)], capture_output=True, text=True))
+        latest_version = latest_version[latest_version.find('(from versions:')+15:]
+        latest_version = latest_version[:latest_version.find(')')]
+        latest_version = latest_version.replace(' ','').split(',')[-1]
 
-    current_version = str(subprocess.run([sys.executable, '-m', 'pip', 'show', '{}'.format(name)], capture_output=True, text=True))
-    current_version = current_version[current_version.find('Version:')+8:]
-    current_version = current_version[:current_version.find('\\n')].replace(' ','') 
+        current_version = str(subprocess.run([sys.executable, '-m', 'pip', 'show', '{}'.format(name)], capture_output=True, text=True))
+        current_version = current_version[current_version.find('Version:')+8:]
+        current_version = current_version[:current_version.find('\\n')].replace(' ','') 
 
-    return current_version, latest_version, latest_version != current_version
+        return current_version, latest_version, latest_version != current_version
+    except:
+        # if pip is not installed or we are using python3.6 or below
+        # we just don't show the version
+        return "Unknown version", "Unknown version", False
 
 def get_users_json(specter):
     users = [
@@ -188,31 +213,32 @@ def get_users_json(specter):
             'is_admin': True
         }
     ]
-        
 
     # if users.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-            users = json.loads(f.read())
+        with fslock:
+            with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
+                users = json.loads(f.read())
     # otherwise - create one and assign unique id
     else:
         save_users_json(specter, users)
     return users
 
 def save_users_json(specter, users):
-    with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-        f.write(json.dumps(users, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
+            f.write(json.dumps(users, indent=4))
 
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
     }
-
     # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
-        with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
-            file_config = json.loads(f.read())
-            deep_update(config, file_config)
+        with fslock:
+            with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
+                file_config = json.loads(f.read())
+                deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
         save_hwi_bridge_config(specter, config)
@@ -227,8 +253,9 @@ def save_hwi_bridge_config(specter, config):
                 url += "/"
             whitelisted_domains += url.strip() + '\n'
         config['whitelisted_domains'] = whitelisted_domains
-    with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
-        f.write(json.dumps(config, indent=4))
+    with fslock:
+        with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
+            f.write(json.dumps(config, indent=4))
 
 def der_to_bytes(derivation):
     items = derivation.split("/")
@@ -324,3 +351,12 @@ def clean_psbt(b64psbt):
 def bcur2base64(encoded):
     raw = bcur_decode(encoded.split("/")[-1])
     return binascii.b2a_base64(raw).strip()
+
+def get_txid(tx):
+    b = BytesIO(bytes.fromhex(tx))
+    t = CTransaction()
+    t.deserialize(b)
+    for inp in t.vin:
+        inp.scriptSig = b""
+    t.rehash()
+    return t.hash

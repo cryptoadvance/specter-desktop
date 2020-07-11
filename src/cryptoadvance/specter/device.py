@@ -1,9 +1,8 @@
 import json
 from .key import Key
-
+from .helpers import fslock
 
 class Device:
-
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
         self.name = name
         self.alias = alias
@@ -32,11 +31,12 @@ class Device:
         }
 
     def _update_keys(self):
-        with open(self.fullpath, "r") as f:
-            content = json.loads(f.read())
-        content['keys'] = [key.json for key in self.keys]
-        with open(self.fullpath, "w") as f:
-            f.write(json.dumps(content,indent=4))
+        with fslock:
+            with open(self.fullpath, "r") as f:
+                content = json.loads(f.read())
+            content['keys'] = [key.json for key in self.keys]
+            with open(self.fullpath, "w") as f:
+                f.write(json.dumps(content,indent=4))
         self.manager.update()
 
     def remove_key(self, key):
@@ -58,8 +58,9 @@ class Device:
 
     def set_type(self, device_type):
         self.device_type = device_type
-        with open(self.fullpath, "w") as f:
-            f.write(json.dumps(self.json,indent=4))
+        with fslock:
+            with open(self.fullpath, "w") as f:
+                f.write(json.dumps(self.json,indent=4))
         self.manager.update()
 
     def __eq__(self, other):

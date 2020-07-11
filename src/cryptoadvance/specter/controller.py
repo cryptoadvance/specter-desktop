@@ -16,7 +16,7 @@ from flask_login.config import EXEMPT_METHODS
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64)
+                      verify_password, bcur2base64, get_txid)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -94,7 +94,7 @@ def broadcast(wallet_alias):
         res = wallet.cli.testmempoolaccept([tx])[0]
         if res['allowed']:
             app.specter.broadcast(tx)
-            wallet.delete_pending_psbt(wallet.cli.decoderawtransaction(tx)['txid'])
+            wallet.delete_pending_psbt(get_txid(tx))
             return jsonify(success=True)
         else:
             return jsonify(success=False, error="Failed to broadcast transaction: transaction is invalid\n%s" % res["reject-reason"])
@@ -864,7 +864,8 @@ def device(device_alias):
             key = request.form['key']
             device.remove_key(Key.from_json({ 'original': key }))
         elif action == "add_keys":
-            return render_template("device/new_device.jinja", device=device, specter=app.specter, rand=rand)
+            return render_template("device/new_device.jinja", 
+                    device=device, device_alias=device_alias, specter=app.specter, rand=rand)
         elif action == "morekeys":
             # refactor to fn
             xpubs = request.form['xpubs']
@@ -872,7 +873,8 @@ def device(device_alias):
             err = None
             if len(failed) > 0:
                 err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template("device/new_device.jinja", device=device, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+                return render_template("device/new_device.jinja", 
+                        device=device, device_alias=device_alias, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
             if err is None:
                 device.add_keys(keys)
         elif action == "settype":
@@ -880,7 +882,8 @@ def device(device_alias):
             device.set_type(device_type)
     device = copy.deepcopy(device)
     device.keys.sort(key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True)
-    return render_template("device/device.jinja", device=device, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
+    return render_template("device/device.jinja", 
+            device=device, device_alias=device_alias, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
 
 
 

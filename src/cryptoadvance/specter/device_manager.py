@@ -7,7 +7,7 @@ from .devices.keepkey import Keepkey
 from .devices.specter import Specter
 from .devices.cobo import Cobo
 from .devices.bitcoin_core import BitcoinCore
-from .helpers import alias, load_jsons
+from .helpers import alias, load_jsons, fslock
 
 
 logger = logging.getLogger(__name__)
@@ -74,8 +74,9 @@ class DeviceManager:
                 non_dup_keys.append(key)
         keys = non_dup_keys
         device = get_device_class(device_type)(name, device_alias, device_type, keys, fullpath, self)
-        with open(fullpath, "w") as file:
-            file.write(json.dumps(device.json, indent=4))
+        with fslock:
+            with open(fullpath, "w") as file:
+                file.write(json.dumps(device.json, indent=4))
 
         self.update() # reload files
         return device
