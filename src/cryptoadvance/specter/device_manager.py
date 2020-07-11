@@ -6,6 +6,7 @@ from .devices.ledger import Ledger
 from .devices.keepkey import Keepkey
 from .devices.specter import Specter
 from .devices.cobo import Cobo
+from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons
 
 
@@ -18,6 +19,7 @@ device_classes = {
     'ledger': Ledger,
     'specter': Specter,
     'cobo': Cobo,
+    'bitcoincore': BitcoinCore,
 }
 
 def get_device_class(device_type):

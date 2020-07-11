@@ -13,6 +13,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
+from .devices.bitcoin_core import BitcoinCore
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
                       verify_password, bcur2base64)
@@ -810,22 +811,36 @@ def new_device():
     device_name = ""
     xpubs = ""
     if request.method == 'POST':
-        device_type = request.form['device_type']
-        device_name = request.form['device_name']
-        if not device_name:
-            err = "Device name must not be empty"
-        elif device_name in app.specter.device_manager.devices_names:
-            err = "Device with this name already exists"
-        xpubs = request.form['xpubs']
-        if not xpubs:
-            err = "xpubs name must not be empty"
-        keys, failed = Key.parse_xpubs(xpubs)
-        if len(failed) > 0:
-            err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-        if err is None:
-            device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
+        action = request.form['action']
+        if action == "newcolddevice":
+            device_type = request.form['device_type']
+            device_name = request.form['device_name']
+            if not device_name:
+                err = "Device name must not be empty"
+            elif device_name in app.specter.device_manager.devices_names:
+                err = "Device with this name already exists"
+            xpubs = request.form['xpubs']
+            if not xpubs:
+                err = "xpubs name must not be empty"
+            keys, failed = Key.parse_xpubs(xpubs)
+            if len(failed) > 0:
+                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+            if err is None:
+                device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
+                return redirect("/devices/%s/" % device.alias)
+        elif action == "newhotdevice":
+            device_type = request.form['device_type']
+            device_name = request.form['device_name']
+            if not device_name:
+                err = "Device name must not be empty"
+            elif device_name in app.specter.device_manager.devices_names:
+                err = "Device with this name already exists"
+            mnemonic = request.form['mnemonic']
+            device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
+            device.setup_device(mnemonic, app.specter.wallet_manager)
             return redirect("/devices/%s/" % device.alias)
-    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+    mnemonic = BitcoinCore.generate_mnemonic()
+    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, error=err, specter=app.specter, rand=rand)
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required

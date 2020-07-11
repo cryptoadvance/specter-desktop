@@ -24,6 +24,18 @@
                 });
             </script>
         {% endif %}
+        {% if device.hot_wallet %}
+            <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                Sign with Bitcoin Core
+            </button>
+            <script>
+                document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    combine('{{ device_psbts["core"] }}')
+                });
+            </script>
+        {% endif %}
         {% if device.sd_card_support %}
             {% include "includes/overlay/sd_card_sign.jinja" %}
             <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
