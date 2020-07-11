@@ -22,7 +22,7 @@ def test_DeviceManager(empty_data_folder):
     # the DeviceManager doesn't care so much about the content of a key
     # so this is a minimal valid "key":
     another_key = Key.from_json({
-        'original': 'blub'
+        'original': 'tpubDDZ5jjGT5RvrAyjoLZfdCfv1PAPmicnhNctwZGKiCMF1Zy5hCGMqppxwYZzWgvPqk7LucMMHo7rkB6Dyj5ZLd2W62FAEP3U6pV4jD5gb9ma'
     })
     dm.add_device("some_name","the_type",[a_key, another_key])
     # A json file was generated for the new device:
@@ -70,7 +70,7 @@ def test_DeviceManager(empty_data_folder):
     # Adding keys can be done by passing an array of keys object to the `add_keys` method of a device
     # A key dict must contain an `original` property
     third_key = Key.from_json({
-        'original': 'third_key'
+        'original': 'tpubDEmTg3b5aPNFnkHXx481F3h9dPSVJiyvqV24dBMXWncoRRu6VJzPDeEtQ4H7EnRtLbn2aPkxhTn8odWXsXkSRDdmAvCCrPmfjfPSVswfDhg'
     })
     some_device.add_keys([third_key])
     assert len(some_device.keys) == 3
