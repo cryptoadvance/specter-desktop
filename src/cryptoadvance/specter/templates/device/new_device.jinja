@@ -57,7 +57,7 @@
 			</label>
 		</div>
 		<div class="row">
-			<button type="button" onclick="showPageOverlay(HWI_POPUPS.SELECT)" class="btn" style="margin: 2px;" id="askhwi">
+			<button type="button" class="btn" style="margin: 2px;" id="askhwi">
 				<img src="/static/img/usb_tiny.svg" height="12px">Get over USB
 			</button>
 		</div>
@@ -75,153 +75,179 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
 	</form>
 	</div>
+
 {% endblock %}
-
 {% block scripts %}
-	<script type="text/javascript">
-		let warningSeen = false;
-		function checkType() {
-			var deviceType = document.getElementById("device_type");
-			if (deviceType.value == 'other' && !warningSeen) {
-				warningSeen = true;
-				type_reminder.style.display = 'block';
-			} else {
-				return true;
-			}
-			return false;
-		}
-		document.addEventListener("DOMContentLoaded", function(){
-			var deviceType = document.getElementById("device_type");
-			var typeReminder = document.getElementById("type_reminder");
-			if(deviceType!=null){
-				deviceType.addEventListener("change", function() {
-					type_reminder.style.display = 'none';
-				}, false);
-			}
-		});
-	</script>
-	<div class="popup" id="popup">
-		<video muted playsinline id="qr-video" class="video"></video>
-	</div>
+<script type="text/javascript">
+	{% include "device/components/add_keys.js" %}
 
-	<script type="text/javascript">
-		{% include "device/components/add_keys.js" %}
-
-		document.addEventListener("DOMContentLoaded", function(){
-			var el = document.getElementById("file");
-			var txt = document.getElementById("txt");
-
-			if (el != null) {
-				el.addEventListener("change", (e) => {
-					files = el.files;
-					console.log(files);
-					for(let i=0; i<files.length; i++){
-						console.log(files[i].name);
-						let reader = new FileReader();
-						reader.onload = function(e) {
-							let str = reader.result
-							let data = "";
-							if (str.indexOf("{") >= 0) {
-								let json = JSON.parse(str);
-								console.log(str);
-								if ("keystore" in json) { // ColdCard electrum file
-									let prefix = "";
-									if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
-										prefix = "[";
-										let num = json.keystore.ckcc_xfp;
-										for (let i = 0; i < 4; i++) {
-											prefix += ('0' + (num % 256).toString(16)).slice(-2);
-											num = num >>> 8;
-										}
-										prefix += json.keystore.derivation.substring(1);
-										prefix += "]";
-									}
-									let s = prefix + json.keystore.xpub + "\n";
-									data += s;
-								} else if ("xfp" in json) { // probably ColdCard multisig file
-									let s = "";
-									for (let k in json) {
-										if (k+"_deriv" in json) {
-											s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
-										}
-									}
-									data += s;
-								}
-							} else {
-								data += str+"\n";
-							}
-							addKeys(data);
-							setDeviceType('coldcard');
-						}
-						reader.readAsText(files[i]);
-					}
-				});
-			}
-
-			document.getElementById('hwi_unlocked__submit').addEventListener("click", async function(event) {
-				event.preventDefault();
-				showPageOverlay(HWI_POPUPS.EXTRACT_XPUBS);
-				
-				let result = await hwiSendCommand('extract_xpubs', {
-					device_type: hwiCurrentWallet.type,
-					path: hwiCurrentWallet.path,
-					passphrase: hwiWalletPassphrase
-				});
-				
-				if (result.success) {
-					addKeys(result.data);
-					setDeviceType(hwiCurrentWallet.type);
-				}
+	async function getXpubs(device, passphrase=""){
+		// detect device
+        showHWIProgress("Extracting public keys...", 
+        	`It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+		let result = [];
+		try {
+			result = await hwi.getXpubs(device, passphrase);
+		} catch (error) {
+			console.error(error);
+			showError(error);
+			if(overlayIsActive()){
 				hidePageOverlay();
-			});
-		});
-	</script>
+			}
+			return null;
+		}
+		if(!overlayIsActive()){
+			showNotification("HWI is ready again");
+			// no need to proceed at all
+			return null;
+		}
+		hidePageOverlay();
+		return result;
+	}
 
-	<script type="module">
-		import QrScanner from "/static/qr/qr-scanner.min.js";
-		{% include "includes/message-events.js" %}
-		{% include "device/components/add_keys.js" %}
+	document.getElementById('askhwi').addEventListener('click', async e=>{
+		// detect devices
+		let devices = await enumerate();
+		if(devices == null){
+			return
+		}
+		// this shouldn't happen actually
+		if(devices.length == 0){
+			showError("No devices found :(");
+			return;
+		}
+		console.log(devices)
+		// first only for now
+		let device = await selectDevice(devices);
+		console.log(device);
+		// nothing to do if user cancelled
+		if(device == null){
+			return;
+		}
+		let passphrase = await unlockDevice(device);
+		console.log(passphrase);
+		// maybe we get password here
+		if(passphrase != null){
+			device.passphrase = passphrase;
+		}else{
+			passphrase = "";
+		}
+		console.log(device);
+		let xpubs = await getXpubs(device, passphrase);
+		if(xpubs == null){
+			return;
+		}
+	    addKeys(xpubs);
+	    setDeviceType(device.type);
+	});
 
-		if (document.getElementById("scanme") != null) {
-			QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+</script>
 
-			const video = document.getElementById('qr-video');
+<script type="text/javascript">
 
-			const scanner = new QrScanner(video, result => {
-				scanner.stop();
-				document.getElementById("popup").style.display = 'none';
-				let deviceType = document.getElementById("device_type");
-				// cobo uses json format
-				if(result.includes("{")){
-					let obj = JSON.parse(result);
-					if( ("ExtPubKey" in obj) && 
-						("AccountKeyPath" in obj) && 
-						("MasterFingerprint" in obj)){
-						console.log(obj);
-						let path = obj.AccountKeyPath.replace(/'/g,'h');
-						let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
-						addKeys(str);
-						setDeviceType('cobo');
-					}else{
-						showError("Unknown key format");
+	document.addEventListener("DOMContentLoaded", function(){
+		var el = document.getElementById("file");
+		var txt = document.getElementById("txt");
+
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				files = el.files;
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					console.log(files[i].name);
+					let reader = new FileReader();
+					reader.onload = function(e) {
+						let str = reader.result
+						let data = "";
+						if (str.indexOf("{") >= 0) {
+							let json = JSON.parse(str);
+							console.log(str);
+							if ("keystore" in json) { // ColdCard electrum file
+								let prefix = "";
+								if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
+									prefix = "[";
+									let num = json.keystore.ckcc_xfp;
+									for (let i = 0; i < 4; i++) {
+										prefix += ('0' + (num % 256).toString(16)).slice(-2);
+										num = num >>> 8;
+									}
+									prefix += json.keystore.derivation.substring(1);
+									prefix += "]";
+								}
+								let s = prefix + json.keystore.xpub + "\n";
+								data += s;
+							} else if ("xfp" in json) { // probably ColdCard multisig file
+								let s = "";
+								for (let k in json) {
+									if (k+"_deriv" in json) {
+										s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+									}
+								}
+								data += s;
+							}
+						} else {
+							data += str+"\n";
+						}
+						addKeys(data);
+						setDeviceType('coldcard');
 					}
-				}else{
-					addKeys(result);
-					setDeviceType('specter');
+					reader.readAsText(files[i]);
 				}
-			});
-			document.getElementById("scanme").addEventListener("click", function(){
-				try{
-					scanner.start();
-					document.getElementById("popup").style.display = 'flex';
-				}catch(e){
-					showError("Can't start the QR scanner!\n\n" + e);
-				}
-			});
-			document.getElementById("popup").addEventListener("click", function(){
-				document.getElementById("popup").style.display = 'none';
-				scanner.stop();
 			});
 		}
-	</script>
+	});
+</script>
+
+<div class="popup" id="popup">
+	<video muted playsinline id="qr-video" class="video"></video>
+</div>
+
+<script type="module">
+	import QrScanner from "/static/qr/qr-scanner.min.js";
+	{% include "includes/message-events.js" %}
+	{% include "device/components/add_keys.js" %}
+
+	if (document.getElementById("scanme") != null) {
+		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+		const video = document.getElementById('qr-video');
+
+		const scanner = new QrScanner(video, result => {
+			scanner.stop();
+			document.getElementById("popup").style.display = 'none';
+			let deviceType = document.getElementById("device_type");
+			// cobo uses json format
+			if(result.includes("{")){
+				let obj = JSON.parse(result);
+				if( ("ExtPubKey" in obj) && 
+					("AccountKeyPath" in obj) && 
+					("MasterFingerprint" in obj)){
+					console.log(obj);
+					let path = obj.AccountKeyPath.replace(/'/g,'h');
+					let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+					addKeys(str);
+					setDeviceType('cobo');
+				}else{
+					showError("Unknown key format");
+				}
+			}else{
+				addKeys(result);
+				setDeviceType('specter');
+			}
+		});
+		document.getElementById("scanme").addEventListener("click", function(){
+			try{
+				scanner.start();
+				document.getElementById("popup").style.display = 'flex';
+			}catch(e){
+				showError("Can't start the QR scanner!\n\n" + e);
+			}
+		});
+		document.getElementById("popup").addEventListener("click", function(){
+			document.getElementById("popup").style.display = 'none';
+			scanner.stop();
+		});
+	}
+</script>
+
 {% endblock %}

@@ -43,6 +43,10 @@
         overlayPopup.style.display = "none";
     }
 
+    function overlayIsActive(){
+        let el = document.getElementById("page_overlay");
+        return el.style.display != "none";
+    }
 
     document.addEventListener("DOMContentLoaded", function(){
         // Handler when the DOM is fully loaded

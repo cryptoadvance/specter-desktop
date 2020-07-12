@@ -129,7 +129,7 @@
 			<div class="signing_container flex-column">
 				Sign transaction with your:<br/>
 				{% for device in wallet.devices %}
-					<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style=background-color:#303c49;' if device.name in psbt['devices_signed'] else '' }}>
+					<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
 						{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
 					</button>
 				{% endfor %}
@@ -139,12 +139,18 @@
 		{# ===================== Possible tx signers' outputs ===================== #}
 
 
+		{# TODO: this should toggle when we get ["raw"] in the transaction #}
 		{% if psbt['raw'] %}
+		<div>
+		{% else %}
+		<div class="hidden" id="broadcast_container">
+		{% endif %}
 			<p>Transaction is ready to send (&#10004;)</p>
 			<div class="output_option">
 				<a class="btn centered" id="send_tx_btn">Send transaction</a>
 			</div>
-		{% else %}
+		</div>
+		{% if not psbt['raw'] %}
 			<div class="output_option" style="margin-top:20px">
 				<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
 			</div>
@@ -166,25 +172,20 @@
 		let currentSigningDeviceAlias;
 		let psbt0 = "{{ psbt['base64'] }}";
 		let sigscount = parseInt("{{ psbt['sigs_count'] }}");
-
-		function capitalize(str){
-			return str.charAt(0).toUpperCase()+str.substring(1);
-		}
+		let raw = "{{psbt['raw']}}";
 
 		var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 		copyrawPSBTbtn.addEventListener("click", function() {
 			var raw_psbt = document.getElementById("raw-psbt");
 			copyText(raw_psbt.value, "Copied PSBT")
 		});
-
-		if ("{{ psbt['raw'] }}") {
-			document.addEventListener("DOMContentLoaded", function(){
-				var sendTxBtn = document.getElementById("send_tx_btn");
-				sendTxBtn.addEventListener("click", function() {
-					finalize("{{psbt['raw']}}");
-				});
+		document.addEventListener("DOMContentLoaded", function(){
+			var sendTxBtn = document.getElementById("send_tx_btn");
+			sendTxBtn.addEventListener("click", function() {
+				finalize(raw);
 			});
-		} else {
+		});
+		if (!"{{ psbt['raw'] }}") {
 			document.addEventListener("DOMContentLoaded", function(){
 				let el = document.getElementById("pastetx");
 				el.addEventListener("click", function(){
@@ -237,7 +238,13 @@
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
 				}
+				console.log(jsonResponse);
 				if (jsonResponse.complete) {
+					let el = document.getElementById('broadcast_container');
+					if(el){
+						el.style.display = 'block';
+					}
+					raw = jsonResponse["hex"];
 					finalize(jsonResponse["hex"]);
 				}
 			} catch(e) {
@@ -331,11 +338,11 @@
 		{% if 'raw' not in psbt %}
 			document.addEventListener("DOMContentLoaded", function() {
 				{% for device in wallet.devices %}
-					document.getElementById("{{ device.alias }}_tx_sign_btn").addEventListener("click", async function(e) {
+					document.getElementById("{{ device.alias }}_tx_sign_btn").addEventListener("click", (e) => {
 						e.preventDefault();
-						currentSigningDevice = "{{ device.name }}"
-						currentSigningDeviceAlias = "{{ device.alias }}"
-						showPageOverlay('{{ device.alias }}_sign_tx_method')
+						currentSigningDevice = "{{ device.name }}";
+						currentSigningDeviceAlias = "{{ device.alias }}";
+						showPageOverlay('{{ device.alias }}_sign_tx_method');
 					});
 				{% endfor %}
 			});
