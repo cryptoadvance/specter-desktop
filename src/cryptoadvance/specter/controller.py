@@ -696,6 +696,33 @@ def wallet_send(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 flash("Could not delete Pending PSBT!", "error")
+        elif action == 'signhotwallet':
+            passphrase = request.form['passphrase']
+            psbt = ast.literal_eval(request.form["psbt"])
+            b64psbt = wallet.pending_psbts[psbt['tx']['txid']]['base64']
+            device = request.form['device']
+            if 'devices_signed' not in psbt or device not in psbt['devices_signed']:
+                try:
+                    signed_psbt = app.specter.device_manager.get_by_alias(device).sign_psbt(b64psbt, wallet, passphrase)
+                    if signed_psbt['complete']:
+                        if 'devices_signed' not in psbt:
+                            psbt['devices_signed'] = []
+                        # TODO: This uses device name, but should use device alias...
+                        psbt['devices_signed'].append(app.specter.device_manager.get_by_alias(device).name)
+                        psbt['sigs_count'] = len(psbt['devices_signed'])
+                        raw = wallet.cli.finalizepsbt(b64psbt)
+                        if "hex" in raw:
+                            psbt["raw"] = raw["hex"]
+                    signed_psbt = signed_psbt['psbt']
+                except Exception as e:
+                    signed_psbt = None
+                    flash("Failed to sign PSBT: %s" % e, "error")
+            else:
+                signed_psbt = None
+                flash("Device already signed the PSBT", "error")
+            return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", signed_psbt=signed_psbt, psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
@@ -836,8 +863,9 @@ def new_device():
             elif device_name in app.specter.device_manager.devices_names:
                 err = "Device with this name already exists"
             mnemonic = request.form['mnemonic']
+            passphrase = request.form['passphrase']
             device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
-            device.setup_device(mnemonic, app.specter.wallet_manager)
+            device.setup_device(mnemonic, passphrase, app.specter.wallet_manager)
             return redirect("/devices/%s/" % device.alias)
     mnemonic = BitcoinCore.generate_mnemonic()
     return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, error=err, specter=app.specter, rand=rand)

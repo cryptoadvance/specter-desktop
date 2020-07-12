@@ -222,10 +222,12 @@ class Wallet():
             self.pending_psbts[txid]["base64"] = psbt
             decodedpsbt = self.cli.decodepsbt(psbt)
             signed_devices = self.get_signed_devices(decodedpsbt)
-            self.pending_psbts[txid]["sigs_count"] = len(signed_devices)
             self.pending_psbts[txid]["devices_signed"] = [dev.name for dev in signed_devices]
             if "hex" in raw:
+                self.pending_psbts[txid]["sigs_count"] = self.sigs_required
                 self.pending_psbts[txid]["raw"] = raw["hex"]
+            else:
+                self.pending_psbts[txid]["sigs_count"] = len(signed_devices)
             self.save_to_file()
             return self.pending_psbts[txid]
         else:

@@ -22,7 +22,7 @@ class BitcoinCore(Device):
         return words
         
 
-    def setup_device(self, mnemonic, wallet_manager):
+    def setup_device(self, mnemonic, passphrase, wallet_manager):
         seed = Mnemonic.to_seed(mnemonic)
         mainnet_xprv = seed_to_hd_master_key(seed, testnet=False)
         testnet_xprv = seed_to_hd_master_key(seed, testnet=True)
@@ -49,6 +49,8 @@ class BitcoinCore(Device):
             { 'desc': AddChecksum('wpkh({}/48h/1h/0h/2h/0/*)'.format(testnet_xprv)), 'range': 1000, 'timestamp': 'now'},
             { 'desc': AddChecksum('wpkh({}/48h/1h/0h/2h/1/*)'.format(testnet_xprv)), 'range': 1000, 'timestamp': 'now'},
         ])
+        if passphrase:
+            cli.encryptwallet(passphrase)
 
         bip32 = BIP32.from_seed(seed)
         xpubs = ""
@@ -102,11 +104,18 @@ class BitcoinCore(Device):
 
     def create_psbts(self, base64_psbt, wallet):
         # Load the wallet if not loaded
+        return { 'core': base64_psbt }
+
+    def sign_psbt(self, base64_psbt, wallet, passphrase):
         self._load_wallet(wallet.manager)
         cli = wallet.manager.cli.wallet(os.path.join(wallet.manager.cli_path + "_hotstorage", self.alias))
-        print(cli.walletprocesspsbt(base64_psbt))
-        return { 'core': cli.walletprocesspsbt(base64_psbt)['psbt'] }
-
+        if passphrase:
+            cli.walletpassphrase(passphrase, 60)
+        signed_psbt = cli.walletprocesspsbt(base64_psbt)
+        if base64_psbt == signed_psbt['psbt']:
+            raise Exception('Make sure you have entered the passphrase correctly.')
+        cli.walletlock()
+        return signed_psbt
 
 # From https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/mnemonic/mnemonic.py#L246
 import hashlib, hmac
