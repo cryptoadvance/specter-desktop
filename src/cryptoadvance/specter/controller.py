@@ -24,6 +24,8 @@ from .rpc import RpcError
 from .user import User
 from datetime import datetime
 import urllib
+from io import BytesIO
+import traceback
 
 from pathlib import Path
 env_path = Path('.') / '.flaskenv'
@@ -33,6 +35,14 @@ load_dotenv(env_path)
 from flask import current_app as app
 rand = random.randint(0, 1e32) # to force style refresh
 
+########## exception handler ##############
+@app.errorhandler(Exception)
+def server_error(e):
+    app.logger.error("Uncaught exception: %s" % e)
+    trace = traceback.format_exc()
+    return render_template('500.jinja', error=e, traceback=trace), 500
+
+########## on every request ###############
 @app.before_request
 def selfcheck():
     """check status before every request"""
