@@ -14,11 +14,11 @@ class BitcoinCore(Device):
         self.hot_wallet = True
 
     @staticmethod
-    def generate_mnemonic():
+    def generate_mnemonic(strength=256):
         # Generate words list
         # TODO: Generate randomness with secrets library
         mnemo = Mnemonic("english")
-        words = mnemo.generate(strength=256)
+        words = mnemo.generate(strength=strength)
         return words
         
 

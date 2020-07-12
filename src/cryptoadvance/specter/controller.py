@@ -837,11 +837,13 @@ def new_device():
     device_type = "other"
     device_name = ""
     xpubs = ""
+    strength = 128
+    mnemonic = BitcoinCore.generate_mnemonic(strength=strength)
     if request.method == 'POST':
         action = request.form['action']
+        device_type = request.form['device_type']
+        device_name = request.form['device_name']
         if action == "newcolddevice":
-            device_type = request.form['device_type']
-            device_name = request.form['device_name']
             if not device_name:
                 err = "Device name must not be empty"
             elif device_name in app.specter.device_manager.devices_names:
@@ -856,8 +858,6 @@ def new_device():
                 device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
                 return redirect("/devices/%s/" % device.alias)
         elif action == "newhotdevice":
-            device_type = request.form['device_type']
-            device_name = request.form['device_name']
             if not device_name:
                 err = "Device name must not be empty"
             elif device_name in app.specter.device_manager.devices_names:
@@ -867,8 +867,10 @@ def new_device():
             device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
             device.setup_device(mnemonic, passphrase, app.specter.wallet_manager)
             return redirect("/devices/%s/" % device.alias)
-    mnemonic = BitcoinCore.generate_mnemonic()
-    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, error=err, specter=app.specter, rand=rand)
+        elif action == 'generatemnemonic':
+            strength = int(request.form['strength'])
+            mnemonic = BitcoinCore.generate_mnemonic(strength=strength)
+    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, strength=strength, error=err, specter=app.specter, rand=rand)
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required

@@ -78,7 +78,36 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			<div id="hot_device" class="hidden">
 				<p><b>Make sure to backup these words! And beware of using this device type with amounts greater than what you usually lose under the couch</b></p>
 				<p>Enter you mnemonic here or use the randomly generated one:</p>
-				<textarea id="txt" name="mnemonic" placeholder="Enter your mnemonic here">{{ mnemonic }}</textarea>
+				{% set wordslist = mnemonic.split(' ') %}
+				<nav class="row">
+					<button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
+					<button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
+				</nav>
+				<input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+				<textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
+				<div id="generated_mnemonic">
+					<div class="row center" style="max-height: 30px;">
+						<fieldset style="border:none; display: inline;"> 
+							<select name="strength" id="strength">
+								<option value="128">12 words</option>
+								<option value="256">24 words</option>
+							</select>
+						</fieldset>
+						<button type="submit" class="btn" name="action" value="generatemnemonic" style="max-width: 200px;">Generate New Mnemonic</button>
+					</div>
+					<br>
+					<table>
+						{% for i in range(wordslist|length // 4) %}
+							<tr>
+								<td>{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}.</td>
+								<td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
+								<td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
+								<td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
+							</tr>
+						{% endfor %}
+					</table>
+				</div>
+				<br>
 				<label>Passphrase: </label>
 				<input type="password" name="passphrase" class="inline" placeholder="Wallet passphrase">
 				<br><br>
@@ -90,6 +119,29 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 
 {% block scripts %}
 	<script type="text/javascript">
+		function setMnemonicView(view) {
+			var generatedMnemonic = document.getElementById("generated_mnemonic");
+			var importMnemonic = document.getElementById("import_mnemonic");
+			var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
+			var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+			var mnemonicValue = document.getElementById("mnemonic_value");
+			if (view == 'generate') {
+				generatedMnemonic.style.display = 'block';
+				importMnemonic.style.display = 'none';
+				generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
+				importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+				mnemonicValue.value = '{{ mnemonic }}'
+			} else {
+				generatedMnemonic.style.display = 'none';
+				importMnemonic.style.display = 'block';
+				generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+				importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+				mnemonicValue.value = importMnemonic.value;
+				importMnemonic.addEventListener("input", function() {
+					mnemonicValue.value = importMnemonic.value;
+				});
+			}
+		}
 		let warningSeen = false;
 		function checkType() {
 			var deviceType = document.getElementById("device_type");
@@ -102,11 +154,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			return false;
 		}
 		document.addEventListener("DOMContentLoaded", function(){
-			var deviceType = document.getElementById("device_type");
-			var typeReminder = document.getElementById("type_reminder");
-
-			deviceType.addEventListener("change", function() {
-				type_reminder.style.display = 'none';
+			function setPubkeysView() {
 				var coldDevice = document.getElementById("cold_device");
 				var hotDevice = document.getElementById("hot_device");
 				if (deviceType.value == 'bitcoincore') {
@@ -116,7 +164,19 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					coldDevice.style.display = 'block';
 					hotDevice.style.display = 'none';
 				}
+			}
+			var deviceType = document.getElementById("device_type");
+			var typeReminder = document.getElementById("type_reminder");
+
+			deviceType.addEventListener("change", function() {
+				type_reminder.style.display = 'none';
+				setPubkeysView();
 			}, false);
+			deviceType.value = '{{ device_type }}';
+			setPubkeysView();
+
+			var strength = document.getElementById("strength");
+			strength.value = '{{ strength }}';
 		});
 	</script>
 	<div class="popup" id="popup">
