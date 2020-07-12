@@ -114,7 +114,8 @@ class BitcoinCore(Device):
         signed_psbt = cli.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt['psbt']:
             raise Exception('Make sure you have entered the passphrase correctly.')
-        cli.walletlock()
+        if passphrase:
+            cli.walletlock()
         return signed_psbt
 
 # From https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/mnemonic/mnemonic.py#L246
