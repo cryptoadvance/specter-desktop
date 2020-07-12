@@ -70,7 +70,7 @@
 		});
 		document.addEventListener("notification", (e)=>{
 			if(!("timeout" in e.detail)){
-				e.detail.timeout = 0;
+				e.detail.timeout = 3000;
 			}
 			showNotification(e.detail.message, e.detail.timeout);
 		});

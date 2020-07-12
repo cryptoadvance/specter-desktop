@@ -44,6 +44,7 @@
         if (command != 'detect_device' && command != 'enumerate') {
             params.chain = '{{ specter.chain }}'
         }
+        console.log(command, params);
 
         try {
             let hwiURL = '/hwi/api/'
@@ -67,6 +68,8 @@
                     forwarded_request: (hwiURL !== '/hwi/api/')
                 })
             }).then(response => response.json());
+
+            console.log(command, params, data);
 
             if ('error' in data) {
                 hidePageOverlay();
@@ -118,18 +121,31 @@
         hwiDetectWallet(type);
     }
 
+    function endDetectWallet(){
+        /** sets detect screen back to normal **/
+        var content = document.getElementById("hwi_select_device__content");
+        var instructions = document.getElementById("hwi_select_device__instructions");
+        content.style.display = "block";
+        instructions.innerHTML = "";
+        instructions.style.display = "none";
+        // remove loader
+        let el = document.getElementById("hwi_select_device");
+        el.lastElementChild.style.display = 'none';
+        hidePageOverlay();
+    }
+
     async function hwiDetectWallet(type) {
         /**
             Tells the server to enumerate the connected HWI devices and find
             one of the type specified.
         **/
-        let result = await hwiSendCommand('detect_device', { device_type: type, rescan_devices: true })
+        let result = await hwiSendCommand('detect_device', { device_type: type, rescan_devices: true });
         if (result.success) {
             if (result.data != null) {
                 hwiCurrentWallet = result.data;
                 hwiCurrentWallet.typeDisplay = hwiTypeToDisplayName(hwiCurrentWallet.type);
                 if (hwiCurrentWallet.needs_passphrase_sent) {
-                    hidePageOverlay();
+                    endDetectWallet();
                     showPageOverlay(HWI_POPUPS.PASSPHRASE);
                 } else if (hwiCurrentWallet.needs_pin_sent) {
                     await hwiPromptPin();
@@ -138,7 +154,7 @@
                     showError("Could not load device - device is not initialized.")
                 } else {
                     // Already unlocked
-                    hidePageOverlay();
+                    endDetectWallet();
                     hwiShowUnlocked();
                 }
             } else {

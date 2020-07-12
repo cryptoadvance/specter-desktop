@@ -93,10 +93,11 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		document.addEventListener("DOMContentLoaded", function(){
 			var deviceType = document.getElementById("device_type");
 			var typeReminder = document.getElementById("type_reminder");
-
-			deviceType.addEventListener("change", function() {
-				type_reminder.style.display = 'none';
-			}, false);
+			if(deviceType!=null){
+				deviceType.addEventListener("change", function() {
+					type_reminder.style.display = 'none';
+				}, false);
+			}
 		});
 	</script>
 	<div class="popup" id="popup">
@@ -104,6 +105,8 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 	</div>
 
 	<script type="text/javascript">
+		{% include "device/components/add_keys.js" %}
+
 		document.addEventListener("DOMContentLoaded", function(){
 			var el = document.getElementById("file");
 			var txt = document.getElementById("txt");
@@ -117,6 +120,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 						let reader = new FileReader();
 						reader.onload = function(e) {
 							let str = reader.result
+							let data = "";
 							if (str.indexOf("{") >= 0) {
 								let json = JSON.parse(str);
 								console.log(str);
@@ -133,7 +137,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 										prefix += "]";
 									}
 									let s = prefix + json.keystore.xpub + "\n";
-									txt.value += s;
+									data += s;
 								} else if ("xfp" in json) { // probably ColdCard multisig file
 									let s = "";
 									for (let k in json) {
@@ -141,11 +145,13 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 											s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
 										}
 									}
-									txt.value += s;
+									data += s;
 								}
 							} else {
-								txt.value += str+"\n";
+								data += str+"\n";
 							}
+							addKeys(data);
+							setDeviceType('coldcard');
 						}
 						reader.readAsText(files[i]);
 					}
@@ -163,11 +169,8 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				});
 				
 				if (result.success) {
-					txt.value += result.data;
-					var deviceType = document.getElementById("device_type");
-					if (deviceType != null) {
-						deviceType.value = hwiCurrentWallet.type;
-					}
+					addKeys(result.data);
+					setDeviceType(hwiCurrentWallet.type);
 				}
 				hidePageOverlay();
 			});
@@ -176,6 +179,9 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 
 	<script type="module">
 		import QrScanner from "/static/qr/qr-scanner.min.js";
+		{% include "includes/message-events.js" %}
+		{% include "device/components/add_keys.js" %}
+
 		if (document.getElementById("scanme") != null) {
 			QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
 
@@ -194,18 +200,14 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 						console.log(obj);
 						let path = obj.AccountKeyPath.replace(/'/g,'h');
 						let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
-						document.getElementById("txt").value += str+"\n";
-						if (deviceType != null) {
-							deviceType.value = 'cobo';
-						}
+						addKeys(str);
+						setDeviceType('cobo');
 					}else{
 						showError("Unknown key format");
 					}
 				}else{
-					document.getElementById("txt").value += result + "\n";
-					if (deviceType != null) {
-						deviceType.value = 'specter';
-					}
+					addKeys(result);
+					setDeviceType('specter');
 				}
 			});
 			document.getElementById("scanme").addEventListener("click", function(){
