@@ -888,7 +888,7 @@ def device(device_alias):
             if len(wallets) != 0:
                 err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format([wallet.name for wallet in wallets])
             else:
-                app.specter.device_manager.remove_device(device)
+                app.specter.device_manager.remove_device(device, app.specter.wallet_manager)
                 return redirect("/")
         elif action == "delete_key":
             key = request.form['key']

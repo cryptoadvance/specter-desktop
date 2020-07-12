@@ -1,4 +1,4 @@
-import os
+import os, shutil
 from bip32 import BIP32
 from mnemonic import Mnemonic
 from ..descriptor import AddChecksum
@@ -20,7 +20,6 @@ class BitcoinCore(Device):
         mnemo = Mnemonic("english")
         words = mnemo.generate(strength=strength)
         return words
-        
 
     def setup_device(self, mnemonic, passphrase, wallet_manager):
         seed = Mnemonic.to_seed(mnemonic)
@@ -117,6 +116,17 @@ class BitcoinCore(Device):
         if passphrase:
             cli.walletlock()
         return signed_psbt
+
+    def delete(self, wallet_manager):
+        try:
+            wallet_cli_path = os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias)
+            cli = wallet_manager.cli.wallet(wallet_cli_path)
+            cli.unloadwallet(wallet_cli_path)
+            # Try deleting wallet file
+            if wallet_manager.get_default_datadir() and os.path.exists(wallet_cli_path):
+                shutil.rmtree(os.path.join(wallet_manager.get_default_datadir(), wallet_cli_path))
+        except:
+            pass # We tried...
 
 # From https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/mnemonic/mnemonic.py#L246
 import hashlib, hmac
