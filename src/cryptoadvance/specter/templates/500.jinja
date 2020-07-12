@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" type="image/png" href="/static/img/icon.png"/>
+    <title>Specter Desktop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <style type="text/css">
+        a{
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <br><br><br>
+        <div class="card" style="width:90%; max-width: 800px;">
+            <h1>Server error!</h1>
+            Exception: <b>{{ error }}</b><br><br>
+            Details:
+            <pre><code>{{ traceback }}</code></pre>
+            <br>
+            <div>Please let us know! Create an <a href="https://github.com/cryptoadvance/specter-desktop/issues" target="blank">issue</a> or ping us on <a href="https://t.me/spectersupport" target="blank">Telegram</a> to fix it.</div>
+        </div>
+    </main>
+</body>
+</html>
