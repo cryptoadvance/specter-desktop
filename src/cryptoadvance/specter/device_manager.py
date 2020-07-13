@@ -6,6 +6,7 @@ from .devices.ledger import Ledger
 from .devices.keepkey import Keepkey
 from .devices.specter import Specter
 from .devices.cobo import Cobo
+from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons, fslock
 
 
@@ -18,6 +19,7 @@ device_classes = {
     'ledger': Ledger,
     'specter': Specter,
     'cobo': Cobo,
+    'bitcoincore': BitcoinCore,
 }
 
 def get_device_class(device_type):
@@ -85,6 +87,8 @@ class DeviceManager:
                 return self.devices[device_name]
         logger.error("Could not find Device %s" % device_alias)
 
-    def remove_device(self, device):
+    def remove_device(self, device, wallet_manager=None):
         os.remove(device.fullpath)
+        if isinstance(device, BitcoinCore):
+            device.delete(wallet_manager)
         self.update()

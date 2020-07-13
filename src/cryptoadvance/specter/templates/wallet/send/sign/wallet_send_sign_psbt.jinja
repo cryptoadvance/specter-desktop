@@ -4,7 +4,7 @@
 	{% include "includes/hwi/hwi.jinja" %}
 	{% from 'includes/overlay/sign_tx_method.jinja' import sign_tx_method %}
 	{% for device in wallet.devices %}
-		{{ sign_tx_method(wallet, device, psbt) }}
+		{{ sign_tx_method(wallet, device, psbt, specter.info.chain) }}
 	{% endfor %}
 	<style>
 		.tx_info {
@@ -125,37 +125,27 @@
 			</div>
 		</div>
 
-		{% if 'raw' not in psbt %}
-			<div class="signing_container flex-column">
-				Sign transaction with your:<br/>
-				{% for device in wallet.devices %}
-					<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
-						{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
-					</button>
-				{% endfor %}
-			</div>
-		{% endif %}
+		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}">
+			Sign transaction with your:<br/>
+			{% for device in wallet.devices %}
+				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
+					{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+				</button>
+			{% endfor %}
+		</div>
 
 		{# ===================== Possible tx signers' outputs ===================== #}
 
-
-		{# TODO: this should toggle when we get ["raw"] in the transaction #}
-		{% if psbt['raw'] %}
-		<div>
-		{% else %}
-		<div class="hidden" id="broadcast_container">
-		{% endif %}
+		<div id="ready_container" class="output_option {% if not psbt['raw'] %}hidden{% endif %}">
 			<p>Transaction is ready to send (&#10004;)</p>
 			<div class="output_option">
 				<a class="btn centered" id="send_tx_btn">Send transaction</a>
 			</div>
 		</div>
-		{% if not psbt['raw'] %}
-			<div class="output_option" style="margin-top:20px">
-				<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
-			</div>
-		{% endif %}
-
+		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" style="margin-top:20px">
+			<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
+		</div>
+		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
 
 		<div class="row padded">
@@ -210,6 +200,9 @@
 		});
 		if (!"{{ psbt['raw'] }}") {
 			document.addEventListener("DOMContentLoaded", function(){
+				{% if signed_psbt %}
+					combine('{{ signed_psbt }}')
+				{% endif %}
 				let el = document.getElementById("pastetx");
 				el.addEventListener("click", function(){
 					let input = prompt("Paste signed transaction here");
@@ -260,6 +253,7 @@
 					}
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
+
 				}
 				console.log(jsonResponse);
 				if (jsonResponse.complete) {
@@ -268,13 +262,15 @@
 						el.style.display = 'block';
 					}
 					raw = jsonResponse["hex"];
+					document.getElementById("signing_container").style.display = 'none';
+					document.getElementById("paste_signed").style.display = 'none';
+					document.getElementById("ready_container").style.display = 'block';
 					showPageOverlay("tx_broadcast");
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
 			}
 		}
-
 
 		async function broadcastLocal(tx) {
 			showNotification("Sending transaction...");

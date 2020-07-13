@@ -2,6 +2,7 @@ import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
+from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
 
@@ -13,9 +14,10 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
+from .devices.bitcoin_core import BitcoinCore
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64, get_txid)
+                      verify_password, bcur2base64, get_txid, generate_mnemonic)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -705,6 +707,33 @@ def wallet_send(wallet_alias):
                 wallet.delete_pending_psbt(ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"])
             except Exception as e:
                 flash("Could not delete Pending PSBT!", "error")
+        elif action == 'signhotwallet':
+            passphrase = request.form['passphrase']
+            psbt = ast.literal_eval(request.form["psbt"])
+            b64psbt = wallet.pending_psbts[psbt['tx']['txid']]['base64']
+            device = request.form['device']
+            if 'devices_signed' not in psbt or device not in psbt['devices_signed']:
+                try:
+                    signed_psbt = app.specter.device_manager.get_by_alias(device).sign_psbt(b64psbt, wallet, passphrase)
+                    if signed_psbt['complete']:
+                        if 'devices_signed' not in psbt:
+                            psbt['devices_signed'] = []
+                        # TODO: This uses device name, but should use device alias...
+                        psbt['devices_signed'].append(app.specter.device_manager.get_by_alias(device).name)
+                        psbt['sigs_count'] = len(psbt['devices_signed'])
+                        raw = wallet.cli.finalizepsbt(b64psbt)
+                        if "hex" in raw:
+                            psbt["raw"] = raw["hex"]
+                    signed_psbt = signed_psbt['psbt']
+                except Exception as e:
+                    signed_psbt = None
+                    flash("Failed to sign PSBT: %s" % e, "error")
+            else:
+                signed_psbt = None
+                flash("Device already signed the PSBT", "error")
+            return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", signed_psbt=signed_psbt, psbt=psbt, label=label, 
+                                                wallet_alias=wallet_alias, wallet=wallet, 
+                                                specter=app.specter, rand=rand)
     return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, label=label, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
@@ -819,23 +848,46 @@ def new_device():
     device_type = "other"
     device_name = ""
     xpubs = ""
+    strength = 128
+    mnemonic = generate_mnemonic(strength=strength)
     if request.method == 'POST':
+        action = request.form['action']
         device_type = request.form['device_type']
         device_name = request.form['device_name']
-        if not device_name:
-            err = "Device name must not be empty"
-        elif device_name in app.specter.device_manager.devices_names:
-            err = "Device with this name already exists"
-        xpubs = request.form['xpubs']
-        if not xpubs:
-            err = "xpubs name must not be empty"
-        keys, failed = Key.parse_xpubs(xpubs)
-        if len(failed) > 0:
-            err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-        if err is None:
-            device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
-            return redirect("/devices/%s/" % device.alias)
-    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, error=err, specter=app.specter, rand=rand)
+        if action == "newcolddevice":
+            if not device_name:
+                err = "Device name must not be empty"
+            elif device_name in app.specter.device_manager.devices_names:
+                err = "Device with this name already exists"
+            xpubs = request.form['xpubs']
+            if not xpubs:
+                err = "xpubs name must not be empty"
+            keys, failed = Key.parse_xpubs(xpubs)
+            if len(failed) > 0:
+                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+            if err is None:
+                device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=keys)
+                return redirect("/devices/%s/" % device.alias)
+        elif action == "newhotdevice":
+            if not device_name:
+                err = "Device name must not be empty"
+            elif device_name in app.specter.device_manager.devices_names:
+                err = "Device with this name already exists"
+            if len(request.form['mnemonic'].split(' ')) not in [12, 15, 18, 21, 24]:
+                err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+            mnemo = Mnemonic('english')
+            if not mnemo.check(request.form['mnemonic']):
+                err = "Invalid mnemonic entered."
+            if err is None:
+                mnemonic = request.form['mnemonic']
+                passphrase = request.form['passphrase']
+                device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
+                device.setup_device(mnemonic, passphrase, app.specter.wallet_manager, app.specter.chain != 'main')
+                return redirect("/devices/%s/" % device.alias)
+        elif action == 'generatemnemonic':
+            strength = int(request.form['strength'])
+            mnemonic = generate_mnemonic(strength=strength)
+    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, strength=strength, error=err, specter=app.specter, rand=rand)
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required
@@ -853,7 +905,7 @@ def device(device_alias):
             if len(wallets) != 0:
                 err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format([wallet.name for wallet in wallets])
             else:
-                app.specter.device_manager.remove_device(device)
+                app.specter.device_manager.remove_device(device, app.specter.wallet_manager)
                 return redirect("/")
         elif action == "delete_key":
             key = request.form['key']

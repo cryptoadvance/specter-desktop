@@ -4,8 +4,9 @@
     - wallet: The wallet object used.
     - device: The device object used.
     - psbt: The psbt to be signed.
+    - specter: The active chain 
  #}
-{% macro sign_tx_method(wallet, device, psbt) -%}
+{% macro sign_tx_method(wallet, device, psbt, chain) -%}
     {% set device_psbts = device.create_psbts(psbt['base64'], wallet) %}
     <div id="{{ device.alias }}_sign_tx_method" class="flex-center flex-column hidden">
         <h2>Sign Transaction</h2><br>
@@ -49,6 +50,33 @@
                     showPageOverlay('{{ device.alias }}_sign_tx_qr');
                 });
             </script>
+        {% endif %}
+        {% if device.hot_wallet %}
+            <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+            </button>
+            <script>
+                document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    showPageOverlay('hot_enter_passphrase')
+                });
+            </script>
+            <div id="hot_enter_passphrase" class="hidden">
+                <h2>Enter Passphrase</h2>
+                <form action="?" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
+                    <br/>
+                    <div>
+                        <input name="passphrase" type="password" id="hwi_enter_passphrase__passphrase" />
+                        <input name="device" type="hidden" value="{{ device.alias }}" />
+                        <input name="psbt" type="hidden" value='{{ psbt|tojson|safe }}' />
+                    </div>
+                    <br/>
+                    <br/>
+                    <button id="hot_enter_passphrase__submit" class="btn" type="submit" name="action" value="signhotwallet">Submit</button>
+                </form>
+            </div>
         {% endif %}
     </div>
 {%- endmacro %}
