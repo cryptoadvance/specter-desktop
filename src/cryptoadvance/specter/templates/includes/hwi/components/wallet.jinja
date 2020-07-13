@@ -1,0 +1,90 @@
+{% if wallet is defined %}
+
+<div id="hwi_display_address" class="flex-center flex-column hidden" style="overflow-wrap: break-word;">
+    <h2>Confirm Address</h2><br>
+    <div>
+        Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
+        Expected address:<br>{{ wallet.address }}
+    </div>
+    <div class="flex-center">
+        <img src="/static/img/loader_boxes.svg"/>
+    </div>
+</div>
+
+<script type="text/javascript">
+    async function getConnectedWalletDevices(deviceTypes=null){
+        if(deviceTypes==null){
+            deviceTypes = [
+            {% for device in wallet.devices %}
+                `{{ device.device_type }}`,
+            {% endfor %}
+            ];
+        }
+        let devices = await enumerate(deviceTypes);
+        return devices;
+    }
+    async function signTx(combine, deviceType, psbt){
+        let devices = await getConnectedWalletDevices([deviceType]);
+        if(devices == null || devices.length == 0){
+            return;
+        }
+        let device = await selectDevice(devices);
+        if(device == null){
+            return;
+        }
+        showHWIProgress("Signing transaction...", `Confirm on your ${capitalize(device.type)}.`);
+        let signedTx = null;
+        try {
+            signedTx = await hwi.signTx(device, psbt);
+        } catch (error) {
+            handleHWIError(error);
+            return;
+        }
+        hidePageOverlay();
+        await combine(signedTx);
+        console.log(signedTx);
+        console.log(device);
+        console.log(deviceType);
+        console.log(psbt);
+    }
+
+    async function displayAddressOnDevice(){
+        let supportedDevices = [
+            {% for device in wallet.devices %}
+                {% if device.supports_hwi_multisig_display_address or not wallet.is_multisig %}
+                    `{{ device.device_type }}`,
+                {% endif %}
+            {% endfor %}
+        ];
+        let devices = await getConnectedWalletDevices(supportedDevices);
+        if(devices == null || devices.length==0){
+            return;
+        }
+        // also unlocks it
+        let device = await selectDevice(devices);
+        if(device == null){
+            return;
+        }
+        console.log(device);
+        showPageOverlay('hwi_display_address');
+        let descr = JSON.parse(`{{ wallet.cli.getaddressinfo(wallet.address)['desc']|tojson }}`);
+        console.log(descr);
+        let result = null;
+        try {
+            result = await hwi.displayAddress(device, descr);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        console.log(result);
+        hidePageOverlay();
+        if ("{{ wallet.address }}" != result &&
+            (("{{ specter.chain }}" != "regtest" || !result.startsWith("tb")) ||
+            "{{ wallet.address }}".slice(0, -6) != "bcrt" + result.slice(2, -6))
+        ) {
+            showError("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+        }
+    }
+</script>
+
+{% endif %}
