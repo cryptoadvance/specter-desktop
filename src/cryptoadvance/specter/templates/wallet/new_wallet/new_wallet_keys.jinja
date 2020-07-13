@@ -27,7 +27,7 @@
 		</div>
 	</div>
 	<div class="spacer"></div>
-	<form id="keysform" action="./" method="POST" class="table-holder">
+	<form id="keysform" action="./" method="POST" onsubmit="showLoading()" class="table-holder">
 		<input type="hidden" name="wallet_name" value="{{ wallet_name }}">
 		<input type="hidden" name="type" value="{{ wallet_type }}">
 		{% for cosigner in cosigners %}

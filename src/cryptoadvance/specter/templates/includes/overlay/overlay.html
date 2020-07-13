@@ -9,7 +9,16 @@
     </div>
 </div>
 
+<div class="loader" id="infinite_loader">
+    <img src="/static/img/loader.gif"/>
+    <div>Loading... It may take a while...</div>
+</div>
+
 <script>
+    function showLoading(){
+        document.getElementById('infinite_loader').style.display='flex';
+    }
+
     function showPageOverlay(container_id) {
         // Transfer the content to the popup overlay div
         document.getElementById("page_overlay_popup_content").appendChild(document.getElementById(container_id));

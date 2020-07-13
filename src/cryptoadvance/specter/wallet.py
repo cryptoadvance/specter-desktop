@@ -315,11 +315,11 @@ class Wallet():
             }
         ]
         if not self.is_multisig:
-            r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+            r = self.cli.importmulti(args, {"rescan": False})
         # bip67 requires sorted public keys for multisig addresses
         else:
             # try if sortedmulti is supported
-            r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+            r = self.cli.importmulti(args, {"rescan": False})
             # doesn't raise, but instead returns "success": False
             if not r[0]['success']:
                 # first import normal multi
@@ -331,7 +331,7 @@ class Wallet():
                 desc = AddChecksum(desc)
                 # update descriptor
                 args[0]["desc"] = desc
-                r = self.cli.importmulti(args, {"rescan": False}, timeout=120)
+                r = self.cli.importmulti(args, {"rescan": False})
                 # make a batch of single addresses to import
                 arg = args[0]
                 # remove range key
@@ -344,7 +344,7 @@ class Wallet():
                     obj.update(arg)
                     obj.update({"desc": sorted_desc})
                     batch.append(obj)
-                r = self.cli.importmulti(batch, {"rescan": False}, timeout=120)
+                r = self.cli.importmulti(batch, {"rescan": False})
         if change:
             self.change_keypool = end
         else:
