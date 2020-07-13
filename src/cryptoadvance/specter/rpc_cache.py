@@ -5,7 +5,7 @@ from .corecache import CoreCache
 logger = logging.getLogger(__name__)
 
 class BitcoinCLICached:
-    def __init__(self, user="", passwd="", host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, cli=None, **kwargs):
+    def __init__(self, user="", passwd="", host="127.0.0.1", port=8332, protocol="http", path="", timeout=None, cli=None, **kwargs):
         if cli:
             # If cli argument is not empty it should contain a wallet settting in it
             # Only CLI with a wallet configured should have caching
