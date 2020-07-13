@@ -36,7 +36,7 @@
 
     function handleHWIError(error){
         console.error(error);
-        if('message' in error){
+        if(error.message !== undefined){
             error = error.message;
         }
         showError(error, 10000);
@@ -86,4 +86,3 @@
 
     }
 </script>
-
