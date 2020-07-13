@@ -21,15 +21,16 @@ class BitcoinCore(Device):
         cli = wallet_manager.cli.wallet(wallet_name)
         # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
         ## NOTE: This will work only on the network the device was added, so hot devices should be filtered out by network.
+        coin = int(testnet)
         cli.importmulti([
-            { 'desc': AddChecksum('sh(wpkh({}/49h/0h/0h/0/*))'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/49h/0h/0h/1/*))'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/84h/0h/0h/0/*)'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/84h/0h/0h/1/*)'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/48h/0h/0h/1h/0/*))'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/48h/0h/0h/1h/1/*))'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/48h/0h/0h/2h/0/*)'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/48h/0h/0h/2h/1/*)'.format(xprv)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('sh(wpkh({}/49h/{}h/0h/0/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('sh(wpkh({}/49h/{}h/0h/1/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('wpkh({}/84h/{}h/0h/0/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('wpkh({}/84h/{}h/0h/1/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('sh(wpkh({}/48h/{}h/0h/1h/0/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('sh(wpkh({}/48h/{}h/0h/1h/1/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('wpkh({}/48h/{}h/0h/2h/0/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            { 'desc': AddChecksum('wpkh({}/48h/{}h/0h/2h/1/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
         ])
         if passphrase:
             cli.encryptwallet(passphrase)
