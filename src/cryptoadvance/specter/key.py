@@ -165,6 +165,12 @@ class Key:
     def purpose(self):
         return purposes[self.key_type]
 
+    def __str__(self):
+        if self.derivation and self.fingerprint:
+            return f"[{self.fingerprint}/{self.derivation[2:]}]{self.original}"
+        else:
+            return self.original
+
     def __eq__(self, other):
         return self.original == other.original
 
