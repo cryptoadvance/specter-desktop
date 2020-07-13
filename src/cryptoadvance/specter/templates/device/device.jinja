@@ -30,10 +30,10 @@
 						<td>{{ key.derivation }}</td>
 						<td width="10" class="qr-trigger">
 							<img src="/static/img/qr_tiny.svg"/>
-							<qr-code class="qr-popup" value="{{ 'name=' + device.name + '\n' + key.metadata['combined'] }}" width="200"></qr-code>
+							<qr-code class="qr-popup" value="{{key}}" width="200"></qr-code>
 						</td>
 						<td class="xpub scroll">
-							<span>{{ key.original }}</span>
+							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
 						</td>
 						<td width="80px">
 							<form action="./" method="POST">
