@@ -11,6 +11,10 @@ class Device:
         self.fullpath = fullpath
         self.manager = manager
 
+    def create_psbts(self, base64_psbt, wallet):
+        """Overwrite this method for a device"""
+        return {}
+
     @classmethod
     def from_json(cls, device_dict, manager, default_alias='', default_fullpath=''):
         name = device_dict['name'] if 'name' in device_dict else ''
