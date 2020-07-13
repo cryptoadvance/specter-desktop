@@ -18,7 +18,7 @@
                 <img src="/static/img/usb_tiny.svg" height="12px">Sign via USB (HWI)
             </button>
             <script>
-                document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", async function(e) {
+                document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
                     signTx(combine, '{{ device.device_type }}', '{{ device_psbts["hwi"] }}');
@@ -31,10 +31,10 @@
                 Sign with SD Card file
             </button>
             <script>
-                document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", async function(e) {
+                document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_sign_tx_file')
+                    showPageOverlay('{{ device.alias }}_sign_tx_file');
                 });
             </script>
         {% endif %}
@@ -44,10 +44,10 @@
                 Sign with QR codes
             </button>
             <script>
-                document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", async function(e) {
+                document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_sign_tx_qr')
+                    showPageOverlay('{{ device.alias }}_sign_tx_qr');
                 });
             </script>
         {% endif %}

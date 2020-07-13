@@ -57,15 +57,17 @@
 						</div>
 					</label>
 				</div>
-				<div class="row">
-					<button type="button" onclick="showPageOverlay(HWI_POPUPS.SELECT)" class="btn" style="margin: 2px;" id="askhwi">
-						<img src="/static/img/usb_tiny.svg" height="12px">Get over USB
-					</button>
-				</div>
-				<br>
-				<div class="note">
-					One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
-					Examples:<br>
+			</label>
+		</div>
+		<div class="row">
+			<button type="button" class="btn" style="margin: 2px;" id="askhwi">
+				<img src="/static/img/usb_tiny.svg" height="12px">Get over USB
+			</button>
+		</div>
+		<br>
+		<div class="note">
+			One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
+			Examples:<br>
 			<pre style="font-size: 1.2em">
 [f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
 [F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
@@ -121,191 +123,228 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</div>
 		</form>
 	</div>
+
 {% endblock %}
-
 {% block scripts %}
-	<script type="text/javascript">
-		function setMnemonicView(view) {
-			var generatedMnemonic = document.getElementById("generated_mnemonic");
-			var importMnemonic = document.getElementById("import_mnemonic");
-			var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
-			var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
-			var mnemonicValue = document.getElementById("mnemonic_value");
-			if (view == 'generate') {
-				generatedMnemonic.style.display = 'block';
-				importMnemonic.style.display = 'none';
-				generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
-				importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
-				mnemonicValue.value = '{{ mnemonic }}'
-			} else {
-				generatedMnemonic.style.display = 'none';
-				importMnemonic.style.display = 'block';
-				generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
-				importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+<script type="text/javascript">
+	function setMnemonicView(view) {
+		var generatedMnemonic = document.getElementById("generated_mnemonic");
+		var importMnemonic = document.getElementById("import_mnemonic");
+		var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
+		var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+		var mnemonicValue = document.getElementById("mnemonic_value");
+		if (view == 'generate') {
+			generatedMnemonic.style.display = 'block';
+			importMnemonic.style.display = 'none';
+			generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
+			importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+			mnemonicValue.value = '{{ mnemonic }}'
+		} else {
+			generatedMnemonic.style.display = 'none';
+			importMnemonic.style.display = 'block';
+			generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+			importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+			mnemonicValue.value = importMnemonic.value;
+			importMnemonic.addEventListener("input", function() {
 				mnemonicValue.value = importMnemonic.value;
-				importMnemonic.addEventListener("input", function() {
-					mnemonicValue.value = importMnemonic.value;
-				});
-			}
+			});
 		}
-		let warningSeen = false;
-		function checkType() {
-			var deviceType = document.getElementById("device_type");
-			if (deviceType.value == 'other' && !warningSeen) {
-				warningSeen = true;
-				type_reminder.style.display = 'block';
+	}
+	let warningSeen = false;
+	function checkType() {
+		var deviceType = document.getElementById("device_type");
+		if (deviceType.value == 'other' && !warningSeen) {
+			warningSeen = true;
+			type_reminder.style.display = 'block';
+		} else {
+			return true;
+		}
+		return false;
+	}
+	document.addEventListener("DOMContentLoaded", function(){
+		function setPubkeysView() {
+			var coldDevice = document.getElementById("cold_device");
+			var hotDevice = document.getElementById("hot_device");
+			if (deviceType.value == 'bitcoincore') {
+				coldDevice.style.display = 'none';
+				hotDevice.style.display = 'block';
 			} else {
-				return true;
+				coldDevice.style.display = 'block';
+				hotDevice.style.display = 'none';
 			}
-			return false;
 		}
-		document.addEventListener("DOMContentLoaded", function(){
-			function setPubkeysView() {
-				var coldDevice = document.getElementById("cold_device");
-				var hotDevice = document.getElementById("hot_device");
-				if (deviceType.value == 'bitcoincore') {
-					coldDevice.style.display = 'none';
-					hotDevice.style.display = 'block';
-				} else {
-					coldDevice.style.display = 'block';
-					hotDevice.style.display = 'none';
-				}
-			}
-			var deviceType = document.getElementById("device_type");
-			var typeReminder = document.getElementById("type_reminder");
+		var deviceType = document.getElementById("device_type");
+		var typeReminder = document.getElementById("type_reminder");
 
-			deviceType.addEventListener("change", function() {
-				type_reminder.style.display = 'none';
-				setPubkeysView();
-			}, false);
-			deviceType.value = '{{ device_type }}';
+		deviceType.addEventListener("change", function() {
+			type_reminder.style.display = 'none';
 			setPubkeysView();
+		}, false);
+		deviceType.value = '{{ device_type }}';
+		setPubkeysView();
 
-			var strength = document.getElementById("strength");
-			strength.value = '{{ strength }}';
-		});
-	</script>
-	<div class="popup" id="popup">
-		<video muted playsinline id="qr-video" class="video"></video>
-	</div>
+		var strength = document.getElementById("strength");
+		strength.value = '{{ strength }}';
+	});
+</script>
 
-	<script type="text/javascript">
-		document.addEventListener("DOMContentLoaded", function(){
-			var el = document.getElementById("file");
-			var txt = document.getElementById("txt");
+<script type="text/javascript">
+	{% include "device/components/add_keys.js" %}
 
-			if (el != null) {
-				el.addEventListener("change", (e) => {
-					files = el.files;
-					console.log(files);
-					for(let i=0; i<files.length; i++){
-						console.log(files[i].name);
-						let reader = new FileReader();
-						reader.onload = function(e) {
-							let str = reader.result
-							if (str.indexOf("{") >= 0) {
-								let json = JSON.parse(str);
-								console.log(str);
-								if ("keystore" in json) { // ColdCard electrum file
-									let prefix = "";
-									if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
-										prefix = "[";
-										let num = json.keystore.ckcc_xfp;
-										for (let i = 0; i < 4; i++) {
-											prefix += ('0' + (num % 256).toString(16)).slice(-2);
-											num = num >>> 8;
-										}
-										prefix += json.keystore.derivation.substring(1);
-										prefix += "]";
+	async function getXpubs(device, passphrase=""){
+		// detect device
+        showHWIProgress("Extracting public keys...", 
+        	`It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+		let result = [];
+		try {
+			result = await hwi.getXpubs(device, passphrase);
+		} catch (error) {
+			handleHWIError(error);
+			return null;
+		}
+		if(!overlayIsActive()){
+			showNotification("HWI is ready again");
+			// no need to proceed at all
+			return null;
+		}
+		hidePageOverlay();
+		return result;
+	}
+
+	document.getElementById('askhwi').addEventListener('click', async e=>{
+		// detect devices
+		let devices = await enumerate();
+		if(devices == null){
+			return
+		}
+		// this shouldn't happen actually
+		if(devices.length == 0){
+			showError("No devices found :(");
+			return;
+		}
+		console.log(devices)
+		// first only for now
+		let device = await selectDevice(devices);
+		console.log(device);
+		// nothing to do if user cancelled
+		if(device == null){
+			return;
+		}
+		let xpubs = await getXpubs(device);
+		if(xpubs == null){
+			return;
+		}
+	    addKeys(xpubs);
+	    setDeviceType(device.type);
+	});
+
+</script>
+
+<script type="text/javascript">
+
+	document.addEventListener("DOMContentLoaded", function(){
+		var el = document.getElementById("file");
+		var txt = document.getElementById("txt");
+
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				files = el.files;
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					console.log(files[i].name);
+					let reader = new FileReader();
+					reader.onload = function(e) {
+						let str = reader.result
+						let data = "";
+						if (str.indexOf("{") >= 0) {
+							let json = JSON.parse(str);
+							console.log(str);
+							if ("keystore" in json) { // ColdCard electrum file
+								let prefix = "";
+								if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
+									prefix = "[";
+									let num = json.keystore.ckcc_xfp;
+									for (let i = 0; i < 4; i++) {
+										prefix += ('0' + (num % 256).toString(16)).slice(-2);
+										num = num >>> 8;
 									}
-									let s = prefix + json.keystore.xpub + "\n";
-									txt.value += s;
-								} else if ("xfp" in json) { // probably ColdCard multisig file
-									let s = "";
-									for (let k in json) {
-										if (k+"_deriv" in json) {
-											s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
-										}
-									}
-									txt.value += s;
+									prefix += json.keystore.derivation.substring(1);
+									prefix += "]";
 								}
-							} else {
-								txt.value += str+"\n";
+								let s = prefix + json.keystore.xpub + "\n";
+								data += s;
+							} else if ("xfp" in json) { // probably ColdCard multisig file
+								let s = "";
+								for (let k in json) {
+									if (k+"_deriv" in json) {
+										s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+									}
+								}
+								data += s;
 							}
+						} else {
+							data += str+"\n";
 						}
-						reader.readAsText(files[i]);
+						addKeys(data);
+						setDeviceType('coldcard');
 					}
-				});
-			}
-
-			document.getElementById('hwi_unlocked__submit').addEventListener("click", async function(event) {
-				event.preventDefault();
-				showPageOverlay(HWI_POPUPS.EXTRACT_XPUBS);
-				
-				let result = await hwiSendCommand('extract_xpubs', {
-					device_type: hwiCurrentWallet.type,
-					path: hwiCurrentWallet.path,
-					passphrase: hwiWalletPassphrase
-				});
-				
-				if (result.success) {
-					txt.value += result.data;
-					var deviceType = document.getElementById("device_type");
-					if (deviceType != null) {
-						deviceType.value = hwiCurrentWallet.type;
-					}
+					reader.readAsText(files[i]);
 				}
-				hidePageOverlay();
-			});
-		});
-	</script>
-
-	<script type="module">
-		import QrScanner from "/static/qr/qr-scanner.min.js";
-		if (document.getElementById("scanme") != null) {
-			QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
-
-			const video = document.getElementById('qr-video');
-
-			const scanner = new QrScanner(video, result => {
-				scanner.stop();
-				document.getElementById("popup").style.display = 'none';
-				let deviceType = document.getElementById("device_type");
-				// cobo uses json format
-				if(result.includes("{")){
-					let obj = JSON.parse(result);
-					if( ("ExtPubKey" in obj) && 
-						("AccountKeyPath" in obj) && 
-						("MasterFingerprint" in obj)){
-						console.log(obj);
-						let path = obj.AccountKeyPath.replace(/'/g,'h');
-						let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
-						document.getElementById("txt").value += str+"\n";
-						if (deviceType != null) {
-							deviceType.value = 'cobo';
-						}
-					}else{
-						showError("Unknown key format");
-					}
-				}else{
-					document.getElementById("txt").value += result + "\n";
-					if (deviceType != null) {
-						deviceType.value = 'specter';
-					}
-				}
-			});
-			document.getElementById("scanme").addEventListener("click", function(){
-				try{
-					scanner.start();
-					document.getElementById("popup").style.display = 'flex';
-				}catch(e){
-					showError("Can't start the QR scanner!\n\n" + e);
-				}
-			});
-			document.getElementById("popup").addEventListener("click", function(){
-				document.getElementById("popup").style.display = 'none';
-				scanner.stop();
 			});
 		}
-	</script>
+	});
+</script>
+
+<div class="popup" id="popup">
+	<video muted playsinline id="qr-video" class="video"></video>
+</div>
+
+<script type="module">
+	import QrScanner from "/static/qr/qr-scanner.min.js";
+	{% include "includes/message-events.js" %}
+	{% include "device/components/add_keys.js" %}
+
+	if (document.getElementById("scanme") != null) {
+		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+		const video = document.getElementById('qr-video');
+
+		const scanner = new QrScanner(video, result => {
+			scanner.stop();
+			document.getElementById("popup").style.display = 'none';
+			let deviceType = document.getElementById("device_type");
+			// cobo uses json format
+			if(result.includes("{")){
+				let obj = JSON.parse(result);
+				if( ("ExtPubKey" in obj) && 
+					("AccountKeyPath" in obj) && 
+					("MasterFingerprint" in obj)){
+					console.log(obj);
+					let path = obj.AccountKeyPath.replace(/'/g,'h');
+					let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+					addKeys(str);
+					setDeviceType('cobo');
+				}else{
+					showError("Unknown key format");
+				}
+			}else{
+				addKeys(result);
+				setDeviceType('specter');
+			}
+		});
+		document.getElementById("scanme").addEventListener("click", function(){
+			try{
+				scanner.start();
+				document.getElementById("popup").style.display = 'flex';
+			}catch(e){
+				showError("Can't start the QR scanner!\n\n" + e);
+			}
+		});
+		document.getElementById("popup").addEventListener("click", function(){
+			document.getElementById("popup").style.display = 'none';
+			scanner.stop();
+		});
+	}
+</script>
+
 {% endblock %}

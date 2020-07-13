@@ -1,0 +1,40 @@
+<div id="hwi_passphrase" class="hidden">
+    <h2>Enter Passphrase</h2>
+    <div class="flex-center flex-column">
+        <br/>
+        <div>
+            <input name="passphrase" type="password" id="hwi_passphrase_passphrase" />
+        </div>
+        <br/>
+        <br/>
+        <div id="hwi_passphrase_container">
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    async function enterPassphrase(device){
+        let el = document.getElementById("hwi_passphrase_container");
+        el.innerHTML = "";
+        let inp = document.getElementById("hwi_passphrase_passphrase");
+        let submit = document.createElement('button');
+        submit.classList.add('btn');
+        submit.innerHTML = "Submit";
+        let result = null;
+        submit.addEventListener('click', e=>{
+            result = inp.value;
+            inp.value = "";
+        })
+        el.appendChild(submit);
+        showPageOverlay('hwi_passphrase');
+        while(result == null){
+            await wait(100);
+            if(!overlayIsActive()){
+                console.log("cancelled");
+                return null;
+            }
+        }
+        hidePageOverlay();
+        return result;
+    }
+</script>
