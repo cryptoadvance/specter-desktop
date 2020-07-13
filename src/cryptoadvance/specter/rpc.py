@@ -159,7 +159,7 @@ class RpcError(Exception):
 
 
 class BitcoinCLI:
-    def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
+    def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=None, **kwargs):
         path = path.replace("//","/") # just in case
         self.user = user
         self.passwd = passwd
