@@ -1,3 +1,11 @@
+## v0.5.4 July 13, 2020
+- Devices: (⚠️ Experimental) Support Bitcoin Core hot wallets (#210) (@ben-kaufman)
+- Bugfix: Fix issues with Bitcoin Core calls timing out (#214) (@stepansnigirev)
+- Bugfix: Fix issues with non standard keys (#209) (@stepansnigirev)
+- Refactoring: Refactor HWI Javascript code (#213) (@stepansnigirev)
+- UI: Add new exception handler page to give information about errors (#211) (@stepansnigirev)
+- UI: Improve keys table (#218) (@stepansnigirev)
+
 ## v0.5.3 July 10, 2020
 - Bugfix: Fix potential crashes and issues due to multi-threading race conditions (#205) (@stepansnigirev)
 - Bugfix: Fix crash if current Specter version could not be obtained (#202) (@stepansnigirev)
