@@ -80,6 +80,7 @@ ul, li{
     justify-content: center;
     background: rgba(0,0,0,0.9);
     flex-direction: column;
+    z-index: 999;
 }
 .loader img{
     width: 390px;
