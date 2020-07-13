@@ -168,8 +168,6 @@ class Key:
     def __str__(self):
         if self.derivation and self.fingerprint:
             return f"[{self.fingerprint}/{self.derivation[2:]}]{self.original}"
-        elif self.derivation:
-            return f"[{self.fingerprint}]{self.original}"
         else:
             return self.original
 
