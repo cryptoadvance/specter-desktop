@@ -89,11 +89,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		try {
 			result = await hwi.getXpubs(device, passphrase);
 		} catch (error) {
-			console.error(error);
-			showError(error);
-			if(overlayIsActive()){
-				hidePageOverlay();
-			}
+			handleHWIError(error);
 			return null;
 		}
 		if(!overlayIsActive()){
@@ -124,16 +120,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		if(device == null){
 			return;
 		}
-		let passphrase = await unlockDevice(device);
-		console.log(passphrase);
-		// maybe we get password here
-		if(passphrase != null){
-			device.passphrase = passphrase;
-		}else{
-			passphrase = "";
-		}
-		console.log(device);
-		let xpubs = await getXpubs(device, passphrase);
+		let xpubs = await getXpubs(device);
 		if(xpubs == null){
 			return;
 		}

@@ -64,7 +64,7 @@
     }
 
     async function enterPin(device){
-        showHWIProgress("Processing...", `Keep your ${device.type} connected.`);
+        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
         let result = null;
         try {
             result = await hwi.promptPin(device);
@@ -173,8 +173,7 @@
                 return null;
             }
             if(!('success' in result) || !result.success){
-                showError("Failed to unlock device! Invalid PIN code?");
-                return null;
+                throw "Failed to unlock device! Invalid PIN code?";
             }
             device.needs_pin_sent = false;
         }
@@ -182,18 +181,21 @@
             console.log("need password...");
             let passphrase = await enterPassword(device);
             if(passphrase == null){
-                return null;
+                throw "Operation is terminated";
             }
             return passphrase;
         }
         return null;
     }
-    async function enumerate(){
+    async function enumerate(deviceTypes=null){
         // detect device
         showHWIProgress("Detecting...", "Plug in your device");
         let result = [];
         try {
             result = await hwi.enumerate();
+            if(result!=null && deviceTypes!=null){
+                result = result.filter(dev => deviceTypes.includes(dev.type));
+            }
             while(result.length == 0){
                 await wait(1000);
                 // check that we still need to do it
@@ -204,6 +206,9 @@
                 }
                 console.log("Retrying enumerate...");
                 result = await hwi.enumerate();
+                if(result!=null && deviceTypes!=null){
+                    result = result.filter(dev => deviceTypes.includes(dev.type));
+                }
             }
         } catch (error) {
             handleHWIError(error);
@@ -255,6 +260,21 @@
             }
         }
         hidePageOverlay();
+        let passphrase = null;
+        try{
+            passphrase = await unlockDevice(selectedDevice);
+        }catch(error){
+            handleHWIError(error);
+            return null;
+        }
+        console.log(passphrase);
+        // maybe we get password here
+        if(passphrase != null){
+            selectedDevice.passphrase = passphrase;
+        }else{
+            passphrase = "";
+        }
+        console.log(selectedDevice);
         return selectedDevice;
     }
     // TODO: remove, legacy

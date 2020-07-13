@@ -22,11 +22,8 @@
             {% endfor %}
             ];
         }
-        let devices = await enumerate();
-        if(devices == null){
-            return null;
-        }
-        return devices.filter(dev => deviceTypes.includes(dev.type));
+        let devices = await enumerate(deviceTypes);
+        return devices;
     }
     async function signTx(combine, deviceType, psbt){
         let devices = await getConnectedWalletDevices();
@@ -43,7 +40,7 @@
             signedTx = await hwi.signTx(device, psbt);
         } catch (error) {
             handleHWIError(error);
-            return null;
+            return;
         }
         hidePageOverlay();
         await combine(signedTx);
