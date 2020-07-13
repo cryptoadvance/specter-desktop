@@ -16,7 +16,7 @@ from flask_login.config import EXEMPT_METHODS
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64, get_txid)
+                      verify_password, bcur2base64, get_txid, generate_mnemonic)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -848,7 +848,7 @@ def new_device():
     device_name = ""
     xpubs = ""
     strength = 128
-    mnemonic = BitcoinCore.generate_mnemonic(strength=strength)
+    mnemonic = generate_mnemonic(strength=strength)
     if request.method == 'POST':
         action = request.form['action']
         device_type = request.form['device_type']
@@ -872,14 +872,17 @@ def new_device():
                 err = "Device name must not be empty"
             elif device_name in app.specter.device_manager.devices_names:
                 err = "Device with this name already exists"
-            mnemonic = request.form['mnemonic']
-            passphrase = request.form['passphrase']
-            device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
-            device.setup_device(mnemonic, passphrase, app.specter.wallet_manager)
-            return redirect("/devices/%s/" % device.alias)
+            if len(request.form['mnemonic'].split(' ')) not in [12, 15, 18, 21, 24]:
+                err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+            if err is None:
+                mnemonic = request.form['mnemonic']
+                passphrase = request.form['passphrase']
+                device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
+                device.setup_device(mnemonic, passphrase, app.specter.wallet_manager)
+                return redirect("/devices/%s/" % device.alias)
         elif action == 'generatemnemonic':
             strength = int(request.form['strength'])
-            mnemonic = BitcoinCore.generate_mnemonic(strength=strength)
+            mnemonic = generate_mnemonic(strength=strength)
     return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, strength=strength, error=err, specter=app.specter, rand=rand)
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])

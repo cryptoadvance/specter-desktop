@@ -3,7 +3,7 @@ from bip32 import BIP32
 from mnemonic import Mnemonic
 from ..descriptor import AddChecksum
 from ..device import Device
-from ..helpers import alias, convert_xpub_prefix, encode_base58_checksum, get_xpub_fingerprint
+from ..helpers import alias, convert_xpub_prefix, encode_base58_checksum, get_xpub_fingerprint, seed_to_hd_master_key
 from ..key import Key
 
 class BitcoinCore(Device):
@@ -12,14 +12,6 @@ class BitcoinCore(Device):
         self.hwi_support = False
         self.exportable_to_wallet = False
         self.hot_wallet = True
-
-    @staticmethod
-    def generate_mnemonic(strength=256):
-        # Generate words list
-        # TODO: Generate randomness with secrets library
-        mnemo = Mnemonic("english")
-        words = mnemo.generate(strength=strength)
-        return words
 
     def setup_device(self, mnemonic, passphrase, wallet_manager):
         seed = Mnemonic.to_seed(mnemonic)
@@ -102,10 +94,10 @@ class BitcoinCore(Device):
                 wallet_manager.cli.loadwallet(os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias))
 
     def create_psbts(self, base64_psbt, wallet):
-        # Load the wallet if not loaded
         return { 'core': base64_psbt }
 
     def sign_psbt(self, base64_psbt, wallet, passphrase):
+        # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
         cli = wallet.manager.cli.wallet(os.path.join(wallet.manager.cli_path + "_hotstorage", self.alias))
         if passphrase:
@@ -127,45 +119,3 @@ class BitcoinCore(Device):
                 shutil.rmtree(os.path.join(wallet_manager.get_default_datadir(), wallet_cli_path))
         except:
             pass # We tried...
-
-# From https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/mnemonic/mnemonic.py#L246
-import hashlib, hmac
-# Refactored code segments from <https://github.com/keis/base58>
-def b58encode(v: bytes) -> str:
-    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
-    p, acc = 1, 0
-    for c in reversed(v):
-        acc += p * c
-        p = p << 8
-
-    string = ""
-    while acc:
-        acc, idx = divmod(acc, 58)
-        string = alphabet[idx : idx + 1] + string
-    return string
-# We need to copy it like this because HWI uses it as a dependency, but requires v0.18 which doesn't have this function.
-def seed_to_hd_master_key(seed, testnet=False) -> str:
-    if len(seed) != 64:
-        raise ValueError("Provided seed should have length of 64")
-
-    # Compute HMAC-SHA512 of seed
-    seed = hmac.new(b"Bitcoin seed", seed, digestmod=hashlib.sha512).digest()
-
-    # Serialization format can be found at: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
-    xprv = b"\x04\x88\xad\xe4"  # Version for private mainnet
-    if testnet:
-        xprv = b"\x04\x35\x83\x94"  # Version for private testnet
-    xprv += b"\x00" * 9  # Depth, parent fingerprint, and child number
-    xprv += seed[32:]  # Chain code
-    xprv += b"\x00" + seed[:32]  # Master key
-
-    # Double hash using SHA256
-    hashed_xprv = hashlib.sha256(xprv).digest()
-    hashed_xprv = hashlib.sha256(hashed_xprv).digest()
-
-    # Append 4 bytes of checksum
-    xprv += hashed_xprv[:4]
-
-    # Return base58
-    return b58encode(xprv)
