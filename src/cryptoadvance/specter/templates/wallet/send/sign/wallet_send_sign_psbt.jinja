@@ -182,7 +182,30 @@
 		document.addEventListener("DOMContentLoaded", function(){
 			var sendTxBtn = document.getElementById("send_tx_btn");
 			sendTxBtn.addEventListener("click", function() {
-				finalize(raw);
+				showPageOverlay("tx_broadcast");
+			});
+
+			document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				broadcastLocal(raw);
+			});
+
+			if ("{{ specter.chain }}" != "regtest") {
+				document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					broadcastBlockstream(raw);
+				});
+			}
+
+			document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				hidePageOverlay();
+				window.location.replace("./pending/");
+			});
+
+			document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				copyText(raw, 'Copied transaction')
 			});
 		});
 		if (!"{{ psbt['raw'] }}") {
@@ -245,41 +268,16 @@
 						el.style.display = 'block';
 					}
 					raw = jsonResponse["hex"];
-					finalize(jsonResponse["hex"]);
+					showPageOverlay("tx_broadcast");
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
 			}
 		}
 
-		function finalize(tx) {
-			showPageOverlay("tx_broadcast");
-
-			document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
-				e.preventDefault();
-				broadcastLocal(tx);
-			});
-
-			if ("{{ specter.chain }}" != "regtest") {
-				document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
-					e.preventDefault();
-					broadcastBlockstream(tx);
-				});
-			}
-
-			document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
-				e.preventDefault();
-				hidePageOverlay();
-				window.location.replace("./pending/");
-			});
-
-			document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
-				e.preventDefault();
-				copyText(tx, 'Copied transaction')
-			});
-		}
 
 		async function broadcastLocal(tx) {
+			showNotification("Sending transaction...");
 			let url="/wallets/{{wallet.alias}}/broadcast/";
 
 			var formData = new FormData();
@@ -308,6 +306,7 @@
 		}
 
 		function broadcastBlockstream(tx) {
+			showNotification("Sending transaction via blockstream...");
 			// TODO: Use fetch instead of XMLHttpRequest
 			let url;
 			if ("{{ specter.chain }}" == "main") {
