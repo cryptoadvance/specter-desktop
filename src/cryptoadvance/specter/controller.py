@@ -2,6 +2,7 @@ import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
+from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
 
@@ -874,11 +875,14 @@ def new_device():
                 err = "Device with this name already exists"
             if len(request.form['mnemonic'].split(' ')) not in [12, 15, 18, 21, 24]:
                 err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+            mnemo = Mnemonic('english')
+            if not mnemo.check(request.form['mnemonic']):
+                err = "Invalid mnemonic entered."
             if err is None:
                 mnemonic = request.form['mnemonic']
                 passphrase = request.form['passphrase']
                 device = app.specter.device_manager.add_device(name=device_name, device_type=device_type, keys=[])
-                device.setup_device(mnemonic, passphrase, app.specter.wallet_manager)
+                device.setup_device(mnemonic, passphrase, app.specter.wallet_manager, app.specter.chain != 'main')
                 return redirect("/devices/%s/" % device.alias)
         elif action == 'generatemnemonic':
             strength = int(request.form['strength'])

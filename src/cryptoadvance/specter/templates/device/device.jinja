@@ -48,9 +48,11 @@
 	</div>
 	<div class="spacer"></div>
 	<div class="row">
+		{% if device.device_type != 'bitcoincore' %}
 		<form action="./" method="POST">
-			<button type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
+			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
+		{% endif %}
 		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>

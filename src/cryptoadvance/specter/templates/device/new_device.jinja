@@ -76,6 +76,11 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
 			</div>
 			<div id="hot_device" class="hidden">
+				<p class="note" style="border-radius: 5px; padding:20px; background: rgba(0,0,0,0.1); color: #fff;">
+					<b style="">⚠️ A note on hot wallets:</b><br>
+					This will create a <a style="color: #fff;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
+					Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
+				</p>
 				<p>Enter you mnemonic here or use the randomly generated one:</p>
 				<p><b>Make sure to backup these words!</b></p>
 				{% set wordslist = mnemonic.split(' ') %}
@@ -108,16 +113,10 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					</table>
 				</div>
 				<br>
-				<label>Passphrase: </label>
-				<input type="password" name="passphrase" class="inline" placeholder="Wallet passphrase">
+				<label>Encryption password: </label>
+				<input type="password" name="passphrase" class="inline" placeholder="Wallet encryption password">
 				<br><br>
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
-				<br>
-				<p class="note" style="border-radius: 5px; padding:20px; background: rgba(0,0,0,0.1); color: #fff;">
-				<b style="">⚠️ A note on hot wallets:</b><br>
-				This will create a <a style="color: #fff;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
-				Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
-				</p>
 			</div>
 		</form>
 	</div>
