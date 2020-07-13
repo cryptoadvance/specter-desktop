@@ -70,7 +70,7 @@
 		});
 		document.addEventListener("notification", (e)=>{
 			if(!("timeout" in e.detail)){
-				e.detail.timeout = 0;
+				e.detail.timeout = 3000;
 			}
 			showNotification(e.detail.message, e.detail.timeout);
 		});
@@ -107,6 +107,14 @@
 			catch (err) {
 				showError('Unable to copy text');
 			}
+		}
+		async function wait(ms){
+			return new Promise(resolve => {
+				setTimeout(resolve, ms);
+			});
+		}
+		function capitalize(str){
+			return str.charAt(0).toUpperCase()+str.substring(1);
 		}
 	</script>
 
