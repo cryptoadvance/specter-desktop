@@ -1,233 +1,88 @@
-{#
-    This include defines various popup modals to manage HWI interaction.
-    Handles all necessary Ajax calls to the server and maintains HWI wallet
-    state (to the extent possible on a given website page).
+<script type="text/javascript" src="/static/hwi.js"></script>
 
-    Assumes that the general-purpose overlay.html has already been included.
-#}
-
-<div id="hwi_loading" class="flex-center hidden">
-    <img src="/static/img/loader_boxes.svg"/>
-</div>
+{# === pin screen ==== #}
+{% include 'includes/hwi/components/pin.jinja' %}
+{# === passphrase screen ==== #}
+{% include 'includes/hwi/components/passphrase.jinja' %}
+{# === device selector ==== #}
 {% include 'includes/hwi/components/select_device.jinja' %}
+{# === wallet specific stuff ==== #}
+{% include 'includes/hwi/components/wallet.jinja' %}
 
-{% include 'includes/hwi/components/enter_pin.jinja' %}
+<div id="hwi_progress" class="hidden">
+    <h1 id="hwi_progress_title">Processing...</h1>
+    <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
+    <img src="/static/img/loader_boxes.svg">
+</div>
 
-{% include 'includes/hwi/components/enter_passphrase.jinja' %}
+<script type="text/javascript">
+    let hwiURL = '/hwi/api/';
+    if (
+        '{{ specter.hwi_bridge_url }}'.startsWith('http://localhost') ||
+        '{{ specter.hwi_bridge_url }}'.startsWith('http://127.0.0.1')
+    ) {
+        hwiURL = '{{ specter.hwi_bridge_url }}';
+    }
+    var hwi = new HWIBridge(hwiURL, '{{ specter.chain }}');
+</script>
 
-{% include 'includes/hwi/components/unlocked.jinja' %}
+<script type="text/javascript">
 
-{% include 'includes/hwi/components/extract_pubkeys.jinja' %}
+    function showHWIProgress(title="Processing...", text="Keep your wallet connected."){
+        document.getElementById('hwi_progress_title').innerHTML = title;
+        document.getElementById('hwi_progress_text').innerHTML = text;
+        showPageOverlay('hwi_progress');
+    }
 
-{% include 'includes/hwi/components/display_address.jinja' %}
-
-{% include 'includes/hwi/components/sign_tx.jinja' %}
-
-<script>
-    const HWI_DEVICES_TYPES = ['coldcard', 'keepkey', 'ledger', 'specter', 'trezor'];
-    const HWI_POPUPS = Object.freeze({
-        "SELECT": "hwi_select_device",
-        "PIN": "hwi_enter_pin",
-        "PASSPHRASE": "hwi_enter_passphrase",
-        "UNLOCKED": "hwi_unlocked",
-        "EXTRACT_XPUBS": "hwi_extract_xpubs",
-        "DISPLAY_ADDRESS": "hwi_display_address",
-        "SIGN": "hwi_sign_tx",
-    });
-
-    var detectWalletTimeout;
-    var hwiCurrentWallet;
-    var hwiWalletPIN = "";
-    var hwiWalletPassphrase = "";
-
-    async function hwiSendCommand(command, params) {
-        if (command != 'detect_device' && command != 'enumerate') {
-            params.chain = '{{ specter.chain }}'
+    function handleHWIError(error){
+        console.error(error);
+        if(error.message !== undefined){
+            error = error.message;
         }
+        showError(error, 10000);
+        if(overlayIsActive()){
+            hidePageOverlay();
+        }
+    }
 
+    async function enumerate(deviceTypes=null){
+        // detect device
+        showHWIProgress("Detecting...", "Plug in your device");
+        let result = [];
         try {
-            let hwiURL = '/hwi/api/'
-            if (
-                '{{ specter.hwi_bridge_url }}'.startsWith('http://localhost') ||
-                '{{ specter.hwi_bridge_url }}'.startsWith('http://127.0.0.1')
-            ) {
-                hwiURL = '{{ specter.hwi_bridge_url }}'
+            result = await hwi.enumerate();
+            if(result!=null && deviceTypes!=null){
+                result = result.filter(dev => deviceTypes.includes(dev.type));
             }
-            let data = await fetch(hwiURL,{
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    'jsonrpc': '2.0', 
-                    'method': command, 
-                    'id': 1,
-                    params,
-                    forwarded_request: (hwiURL !== '/hwi/api/')
-                })
-            }).then(response => response.json());
-
-            if ('error' in data) {
-                hidePageOverlay();
-                showError('HWI-Bridge call returned with an error: ' + data.error.message);
-                return { success: false, error: data.error };
-            } else {
-                return { success: true, data: data.result };
-            }
-        } catch (e) {
-            hidePageOverlay();
-            showError('Error: Unknown error occured while trying to call HWI-Bridge: ' + e);
-            return { success: false, error: e };
-        }
-    }
-    
-    function beginDetectWallet(type) {
-        var instructionText;
-        switch (type) {
-            case "coldcard":
-                instructionText = "Plug in Coldcard and enter PINs";
-                break;
-            case "keepkey":
-                instructionText = "Plug in KeepKey.";
-                break;
-            case "specter":
-                instructionText = "Plug in Specter, unlock, and load the key.";
-                break;
-            case "ledger":
-                instructionText = "Plug in Ledger, unlock, and open the Bitcoin app.";
-                break;
-            case "trezor":
-                instructionText = "Plug in Trezor.";
-                break;
-        }
-
-        // Might not be shown yet
-        showPageOverlay(HWI_POPUPS.SELECT);
-
-        var loader = document.getElementById("hwi_loading");
-        var content = document.getElementById("hwi_select_device__content");
-        var instructions = document.getElementById("hwi_select_device__instructions");
-        content.style.display = "none";
-        instructions.innerHTML = instructionText + "<br/><br/>Detecting...";
-        instructions.style.display = "block";
-
-        loader.style.display = "flex";
-        document.getElementById("hwi_select_device").appendChild(loader);
-
-        hwiDetectWallet(type);
-    }
-
-    async function hwiDetectWallet(type) {
-        /**
-            Tells the server to enumerate the connected HWI devices and find
-            one of the type specified.
-        **/
-        let result = await hwiSendCommand('detect_device', { device_type: type, rescan_devices: true })
-        if (result.success) {
-            if (result.data != null) {
-                hwiCurrentWallet = result.data;
-                hwiCurrentWallet.typeDisplay = hwiTypeToDisplayName(hwiCurrentWallet.type);
-                if (hwiCurrentWallet.needs_passphrase_sent) {
-                    hidePageOverlay();
-                    showPageOverlay(HWI_POPUPS.PASSPHRASE);
-                } else if (hwiCurrentWallet.needs_pin_sent) {
-                    await hwiPromptPin();
-                } else if (hwiCurrentWallet.code == -18) {
-                    // TODO: Support wallet initializing if possible
-                    showError("Could not load device - device is not initialized.")
-                } else {
-                    // Already unlocked
-                    hidePageOverlay();
-                    hwiShowUnlocked();
+            while(result.length == 0){
+                await wait(1000);
+                // check that we still need to do it
+                // just before the request
+                if(!overlayIsActive()){
+                    showNotification("HWI is ready again", 10000);
+                    return null;
                 }
-            } else {
-                // wait and retry
-                clearTimeout(detectWalletTimeout);
-                detectWalletTimeout = setTimeout(function() {
-                        console.log("Attempting again");
-                        hwiDetectWallet(type);
-                    },
-                    3000
-                );
+                console.log("Retrying enumerate...");
+                result = await hwi.enumerate();
+                if(result!=null && deviceTypes!=null){
+                    result = result.filter(dev => deviceTypes.includes(dev.type));
+                }
             }
-        } else {
-            clearTimeout(detectWalletTimeout);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
         }
-    }
-
-    async function hwiPromptPin() {
-        /**
-            Tells the server to send the 'promptpin' command to the device.
-            KeepKey and Trezor only.
-        **/
-        let result = await hwiSendCommand('prompt_pin', {
-            device_type: hwiCurrentWallet.type,
-            path: hwiCurrentWallet.path,
-            passphrase: hwiWalletPassphrase
-        });
-
-        if (result.success) {
-            hidePageOverlay();
-            showPageOverlay(HWI_POPUPS.PIN);
+        console.log(result);
+        if(!overlayIsActive()){
+            showNotification("HWI is ready again", 10000);
+            // no need to proceed at all
+            return null;
         }
-    }
-
-    async function hwiSendPin() {
-        /**
-            Submits the PIN for the 'sendpin' command to the device.
-            KeepKey and Trezor only.
-        **/
-        let result = await hwiSendCommand('send_pin', {
-            device_type: hwiCurrentWallet.type,
-            path: hwiCurrentWallet.path,
-            pin: hwiWalletPIN,
-            passphrase: hwiWalletPassphrase
-        });
-
         hidePageOverlay();
-        if (result.success) {
-            if (result.data.success) {
-                hwiShowUnlocked();
-            } else {
-                // pin failed...
-                showError("Error: Failed to validate submitted PIN! Please recheck the PIN and retry.");
-            }
-        }
+        return result;
     }
+    // TODO: remove, legacy
+    function onCancelOverlay(){
 
-    async function hwiSendPsbt(psbt) {
-        /**
-            Sends the current psbt to the server to relay to the HWI wallet.
-        **/
-        let result = await hwiSendCommand('sign_tx', {
-            device_type: hwiCurrentWallet.type,
-            path: hwiCurrentWallet.path,
-            passphrase: hwiWalletPassphrase,
-            psbt: psbt
-        });
-
-        if (result.success) {
-            return result.data;
-        }
-    }
-
-    function hwiShowUnlocked() {
-        var typeDisplay = document.getElementById("hwi_unlocked__type");
-        typeDisplay.textContent = hwiCurrentWallet.typeDisplay;
-
-        showPageOverlay(HWI_POPUPS.UNLOCKED);
-    }
-
-    function onCancelOverlay() {
-        clearTimeout(detectWalletTimeout);
-    }
-
-    function hwiTypeToDisplayName(type) {
-        if (type == "keepkey") {
-            return "KeepKey";
-        } else {
-            return type[0].toUpperCase() + type.slice(1);
-        }
     }
 </script>
