@@ -1,0 +1,83 @@
+<div id="hwi_selector" class="hidden">
+    <h1>Select USB Wallet</h1>
+    <div class="flex-center flex-column" id="hwi_selector_container">
+    </div>
+</div>
+
+<script type="text/javascript">
+    async function selectDevice(devices){
+        /** 
+        Spawns a window and asks user for a device.
+        Retuns null if user closed the window.
+        **/
+        let el = document.getElementById("hwi_selector_container");
+        let selectedDevice = null;
+        el.innerHTML = "";
+        devices.forEach(dev =>{
+            let btn = document.createElement('button');
+            btn.classList.add('btn');
+            btn.classList.add('flex-item');
+            btn.style.width = "200px";
+            let mfp = "unknown";
+            if('fingerprint' in dev){
+                mfp = dev.fingerprint;
+            }
+            if('needs_pin_sent' in dev && dev.needs_pin_sent){
+                mfp = "needs PIN";
+            }else if('needs_passphrase_sent' in dev && dev.needs_passphrase_sent){
+                mfp = "needs password";
+            }
+            btn.innerHTML = `${capitalize(dev.type)} - ${mfp}`;
+            btn.addEventListener('click', e=>{
+                selectedDevice = dev;
+            });
+            el.appendChild(btn);
+        });
+        showPageOverlay("hwi_selector");
+        while(selectedDevice == null){
+            await wait(100);
+            if(!overlayIsActive()){
+                console.log("cancelled");
+                return null;
+            }
+        }
+        hidePageOverlay();
+        let passphrase = null;
+        try{
+            passphrase = await unlockDevice(selectedDevice);
+        }catch(error){
+            handleHWIError(error);
+            return null;
+        }
+        console.log(passphrase);
+        // maybe we get password here
+        if(passphrase != null){
+            selectedDevice.passphrase = passphrase;
+        }else{
+            passphrase = "";
+        }
+        console.log(selectedDevice);
+        return selectedDevice;
+    }
+    async function unlockDevice(device){
+        if('needs_pin_sent' in device && device.needs_pin_sent){
+            let result = await enterPin(device);
+            if(result == null){
+                return null;
+            }
+            if(!('success' in result) || !result.success){
+                throw "Failed to unlock device! Invalid PIN code?";
+            }
+            device.needs_pin_sent = false;
+        }
+        if('needs_passphrase_sent' in device && device.needs_passphrase_sent){
+            console.log("need password...");
+            let passphrase = await enterPassphrase(device);
+            if(passphrase == null){
+                throw "Operation is terminated";
+            }
+            return passphrase;
+        }
+        return null;
+    }
+</script>

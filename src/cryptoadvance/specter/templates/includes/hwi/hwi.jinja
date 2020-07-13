@@ -1,39 +1,18 @@
 <script type="text/javascript" src="/static/hwi.js"></script>
 
+{# === pin screen ==== #}
+{% include 'includes/hwi/components/pin.jinja' %}
+{# === passphrase screen ==== #}
+{% include 'includes/hwi/components/passphrase.jinja' %}
+{# === device selector ==== #}
+{% include 'includes/hwi/components/select_device.jinja' %}
 {# === wallet specific stuff ==== #}
-{% include 'includes/hwi/hwi_wallet.jinja' %}
+{% include 'includes/hwi/components/wallet.jinja' %}
 
 <div id="hwi_progress" class="hidden">
     <h1 id="hwi_progress_title">Processing...</h1>
     <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
     <img src="/static/img/loader_boxes.svg">
-</div>
-<div id="hwi_selector" class="hidden">
-    <h1>Select USB Wallet</h1>
-    <div class="flex-center flex-column" id="hwi_selector_container">
-    </div>
-</div>
-
-<div id="hwi_pin" class="hidden">
-    <h2>Enter PIN</h2>
-    <div id="hwi_pin_stars" style="margin-top: 20px; font-size: 20px;"></div>
-    <br>
-    <div id="hwi_pin_container" class="flex-center flex-column">
-    </div>
-</div>
-
-<div id="hwi_passphrase" class="hidden">
-    <h2>Enter Passphrase</h2>
-    <div class="flex-center flex-column">
-        <br/>
-        <div>
-            <input name="passphrase" type="password" id="hwi_passphrase_passphrase" />
-        </div>
-        <br/>
-        <br/>
-        <div id="hwi_passphrase_container">
-        </div>
-    </div>
 </div>
 
 <script type="text/javascript">
@@ -45,6 +24,9 @@
         hwiURL = '{{ specter.hwi_bridge_url }}';
     }
     var hwi = new HWIBridge(hwiURL, '{{ specter.chain }}');
+</script>
+
+<script type="text/javascript">
 
     function showHWIProgress(title="Processing...", text="Keep your wallet connected."){
         document.getElementById('hwi_progress_title').innerHTML = title;
@@ -63,130 +45,6 @@
         }
     }
 
-    async function enterPin(device){
-        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
-        let result = null;
-        try {
-            result = await hwi.promptPin(device);
-        } catch (error) {
-            handleHWIError(error);
-            return null;
-        }
-        console.log(result);
-        if(!overlayIsActive()){
-            showNotification("HWI is ready again", 10000);
-            // no need to proceed at all
-            return null;
-        }
-        hidePageOverlay();
-
-        let el = document.getElementById("hwi_pin_container");
-        let stars = document.getElementById("hwi_pin_stars");
-        stars.innerHTML = "&nbsp;";
-        el.innerHTML = "";
-        let btns = [
-            [7,8,9],
-            [4,5,6],
-            [1,2,3]
-        ]
-        let pinReady = false;
-        let pin = "";
-        btns.forEach(btnrow =>{
-            let row = document.createElement('div');
-            btnrow.forEach(btnval => {
-                let btn = document.createElement('button');
-                btn.classList.add('pin_button');
-                btn.value = btnval;
-                btn.addEventListener('click', e=>{
-                    pin += btnval;
-                    stars.innerHTML += " ● ";
-                });
-                row.appendChild(btn);
-            });
-            el.appendChild(row);
-        });
-        el.appendChild(document.createElement('br'));
-        el.appendChild(document.createElement('br'));
-        let submit = document.createElement('button');
-        submit.classList.add('btn');
-        submit.innerHTML = "Submit";
-        submit.addEventListener('click', e=>{
-            pinReady = true;
-        });
-        el.appendChild(submit);
-        // detect device
-        showPageOverlay("hwi_pin");
-        while(!pinReady){
-            await wait(100);
-            if(!overlayIsActive()){
-                console.log("cancelled");
-                return null;
-            }
-        }
-        hidePageOverlay();
-        // now we have PIN - send it
-        showHWIProgress("Processing...", `Keep your ${device.type} connected.`);
-        result = null;
-        try {
-            result = await hwi.sendPin(device, pin);
-        } catch (error) {
-            handleHWIError(error);
-            return null;
-        }
-        console.log(result);
-        if(!overlayIsActive()){
-            showNotification("HWI is ready again", 10000);
-            // no need to proceed at all
-            return null;
-        }
-        hidePageOverlay();
-        return result;
-    }
-    async function enterPassword(device){
-        let el = document.getElementById("hwi_passphrase_container");
-        el.innerHTML = "";
-        let inp = document.getElementById("hwi_passphrase_passphrase");
-        let submit = document.createElement('button');
-        submit.classList.add('btn');
-        submit.innerHTML = "Submit";
-        let result = null;
-        submit.addEventListener('click', e=>{
-            result = inp.value;
-            inp.value = "";
-        })
-        el.appendChild(submit);
-        showPageOverlay('hwi_passphrase');
-        while(result == null){
-            await wait(100);
-            if(!overlayIsActive()){
-                console.log("cancelled");
-                return null;
-            }
-        }
-        hidePageOverlay();
-        return result;
-    }
-    async function unlockDevice(device){
-        if('needs_pin_sent' in device && device.needs_pin_sent){
-            let result = await enterPin(device);
-            if(result == null){
-                return null;
-            }
-            if(!('success' in result) || !result.success){
-                throw "Failed to unlock device! Invalid PIN code?";
-            }
-            device.needs_pin_sent = false;
-        }
-        if('needs_passphrase_sent' in device && device.needs_passphrase_sent){
-            console.log("need password...");
-            let passphrase = await enterPassword(device);
-            if(passphrase == null){
-                throw "Operation is terminated";
-            }
-            return passphrase;
-        }
-        return null;
-    }
     async function enumerate(deviceTypes=null){
         // detect device
         showHWIProgress("Detecting...", "Plug in your device");
@@ -222,60 +80,6 @@
         }
         hidePageOverlay();
         return result;
-    }
-    async function selectDevice(devices){
-        /** 
-        Spawns a window and asks user for a device.
-        Retuns null if user closed the window.
-        **/
-        let el = document.getElementById("hwi_selector_container");
-        let selectedDevice = null;
-        el.innerHTML = "";
-        devices.forEach(dev =>{
-            let btn = document.createElement('button');
-            btn.classList.add('btn');
-            btn.classList.add('flex-item');
-            btn.style.width = "200px";
-            let mfp = "unknown";
-            if('fingerprint' in dev){
-                mfp = dev.fingerprint;
-            }
-            if('needs_pin_sent' in dev && dev.needs_pin_sent){
-                mfp = "needs PIN";
-            }else if('needs_passphrase_sent' in dev && dev.needs_passphrase_sent){
-                mfp = "needs password";
-            }
-            btn.innerHTML = `${capitalize(dev.type)} - ${mfp}`;
-            btn.addEventListener('click', e=>{
-                selectedDevice = dev;
-            });
-            el.appendChild(btn);
-        });
-        showPageOverlay("hwi_selector");
-        while(selectedDevice == null){
-            await wait(100);
-            if(!overlayIsActive()){
-                console.log("cancelled");
-                return null;
-            }
-        }
-        hidePageOverlay();
-        let passphrase = null;
-        try{
-            passphrase = await unlockDevice(selectedDevice);
-        }catch(error){
-            handleHWIError(error);
-            return null;
-        }
-        console.log(passphrase);
-        // maybe we get password here
-        if(passphrase != null){
-            selectedDevice.passphrase = passphrase;
-        }else{
-            passphrase = "";
-        }
-        console.log(selectedDevice);
-        return selectedDevice;
     }
     // TODO: remove, legacy
     function onCancelOverlay(){

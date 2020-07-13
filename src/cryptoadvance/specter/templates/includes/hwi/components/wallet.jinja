@@ -16,9 +16,7 @@
         if(deviceTypes==null){
             deviceTypes = [
             {% for device in wallet.devices %}
-                {% if device.supports_hwi_multisig_display_address or not wallet.is_multisig %}
-                    `{{ device.device_type }}`,
-                {% endif %}
+                `{{ device.device_type }}`,
             {% endfor %}
             ];
         }
@@ -26,7 +24,7 @@
         return devices;
     }
     async function signTx(combine, deviceType, psbt){
-        let devices = await getConnectedWalletDevices();
+        let devices = await getConnectedWalletDevices([deviceType]);
         if(devices == null || devices.length == 0){
             return;
         }
@@ -51,7 +49,14 @@
     }
 
     async function displayAddressOnDevice(){
-        let devices = await getConnectedWalletDevices();
+        let supportedDevices = [
+            {% for device in wallet.devices %}
+                {% if device.supports_hwi_multisig_display_address or not wallet.is_multisig %}
+                    `{{ device.device_type }}`,
+                {% endif %}
+            {% endfor %}
+        ];
+        let devices = await getConnectedWalletDevices(supportedDevices);
         if(devices == null || devices.length==0){
             return;
         }
