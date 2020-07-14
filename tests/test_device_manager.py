@@ -29,12 +29,13 @@ def test_DeviceManager(empty_data_folder):
     assert os.path.isfile(dm.devices['some_name'].fullpath)
     # You can access the new device either by its name of with `get_by_alias` by its alias
     assert dm.get_by_alias('some_name').name == 'some_name'
-    assert dm.get_by_alias('some_name').device_type == 'the_type'
+    # unknown device is replaced by 'other'
+    assert dm.get_by_alias('some_name').device_type == 'other'
     assert dm.get_by_alias('some_name').keys[0].fingerprint == '08686ac6'
     # Now it has a length of 1
     assert len(dm.devices) == 1
     # and is iterable
-    assert [the_type.device_type for the_type in dm.devices.values()] == ['the_type']
+    assert [the_type.device_type for the_type in dm.devices.values()] == ['other']
     # The DeviceManager will return Device-Types (subclass of dict)
     assert type(dm.devices['some_name']) == Device
 

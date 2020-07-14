@@ -155,6 +155,9 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			type_reminder.style.display = 'block';
 		} else {
 			type_reminder.style.display = 'none';
+			if(deviceType.value == 'bitcoincore'){
+				showPacman();
+			}
 			return true;
 		}
 		return false;
