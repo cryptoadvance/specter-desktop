@@ -73,7 +73,11 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</pre>
 					Loading from file supports ColdCard and Electrum wallet format.<br>
 				</div>
+{% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
+{% else %}
+				<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+{% endif %}
 			</div>
 {% if not device %}
 			<div id="hot_device" class="hidden">
