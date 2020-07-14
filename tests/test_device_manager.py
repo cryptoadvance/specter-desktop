@@ -1,5 +1,5 @@
 import os
-from cryptoadvance.specter.device import Device
+from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.device_manager import DeviceManager
 from cryptoadvance.specter.wallet_manager import WalletManager
@@ -37,7 +37,8 @@ def test_DeviceManager(empty_data_folder):
     # and is iterable
     assert [the_type.device_type for the_type in dm.devices.values()] == ['other']
     # The DeviceManager will return Device-Types (subclass of dict)
-    assert type(dm.devices['some_name']) == Device
+    # any unknown type is replaced by GenericDevice
+    assert type(dm.devices['some_name']) == GenericDevice
 
     # The DeviceManager also has a `devices_names` property, returning a sorted list of the names of all devices
     assert dm.devices_names == ['some_name']
@@ -62,7 +63,7 @@ def test_DeviceManager(empty_data_folder):
     assert some_device.fullpath == empty_data_folder + '/some_name.json'
     assert some_device.alias == 'some_name'
     assert some_device.name == 'some_name'
-    assert some_device.device_type == 'the_type'
+    assert some_device.device_type == 'other'
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
     assert some_device.keys[1] == another_key
