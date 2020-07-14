@@ -6,6 +6,7 @@ from .devices.ledger import Ledger
 from .devices.keepkey import Keepkey
 from .devices.specter import Specter
 from .devices.cobo import Cobo
+from .devices.generic import GenericDevice
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons, fslock
 
@@ -20,12 +21,13 @@ device_classes = {
     'specter': Specter,
     'cobo': Cobo,
     'bitcoincore': BitcoinCore,
+    'other': GenericDevice,
 }
 
 def get_device_class(device_type):
     if device_type in device_classes:
         return device_classes[device_type]
-    return Device
+    return GenericDevice
 
 class DeviceManager:
     ''' A DeviceManager mainly manages the persistence of a device-json-structures

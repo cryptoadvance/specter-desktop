@@ -5,9 +5,7 @@
 	{{ send_nav('wallet_send', wallet_alias) }}
 
 	<message-box type="error" id="amount_errors_container" style="position: absolute; top: 0; display: none;">
-		<ul>
-			<li id="above_selected_coins_error" style="display: none;"> You need to select more coins to match your amount!</li>
-			<li id="above_wallet_balance_error" style="display: none;"> You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!</li>
+		Error!
 		</ul>
 	</message-box>
 
@@ -84,6 +82,13 @@
 			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.full_available_balance }}');
 		}
 
+		function isInvalidValue(unit){
+			if (!amount) {
+			    return false;
+			}
+			return (unit == 'sat' ? amount / 100000000 : amount) < 1e-8;
+		}
+
 		// Form validation
 		function validateAmount() {
 			let amountInput = document.getElementById('amount');
@@ -91,18 +96,21 @@
 
 			if (isAboveWalletBalance(unit)) {
 				setVisibility('amount_errors_container', 'block');
-				setVisibility('above_wallet_balance_error', 'block');
-				setVisibility('above_selected_coins_error', 'none');
+				document.getElementById('amount_errors_container')
+					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!";
 				return false;
 			} else if (shouldSelectMoreCoins(unit)) {
 				setVisibility('amount_errors_container', 'block');
-				setVisibility('above_wallet_balance_error', 'none');
-				setVisibility('above_selected_coins_error', 'block');
+				document.getElementById('amount_errors_container')
+					.innerHTML = "You need to select more coins to match your amount!";
+				return false;
+			} else if (isInvalidValue(unit)) {
+				setVisibility('amount_errors_container', 'block');
+				document.getElementById('amount_errors_container')
+					.innerHTML = "Invalid amount! Wrong unit?";
 				return false;
 			} else {
 				setVisibility('amount_errors_container', 'none');
-				setVisibility('above_wallet_balance_error', 'none');
-				setVisibility('above_selected_coins_error', 'none');
 				return true;
 			}
 		}
@@ -118,7 +126,7 @@
 
 		function validateForm() {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
-			createPSBTButton.disabled = !((validateAmount() && amount > 0) && validateAddress());
+			createPSBTButton.disabled = !(validateAmount() && validateAddress());
 		}
 
 		// Utils

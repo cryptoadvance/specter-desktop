@@ -231,9 +231,11 @@
 						body: formData
 					}
 				);
-
+				if(response.status != 200){
+					showError(await response.text());
+					return;
+				}
 				const jsonResponse = await response.json();
-				console.log(jsonResponse)
 				if("psbt" in jsonResponse){						
 					psbt0 = jsonResponse["psbt"];
 					if("devices" in jsonResponse){
@@ -269,6 +271,7 @@
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
+				showError(e);
 			}
 		}
 

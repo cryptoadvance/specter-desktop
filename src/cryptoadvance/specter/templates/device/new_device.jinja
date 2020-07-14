@@ -75,6 +75,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				</div>
 				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
 			</div>
+{% if not device %}
 			<div id="hot_device" class="hidden">
 				<p class="note" style="border-radius: 5px; padding:20px; background: rgba(0,0,0,0.1); color: #fff;">
 					<b style="">⚠️ A note on hot wallets:</b><br>
@@ -118,6 +119,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<br><br>
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
 			</div>
+{% endif %}
 		</form>
 	</div>
 
@@ -147,13 +149,15 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			});
 		}
 	}
-	let warningSeen = false;
 	function checkType() {
 		var deviceType = document.getElementById("device_type");
-		if (deviceType.value == 'other' && !warningSeen) {
-			warningSeen = true;
+		if (!deviceType.value) {
 			type_reminder.style.display = 'block';
 		} else {
+			type_reminder.style.display = 'none';
+			if(deviceType.value == 'bitcoincore'){
+				showPacman();
+			}
 			return true;
 		}
 		return false;
