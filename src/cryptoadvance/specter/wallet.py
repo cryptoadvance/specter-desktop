@@ -269,7 +269,7 @@ class Wallet():
 
     @property
     def account_map(self):
-        return { 'label': self.name, 'blockheight': self.blockheight, 'descriptor': self.recv_descriptor }
+        return "{ 'label': '" + self.name + "', 'blockheight': " + str(self.blockheight) + ", 'descriptor': '" + self.recv_descriptor.replace("/", "\\/") + "' }"
 
     def getnewaddress(self, change=False):
         label = "Change" if change else "Address"
