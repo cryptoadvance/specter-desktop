@@ -261,6 +261,16 @@ class Wallet():
         else:
             return self.info["scanning"]["progress"]
 
+    @property
+    def blockheight(self):
+        if len(self.transactions) > 0 and 'block_height' in self.transactions[0]:
+            return self.transactions[0]['block_height'] - 1
+        return self.cli.getblockcount()
+
+    @property
+    def account_map(self):
+        return '{ "label": "' + self.name + '", "blockheight": ' + str(self.blockheight) + ', "descriptor": "' + self.recv_descriptor.replace("/", "\\/") + '" }'
+
     def getnewaddress(self, change=False):
         label = "Change" if change else "Address"
         if change:
