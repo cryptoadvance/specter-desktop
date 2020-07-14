@@ -1,0 +1,70 @@
+<div id="account_map_import" style="display: none;">
+    <h1>Import Wallet</h1>
+    <p>Import an existing wallet into Specter by either pasting its data, scanning its QR code or uploading its data file.</p>
+    <form action="./import_wallet/" method="POST">
+        <textarea id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
+        <div class="row">
+            <a href="#" class="btn" id="scanme" style="margin: 2px;">
+                <img src="/static/img/qr_icon.svg" height="12px"> Scan
+            </a>
+            <input type="file" id="file" class="inputfile" multiple/>
+            <label for="file" class="btn" style="margin: 2px;">
+                Choose files
+            </label>
+        </div><br>
+        <button type="submit" class="btn centered" name="action" value="importwallet">Continue</button>
+    <form>
+</div>
+<div class="popup" id="popup">
+	<video muted playsinline id="qr-video" class="video"></video>
+</div>
+<script type="module">
+	import QrScanner from "/static/qr/qr-scanner.min.js";
+    document.addEventListener("DOMContentLoaded", function(){
+        QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+        const video = document.getElementById('qr-video');
+
+        const scanner = new QrScanner(video, result => {
+            scanner.stop();
+            document.getElementById("popup").style.display = 'none';
+            let deviceType = document.getElementById("device_type");
+            document.getElementById("txt").value = result;
+            
+        });
+        document.getElementById("scanme").addEventListener("click", function(){
+            try{
+                scanner.start();
+                document.getElementById("popup").style.display = 'flex';
+            }catch(e){
+                showError("Can't start the QR scanner!\n\n" + e);
+            }
+        });
+        document.getElementById("popup").addEventListener("click", function(){
+            document.getElementById("popup").style.display = 'none';
+            scanner.stop();
+        });
+    });
+</script>
+<script type="text/javascript">
+
+	document.addEventListener("DOMContentLoaded", function(){
+		var el = document.getElementById("file");
+		var txt = document.getElementById("txt");
+
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				files = el.files;
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					console.log(files[i].name);
+					let reader = new FileReader();
+					reader.onload = function(e) {
+                        document.getElementById("txt").value = reader.result;						
+					}
+					reader.readAsText(files[i]);
+				}
+			});
+		}
+	});
+</script>

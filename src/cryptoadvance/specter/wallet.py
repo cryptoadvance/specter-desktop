@@ -1,6 +1,6 @@
 import copy, hashlib, json, logging, os
 from time import time
-from .descriptor import AddChecksum
+from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock
@@ -264,7 +264,7 @@ class Wallet():
     @property
     def blockheight(self):
         if len(self.transactions) > 0 and 'block_height' in self.transactions[0]:
-            return self.transactions[0]['block_height'] - 1
+            return self.transactions[0]['block_height'] - 101 # To ensure coinbase transactions are indexed properly
         return self.cli.getblockcount()
 
     @property

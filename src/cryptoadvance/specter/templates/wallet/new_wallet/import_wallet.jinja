@@ -1,0 +1,60 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="./" method="POST" class="center">
+		<input type="hidden" name="wallet_data" value='{{ wallet_data }}'>
+		<h1>Import Wallet</h1>
+		<span style="font-size: 1.3em;">Wallet name:</span> &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet">
+
+		{% if wallet_type == 'multisig' %}
+			<br>
+			<div class="center"> 
+				<p style="font-size: 1.2em;">{{ sigs_required }} out of {{ sigs_total }} multisig<p>
+			</div>
+			<br>
+			<h1>Devices associated with this wallet:</h1>
+		{% else %}
+			<h1>The device associated with this wallet:</h1>
+		{% endif %}
+		{% if cosigners|length > 0 %}
+			<div class="row overflow">
+				{% for cosigner in cosigners %}
+					<input type="hidden" name="cosigner_{{ loop.index0 }}" value="{{ cosigner.alias }}">
+					<a href="{{ url_for('device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
+						<div class="small-card radio">
+							{% if cosigner.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+								<img src="/static/img/{{ cosigner.device_type }}_icon.svg" width="18px">
+							{% else %}
+								<img src="/static/img/other_icon.svg" width="18px">
+							{% endif %}
+							{{ cosigner.name }}
+						</div>
+					</a>
+				{% endfor %}
+			</div>
+		{% endif %}
+		{% if unknown_cosigners|length > 0 %}
+			<br>
+			<h1>Unknwon cosigners devices:</h1>
+			<p>These deivces will be added automatically to your list of devices. Click on a device to add information about it.</p>
+			<div class="row overflow">
+				{% for unknown_cosigner in unknown_cosigners %}
+					<div class="small-card radio" onclick="showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')">
+						<img src="/static/img/other_icon.svg" width="18px">
+						<input id="unknown_cosigner_{{ loop.index0 }}_name_input" type="hidden" name="unknown_cosigner_{{ loop.index0 }}_name" value="{{ wallet_name }} Cosigner {{ loop.index }}">
+						<span id="unknown_cosigner_{{ loop.index0 }}_name">{{ wallet_name }} Cosigner {{ loop.index }}</span>
+					</div>
+					<div id="unknown_cosigner_{{ loop.index0 }}_details" class="hidden">
+						<h2>Cosigner name</h2><br>
+						<input onchange="document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText=this.value;document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value=this.value;" type="text" value="{{ wallet_name }} Cosigner {{ loop.index }}" placeholder="The cosigner device name">
+						<br><br>
+						<h2>Cosigner Key</h2>
+<pre style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">{{ unknown_cosigner }}</pre><br>
+						<input type="button" class="btn" value="Done" onclick="hidePageOverlay()">
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+		<input type="hidden" name="createwallet" value="true">
+		<button type="submit" name="action" value="importwallet" class="btn centered">Import Wallet</button>
+	</form>
+{% endblock %}
