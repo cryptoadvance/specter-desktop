@@ -92,7 +92,7 @@ def combine(wallet_alias):
             except:
                 return "Invalid transaction format", 500
 
-        if "hex" not in raw:
+        else:
             try:
                 psbt = app.specter.combine([psbt0, psbt1])
                 raw = app.specter.finalize(psbt)
