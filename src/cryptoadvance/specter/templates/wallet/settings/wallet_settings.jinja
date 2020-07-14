@@ -50,33 +50,44 @@
 		{% endfor %}
 	</div>
 	<br>
-	<h1>Cache</h1>
+	{% set supports_export_to_device = [] %}
+	{% for device in wallet.devices if device.exportable_to_wallet %}
+		{% set supports_export_to_device = supports_export_to_device.append(device) %}
+	{% endfor %}
+	{% if supports_export_to_device != [] %}
+		<h1>Export To Device</h1>
+		<div class="note center">
+			Import this wallet to a device by scanning its QR code or importing its data file.
+		</div>
+
+		{% for device in wallet.devices %}
+			{% if device.exportable_to_wallet %}
+				{% if device.wallet_export_type == 'file' %}
+					<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}" class="btn centered padded">Download {{ device.name }} file</a>
+				{% elif device.wallet_export_type == 'qr' %}
+					<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+					<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+						<h1>Scan this with your {{ device.name }} device </h1>
+						<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
+					</div>
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+		<br>
+	{% endif %}
+	
+	<h1>Export To Wallet Software</h1>
+	<div class="note center">
+		Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.
+	</div>
+	<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
+	{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
 	<form action="." method="POST" class="padded" style="width: 500px">
+		<h1>Cache</h1>
 		<div class="row center">
 			<button type="submit" name="action" value="rebuildcache" class="btn" style="max-width: 160px;">Rebuild Cache</button>
 		</div>
 	</form>
-	<br>
-
-	<h1>Export To Device</h1>
-	<div class="note center">
-		Import this wallet to a device by scanning its QR code or importing its data file.
-	</div>
-
-	{% for device in wallet.devices %}
-		{% if device.exportable_to_wallet %}
-			{% if device.wallet_export_type == 'file' %}
-				<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}" class="btn centered padded">Download {{ device.name }} file</a>
-			{% elif device.wallet_export_type == 'qr' %}
-				<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
-				<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-					<h1>Scan this with your {{ device.name }} device </h1>
-					<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
-				</div>
-			{% endif %}
-		{% endif %}
-	{% endfor %}
-
 	<form action="." method="POST" class="padded" style="width: 500px">
 		<h1>Delete Wallet</h1>
 		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>

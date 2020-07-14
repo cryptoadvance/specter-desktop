@@ -1,0 +1,13 @@
+<div id="account_map_export" style="display: none;">
+    <h1>Export Wallet</h1>
+    <h2>Scan this with your wallet software</h2>
+    <br>
+    <qr-code value='{{ wallet.account_map }}' width="400"></qr-code>
+    <br>
+    <h2>Import this JSON file</h2>
+    <a download="{{ wallet.name }}.json" href='data:text/json;charset=utf-8,{{ wallet.account_map }}' class="btn centered padded">Download wallet file</a>
+<pre id="account_map" style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; text-align: left;">
+{{ wallet.account_map }}
+</pre>
+    <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>
+</div>
