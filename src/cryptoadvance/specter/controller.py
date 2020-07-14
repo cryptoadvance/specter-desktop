@@ -66,23 +66,42 @@ def combine(wallet_alias):
         app.logger.error("SpecterError while combine: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST': # FIXME: ugly...
-        psbt0 = request.form.get('psbt0') # request.args.get('psbt0')
-        psbt1 = request.form.get('psbt1') # request.args.get('psbt1')
+        psbt0 = request.form.get('psbt0').strip() # request.args.get('psbt0')
+        psbt1 = request.form.get('psbt1').strip() # request.args.get('psbt1')
         if "UR:BYTES/" in psbt0:
             psbt0 = bcur2base64(psbt0)
         if "UR:BYTES/" in psbt1:
             psbt1 = bcur2base64(psbt1)
         txid = request.form.get('txid')
 
-        try:
-            psbt = app.specter.combine([psbt0, psbt1])
-            raw = app.specter.finalize(psbt)
-            if "psbt" not in raw:
-                raw["psbt"] = psbt
-        except RpcError as e:
-            return e.error_msg, e.status_code
-        except Exception as e:
-            return "Unknown error: %r" % e, 500
+        raw = {}
+        # psbt should start with cHNi
+        # if not - maybe finalized hex tx
+        if not psbt1.startswith("cHNi"):
+            raw["hex"] = psbt1
+            psbt = psbt0
+        if not psbt0.startswith("cHNi"):
+            raw["hex"] = psbt0
+            psbt = psbt1
+        # try converting to bytes
+        if "hex" in raw:
+            raw["complete"] = True
+            raw["psbt"] = psbt
+            try:
+                bytes.fromhex(raw["hex"])
+            except:
+                return "Invalid transaction format", 500
+
+        if "hex" not in raw:
+            try:
+                psbt = app.specter.combine([psbt0, psbt1])
+                raw = app.specter.finalize(psbt)
+                if "psbt" not in raw:
+                    raw["psbt"] = psbt
+            except RpcError as e:
+                return e.error_msg, e.status_code
+            except Exception as e:
+                return "Unknown error: %r" % e, 500
         psbt = wallet.update_pending_psbt(psbt, txid, raw)
         devices = []
         # we get names, but need aliases
