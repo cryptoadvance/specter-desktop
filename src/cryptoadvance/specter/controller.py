@@ -864,7 +864,7 @@ def wallet_settings(wallet_alias):
 def new_device():
     app.specter.check()
     err = None
-    device_type = "other"
+    device_type = ""
     device_name = ""
     xpubs = ""
     strength = 128
@@ -906,7 +906,10 @@ def new_device():
         elif action == 'generatemnemonic':
             strength = int(request.form['strength'])
             mnemonic = generate_mnemonic(strength=strength)
-    return render_template("device/new_device.jinja", device_type=device_type, device_name=device_name, xpubs=xpubs, mnemonic=mnemonic, strength=strength, error=err, specter=app.specter, rand=rand)
+    return render_template("device/new_device.jinja", device_type=device_type, 
+                            device_name=device_name, xpubs=xpubs, 
+                            mnemonic=mnemonic, strength=strength, 
+                            error=err, specter=app.specter, rand=rand)
 
 @app.route('/devices/<device_alias>/', methods=['GET', 'POST'])
 @login_required

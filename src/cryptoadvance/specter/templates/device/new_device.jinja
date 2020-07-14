@@ -149,13 +149,12 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			});
 		}
 	}
-	let warningSeen = false;
 	function checkType() {
 		var deviceType = document.getElementById("device_type");
-		if (deviceType.value == 'other' && !warningSeen) {
-			warningSeen = true;
+		if (!deviceType.value) {
 			type_reminder.style.display = 'block';
 		} else {
+			type_reminder.style.display = 'none';
 			return true;
 		}
 		return false;
