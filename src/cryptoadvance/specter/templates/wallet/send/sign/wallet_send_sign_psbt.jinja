@@ -70,7 +70,7 @@
 
 			{% if wallet.is_multisig %}
 				<div class="log" style="margin: auto;">
-					<b id="sigscount">{{ psbt['sigs_count'] }}</b> signatures acquired
+					Acquired <b id="sigscount">{{ psbt['sigs_count'] }}</b> of <b>{{ wallet.sigs_required }}</b> signatures.
 				</div>
 			{% endif %}
 			<br>
@@ -250,8 +250,9 @@
 						});
 						sigscount = jsonResponse["devices"].length;
 					}
-					if(sigscount > 1){
-						document.getElementById("sigscount").innerHTML = sigscount;
+					let sigsel = document.getElementById("sigscount");
+					if(sigsel){
+						sigsel.innerHTML = sigscount;
 					}
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
