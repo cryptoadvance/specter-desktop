@@ -75,6 +75,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				</div>
 				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
 			</div>
+{% if not device %}
 			<div id="hot_device" class="hidden">
 				<p class="note" style="border-radius: 5px; padding:20px; background: rgba(0,0,0,0.1); color: #fff;">
 					<b style="">⚠️ A note on hot wallets:</b><br>
@@ -118,6 +119,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<br><br>
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
 			</div>
+{% endif %}
 		</form>
 	</div>
 
