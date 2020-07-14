@@ -1,6 +1,29 @@
 import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
+from ..helpers import decode_base58, get_xpub_fingerprint, hash160
+
+def _get_xpub_fingerprint(xpub):
+    b = decode_base58(xpub)
+    return hash160(b[-33:])[:4]
+
+def _der_to_bytes(derivation):
+    items = derivation.split("/")
+    if len(items) == 0:
+        return b''
+    if items[0] == 'm':
+        items = items[1:]
+    if items[-1] == '':
+        items = items[:-1]
+    res = b''
+    for item in items:
+        index = 0
+        if item[-1] == 'h' or item[-1] == "'":
+            index += 0x80000000
+            item = item[:-1]
+        index += int(item)
+        res += index.to_bytes(4,'little')
+    return res
 
 
 class Specter(HWIDevice):
@@ -26,6 +49,23 @@ class Specter(HWIDevice):
                 inp.unknown[b"\xfc\xca\x01" + get_wallet_fingerprint(wallet)] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
                 inp.hd_keypaths = {}
         psbts['qrcode'] = qr_psbt.serialize()
+
+        hwi_psbt = PSBT()
+        hwi_psbt.deserialize(wallet.fill_psbt(base64_psbt))
+        if len(wallet.keys) > 1:
+            for k in wallet.keys:
+                key = b'\x01' + decode_base58(k.xpub)
+                if k.fingerprint != '':
+                    fingerprint = bytes.fromhex(k.fingerprint)
+                else:
+                    fingerprint = _get_xpub_fingerprint(k.xpub)
+                if k.derivation != '':
+                    der = _der_to_bytes(k.derivation)
+                else:
+                    der = b''
+                value = fingerprint + der
+                hwi_psbt.unknown[key] = value
+        psbts['hwi'] = hwi_psbt.serialize()
         return psbts
 
     def export_wallet(self, wallet):

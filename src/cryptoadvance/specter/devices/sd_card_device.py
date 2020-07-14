@@ -48,5 +48,5 @@ def _der_to_bytes(derivation):
             index += 0x80000000
             item = item[:-1]
         index += int(item)
-        res += index.to_bytes(4,'big')
+        res += index.to_bytes(4,'little')
     return res
