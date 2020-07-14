@@ -83,6 +83,9 @@
 		}
 
 		function isInvalidValue(unit){
+			if (!amount) {
+			    return false;
+			}
 			return (unit == 'sat' ? amount / 100000000 : amount) < 1e-8;
 		}
 
