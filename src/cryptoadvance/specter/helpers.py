@@ -114,6 +114,7 @@ def get_xpub_fingerprint(xpub):
     b = decode_base58(xpub)
     return hash160(b[-33:])[:4]
 
+
 def which(program):
     ''' mimics the "which" command in bash but even for stuff not on the path.
         Also has implicit pyinstaller support 
@@ -273,7 +274,7 @@ def der_to_bytes(derivation):
             index += 0x80000000
             item = item[:-1]
         index += int(item)
-        res += index.to_bytes(4,'big')
+        res += index.to_bytes(4,'little')
     return res
 
 def get_devices_with_keys_by_type(app, cosigners, wallet_type):
