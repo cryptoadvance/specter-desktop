@@ -1,30 +1,6 @@
 import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
-from ..helpers import decode_base58, get_xpub_fingerprint, hash160
-
-def _get_xpub_fingerprint(xpub):
-    b = decode_base58(xpub)
-    return hash160(b[-33:])[:4]
-
-def _der_to_bytes(derivation):
-    items = derivation.split("/")
-    if len(items) == 0:
-        return b''
-    if items[0] == 'm':
-        items = items[1:]
-    if items[-1] == '':
-        items = items[:-1]
-    res = b''
-    for item in items:
-        index = 0
-        if item[-1] == 'h' or item[-1] == "'":
-            index += 0x80000000
-            item = item[:-1]
-        index += int(item)
-        res += index.to_bytes(4,'little')
-    return res
-
 
 class Specter(HWIDevice):
     def __init__(self, name, alias, device_type, keys, fullpath, manager):

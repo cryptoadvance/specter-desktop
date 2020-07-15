@@ -539,19 +539,35 @@ class Wallet():
 
         return psbt
 
-    def fill_psbt(self, b64psbt):
+    def fill_psbt(self, b64psbt, non_witness:bool=True, xpubs:bool=True):
         psbt = PSBT()
         psbt.deserialize(b64psbt)
-        for i, inp in enumerate(psbt.tx.vin):
-            txid = inp.prevout.hash.to_bytes(32,'big').hex()
-            try:
-                res = self.cli.gettransaction(txid)
-            except:
-                raise SpecterError("Can't find previous transaction in the wallet.")
-            stream = BytesIO(bytes.fromhex(res["hex"]))
-            prevtx = CTransaction()
-            prevtx.deserialize(stream)
-            psbt.inputs[i].non_witness_utxo = prevtx
+        if non_witness:
+            for i, inp in enumerate(psbt.tx.vin):
+                txid = inp.prevout.hash.to_bytes(32,'big').hex()
+                try:
+                    res = self.cli.gettransaction(txid)
+                except:
+                    raise SpecterError("Can't find previous transaction in the wallet.")
+                stream = BytesIO(bytes.fromhex(res["hex"]))
+                prevtx = CTransaction()
+                prevtx.deserialize(stream)
+                psbt.inputs[i].non_witness_utxo = prevtx
+        if xpubs:
+            # for multisig add xpub fields
+            if len(self.keys) > 1:
+                for k in self.keys:
+                    key = b'\x01' + decode_base58(k.xpub)
+                    if k.fingerprint != '':
+                        fingerprint = bytes.fromhex(k.fingerprint)
+                    else:
+                        fingerprint = get_xpub_fingerprint(k.xpub)
+                    if k.derivation != '':
+                        der = der_to_bytes(k.derivation)
+                    else:
+                        der = b''
+                    value = fingerprint + der
+                    psbt.unknown[key] = value
         return psbt.serialize()
 
     def get_signed_devices(self, decodedpsbt):
