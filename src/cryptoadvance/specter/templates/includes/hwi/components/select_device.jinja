@@ -5,7 +5,7 @@
 </div>
 
 <script type="text/javascript">
-    async function selectDevice(devices){
+    async function selectDevice(devices, passphrase=null){
         /** 
         Spawns a window and asks user for a device.
         Retuns null if user closed the window.
@@ -42,9 +42,9 @@
             }
         }
         hidePageOverlay();
-        let passphrase = null;
+
         try{
-            passphrase = await unlockDevice(selectedDevice);
+            passphrase = await unlockDevice(selectedDevice, passphrase);
         }catch(error){
             handleHWIError(error);
             return null;
@@ -59,7 +59,8 @@
         console.log(selectedDevice);
         return selectedDevice;
     }
-    async function unlockDevice(device){
+
+    async function unlockDevice(device, passphrase=null){
         if('needs_pin_sent' in device && device.needs_pin_sent){
             let result = await enterPin(device);
             if(result == null){
@@ -69,6 +70,9 @@
                 throw "Failed to unlock device! Invalid PIN code?";
             }
             device.needs_pin_sent = false;
+        }
+        if(passphrase!=null){
+            return passphrase;
         }
         if('needs_passphrase_sent' in device && device.needs_passphrase_sent){
             console.log("need password...");

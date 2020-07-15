@@ -19,6 +19,7 @@ class HWIBridge(JSONRPC):
         self.exposed_rpc = {
             "enumerate": self.enumerate,
             "detect_device": self.detect_device,
+            "toggle_passphrase": self.toggle_passphrase,
             "prompt_pin": self.prompt_pin,
             "send_pin": self.send_pin,
             "extract_xpubs": self.extract_xpubs,
@@ -59,6 +60,14 @@ class HWIBridge(JSONRPC):
             res = [dev for dev in self.devices if dev["path"] == path]
         if len(res) > 0:
             return res[0]
+
+    @locked(hwilock)
+    def toggle_passphrase(self, device_type=None, path=None, passphrase='', chain=''):
+        if device_type == "keepkey" or device_type == "trezor":
+            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
+            return hwi_commands.toggle_passphrase(client)
+        else:
+            raise Exception("Invalid HWI device type %s, toggle_passphrase is only supported for Trezor and Keepkey devices" % device_type)
 
     @locked(hwilock)
     def prompt_pin(self, device_type=None, path=None, passphrase='', chain=''):
