@@ -470,8 +470,8 @@ def new_wallet(wallet_type):
         action = request.form['action']
         if action == "importwallet":
             wallet_data = json.loads(request.form['wallet_data'].replace("'", "h"))
-            wallet_name = wallet_data['label']
-            startblock = wallet_data['blockheight']
+            wallet_name = wallet_data['label'] if 'label' in wallet_data else 'Imported Wallet'
+            startblock = wallet_data['blockheight'] if 'blockheight' in wallet_data else app.specter.wallet_manager.cli.getblockcount()
             try:
                 descriptor = Descriptor.parse(AddChecksum(wallet_data['descriptor'].split('#')[0]), testnet=app.specter.chain != 'main')
                 if descriptor is None:
