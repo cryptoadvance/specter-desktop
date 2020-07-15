@@ -7,6 +7,7 @@ from .devices.keepkey import Keepkey
 from .devices.specter import Specter
 from .devices.cobo import Cobo
 from .devices.generic import GenericDevice
+from .devices.electrum import Electrum
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons, fslock
 
@@ -21,6 +22,7 @@ device_classes = {
     'specter': Specter,
     'cobo': Cobo,
     'bitcoincore': BitcoinCore,
+    'electrum': Electrum,
     'other': GenericDevice,
 }
 

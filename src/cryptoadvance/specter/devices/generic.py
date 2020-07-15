@@ -1,4 +1,3 @@
-import hashlib
 from ..device import Device
 
 class GenericDevice(Device):
