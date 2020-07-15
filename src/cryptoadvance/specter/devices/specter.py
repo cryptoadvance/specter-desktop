@@ -2,7 +2,6 @@ import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
 
-
 class Specter(HWIDevice):
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
         super().__init__(name, alias, 'specter', keys, fullpath, manager)
@@ -16,6 +15,7 @@ class Specter(HWIDevice):
         psbts = super().create_psbts(base64_psbt, wallet)
         qr_psbt = PSBT()
         qr_psbt.deserialize(base64_psbt)
+        # replace with compressed wallet information
         for inp in qr_psbt.inputs + qr_psbt.outputs:
             inp.witness_script = b""
             inp.redeem_script = b""
