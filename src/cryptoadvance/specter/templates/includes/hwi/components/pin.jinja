@@ -7,22 +7,24 @@
 </div>
 
 <script type="text/javascript">
-    async function enterPin(device){
-        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+    async function enterPin(device, promptPin=true){
         let result = null;
-        try {
-            result = await hwi.promptPin(device);
-        } catch (error) {
-            handleHWIError(error);
-            return null;
+        if (promptPin) {
+            showHWIProgress("Awaiting Confirmation...", `Please confirm the action on your ${capitalize(device.type)} device.`);
+            try {
+                result = await hwi.promptPin(device);
+            } catch (error) {
+                handleHWIError(error);
+                return null;
+            }
+            console.log(result);
+            if(!overlayIsActive()){
+                showNotification("HWI is ready again", 10000);
+                // no need to proceed at all
+                return null;
+            }
+            hidePageOverlay();
         }
-        console.log(result);
-        if(!overlayIsActive()){
-            showNotification("HWI is ready again", 10000);
-            // no need to proceed at all
-            return null;
-        }
-        hidePageOverlay();
 
         let el = document.getElementById("hwi_pin_container");
         let stars = document.getElementById("hwi_pin_stars");

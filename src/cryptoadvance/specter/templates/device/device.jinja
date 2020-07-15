@@ -1,5 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
+	{% include "includes/hwi/hwi.jinja" %}
 	<h1>{{ device.name }}</h1>
 	<form action="./" method="POST">
 		<div class="row">
@@ -48,12 +49,16 @@
 	</div>
 	<div class="spacer"></div>
 	<div class="row">
+		{% if device.supports_hwi_toggle_passphrase %}
+		<button type="button" class="btn centered" onclick="togglePassphrase()">Toggle device passphrase</button>
+		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
+		{% endif %}
 		{% if device.device_type != 'bitcoincore' %}
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
-		{% endif %}
 		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
+		{% endif %}
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
 		</form>
@@ -95,5 +100,37 @@
 				}
 			}, false);
 		});
+
+		async function togglePassphrase(){
+        	let devices = await enumerate('{{ device.device_type }}');
+			if(devices == null || devices.length == 0){
+				return;
+			}
+			let device = await selectDevice(devices);
+        	showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+			let result = null;
+			try {
+				result = await hwi.togglePassphrase(device);
+			} catch (error) {
+				handleHWIError(error);
+				return null;
+			}
+			if(!overlayIsActive()){
+				showNotification("HWI is ready again", 10000);
+				// no need to proceed at all
+				return null;
+			}
+			hidePageOverlay();
+			if (device.type == "keepkey") {
+				result = await enterPin(device, false);
+				if(result == null){
+					return null;
+				}
+				if(!('success' in result) || !result.success){
+					throw "Failed to unlock device! Invalid PIN code?";
+				}
+			}
+			showNotification("{{ device.name }} passphrase toggled successfuly", 5000)
+		}
 	</script>
 {% endblock %}
