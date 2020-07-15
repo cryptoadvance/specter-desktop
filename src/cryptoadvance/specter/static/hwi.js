@@ -46,18 +46,14 @@ class HWIBridge {
             { device_type: type, rescan_devices: rescan });
     }
 
-    async togglePassphrase(device, passphrase="") {
+    async togglePassphrase(device) {
         /**
             Tells the server to send the 'togglepassphrase' command to the device.
             KeepKey and Trezor only.
         **/
-        if(!('passphrase' in device)){
-            device.passphrase = passphrase;
-        }
         return await this.fetch('toggle_passphrase', {
             device_type: device.type,
-            path: device.path,
-            passphrase: device.passphrase,
+            path: device.path
         });
     }
 

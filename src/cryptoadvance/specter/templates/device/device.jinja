@@ -106,7 +106,7 @@
 			if(devices == null || devices.length == 0){
 				return;
 			}
-			let device = await selectDevice(devices);
+			let device = await selectDevice(devices, '');
         	showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
 			let result = null;
 			try {
