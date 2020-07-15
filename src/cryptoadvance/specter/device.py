@@ -4,15 +4,29 @@ from .helpers import fslock
 
 class Device:
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
+        """
+        From child classes call super().__init__ and also set
+        support for communication methods
+        """
         self.name = name
         self.alias = alias
         self.device_type = device_type
         self.keys = keys
         self.fullpath = fullpath
         self.manager = manager
+        # override these vars to add support 
+        # of different communication methods
+        self.sd_card_support = False
+        self.qr_code_support = False
+        self.hwi_support = False
+        self.supports_hwi_multisig_display_address = False
 
     def create_psbts(self, base64_psbt, wallet):
-        """Overwrite this method for a device"""
+        """
+        Overwrite this method for a device.
+        Possible keys:
+        hwi, qrcode, sdcard
+        """
         return {}
 
     @classmethod
