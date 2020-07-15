@@ -27,6 +27,8 @@ from datetime import datetime
 import urllib
 from io import BytesIO
 import traceback
+from .devices.electrum import b43_decode
+from binascii import b2a_base64
 
 from pathlib import Path
 env_path = Path('.') / '.flaskenv'
@@ -65,28 +67,41 @@ def combine(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while combine: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    if request.method == 'POST': # FIXME: ugly...
-        psbt0 = request.form.get('psbt0').strip() # request.args.get('psbt0')
-        psbt1 = request.form.get('psbt1').strip() # request.args.get('psbt1')
-        if "UR:BYTES/" in psbt0:
-            psbt0 = bcur2base64(psbt0)
-        if "UR:BYTES/" in psbt1:
-            psbt1 = bcur2base64(psbt1)
+    if request.method == 'POST': 
+        # FIXME: ugly...
         txid = request.form.get('txid')
-
+        psbts = [
+            request.form.get('psbt0').strip(),
+            request.form.get('psbt1').strip()
+        ]
         raw = {}
-        # psbt should start with cHNi
-        # if not - maybe finalized hex tx
-        if not psbt1.startswith("cHNi"):
-            raw["hex"] = psbt1
-            psbt = psbt0
-        if not psbt0.startswith("cHNi"):
-            raw["hex"] = psbt0
-            psbt = psbt1
+        combined = None
+
+        for i, psbt in enumerate(psbts):
+            if "UR:BYTES/" in psbt.upper():
+                psbt = bcur2base64(psbt).decode()
+
+            # if electrum then it's base43
+            try:
+                decoded = b43_decode(psbt)
+                if decoded.startswith(b"psbt\xff"):
+                    psbt = b2a_base64(decoded).decode()
+                else:
+                    psbt = decoded.hex()
+            except:
+                pass
+
+            psbts[i] = psbt
+            # psbt should start with cHNi
+            # if not - maybe finalized hex tx
+            if not psbt.startswith("cHNi"):
+                raw["hex"] = psbt
+                combined = psbts[1-i]
+
         # try converting to bytes
         if "hex" in raw:
             raw["complete"] = True
-            raw["psbt"] = psbt
+            raw["psbt"] = combined
             try:
                 bytes.fromhex(raw["hex"])
             except:
@@ -94,15 +109,15 @@ def combine(wallet_alias):
 
         else:
             try:
-                psbt = app.specter.combine([psbt0, psbt1])
-                raw = app.specter.finalize(psbt)
+                combined = app.specter.combine(psbts)
+                raw = app.specter.finalize(combined)
                 if "psbt" not in raw:
-                    raw["psbt"] = psbt
+                    raw["psbt"] = combined
             except RpcError as e:
                 return e.error_msg, e.status_code
             except Exception as e:
                 return "Unknown error: %r" % e, 500
-        psbt = wallet.update_pending_psbt(psbt, txid, raw)
+        psbt = wallet.update_pending_psbt(combined, txid, raw)
         devices = []
         # we get names, but need aliases
         if "devices_signed" in psbt:

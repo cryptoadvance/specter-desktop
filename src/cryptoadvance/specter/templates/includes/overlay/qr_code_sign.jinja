@@ -40,16 +40,16 @@
     <!-- because coldcard psbt is the most complete (includes xpubs) -->
     <div class="log"><code><pre>{{ device_psbts['sdcard'] }}</pre></code></div>
 
-    <div id="qr_code_sign_popup" class="popup">
-        <video muted playsinline id="qr-video" class="video"></video>
-        <div id="qr-progress"></div>
+    <div id="{{ device.alias }}_qr_code_sign_popup" class="popup">
+        <video muted playsinline id="{{ device.alias }}_qr-video" class="video"></video>
+        <div id="{{ device.alias }}_qr-progress"></div>
     </div>
 
     <script type="module">
         import QrScanner from "/static/qr/qr-scanner.min.js";
         QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
 
-        const video = document.getElementById('qr-video');
+        const video = document.getElementById('{{ device.alias }}_qr-video');
 
         var partial_qr = {
             "len": 0, // total number of qr codes scanned
@@ -58,8 +58,8 @@
         // we don't have access to showError from module
         function triggerError(msg){
             scanner.stop();
-            document.getElementById("qr-progress").style.display = 'none';
-            document.getElementById("qr_code_sign_popup").style.display = 'none';
+            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
+            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
             hidePageOverlay();
             let event = new CustomEvent('errormsg', { detail: { message: msg } });
             document.dispatchEvent(event);
@@ -94,8 +94,8 @@
                     // it's javascript magic... 
                     // https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
                     partial_qr.parts = [...Array(n)];
-                    document.getElementById("qr-progress").style.display = 'block';
-                    document.getElementById("qr-progress").innerHTML = "";
+                    document.getElementById("{{ device.alias }}_qr-progress").style.display = 'block';
+                    document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
                 }
                 // fill corresponding part
                 if(p1){
@@ -108,7 +108,7 @@
                 }
                 // display scanning progress
                 let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
-                document.getElementById("qr-progress").innerHTML = s.join("");
+                document.getElementById("{{ device.alias }}_qr-progress").innerHTML = s.join("");
                 // check if we still have missing parts
                 if(partial_qr.parts.includes(undefined)){
                     // just return -> we are not ready to combine yet
@@ -124,13 +124,13 @@
                 partial_qr.parts = [];
                 partial_qr.len = 0;
                 // reset progress
-                document.getElementById("qr-progress").innerHTML = "";
-                document.getElementById("qr-progress").style.display = 'none';
+                document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
+                document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
             }
             // if we are done
             scanner.stop();
-            document.getElementById("qr-progress").style.display = 'none';
-            document.getElementById("qr_code_sign_popup").style.display = 'none';
+            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
+            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
             hidePageOverlay();
             combine(result);
         });
@@ -138,15 +138,15 @@
             try {
                 event.preventDefault();
                 scanner.start();
-                document.getElementById("qr_code_sign_popup").style.display = 'flex';
+                document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'flex';
             } catch(e) {
                 triggerError("Can't start the QR scanner!<br>" + e);
             }
         });
-        document.getElementById("qr_code_sign_popup").addEventListener("click", function() {
-            document.getElementById("qr_code_sign_popup").style.display = 'none';
-            document.getElementById("qr-progress").innerHTML = "";
-            document.getElementById("qr-progress").style.display = 'none';
+        document.getElementById("{{ device.alias }}_qr_code_sign_popup").addEventListener("click", function() {
+            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
+            document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
+            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
             scanner.stop();
         });
     </script>
