@@ -268,6 +268,14 @@ class Specter:
         return self.cli.estimatesmartfee(blocks)
 
     @property
+    def is_running(self):
+        return self._is_running
+
+    @property
+    def is_configured(self):
+        return self._is_configured
+
+    @property
     def info(self):
         return self._info
 
