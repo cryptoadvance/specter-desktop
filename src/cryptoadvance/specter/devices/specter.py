@@ -39,6 +39,7 @@ class Specter(HWIDevice):
         psbts = super().create_psbts(base64_psbt, wallet)
         qr_psbt = PSBT()
         qr_psbt.deserialize(base64_psbt)
+        # replace with compressed wallet information
         for inp in qr_psbt.inputs + qr_psbt.outputs:
             inp.witness_script = b""
             inp.redeem_script = b""
@@ -49,23 +50,6 @@ class Specter(HWIDevice):
                 inp.unknown[b"\xfc\xca\x01" + get_wallet_fingerprint(wallet)] = b"".join([i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
                 inp.hd_keypaths = {}
         psbts['qrcode'] = qr_psbt.serialize()
-
-        hwi_psbt = PSBT()
-        hwi_psbt.deserialize(wallet.fill_psbt(base64_psbt))
-        if len(wallet.keys) > 1:
-            for k in wallet.keys:
-                key = b'\x01' + decode_base58(k.xpub)
-                if k.fingerprint != '':
-                    fingerprint = bytes.fromhex(k.fingerprint)
-                else:
-                    fingerprint = _get_xpub_fingerprint(k.xpub)
-                if k.derivation != '':
-                    der = _der_to_bytes(k.derivation)
-                else:
-                    der = b''
-                value = fingerprint + der
-                hwi_psbt.unknown[key] = value
-        psbts['hwi'] = hwi_psbt.serialize()
         return psbts
 
     def export_wallet(self, wallet):
