@@ -2,7 +2,7 @@ import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
-from hwilib.descriptor import Descriptor
+from hwilib.descriptor import AddChecksum, Descriptor
 from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
@@ -469,11 +469,13 @@ def new_wallet(wallet_type):
     if request.method == 'POST':
         action = request.form['action']
         if action == "importwallet":
-            wallet_data = json.loads(request.form['wallet_data'])
+            wallet_data = json.loads(request.form['wallet_data'].replace("'", "h"))
             wallet_name = wallet_data['label']
             startblock = wallet_data['blockheight']
             try:
-                descriptor = Descriptor.parse(wallet_data['descriptor'], testnet=app.specter.chain != 'main')
+                descriptor = Descriptor.parse(AddChecksum(wallet_data['descriptor'].split('#')[0]), testnet=app.specter.chain != 'main')
+                if descriptor is None:
+                    err = "Invalid wallet descriptor."
             except:
                 err = "Invalid wallet descriptor."
             if wallet_name in app.specter.wallet_manager.wallets_names:
@@ -535,6 +537,7 @@ def new_wallet(wallet_type):
                             keys.append(unknown_cosigner)
                             cosigners.append(device)
                         wallet = app.specter.wallet_manager.create_wallet(wallet_name, sigs_required, address_type, keys, cosigners)
+                        flash("Wallet imported successfully", "info")
                         try:
                             wallet.cli.rescanblockchain(startblock, timeout=1)
                             app.logger.info("Rescanning Blockchain ...")
@@ -543,10 +546,8 @@ def new_wallet(wallet_type):
                             pass
                         except Exception as e:
                             app.logger.error("Exception while rescanning blockchain: %e" % e)
-                            err = "Failed to import wallet: %r" % e
-                            return render_template("wallet/new_wallet/new_wallet_type.jinja", error=err, specter=app.specter, rand=rand)
+                            flash("Failed to perform rescan for wallet: %r" % e, 'error')
                         wallet.getdata()
-                        flash("Wallet imported successfully", "info")
                         return redirect("/wallets/%s/" % wallet.alias)
                     else:
                         return render_template(
