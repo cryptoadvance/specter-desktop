@@ -1,3 +1,19 @@
+## v0.5.5 July 15, 2020
+- Devices: Support Electrum wallet as a device (#222) (@stepansnigirev)
+- Devices: Support Generic device (usable for any PSBT compatible device not directly supported in Specter) (#221) (@stepansnigirev)
+- Bugfix: Fix crash when creating a transaction from wallet with a device with type "Other" (#221) (@stepansnigirev)
+- Bugfix: Fix crash when adding keys to an existing device (#221) (@stepansnigirev)
+- Bugfix: Show proper error messages when combining PSBTs fails due to server error (#221) (@stepansnigirev)
+- Bugfix: Fix wallet behavior when passing a finalized transaction in signing page (#221) (@stepansnigirev)
+- Bugfix: Fix signature counter displaying wrong number (#223) (@stepansnigirev)
+- Bugfix: Fix PSBT xpubs derivation endian format (#232) (@stepansnigirev)
+- Bugfix: Fix crash if Bitcoin Core connection fails (#231) (@stepansnigirev)
+- HWI: Prepare support for [Trezor and KeepKey multisig change address verification](https://github.com/bitcoin-core/HWI/pull/355) by adding xpubs data to PSBT sent to HWI (#232) (@stepansnigirev)
+- HWI: Add toggle passphrase support for Trezor and KeepKey devices (#234) (@ben-kaufman)
+- Feature: Export wallet to allow importing it to Specter or other supported wallet softwares (#220) (@ben-kaufman)
+- Feature: Import wallet from Specter or other supported wallet softwares (#225) (@ben-kaufman)
+- UI: Improved amount validation in new transaction screen (#221) (@stepansnigirev)
+
 ## v0.5.4 July 13, 2020
 - Devices: (⚠️ Experimental) Support Bitcoin Core hot wallets (#210) (@ben-kaufman)
 - Bugfix: Fix issues with Bitcoin Core calls timing out (#214) (@stepansnigirev)
