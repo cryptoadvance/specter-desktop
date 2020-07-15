@@ -1,6 +1,6 @@
 import os, json, logging, shutil
 from collections import OrderedDict
-from .descriptor import AddChecksum
+from hwilib.descriptor import AddChecksum
 from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError

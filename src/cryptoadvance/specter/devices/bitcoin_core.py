@@ -1,7 +1,7 @@
 import os, shutil
 from bip32 import BIP32
 from mnemonic import Mnemonic
-from ..descriptor import AddChecksum
+from hwilib.descriptor import AddChecksum
 from ..device import Device
 from ..helpers import alias, convert_xpub_prefix, encode_base58_checksum, get_xpub_fingerprint, seed_to_hd_master_key
 from ..key import Key

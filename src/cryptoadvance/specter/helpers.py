@@ -1,7 +1,7 @@
 import binascii, collections, copy, hashlib, hmac, json, logging, os, six, subprocess, sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
-from .descriptor import AddChecksum
+from hwilib.descriptor import AddChecksum
 from hwilib.serializations import PSBT, CTransaction
 from .bcur import bcur_decode
 import threading

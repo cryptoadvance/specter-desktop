@@ -32,6 +32,10 @@
 			Multisignature wallet
 		</a>
 	</nav>
+	<div class="raw">
+		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">Import Existing Wallet</button>
+	</div>
+	{% include "wallet/new_wallet/components/import_wallet_account_map.jinja" %}
 	<div class="note">
 		<center>Multisig is better for larg-ish amounts.</center>
 	</div>
