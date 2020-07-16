@@ -22,6 +22,14 @@
 				Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
 			</div>
 			<br><br>
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="backup">Download wallets backup files</button>
+			</div>
+			<div class="note">
+				It is recommended to keep your backup files privately as sharing them with result in privacy leaks.
+				Backups are recommended to ensure access to funds remains even in case a device from a multisig wallet is lost.
+			</div>
+			<br><br>
 			{% if current_user.is_admin %}
 			Log Level:<br>
 			<select name="loglevel">
