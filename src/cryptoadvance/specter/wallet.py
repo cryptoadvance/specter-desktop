@@ -264,7 +264,8 @@ class Wallet():
     @property
     def blockheight(self):
         if len(self.transactions) > 0 and 'block_height' in self.transactions[0]:
-            return self.transactions[0]['block_height'] - 101 # To ensure coinbase transactions are indexed properly
+            blockheight = self.transactions[0]['block_height'] - 101 # To ensure coinbase transactions are indexed properly
+            return 0 if blockheight < 0 else blockheight # To ensure regtest don't have negative blockheight
         return self.cli.getblockcount()
 
     @property

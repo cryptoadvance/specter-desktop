@@ -10,7 +10,7 @@ from .key import Key
 from functools import wraps
 from flask import g, request, redirect, url_for
 
-from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, flash, send_file
 from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
@@ -288,6 +288,13 @@ def general_settings():
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
             app.specter.check()
+        elif action == "backup":
+            return send_file(
+                app.specter.wallet_manager.wallets_backup_file,
+                attachment_filename='specter-backup.zip',
+                as_attachment=True
+            )
+
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
