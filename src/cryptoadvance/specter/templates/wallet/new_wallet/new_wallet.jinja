@@ -71,7 +71,6 @@
 {% block scripts %}
 <script type="text/javascript">
 	function updateType(val){
-		console.log(val);
 		let devs = document.getElementsByName('devices');
 		devs.forEach(dev => {
 			let types = JSON.parse(dev.getAttribute('data-key-types'));
