@@ -8,11 +8,13 @@
 		<h1>Type of the wallet</h1>
 		<nav class="row">
 			<label>
-				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}" class="hidden">
+				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
+				class="hidden" onchange="updateType(this.value);">
 				<div class="btn radio left">Nested Segwit</div>
 			</label>
 			<label>
-				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked class="hidden">
+				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
+				class="hidden" onchange="updateType(this.value);">
 				<div class="btn radio right">Segwit</div>
 			</label>
 		</nav>
@@ -39,11 +41,12 @@
 		{% endif %}
 		<div class="row overflow">
 			{% for device_name in specter.device_manager.devices_names %}
+				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
-					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ specter.device_manager.devices[device_name].alias }}" class="hidden">
+					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ device.alias }}" class="hidden" data-key-types='{{ device.key_types(specter.chain) | tojson }}' chain="{{specter.chain}}">
 					<div class="small-card radio">
-						{% if specter.device_manager.devices[device_name].device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
-							<img src="/static/img/{{ specter.device_manager.devices[device_name].device_type }}_icon.svg" width="18px">
+						{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+							<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
 						{% else %}
 							<img src="/static/img/other_icon.svg" width="18px">
 						{% endif %}
@@ -64,4 +67,25 @@
 			</center>
 		</div>
 	</form>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+	function updateType(val){
+		let devs = document.getElementsByName('devices');
+		devs.forEach(dev => {
+			let types = JSON.parse(dev.getAttribute('data-key-types'));
+			dev.disabled = !(types.includes("") || types.includes(val));
+			if(dev.disabled){
+				dev.checked = false;
+			}
+		});
+	}
+	// initial trigger
+	let els = document.getElementsByName("type");
+	els.forEach(el=>{
+		if (el.checked){
+			updateType(el.value);
+		}
+	})
+</script>
 {% endblock %}

@@ -82,6 +82,10 @@ class Device:
                 f.write(json.dumps(self.json,indent=4))
         self.manager.update()
 
+    def key_types(self, network='main'):
+        test = network != 'main'
+        return [key.key_type for key in self.keys if (key.is_testnet == test)]
+
     def __eq__(self, other):
         if other is None:
             return False
