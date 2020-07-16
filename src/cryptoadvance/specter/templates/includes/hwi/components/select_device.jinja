@@ -49,6 +49,14 @@
             handleHWIError(error);
             return null;
         }
+
+        showHWIProgress("Processing...", `Keep your ${capitalize(selectedDevice.type)} connected.`);
+        // Get the device again as it is now unlocked and the fingerprint is available
+        let rescanDevices = await enumerate(selectedDevice.type, selectedDevice.path);
+        if (rescanDevices.length == 1) {
+            selectedDevice = rescanDevices[0]
+        }
+        hidePageOverlay();
         console.log(passphrase);
         // maybe we get password here
         if(passphrase != null){

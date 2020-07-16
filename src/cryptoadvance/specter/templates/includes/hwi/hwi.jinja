@@ -45,14 +45,19 @@
         }
     }
 
-    async function enumerate(deviceTypes=null){
+    async function enumerate(deviceTypes=null, deveicePath=null){
         // detect device
-        showHWIProgress("Detecting...", "Plug in your device");
+        if (deveicePath == null) {
+            showHWIProgress("Detecting...", "Plug in your device");
+        }
         let result = [];
         try {
             result = await hwi.enumerate();
             if(result!=null && deviceTypes!=null){
                 result = result.filter(dev => deviceTypes.includes(dev.type));
+            }
+            if(result!=null && deveicePath!=null){
+                result = result.filter(dev => dev.path == deveicePath);
             }
             while(result.length == 0){
                 await wait(1000);
@@ -67,18 +72,23 @@
                 if(result!=null && deviceTypes!=null){
                     result = result.filter(dev => deviceTypes.includes(dev.type));
                 }
+                if(result!=null && deveicePath!=null){
+                    result = result.filter(dev => dev.path == deveicePath);
+                }
             }
         } catch (error) {
             handleHWIError(error);
             return null;
         }
         console.log(result);
-        if(!overlayIsActive()){
+        if(!overlayIsActive() && deveicePath == null){
             showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        if (deveicePath == null){
+            hidePageOverlay();
+        }
         return result;
     }
     // TODO: remove, legacy
