@@ -1,4 +1,5 @@
-import os, json, logging, shutil
+import os, json, logging, shutil, time, zipfile
+from io import BytesIO
 from collections import OrderedDict
 from hwilib.descriptor import AddChecksum
 from .helpers import alias, load_jsons
@@ -172,3 +173,15 @@ class WalletManager:
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()
+
+    @property
+    def wallets_backup_file(self):
+        memory_file = BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for wallet in self.wallets.values():
+                data = zipfile.ZipInfo('{}.json'.format(wallet.name))
+                data.date_time = time.localtime(time.time())[:6]
+                data.compress_type = zipfile.ZIP_DEFLATED
+                zf.writestr('{}.json'.format(wallet.name), wallet.account_map)
+        memory_file.seek(0)
+        return memory_file
