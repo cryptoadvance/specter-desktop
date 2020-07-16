@@ -152,6 +152,10 @@ class Key:
         return metadata
 
     @property
+    def is_testnet(self):
+        return not self.xpub.startswith("xpub")
+
+    @property
     def json(self):
         return {
             'original': self.original,

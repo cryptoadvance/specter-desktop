@@ -577,7 +577,15 @@ input[type="checkbox"]:checked + .btn.hovering
 input[type="radio"]:checked + .small-card,
 input[type="checkbox"]:checked + .small-card
 {
-	  background: #304052;
+	background: #304052;
+}
+input[type="radio"]:disabled + .small-card,
+input[type="checkbox"]:disabled + .small-card,
+input[type="radio"]:disabled + .small-card:hover,
+input[type="checkbox"]:disabled + .small-card:hover
+{
+    background: transparent;
+    opacity: 0.2;
 }
 table{
     border-collapse: collapse;
