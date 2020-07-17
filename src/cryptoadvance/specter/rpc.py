@@ -148,10 +148,14 @@ class RpcError(Exception):
     '''
     def __init__(self, message, response):
         super(Exception, self).__init__(message)
-        self.status_code = response.status_code
         try:
-            error = json.loads(response.text)
             self.status_code = response.status_code
+            error = response.json()
+        except:
+            # ok already a dict
+            self.status_code = 500
+            error = response
+        try:
             self.error_code = error['error']['code']
             self.error_msg = error['error']['message']
         except Exception as e:
@@ -223,7 +227,7 @@ class BitcoinCLI:
         def fn(*args, **kwargs):
             r = self.multi([(method,*args)])[0]
             if r["error"] is not None:
-                raise Exception(r["error"])
+                raise RpcError("Request error: %s" % r["error"]["message"], r)
             return r["result"]
         return fn
 
