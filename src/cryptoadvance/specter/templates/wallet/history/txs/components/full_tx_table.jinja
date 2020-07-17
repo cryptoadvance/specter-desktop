@@ -9,17 +9,13 @@
  #}
 {% macro full_tx_table(transactions, wallet, specter) -%}
     {% for tx in transactions %}
-        {# Display the destination address of the transaction #}
-        {% set tx_address = (tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"]) %}
-        {# Show the amount sent/ received in the transaction (without fees) #}
-        {% set tx_amount = tx["amount"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["amount"] %}
         {{
             tx_item(
                 tx["txid"],
                 tx["category"],
-                tx_amount,
-                tx_address,
-                wallet.get_address_name(tx_address, -1),
+                tx["amount"],
+                tx["address"],
+                wallet.get_address_name(tx["address"], -1),
                 tx["blockheight"],
                 tx["time"],
                 specter

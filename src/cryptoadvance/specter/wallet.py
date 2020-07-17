@@ -3,7 +3,7 @@ from time import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
-from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_txs, parse_raw_txs, parse_utxo
+from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -11,6 +11,7 @@ import threading
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
+WALLET_TX_BATCH = 100
 
 class Wallet():
     def __init__(
@@ -244,34 +245,26 @@ class Wallet():
         self.save_to_file()
 
     def txlist(self, idx):
-        ''' The first 10 transactions (after 10 * idx) for that wallet
-            filtering out change addresses transactions and duplicated transactions (except for self-transfers)
-            This list is used for the wallet `txs` tab to list the wallet transacions.
-            Note: Returns at least 10 txs, but might retun more in exceptional cases (self transfer/ batch tx to multiple addresses of the wallet etc.)
-        '''
         try:
-            cli_txs = self.cli.listtransactions("*", 10, 10 * idx, True)
-            if len(cli_txs) == 0:
-                return []
-            i = 10
-            while len(list(dict.fromkeys([tx['txid'] for tx in cli_txs]))) < 10:
-                next_tx = self.cli.listtransactions("*", 1, 10 * idx + i, True)
-                if len(next_tx) > 0:
-                    cli_txs.append(next_tx[0])
-                else:
-                    break
-                i += 1
-            self.raw_transactions = parse_raw_txs(self, cli_txs)
-            self.transactions = parse_txs(self, self.raw_transactions)
+            cli_txs = self.cli.listtransactions("*", WALLET_TX_BATCH + 2, WALLET_TX_BATCH * idx, True) # get batch + 2 to make sure you have information about send
+            cli_txs.reverse()
+            transactions = cli_txs[:WALLET_TX_BATCH]
         except:
-            self.transactions = []
-        txidlist = []
-        txlist = []
-        for tx in self.transactions:
-            if tx["is_change"] == False and (tx["is_self"] or tx["txid"] not in txidlist):
-                txidlist.append(tx["txid"])
-                txlist.append(tx)
-        return txlist
+            return []
+        txids = []
+        result = []
+        for tx in transactions:
+            if 'blockheight' not in tx:
+                tx['blockheight'] = -1
+            if tx['category'] == 'send':
+                if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
+                    continue # means the tx is duplicated (change), continue
+
+            if tx["txid"] not in txids:
+                txids.append(tx["txid"])
+                result.append(tx)
+
+        return result
 
     @property
     def rescan_progress(self):
