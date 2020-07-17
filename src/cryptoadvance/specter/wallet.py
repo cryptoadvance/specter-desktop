@@ -254,8 +254,8 @@ class Wallet():
         txids = []
         result = []
         for tx in transactions:
-            if 'blockheight' not in tx:
-                tx['blockheight'] = -1
+            if 'confirmations' not in tx:
+                tx['confirmations'] = 0
             if tx['category'] == 'send':
                 if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
                     continue # means the tx is duplicated (change), continue
@@ -287,11 +287,11 @@ class Wallet():
                 txs = next_txs
             else:
                 break
-
-        if len(txs) > 0 and 'blockheight' in txs[0]:
-            blockheight = txs[0]['blockheight'] - 101 # To ensure coinbase transactions are indexed properly
+        current_blockheight = self.cli.getblockcount()
+        if len(txs) > 0 and 'confirmations' in txs[0]:
+            blockheight = current_blockheight - txs[0]['confirmations'] - 101 # To ensure coinbase transactions are indexed properly
             return 0 if blockheight < 0 else blockheight # To ensure regtest don't have negative blockheight
-        return self.cli.getblockcount()
+        return current_blockheight
 
     @property
     def account_map(self):

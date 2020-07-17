@@ -12,17 +12,6 @@
         {% for tx in wallet.utxo if
             tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not group_by == 'address')
         %}
-            {{
-                tx_item(
-                    tx["txid"],
-                    tx["category"],
-                    tx["amount"],
-                    tx["address"],
-                    wallet.get_address_name(tx["address"], -1),
-                    tx["blockheight"],
-                    tx["time"],
-                    specter
-                )
-            }}
+            {{ tx_item(tx, wallet, specter) }}
         {% endfor %}
 {%- endmacro %}

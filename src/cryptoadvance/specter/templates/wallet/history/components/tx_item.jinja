@@ -1,47 +1,38 @@
 {# 
     tx_item - Transation table row.
     Parameters:
-    - txid: The transaction ID.
-    - category: The transaction category. Options: 
-                    "send"                  Transactions sent.
-                    "receive"               Non-coinbase transactions received.
-                    "generate"              Coinbase transactions received with more than 100 confirmations.
-                    "immature"              Coinbase transactions received with 100 or fewer confirmations.
-                    "orphan"                Orphaned coinbase transactions received (Not supported).
-    - amount: The transaction amount.
-    - address: The address associated with the transaction.
-    - label: The label of `address` (equal to `address` if no label exists).
-    - blockheight: The height of the block the transaction was mined in (-1 if the transaction is still unconfirmed).
-    - time: The time the transaction was sent at (in epoch seconds).
+    - tx: The transaction to display
+    - wallet: Wallet object
     - specter: Specter object.
  #}
-{% macro tx_item(txid, category, amount, address, label, blockheight, time, specter) -%}
+{% macro tx_item(tx, wallet, specter) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-    <tr class="{%if blockheight == -1 %}unconfirmed{%endif%}">
+    {% set txid = tx['txid'] %}
+    <tr class="{%if tx['confirmations'] == 0 %}unconfirmed{%endif%}">
         <td>
             {# coinbase txs are 'immature' until 100 confs #}
-            {% if category == 'immature' %}
+            {% if tx['category'] == 'immature' %}
                 <img src="/static/img/unconfirmed_receive_icon.svg"/>
             {% else %}
-                <img src="/static/img/{% if blockheight == -1 %}unconfirmed_{% endif %}{{category}}_icon.svg"/>
+                <img src="/static/img/{% if tx['confirmations'] == 0 %}unconfirmed_{% endif %}{{tx['category']}}_icon.svg"/>
             {% endif %}
         </td>
         <td class="tx scroll">
-            {{ explorer_link('tx', txid, txid, specter.explorer) }}
+            {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
         </td>
         <td class="tx scroll">
-            {{ explorer_link('address', address, label, specter.explorer) }}
+            {{ explorer_link('address', tx['address'], wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </td>
         <td>
-            {{ amount | btcamount }}
+            {{ tx['amount'] | btcamount }}
         </td>
         <td>
-            {%if blockheight == -1 %}
+            {%if tx['confirmations'] == 0 %}
                 Pending.
             {% else %}
-                {{specter.info.blocks - blockheight + 1}} conf.
+                {{ tx['confirmations'] }} conf.
             {% endif %}
-            ({{ time | datetime }})
+            ({{ tx['time'] | datetime }})
         </td>
     </tr>
 {%- endmacro %}

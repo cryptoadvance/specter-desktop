@@ -9,17 +9,6 @@
  #}
 {% macro full_tx_table(transactions, wallet, specter) -%}
     {% for tx in transactions %}
-        {{
-            tx_item(
-                tx["txid"],
-                tx["category"],
-                tx["amount"],
-                tx["address"],
-                wallet.get_address_name(tx["address"], -1),
-                tx["blockheight"],
-                tx["time"],
-                specter
-            )
-        }}
+        {{ tx_item(tx, wallet, specter) }}
     {% endfor %}
 {%- endmacro %}

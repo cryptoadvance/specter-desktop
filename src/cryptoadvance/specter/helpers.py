@@ -424,8 +424,8 @@ def parse_utxo(wallet, utxo):
                     break
         else:    
             tx['category'] = tx_data['details'][0]['category']
-        if 'blockheight' in tx_data:
-            tx['blockheight'] = tx_data['blockheight']
+        if 'confirmations' in tx_data:
+            tx['confirmations'] = tx_data['confirmations']
         else:
-            tx['blockheight'] = -1
+            tx['confirmations'] = 0
     return utxo
