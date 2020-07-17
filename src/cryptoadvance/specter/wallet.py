@@ -420,7 +420,7 @@ class Wallet():
 
     @property
     def is_current_address_used(self):
-        return self.cli.getreceivedbyaddress(self.address, 0) > 0
+        return self.balance_on_address(self.address) > 0
 
     @property
     def utxo_addresses(self):
