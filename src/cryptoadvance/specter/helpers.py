@@ -6,6 +6,7 @@ from hwilib.serializations import PSBT, CTransaction
 from .bcur import bcur_decode
 import threading
 from io import BytesIO
+import re
 
 # use this for all fs operations
 fslock = threading.Lock()
@@ -198,8 +199,10 @@ def get_version_info():
 
         current_version = str(subprocess.run([sys.executable, '-m', 'pip', 'show', '{}'.format(name)], capture_output=True, text=True))
         current_version = current_version[current_version.find('Version:')+8:]
-        current_version = current_version[:current_version.find('\\n')].replace(' ','') 
-
+        current_version = current_version[:current_version.find('\\n')].replace(' ','')
+        # master?
+        if not re.search(r"v([\d+]).([\d+]).([\d+]).*", current_version):
+            return current_version, latest_version, False
         return current_version, latest_version, latest_version != current_version
     except:
         # if pip is not installed or we are using python3.6 or below
