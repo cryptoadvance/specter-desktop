@@ -94,7 +94,6 @@ class HWIBridge {
         /**
             Sends the current psbt to the server to relay to the HWI wallet.
         **/
-       alert(device.passphrase)
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
