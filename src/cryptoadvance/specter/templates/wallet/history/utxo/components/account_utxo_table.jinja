@@ -1,0 +1,17 @@
+{% from 'wallet/history/components/tx_item.jinja' import tx_item %}
+
+{# 
+    account_utxo_table - List of transactions hisory of an account (address/ label)
+    Parameters:
+    - account: The address/ label to make the table for.
+    - group_by: Either 'address' (when `account` is an address) or 'label' (when `account` is a label, which may include multiple addresses)
+    - wallet: Wallet object
+    - specter: Specter object
+ #}
+{% macro account_utxo_table(account, group_by, wallet, specter) -%}
+        {% for tx in wallet.utxo if
+            tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not group_by == 'address')
+        %}
+            {{ tx_item(tx, wallet, specter) }}
+        {% endfor %}
+{%- endmacro %}

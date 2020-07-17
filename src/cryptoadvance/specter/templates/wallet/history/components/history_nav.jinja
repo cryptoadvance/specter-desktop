@@ -1,0 +1,22 @@
+{# 
+    history_nav - Tabs menu to navigate between the wallet transactions History and UTXO screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'history', 'utxo'.
+	- wallet_alias: The wallet alias (used in the URL navigation).
+	- viewtype: (For UTXO page), show accounts by address or by label
+ #}
+{% macro history_nav(active_menuitem, wallet_alias, viewtype) -%}
+	<br>
+    <nav class="row">
+		<a 
+			href="{{ url_for('wallet_tx_history', view=viewtype, wallet_alias=wallet_alias)}}"
+			class="btn radio left {% if active_menuitem == 'history' %}checked{% endif %}">
+			History
+		</a>
+		<a 
+			href="{{ url_for('wallet_tx_utxo', view=viewtype, wallet_alias=wallet_alias)}}"
+			class="btn radio right {% if active_menuitem == 'utxo' %}checked{% endif %}">
+			UTXO
+		</a>
+	</nav>
+{%- endmacro %}

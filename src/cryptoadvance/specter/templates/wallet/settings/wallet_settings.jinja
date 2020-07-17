@@ -83,12 +83,6 @@
 	<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
 	{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
 	<form action="." method="POST" class="padded" style="width: 500px">
-		<h1>Cache</h1>
-		<div class="row center">
-			<button type="submit" name="action" value="rebuildcache" class="btn" style="max-width: 160px;">Rebuild Cache</button>
-		</div>
-	</form>
-	<form action="." method="POST" class="padded" style="width: 500px">
 		<h1>Delete Wallet</h1>
 		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
 	</form>

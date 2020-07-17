@@ -3,7 +3,7 @@ from time import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
-from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock
+from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -11,6 +11,7 @@ import threading
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
+WALLET_TX_BATCH = 100
 
 class Wallet():
     def __init__(
@@ -63,10 +64,19 @@ class Wallet():
         if change_address == '':
             self.getnewaddress(change=True)
 
-        self.cli.scan_addresses(self)
+        self.scan_addresses()
         self.getdata()
         if old_format_detected:
             self.save_to_file()
+
+    def scan_addresses(self):
+        for tx in self.cli.listtransactions("*", 1000, 0, True):
+            address_info = self.cli.getaddressinfo(tx["address"])
+            if "hdkeypath" in address_info:
+                path = address_info["hdkeypath"].split('/')
+                change = int(path[-2]) == 1
+                while int(path[-1]) > (self.change_index if change else self.address_index):
+                    self.getnewaddress(change=change)
 
     @staticmethod
     def parse_old_format(wallet_dict, device_manager):
@@ -149,13 +159,9 @@ class Wallet():
 
     def getdata(self):
         try:
-            self.utxo = self.cli.listunspent(0)
+            self.utxo = parse_utxo(self, self.cli.listunspent(0))
         except:
             self.utxo = []
-        try:
-            self.transactions = self.cli.listtransactions("*", 1000, 0, True)
-        except:
-            self.transactions = []
         try:
             self.info = self.cli.getwalletinfo()
         except:
@@ -238,18 +244,27 @@ class Wallet():
         self.cli.lockunspent(False, psbt["tx"]["vin"])
         self.save_to_file()
 
-    @property
-    def txlist(self):
-        ''' The last 1000 transactions for that wallet - filtering out change addresses transactions and duplicated transactions (except for self-transfers)
-            This list is used for the wallet `txs` tab to list the wallet transacions.
-        '''
-        txidlist = []
-        txlist = []
-        for tx in self.transactions:
-            if tx["is_change"] == False and (tx["is_self"] or tx["txid"] not in txidlist):
-                txidlist.append(tx["txid"])
-                txlist.append(tx)
-        return txlist
+    def txlist(self, idx):
+        try:
+            cli_txs = self.cli.listtransactions("*", WALLET_TX_BATCH + 2, WALLET_TX_BATCH * idx, True) # get batch + 2 to make sure you have information about send
+            cli_txs.reverse()
+            transactions = cli_txs[:WALLET_TX_BATCH]
+        except:
+            return []
+        txids = []
+        result = []
+        for tx in transactions:
+            if 'confirmations' not in tx:
+                tx['confirmations'] = 0
+            if tx['category'] == 'send':
+                if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
+                    continue # means the tx is duplicated (change), continue
+
+            if tx["txid"] not in txids:
+                txids.append(tx["txid"])
+                result.append(tx)
+
+        return result
 
     @property
     def rescan_progress(self):
@@ -263,10 +278,20 @@ class Wallet():
 
     @property
     def blockheight(self):
-        if len(self.transactions) > 0 and 'block_height' in self.transactions[0]:
-            blockheight = self.transactions[0]['block_height'] - 101 # To ensure coinbase transactions are indexed properly
+        txs = self.cli.listtransactions("*", 100, 0, True)
+        i = 0
+        while (len(txs) == 100):
+            i += 1
+            next_txs = self.cli.listtransactions("*", 100, i * 100, True)
+            if (len(next_txs) > 0):
+                txs = next_txs
+            else:
+                break
+        current_blockheight = self.cli.getblockcount()
+        if len(txs) > 0 and 'confirmations' in txs[0]:
+            blockheight = current_blockheight - txs[0]['confirmations'] - 101 # To ensure coinbase transactions are indexed properly
             return 0 if blockheight < 0 else blockheight # To ensure regtest don't have negative blockheight
-        return self.cli.getblockcount()
+        return current_blockheight
 
     @property
     def account_map(self):
@@ -365,17 +390,17 @@ class Wallet():
         self.save_to_file()
         return end
     
-    def tx_on_address(self, address):
-        txlist = [tx for tx in self.transactions if tx["address"] == address]
-        return len(txlist)
+    def utxo_on_address(self, address):
+        utxo = [tx for tx in self.utxo if tx["address"] == address]
+        return len(utxo)
 
     def balance_on_address(self, address):
         balancelist = [utxo["amount"] for utxo in self.utxo if utxo["address"] == address]
         return sum(balancelist)
 
-    def tx_on_label(self, label):
-        txlist = [tx for tx in self.transactions if self.getlabel(tx["address"]) == label]
-        return len(txlist)
+    def utxo_on_label(self, label):
+        utxo = [tx for tx in self.utxo if self.getlabel(tx["address"]) == label]
+        return len(utxo)
 
     def balance_on_label(self, label):
         balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
@@ -386,36 +411,17 @@ class Wallet():
             [address for address in (self.addresses + self.change_addresses) if self.getlabel(address) == label]
         ))
 
-    def is_tx_spent(self, txid):
-        return txid in [utxo["txid"] for utxo in self.utxo]
-
     @property
-    def tx_on_current_address(self):
-        return self.tx_on_address(self.address)
+    def is_current_address_used(self):
+        return self.balance_on_address(self.address) > 0
 
     @property
     def utxo_addresses(self):
-        return list(dict.fromkeys([
-            utxo["address"] for utxo in 
-            sorted(
-                self.utxo,
-                key = lambda utxo: next(
-                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
-                )["time"]
-            )
-        ]))
+        return list(dict.fromkeys([utxo["address"] for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
 
     @property
     def utxo_labels(self):
-        return list(dict.fromkeys([
-            self.getlabel(utxo["address"]) for utxo in 
-            sorted(
-                self.utxo,
-                key = lambda utxo: next(
-                    tx for tx in self.transactions if tx["txid"] == utxo["txid"]
-                )["time"]
-            )
-        ]))
+        return list(dict.fromkeys([self.getlabel(utxo["address"]) for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
 
     def setlabel(self, address, label):
         self.cli.setlabel(address, label)
@@ -466,6 +472,10 @@ class Wallet():
     @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0, self.change_index + 1)]
+
+    @property
+    def wallet_addresses(self):
+        return self.addresses + self.change_addresses
 
     @property
     def labels(self):
