@@ -26,13 +26,13 @@
 			{% from 'wallet/history/components/history_nav.jinja' import history_nav %}
 			{{ history_nav('history', wallet_alias, viewtype) }}
 	</div><br>
+	{% set transactions = wallet.txlist(idx) %}
 	<div>
 		<a href="./?idx={{ idx - 1 }}" class="arrow {% if idx == 0 %}disabled{% endif %}">&#8249;</a>
 		Page {{ idx + 1 }}
-		<a href="./?idx={{ idx + 1 }}" class="arrow {% if wallet.txlist(idx + 1)|length == 0 %}disabled{% endif %}">&#8250;</a>
+		<a href="./?idx={{ idx + 1 }}" class="arrow {% if transactions|length < 10 %}disabled{% endif %}">&#8250;</a>
 	</div>
 	<div class="table-holder">
-		{% set transactions = wallet.txlist(idx) %}
 		{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
 		{% from 'wallet/history/txs/components/full_tx_table.jinja' import full_tx_table %}
 		{{
