@@ -37,14 +37,16 @@ class HWIBridge(JSONRPC):
         Returns a list of all connected devices (dicts).
         Standard HWI enumerate() command + Specter.
         """
-        self.devices = hwi_commands.enumerate()
-        self.devices += specter_enumerate()
+        self.devices = hwi_commands.enumerate(passphrase)
+        self.devices += specter_enumerate(passphrase)
         for device in self.devices:
             client = self._get_client(device_type=device['type'], path=device['path'], passphrase=passphrase, chain=chain)
             try:
                  device['fingerprint'] = client.get_master_fingerprint_hex()
             except:
                 pass
+            if client:
+                client.close()
         return self.devices
     
     def detect_device(self, device_type=None, path=None, fingerprint=None, rescan_devices=False):

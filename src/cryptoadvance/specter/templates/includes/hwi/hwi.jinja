@@ -45,19 +45,19 @@
         }
     }
 
-    async function enumerate(deviceTypes=null, deveicePath=null){
+    async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
         // detect device
-        if (deveicePath == null) {
+        if (devicePath == null) {
             showHWIProgress("Detecting...", "Plug in your device");
         }
         let result = [];
         try {
-            result = await hwi.enumerate();
+            result = await hwi.enumerate(passphrase);
             if(result!=null && deviceTypes!=null){
                 result = result.filter(dev => deviceTypes.includes(dev.type));
             }
-            if(result!=null && deveicePath!=null){
-                result = result.filter(dev => dev.path == deveicePath);
+            if(result!=null && devicePath!=null){
+                result = result.filter(dev => dev.path == devicePath);
             }
             while(result.length == 0){
                 await wait(1000);
@@ -68,12 +68,12 @@
                     return null;
                 }
                 console.log("Retrying enumerate...");
-                result = await hwi.enumerate();
+                result = await hwi.enumerate(passphrase);
                 if(result!=null && deviceTypes!=null){
                     result = result.filter(dev => deviceTypes.includes(dev.type));
                 }
-                if(result!=null && deveicePath!=null){
-                    result = result.filter(dev => dev.path == deveicePath);
+                if(result!=null && devicePath!=null){
+                    result = result.filter(dev => dev.path == devicePath);
                 }
             }
         } catch (error) {
@@ -81,12 +81,12 @@
             return null;
         }
         console.log(result);
-        if(!overlayIsActive() && deveicePath == null){
+        if(!overlayIsActive() && devicePath == null){
             showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
-        if (deveicePath == null){
+        if (devicePath == null){
             hidePageOverlay();
         }
         return result;

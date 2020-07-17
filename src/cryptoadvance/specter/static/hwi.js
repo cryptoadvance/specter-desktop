@@ -37,8 +37,10 @@ class HWIBridge {
         }
         return data.result;
     }
-    async enumerate(){
-        return await this.fetch("enumerate");
+    async enumerate(passphrase=""){
+        return await this.fetch("enumerate", { 
+            passphrase
+        });
     }
     async detectDevice(type, rescan=true){
         // TODO: fingerprint, path, type
@@ -92,6 +94,7 @@ class HWIBridge {
         /**
             Sends the current psbt to the server to relay to the HWI wallet.
         **/
+       alert(device.passphrase)
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
