@@ -64,19 +64,31 @@ class Wallet():
         if change_address == '':
             self.getnewaddress(change=True)
 
-        self.scan_addresses()
+        self.check_addresses()
         self.getdata()
         if old_format_detected:
             self.save_to_file()
 
-    def scan_addresses(self):
-        for tx in self.cli.listtransactions("*", 1000, 0, True):
-            address_info = self.cli.getaddressinfo(tx["address"])
-            if "hdkeypath" in address_info:
-                path = address_info["hdkeypath"].split('/')
-                change = int(path[-2]) == 1
-                while int(path[-1]) > (self.change_index if change else self.address_index):
-                    self.getnewaddress(change=change)
+    def check_addresses(self):
+        """Checking the gap limit is still ok"""
+        txs = self.cli.listtransactions("*", 1000, 0, True)
+        addresses = [tx["address"] for tx in txs]
+        # remove duplicates
+        addresses = list(dict.fromkeys(addresses))
+        # prepare rpc call
+        calls = [("getaddressinfo",addr) for addr in addresses]
+        # extract results
+        res = [r["result"] for r in self.cli.multi(calls)]
+        # extract last two indexes of hdkeypath
+        paths = [d["hdkeypath"].split("/")[-2:] for d in res if "hdkeypath" in d]
+        # get change and recv addresses
+        max_recv = max([int(p[1]) for p in paths if p[0]=="0"], default=-1)
+        max_change = max([int(p[1]) for p in paths if p[0]=="1"], default=-1)
+        # these calls will happen only if current addresses are used
+        while max_recv >= self.address_index:
+            self.getnewaddress(change=False)
+        while max_change >= self.change_index:
+            self.getnewaddress(change=True)
 
     @staticmethod
     def parse_old_format(wallet_dict, device_manager):

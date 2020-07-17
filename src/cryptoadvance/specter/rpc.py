@@ -148,10 +148,14 @@ class RpcError(Exception):
     '''
     def __init__(self, message, response):
         super(Exception, self).__init__(message)
-        self.status_code = response.status_code
         try:
-            error = json.loads(response.text)
             self.status_code = response.status_code
+            error = response.json()
+        except:
+            # ok already a dict
+            self.status_code = 500
+            error = response
+        try:
             self.error_code = error['error']['code']
             self.error_msg = error['error']['message']
         except Exception as e:
@@ -169,16 +173,16 @@ class BitcoinCLI:
         self.path = path
         self.timeout = timeout
         self.r = None
-        def wallet(name=""):
-            return BitcoinCLI(user=self.user,
-                          passwd=self.passwd,
-                          port=self.port,
-                          protocol=self.protocol,
-                          host=self.host,
-                          path="{}/wallet/{}".format(self.path, name),
-                          timeout=self.timeout
-            )
-        self.wallet = wallet
+
+    def wallet(self, name=""):
+        return BitcoinCLI(user=self.user,
+                      passwd=self.passwd,
+                      port=self.port,
+                      protocol=self.protocol,
+                      host=self.host,
+                      path="{}/wallet/{}".format(self.path, name),
+                      timeout=self.timeout
+        )
 
     @property
     def url(self):
@@ -196,31 +200,34 @@ class BitcoinCLI:
         ''' returns a clone of self. Usefull if you want to mess with the properties '''
         return BitcoinCLI(self.user, self.passwd, self.host, self.port, self.protocol, self.path, self.timeout)
 
-    def __getattr__(self, method):
-        # if hasattr(self, method):
-            # self.
+    def multi(self, calls:list, **kwargs):
+        """Makes batch request to Core"""
         headers = {'content-type': 'application/json'}
+        payload = [{
+            "method": method,
+            "params": args,
+            "jsonrpc": "2.0",
+            "id": i,
+        } for i, (method, *args) in enumerate(calls)]
+        timeout = self.timeout
+        if "timeout" in kwargs:
+            timeout = kwargs["timeout"]
+        url = self.url
+        if "wallet" in kwargs:
+            url = url+"/wallet/{}".format(kwargs["wallet"])
+        r = requests.post(
+            url, data=json.dumps(payload), headers=headers, timeout=timeout)
+        self.r = r
+        if r.status_code != 200:
+            raise RpcError("Server responded with error code %d: %s" % (r.status_code, r.text), r)
+        r = r.json()
+        return r
+
+    def __getattr__(self, method):
         def fn(*args, **kwargs):
-            payload = {
-                "method": method,
-                "params": args,
-                "jsonrpc": "2.0",
-                "id": 0,
-            }
-            timeout = self.timeout
-            if "timeout" in kwargs:
-                timeout = kwargs["timeout"]
-            url = self.url
-            if "wallet" in kwargs:
-                url = url+"/wallet/{}".format(kwargs["wallet"])
-            r = requests.post(
-                url, data=json.dumps(payload), headers=headers, timeout=timeout)
-            self.r = r
-            if r.status_code != 200:
-                raise RpcError("Server responded with error code %d: %s" % (r.status_code, r.text), r)
-            r = r.json()
+            r = self.multi([(method,*args)])[0]
             if r["error"] is not None:
-                raise Exception(r["error"])
+                raise RpcError("Request error: %s" % r["error"]["message"], r)
             return r["result"]
         return fn
 
