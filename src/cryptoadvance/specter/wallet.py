@@ -295,8 +295,8 @@ class Wallet():
             else:
                 break
 
-        if len(txs) > 0 and 'blockheight' in txs[-1]:
-            blockheight = txs[-1]['blockheight'] - 101 # To ensure coinbase transactions are indexed properly
+        if len(txs) > 0 and 'blockheight' in txs[0]:
+            blockheight = txs[0]['blockheight'] - 101 # To ensure coinbase transactions are indexed properly
             return 0 if blockheight < 0 else blockheight # To ensure regtest don't have negative blockheight
         return self.cli.getblockcount()
 
