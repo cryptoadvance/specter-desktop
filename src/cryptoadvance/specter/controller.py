@@ -724,17 +724,24 @@ def wallet(wallet_alias):
 @app.route('/wallets/<wallet_alias>/tx/')
 @login_required
 def wallet_tx(wallet_alias):
+    return redirect("/wallets/%s/tx/history" % wallet_alias)
+
+@app.route('/wallets/<wallet_alias>/tx/history/')
+@login_required
+def wallet_tx_history(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_tx: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    return render_template("wallet/history/txs/wallet_tx.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
+    idx = int(request.args.get('idx', default=0))
 
-@app.route('/wallets/<wallet_alias>/addresses/', methods=['GET', 'POST'])
+    return render_template("wallet/history/txs/wallet_tx.jinja", idx=idx, wallet_alias=wallet_alias, wallet=wallet, history=True, specter=app.specter, rand=rand)
+
+@app.route('/wallets/<wallet_alias>/tx/utxo/', methods=['GET', 'POST'])
 @login_required
-def wallet_addresses(wallet_alias):
+def wallet_tx_utxo(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
@@ -753,8 +760,7 @@ def wallet_addresses(wallet_alias):
                 for address in wallet.addresses_on_label(account):
                     wallet.setlabel(address, label)
                 wallet.getdata()
-    alladdresses = True if request.args.get('all') != 'False' else False
-    return render_template("wallet/history/addresses/wallet_addresses.jinja", wallet_alias=wallet_alias, wallet=wallet, alladdresses=alladdresses, viewtype=viewtype, specter=app.specter, rand=rand)
+    return render_template("wallet/history/utxo/wallet_utxo.jinja", wallet_alias=wallet_alias, wallet=wallet, history=False, viewtype=viewtype, specter=app.specter, rand=rand)
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -772,7 +778,7 @@ def wallet_receive(wallet_alias):
         elif action == "updatelabel":
             label = request.form['label']
             wallet.setlabel(wallet.address, label)
-    if wallet.tx_on_current_address > 0:
+    if wallet.is_current_address_used:
         wallet.getnewaddress()
     return render_template("wallet/receive/wallet_receive.jinja", wallet_alias=wallet_alias, wallet=wallet, specter=app.specter, rand=rand)
 
@@ -952,8 +958,6 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
             wallet.keypoolrefill(wallet.change_keypool, wallet.change_keypool + delta, change=True)
             wallet.getdata()
-        elif action == "rebuildcache":
-            wallet.cli.cache.rebuild_cache()
         elif action == "deletewallet":
             app.specter.wallet_manager.delete_wallet(wallet)
             response = redirect(url_for('index'))

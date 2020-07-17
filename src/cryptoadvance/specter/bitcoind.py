@@ -14,7 +14,7 @@ import docker
 from .helpers import which
 from .server import DATA_FOLDER
 from .rpc import RpcError
-from .rpc_cache import BitcoinCLICached
+from .rpc import BitcoinCLI
 from .helpers import load_jsons
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class Btcd_conn:
     def get_cli(self):
         ''' returns a BitcoinCLI '''
         # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
-        cli = BitcoinCLICached(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
+        cli = BitcoinCLI(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
         cli.getblockchaininfo()
         return cli
 

@@ -3,11 +3,12 @@
 {# 
     full_tx_table - List of the entire wallet transactions hisory
     Parameters:
+    - transactions: Transactions to list in the table
     - wallet: Wallet object
     - specter: Specter object
  #}
-{% macro full_tx_table(wallet, specter) -%}
-    {% for tx in wallet.txlist %}
+{% macro full_tx_table(transactions, wallet, specter) -%}
+    {% for tx in transactions %}
         {# Display the destination address of the transaction #}
         {% set tx_address = (tx["address"] if tx["category"] != "send" or tx["destination"] == None else tx["destination"]["address"]) %}
         {# Show the amount sent/ received in the transaction (without fees) #}
@@ -19,7 +20,7 @@
                 tx_amount,
                 tx_address,
                 wallet.get_address_name(tx_address, -1),
-                tx["block_height"],
+                tx["blockheight"],
                 tx["time"],
                 specter
             )

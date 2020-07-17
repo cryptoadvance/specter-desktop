@@ -172,7 +172,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
 
     address_balance = wallet.fullbalance
     assert len(wallet.utxo) == 20
-    assert wallet.tx_on_current_address == 20
+    assert wallet.is_current_address_used
     assert wallet.balance_on_address(address) == address_balance
     assert wallet.balance_on_label('Random label') == address_balance
     assert wallet.addresses_on_label('Random label') == [address]
@@ -190,8 +190,8 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.getdata()
 
     assert len(wallet.utxo) == 40
-    assert wallet.tx_on_current_address == 20
-    assert wallet.tx_on_address(address) == 20
+    assert wallet.is_current_address_used
+    assert wallet.utxo_on_address(address) == 20
     assert wallet.balance_on_address(new_address) == wallet.fullbalance - address_balance
     assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
     assert sorted(wallet.utxo_labels) == sorted(['Random label', new_address])

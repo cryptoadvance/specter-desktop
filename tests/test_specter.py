@@ -1,7 +1,7 @@
 import json, logging, pytest
 from cryptoadvance.specter.specter import get_cli, Specter
 from cryptoadvance.specter.helpers import alias
-from cryptoadvance.specter.rpc_cache import BitcoinCLICached
+from cryptoadvance.specter.rpc import BitcoinCLI
 
 
 def test_alias():
@@ -23,7 +23,7 @@ def test_get_cli(specter_regtest_configured):
     print("rpc_config_data: {}".format(rpc_config_data))
     cli = get_cli(rpc_config_data)
     assert cli.getblockchaininfo() 
-    assert isinstance(cli, BitcoinCLICached)
+    assert isinstance(cli, BitcoinCLI)
     # ToDo test autodetection-features
 
 def test_specter(specter_regtest_configured,caplog): 

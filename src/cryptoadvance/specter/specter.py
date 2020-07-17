@@ -1,7 +1,7 @@
 import copy, json, logging, os, random
 from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_cli_confs, RpcError
-from .rpc_cache import BitcoinCLICached
+from .rpc import BitcoinCLI
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from .user import User
@@ -19,11 +19,11 @@ def get_cli(conf):
         else:
             cli_conf_arr = autodetect_cli_confs()
         if len(cli_conf_arr) > 0:
-            cli = BitcoinCLICached(**cli_conf_arr[0])
+            cli = BitcoinCLI(**cli_conf_arr[0])
         else:
             return None
     else:
-        cli = BitcoinCLICached(conf["user"], conf["password"], 
+        cli = BitcoinCLI(conf["user"], conf["password"], 
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
     return cli
 

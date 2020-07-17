@@ -410,3 +410,159 @@ def seed_to_hd_master_key(seed, testnet=False) -> str:
 
     # Return base58
     return b58encode(xprv)
+
+# Transaction processing helpers
+
+def parse_utxo(wallet, utxo):
+    for tx in utxo:
+        tx_data = wallet.cli.gettransaction(tx['txid'])
+        tx['time'] = tx_data['time']
+        if (len(tx_data['details']) > 1):
+            for details in tx_data['details']:
+                if details['category'] != 'send':
+                    tx['category'] = details['category']
+                    break
+        else:    
+            tx['category'] = tx_data['details'][0]['category']
+        if 'blockheight' in tx_data:
+            tx['blockheight'] = tx_data['blockheight']
+        else:
+            tx['blockheight'] = -1
+    return utxo
+
+def parse_raw_txs(wallet, cli_txs):
+    """Parse `raw_transactions` (with full data on all the inputs and outputs of each tx)
+    """
+    cli_txs = {tx["txid"]: tx for tx in cli_txs if tx["category"] != "orphan"}
+    raw_transactions = {}
+    # TODO: Getting all wallet addresses takes many calls to Core, maybe optimize that functionality
+    wallet_addresses = wallet.wallet_addresses
+    # Get list of all tx ids
+    txids = list(dict.fromkeys(cli_txs.keys()))
+
+    for txid in txids:
+        # Call Bitcoin Core to get the "raw" transaction - allows to read detailed inputs and outputs
+        raw_tx_hex = wallet.cli.gettransaction(txid)["hex"]
+        raw_tx = wallet.cli.decoderawtransaction(raw_tx_hex)
+
+        # Some data (like fee and category, and when unconfirmed also time) available from the `listtransactions`
+        # command is not available in the `getrawtransacion` - so add it "manually" here.
+        if "fee" in cli_txs[txid]:
+            raw_tx["fee"] = cli_txs[txid]["fee"]
+        if "category" in cli_txs[txid]:
+            raw_tx["category"] = cli_txs[txid]["category"]
+        if "time" in cli_txs[txid]:
+            raw_tx["time"] = cli_txs[txid]["time"]
+        if "blockheight" in cli_txs[txid]:
+            raw_tx["blockheight"] = cli_txs[txid]["blockheight"]
+        else:
+            raw_tx["blockheight"] = -1
+
+        # Loop on the transaction's inputs
+        # If not a coinbase transaction:
+        # Get the the output data corresponding to the input (that is: input_txid[output_index])
+        tx_ins = []
+        for vin in raw_tx["vin"]:
+            # If the tx is a coinbase tx - set `coinbase` to True
+            if "coinbase" in vin:
+                raw_tx["coinbase"] = True
+                break
+            # If the tx is a coinbase tx - set `coinbase` to True
+            vin_txid = vin["txid"]
+            vin_vout = vin["vout"]
+            try:
+                raw_tx_hex = wallet.cli.gettransaction(vin_txid)["hex"]
+                tx_in = wallet.cli.decoderawtransaction(raw_tx_hex)["vout"][vin_vout]
+                tx_in["txid"] = vin["txid"]
+                tx_ins.append(tx_in)
+            except:
+                pass
+
+        # For each output in the tx_ins list (the tx inputs in their output "format")
+        # Create object with the address, amount, and whatever the address belongs to the wallet (`internal=True` if it is).
+        raw_tx["from"] = [{
+            "address": out["scriptPubKey"]["addresses"][0],
+            "amount": out["value"],
+            "internal": out["scriptPubKey"]["addresses"][0] in wallet_addresses
+        } for out in tx_ins]
+        # For each output in the tx (`vout`)
+        # Create object with the address, amount, and whatever the address belongs to the wallet (`internal=True` if it is).
+        raw_tx["to"] = [({
+            "address": out["scriptPubKey"]["addresses"][0],
+            "amount": out["value"],
+            "internal": out["scriptPubKey"]["addresses"][0] in wallet_addresses
+        }) for out in raw_tx["vout"] if "addresses" in out["scriptPubKey"]]
+
+        # Save the raw_transaction to the cache
+        raw_transactions[txid] = raw_tx
+
+    return raw_transactions
+
+def parse_txs(wallet, raw_txs):
+    """Caches the transactions list.
+        Cache the inputs and outputs which belong to the user's wallet for each `raw_transaction` 
+        This method relies on a few assumptions regarding the txs format to cache data properly:
+            - In `send` transactions, all inputs belong to the wallet.
+            - In `send` transactions, there is only one output not belonging to the wallet (i.e. only one recipient).
+            - In `coinbase` transactions, there is only one input.
+            - Change addresses are derived from the path used by Specter
+    """
+    # Get the cached `raw_transactions` dict (txid -> tx) as a list of txs
+    transactions = list(sorted(raw_txs.values(), key = lambda tx: tx['time'], reverse=True))
+    result = []
+
+    # Loop through the raw_transactions list
+    for i, tx in enumerate(transactions):
+        # If tx is a user generated one (categories: `send`/ `receive`) and not coinbase (categories: `generated`/ `immature`)
+        if tx["category"] == "send" or tx["category"] == "receive":
+            is_send = True
+            is_self = True
+
+            # Check if the transaction is a `send` or not (if all inputs belong to the wallet)
+            if len(tx["from"]) == 0:
+                is_send = False
+
+            for fromdata in tx["from"]:
+                if not fromdata["internal"]:
+                    is_send = False
+
+            # Check if the transaction is a `self-transfer` (if all inputs and all outputs belong to the wallet)
+            for to in tx["to"]:
+                if not is_send or not to["internal"]:
+                    is_self = False
+                    break
+
+            tx["is_self"] = is_self
+
+            if not is_send or is_self:
+                for to in tx["to"]:
+                    if to["internal"]:
+                        # Cache received outputs
+                        result.append(prepare_tx(tx, to, "receive", destination=None, is_change=(to["address"] in wallet.change_addresses)))
+
+            if is_send or is_self:
+                destination = None
+                for to in tx["to"]:
+                    if to["address"] in wallet.change_addresses and not is_self:
+                        # Cache change output
+                        result.append(prepare_tx(tx, to, "receive", destination=destination, is_change=True))
+                    elif not to["internal"] or (is_self and to["address"] not in wallet.change_addresses):
+                        destination = to
+                for fromdata in tx["from"]:
+                    # Cache sent inputs
+                    result.append(prepare_tx(tx, fromdata, "send", destination=destination))
+        else:
+            tx["is_self"] = False
+            # Cache coinbase output
+            result.append(prepare_tx(tx, tx["to"][0], tx["category"]))
+
+    return result
+
+def prepare_tx(tx, output, category, destination=None, is_change=False):
+    tx_clone = tx.copy()
+    tx_clone["destination"] = destination
+    tx_clone["address"] = output["address"]
+    tx_clone["amount"] = output["amount"]
+    tx_clone["category"] = category
+    tx_clone["is_change"] = is_change
+    return tx_clone

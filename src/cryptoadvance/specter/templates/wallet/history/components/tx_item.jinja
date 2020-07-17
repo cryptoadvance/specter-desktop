@@ -11,19 +11,19 @@
     - amount: The transaction amount.
     - address: The address associated with the transaction.
     - label: The label of `address` (equal to `address` if no label exists).
-    - block_height: The height of the block the transaction was mined in (-1 if the transaction is still unconfirmed).
+    - blockheight: The height of the block the transaction was mined in (-1 if the transaction is still unconfirmed).
     - time: The time the transaction was sent at (in epoch seconds).
     - specter: Specter object.
  #}
-{% macro tx_item(txid, category, amount, address, label, block_height, time, specter) -%}
+{% macro tx_item(txid, category, amount, address, label, blockheight, time, specter) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-    <tr class="{%if block_height == -1 %}unconfirmed{%endif%}">
+    <tr class="{%if blockheight == -1 %}unconfirmed{%endif%}">
         <td>
             {# coinbase txs are 'immature' until 100 confs #}
             {% if category == 'immature' %}
                 <img src="/static/img/unconfirmed_receive_icon.svg"/>
             {% else %}
-                <img src="/static/img/{% if block_height == -1 %}unconfirmed_{% endif %}{{category}}_icon.svg"/>
+                <img src="/static/img/{% if blockheight == -1 %}unconfirmed_{% endif %}{{category}}_icon.svg"/>
             {% endif %}
         </td>
         <td class="tx scroll">
@@ -36,10 +36,10 @@
             {{ amount | btcamount }}
         </td>
         <td>
-            {%if block_height == -1 %}
+            {%if blockheight == -1 %}
                 Pending.
             {% else %}
-                {{specter.info.blocks - block_height + 1}} conf.
+                {{specter.info.blocks - blockheight + 1}} conf.
             {% endif %}
             ({{ time | datetime }})
         </td>
