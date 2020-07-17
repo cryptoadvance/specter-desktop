@@ -39,17 +39,19 @@
     }
 
     function hidePageOverlay() {
-        // Transfer the content back into a holder div
-        var holder = document.createElement("div");
-        holder.style.display = "none";
-        document.body.appendChild(holder);
-        holder.appendChild(document.getElementById(document.getElementById("page_overlay_popup_content").children[0].id));
+        if (overlayIsActive()) {
+            // Transfer the content back into a holder div
+            var holder = document.createElement("div");
+            holder.style.display = "none";
+            document.body.appendChild(holder);
+            holder.appendChild(document.getElementById(document.getElementById("page_overlay_popup_content").children[0].id));
 
-        var overlay = document.getElementById("page_overlay");
-        overlay.style.display = "none";
+            var overlay = document.getElementById("page_overlay");
+            overlay.style.display = "none";
 
-        var overlayPopup = document.getElementById("page_overlay_popup");
-        overlayPopup.style.display = "none";
+            var overlayPopup = document.getElementById("page_overlay_popup");
+            overlayPopup.style.display = "none";
+        }
     }
 
     function overlayIsActive(){

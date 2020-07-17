@@ -21,7 +21,16 @@
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
-                    signTx(combine, '{{ device.device_type }}', '{{ device_psbts["hwi"] }}');
+                    let fingerprint = null;
+                    {% for wallet_key in wallet.keys %}
+                        {% for device_key in device.keys %}
+                            {% if device_key == wallet_key %}
+                                fingerprint = '{{ device.keys[loop.index0].fingerprint }}'
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+
+                    signTx(combine, '{{ device.device_type }}', '{{ device_psbts["hwi"] }}', fingerprint);
                 });
             </script>
         {% endif %}

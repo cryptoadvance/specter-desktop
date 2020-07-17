@@ -23,13 +23,19 @@
         let devices = await enumerate(deviceTypes);
         return devices;
     }
-    async function signTx(combine, deviceType, psbt){
+    async function signTx(combine, deviceType, psbt, fingerprint=null){
         let devices = await getConnectedWalletDevices([deviceType]);
         if(devices == null || devices.length == 0){
             return;
         }
         let device = await selectDevice(devices);
+        console.log(device)
         if(device == null){
+            return;
+        }
+
+        if (fingerprint && device.fingerprint != fingerprint) {
+            handleHWIError("Selected device does not have matching signing key.");
             return;
         }
         showHWIProgress("Signing transaction...", `Confirm on your ${capitalize(device.type)}.`);

@@ -45,14 +45,19 @@
         }
     }
 
-    async function enumerate(deviceTypes=null){
+    async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
         // detect device
-        showHWIProgress("Detecting...", "Plug in your device");
+        if (devicePath == null) {
+            showHWIProgress("Detecting...", "Plug in your device");
+        }
         let result = [];
         try {
-            result = await hwi.enumerate();
+            result = await hwi.enumerate(passphrase);
             if(result!=null && deviceTypes!=null){
                 result = result.filter(dev => deviceTypes.includes(dev.type));
+            }
+            if(result!=null && devicePath!=null){
+                result = result.filter(dev => dev.path == devicePath);
             }
             while(result.length == 0){
                 await wait(1000);
@@ -63,9 +68,12 @@
                     return null;
                 }
                 console.log("Retrying enumerate...");
-                result = await hwi.enumerate();
+                result = await hwi.enumerate(passphrase);
                 if(result!=null && deviceTypes!=null){
                     result = result.filter(dev => deviceTypes.includes(dev.type));
+                }
+                if(result!=null && devicePath!=null){
+                    result = result.filter(dev => dev.path == devicePath);
                 }
             }
         } catch (error) {
@@ -73,12 +81,14 @@
             return null;
         }
         console.log(result);
-        if(!overlayIsActive()){
+        if(!overlayIsActive() && devicePath == null){
             showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        if (devicePath == null){
+            hidePageOverlay();
+        }
         return result;
     }
     // TODO: remove, legacy

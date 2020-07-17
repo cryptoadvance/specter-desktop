@@ -10,7 +10,7 @@
     async function enterPin(device, promptPin=true){
         let result = null;
         if (promptPin) {
-            showHWIProgress("Awaiting Confirmation...", `Please confirm the action on your ${capitalize(device.type)} device.`);
+            showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
             try {
                 result = await hwi.promptPin(device);
             } catch (error) {

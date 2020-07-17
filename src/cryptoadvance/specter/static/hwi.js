@@ -37,8 +37,10 @@ class HWIBridge {
         }
         return data.result;
     }
-    async enumerate(){
-        return await this.fetch("enumerate");
+    async enumerate(passphrase=""){
+        return await this.fetch("enumerate", { 
+            passphrase
+        });
     }
     async detectDevice(type, rescan=true){
         // TODO: fingerprint, path, type
