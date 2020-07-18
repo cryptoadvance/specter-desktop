@@ -66,6 +66,7 @@
 			if(addr == null){
 				return;
 			}
+			// remove bitcoin: stuff
             if(addr.indexOf("bitcoin:") >= 0){
                 addr = addr.substr(addr.indexOf("bitcoin:")+8);
             }
@@ -74,6 +75,7 @@
             document.getElementById("address").value = addr;
             let evt = new Event('input');
             document.getElementById("address").dispatchEvent(evt);
+            // parse metadata like amount and message
             if(arr.length > 1){
                 arr = arr[1].split("&");
                 arr.forEach((e)=>{
