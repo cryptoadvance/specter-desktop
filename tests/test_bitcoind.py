@@ -1,12 +1,14 @@
 import logging
+import os
 from cryptoadvance.specter.helpers import which
+from cryptoadvance.specter.bitcoind import BitcoindPlainController
+from cryptoadvance.specter.bitcoind import BitcoindDockerController
 
 def test_bitcoinddocker_running(caplog, docker, request):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
-        from cryptoadvance.specter.bitcoind import BitcoindDockerController
         my_bitcoind = BitcoindDockerController(rpcport=18999, docker_tag=requested_version) # completly different port to not interfere
     else:
         try:
@@ -16,10 +18,13 @@ def test_bitcoinddocker_running(caplog, docker, request):
             # Doesn't make sense to print anything as this won't be shown
             # for passing tests
             return
-        from cryptoadvance.specter.bitcoind import BitcoindPlainController
-        # This doesn't work if you don't have a bitcoind on the path
-        my_bitcoind = BitcoindPlainController() # completly different port to not interfere    
-    #assert my_bitcoind.detect_bitcoind_container() == True
+        if os.path.isfile('tests/bitcoin/src/bitcoind'):
+            # copied from conftest.py
+            # always prefer the self-compiled bitcoind if existing
+            my_bitcoind = BitcoindPlainController(bitcoind_path='tests/bitcoin/src/bitcoind') 
+        else:
+            my_bitcoind = BitcoindPlainController() # Alternatively take the one on the path for now
+    
     rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True)
     requested_version = request.config.getoption("--bitcoind-version")
     assert my_bitcoind.version() == requested_version

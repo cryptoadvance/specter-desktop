@@ -27,7 +27,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     wallet.cli.generatetoaddress(100, random_address)
     # a balance has properties which are caching the result from last call
-    assert wallet.fullbalance == 50
+    assert wallet.fullbalance >= 25
    
     # You can create a multisig wallet with the wallet manager like this
     second_device = device_manager.get_by_alias('specter')
@@ -40,7 +40,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     multisig_wallet.cli.generatetoaddress(1, multisig_address)
     multisig_wallet.cli.generatetoaddress(100, random_address)
     # a balance has properties which are caching the result from last call
-    assert multisig_wallet.fullbalance == 25
+    assert multisig_wallet.fullbalance >= 12.5
     # The WalletManager also has a `wallets_names` property, returning a sorted list of the names of all wallets
     assert wm.wallets_names == ['a_multisig_test_wallet', 'a_test_wallet']
 

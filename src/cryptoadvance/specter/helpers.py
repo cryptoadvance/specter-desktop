@@ -8,6 +8,8 @@ import threading
 from io import BytesIO
 import re
 
+logger = logging.getLogger(__name__)
+
 # use this for all fs operations
 fslock = threading.Lock()
 
@@ -30,7 +32,7 @@ try:
 except:
     collectionsAbc = collections
 
-logger = logging.getLogger(__name__)
+
 def alias(name):
     name = name.replace(" ", "_")
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
@@ -134,19 +136,19 @@ def which(program):
         # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
         exec_location = os.path.join(sys._MEIPASS, program)
         if is_exe(exec_location):
-            logger.info("Found %s executable in %s" % (program, exec_location))
+            logger.debug("Found %s executable in %s" % (program, exec_location))
             return exec_location
 
     fpath, program_name = os.path.split(program)
     if fpath:
         if is_exe(program):
-            logger.info("Found %s executable in %s" % (program, program))
+            logger.debug("Found %s executable in %s" % (program, program))
             return program
     else:
         for path in os.environ["PATH"].split(os.pathsep):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
-                logger.info("Found %s executable in %s" % (program, path))
+                logger.debug("Found %s executable in %s" % (program, path))
                 return exe_file
     raise Exception("Couldn't find executable %s" % program)
 
