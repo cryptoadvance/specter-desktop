@@ -5,14 +5,14 @@
 	{% include "includes/qr-scanner.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
-	{{ send_nav('wallet_send', wallet_alias) }}
+	{{ send_nav('wallet_sendnew', wallet_alias) }}
 
 	<message-box type="error" id="amount_errors_container" style="position: absolute; top: 0; display: none;">
 		Error!
 		</ul>
 	</message-box>
 
-	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST">
+	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST">
 		<h1 class="padded">Sending to:</h1>
 		<div class="card">
 			Recipient address:<br>
