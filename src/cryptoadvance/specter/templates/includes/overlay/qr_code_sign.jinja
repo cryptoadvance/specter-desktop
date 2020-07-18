@@ -2,11 +2,11 @@
     <nav class="row">
         <label>
             <input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
-            <div class="btn radio left" style="width:200px">Compressed PSBT</div>
+            <div class="btn radio left" style="width:200px">Device PSBT</div>
         </label>
         <label>
             <input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
-            <div class="btn radio right" style="width:200px">Full PSBT</div>
+            <div class="btn radio right" style="width:200px">Standard PSBT</div>
         </label>
     </nav>
 
@@ -18,9 +18,11 @@
             <qr-code class='center' value="{{ psbt['base64'] }}" width="400"></qr-code>
         </span>
     </div>
-    <button id="{{ device.alias }}_qr_scan_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                Scan signed transaction
-    </button>
+    <qr-scanner id="{{ device.alias }}_qr_scan_btn">
+        <a slot="button" class="btn flex-item" style="width: 250px; margin: 15px auto;">
+            <img src="/static/img/qr_tiny.svg"> Scan signed transaction
+        </a>
+    </qr-scanner>
     <script>
     document.addEventListener("DOMContentLoaded", function(){
         document.getElementById('{{ device.alias }}_sign_tx_qr').elements.psbt_type.forEach((o)=>{
@@ -37,117 +39,15 @@
         });
     });
     </script>
-    <!-- because coldcard psbt is the most complete (includes xpubs) -->
-    <div class="log"><code><pre>{{ device_psbts['sdcard'] }}</pre></code></div>
-
-    <div id="{{ device.alias }}_qr_code_sign_popup" class="popup">
-        <video muted playsinline id="{{ device.alias }}_qr-video" class="video"></video>
-        <div id="{{ device.alias }}_qr-progress"></div>
-    </div>
 
     <script type="module">
-        import QrScanner from "/static/qr/qr-scanner.min.js";
-        QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
-
-        const video = document.getElementById('{{ device.alias }}_qr-video');
-
-        var partial_qr = {
-            "len": 0, // total number of qr codes scanned
-            "parts": [],
-        };
-        // we don't have access to showError from module
-        function triggerError(msg){
-            scanner.stop();
-            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
-            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
-            hidePageOverlay();
-            let event = new CustomEvent('errormsg', { detail: { message: msg } });
-            document.dispatchEvent(event);
-        }
-        const scanner = new QrScanner(video, result => {
-            // check if it is a partial QR code
-            // syntax: "pMofN data"
-            let re1 = /p(\d+)of(\d+) (.*)/;
-            let p1 = result.match(re1);
-            // check if it is a partial BC-UR QR code
-            // syntax: "UR:BYTES/MOFN/HSH/CHUNK"
-            let re2 = /UR:BYTES\/(\d+)OF(\d+)\/(.*)/;
-            let p2 = result.match(re2);
-            if(p1 || p2) {
-                let p = p1;
-                if(p2){
-                    p = p2;
-                }
-                let m = parseInt(p[1]);
-                let n = parseInt(p[2]);
-                let data = p[3];
-                if(m > n) {
-                    return triggerError("Invalid QR code! n > m!");
-                }
-                if(partial_qr.len != 0 && partial_qr.len != n){
-                    return triggerError("Number of frames in QR code mismatch!<br>Had "+partial_qr.len+", got "+n);
-                }
-                // if it is the first qr code - build array
-                if(partial_qr.len == 0){
-                    partial_qr.len = n;
-                    // don't change this to new Array()
-                    // it's javascript magic... 
-                    // https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
-                    partial_qr.parts = [...Array(n)];
-                    document.getElementById("{{ device.alias }}_qr-progress").style.display = 'block';
-                    document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
-                }
-                // fill corresponding part
-                if(p1){
-                    partial_qr.parts[m-1] = data;
-                }else{
-                    // we ignore the checksum for now
-                    // as the standard is not finalized yet
-                    let arr = data.split("/");
-                    partial_qr.parts[m-1] = arr[arr.length-1];
-                }
-                // display scanning progress
-                let s = partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
-                document.getElementById("{{ device.alias }}_qr-progress").innerHTML = s.join("");
-                // check if we still have missing parts
-                if(partial_qr.parts.includes(undefined)){
-                    // just return -> we are not ready to combine yet
-                    return;
-                }
-                // recombine to result
-                result = partial_qr.parts.join("");
-                // bcur
-                if(p2){
-                    result = "UR:BYTES/"+result;
-                }
-                // reset partial_qr
-                partial_qr.parts = [];
-                partial_qr.len = 0;
-                // reset progress
-                document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
-                document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
+        document.getElementById("{{ device.alias }}_qr_scan_btn")
+                .addEventListener("scan", e =>{
+            let result = e.detail.result;
+            if(result!=null){
+                hidePageOverlay();
+                combine(result);
             }
-            // if we are done
-            scanner.stop();
-            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
-            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
-            hidePageOverlay();
-            combine(result);
-        });
-        document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("click", function(event) {
-            try {
-                event.preventDefault();
-                scanner.start();
-                document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'flex';
-            } catch(e) {
-                triggerError("Can't start the QR scanner!<br>" + e);
-            }
-        });
-        document.getElementById("{{ device.alias }}_qr_code_sign_popup").addEventListener("click", function() {
-            document.getElementById("{{ device.alias }}_qr_code_sign_popup").style.display = 'none';
-            document.getElementById("{{ device.alias }}_qr-progress").innerHTML = "";
-            document.getElementById("{{ device.alias }}_qr-progress").style.display = 'none';
-            scanner.stop();
         });
     </script>
 </form>

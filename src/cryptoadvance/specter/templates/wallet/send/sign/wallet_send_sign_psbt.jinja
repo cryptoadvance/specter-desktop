@@ -1,6 +1,9 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'wallet_send' %}
 {% block content %}
+
+	{% include "includes/qr-scanner.html" %}
+
 	{% include "includes/hwi/hwi.jinja" %}
 	{% from 'includes/overlay/sign_tx_method.jinja' import sign_tx_method %}
 	{% for device in wallet.devices %}
