@@ -66,6 +66,7 @@ class BitcoindController:
         if self.check_existing() != None:
             return self.check_existing()
 
+        logger.debug("Starting bitcoind")
         self._start_bitcoind(cleanup_at_exit)
 
         self.wait_for_bitcoind(self.rpcconn)
@@ -101,10 +102,12 @@ class BitcoindController:
         cli = self.get_cli()
         try:
             test3rdparty_cli = cli.wallet("test3rdparty")
+            test3rdparty_cli.getbalance()
         except RpcError as rpce:
             # return-codes:
             # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
             if rpce.error_code == -18: # RPC_WALLET_NOT_FOUND
+                logger.debug("Creating test3rdparty wallet")
                 cli.createwallet("test3rdparty")
                 test3rdparty_cli = cli.wallet("test3rdparty")
             else:
@@ -162,7 +165,7 @@ class BitcoindController:
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += " -datadir={} ".format(datadir)
-        logger.info(" constructed bitcoind-command: {}".format(btcd_cmd))
+        logger.debug("constructed bitcoind-command: %s",btcd_cmd)
         return btcd_cmd
 
 class BitcoindPlainController(BitcoindController):
@@ -186,6 +189,11 @@ class BitcoindPlainController(BitcoindController):
             logger.debug("removed temp-dir")
         if cleanup_at_exit:
             atexit.register(cleanup_bitcoind)
+    
+    def stop_bitcoind(self):
+        # not necessary as the cleanup_bitcoind() will do it automatically!
+        # ToDo: Implement it nevertheless
+        pass
     
     def check_existing(self):
         ''' other then in docker, we won't check on the "instance-level". This will return true if if a 
