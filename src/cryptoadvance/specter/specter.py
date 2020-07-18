@@ -11,7 +11,7 @@ import threading
 logger = logging.getLogger(__name__)
 
 def get_cli(conf):
-    if "user" not in conf or conf["user"]=="":
+    if "autodetect" not in conf:
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:

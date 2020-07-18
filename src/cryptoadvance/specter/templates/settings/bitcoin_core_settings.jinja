@@ -7,17 +7,29 @@
 		<div class="card" style="margin: 20px auto;">
 			<h2>Bitcoin JSON-RPC configuration</h2>
 			<br>
-			Username:<br><input type="text" name="username" value="{{ username }}">
+			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
+			<label class="switch">
+				<input type="checkbox" id="autodetect" name="autodetect" {% if autodetect %}checked{% endif %}>
+				<span class="slider"></span>
+			</label>
 			<br><br>
-			Password:<br><input type="password" name="password" value="{{ password }}">
+			<div id="rpc_settings" style="padding: 10px; border-radius: 10px;">
+				<div id="lock" class="center">
+					<p style="text-align: center; margin: auto; ">&#128274;</p>
+					<span class="note centered"> (disable auto-detect to configure manually)</span>
+				</div>
+				Username:<br><input type="text" id="username" name="username" value="{{ username }}">
+				<br><br>
+				Password:<br><input type="password" id="password" name="password" value="{{ password }}">
+			</div>
+			<br>
+			Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
 			<br><br>
-			Host:<br><input type="text" name="host" type="text" value="{{ protocol }}://{{ host }}">
-			<br><br>
-			Port:<br><input type="text" name="port" type="text" value="{{ port }}">
+			Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">
 			<div class="note">
 				Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
 			</div>
-			<br>
+			<br><br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
 				<button type="submit" class="btn" name="action" value="save">Save</button>
@@ -68,4 +80,34 @@
 			{% endif %}
 		</div>
 	</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	document.addEventListener("DOMContentLoaded", function(){
+		var autodetect = document.getElementById("autodetect");
+		if (autodetect != null) {
+			function toggleAutoDetectMode() {
+				var rpcSettings = document.getElementById("rpc_settings");
+				var lock = document.getElementById("lock");
+				if (autodetect.checked) {
+					lock.style.removeProperty('display');
+					rpcSettings.style['pointer-events'] = 'none';
+					rpcSettings.style['background-color'] = '#8881';
+					document.getElementById("username").value = '{{ username }}';
+					document.getElementById("password").value = '{{ password }}';
+				} else {
+					lock.style['display'] = 'none';
+					rpcSettings.style.removeProperty('background-color');
+					rpcSettings.style.removeProperty('pointer-events');
+				}
+			}
+
+			autodetect.addEventListener("change", function() {
+				toggleAutoDetectMode();
+			}, false);
+			toggleAutoDetectMode();
+		}
+	});
+</script>
 {% endblock %}
