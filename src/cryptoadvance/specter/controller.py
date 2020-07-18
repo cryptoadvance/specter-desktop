@@ -788,9 +788,23 @@ def fees(blocks):
     res = app.specter.estimatesmartfee(int(blocks))
     return res
 
-@app.route('/wallets/<wallet_alias>/send/new', methods=['GET', 'POST'])
+@app.route('/wallets/<wallet_alias>/send')
 @login_required
 def wallet_send(wallet_alias):
+    app.specter.check()
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    if len(wallet.pending_psbts) > 0:
+        return redirect(url_for('wallet_sendpending', wallet_alias=wallet_alias))
+    else:
+        return redirect(url_for('wallet_sendnew', wallet_alias=wallet_alias))
+
+@app.route('/wallets/<wallet_alias>/send/new', methods=['GET', 'POST'])
+@login_required
+def wallet_sendnew(wallet_alias):
     app.specter.check()
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)

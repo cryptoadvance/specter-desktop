@@ -60,7 +60,7 @@
 	</style>
 	<br>
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-	<form action="{{ url_for('wallet_send',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
+	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
 		<div class="tx_info">
 			
 			<div>Sending <b>{{ psbt["amount"] | btcamount }}</b> BTC to<b>
