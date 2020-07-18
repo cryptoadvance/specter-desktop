@@ -319,12 +319,16 @@ def bitcoin_core_settings():
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
+    autodetect = rpc['autodetect']
+    err = None
+
     if "protocol" in rpc:
         protocol = rpc["protocol"]
     test = None
     if request.method == 'POST':
         action = request.form['action']
         if current_user.is_admin:
+            autodetect = 'autodetect' in request.form
             user = request.form['username']
             passwd = request.form['password']
             port = request.form['port']
@@ -337,14 +341,17 @@ def bitcoin_core_settings():
             host = arr[1]
 
         if action == "test":
-            test = app.specter.test_rpc(
-                user=user,
-                password=passwd,
-                port=port,
-                host=host,
-                protocol=protocol,
-                autodetect=False
-            )
+            try:
+                test = app.specter.test_rpc(
+                    user=user,
+                    password=passwd,
+                    port=port,
+                    host=host,
+                    protocol=protocol,
+                    autodetect=autodetect
+                )
+            except Exception as e:
+                err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
                 app.specter.update_rpc(
@@ -353,13 +360,14 @@ def bitcoin_core_settings():
                     port=port,
                     host=host,
                     protocol=protocol,
-                    autodetect=False
+                    autodetect=autodetect
                 )
             app.specter.check()
 
     return render_template(
         "settings/bitcoin_core_settings.jinja",
         test=test,
+        autodetect=autodetect,
         username=user,
         password=passwd,
         port=port,
@@ -367,6 +375,7 @@ def bitcoin_core_settings():
         protocol=protocol,
         specter=app.specter,
         current_version=current_version,
+        error=err,
         rand=rand
     )
 
