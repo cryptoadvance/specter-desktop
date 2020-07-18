@@ -1,6 +1,9 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'wallet_send' %}
 {% block content %}
+
+	{% include "includes/qr-scanner.html" %}
+
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('wallet_send', wallet_alias) }}
 
@@ -15,7 +18,9 @@
 			Recipient address:<br>
 			<div class="row">
 				<input type="text" id="address" name="address" id="address" oninput="validateForm()"> &nbsp;
-				<a class="btn" id="scanme"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+				<qr-scanner id="address-scan">
+					<a slot="button" class="btn" style="height: 35px;"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+				</qr-scanner>
 			</div>
 			<br>
 			Address label (optional):<br>
@@ -51,12 +56,42 @@
 
 
 {% block scripts %}
-	{% include "wallet/components/qr_scanner.jinja" %}
-
 	<script>
 		// Amount and unit
 		var unit = 'sat';
 		var amount = 0.0;
+
+		document.getElementById('address-scan').addEventListener('scan', e=>{
+			let addr = e.detail.result;
+			if(addr == null){
+				return;
+			}
+            if(addr.indexOf("bitcoin:") >= 0){
+                addr = addr.substr(addr.indexOf("bitcoin:")+8);
+            }
+            let arr = addr.split("?");
+            addr = arr[0]
+            document.getElementById("address").value = addr;
+            let evt = new Event('input');
+            document.getElementById("address").dispatchEvent(evt);
+            if(arr.length > 1){
+                arr = arr[1].split("&");
+                arr.forEach((e)=>{
+                    if(e.startsWith("amount=")){
+                    	let val = parseFloat(e.substr(7));
+                    	if(unit == 'sat'){
+                    		val = Math.round(val*1e8);
+                    	}
+                        document.getElementById("amount").value = val;
+                        let evt = new Event('input');
+                        document.getElementById("amount").dispatchEvent(evt);
+                    }
+                    if(e.startsWith("message=")){
+                    	document.getElementById("label").value = e.substr(8);
+                    }
+                });
+            }
+		});
 
 		function toggleUnit(unitSelected) {
 			unit = unitSelected.value;
