@@ -1,0 +1,198 @@
+<!--
+  Custom QR code scanner.
+  You can use it as a normal html tag.
+  If you want to add a button to trigger scanner 
+  - put it into the `button` slot:
+  
+  <qr-scanner open id="myscanner">
+    <button class="btn" slot="button">Scan me!</button>
+  </qr-scanner>
+
+  Then to trigger popup add `open`.
+  When scan is complete or cancelled a custom event is triggered.
+  To get scanned data subscribe to `scan` event in your js code:
+
+  document.getElementById('myscanner').addEventListener('scan', (e)=>{
+    console.log(e.detail.result);
+  });
+
+  `e.detail.result` is null if scan was cancelled, a string with data otherwise.
+-->
+<template id="qr-scanner">
+  <style>
+    #popup{
+      position:fixed;
+      top: 0px;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-content: center;
+      justify-content: center;
+      align-items: center;
+    }
+    #qr-progress{
+      font-size: 30px;
+      height: 40px;
+      /*position: fixed;*/
+      /*bottom: -300px;*/
+      /*font-size: 30px;*/
+    }
+    #qr-video{
+      width: 80%;
+      height: 80%;
+    }
+    :host,slot{
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <div class="popup" id="popup">
+    <video muted playsinline id="qr-video" class="video"></video>
+    <div id="qr-progress"></div>
+  </div>
+  <slot id="trigger" name="button"><button>Open scanner</button></slot>
+</template>
+
+<script type="module">
+import QrScanner from "/static/qr/qr-scanner.min.js";
+QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+
+class QRScannerElement extends HTMLElement {
+  constructor() {
+    super();
+    // Create a shadow root
+    var shadow = this.attachShadow({mode: 'open'});
+    var style = document.getElementById('qr-scanner').content;
+    var clone = style.cloneNode(true);
+
+    this.openbtn = clone.getElementById('trigger');
+    this.popup = clone.getElementById('popup');
+    this.popup.style.display = 'none';
+    this.video = clone.getElementById('qr-video');
+    this.progress = clone.getElementById('qr-progress');
+    this.partial_qr = {
+      "len": 0, // total number of qr codes scanned
+      "parts": [],
+    };
+
+    // on click event
+    this.addEventListener('click', e => {
+      let isopen = this.hasAttribute('open');
+      if(isopen){
+        this.removeAttribute('open');
+        this.triggerResult(null);
+      }else{
+        this.setAttribute('open','');
+      }
+    });
+
+    this.scanner = new QrScanner(this.video, result => {
+        // check if it is a partial QR code
+        // syntax: "pMofN data"
+        let re1 = /p(\d+)of(\d+) (.*)/;
+        let p1 = result.match(re1);
+        // check if it is a partial BC-UR QR code
+        // syntax: "UR:BYTES/MOFN/HSH/CHUNK"
+        let re2 = /UR:BYTES\/(\d+)OF(\d+)\/(.*)/;
+        let p2 = result.match(re2);
+        if(p1 || p2) {
+          let p = p1;
+          if(p2){
+            p = p2;
+          }
+          let m = parseInt(p[1]);
+          let n = parseInt(p[2]);
+          let data = p[3];
+          if(m > n) {
+              return this.triggerError("Invalid QR code! n > m!");
+          }
+          if(this.partial_qr.len != 0 && this.partial_qr.len != n){
+              return this.triggerError("Number of frames in QR code mismatch!<br>Had "+this.partial_qr.len+", got "+n);
+          }
+          // if it is the first qr code - build array
+          if(this.partial_qr.len == 0){
+              this.partial_qr.len = n;
+              // don't change this to new Array()
+              // it's javascript magic... 
+              // https://itnext.io/heres-why-mapping-a-constructed-array-doesn-t-work-in-javascript-f1195138615a
+              this.partial_qr.parts = [...Array(n)];
+          }
+          // fill corresponding part
+          if(p1){
+              this.partial_qr.parts[m-1] = data;
+          }else{
+              // we ignore the checksum for now
+              // as the standard is not finalized yet
+              let arr = data.split("/");
+              this.partial_qr.parts[m-1] = arr[arr.length-1];
+          }
+          // display scanning progress
+          let s = this.partial_qr.parts.map((e) => {return ((e) ? " 👻 " : " ❔ ");});
+          this.progress.innerHTML = s.join("");
+          // check if we still have missing parts
+          if(this.partial_qr.parts.includes(undefined)){
+              // just return -> we are not ready to combine yet
+              return;
+          }
+          // recombine to result
+          result = this.partial_qr.parts.join("");
+          // bcur
+          if(p2){
+              result = "UR:BYTES/"+result;
+          }
+          // reset partial_qr
+          this.partial_qr.parts = [];
+          this.partial_qr.len = 0;
+        }
+        // if we are done
+        this.removeAttribute('open');
+        this.triggerResult(result);
+    });
+    // Attach the created element to the shadow dom
+    shadow.appendChild(clone);
+  }
+  triggerResult(result){
+    let event = new CustomEvent('scan', { detail: { result } });
+    this.dispatchEvent(event);
+  }
+  triggerError(msg, timeout=0){
+    this.reset();
+    this.removeAttribute('open');
+    let event = new CustomEvent('errormsg', { detail: {message: msg, timeout} });
+    document.dispatchEvent(event);
+    this.triggerResult(null);
+  }
+  reset(){
+    this.scanner.stop();
+    this.popup.style.display = 'none';
+    this.partial_qr = {
+      "len": 0, // total number of qr codes scanned
+      "parts": [],
+    };
+    this.progress.innerHTML = "&nbsp;";
+  }
+  static get observedAttributes() {
+    return ['open'];
+  }
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if(newValue !== oldValue){
+      let isopen = this.hasAttribute('open');
+      if(isopen){
+        try{
+          this.popup.style.display = 'flex';
+          this.scanner.start();
+        }catch(e){
+          this.triggerError("Can't start the QR scanner!<br>" + e);
+        }
+      }else{
+        this.reset();
+      }
+    }
+  }
+}
+customElements.define('qr-scanner', QRScannerElement);
+</script>
