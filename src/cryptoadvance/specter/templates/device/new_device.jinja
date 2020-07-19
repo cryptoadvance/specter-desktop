@@ -1,6 +1,8 @@
 {% extends "base.jinja" %}
 {% block main %}
 	{% include "includes/hwi/hwi.jinja" %}
+	{% include "includes/qr-scanner.html" %}
+
 	{% if device %}
 		<h1>Adding keys to {{ device.name }}</h1>
 	{% else %}
@@ -26,19 +28,21 @@
 				</div>
 				<textarea id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
 				<div class="row">
-					<a href="#" class="btn" id="scanme" style="margin: 2px;">
-						<img src="/static/img/qr_icon.svg" height="12px"> Scan
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">Using an airgapped Specter DIY with QR codes<br><br></span>
-									Scan QR codes with extended public keys one by one.<br><br>
-									We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.
-								</span>
-							</p>
-						</div>
+					<qr-scanner id="xpub-scan" style="width:50%">
+						<a slot="button" href="#" class="btn" style="margin: 2px;">
+							<img src="/static/img/qr_icon.svg" height="12px"> Scan
+							<div class="tool-tip">
+								<i class="tool-tip__icon">i</i>
+								<p class="tool-tip__info">
+									<span class="info">
+										<span class="info__title">Using an airgapped Specter DIY with QR codes<br><br></span>
+										Scan QR codes with extended public keys one by one.<br><br>
+										We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.
+									</span>
+								</p>
+							</div>
 					</a>
+					</qr-scanner>
 					<input type="file" id="file" class="inputfile" multiple/>
 					<label for="file" class="btn" style="margin: 2px;">
 						Choose files
@@ -181,15 +185,19 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		var deviceType = document.getElementById("device_type");
 		var typeReminder = document.getElementById("type_reminder");
 
-		deviceType.addEventListener("change", function() {
-			type_reminder.style.display = 'none';
+		if(deviceType!=null){
+			deviceType.addEventListener("change", function() {
+				type_reminder.style.display = 'none';
+				setPubkeysView();
+			}, false);
+			deviceType.value = '{{ device_type }}';
 			setPubkeysView();
-		}, false);
-		deviceType.value = '{{ device_type }}';
-		setPubkeysView();
+		}
 
 		var strength = document.getElementById("strength");
-		strength.value = '{{ strength }}';
+		if(strength!=null){
+			strength.value = '{{ strength }}';
+		}
 	});
 </script>
 
@@ -300,23 +308,14 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 	});
 </script>
 
-<div class="popup" id="popup">
-	<video muted playsinline id="qr-video" class="video"></video>
-</div>
-
-<script type="module">
-	import QrScanner from "/static/qr/qr-scanner.min.js";
-	{% include "includes/message-events.js" %}
-	{% include "device/components/add_keys.js" %}
-
-	if (document.getElementById("scanme") != null) {
-		QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
-
-		const video = document.getElementById('qr-video');
-
-		const scanner = new QrScanner(video, result => {
-			scanner.stop();
-			document.getElementById("popup").style.display = 'none';
+<script type="text/javascript">
+	let scanner = document.getElementById('xpub-scan');
+	if(scanner != null) {
+		scanner.addEventListener('scan', e=>{
+			let result = e.detail.result;
+			if(result==null){
+				return;
+			}
 			let deviceType = document.getElementById("device_type");
 			// cobo uses json format
 			if(result.includes("{")){
@@ -336,18 +335,6 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				addKeys(result);
 				setDeviceType('specter');
 			}
-		});
-		document.getElementById("scanme").addEventListener("click", function(){
-			try{
-				scanner.start();
-				document.getElementById("popup").style.display = 'flex';
-			}catch(e){
-				showError("Can't start the QR scanner!\n\n" + e);
-			}
-		});
-		document.getElementById("popup").addEventListener("click", function(){
-			document.getElementById("popup").style.display = 'none';
-			scanner.stop();
 		});
 	}
 </script>
