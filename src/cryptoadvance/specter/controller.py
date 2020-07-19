@@ -50,6 +50,8 @@ def server_error(e):
 @app.before_request
 def selfcheck():
     """check status before every request"""
+    if app.specter.cli is not None:
+        type(app.specter.cli).counter=0
     if app.config.get('LOGIN_DISABLED'):
         app.login('admin')
 
