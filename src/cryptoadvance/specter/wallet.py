@@ -485,7 +485,9 @@ class Wallet():
     @property
     def available_balance(self):
         locked_utxo = self.cli.listlockunspent()
-        balance = self.balance
+        # copy
+        balance = {}
+        balance.update(self.balance)
         for tx in locked_utxo:
             tx_data = self.cli.gettransaction(tx["txid"])
             raw_tx = self.cli.decoderawtransaction(tx_data["hex"])

@@ -26,7 +26,8 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     # let's mine another 100 blocks to get these coins spendable
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     wallet.cli.generatetoaddress(100, random_address)
-    # a balance has properties which are caching the result from last call
+    # update the balance
+    wallet.get_balance()
     assert wallet.fullbalance >= 25
    
     # You can create a multisig wallet with the wallet manager like this
@@ -39,7 +40,8 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     multisig_address = multisig_wallet.getnewaddress()
     multisig_wallet.cli.generatetoaddress(1, multisig_address)
     multisig_wallet.cli.generatetoaddress(100, random_address)
-    # a balance has properties which are caching the result from last call
+    # update balance
+    multisig_wallet.get_balance()
     assert multisig_wallet.fullbalance >= 12.5
     # The WalletManager also has a `wallets_names` property, returning a sorted list of the names of all wallets
     assert wm.wallets_names == ['a_multisig_test_wallet', 'a_test_wallet']
@@ -80,6 +82,8 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     # let's mine another 100 blocks to get these coins spendable
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     wallet.cli.generatetoaddress(110, random_address)
+    # update the wallet data
+    wallet.get_balance()
     # Now we have loads of potential inputs
     # Let's spend 500 coins
     assert wallet.fullbalance >= 250
@@ -168,7 +172,10 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     wallet.cli.generatetoaddress(100, random_address)
     
+    # update utxo
     wallet.getdata()
+    # update balance
+    wallet.get_balance()
 
     address_balance = wallet.fullbalance
     assert len(wallet.utxo) == 20
@@ -188,6 +195,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.cli.generatetoaddress(100, random_address)
 
     wallet.getdata()
+    wallet.get_balance()
 
     assert len(wallet.utxo) == 40
     assert wallet.is_current_address_used
