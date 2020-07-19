@@ -66,10 +66,15 @@ class Wallet():
         if change_address == '':
             self.getnewaddress(change=True)
 
-        self.check_addresses()
         self.getdata()
+        self.update()
         if old_format_detected or self.last_block != last_block:
             self.save_to_file()
+
+    def update(self):
+        self.get_balance()
+        self.check_addresses()
+        self.get_info()
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -183,15 +188,18 @@ class Wallet():
             last_block=last_block
         )
 
+    def get_info(self):
+        try:
+            self.info = self.cli.getwalletinfo()
+        except:
+            self.info = {}
+
     def getdata(self):
         try:
             self.utxo = parse_utxo(self, self.cli.listunspent(0))
         except:
             self.utxo = []
-        try:
-            self.info = self.cli.getwalletinfo()
-        except:
-            self.info = {}
+        self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
         value_on_address = self.cli.getreceivedbyaddress(self.change_address, 0)
@@ -357,13 +365,12 @@ class Wallet():
             return addr
         return self.cli.deriveaddresses(desc, [index, index + 1])[0]
 
-    @property
-    def balance(self):
+    def get_balance(self):
         try:
-            balance = self.cli.getbalances()["watchonly"]
+            self.balance = self.cli.getbalances()["watchonly"]
         except:
-            balance = { "trusted": 0, "untrusted_pending": 0 }
-        return balance
+            self.balance = { "trusted": 0, "untrusted_pending": 0 }
+        return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
