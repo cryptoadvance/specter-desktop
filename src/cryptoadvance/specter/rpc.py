@@ -163,6 +163,7 @@ class RpcError(Exception):
 
 
 class BitcoinCLI:
+    counter = 0
     def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=None, **kwargs):
         path = path.replace("//","/") # just in case
         self.user = user
@@ -202,6 +203,11 @@ class BitcoinCLI:
 
     def multi(self, calls:list, **kwargs):
         """Makes batch request to Core"""
+        type(self).counter += len(calls)
+        # some debug info for optimizations
+        # methods = " ".join(list(dict.fromkeys([call[0] for call in calls])))
+        # wallet = self.path.split("/")[-1]
+        # print(f"{self.counter}: +{len(calls)} {wallet} {methods}")
         headers = {'content-type': 'application/json'}
         payload = [{
             "method": method,
@@ -225,7 +231,7 @@ class BitcoinCLI:
 
     def __getattr__(self, method):
         def fn(*args, **kwargs):
-            r = self.multi([(method,*args)])[0]
+            r = self.multi([(method,*args)], **kwargs)[0]
             if r["error"] is not None:
                 raise RpcError("Request error: %s" % r["error"]["message"], r)
             return r["result"]

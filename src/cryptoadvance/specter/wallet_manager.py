@@ -38,6 +38,7 @@ class WalletManager:
         self.cli_path = path
         self.device_manager = device_manager
         self.is_loading = False
+        self.wallets = {}
         self.update(data_folder, cli, chain)
 
     def update(self, data_folder=None, cli=None, chain=None):
@@ -62,6 +63,10 @@ class WalletManager:
             self.cli = cli
 
         wallets = {}
+        # list of wallets in the dict
+        existing_names = list(self.wallets.keys())
+        # list of wallet to keep
+        keep_wallets = []
         try:
             if self.working_folder is not None and self.cli is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
@@ -85,12 +90,26 @@ class WalletManager:
                             except RpcError:
                                 logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
                         elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
-                            wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                            if wallet_name not in existing_names:
+                                # ok wallet is already there, we only need to update
+                                wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                            else:
+                                # wallet is loaded and should stay
+                                keep_wallets.append(wallet_name)
+                                # TODO: check wallet file didn't change
                     else:
                         logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
         except Exception as e:
             logger.warn("Failed updating wallet manager: %s" % e)
-        self.wallets = wallets
+        # add new wallets
+        for k in wallets:
+            self.wallets[k] = wallets[k]
+        # remove irrelevant wallets
+        for k in existing_names:
+            if k in keep_wallets:
+                self.wallets[k].update()
+            else:
+                self.wallets.pop(k)
         self.is_loading = False
 
     def get_by_alias(self, alias):

@@ -35,7 +35,8 @@ class Wallet():
         fullpath,
         device_manager,
         manager,
-        old_format_detected = False
+        old_format_detected = False,
+        last_block = None,
     ):
         self.name = name
         self.alias = alias
@@ -58,37 +59,53 @@ class Wallet():
         self.fullpath = fullpath
         self.manager = manager
         self.cli = self.manager.cli.wallet(os.path.join(self.manager.cli_path, self.alias))
+        self.last_block = last_block
 
         if address == '':
             self.getnewaddress()
         if change_address == '':
             self.getnewaddress(change=True)
 
-        self.check_addresses()
         self.getdata()
-        if old_format_detected:
+        self.update()
+        if old_format_detected or self.last_block != last_block:
             self.save_to_file()
+
+    def update(self):
+        self.get_balance()
+        self.check_addresses()
+        self.get_info()
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
-        txs = self.cli.listtransactions("*", 1000, 0, True)
+        # txs = self.cli.listtransactions("*", 1000, 0, True)
+        if self.last_block is None:
+            obj = self.cli.listsinceblock()
+            txs = obj["transactions"]
+            last_block = obj["lastblock"]
+        else:
+            obj = self.cli.listsinceblock(self.last_block)
+            txs = obj["transactions"]
+            last_block = obj["lastblock"]
         addresses = [tx["address"] for tx in txs]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
-        # prepare rpc call
-        calls = [("getaddressinfo",addr) for addr in addresses]
-        # extract results
-        res = [r["result"] for r in self.cli.multi(calls)]
-        # extract last two indexes of hdkeypath
-        paths = [d["hdkeypath"].split("/")[-2:] for d in res if "hdkeypath" in d]
-        # get change and recv addresses
-        max_recv = max([int(p[1]) for p in paths if p[0]=="0"], default=-1)
-        max_change = max([int(p[1]) for p in paths if p[0]=="1"], default=-1)
-        # these calls will happen only if current addresses are used
-        while max_recv >= self.address_index:
-            self.getnewaddress(change=False)
-        while max_change >= self.change_index:
-            self.getnewaddress(change=True)
+        if len(addresses) > 0:
+            # prepare rpc call
+            calls = [("getaddressinfo",addr) for addr in addresses]
+            # extract results
+            res = [r["result"] for r in self.cli.multi(calls)]
+            # extract last two indexes of hdkeypath
+            paths = [d["hdkeypath"].split("/")[-2:] for d in res if "hdkeypath" in d]
+            # get change and recv addresses
+            max_recv = max([int(p[1]) for p in paths if p[0]=="0"], default=-1)
+            max_change = max([int(p[1]) for p in paths if p[0]=="1"], default=-1)
+            # these calls will happen only if current addresses are used
+            while max_recv >= self.address_index:
+                self.getnewaddress(change=False)
+            while max_change >= self.change_index:
+                self.getnewaddress(change=True)
+        self.last_block = last_block
 
     @staticmethod
     def parse_old_format(wallet_dict, device_manager):
@@ -134,6 +151,7 @@ class Wallet():
         sigs_required = wallet_dict['sigs_required'] if 'sigs_required' in wallet_dict else 1
         pending_psbts = wallet_dict['pending_psbts'] if 'pending_psbts' in wallet_dict else {}
         fullpath = wallet_dict['fullpath'] if 'fullpath' in wallet_dict else default_fullpath
+        last_block = wallet_dict['last_block'] if 'last_block' in wallet_dict else None
 
         wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager)
 
@@ -166,18 +184,22 @@ class Wallet():
             fullpath,
             device_manager,
             manager,
-            old_format_detected=wallet_dict['old_format_detected']
+            old_format_detected=wallet_dict['old_format_detected'],
+            last_block=last_block
         )
+
+    def get_info(self):
+        try:
+            self.info = self.cli.getwalletinfo()
+        except:
+            self.info = {}
 
     def getdata(self):
         try:
             self.utxo = parse_utxo(self, self.cli.listunspent(0))
         except:
             self.utxo = []
-        try:
-            self.info = self.cli.getwalletinfo()
-        except:
-            self.info = {}
+        self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
         value_on_address = self.cli.getreceivedbyaddress(self.change_address, 0)
@@ -206,6 +228,7 @@ class Wallet():
             "sigs_required": self.sigs_required,
             "pending_psbts": self.pending_psbts,
             "fullpath": self.fullpath,
+            "last_block": self.last_block
         }
 
     def save_to_file(self):
@@ -342,13 +365,12 @@ class Wallet():
             return addr
         return self.cli.deriveaddresses(desc, [index, index + 1])[0]
 
-    @property
-    def balance(self):
+    def get_balance(self):
         try:
-            balance = self.cli.getbalances()["watchonly"]
+            self.balance = self.cli.getbalances()["watchonly"]
         except:
-            balance = { "trusted": 0, "untrusted_pending": 0 }
-        return balance
+            self.balance = { "trusted": 0, "untrusted_pending": 0 }
+        return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
@@ -441,7 +463,11 @@ class Wallet():
     def getlabel(self, address):
         address_info = self.cli.getaddressinfo(address)
         # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
-        label = address_info["labels"][0] if "labels" in address_info and (isinstance(address_info["labels"], list) and len(address_info["labels"]) > 0) and "label" not in address_info else address
+        label = address_info["labels"][0] if (
+            "labels" in address_info 
+            and (isinstance(address_info["labels"], list) 
+                and len(address_info["labels"]) > 0) 
+            and "label" not in address_info) else address
         if label == "":
             label = address
         return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
@@ -453,12 +479,15 @@ class Wallet():
 
     @property
     def fullbalance(self):
-        return self.balance["trusted"] + self.balance["untrusted_pending"]
+        balance = self.balance
+        return balance["trusted"] + balance["untrusted_pending"]
 
     @property
     def available_balance(self):
         locked_utxo = self.cli.listlockunspent()
-        balance = self.balance
+        # copy
+        balance = {}
+        balance.update(self.balance)
         for tx in locked_utxo:
             tx_data = self.cli.gettransaction(tx["txid"])
             raw_tx = self.cli.decoderawtransaction(tx_data["hex"])

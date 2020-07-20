@@ -117,8 +117,12 @@ class Specter:
             else:
                 self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
 
-            if self.wallet_manager is None:
-                wallets_path = "specter%s" % self.config["uid"]
+            wallets_path = "specter%s" % self.config["uid"]
+            # if chain, user or data folder changed
+            if (self.wallet_manager is None
+                or self.wallet_manager.data_folder != self.data_folder
+                or self.wallet_manager.cli_path != wallets_path
+                or self.wallet_manager.chain != chain):
                 self.wallet_manager = WalletManager(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
                     self.cli, 
