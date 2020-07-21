@@ -30,15 +30,19 @@
 		{% endif %}
 		<div class="card">
 			<div id="recipients"></div>
-			{% set unspents = wallet.cli.listunspent(0) %}
-			<div class="row">
-				<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add recipient </button>
-			{% if unspents | length > 0 %}
-				<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
-			{% endif %}
+			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
+			<br><br>
+			<div id="advanced_settings" class="hidden">
+				{% include "wallet/send/new/components/fee_selection.jinja" %}
+				{% set unspents = wallet.cli.listunspent(0) %}
+				<div class="row">
+					<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
+				{% if unspents | length > 0 %}
+					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
+				{% endif %}
+				</div><br>
+				{% include "wallet/send/new/components/coin_selection.jinja" %}
 			</div>
-			{% include "wallet/send/new/components/fee_selection.jinja" %}
-			{% include "wallet/send/new/components/coin_selection.jinja" %}
 			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
 		</div>
 	</form>
@@ -217,8 +221,26 @@
 			document.getElementById(id).style.display = visibility;
 		}
 
+		function toggleAdvanced() {
+			let advancedButton = document.getElementById('toggle_advanced');
+			let advancedSettigns = document.getElementById('advanced_settings');
+			if (advancedSettigns.style.display === 'block') {
+				advancedSettigns.style.display = 'none';
+				advancedButton.innerHTML = 'Advanced &#9654;';
+				if (isCoinSelectionActive()) {
+					toggleExpand();
+				}
+			} else {
+				advancedSettigns.style.display = 'block';
+				advancedButton.innerHTML = 'Advanced &#9660;';
+			}
+		}
+
 		document.addEventListener("DOMContentLoaded", function(){
 			addRecipient();
+			document.getElementById('toggle_advanced').addEventListener('click', (event) => {
+				toggleAdvanced();
+			});
 		});
 	</script>
 {% endblock %}
