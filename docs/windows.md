@@ -2,8 +2,12 @@
 
 1. Install Python 3.7 from Microsoft Store (python 3.8 is not supported yet). You may need to install [Visual C++ Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) for it.
 2. Install libusb:
-	- Download latest binary from https://libusb.info/
-	- Extract and copy content of MS64 folder to your `Windows\System32` folder
+	- Download latest binary from https://libusb.info/ and extract
+	- For 32-bit Windows:
+		- Copy `MS32\dll\libusb-1.0.dll` to `C:\Windows\System32`
+	- For 64-bit Windows:
+		- Copy `MS64\dll\libusb-1.0.dll` to `C:\Windows\System32`
+		- Copy `MS32\dll\libusb-1.0.dll` to `C:\Windows\SysWOW64`
 3. Edit Bitcoin Core config file and make sure `server=1` is set (it's in `~\AppData\Roaming\Bitcoin\bitcoin.conf`)
 
 Now you can install specter-desktop and run as usual:
