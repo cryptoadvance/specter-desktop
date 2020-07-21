@@ -13,40 +13,30 @@
 	</message-box>
 
 	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST">
-		<h1 class="padded">Sending to:</h1>
-		<div class="card">
-			Recipient address:<br>
-			<div class="row">
-				<input type="text" id="address" name="address" id="address" oninput="validateForm()"> &nbsp;
-				<qr-scanner id="address-scan">
-					<a slot="button" class="btn" style="height: 35px;"><img src="/static/img/qr_tiny.svg"/> Scan</a>
-				</qr-scanner>
+		<h1 class="padded">Create Transaction</h1>
+		<p class="center">Available Funds: {{wallet.full_available_balance | btcamount}}</p>
+		{% if wallet.locked_amount > 0 %}
+			<div class="tool-tip" style="text-align: center;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">Funds waiting in usigned transactions<br><br></span>
+						To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transaction you have no need for.
+					</span>
+				</p>
 			</div>
-			<br>
-			Address label (optional):<br>
-			<input type="text" id="label" name="label" value="{{ label }}">
+			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcamount}} BTC still in usigned transactions.</p>
 			<br><br>
-			Amount:<br>
-			<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="1e-8" autocomplete="off">
-			<input type="hidden" name="btc_amount" id="btc_amount">
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="sat" onchange="toggleUnit(this)" checked>sat</label>
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)">BTC</label>
-			<div>
-				<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">BTC</span>, 
-				<span class="note">Available: {{wallet.full_available_balance | btcamount}};</span>
-				{% if wallet.locked_amount > 0 %}
-					<span class="note" >&nbsp;Waiting in usigned transactions: {{wallet.locked_amount | btcamount}}</span>
-					<div class="tool-tip" style="text-align: center;">
-						<i class="tool-tip__icon">i</i>
-						<p class="tool-tip__info">
-							<span class="info">
-								<span class="info__title">Funds waiting in usigned transactions<br><br></span>
-								To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transaction you have no need for.
-							</span>
-						</p>
-					</div>
-				{% endif %}
-			</div><br>
+		{% endif %}
+		<div class="card">
+			<div id="recipients"></div>
+			{% set unspents = wallet.cli.listunspent(0) %}
+			<div class="row">
+				<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add recipient </button>
+			{% if unspents | length > 0 %}
+				<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
+			{% endif %}
+			</div>
 			{% include "wallet/send/new/components/fee_selection.jinja" %}
 			{% include "wallet/send/new/components/coin_selection.jinja" %}
 			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
@@ -57,69 +47,100 @@
 
 {% block scripts %}
 	<script>
-		// Amount and unit
-		var unit = 'sat';
-		var amount = 0.0;
+		// Amounts and units
+		var units = [];
+		var amounts = [];
 
-		document.getElementById('address-scan').addEventListener('scan', e=>{
-			let addr = e.detail.result;
-			if(addr == null){
-				return;
-			}
-			// remove bitcoin: stuff
-            if(addr.indexOf("bitcoin:") >= 0){
-                addr = addr.substr(addr.indexOf("bitcoin:")+8);
-            }
-            let arr = addr.split("?");
-            addr = arr[0]
-            document.getElementById("address").value = addr;
-            let evt = new Event('input');
-            document.getElementById("address").dispatchEvent(evt);
-            // parse metadata like amount and message
-            if(arr.length > 1){
-                arr = arr[1].split("&");
-                arr.forEach((e)=>{
-                    if(e.startsWith("amount=")){
-                    	let val = parseFloat(e.substr(7));
-                    	if(unit == 'sat'){
-                    		val = Math.round(val*1e8);
-                    	}
-                        document.getElementById("amount").value = val;
-                        let evt = new Event('input');
-                        document.getElementById("amount").dispatchEvent(evt);
-                    }
-                    if(e.startsWith("message=")){
-                    	document.getElementById("label").value = e.substr(8);
-                    }
-                });
-            }
-		});
+		function addRecipient() {
+			let i = amounts.length;
+			amounts.push(0.0);
+			units.push('sat');
 
-		function toggleUnit(unitSelected) {
-			unit = unitSelected.value;
-			document.getElementById('converted_unit_label').innerHTML = (unit == 'sat' ? 'BTC' : 'sat');
-			calculateConvertedUnit();
+			let recipientForm = `
+			<div id="recipient_${i}" style="border-bottom: 1px solid var(--cmap-border); padding-bottom: 10px; margin-bottom: 10px;">
+				Recipient address:<br>
+				<div class="row">
+					<input type="text" id="address_${i}" name="address_${i}" oninput="validateForm()"> &nbsp;
+					<qr-scanner id="address-scan-${i}">
+						<a slot="button" class="btn" style="height: 35px;"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+					</qr-scanner>
+				</div>
+				<br>
+				Address label (optional):<br>
+				<input type="text" id="label" name="label_${i}">
+				<br><br>
+				Amount:<br>
+				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="1e-8" autocomplete="off">
+				<input type="hidden" name="btc_amount_${i}" id="btc_amount_${i}">
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" checked>sat</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})">BTC</label>
+				<div>
+					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">BTC</span>
+				</div>
+			<div>
+			`
+			document.getElementById('recipients').innerHTML += recipientForm;
+
+			document.getElementById('address-scan-' + i).addEventListener('scan', e=>{
+				let addr = e.detail.result;
+				if(addr == null){
+					return;
+				}
+				// remove bitcoin: stuff
+				if(addr.indexOf("bitcoin:") >= 0){
+					addr = addr.substr(addr.indexOf("bitcoin:")+8);
+				}
+				let arr = addr.split("?");
+				addr = arr[0]
+				document.getElementById("address_" + i).value = addr;
+				let evt = new Event('input');
+				document.getElementById("address_" + i).dispatchEvent(evt);
+				// parse metadata like amount and message
+				if(arr.length > 1){
+					arr = arr[1].split("&");
+					arr.forEach((e)=>{
+						if(e.startsWith("amount=")){
+							let val = parseFloat(e.substr(7));
+							if(unit == 'sat'){
+								val = Math.round(val*1e8);
+							}
+							document.getElementById("amount_" + i).value = val;
+							let evt = new Event('input');
+							document.getElementById("amount_" + i).dispatchEvent(evt);
+						}
+						if(e.startsWith("message=")){
+							document.getElementById("label_" + i).value = e.substr(8);
+						}
+					});
+				}
+			});
 		}
 
-		function calculateConvertedUnit() {
-			let amountInput = document.getElementById('amount');
-			amount = parseFloat(amountInput.value);
-			let convertedAmount = Number.parseFloat(amount / (unit == 'sat' ? 100000000 : 0.000000001)).toFixed((unit == 'sat' ? 8 : 0));
+		function toggleUnit(unitSelected, i) {
+			units[i] = unitSelected.value;
+			document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'BTC' : 'sat');
+			calculateConvertedUnit(i);
+		}
+
+		function calculateConvertedUnit(i) {
+			let amountInput = document.getElementById('amount_' + i);
+			amounts[i] = parseFloat(amountInput.value);
+			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 100000000 : 0.000000001)).toFixed((units[i] == 'sat' ? 8 : 0));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			document.getElementById('converted_unit_amount').innerHTML = convertedAmount;
+			document.getElementById('converted_unit_amount_' + i).innerHTML = convertedAmount;
 
-			document.getElementById('btc_amount').value = (unit == 'btc' ? amount : amount / 100000000);
+			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 100000000);
 
 			validateForm();
 		}
 
-		function isAboveWalletBalance(unit) {
+		function isAboveWalletBalance(unit, amount) {
 			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.full_available_balance }}');
 		}
 
-		function isInvalidValue(unit){
+		function isInvalidValue(unit, amount){
 			if (!amount) {
 			    return false;
 			}
@@ -127,21 +148,23 @@
 		}
 
 		// Form validation
-		function validateAmount() {
-			let amountInput = document.getElementById('amount');
-			amountInput.max = getSpendableAmount(unit);
-
-			if (isAboveWalletBalance(unit)) {
+		function validateAmount(unit, amount, i) {
+			if (i) {
+				let amountInput = document.getElementById('amount_' + i);
+				amountInput.max = getSpendableAmount(unit);
+			}
+			
+			if (isAboveWalletBalance(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!";
 				return false;
-			} else if (shouldSelectMoreCoins(unit)) {
+			} else if (shouldSelectMoreCoins(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = "You need to select more coins to match your amount!";
 				return false;
-			} else if (isInvalidValue(unit)) {
+			} else if (isInvalidValue(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = "Invalid amount! Wrong unit?";
@@ -152,8 +175,8 @@
 			}
 		}
 
-		function validateAddress() {
-			let addressInput = document.getElementById('address');
+		function validateAddress(i) {
+			let addressInput = document.getElementById('address_' + i);
 			if (addressInput.value) {
 				return true;
 			}
@@ -163,12 +186,39 @@
 
 		function validateForm() {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
-			createPSBTButton.disabled = !(validateAmount() && validateAddress());
+			let totalAmount = 0.0;
+			for(let i in amounts) {
+				let unit = units[i]
+				let amount = amounts[i]
+				totalAmount += (unit == 'sat' ? amount / 100000000 : amount);
+				if (!validateAmount(unit, amount, i)) {
+					createPSBTButton.disabled = true;
+					return;
+				}
+			}
+
+			if (!validateAmount('BTC', totalAmount)) {
+				createPSBTButton.disabled = true;
+				return;
+			}
+			
+			for(let i in amounts) {
+				if (!validateAddress(i)) {
+					createPSBTButton.disabled = true;
+					return;
+				}
+			}
+
+			createPSBTButton.disabled = false;
 		}
 
 		// Utils
 		function setVisibility(id, visibility) {
 			document.getElementById(id).style.display = visibility;
 		}
+
+		document.addEventListener("DOMContentLoaded", function(){
+			addRecipient();
+		});
 	</script>
 {% endblock %}

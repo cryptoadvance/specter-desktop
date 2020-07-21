@@ -291,13 +291,11 @@ class Wallet():
         for tx in transactions:
             if 'confirmations' not in tx:
                 tx['confirmations'] = 0
-            if tx['category'] == 'send':
-                if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
-                    continue # means the tx is duplicated (change), continue
+            if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
+                continue # means the tx is duplicated (change), continue
 
-            if tx["txid"] not in txids:
-                txids.append(tx["txid"])
-                result.append(tx)
+            txids.append(tx["txid"])
+            result.append(tx)
 
         return result
 
@@ -522,27 +520,28 @@ class Wallet():
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, address:str, amount:float, subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
+    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
-        if self.full_available_balance < amount:
+
+        if self.full_available_balance < sum(amounts):
             raise SpecterError('The wallet does not have sufficient funds to make the transaction.')
 
         if fee_unit not in ["SAT_B", "BTC_KB"]:
             raise ValueError('Invalid bitcoin unit')
 
         extra_inputs = []
-        if self.available_balance["trusted"] < amount:
+        if self.available_balance["trusted"] < sum(amounts):
             txlist = self.cli.listunspent(0, 0)
-            b = amount - self.available_balance["trusted"]
+            b = sum(amounts) - self.available_balance["trusted"]
             for tx in txlist:
                 extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
                 b -= tx["amount"]
                 if b < 0:
                     break
         elif selected_coins != []:
-            still_needed = amount
+            still_needed = sum(amounts)
             for coin in selected_coins:
                 coin_txid = coin.split(",")[0]
                 coin_vout = int(coin.split(",")[1])
@@ -574,7 +573,7 @@ class Wallet():
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.cli.walletcreatefundedpsbt(
             extra_inputs,           # inputs
-            [{address: amount}],    # output
+            [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
             0,                      # locktime
             options,                # options
             True                    # replaceable
@@ -583,8 +582,8 @@ class Wallet():
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
-        psbt["amount"] = amount
-        psbt["address"] = address
+        psbt["amount"] = amounts
+        psbt["address"] = addresses
         psbt["time"] = time()
         psbt["sigs_count"] = 0
         self.save_pending_psbt(psbt)
