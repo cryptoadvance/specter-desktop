@@ -66,11 +66,12 @@
 	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
 		<div class="tx_info">
 			
-			<div>Sending <b>{{ psbt["amount"] | btcamount }}</b> BTC to<b>
-				{{ explorer_link('address', psbt['address'], wallet.get_address_name(psbt["address"], -1), specter.explorer) }}
-				</b><br><br>
-			</div>
-
+			{% for i in range(psbt['address']|length) %}
+				<div>Sending <b>{{ psbt["amount"][i] | btcamount }}</b> BTC to<b>
+					{{ explorer_link('address', psbt['address'][i], wallet.get_address_name(psbt["address"][i], -1), specter.explorer) }}
+					</b><br><br>
+				</div>
+			{% endfor %}
 			{% if wallet.is_multisig %}
 				<div class="log" style="margin: auto;">
 					Acquired <b id="sigscount">{{ psbt['sigs_count'] }}</b> of <b>{{ wallet.sigs_required }}</b> signatures.
@@ -113,7 +114,7 @@
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
 				{% for output in psbt['tx']['vout'] %}
 					<p class="tx_info" style="text-align: left; background-color: #131a24;">
-						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] != psbt['address'] %}(Change){% endif %}<br><br>
+						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
 						<b>Address:</b>
 						{{ explorer_link('address', output['scriptPubKey']['addresses'][0], output['scriptPubKey']['addresses'][0], specter.explorer) }}
 						<br>

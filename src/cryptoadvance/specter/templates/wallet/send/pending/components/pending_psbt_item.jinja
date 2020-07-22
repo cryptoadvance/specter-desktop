@@ -11,10 +11,14 @@
     <tr>
         <td></td>
         <td class="tx scroll">
-            {{ explorer_link('address', pending_psbt['address'], wallet.get_address_name(pending_psbt['address'], -1), specter.explorer) }}
+            {% if pending_psbt['address']|length == 1 %}
+                {{ explorer_link('address', pending_psbt['address'][0], wallet.get_address_name(pending_psbt['address'][0], -1), specter.explorer) }}
+            {% else %}
+                {{ pending_psbt['address']|length }} Recipients
+            {% endif %}
         </td>
         <td>
-            {{ pending_psbt['amount'] | btcamount }}
+            {{ (pending_psbt['amount'] | sum) | btcamount }}
         </td>
         <td>
             {{ pending_psbt['time'] | datetime }}
