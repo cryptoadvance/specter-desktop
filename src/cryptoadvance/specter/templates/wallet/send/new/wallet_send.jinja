@@ -30,6 +30,8 @@
 		{% endif %}
 		<div class="card">
 			<div id="recipients"></div>
+			<button style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()" id="remove_recipient"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
+			<br>
 			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
 			<br><br>
 			<div id="advanced_settings" class="hidden">
@@ -83,8 +85,11 @@
 				</div>
 			<div>
 			`
-			document.getElementById('recipients').innerHTML += recipientForm;
 
+			let recipients = document.getElementById('recipients');
+			let newRecipient = document.createElement('div');
+			newRecipient.innerHTML = recipientForm;
+			recipients.appendChild(newRecipient);
 			document.getElementById('address-scan-' + i).addEventListener('scan', e=>{
 				let addr = e.detail.result;
 				if(addr == null){
@@ -118,6 +123,24 @@
 					});
 				}
 			});
+			if (amounts.length == 1) {
+				document.getElementById('remove_recipient').style.display = 'none';
+			} else {
+				document.getElementById('remove_recipient').style.display = 'block';
+			}
+		} 
+
+		function removeRecipient() {
+			let i = amounts.length - 1;
+			let recipient = document.getElementById('recipient_' + i);
+			recipient.parentNode.removeChild(recipient);
+			amounts.splice(i, 1);
+			units.splice(i, 1);
+			if (amounts.length == 1) {
+				document.getElementById('remove_recipient').style.display = 'none';
+			} else {
+				document.getElementById('remove_recipient').style.display = 'block';
+			}
 		}
 
 		function toggleUnit(unitSelected, i) {
