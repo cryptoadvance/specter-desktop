@@ -74,6 +74,7 @@ class Specter:
         self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
+        self.tor_service_id = ''
 
     def check(self, user=current_user):
         # if config.json file exists - load from it
