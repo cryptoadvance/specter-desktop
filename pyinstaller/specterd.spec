@@ -32,6 +32,12 @@ a = Analysis(['specterd.py'],
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
+if platform.system() == 'Linux':
+    import hwilib
+    # a.datas += Tree(os.path.join(hwilib.__path__, 'udev'), prefix='hwilib/udev')
+    a.datas += Tree('udev', prefix='hwilib/udev')
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
