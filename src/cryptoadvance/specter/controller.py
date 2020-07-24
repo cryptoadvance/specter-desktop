@@ -31,6 +31,7 @@ import traceback
 from .devices.electrum import b43_decode
 from binascii import b2a_base64
 from .tor_util import start_hidden_service, stop_hidden_services
+from stem.control import Controller
 
 from pathlib import Path
 env_path = Path('.') / '.flaskenv'
@@ -66,9 +67,14 @@ def inject_debug():
 
 @app.context_processor
 def inject_tor():
-    if app.tor_enabled:
+    if app.config['DEBUG']:
+        return dict(tor_service_id='', tor_enabled=False)
+    if request.args.get('action', '') == 'stoptor' or request.args.get('action', '') == 'starttor':
         if hasattr(current_user, 'is_admin') and current_user.is_admin:
-            current_hidden_services = app.controller.list_ephemeral_hidden_services()
+            try:
+                current_hidden_services = app.controller.list_ephemeral_hidden_services()
+            except Exception:
+                current_hidden_services = []
             if request.args.get('action', '') == 'stoptor' and len(current_hidden_services) != 0:
                 stop_hidden_services(app)
             if request.args.get('action', '') == 'starttor' and len(current_hidden_services) == 0:
