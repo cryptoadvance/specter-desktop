@@ -390,31 +390,6 @@ def b58encode(v: bytes) -> str:
         acc, idx = divmod(acc, 58)
         string = alphabet[idx : idx + 1] + string
     return string
-# We need to copy it like this because HWI uses it as a dependency, but requires v0.18 which doesn't have this function.
-def seed_to_hd_master_key(seed, testnet=False) -> str:
-    if len(seed) != 64:
-        raise ValueError("Provided seed should have length of 64")
-
-    # Compute HMAC-SHA512 of seed
-    seed = hmac.new(b"Bitcoin seed", seed, digestmod=hashlib.sha512).digest()
-
-    # Serialization format can be found at: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
-    xprv = b"\x04\x88\xad\xe4"  # Version for private mainnet
-    if testnet:
-        xprv = b"\x04\x35\x83\x94"  # Version for private testnet
-    xprv += b"\x00" * 9  # Depth, parent fingerprint, and child number
-    xprv += seed[32:]  # Chain code
-    xprv += b"\x00" + seed[:32]  # Master key
-
-    # Double hash using SHA256
-    hashed_xprv = hashlib.sha256(xprv).digest()
-    hashed_xprv = hashlib.sha256(hashed_xprv).digest()
-
-    # Append 4 bytes of checksum
-    xprv += hashed_xprv[:4]
-
-    # Return base58
-    return b58encode(xprv)
 
 # Transaction processing helpers
 
