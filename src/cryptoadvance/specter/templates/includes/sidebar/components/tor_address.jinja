@@ -93,28 +93,24 @@
             {{ tor_service_id }}.onion
             </span>
         </div>
-        {% if current_user.is_admin and (tor_service_id is not None and tor_service_id + '.onion' not in request.url) %}
+        {% if current_user.is_admin and (tor_service_id and tor_service_id + '.onion' not in request.url) %}
             <form action="?" class="center">
                 <button class="tor-btn" type="submit" name="action" value="stoptor">Stop Tor</button>
             </form>
         {% endif %}
     {% else %}
-        {% if tor_enabled %}
+        {% if debug %}
+            <span style="font-size: 0.92em; color: #fff;">Tor is unavailable...</span><br>
+            <div style="margin-top: 5px;">
+                <span style="font-size: 0.75em; color: #fff;">You are running Specter in debug mode, but Tor hidden serices are only available in production mode.</span>
+            </div>
+        {% else %}
             <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
-            {% if current_user.is_admin and (tor_service_id is not None and tor_service_id + '.onion' not in request.url) %}
+            {% if current_user.is_admin and (tor_service_id and tor_service_id + '.onion' not in request.url) %}
                 <form action="?" class="center">
                     <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
                 </form>
             {% endif %}
-        {% else %}
-        <span style="font-size: 0.92em; color: #fff;">Tor is unavailable...</span><br>
-        <div style="margin-top: 5px;">
-            {% if debug %}
-                <span style="font-size: 0.75em; color: #fff;">You are running Specter in debug mode, but Tor hidden serices are only available in production mode.</span>
-            {% else %}
-                <span style="font-size: 0.75em; color: #fff;">There was a problem starting Specter with Tor hidden services.</span>
-            {% endif %}
-        </div>
         {% endif %}
     {% endif %}
 </div>
