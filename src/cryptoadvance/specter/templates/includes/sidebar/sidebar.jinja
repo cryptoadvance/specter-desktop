@@ -1,9 +1,7 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
 <div id="side-content">
     <nav class="side">
-        {% if tor_enabled %}
-            {% include "includes/sidebar/components/tor_address.jinja" %}
-        {% endif %}
+        {% include "includes/sidebar/components/tor_address.jinja" %}
         {% if specter.info["initialblockdownload"] %}
             <p class="warning">⚠️<br>Blockchain is still syncing...<br>Data may be shown incorrectly.</p>
         {% endif %}

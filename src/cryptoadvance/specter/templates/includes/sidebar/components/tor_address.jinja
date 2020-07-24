@@ -44,11 +44,19 @@
     }
 
     .dot-on {
-        background-color: #0f0;
+        {% if tor_enabled %}
+            background-color: #0f0;
+        {% else %}
+            background-color: #ccc;
+        {% endif %}
     }
 
     .dot-off {
-        background-color: #f00;
+        {% if tor_enabled %}
+            background-color: #f00;
+        {% else %}
+            background-color: #ccc;
+        {% endif %}
     }
 
     .tor-btn {
@@ -91,11 +99,22 @@
             </form>
         {% endif %}
     {% else %}
-        <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
-        {% if current_user.is_admin %}
-            <form action="?" class="center">
-                <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
-            </form>
+        {% if tor_enabled %}
+            <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
+            {% if current_user.is_admin %}
+                <form action="?" class="center">
+                    <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
+                </form>
+            {% endif %}
+        {% else %}
+        <span style="font-size: 0.92em; color: #fff;">Tor is unavailable...</span><br>
+        <div style="margin-top: 5px;">
+            {% if debug %}
+                <span style="font-size: 0.75em; color: #fff;">You are running Specter in debug mode, but Tor hidden serices are only available in production mode.</span>
+            {% else %}
+                <span style="font-size: 0.75em; color: #fff;">There was a problem starting Specter with Tor hidden services.</span>
+            {% endif %}
+        </div>
         {% endif %}
     {% endif %}
 </div>

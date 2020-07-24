@@ -33,10 +33,9 @@ def cli():
 # for https:
 @click.option("--cert")
 @click.option("--key")
-# provide tor password here
-@click.option("--tor", is_flag=True)
+@click.option('--debug/--no-debug', default=None)
 @click.option("--hwibridge", is_flag=True)
-def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
+def server(daemon, stop, restart, force, port, host, cert, key, debug, hwibridge):
     # we will store our daemon PID here
     pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
     toraddr_file = path.expanduser(path.join(DATA_FOLDER, "onion.txt"))
@@ -112,15 +111,10 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             % (protocol, host, port)
         )
 
-    # if tor password is not provided but env variable is set
-    if tor is None and os.getenv('CONNECT_TOR') == 'True':
-        tor = True
-
     # debug is false by default
-    def run(debug=False):
-        if tor:
+    def run(debug=debug):
+        try:
             app.tor_enabled = True
-            # if tor is not None:
             # if we have certificates
             if "ssl_context" in kwargs:
                 tor_port = 443
@@ -128,37 +122,44 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
                 tor_port = 80
             tor_util.run_on_hidden_service(
                 app,
-                debug=False,
+                debug=debug,
                 tor_port=tor_port,
                 save_address_to=toraddr_file,
                 **kwargs
             )
-        else:
+        except Exception as e:
+            print('* Failed to start Tor hidden service: {}'.format(e))
+            print('* Continuing process with Tor disabled')
             app.tor_service_id = None
             app.tor_enabled = False
-            app.run(debug=True, **kwargs)
+            app.run(debug=debug, **kwargs)
 
     # check if we should run a daemon or not
     if daemon or restart:
         print("Starting server in background...")
         print("* Hopefully running on %s://%s:%d/" % (protocol, host, port))
-        if tor is not None:
-            print("* For onion address check the file %s" % toraddr_file)
         # macOS + python3.7 is buggy
-        if sys.platform=="darwin" and (sys.version_info.major==3 and sys.version_info.minor < 8):
-            print("* WARNING: --daemon mode might not work properly in python 3.7 and lower on MacOS. Upgrade to python 3.8+")
+        if sys.platform == "darwin" and \
+                (sys.version_info.major == 3 and sys.version_info.minor < 8):
+            print(
+                "* WARNING: --daemon mode might not work properly in python 3.7 \
+                and lower on MacOS. Upgrade to python 3.8+"
+            )
         from daemonize import Daemonize
         d = Daemonize(app="specter", pid=pid_file, action=run)
         d.start()
     else:
         # if not a daemon we can use DEBUG
-        run(app.config['DEBUG'])
+        if debug is None:
+            debug = app.config['DEBUG']
+        run(debug=debug)
+
 
 @cli.command()
 @click.option('--debug/--no-debug', default=False)
 @click.option('--mining/--no-mining', default=True)
 @click.option('--docker-tag', "docker_tag", default="latest")
-def bitcoind(debug,mining, docker_tag):
+def bitcoind(debug, mining, docker_tag):
     mining_every_x_seconds = 15
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -168,20 +169,33 @@ def bitcoind(debug,mining, docker_tag):
         my_bitcoind.start_bitcoind()
     except docker.errors.ImageNotFound:
         click.echo("    --> Image with tag {} does not exist!".format(docker_tag))
-        click.echo("    --> Try to download first with docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(docker_tag))
+        click.echo(
+            "    --> Try to download first with docker pull \
+            registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}"
+            .format(docker_tag)
+        )
         sys.exit(1)
-    tags_of_image = [ image.split(":")[-1]  for image in my_bitcoind.btcd_container.image.tags]
-    if not docker_tag in tags_of_image:
+    tags_of_image = [image.split(":")[-1] for image in my_bitcoind.btcd_container.image.tags]
+    if docker_tag not in tags_of_image:
         click.echo("    --> The running docker container is not the tag you requested!")
-        click.echo("    --> please stop first with docker stop {}".format(my_bitcoind.btcd_container.id))
+        click.echo(
+            "    --> please stop first with docker stop {}"
+            .format(my_bitcoind.btcd_container.id)
+        )
         sys.exit(1)
     click.echo("    --> containerImage: %s" % my_bitcoind.btcd_container.image.tags)
     click.echo("    -->            url: %s" % my_bitcoind.rpcconn.render_url())
     click.echo("    --> user, password: bitcoin, secret")
     click.echo("    -->     host, port: localhost, 18443")
-    click.echo("    -->    bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=secret getblockchaininfo ")
+    click.echo(
+        "    -->    bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin \
+            -rpcpassword=secret getblockchaininfo "
+    )
     if mining:
-        click.echo("    --> Now, mining a block every %i seconds. Avoid it via --no-mining" % mining_every_x_seconds)
+        click.echo(
+            "    --> Now, mining a block every %i seconds. Avoid it via --no-mining" %
+            mining_every_x_seconds
+        )
         # Get each address some coins
         try:
             for address in fetch_wallet_addresses_for_mining():
@@ -192,20 +206,19 @@ def bitcoind(debug,mining, docker_tag):
 
         # make them spendable
         my_bitcoind.mine(block_count=100)
-        click.echo("    --> ",nl=False)
+        click.echo("    --> ", nl=False)
         i = 0
         while True:
             my_bitcoind.mine()
-            click.echo("%i"% (i%10),nl=False)
-            if i%10 == 9:
-                click.echo(" ",nl=False)
+            click.echo("%i" % (i % 10), nl=False)
+            if i % 10 == 9:
+                click.echo(" ", nl=False)
             i += 1
             if i >= 50:
-                i=0
+                i = 0
                 click.echo(" ")
-                click.echo("    --> ",nl=False)
+                click.echo("    --> ", nl=False)
             time.sleep(mining_every_x_seconds)
-
 
 
 if __name__ == "__main__":
