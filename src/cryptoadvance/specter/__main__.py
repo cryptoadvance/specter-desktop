@@ -114,12 +114,10 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
 
     # debug is false by default
     def run(debug=debug):
-        if debug and tor or os.getenv('CONNECT_TOR') == 'True':
+        if debug and (tor or os.getenv('CONNECT_TOR') == 'True'):
             print(
-                'Illegal option: Cannot use Tor in debug mode. \
-Please either disable Tor or run with --no-debug.'
+                '* Warning: Cannot use Tor with debug mode. Starting in production mode instead.'
             )
-            return
         if tor or os.getenv('CONNECT_TOR') == 'True':
             try:
                 app.tor_enabled = True
