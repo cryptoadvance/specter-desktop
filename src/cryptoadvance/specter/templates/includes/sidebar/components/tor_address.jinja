@@ -93,7 +93,7 @@
             {{ tor_service_id }}.onion
             </span>
         </div>
-        {% if current_user.is_admin and tor_service_id + '.onion' not in request.url %}
+        {% if current_user.is_admin and (tor_service_id is not None and tor_service_id + '.onion' not in request.url) %}
             <form action="?" class="center">
                 <button class="tor-btn" type="submit" name="action" value="stoptor">Stop Tor</button>
             </form>
@@ -101,7 +101,7 @@
     {% else %}
         {% if tor_enabled %}
             <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
-            {% if current_user.is_admin and tor_service_id + '.onion' not in request.url %}
+            {% if current_user.is_admin and (tor_service_id is not None and tor_service_id + '.onion' not in request.url) %}
                 <form action="?" class="center">
                     <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
                 </form>
