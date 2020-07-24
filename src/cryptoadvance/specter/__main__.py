@@ -34,8 +34,9 @@ def cli():
 @click.option("--cert")
 @click.option("--key")
 @click.option('--debug/--no-debug', default=None)
+@click.option('--tor', is_flag=True)
 @click.option("--hwibridge", is_flag=True)
-def server(daemon, stop, restart, force, port, host, cert, key, debug, hwibridge):
+def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwibridge):
     # we will store our daemon PID here
     pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
     toraddr_file = path.expanduser(path.join(DATA_FOLDER, "onion.txt"))
@@ -113,26 +114,34 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, hwibridge
 
     # debug is false by default
     def run(debug=debug):
-        try:
-            app.tor_enabled = True
-            # if we have certificates
-            if "ssl_context" in kwargs:
-                tor_port = 443
-            else:
-                tor_port = 80
-            tor_util.run_on_hidden_service(
-                app,
-                debug=debug,
-                tor_port=tor_port,
-                save_address_to=toraddr_file,
-                **kwargs
+        if debug and tor or os.getenv('CONNECT_TOR') == 'True':
+            print(
+                'Illegal option: Cannot use Tor in debug mode. \
+Please either disable Tor or run with --no-debug.'
             )
-        except Exception as e:
-            print('* Failed to start Tor hidden service: {}'.format(e))
-            print('* Continuing process with Tor disabled')
-            app.tor_service_id = None
-            app.tor_enabled = False
-            app.run(debug=debug, **kwargs)
+            return
+        if tor or os.getenv('CONNECT_TOR') == 'True':
+            try:
+                app.tor_enabled = True
+                # if we have certificates
+                if "ssl_context" in kwargs:
+                    tor_port = 443
+                else:
+                    tor_port = 80
+                tor_util.run_on_hidden_service(
+                    app,
+                    debug=False,
+                    tor_port=tor_port,
+                    save_address_to=toraddr_file,
+                    **kwargs
+                )
+                return
+            except Exception as e:
+                print('* Failed to start Tor hidden service: {}'.format(e))
+                print('* Continuing process with Tor disabled')
+        app.tor_service_id = None
+        app.tor_enabled = False
+        app.run(debug=debug, **kwargs)
 
     # check if we should run a daemon or not
     if daemon or restart:
