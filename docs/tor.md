@@ -14,23 +14,12 @@ Install Tor on the same server that you'll be running Specter Desktop:
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
-### Configure Tor authentication
-```sh
-$ tor --hash-password "your-tor-passphrase"
-```
-That returns a password hash such as:
-```sh
-16:CE9058DA89498A4160373C70FF7FFF70CC2E20B6788FC48F5C35B2E85B
-```
-Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs). Uncomment the `ControlPort` line as well as the `HashedControlPassword` line. Remember to paste in your own hashed password result from above.
+### Configure Tor port
+Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs) and uncomment the `ControlPort` line.
 ```sh
 ## The port on which Tor will listen for local connections from Tor
 ## controller applications, as documented in control-spec.txt.
 ControlPort 9051
-## If you enable the controlport, be sure to enable one of these
-## authentication methods, to prevent attackers from accessing it.
-HashedControlPassword 16:CE9058DA89498A4160373C70FF7FFF70CC2E20B6788FC48F5C35B2E85B
-#CookieAuthentication 1
 ```
 
 Restart the Tor service:
@@ -39,10 +28,10 @@ Restart the Tor service:
 
 ### Running with Tor using command line
 
-You can start the server and provide your tor password using `--tor=` flag:
+You can start the server using `--tor` flag:
 
 ```sh
-$ python3 -m cryptoadvance.specter server --tor=your-tor-passphrase
+$ python3 -m cryptoadvance.specter server --tor
 ```
 
 ### Configure environment variables
@@ -57,22 +46,6 @@ CONNECT_TOR=True
 
 FLASK_ENV=production
 #FLASK_ENV=development
-```
-
-### Specify Tor secrets
-
-The Tor password that we hashed above will need to be shared with Specter Desktop.
-
-Copy the example `.env_example` file:
-```sh
-$ cp .env_example .env
-```
-
-And then edit `.env` and specify `TOR_PASSWORD`:
-```sh
-# The cleartext password that was entered into:
-#   $ tor --hash-password "your-tor-passphrase"
-TOR_PASSWORD=your-tor-passphrase
 ```
 
 ### Launch with Tor
