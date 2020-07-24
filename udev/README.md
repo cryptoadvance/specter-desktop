@@ -16,7 +16,6 @@ Apply these rules by copying them to `/etc/udev/rules.d/` and notifying `udevadm
 Your user will need to be added to the `plugdev` group, which needs to be created if it does not already exist.
 
 ```
-$ cd hwilib/
 $ sudo cp udev/*.rules /etc/udev/rules.d/
 $ sudo udevadm trigger
 $ sudo udevadm control --reload-rules
