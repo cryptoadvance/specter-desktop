@@ -241,6 +241,8 @@ def app(specter_regtest_configured):
     app.app_context().push()
     app.config["TESTING"]=True
     app.testing = True
+    app.tor_service_id = None
+    app.tor_enabled = False
     init_app(app, specter=specter_regtest_configured)
     return app
 

@@ -33,33 +33,97 @@
         text-decoration: underline;
         cursor: pointer;
     }
+
+    .dot {
+        cursor: pointer;
+        height: 8px;
+        width: 8px;
+        position: absolute;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .dot-on {
+        background-color: #0f0;
+    }
+
+    .dot-off {
+        background-color: #f00;
+    }
+
+    .tor-btn {
+        margin-top: 10px;
+        width: 90px;
+        border: none;
+        font-size: 0.8em;
+        color: #fff;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #59316B;
+        background: #7D4698;
+    }
+
+    .tor-btn:hover {
+        cursor: pointer;
+        background: #59316B;
+    }
 </style>
 <div style="position: relative;">
 <img id="tor-open-btn" src="/static/img/tor.svg"/>
+<span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-symbol-status-dot" style="margin-left: 227px;"></span>
 </div>
 <div id="onion-address-container" class="hidden">
-    <img id="tor-close-btn" src="/static/img/tor.svg" style="width: 24px;"/>
-    <span style="font-size: 0.92em; color: #fff;">Specter Running on Tor</span><br>
-    <div style="margin-top: 5px;"> <span style="font-size: 0.75em; color: #fff;">Running at:</span></div>
-    <div class="center">
-        <span title="Copy Tor address" class="onion-address centered" onclick="copyText('{{ specter.tor_service_id }}.onion', 'Copied Tor hidden service address: {{ specter.tor_service_id }}.onion')">
-        {{ specter.tor_service_id }}.onion
-        </span>
+    <div style="position: relative;">
+        <img id="tor-close-btn" src="/static/img/tor.svg" style="width: 24px; position: absolute; left: 177px;"/>
+        <span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-popup-status-dot" style="left: 193px;"></span>
     </div>
+    {% if tor_service_id %}
+        <span style="font-size: 0.92em; color: #fff;">Specter Running on Tor</span><br>
+        <div style="margin-top: 5px;"> <span style="font-size: 0.75em; color: #fff;">Running at:</span></div>
+        <div class="center">
+            <span title="Copy Tor address" class="onion-address centered" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+            {{ tor_service_id }}.onion
+            </span>
+        </div>
+        {% if current_user.is_admin %}
+            <form action="?" class="center">
+                <button class="tor-btn" type="submit" name="action" value="stoptor">Stop Tor</button>
+            </form>
+        {% endif %}
+    {% else %}
+        <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
+        {% if current_user.is_admin %}
+            <form action="?" class="center">
+                <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
+            </form>
+        {% endif %}
+    {% endif %}
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         let torOpenBtn = document.getElementById('tor-open-btn');
         let torCloseBtn = document.getElementById('tor-close-btn');
         let torDataContainer = document.getElementById('onion-address-container');
-        torOpenBtn.addEventListener("click", function(){
+        let torPopupStatusDot = document.getElementById('tor-popup-status-dot');
+        let torSymbolStatusDot = document.getElementById('tor-symbol-status-dot');
+
+        function openTorPopup() {
             torOpenBtn.style.display = 'none';
             torDataContainer.style.display = 'block';
-        });
+            torPopupStatusDot.style.display = 'inline-block';
+            torSymbolStatusDot.style.display = 'none';
+        }
 
-        torCloseBtn.addEventListener("click", function(){
+        function closeTorPopup() {
             torOpenBtn.style.display = 'block';
             torDataContainer.style.display = 'none';
-        });
+            torPopupStatusDot.style.display = 'none';
+            torSymbolStatusDot.style.display = 'inline-block';
+        }
+        torSymbolStatusDot.addEventListener("click", openTorPopup);
+        torOpenBtn.addEventListener("click", openTorPopup);
+
+        torPopupStatusDot.addEventListener("click", closeTorPopup);
+        torCloseBtn.addEventListener("click", closeTorPopup);
     });
 </script>

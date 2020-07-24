@@ -1,7 +1,7 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
 <div id="side-content">
     <nav class="side">
-        {% if specter.tor_service_id %}
+        {% if tor_enabled %}
             {% include "includes/sidebar/components/tor_address.jinja" %}
         {% endif %}
         {% if specter.info["initialblockdownload"] %}

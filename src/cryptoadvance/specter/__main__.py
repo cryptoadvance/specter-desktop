@@ -1,17 +1,15 @@
-import atexit
 import logging
 from logging.config import dictConfig
 import os
 import sys
 import time
-
+from . import tor_util
 import click
 
 import docker
 
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
-from .helpers import which
 from .server import DATA_FOLDER, create_app, init_app
 
 from os import path
@@ -30,13 +28,13 @@ def cli():
 @click.option("--force", is_flag=True)
 # options below can help to run it on a remote server,
 # but better use nginx
-@click.option("--port") # default - 25441 set to 80 for http, 443 for https
-@click.option("--host", default="127.0.0.1") # set to 0.0.0.0 to make it available outside
+@click.option("--port")  # default - 25441 set to 80 for http, 443 for https
+@click.option("--host", default="127.0.0.1")  # set to 0.0.0.0 to make it available outside
 # for https:
 @click.option("--cert")
 @click.option("--key")
 # provide tor password here
-@click.option("--tor")
+@click.option("--tor", is_flag=True)
 @click.option("--hwibridge", is_flag=True)
 def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
     # we will store our daemon PID here
@@ -53,7 +51,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
             time.sleep(0.3)
             try:
                 os.remove(pid_file)
-            except Exception as e:
+            except Exception:
                 pass
         elif daemon:
             if not force:
@@ -82,7 +80,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
                 filename = os.path.join(dirname, filename)
                 if os.path.isfile(filename):
                     extra_files.append(filename)
-    
+
     # if port is not defined - get it from environment
     if port is None:
         port = int(os.getenv('PORT', 25441))
@@ -108,31 +106,37 @@ def server(daemon, stop, restart, force, port, host, cert, key, tor, hwibridge):
         protocol = "https"
 
     if hwibridge:
-        app.logger.info("Running HWI Bridge mode, you can configure access to the API at: %s://%s:%d/hwi/settings" % (protocol, host, port))
+        app.logger.info(
+            "Running HWI Bridge mode, you can configure access \
+            to the API at: %s://%s:%d/hwi/settings"
+            % (protocol, host, port)
+        )
 
     # if tor password is not provided but env variable is set
     if tor is None and os.getenv('CONNECT_TOR') == 'True':
-        from dotenv import load_dotenv
-        load_dotenv()   # Load the secrets from .env
-        tor = os.getenv('TOR_PASSWORD')
+        tor = True
 
     # debug is false by default
     def run(debug=False):
-        if tor is not None:
-            from . import tor_util
+        if tor:
+            app.tor_enabled = True
+            # if tor is not None:
             # if we have certificates
             if "ssl_context" in kwargs:
                 tor_port = 443
             else:
                 tor_port = 80
-            tor_util.run_on_hidden_service(app,
+            tor_util.run_on_hidden_service(
+                app,
                 debug=False,
-                tor_password=tor,
                 tor_port=tor_port,
                 save_address_to=toraddr_file,
-                **kwargs)
+                **kwargs
+            )
         else:
-            app.run(debug=debug, **kwargs)
+            app.tor_service_id = None
+            app.tor_enabled = False
+            app.run(debug=True, **kwargs)
 
     # check if we should run a daemon or not
     if daemon or restart:
