@@ -9,7 +9,10 @@ block_cipher = None
 
 binaries = []
 if platform.system() == 'Windows':
-    binaries = [("c:/python3/libusb-1.0.dll", ".")]
+    binaries = [
+      ("./windll/libusb-1.0.dll", "."),
+      ("./windll/libsecp256k1.dll","coincurve/"),
+    ]
 elif platform.system() == 'Linux':
     binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
 elif platform.system() == 'Darwin':
@@ -18,13 +21,12 @@ elif platform.system() == 'Darwin':
     binaries = [(libusb_path.rstrip().decode() + "/lib/libusb-1.0.dylib", ".")]
 
 a = Analysis(['specterd.py'],
-             # pathex=['/Users/ss/dev/web/myspecter/pyinstaller'],
              binaries=binaries,
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
                     ('../src/cryptoadvance/specter/static', 'static'),
                     (mnemonic_path, 'mnemonic/wordlist'),
              ],
-             hiddenimports=['_cffi_backend'],
+             hiddenimports=['_cffi_backend', 'pkg_resources.py2_warn'],
              hookspath=['hooks/'],
              runtime_hooks=[],
              excludes=[],
@@ -35,8 +37,7 @@ a = Analysis(['specterd.py'],
 
 if platform.system() == 'Linux':
     import hwilib
-    # a.datas += Tree(os.path.join(hwilib.__path__, 'udev'), prefix='hwilib/udev')
-    a.datas += Tree('udev', prefix='hwilib/udev')
+    a.datas += Tree('../udev', prefix='hwilib/udev')
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
