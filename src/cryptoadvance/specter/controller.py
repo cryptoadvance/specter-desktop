@@ -30,6 +30,8 @@ from io import BytesIO
 import traceback
 from .devices.electrum import b43_decode
 from binascii import b2a_base64
+from .tor_util import start_hidden_service, stop_hidden_services
+from stem.control import Controller
 
 from pathlib import Path
 env_path = Path('.') / '.flaskenv'
@@ -55,11 +57,30 @@ def selfcheck():
     if app.config.get('LOGIN_DISABLED'):
         app.login('admin')
 
+
 ########## template injections #############
 @app.context_processor
 def inject_debug():
     ''' Can be used in all jinja2 templates '''
     return dict(debug=app.config['DEBUG'])
+
+
+@app.context_processor
+def inject_tor():
+    if app.config['DEBUG']:
+        return dict(tor_service_id='', tor_enabled=False)
+    if request.args.get('action', '') == 'stoptor' or request.args.get('action', '') == 'starttor':
+        if hasattr(current_user, 'is_admin') and current_user.is_admin:
+            try:
+                current_hidden_services = app.controller.list_ephemeral_hidden_services()
+            except Exception:
+                current_hidden_services = []
+            if request.args.get('action', '') == 'stoptor' and len(current_hidden_services) != 0:
+                stop_hidden_services(app)
+            if request.args.get('action', '') == 'starttor' and len(current_hidden_services) == 0:
+                start_hidden_service(app)
+    return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
+
 
 ################ routes ####################
 @app.route('/wallets/<wallet_alias>/combine/', methods=['GET', 'POST'])
@@ -282,10 +303,10 @@ def general_settings():
         hwi_bridge_url = request.form['hwi_bridge_url']
         if current_user.is_admin:
             loglevel = request.form['loglevel']
-        
+
         if action == "save":
             if current_user.is_admin:
-                set_loglevel(app,loglevel)
+                set_loglevel(app, loglevel)
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
@@ -335,7 +356,7 @@ def bitcoin_core_settings():
             passwd = request.form['password']
             port = request.form['port']
             host = request.form['host']
-            
+
         # protocol://host
         if "://" in host:
             arr = host.split("://")
@@ -706,7 +727,7 @@ def new_wallet(wallet_type):
                     err = "%r" % e
                 wallet.getdata()
             return redirect("/wallets/%s/" % wallet.alias)
-    
+
     return render_template(
         "wallet/new_wallet/new_wallet.jinja",
         wallet_type=wallet_type,
