@@ -115,8 +115,11 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
 
     # debug is false by default
     def run(debug=debug):
-        with Controller.from_port() as controller:
-            app.controller = controller
+        try:
+            app.controller = Controller.from_port()
+        except:
+            app.controller = None
+        try:
             port = 5000  # default flask port
             if 'port' in kwargs:
                 port = kwargs['port']
@@ -148,6 +151,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
                 app.tor_enabled = False
             app.run(debug=debug, **kwargs)
             tor_util.stop_hidden_services(app)
+        finally:
+            if app.controller is not None:
+                app.controller.close()
 
     # check if we should run a daemon or not
     if daemon or restart:
