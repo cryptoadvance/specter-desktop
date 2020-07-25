@@ -18,6 +18,10 @@ import cryptoadvance.specter.config
 from os import path
 import signal
 
+from stem.control import Controller
+from cryptoadvance.specter import tor_util
+
+
 def server(daemon=False, stop=False, restart=False, force=False, 
            port=25441, host="127.0.0.1", cert=None, key=None, tor=None, 
            hwibridge=False):
@@ -48,7 +52,31 @@ def server(daemon=False, stop=False, restart=False, force=False,
         "port": port,
     }
 
+    with Controller.from_port() as controller:
+        app.controller = controller
+        # if we have certificates
+        if "ssl_context" in kwargs:
+            tor_port = 443
+        else:
+            tor_port = 80
+        app.port = port
+        app.tor_port = tor_port
+        app.save_tor_address_to = toraddr_file
+        if tor or os.getenv('CONNECT_TOR') == 'True':
+            try:
+                app.tor_enabled = True
+                tor_util.start_hidden_service(app)
+            except Exception as e:
+                print('* Failed to start Tor hidden service: {}'.format(e))
+                print('* Continuing process with Tor disabled')
+                app.tor_service_id = None
+                app.tor_enabled = False
+        else:
+            app.tor_service_id = None
+            app.tor_enabled = False
+
     app.run(debug=False, **kwargs)
+    tor_util.stop_hidden_services(app)
 
 if __name__ == "__main__":
     # central and early configuring of logging
