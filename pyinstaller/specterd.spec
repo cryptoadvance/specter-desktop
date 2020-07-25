@@ -9,10 +9,7 @@ block_cipher = None
 
 binaries = []
 if platform.system() == 'Windows':
-    binaries = [
-      ("./windll/libusb-1.0.dll", "."),
-      ("./windll/libsecp256k1.dll","coincurve/"),
-    ]
+    binaries = [("./windll/libusb-1.0.dll", ".")]
 elif platform.system() == 'Linux':
     binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
 elif platform.system() == 'Darwin':
@@ -26,7 +23,7 @@ a = Analysis(['specterd.py'],
                     ('../src/cryptoadvance/specter/static', 'static'),
                     (mnemonic_path, 'mnemonic/wordlist'),
              ],
-             hiddenimports=['_cffi_backend', 'pkg_resources.py2_warn'],
+             hiddenimports=['pkg_resources.py2_warn'],
              hookspath=['hooks/'],
              runtime_hooks=[],
              excludes=[],
