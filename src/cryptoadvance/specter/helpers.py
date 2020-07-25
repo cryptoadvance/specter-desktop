@@ -375,22 +375,6 @@ def generate_mnemonic(strength=256):
         words = mnemo.generate(strength=strength)
         return words
 
-# From https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/mnemonic/mnemonic.py#L246
-# Refactored code segments from <https://github.com/keis/base58>
-def b58encode(v: bytes) -> str:
-    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
-    p, acc = 1, 0
-    for c in reversed(v):
-        acc += p * c
-        p = p << 8
-
-    string = ""
-    while acc:
-        acc, idx = divmod(acc, 58)
-        string = alphabet[idx : idx + 1] + string
-    return string
-
 # Transaction processing helpers
 
 def parse_utxo(wallet, utxo):

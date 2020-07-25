@@ -136,7 +136,7 @@ def seed_to_hd_master_key(seed, testnet=False) -> str:
         raise ValueError("Provided seed should have length of 64")
 
     # Compute HMAC-SHA512 of seed
-    seed = hmac.new(b"Bitcoin seed", seed, digestmod=hashlib.sha512).digest()
+    seed = hmac.new(b"Bitcoin seed", seed, digestmod='sha512').digest()
 
     # Serialization format can be found at: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
     xprv = b"\x04\x88\xad\xe4"  # Version for private mainnet
@@ -146,15 +146,7 @@ def seed_to_hd_master_key(seed, testnet=False) -> str:
     xprv += seed[32:]  # Chain code
     xprv += b"\x00" + seed[:32]  # Master key
 
-    # Double hash using SHA256
-    hashed_xprv = hashlib.sha256(xprv).digest()
-    hashed_xprv = hashlib.sha256(hashed_xprv).digest()
-
-    # Append 4 bytes of checksum
-    xprv += hashed_xprv[:4]
-
-    # Return base58
-    return b58encode(xprv)
+    return encode_base58_checksum(xprv)
 
 def derive_xpubs_from_xprv(xprv, paths:list, cli):
     """
