@@ -2,6 +2,7 @@ from logging.config import dictConfig
 from cryptoadvance.specter.cli import *
 # hidden import?
 from cryptoadvance.specter import config
+import sys
 
 if __name__ == "__main__":
     # central and early configuring of logging
@@ -21,5 +22,11 @@ if __name__ == "__main__":
             'handlers': ['wsgi']
         }
     })
+    if "--daemon" in sys.argv:
+        print("Daemon mode is not supported in binaries yet")
+        sys.exit(1)
+    if "--debug" in sys.argv:
+        print("Debug mode is useless in binary mode, don't use it")
+        sys.exit(1)
     print("Starting Specter server. It may take a while, please be patient")
     server()
