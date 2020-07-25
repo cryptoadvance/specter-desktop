@@ -78,7 +78,13 @@ def inject_tor():
             if request.args.get('action', '') == 'stoptor' and len(current_hidden_services) != 0:
                 stop_hidden_services(app)
             if request.args.get('action', '') == 'starttor' and len(current_hidden_services) == 0:
-                start_hidden_service(app)
+                try:
+                    start_hidden_service(app)
+                except Exception as e:
+                    flash('Failed to start Tor hidden service.\
+Make sure you have Tor running with ControlPort configured and try again.\
+Error returned: {}'.format(e), 'error')
+                    return dict(tor_service_id='', tor_enabled=False)
     return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
 
