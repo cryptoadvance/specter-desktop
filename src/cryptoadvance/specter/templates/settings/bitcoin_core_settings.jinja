@@ -12,6 +12,21 @@
 				<input type="checkbox" id="autodetect" name="autodetect" {% if autodetect %}checked{% endif %}>
 				<span class="slider"></span>
 			</label>
+			<span id="datadir-container">
+			<div class="tool-tip" style="float: right;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">Setting Bitcoin Core Data Directory<br></span><br>
+						When auto-detect is on, Specter will attempt to automatically locate your Bitcoin data directory and load your node configurations from it.<br><br>
+						However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.<br><br>
+						If you are connecting to a remote node, you can disable the auto-detect feature and enter the node's configurations manually below.
+					</span>
+				</p>
+			</div>
+			<br><br>
+				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
+			</span>
 			<br><br>
 			<div id="rpc_settings" style="padding: 10px; border-radius: 10px;">
 				<div id="lock" class="center">
@@ -90,14 +105,17 @@
 			function toggleAutoDetectMode() {
 				var rpcSettings = document.getElementById("rpc_settings");
 				var lock = document.getElementById("lock");
+				var datadirContainer = document.getElementById("datadir-container");
 				if (autodetect.checked) {
 					lock.style.removeProperty('display');
+					datadirContainer.style.removeProperty('display');
 					rpcSettings.style['pointer-events'] = 'none';
 					rpcSettings.style['background-color'] = '#8881';
 					document.getElementById("username").value = '{{ username }}';
 					document.getElementById("password").value = '{{ password }}';
 				} else {
 					lock.style['display'] = 'none';
+					datadirContainer.style['display'] = 'none';
 					rpcSettings.style.removeProperty('background-color');
 					rpcSettings.style.removeProperty('pointer-events');
 				}

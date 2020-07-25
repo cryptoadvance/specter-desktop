@@ -1,6 +1,6 @@
 import copy, json, logging, os, random
 from .helpers import deep_update, clean_psbt
-from .rpc import autodetect_cli_confs, RpcError
+from .rpc import autodetect_cli_confs, get_default_datadir, RpcError
 from .rpc import BitcoinCLI
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
@@ -15,9 +15,9 @@ def get_cli(conf):
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_conf_arr = autodetect_cli_confs(port=conf["port"])
+            cli_conf_arr = autodetect_cli_confs(datadir=conf["datadir"], port=conf["port"])
         else:
-            cli_conf_arr = autodetect_cli_confs()
+            cli_conf_arr = autodetect_cli_confs(datadir=conf["datadir"])
         if len(cli_conf_arr) > 0:
             cli = BitcoinCLI(**cli_conf_arr[0])
         else:
@@ -32,6 +32,7 @@ class Specter:
     CONFIG_FILE_NAME = "config.json"
     # use this lock for all fs operations
     lock = threading.Lock()
+
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
@@ -41,12 +42,13 @@ class Specter:
         self.wallet_manager = None
 
         self.file_config = None  # what comes from config file
-        self.arg_config = config # what comes from arguments
+        self.arg_config = config  # what comes from arguments
 
         # default config
         self.config = {
             "rpc": {
                 "autodetect": True,
+                "datadir": get_default_datadir(),
                 "user": "",
                 "password": "",
                 "port": "",
@@ -70,10 +72,16 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
-        self._info = { "chain": None }
+        self._info = {"chain": None}
         self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
+
+    @property
+    def bitcoin_datadir(self):
+        if 'datadir' in self.config['rpc']:
+            return self.config['rpc']['datadir']
+        return get_default_datadir()
 
     def check(self, user=current_user):
         # if config.json file exists - load from it
@@ -186,7 +194,7 @@ class Specter:
                 r["err"] = "Failed to connect"
                 r["code"] = -1
         return r
-    
+
     def _save(self):
         with self.lock:
             with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
@@ -201,13 +209,13 @@ class Specter:
         if need_update:
             self._save()
             self.check()
-    
+
     def update_auth(self, auth):
         ''' simply persisting the current auth-choice '''
         if self.config["auth"] != auth:
             self.config["auth"] = auth
         self._save()
-    
+
     def update_explorer(self, explorer, user):
         ''' update the block explorers urls '''
         # we don't know what chain to change

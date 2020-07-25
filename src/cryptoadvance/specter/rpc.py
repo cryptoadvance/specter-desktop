@@ -18,8 +18,8 @@ def get_default_datadir():
         datadir = os.path.join(os.environ['HOME'], ".bitcoin")
     return datadir
 
-def get_rpcconfig():
-    path = get_default_datadir()
+
+def get_rpcconfig(datadir=get_default_datadir()):
     config = {
         "bitcoin.conf": {
             "default": {},
@@ -29,10 +29,10 @@ def get_rpcconfig():
         },
         "cookies": [],
     }
-    if not os.path.isdir(path): # we don't know where to search for files
+    if not os.path.isdir(datadir):  # we don't know where to search for files
         return config
     # load content from bitcoin.conf
-    bitcoin_conf_file = os.path.join(path, "bitcoin.conf")
+    bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
     if os.path.exists(bitcoin_conf_file):
         try:
             with open(bitcoin_conf_file, 'r') as f:
@@ -48,16 +48,16 @@ def get_rpcconfig():
                         continue
                     k, v = line.split('=', 1)
                     current[k.strip()] = v.strip()
-        except:
+        except Exception:
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {
-        "main": "", 
+        "main": "",
         "test": "testnet3",
         "regtest": "regtest",
         "signet": "signet",
     }
     for chain in folders:
-        fname = os.path.join(path, folders[chain], ".cookie")
+        fname = os.path.join(datadir, folders[chain], ".cookie")
         if os.path.exists(fname):
             try:
                 with open(fname, 'r') as f:
@@ -73,9 +73,10 @@ def get_rpcconfig():
                 print("Can't open %s file" % fname)
     return config
 
-def get_configs(config=None):
+
+def get_configs(config=None, datadir=get_default_datadir()):
     if config is None:
-        config = get_rpcconfig()
+        config = get_rpcconfig(datadir=datadir)
     confs = []
     default = {}
     for network in config["bitcoin.conf"]:
@@ -101,21 +102,23 @@ def get_configs(config=None):
         confs.append(o)
     return confs
 
-def detect_cli_confs(config=None):
+
+def detect_cli_confs(config=None, datadir=get_default_datadir()):
     if config is None:
-        config = get_rpcconfig()
+        config = get_rpcconfig(datadir=datadir)
     rpcconfs = get_configs(config)
     cli_arr = []
     for conf in rpcconfs:
         cli_arr.append(conf)
     return cli_arr
 
-def autodetect_cli_confs(port=None):
+
+def autodetect_cli_confs(datadir=get_default_datadir(), port=None):
     if port == "":
         port = None
     if port is not None:
         port = int(port)
-    conf_arr = detect_cli_confs()
+    conf_arr = detect_cli_confs(datadir=datadir)
     available_conf_arr = []
     if len(conf_arr) > 0:
         print("trying %d different configs" % len(conf_arr))

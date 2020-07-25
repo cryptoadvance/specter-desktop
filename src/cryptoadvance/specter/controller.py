@@ -328,6 +328,7 @@ def general_settings():
         rand=rand
     )
 
+
 @app.route('/settings/bitcoin_core', methods=['GET', 'POST'])
 @login_required
 def bitcoin_core_settings():
@@ -343,6 +344,7 @@ def bitcoin_core_settings():
     host = rpc['host']
     protocol = 'http'
     autodetect = rpc['autodetect']
+    datadir = rpc['datadir']
     err = None
 
     if "protocol" in rpc:
@@ -352,6 +354,8 @@ def bitcoin_core_settings():
         action = request.form['action']
         if current_user.is_admin:
             autodetect = 'autodetect' in request.form
+            if autodetect:
+                datadir = request.form['datadir']
             user = request.form['username']
             passwd = request.form['password']
             port = request.form['port']
@@ -371,7 +375,8 @@ def bitcoin_core_settings():
                     port=port,
                     host=host,
                     protocol=protocol,
-                    autodetect=autodetect
+                    autodetect=autodetect,
+                    datadir=datadir
                 )
             except Exception as e:
                 err = 'Fail to connect to the node configured: {}'.format(e)
@@ -383,7 +388,8 @@ def bitcoin_core_settings():
                     port=port,
                     host=host,
                     protocol=protocol,
-                    autodetect=autodetect
+                    autodetect=autodetect,
+                    datadir=datadir
                 )
             app.specter.check()
 
@@ -391,6 +397,7 @@ def bitcoin_core_settings():
         "settings/bitcoin_core_settings.jinja",
         test=test,
         autodetect=autodetect,
+        datadir=datadir,
         username=user,
         password=passwd,
         port=port,
@@ -1017,7 +1024,9 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet.change_keypool, wallet.change_keypool + delta, change=True)
             wallet.getdata()
         elif action == "deletewallet":
-            app.specter.wallet_manager.delete_wallet(wallet)
+            app.specter.wallet_manager.delete_wallet(
+                app.specter.bitcoin_datadir, wallet
+            )
             response = redirect(url_for('index'))
             return response
         elif action == "rename":
@@ -1114,7 +1123,11 @@ def device(device_alias):
             if len(wallets) != 0:
                 err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format([wallet.name for wallet in wallets])
             else:
-                app.specter.device_manager.remove_device(device, app.specter.wallet_manager)
+                app.specter.device_manager.remove_device(
+                    device,
+                    app.specter.wallet_manager,
+                    bitcoin_datadir=app.specter.bitcoin_datadir
+                )
                 return redirect("/")
         elif action == "delete_key":
             key = request.form['key']
