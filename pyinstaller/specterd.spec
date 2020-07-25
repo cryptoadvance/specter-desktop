@@ -11,7 +11,10 @@ binaries = []
 if platform.system() == 'Windows':
     binaries = [("./windll/libusb-1.0.dll", ".")]
 elif platform.system() == 'Linux':
-    binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
+    if platform.processor() == 'aarch64': #ARM 64 bit
+        binaries = [("/lib/aarch64-linux-gnu/libusb-1.0.so.0", ".")]
+    else:
+        binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
     libusb_path = find_brew_libusb_proc.communicate()[0]
