@@ -2,6 +2,7 @@ __pycache__
 .pytest_cache
 *.pyc
 .env
+.venv
 .tor_service_key
 build
 dist

@@ -118,7 +118,6 @@ def autodetect_cli_confs(port=None):
     conf_arr = detect_cli_confs()
     available_conf_arr = []
     if len(conf_arr) > 0:
-        print("trying %d different configs" % len(conf_arr))
         for conf in conf_arr:
             cli = BitcoinCLI(**conf)
             if port is not None:
@@ -131,9 +130,6 @@ def autodetect_cli_confs(port=None):
                 pass
             except Exception as e:
                 pass
-    else:
-        print("Bitcoin-cli not found :(")
-    print("Detected %d bitcoin daemons" % len(available_conf_arr))
     return available_conf_arr
 
 class RpcError(Exception):
