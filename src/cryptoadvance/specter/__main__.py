@@ -2,8 +2,8 @@ from logging.config import dictConfig
 from .cli import cli
 
 if __name__ == "__main__":
-    # central and early configuring of logging
-    # see https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
+    # central and early configuring of logging see
+    # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
     dictConfig({
         'version': 1,
         'formatters': {'default': {

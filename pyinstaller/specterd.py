@@ -1,12 +1,10 @@
 from logging.config import dictConfig
-from cryptoadvance.specter.cli import *
-# hidden import?
-from cryptoadvance.specter import config
+from cryptoadvance.specter.cli import server
 import sys
 
 if __name__ == "__main__":
-    # central and early configuring of logging
-    # see https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
+    # central and early configuring of logging see
+    # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
     dictConfig({
         'version': 1,
         'formatters': {'default': {

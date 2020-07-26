@@ -26,7 +26,10 @@ a = Analysis(['specterd.py'],
                     ('../src/cryptoadvance/specter/static', 'static'),
                     (mnemonic_path, 'mnemonic/wordlist'),
              ],
-             hiddenimports=['pkg_resources.py2_warn'],
+             hiddenimports=[
+                'pkg_resources.py2_warn',
+                'cryptoadvance.specter.config'
+             ],
              hookspath=['hooks/'],
              runtime_hooks=[],
              excludes=[],
