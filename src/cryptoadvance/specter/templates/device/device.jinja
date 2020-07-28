@@ -3,10 +3,10 @@
 	{% include "includes/hwi/hwi.jinja" %}
 	<h1>{{ device.name }}</h1>
 	<form action="./" method="POST">
-		<div class="row">
+		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
-			<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="height:15px; align-self:center;">Update</button>
 		</div>
+		<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="margin: auto; margin-top: 10px; align-self:center;">Update</button>
 	</form>
 	<br>
 	<div class="table-holder">

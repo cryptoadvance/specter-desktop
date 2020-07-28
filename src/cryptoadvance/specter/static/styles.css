@@ -19,7 +19,8 @@ html, body{
     margin: 0;
     padding: 0;
     background: var(--cmap-bg);
-    color: #7f8fa4;
+    color: #fff;
+    line-height: 1.5;
     font-family: "Source Sans Pro", sans-serif;
     font-weight: lighter;
     display: flex;
@@ -47,6 +48,19 @@ ul, li{
 }
 .output_option{
     margin: 5px;
+}
+.settings-bar-btn{
+    position: relative;
+    margin-left: auto;
+    background: rgba(0,0,0,0);
+    padding: 10px 20px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.settings-bar-btn:hover {
+    background: var(--cmap-bg-ligher);
 }
 .logout{
     position: relative;
@@ -169,7 +183,7 @@ main{
     /*padding: 30px 0 20px 0;*/
     overflow-y: scroll;
 }
-nav.side > .item{
+nav.side > .item, nav.side > div > .item{
     padding: 10px 0;
     display: flex;
     flex-direction: row;
@@ -177,7 +191,7 @@ nav.side > .item{
     border-left: 3px solid transparent;
     /*font-size: 0.85em;*/
 }
-nav.side > a.item.active{
+nav.side > a.item.active, nav.side > div > a.item.active{
     border-left: 3px solid #4A90E2;
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
@@ -446,8 +460,8 @@ input:hover{
     margin-bottom: 20px;
 }
 .note{
-    font-size: 0.7em;
-    max-width: 400px;
+    font-size: 0.9em;
+    max-width: 600px;
     margin: 0 auto;
     line-height: 1.5;
 }
@@ -738,12 +752,13 @@ table tr:hover .btn.hovering{
 }
 .warning {
     text-align: center;
-    font-size: 12px;
-    background: #FFCC00b0;
-    padding: 10px;
-    color: #111111;
+    font-size: 14px;
+    background: #ccc;
+    padding: 12px;
+    color: #303030;
     margin: 10px;
     border-radius: 7px;
+    line-height: 1.5;
 }
 .explorer-link:hover {
     color: #fff;
@@ -829,7 +844,6 @@ table tr:hover .btn.hovering{
     background: #262626;
     border: 1px solid #27b1f0;
     border-radius: 3px;
-    font-size: 0.875em;
     padding: 1em;
     position: absolute;
     left: 30px;
