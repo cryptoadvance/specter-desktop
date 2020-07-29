@@ -190,7 +190,8 @@ class Key:
 
     def __str__(self):
         if self.derivation and self.fingerprint:
-            return f"[{self.fingerprint}/{self.derivation[2:]}]{self.original}"
+            path_str = f"/{self.derivation[2:]}" if self.derivation != "m" else ""
+            return f"[{self.fingerprint}{path_str}]{self.original}"
         else:
             return self.original
 
