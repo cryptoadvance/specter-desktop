@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from binascii import hexlify
+from bip32 import BIP32
 from .helpers import decode_base58, encode_base58_checksum, get_xpub_fingerprint
 
 
@@ -76,9 +78,14 @@ class Key:
                 raise Exception("Incorrect fingerprint length")
             fingerprint = derivation_path[0]
             if len(derivation_path) > 1:
+                hardened = True
                 for path in derivation_path[1:]:
                     if path[-1] == "h":
+                        if hardened == False:
+                            raise Exception("Derivation path is invalid")
                         path = path[:-1]
+                    else:
+                        hardened = False
                     try:
                         i = int(path)
                     except:
@@ -123,6 +130,18 @@ class Key:
                         key_type = "sh-wsh"
                     elif derivation_path[4] == "2h":
                         key_type = "wsh"
+
+        # infer fingerprint and derivation if depth == 0 or depth == 1
+        xpub_node = BIP32.from_xpub(xpub)
+        depth = xpub_node.depth
+        if depth == 0:
+            fingerprint = hexlify(get_xpub_fingerprint(xpub)).decode()
+            derivation = "m"
+        elif depth == 1:
+            fingerprint = hexlify(xpub_node.parent_fingerprint).decode()
+            is_hardened = bool(xpub_node.index & 0x8000_0000)
+            index = xpub_node.index & 0x7fff_ffff
+            derivation = "m/%d%s" % (index, "h" if is_hardened else "")
 
         return cls(original, fingerprint, derivation, key_type, xpub)
 
