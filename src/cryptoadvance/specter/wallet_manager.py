@@ -239,18 +239,20 @@ Silently ignored!" % wallet_alias)
         # get Wallet class instance
         return self.wallets[name]
 
-    def delete_wallet(self, wallet):
+    def delete_wallet(self, wallet, bitcoin_datadir=get_default_datadir()):
         logger.info("Deleting {}".format(wallet.alias))
         self.cli.unloadwallet(os.path.join(self.cli_path, wallet.alias))
         # Try deleting wallet file
-        if get_default_datadir() and \
-            os.path.exists(os.path.join(
-                    get_default_datadir(),
-                    os.path.join(self.cli_path, wallet.alias)
-                )):
+        if bitcoin_datadir and \
+                os.path.exists(
+                    os.path.join(
+                        bitcoin_datadir,
+                        os.path.join(self.cli_path, wallet.alias)
+                    )
+                ):
             shutil.rmtree(
                 os.path.join(
-                    get_default_datadir(),
+                    bitcoin_datadir,
                     os.path.join(self.cli_path, wallet.alias)
                 )
             )

@@ -14,6 +14,7 @@ from .devices.generic import GenericDevice
 from .devices.electrum import Electrum
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons, fslock
+from .rpc import get_default_datadir
 
 
 logger = logging.getLogger(__name__)
@@ -95,8 +96,13 @@ class DeviceManager:
                 return self.devices[device_name]
         logger.error("Could not find Device %s" % device_alias)
 
-    def remove_device(self, device, wallet_manager=None):
+    def remove_device(
+        self,
+        device,
+        wallet_manager=None,
+        bitcoin_datadir=get_default_datadir()
+    ):
         os.remove(device.fullpath)
         if isinstance(device, BitcoinCore):
-            device.delete(wallet_manager)
+            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir)
         self.update()
