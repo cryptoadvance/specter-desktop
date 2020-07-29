@@ -18,7 +18,8 @@ from flask_login.config import EXEMPT_METHODS
 from .devices.bitcoin_core import BitcoinCore
 from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64, get_txid, generate_mnemonic)
+                      verify_password, bcur2base64, get_txid, generate_mnemonic,
+                      get_startblock_by_chain, fslock)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
@@ -295,6 +296,7 @@ def hwi_settings():
         rand=rand
     )
 
+
 @app.route('/settings/general', methods=['GET', 'POST'])
 @login_required
 def general_settings():
@@ -319,10 +321,87 @@ def general_settings():
             app.specter.check()
         elif action == "backup":
             return send_file(
-                app.specter.wallet_manager.wallets_backup_file,
+                app.specter.specter_backup_file(),
                 attachment_filename='specter-backup.zip',
                 as_attachment=True
             )
+        elif action == "restore":
+            restore_devices = json.loads(request.form['restoredevices'])
+            restore_wallets = json.loads(request.form['restorewallets'])
+            for device in restore_devices:
+                with fslock:
+                    with open(
+                        os.path.join(
+                            app.specter.device_manager.data_folder,
+                            "%s.json" % device['alias']
+                        ),
+                        "w"
+                    ) as file:
+                        file.write(json.dumps(device, indent=4))
+            app.specter.device_manager.update()
+
+            rescanning = False
+            for wallet in restore_wallets:
+                try:
+                    app.specter.wallet_manager.cli.createwallet(
+                        os.path.join(
+                            app.specter.wallet_manager.cli_path,
+                            wallet['alias']
+                        ),
+                        True
+                    )
+                except Exception as e:
+                    flash(
+                        'Failed to import wallet {}, error: {}'
+                        .format(wallet['name'], e),
+                        'error'
+                    )
+                    continue
+                with fslock:
+                    with open(
+                        os.path.join(
+                            app.specter.wallet_manager.working_folder,
+                            "%s.json" % wallet['alias']
+                        ),
+                        "w"
+                    ) as file:
+                        file.write(json.dumps(wallet, indent=4))
+                app.specter.wallet_manager.update()
+                try:
+                    wallet_obj = app.specter.wallet_manager.get_by_alias(
+                        wallet['alias']
+                    )
+                    try:
+                        wallet_obj.cli.rescanblockchain(
+                            wallet['blockheight']
+                            if 'blockheight' in wallet
+                            else get_startblock_by_chain(app.specter),
+                            timeout=1
+                        )
+                        app.logger.info("Rescanning Blockchain ...")
+                        rescanning = True
+                    except requests.exceptions.ReadTimeout:
+                        # this is normal behavior in our usecase
+                        pass
+                    except Exception as e:
+                        app.logger.error(
+                            "Exception while rescanning blockchain: {}".format(e)
+                        )
+                        flash(
+                            "Failed to perform rescan for wallet: {}".format(e),
+                            'error'
+                        )
+                    wallet_obj.getdata()
+                except Exception:
+                        flash(
+                            'Failed to import wallet {}'
+                            .format(wallet['name']),
+                            'error'
+                        )
+            flash('Specter data was successfully loaded from backup.', 'info')
+            if rescanning:
+                flash('Wallets are rescanning for transactions history.\n\
+This may take a few hours to complete.', 'info')
 
     return render_template(
         "settings/general_settings.jinja",
@@ -333,6 +412,7 @@ def general_settings():
         current_version=current_version,
         rand=rand
     )
+
 
 @app.route('/settings/bitcoin_core', methods=['GET', 'POST'])
 @login_required
@@ -713,16 +793,7 @@ def new_wallet(wallet_type):
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
                 app.logger.info("Rescanning Blockchain ...")
-                if app.specter.info['chain'] == "main":
-                    if not app.specter.info['pruned'] or app.specter.info['pruneheight'] < 481824:
-                        startblock = 481824
-                    else:
-                        startblock = app.specter.info['pruneheight']
-                else:
-                    if not app.specter.info['pruned']:
-                        startblock = 0
-                    else:
-                        startblock = app.specter.info['pruneheight']
+                startblock = get_startblock_by_chain(app.specter)
                 try:
                     wallet.cli.rescanblockchain(startblock, timeout=1)
                 except requests.exceptions.ReadTimeout:

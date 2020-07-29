@@ -21,15 +21,30 @@
 				If you are user Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.
 				Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
 			</div>
-			<br><br>
+			<br>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="backup">Download wallets backup files</button>
+				<button type="submit" class="btn" name="action" value="backup">Download Specter backup files</button>
 			</div>
 			<div class="note">
 				It is recommended to keep your backup files privately as sharing them with result in privacy leaks.
 				Backups are recommended to ensure access to funds remains even in case a device from a multisig wallet is lost.
+			</div><br>
+			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span>
+			<div class="row">
+				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
+				<input type="hidden" id="restorewallets" name="restorewallets"/>
+				<input type="hidden" id="restoredevices" name="restoredevices"/>
+				<label for="file" class="btn" style="margin-top: 5px;">
+					Choose backup folder
+				</label>
 			</div>
-			<br><br>
+			<span id="filesloaded"></span>
+			<div class="row" style="margin-top: 5px;">
+				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
+			</div>
+			<div class="note">
+				Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
+			</div><br>
 			{% if current_user.is_admin %}
 			Log Level:<br>
 			<select name="loglevel">
@@ -44,4 +59,42 @@
 			</div>
 		</div>
 	</form>
+{% endblock %}
+{% block scripts %}
+	<script type="text/javascript">
+		
+		document.addEventListener("DOMContentLoaded", function(){
+			var el = document.getElementById("file");
+
+			if (el != null) {
+				el.addEventListener("change", (e) => {
+					let wallets = []
+					let devices = []
+					files = el.files;
+					console.log(files);
+					for(let i=0; i<files.length; i++){
+						if (files[i].type == 'application/json'){
+							let reader = new FileReader();
+							reader.onload = function(e) {
+								if (files[i].webkitRelativePath.indexOf('devices/') != -1) {
+									console.log(files[i].name);
+									devices.push(JSON.parse(reader.result));
+									document.getElementById('restoredevices').value = JSON.stringify(devices);
+									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+									document.getElementById('restore').style.display = 'block';
+								} else if (files[i].webkitRelativePath.indexOf('wallets/') != -1) {
+									console.log(files[i].name);
+									wallets.push(JSON.parse(reader.result));
+									document.getElementById('restorewallets').value = JSON.stringify(wallets);
+									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+									document.getElementById('restore').style.display = 'block';
+								}
+							}
+							reader.readAsText(files[i]);
+						}
+					}
+				});
+			}
+		});
+	</script>
 {% endblock %}

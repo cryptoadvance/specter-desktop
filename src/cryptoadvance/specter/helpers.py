@@ -37,6 +37,7 @@ def alias(name):
     name = name.replace(" ", "_")
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
+
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
@@ -47,6 +48,7 @@ def deep_update(d, u):
         else:
             d[k] = v
     return d
+
 
 def load_jsons(folder, key=None):
     files = [f for f in os.listdir(folder) if f.endswith(".json")]
@@ -64,13 +66,17 @@ def load_jsons(folder, key=None):
             dd[d[key]] = d
     return dd
 
+
 BASE58_ALPHABET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
 
 def double_sha256(s):
     return hashlib.sha256(hashlib.sha256(s).digest()).digest()
 
+
 def hash160(d):
     return hashlib.new('ripemd160', hashlib.sha256(d).digest()).digest()
+
 
 def encode_base58(s):
     # determine how many 0 bytes (b'\x00') s starts with
@@ -90,8 +96,10 @@ def encode_base58(s):
 
     return prefix + bytes(result)
 
+
 def encode_base58_checksum(s):
     return encode_base58(s + double_sha256(s)[:4]).decode('ascii')
+
 
 def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
     num = 0
@@ -108,10 +116,12 @@ def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
             checksum, double_sha256(combined)[:4]))
     return combined[:-4]
 
+
 def convert_xpub_prefix(xpub, prefix_bytes):
     # Update xpub to specified prefix and re-encode
     b = decode_base58(xpub)
     return encode_base58_checksum(prefix_bytes + b[4:])
+
 
 def get_xpub_fingerprint(xpub):
     b = decode_base58(xpub)
@@ -127,7 +137,7 @@ def which(program):
         it will simply return it if found and executable
         will raise an Exception if not found
     '''
-    
+
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -152,6 +162,7 @@ def which(program):
                 return exe_file
     raise Exception("Couldn't find executable %s" % program)
 
+
 # should work in all python versions
 def run_shell(cmd):
     """
@@ -169,7 +180,8 @@ def run_shell(cmd):
     except:
         return { "code": 0xf00dbabe, "out": b"", "err": b"Can't run subprocess" }
 
-def set_loglevel(app,loglevel_string):
+
+def set_loglevel(app, loglevel_string):
     logger.info("Setting Loglevel to %s" % loglevel_string)
     loglevels = {
         "WARN": logging.WARN,
@@ -179,14 +191,15 @@ def set_loglevel(app,loglevel_string):
     app.logger.setLevel(loglevels[loglevel_string])
     logger.setLevel(loglevels[loglevel_string])
 
+
 def get_loglevel(app):
-    
     loglevels = {
         logging.WARN : "WARN",
         logging.INFO : "INFO",
         logging.DEBUG : "DEBUG"
     }
     return loglevels[app.logger.getEffectiveLevel()]
+
 
 def get_version_info():
     ''' Returns a triple of the current version (of the pip-package cryptoadvance.specter and 
@@ -214,6 +227,7 @@ def get_version_info():
         # we just don't show the version
         return "Unknown version", "Unknown version", False
 
+
 def get_users_json(specter):
     users = [
         {
@@ -234,10 +248,12 @@ def get_users_json(specter):
         save_users_json(specter, users)
     return users
 
+
 def save_users_json(specter, users):
     with fslock:
         with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
             f.write(json.dumps(users, indent=4))
+
 
 def hwi_get_config(specter):
     config = {
@@ -254,6 +270,7 @@ def hwi_get_config(specter):
         save_hwi_bridge_config(specter, config)
     return config
 
+
 def save_hwi_bridge_config(specter, config):
     if 'whitelisted_domains' in config:
         whitelisted_domains = ''
@@ -266,6 +283,7 @@ def save_hwi_bridge_config(specter, config):
     with fslock:
         with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
             f.write(json.dumps(config, indent=4))
+
 
 def der_to_bytes(derivation):
     items = derivation.split("/")
@@ -285,6 +303,7 @@ def der_to_bytes(derivation):
         res += index.to_bytes(4,'little')
     return res
 
+
 def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     devices = []
     prefix = "tpub"
@@ -296,6 +315,7 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
         device.keys = [key for key in device.keys if key.xpub.startswith(prefix) and key.key_type in allowed_types]
         devices.append(device)
     return devices
+
 
 def sort_descriptor(cli, descriptor, index=None, change=False):
     descriptor = descriptor.replace("sortedmulti", "multi")
@@ -336,11 +356,13 @@ def sort_descriptor(cli, descriptor, index=None, change=False):
 
     return AddChecksum(desc)
 
+
 def hash_password(password):
     """Hash a password for storing."""
     salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
     pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
     return { 'salt': salt.decode(), 'pwdhash': pwdhash }
+
 
 def verify_password(stored_password, provided_password):
     """Verify a stored password against one provided by user"""
@@ -350,6 +372,7 @@ def verify_password(stored_password, provided_password):
                                   10000)
     return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])
 
+
 def clean_psbt(b64psbt):
     psbt = PSBT()
     psbt.deserialize(b64psbt)
@@ -358,9 +381,11 @@ def clean_psbt(b64psbt):
             inp.non_witness_utxo = None
     return psbt.serialize()
 
+
 def bcur2base64(encoded):
     raw = bcur_decode(encoded.split("/")[-1])
     return binascii.b2a_base64(raw).strip()
+
 
 def get_txid(tx):
     b = BytesIO(bytes.fromhex(tx))
@@ -371,6 +396,21 @@ def get_txid(tx):
     t.rehash()
     return t.hash
 
+
+def get_startblock_by_chain(specter):
+    if specter.info['chain'] == "main":
+        if not specter.info['pruned'] or specter.info['pruneheight'] < 481824:
+            startblock = 481824
+        else:
+            startblock = specter.info['pruneheight']
+    else:
+        if not specter.info['pruned']:
+            startblock = 0
+        else:
+            startblock = specter.info['pruneheight']
+    return startblock
+
+
 # Hot wallet helpers
 def generate_mnemonic(strength=256):
         # Generate words list
@@ -378,8 +418,8 @@ def generate_mnemonic(strength=256):
         words = mnemo.generate(strength=strength)
         return words
 
-# Transaction processing helpers
 
+# Transaction processing helpers
 def parse_utxo(wallet, utxo):
     for tx in utxo:
         tx_data = wallet.cli.gettransaction(tx['txid'])

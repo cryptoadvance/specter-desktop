@@ -35,8 +35,8 @@ class Wallet():
         fullpath,
         device_manager,
         manager,
-        old_format_detected = False,
-        last_block = None,
+        old_format_detected=False,
+        last_block=None,
     ):
         self.name = name
         self.alias = alias
@@ -51,14 +51,25 @@ class Wallet():
         self.recv_descriptor = recv_descriptor
         self.change_descriptor = change_descriptor
         self.keys = keys
-        self.devices = [(device if isinstance(device, Device) else device_manager.get_by_alias(device)) for device in devices]
+        self.devices = [
+            (
+                device
+                if isinstance(device, Device)
+                else device_manager.get_by_alias(device)
+            )
+            for device in devices
+        ]
         if None in self.devices:
-            raise Exception('A device used by this wallet could not have been found!')
+            raise Exception(
+                'A device used by this wallet could not have been found!'
+            )
         self.sigs_required = sigs_required
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
         self.manager = manager
-        self.cli = self.manager.cli.wallet(os.path.join(self.manager.cli_path, self.alias))
+        self.cli = self.manager.cli.wallet(
+            os.path.join(self.manager.cli_path, self.alias)
+        )
         self.last_block = last_block
 
         if address == '':
@@ -78,7 +89,6 @@ class Wallet():
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
-        # txs = self.cli.listtransactions("*", 1000, 0, True)
         if self.last_block is None:
             obj = self.cli.listsinceblock()
             txs = obj["transactions"]
@@ -191,18 +201,24 @@ class Wallet():
     def get_info(self):
         try:
             self.info = self.cli.getwalletinfo()
-        except:
+            if self.info['keypoolsize'] == 0:
+                self.keypoolrefill(0, end=self.keypool, change=False)
+                self.keypoolrefill(0, end=self.change_keypool, change=True)
+        except Exception:
             self.info = {}
 
     def getdata(self):
         try:
             self.utxo = parse_utxo(self, self.cli.listunspent(0))
-        except:
+        except Exception:
             self.utxo = []
         self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
-        value_on_address = self.cli.getreceivedbyaddress(self.change_address, 0)
+        value_on_address = self.cli.getreceivedbyaddress(
+            self.change_address,
+            0
+        )
         # if not - just return
         if value_on_address > 0:
             self.change_index += 1
@@ -228,7 +244,8 @@ class Wallet():
             "sigs_required": self.sigs_required,
             "pending_psbts": self.pending_psbts,
             "fullpath": self.fullpath,
-            "last_block": self.last_block
+            "last_block": self.last_block,
+            "blockheight": self.blockheight
         }
 
     def save_to_file(self):
@@ -408,7 +425,12 @@ class Wallet():
                 arg.pop("range")
                 batch = []
                 for i in range(start, end):
-                    sorted_desc = sort_descriptor(self.cli, desc, index=i, change=change)
+                    sorted_desc = sort_descriptor(
+                        self.cli,
+                        desc,
+                        index=i,
+                        change=change
+                    )
                     # create fresh object
                     obj = {}
                     obj.update(arg)
@@ -421,7 +443,7 @@ class Wallet():
             self.keypool = end
         self.save_to_file()
         return end
-    
+
     def utxo_on_address(self, address):
         utxo = [tx for tx in self.utxo if tx["address"] == address]
         return len(utxo)
