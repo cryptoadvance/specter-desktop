@@ -16,13 +16,19 @@
 		{% block sidebar %}
 			{% include "includes/sidebar/sidebar.jinja" %}
 		{% endblock %}
-		<main>		
-			{% if specter.config.auth != "none" and current_user.is_authenticated and not hwi_bridge %}
-				<a class="logout" href="{{ url_for('logout') }}">
-					<img src="/static/img/exit_from_app-24px.svg" style="width: 24px;"/><div>Logout</div>
-				</a>
-			{% else %}
-				<div><br><br></div>
+		<main><div><br><br></div>
+			{% if current_user.is_authenticated and not hwi_bridge %}
+				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
+					{% include "components/tor_address.jinja" %}
+					<a class="settings-bar-btn" href="{{ url_for('settings') }}">
+						<img src="/static/img/settings-status-bar.svg" style="width: 22px;"/>
+					</a>
+					{% if specter.config.auth != "none" %}
+						<a class="settings-bar-btn" href="{{ url_for('logout') }}">
+							<img src="/static/img/logout-status-bar.svg" style="width: 22px;"/>
+						</a>
+					{% endif %}
+				</div>
 			{% endif %}
 			<img id="menubtn" src="/static/img/menu.svg"/>
 

@@ -1,6 +1,9 @@
 <div id="hwi_pin" class="hidden">
     <h2>Enter PIN</h2>
-    <div id="hwi_pin_stars" style="margin-top: 20px; font-size: 20px; height: 25px;"></div>
+    <div class="row">
+        <div id="hwi_pin_stars" style="margin-top: 20px; font-size: 20px; height: 25px; width: 100%; padding-left: 30px;"></div>
+        <img id="hwi_pin_delete" src="/static/img/backspace.svg" width="18px" style="margin-top: 20px; height: 25px; margin-left: 10px; cursor: pointer;">
+    </div>
     <br>
     <div id="hwi_pin_container" class="flex-center flex-column">
     </div>
@@ -28,6 +31,7 @@
 
         let el = document.getElementById("hwi_pin_container");
         let stars = document.getElementById("hwi_pin_stars");
+        let deleteBtn = document.getElementById("hwi_pin_delete");
         stars.innerHTML = "";
         el.innerHTML = "";
         let btns = [
@@ -60,6 +64,12 @@
             pinReady = true;
         });
         el.appendChild(submit);
+        deleteBtn.addEventListener('click', e=>{
+            if (pin != "") {
+                pin = pin.substring(0, pin.length - 1);
+                stars.innerHTML = stars.innerHTML.substring(0, stars.innerHTML.length - 3);
+            }
+        });
         // detect device
         showPageOverlay("hwi_pin");
         while(!pinReady){

@@ -1,13 +1,12 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
 <div id="side-content">
     <nav class="side">
-        {% include "includes/sidebar/components/tor_address.jinja" %}
         {% if specter.info["initialblockdownload"] %}
-            <p class="warning">⚠️<br>Blockchain is still syncing...<br>Data may be shown incorrectly.</p>
+            <p class="warning">&#9432;<br>Bitcoin Core is still syncing...<br>(data might be outdated)</p>
         {% endif %}
         <a href="/settings/" class="item core">
             {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-            {{ bitcoin_svg(specter.info.chain, 32) }}
+            {{ bitcoin_svg(specter.info.chain, 40) }}
             <div>
                 Bitcoin Core<br>
                 <small>
@@ -25,27 +24,31 @@
             </div>
         </a>
         <div class="separator">
-            Wallets
+            <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
         </div>
         {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
             {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
+            <div id="wallets_list">
             {% for wallet in specter.wallet_manager.wallets_names %}
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
+            </div>
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}
         {% elif specter.chain %}
-            <p class="warning">⚠️<br>Create at least one device to enable wallets.</p>
+            <p class="warning">&#9432;<br>Please create at least one device to enable wallets.</p>
         {% else %}
-            <p class="warning">⚠️<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
+            <p class="warning">&#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
         {% endif %}
 
         <div class="separator">
-            Devices
+            <span id="toggle_devices_list" style="cursor: pointer;">Devices &nbsp; &#9660;</span>
         </div>
         {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
-        {% for device_name in specter.device_manager.devices_names %}
-                {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
-        {% endfor %}
+        <div id="devices_list">
+            {% for device_name in specter.device_manager.devices_names %}
+                    {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
+            {% endfor %}
+        </div>
         {{ sidebar_btn('new_device', 'Add new device') }}
         <div class="footer">
             Brought to you by<br>
@@ -58,3 +61,34 @@
         <div>▶</div>
     </div>
 </div>
+<script>
+    function toggleList(type) {
+        let titleButton = document.getElementById('toggle_' + type + '_list');
+        let list = document.getElementById(type + '_list');
+        if (list.style.display === 'none') {
+            list.style.display = 'block';
+            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9660;';
+        } else {
+            list.style.display = 'none';
+            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9654;';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+        if ('{{ specter.device_manager.devices_names | length }}' == '0') {
+            document.getElementById('toggle_devices_list').innerHTML = 'Devices';
+        } else {
+            document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
+                toggleList('devices');
+            });
+        }
+
+        if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
+            document.getElementById('toggle_wallets_list').innerHTML = 'Wallets';
+        } else {
+            document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
+                toggleList('wallets');
+            });
+        }
+    });
+</script>
