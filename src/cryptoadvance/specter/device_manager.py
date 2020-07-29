@@ -100,5 +100,5 @@ class DeviceManager:
     ):
         os.remove(device.fullpath)
         if isinstance(device, BitcoinCore):
-            device.delete(wallet_manager)
+            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir)
         self.update()

@@ -1031,7 +1031,7 @@ def wallet_settings(wallet_alias):
             wallet.getdata()
         elif action == "deletewallet":
             app.specter.wallet_manager.delete_wallet(
-                app.specter.bitcoin_datadir, wallet
+                wallet, app.specter.bitcoin_datadir
             )
             response = redirect(url_for('index'))
             return response
@@ -1042,11 +1042,12 @@ def wallet_settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-        return render_template("wallet/settings/wallet_settings.jinja", 
+        return render_template(
+            "wallet/settings/wallet_settings.jinja",
             wallet_alias=wallet_alias,
-            wallet=wallet, 
+            wallet=wallet,
             specter=app.specter,
-            rand=rand, 
+            rand=rand,
             error=error
         )
     else:

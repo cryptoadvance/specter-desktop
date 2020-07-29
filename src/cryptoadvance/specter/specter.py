@@ -15,9 +15,9 @@ def get_cli(conf):
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_conf_arr = autodetect_cli_confs(datadir=conf["datadir"], port=conf["port"])
+            cli_conf_arr = autodetect_cli_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
         else:
-            cli_conf_arr = autodetect_cli_confs(datadir=conf["datadir"])
+            cli_conf_arr = autodetect_cli_confs(datadir=os.path.expanduser(conf["datadir"]))
         if len(cli_conf_arr) > 0:
             cli = BitcoinCLI(**cli_conf_arr[0])
         else:
@@ -80,7 +80,7 @@ class Specter:
     @property
     def bitcoin_datadir(self):
         if 'datadir' in self.config['rpc']:
-            return self.config['rpc']['datadir']
+            return os.path.expanduser(self.config['rpc']['datadir'])
         return get_default_datadir()
 
     def check(self, user=current_user):
