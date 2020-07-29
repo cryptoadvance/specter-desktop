@@ -34,20 +34,29 @@
 		{% from 'wallet/components/editable_label.jinja' import editable_label %}
 		{{ editable_label(address_label, -1) }}
 	</form>
-	<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:30px auto 30px; border: 1px solid #777;">
+	<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:30px auto 30px; border: 1px solid #777; padding: 20px;">
 	<p title="Click to copy" id="address" class="padded" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
 	(click to copy)
-	</div><br>
-	<qr-code value="{{'bitcoin:' + wallet.address + '?index='+(wallet.address_index | string) }}" width="256"></qr-code>
-	<br>
-	<div class="note">
-		<center>
-			Specter can verify this address if you scan it.<br>
-			It has an address index included in the QR code.
-		</center>
+	<br><br>
+	<qr-code value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
 	</div><br>
 	<form action="./" method="POST">
 		<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
+		{% set supports_qr_code = [] %}
+		{% for device in wallet.devices if device.qr_code_support %}
+			{% set supports_qr_code = supports_qr_code.append(device) %}
+		{% endfor %}
+		{% if supports_qr_code != [] %}
+			<div id="verify_address_qr_code" class="hidden">
+				<h1>Scan to Verify Address on Your Device</h1><br>
+				<qr-code value="{{'bitcoin:' + wallet.address + '?index='+(wallet.address_index | string) }}" width="256"></qr-code><br>
+				<p>
+						Specter can verify this address if you scan it.<br>
+						It has an address index included in the QR code.
+				</p><br>
+			</div>
+			<button onclick="showPageOverlay('verify_address_qr_code')" type="button" class="btn centered padded">Verify address via QR code</button>
+		{% endif %}
 		{% set supports_hwi = [] %}
 		{% set supports_hwi_multisig_display_address = [] %}
 		{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}

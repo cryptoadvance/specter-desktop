@@ -464,6 +464,7 @@ input:hover{
     max-width: 600px;
     margin: 0 auto;
     line-height: 1.5;
+    color: #ccc;
 }
 .card .note, .note.full-width{
     margin-left: 0;
