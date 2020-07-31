@@ -6,6 +6,7 @@ from ..helpers import (alias, convert_xpub_prefix,
                        encode_base58_checksum, decode_base58,
                        get_xpub_fingerprint)
 from ..key import Key
+from ..rpc import get_default_datadir
 from io import BytesIO
 import hmac
 
@@ -118,14 +119,20 @@ class BitcoinCore(Device):
             cli.walletlock()
         return signed_psbt
 
-    def delete(self, wallet_manager):
+    def delete(
+        self,
+        wallet_manager,
+        bitcoin_datadir=get_default_datadir()
+    ):
         try:
-            wallet_cli_path = os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias)
+            wallet_cli_path = os.path.join(
+                wallet_manager.cli_path + "_hotstorage", self.alias
+            )
             cli = wallet_manager.cli.wallet(wallet_cli_path)
             cli.unloadwallet(wallet_cli_path)
             # Try deleting wallet file
-            if wallet_manager.get_default_datadir() and os.path.exists(wallet_cli_path):
-                shutil.rmtree(os.path.join(wallet_manager.get_default_datadir(), wallet_cli_path))
+            if bitcoin_datadir and os.path.exists(wallet_cli_path):
+                shutil.rmtree(os.path.join(bitcoin_datadir, wallet_cli_path))
         except:
             pass # We tried...
 

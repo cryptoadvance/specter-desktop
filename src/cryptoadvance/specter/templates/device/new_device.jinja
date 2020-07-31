@@ -11,25 +11,27 @@
 	<div class="card">
 		<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
 			{% if not device %}
-				<div>
-					Name it &nbsp; &nbsp;
-					<input type="text" name="device_name" class="inline" value="{{ device_name }}" placeholder="Name your device">
+				<label>Name it:<label>
+				<div class="row">
+					<input type="text" name="device_name" value="{{ device_name }}" placeholder="Name your device">
 				</div>
 				<br>
 				{% include "device/components/device_type.jinja" %}
-				<p class="warning hidden" id="type_reminder">⚠️<br>Please make sure to choose the device type before continuing</p>
+				<p class="warning hidden" id="type_reminder">&#9432;<br>Please make sure to choose the device type before continuing</p>
 			{% endif %}
 			<div id="cold_device">
+				<br>
 				<h2>Scan, paste or load xpubs:</h2>
 				<div class="note">
 					{% if not device %}
 						You will be able add more keys later, from the device menu.
 					{% endif %}
 				</div>
-				<textarea id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
+				<p>One line per xpub. Ideally with derivation path in the form: <span style="font-style: italic; font-weight: bold; font-size: 15px;"><br>[ fingerprint / derivation / path ] xpub.</span></p>
+				<textarea style="margin: 5px;" id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
 				<div class="row">
 					<qr-scanner id="xpub-scan" style="width:50%">
-						<a slot="button" href="#" class="btn" style="margin: 2px;">
+						<a slot="button" href="#" class="btn" style="margin: 8px;">
 							<img src="/static/img/qr_icon.svg" height="12px"> Scan
 							<div class="tool-tip">
 								<i class="tool-tip__icon">i</i>
@@ -44,7 +46,7 @@
 					</a>
 					</qr-scanner>
 					<input type="file" id="file" class="inputfile" multiple/>
-					<label for="file" class="btn" style="margin: 2px;">
+					<label for="file" class="btn" style="margin: 8px;">
 						Choose files
 						<div class="tool-tip">
 							<i class="tool-tip__icon">i</i>
@@ -62,21 +64,19 @@
 					</label>
 				</div>
 				<div class="row">
-					<button type="button" class="btn" style="margin: 2px;" id="askhwi">
+					<button type="button" class="btn" style="margin: 8px;" id="askhwi">
 						<img src="/static/img/usb_tiny.svg" height="12px">Get over USB
 					</button>
 				</div>
 				<br>
 				<div class="note">
-					One line per xpub. Ideally with derivation path in the form "<b>[fingerprint/derivation/path]xpub</b>".<br>
 					Examples:<br>
-			<pre style="font-size: 1.2em">
+			<pre style="font-size: 1em">
 [f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
 [F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
 upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</pre>
-					Loading from file supports ColdCard and Electrum wallet format.<br>
-				</div>
+				</div><br>
 {% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
 {% else %}
@@ -85,9 +85,10 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</div>
 {% if not device %}
 			<div id="hot_device" class="hidden">
-				<p class="note" style="border-radius: 5px; padding:20px; background: rgba(0,0,0,0.1); color: #fff;">
-					<b style="">⚠️ A note on hot wallets:</b><br>
-					This will create a <a style="color: #fff;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
+				<br>
+				<p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+					<span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
+					This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
 					Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
 				</p>
 				<p>Enter you mnemonic here or use the randomly generated one:</p>

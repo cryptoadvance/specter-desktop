@@ -247,8 +247,12 @@ def register():
         password = hash_password(request.form['password'])
         otp = request.form['otp']
         user_id = alias(username)
-        if User.get_user(app.specter, user_id) or User.get_user_by_name(app.specter, username):
-            flash('Username is already taken, please choose another one', "error")
+        if User.get_user(app.specter, user_id) \
+                or User.get_user_by_name(app.specter, username):
+            flash(
+                'Username is already taken, please choose another one',
+                'error'
+            )
             return redirect('/register?otp={}'.format(otp))
         if app.specter.burn_new_user_otp(otp):
             config = {
@@ -262,18 +266,28 @@ def register():
             }
             user = User(user_id, username, password, config)
             user.save_info(app.specter)
+            flash(
+                'You have registered successfully, \
+please login with your new account to start using Specter'
+            )
             return redirect('/login')
         else:
-            flash('Invalid registration link, please request a new link from the node operator.', 'error')
+            flash(
+                'Invalid registration link, \
+please request a new link from the node operator.',
+                'error'
+            )
             return redirect('/register?otp={}'.format(otp))
     return render_template('register.jinja', specter=app.specter)
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    flash('You were logged out',"info")
+    flash('You were logged out', "info")
     app.specter.clear_user_session()
-    return redirect("/login") 
+    return redirect("/login")
+
 
 @app.route('/settings/', methods=['GET'])
 @login_required
@@ -282,6 +296,7 @@ def settings():
         return redirect("/settings/bitcoin_core")
     else:
         return redirect("/settings/general")
+
 
 @app.route('/settings/hwi', methods=['GET'])
 @login_required
@@ -294,6 +309,7 @@ def hwi_settings():
         current_version=current_version,
         rand=rand
     )
+
 
 @app.route('/settings/general', methods=['GET', 'POST'])
 @login_required
@@ -334,6 +350,7 @@ def general_settings():
         rand=rand
     )
 
+
 @app.route('/settings/bitcoin_core', methods=['GET', 'POST'])
 @login_required
 def bitcoin_core_settings():
@@ -349,6 +366,7 @@ def bitcoin_core_settings():
     host = rpc['host']
     protocol = 'http'
     autodetect = rpc['autodetect']
+    datadir = rpc['datadir']
     err = None
 
     if "protocol" in rpc:
@@ -358,6 +376,8 @@ def bitcoin_core_settings():
         action = request.form['action']
         if current_user.is_admin:
             autodetect = 'autodetect' in request.form
+            if autodetect:
+                datadir = request.form['datadir']
             user = request.form['username']
             passwd = request.form['password']
             port = request.form['port']
@@ -377,7 +397,8 @@ def bitcoin_core_settings():
                     port=port,
                     host=host,
                     protocol=protocol,
-                    autodetect=autodetect
+                    autodetect=autodetect,
+                    datadir=datadir
                 )
             except Exception as e:
                 err = 'Fail to connect to the node configured: {}'.format(e)
@@ -389,7 +410,8 @@ def bitcoin_core_settings():
                     port=port,
                     host=host,
                     protocol=protocol,
-                    autodetect=autodetect
+                    autodetect=autodetect,
+                    datadir=datadir
                 )
             app.specter.check()
 
@@ -397,6 +419,7 @@ def bitcoin_core_settings():
         "settings/bitcoin_core_settings.jinja",
         test=test,
         autodetect=autodetect,
+        datadir=datadir,
         username=user,
         password=passwd,
         port=port,
@@ -408,6 +431,7 @@ def bitcoin_core_settings():
         rand=rand
     )
 
+
 @app.route('/settings/auth', methods=['GET', 'POST'])
 @login_required
 def auth_settings():
@@ -417,7 +441,11 @@ def auth_settings():
     new_otp = -1
     users = None
     if current_user.is_admin and auth == "usernamepassword":
-        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+        users = [
+            user
+            for user in User.get_all_users(app.specter)
+            if not user.is_admin
+        ]
     if request.method == 'POST':
         action = request.form['action']
 
@@ -433,7 +461,10 @@ def auth_settings():
             if specter_username:
                 if current_user.username != specter_username:
                     if User.get_user_by_name(app.specter, specter_username):
-                        flash('Username is already taken, please choose another one', "error")
+                        flash(
+                            'Username is already taken, please choose another one',
+                            "error"
+                        )
                         return render_template(
                             "settings/auth_settings.jinja",
                             auth=auth,
@@ -450,8 +481,17 @@ def auth_settings():
             if current_user.is_admin:
                 app.specter.update_auth(auth)
                 if auth == "rpcpasswordaspin" or auth == "usernamepassword":
+                    if auth == "usernamepassword":
+                        users = [
+                            user
+                            for user in User.get_all_users(app.specter)
+                            if not user.is_admin
+                        ]
+                    else:
+                        users = None
                     app.config['LOGIN_DISABLED'] = False
                 else:
+                    users = None
                     app.config['LOGIN_DISABLED'] = True
 
             app.specter.check()
@@ -1023,7 +1063,9 @@ def wallet_settings(wallet_alias):
             wallet.keypoolrefill(wallet.change_keypool, wallet.change_keypool + delta, change=True)
             wallet.getdata()
         elif action == "deletewallet":
-            app.specter.wallet_manager.delete_wallet(wallet)
+            app.specter.wallet_manager.delete_wallet(
+                wallet, app.specter.bitcoin_datadir
+            )
             response = redirect(url_for('index'))
             return response
         elif action == "rename":
@@ -1033,11 +1075,12 @@ def wallet_settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-        return render_template("wallet/settings/wallet_settings.jinja", 
+        return render_template(
+            "wallet/settings/wallet_settings.jinja",
             wallet_alias=wallet_alias,
-            wallet=wallet, 
+            wallet=wallet,
             specter=app.specter,
-            rand=rand, 
+            rand=rand,
             error=error
         )
     else:
@@ -1120,7 +1163,11 @@ def device(device_alias):
             if len(wallets) != 0:
                 err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format([wallet.name for wallet in wallets])
             else:
-                app.specter.device_manager.remove_device(device, app.specter.wallet_manager)
+                app.specter.device_manager.remove_device(
+                    device,
+                    app.specter.wallet_manager,
+                    bitcoin_datadir=app.specter.bitcoin_datadir
+                )
                 return redirect("/")
         elif action == "delete_key":
             key = request.form['key']
