@@ -9,13 +9,8 @@
     <a href="/wallets/{{wallet.alias}}/" class="item {% if wallet_alias == wallet.alias %}active{% endif %}">
         {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
         <div class="grow">
-            <div class="row">
-                {{ wallet.name }} 
-                {% if wallet.fullbalance is not none %}
-                    <span class="balance">{{ wallet.fullbalance | btcamount}}</span>
-                {% endif %}
-            </div>
-            <small>{{ wallet.description }}</small>
+            {{ wallet.name }}<br>
+            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% else %}Single Key{% endif %}</span>
         </div>
     </a>
     {% if wallet.rescan_progress %}

@@ -1,31 +1,35 @@
 <style>
     #onion-address-container {
-        max-width: 220px;
+        position: absolute;
+        width: 240px;
+        top: 10px;
         padding: 10px;
         margin: 10px;
         background: #7D4698;
         border-radius: 10px;
+        z-index: 1;
+        border: 1px solid #aaa;
     }
 
-    #tor-open-btn {
+    #tor-btn {
         position: absolute;
-        cursor: pointer;
-        margin-left: 210px;
         width: 24px;
+        margin-right: 50px;
+        z-index: 2;
+        border-radius: 10px;
     }
 
-    #tor-close-btn {
+    #tor-toggle-btn {
         cursor: pointer;
-        color: #fff;
-        font-size: 0.8em;
-        float: right;
-        margin-bottom: 5px;
+        border-radius: 0 0 0 15px;
+        position: relative;
+        padding: 10px 40px 10px 20px;
     }
 
     .onion-address {
         word-wrap: break-word;
         color: #fff;
-        font-size: 0.7em;
+        font-size: 0.8em;
         text-decoration: none;
     }
 
@@ -41,6 +45,9 @@
         position: absolute;
         border-radius: 50%;
         display: inline-block;
+        top: 9px;
+        left: 36px;
+        z-index: 3;
     }
 
     .dot-on {
@@ -76,18 +83,10 @@
         background: #59316B;
     }
 </style>
-<div style="position: relative;">
-<img id="tor-open-btn" src="/static/img/tor.svg"/>
-<span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-symbol-status-dot" style="margin-left: 227px;"></span>
-</div>
 <div id="onion-address-container" class="hidden">
-    <div style="position: relative;">
-        <img id="tor-close-btn" src="/static/img/tor.svg" style="width: 24px; position: absolute; left: 177px;"/>
-        <span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-popup-status-dot" style="left: 193px;"></span>
-    </div>
     {% if tor_service_id %}
-        <span style="font-size: 0.92em; color: #fff;">Specter Running on Tor</span><br>
-        <div style="margin-top: 5px;"> <span style="font-size: 0.75em; color: #fff;">Running at:</span></div>
+        <span style="font-size: 0.95em; color: #fff;">Specter Running on Tor</span><br>
+        <div style="margin-top: 5px;"> <span style="font-size: 0.85em; color: #fff;">Running at:</span></div>
         <div class="center">
             <span title="Copy Tor address" class="onion-address centered" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
             {{ tor_service_id }}.onion
@@ -100,12 +99,12 @@
         {% endif %}
     {% else %}
         {% if debug %}
-            <span style="font-size: 0.92em; color: #fff;">Tor is unavailable...</span><br>
+            <span style="font-size: 0.95em; color: #fff;">Tor is unavailable...</span><br>
             <div style="margin-top: 5px;">
-                <span style="font-size: 0.75em; color: #fff;">You are running Specter in debug mode, but Tor hidden serices are only available in production mode.</span>
+                <span style="font-size: 0.85em; color: #fff;">You are running Specter in debug mode, but Tor hidden serices are only available in production mode.</span>
             </div>
         {% else %}
-            <span style="font-size: 0.92em; color: #fff;">Tor service is down...</span><br>
+            <span style="font-size: 0.95em; color: #fff;">Tor service is down...</span><br>
             {% if current_user.is_admin and ('.onion' not in request.url) %}
                 <form action="?" class="center">
                     <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
@@ -114,31 +113,26 @@
         {% endif %}
     {% endif %}
 </div>
+<div class="settings-bar-btn" id='tor-toggle-btn'>
+    <img id="tor-btn" src="/static/img/tor.svg"/>
+    <span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-symbol-status-dot"></span>
+</div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        let torOpenBtn = document.getElementById('tor-open-btn');
-        let torCloseBtn = document.getElementById('tor-close-btn');
+        let torToggleBtn = document.getElementById('tor-toggle-btn');
         let torDataContainer = document.getElementById('onion-address-container');
-        let torPopupStatusDot = document.getElementById('tor-popup-status-dot');
-        let torSymbolStatusDot = document.getElementById('tor-symbol-status-dot');
 
-        function openTorPopup() {
-            torOpenBtn.style.display = 'none';
-            torDataContainer.style.display = 'block';
-            torPopupStatusDot.style.display = 'inline-block';
-            torSymbolStatusDot.style.display = 'none';
+        function toggleTorPopup() {
+            torDataContainer.style.display = torDataContainer.style.display == 'block' ? 'none' : 'block';
         }
-
-        function closeTorPopup() {
-            torOpenBtn.style.display = 'block';
-            torDataContainer.style.display = 'none';
-            torPopupStatusDot.style.display = 'none';
-            torSymbolStatusDot.style.display = 'inline-block';
-        }
-        torSymbolStatusDot.addEventListener("click", openTorPopup);
-        torOpenBtn.addEventListener("click", openTorPopup);
-
-        torPopupStatusDot.addEventListener("click", closeTorPopup);
-        torCloseBtn.addEventListener("click", closeTorPopup);
+        torToggleBtn.addEventListener("click", toggleTorPopup);
+        torDataContainer.style.right = (document.getElementById('status-bar').children.length < 6 ? 83 : 145) + 'px';
+        window.addEventListener('click', function(e){   
+            if (!torDataContainer.contains(e.target) && !torToggleBtn.contains(e.target)){
+                if (torDataContainer.style.display == 'block') {
+                    toggleTorPopup();
+                }
+            }
+        });
     });
 </script>

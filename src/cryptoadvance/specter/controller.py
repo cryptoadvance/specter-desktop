@@ -248,8 +248,12 @@ def register():
         password = hash_password(request.form['password'])
         otp = request.form['otp']
         user_id = alias(username)
-        if User.get_user(app.specter, user_id) or User.get_user_by_name(app.specter, username):
-            flash('Username is already taken, please choose another one', "error")
+        if User.get_user(app.specter, user_id) \
+                or User.get_user_by_name(app.specter, username):
+            flash(
+                'Username is already taken, please choose another one',
+                'error'
+            )
             return redirect('/register?otp={}'.format(otp))
         if app.specter.burn_new_user_otp(otp):
             config = {
@@ -263,18 +267,28 @@ def register():
             }
             user = User(user_id, username, password, config)
             user.save_info(app.specter)
+            flash(
+                'You have registered successfully, \
+please login with your new account to start using Specter'
+            )
             return redirect('/login')
         else:
-            flash('Invalid registration link, please request a new link from the node operator.', 'error')
+            flash(
+                'Invalid registration link, \
+please request a new link from the node operator.',
+                'error'
+            )
             return redirect('/register?otp={}'.format(otp))
     return render_template('register.jinja', specter=app.specter)
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    flash('You were logged out',"info")
+    flash('You were logged out', "info")
     app.specter.clear_user_session()
-    return redirect("/login") 
+    return redirect("/login")
+
 
 @app.route('/settings/', methods=['GET'])
 @login_required
@@ -283,6 +297,7 @@ def settings():
         return redirect("/settings/bitcoin_core")
     else:
         return redirect("/settings/general")
+
 
 @app.route('/settings/hwi', methods=['GET'])
 @login_required
@@ -497,6 +512,7 @@ def bitcoin_core_settings():
         rand=rand
     )
 
+
 @app.route('/settings/auth', methods=['GET', 'POST'])
 @login_required
 def auth_settings():
@@ -506,7 +522,11 @@ def auth_settings():
     new_otp = -1
     users = None
     if current_user.is_admin and auth == "usernamepassword":
-        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+        users = [
+            user
+            for user in User.get_all_users(app.specter)
+            if not user.is_admin
+        ]
     if request.method == 'POST':
         action = request.form['action']
 
@@ -522,7 +542,10 @@ def auth_settings():
             if specter_username:
                 if current_user.username != specter_username:
                     if User.get_user_by_name(app.specter, specter_username):
-                        flash('Username is already taken, please choose another one', "error")
+                        flash(
+                            'Username is already taken, please choose another one',
+                            "error"
+                        )
                         return render_template(
                             "settings/auth_settings.jinja",
                             auth=auth,
@@ -539,8 +562,17 @@ def auth_settings():
             if current_user.is_admin:
                 app.specter.update_auth(auth)
                 if auth == "rpcpasswordaspin" or auth == "usernamepassword":
+                    if auth == "usernamepassword":
+                        users = [
+                            user
+                            for user in User.get_all_users(app.specter)
+                            if not user.is_admin
+                        ]
+                    else:
+                        users = None
                     app.config['LOGIN_DISABLED'] = False
                 else:
+                    users = None
                     app.config['LOGIN_DISABLED'] = True
 
             app.specter.check()

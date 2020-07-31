@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from binascii import hexlify
 from .helpers import decode_base58, encode_base58_checksum, get_xpub_fingerprint
 
 
@@ -124,6 +125,18 @@ class Key:
                     elif derivation_path[4] == "2h":
                         key_type = "wsh"
 
+        # infer fingerprint and derivation if depth == 0 or depth == 1
+        xpub_bytes = decode_base58(xpub)
+        depth = xpub_bytes[4]
+        if depth == 0:
+            fingerprint = hexlify(get_xpub_fingerprint(xpub)).decode()
+            derivation = "m"
+        elif depth == 1:
+            fingerprint = hexlify(xpub_bytes[5:9]).decode()
+            index = int.from_bytes(xpub_bytes[9:13], "big")
+            is_hardened = bool(index & 0x8000_0000)
+            derivation = "m/%d%s" % (index & 0x7fff_ffff, "h" if is_hardened else "")
+
         return cls(original, fingerprint, derivation, key_type, xpub)
 
     @classmethod
@@ -171,7 +184,8 @@ class Key:
 
     def __str__(self):
         if self.derivation and self.fingerprint:
-            return f"[{self.fingerprint}/{self.derivation[2:]}]{self.original}"
+            path_str = f"/{self.derivation[2:]}" if self.derivation != "m" else ""
+            return f"[{self.fingerprint}{path_str}]{self.original}"
         else:
             return self.original
 
