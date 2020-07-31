@@ -4,9 +4,8 @@
 		<input type="hidden" name="wallet_data" value='{{ wallet_data }}'>
 		<h1>Import Wallet</h1>
 		<span style="font-size: 1.3em;">Wallet name:</span> &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet">
-
+		<br>
 		{% if wallet_type == 'multisig' %}
-			<br>
 			<div class="center"> 
 				<p style="font-size: 1.2em;">{{ sigs_required }} out of {{ sigs_total }} multisig<p>
 			</div>

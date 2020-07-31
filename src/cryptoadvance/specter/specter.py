@@ -1,10 +1,16 @@
-import copy, json, logging, os, random
+import copy
+import json
+import logging
+import os
+import random
+import time
+import zipfile
+from io import BytesIO
 from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_cli_confs, get_default_datadir, RpcError
 from .rpc import BitcoinCLI
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
-from .user import User
 from flask_login import current_user
 import threading
 
@@ -322,3 +328,30 @@ class Specter:
                 return current_user.config["hwi_bridge_url"]
             else:
                 return ""
+
+    def specter_backup_file(self):
+        memory_file = BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            if self.wallet_manager:
+                for wallet in self.wallet_manager.wallets.values():
+                    data = zipfile.ZipInfo('{}.json'.format(wallet.alias))
+                    data.date_time = time.localtime(time.time())[:6]
+                    data.compress_type = zipfile.ZIP_DEFLATED
+                    zf.writestr(
+                        'wallets/{}.json'.format(wallet.alias),
+                        json.dumps(wallet.json)
+                    )
+            if self.device_manager:
+                for device in self.device_manager.devices.values():
+                    data = zipfile.ZipInfo('{}.json'.format(device.alias))
+                    data.date_time = time.localtime(time.time())[:6]
+                    data.compress_type = zipfile.ZIP_DEFLATED
+                    zf.writestr(
+                        'devices/{}.json'.format(device.alias),
+                        json.dumps(device.json)
+                    )
+        memory_file.seek(0)
+        return memory_file
+
+    def restore_from_backup(self):
+        pass

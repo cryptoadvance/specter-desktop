@@ -1,5 +1,9 @@
-import os, json, logging
-from .device import Device
+import os
+import json
+import logging
+import time
+import zipfile
+from io import BytesIO
 from .devices.coldcard import ColdCard
 from .devices.trezor import Trezor
 from .devices.ledger import Ledger
@@ -83,7 +87,7 @@ class DeviceManager:
             with open(fullpath, "w") as file:
                 file.write(json.dumps(device.json, indent=4))
 
-        self.update() # reload files
+        self.update()  # reload files
         return device
 
     def get_by_alias(self, device_alias):

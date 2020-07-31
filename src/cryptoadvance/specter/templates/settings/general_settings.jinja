@@ -5,6 +5,7 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
 		<div class="card" style="margin: 20px auto;">
+			<h1> HWI Bridge </h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -20,6 +21,7 @@
 			<br>
 			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
 			<br><br><br>
+			<h1> Backup and Restore </h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -30,9 +32,36 @@
 					</span>
 				</p>
 			</div>
-			Specter Data Backup:<br>
-			<button style="width: 100%;" type="submit" class="btn" name="action" value="backup">Download wallets backup files</button>
+			Specter Data Backup:
 			<br><br>
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="backup" style="width: 100%; margin-top: -5px;">Download Specter backup files</button>
+			</div>
+			<br>
+			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">Restoring Specter from backup<br><br></span>
+						Here you can restore your wallets and devices from an existing Secter backup.<br>
+						Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
+					</span>
+				</p>
+			</div>
+			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span><br><br>
+			<div class="row">
+				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
+				<input type="hidden" id="restorewallets" name="restorewallets"/>
+				<input type="hidden" id="restoredevices" name="restoredevices"/>
+				<label for="file" class="btn" style="margin-top: -5px;">
+					Choose backup folder
+				</label>
+			</div>
+			<span id="filesloaded"></span>
+			<div class="row" style="margin-top: 5px;">
+				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
+			</div><br><br>
+			<h1> Miscellaneous </h1>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
@@ -56,4 +85,42 @@
 			</div>
 		</div>
 	</form>
+{% endblock %}
+{% block scripts %}
+	<script type="text/javascript">
+		
+		document.addEventListener("DOMContentLoaded", function(){
+			var el = document.getElementById("file");
+
+			if (el != null) {
+				el.addEventListener("change", (e) => {
+					let wallets = []
+					let devices = []
+					files = el.files;
+					console.log(files);
+					for(let i=0; i<files.length; i++){
+						if (files[i].type == 'application/json'){
+							let reader = new FileReader();
+							reader.onload = function(e) {
+								if (files[i].webkitRelativePath.indexOf('devices/') != -1) {
+									console.log(files[i].name);
+									devices.push(JSON.parse(reader.result));
+									document.getElementById('restoredevices').value = JSON.stringify(devices);
+									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+									document.getElementById('restore').style.display = 'block';
+								} else if (files[i].webkitRelativePath.indexOf('wallets/') != -1) {
+									console.log(files[i].name);
+									wallets.push(JSON.parse(reader.result));
+									document.getElementById('restorewallets').value = JSON.stringify(wallets);
+									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+									document.getElementById('restore').style.display = 'block';
+								}
+							}
+							reader.readAsText(files[i]);
+						}
+					}
+				});
+			}
+		});
+	</script>
 {% endblock %}

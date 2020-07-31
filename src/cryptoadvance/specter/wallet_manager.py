@@ -31,7 +31,14 @@ addrtypes = {
 
 class WalletManager:
     # chain is required to manage wallets when bitcoin-cli is not running
-    def __init__(self, data_folder, cli, chain, device_manager, path="specter"):
+    def __init__(
+        self,
+        data_folder,
+        cli,
+        chain,
+        device_manager,
+        path="specter"
+    ):
         self.data_folder = data_folder
         self.chain = chain
         self.cli = cli
@@ -57,7 +64,9 @@ class WalletManager:
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
-        if self.working_folder is not None and not os.path.isdir(self.working_folder):
+        if self.working_folder is not None and not os.path.isdir(
+            self.working_folder
+        ):
             os.mkdir(self.working_folder)
         if cli is not None:
             self.cli = cli
@@ -70,35 +79,81 @@ class WalletManager:
         try:
             if self.working_folder is not None and self.cli is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
-                existing_wallets = [w["name"] for w in self.cli.listwalletdir()["wallets"]]
+                existing_wallets = [
+                    w["name"] for w in self.cli.listwalletdir()["wallets"]
+                ]
                 loaded_wallets = self.cli.listwallets()
-                not_loaded_wallets = [w for w in existing_wallets if w not in loaded_wallets]
+                not_loaded_wallets = [
+                    w for w in existing_wallets if w not in loaded_wallets
+                ]
                 for wallet in wallets_files:
                     wallet_alias = wallets_files[wallet]["alias"]
                     wallet_name = wallets_files[wallet]["name"]
-                    if os.path.join(self.cli_path, wallet_alias) in existing_wallets:
-                        if os.path.join(self.cli_path, wallet_alias) in not_loaded_wallets:
+                    if os.path.join(
+                        self.cli_path,
+                        wallet_alias
+                    ) in existing_wallets:
+                        if os.path.join(
+                            self.cli_path,
+                            wallet_alias
+                        ) in not_loaded_wallets:
                             try:
-                                logger.debug("loading %s " % wallets_files[wallet]["alias"])
-                                self.cli.loadwallet(os.path.join(self.cli_path, wallet_alias))
-                                wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                                logger.debug(
+                                    "loading %s " %
+                                    wallets_files[wallet]["alias"]
+                                )
+                                self.cli.loadwallet(
+                                    os.path.join(self.cli_path, wallet_alias)
+                                )
+                                wallets[wallet_name] = Wallet.from_json(
+                                    wallets_files[wallet],
+                                    self.device_manager,
+                                    self
+                                )
                                 # Lock UTXO of pending PSBTs
                                 if len(wallets[wallet_name].pending_psbts) > 0:
-                                    for psbt in wallets[wallet_name].pending_psbts:
-                                        logger.debug("lock %s " % wallet_alias, wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"])
-                                        wallets[wallet_name].cli.lockunspent(False, [utxo for utxo in wallets[wallet_name].pending_psbts[psbt]["tx"]["vin"]])
+                                    for psbt in wallets[
+                                        wallet_name
+                                    ].pending_psbts:
+                                        logger.debug(
+                                            "lock %s " %
+                                            wallet_alias,
+                                            wallets[
+                                                wallet_name
+                                            ].pending_psbts[psbt]["tx"]["vin"]
+                                        )
+                                        wallets[wallet_name].cli.lockunspent(
+                                            False,
+                                            [utxo for utxo in wallets[
+                                                wallet_name
+                                            ].pending_psbts[
+                                                psbt
+                                            ]["tx"]["vin"]]
+                                        )
                             except RpcError:
-                                logger.warn("Couldn't load wallet %s into core. Silently ignored!" % wallet_alias)
-                        elif os.path.join(self.cli_path, wallet_alias) in loaded_wallets:
+                                logger.warn(
+                                    "Couldn't load wallet %s into core.\
+Silently ignored!" % wallet_alias)
+                        elif os.path.join(
+                            self.cli_path,
+                            wallet_alias
+                        ) in loaded_wallets:
                             if wallet_name not in existing_names:
-                                # ok wallet is already there, we only need to update
-                                wallets[wallet_name] = Wallet.from_json(wallets_files[wallet], self.device_manager, self)
+                                # ok wallet is already there
+                                # we only need to update
+                                wallets[wallet_name] = Wallet.from_json(
+                                    wallets_files[wallet],
+                                    self.device_manager,
+                                    self
+                                )
                             else:
                                 # wallet is loaded and should stay
                                 keep_wallets.append(wallet_name)
                                 # TODO: check wallet file didn't change
                     else:
-                        logger.warn("Couldn't find wallet %s in core's wallets. Silently ignored!" % wallet_alias)
+                        logger.warn(
+                            "Couldn't find wallet %s in core's wallets.\
+Silently ignored!" % wallet_alias)
         except Exception as e:
             logger.warn("Failed updating wallet manager: %s" % e)
         # add new wallets
@@ -123,10 +178,14 @@ class WalletManager:
         return sorted(self.wallets.keys())
 
     def create_wallet(self, name, sigs_required, key_type, keys, devices):
-        walletsindir = [wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]]
+        walletsindir = [
+            wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]
+        ]
         wallet_alias = alias(name)
         i = 2
-        while os.path.isfile(os.path.join(self.working_folder, "%s.json" % wallet_alias)) or os.path.join(self.cli_path, wallet_alias) in walletsindir:
+        while os.path.isfile(
+            os.path.join(self.working_folder, "%s.json" % wallet_alias)
+        ) or os.path.join(self.cli_path, wallet_alias) in walletsindir:
             wallet_alias = alias("%s %d" % (name, i))
             i += 1
 
@@ -135,8 +194,10 @@ class WalletManager:
         recv_descs = ["%s/0/*" % desc for desc in descs]
         change_descs = ["%s/1/*" % desc for desc in descs]
         if len(keys) > 1:
-            recv_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(recv_descs))
-            change_descriptor = "sortedmulti({},{})".format(sigs_required, ",".join(change_descs))
+            recv_descriptor = "sortedmulti({},{})" \
+                .format(sigs_required, ",".join(recv_descs))
+            change_descriptor = "sortedmulti({},{})" \
+                .format(sigs_required, ",".join(change_descs))
         else:
             recv_descriptor = recv_descs[0]
             change_descriptor = change_descs[0]
@@ -151,7 +212,10 @@ class WalletManager:
         self.wallets[name] = Wallet(
             name,
             wallet_alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type]) if len(keys) > 1 else purposes[key_type],
+            "{} of {} {}".format(
+                sigs_required,
+                len(keys), purposes[key_type]
+            ) if len(keys) > 1 else purposes[key_type],
             addrtypes[key_type],
             '',
             -1,
@@ -195,6 +259,7 @@ class WalletManager:
         # Delete JSON
         if os.path.exists(wallet.fullpath):
             os.remove(wallet.fullpath)
+        del self.wallets[wallet.name]
         self.update()
 
     def rename_wallet(self, wallet, name):
@@ -203,15 +268,3 @@ class WalletManager:
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()
-
-    @property
-    def wallets_backup_file(self):
-        memory_file = BytesIO()
-        with zipfile.ZipFile(memory_file, 'w') as zf:
-            for wallet in self.wallets.values():
-                data = zipfile.ZipInfo('{}.json'.format(wallet.name))
-                data.date_time = time.localtime(time.time())[:6]
-                data.compress_type = zipfile.ZIP_DEFLATED
-                zf.writestr('{}.json'.format(wallet.name), wallet.account_map)
-        memory_file.seek(0)
-        return memory_file
