@@ -259,6 +259,7 @@ Silently ignored!" % wallet_alias)
         # Delete JSON
         if os.path.exists(wallet.fullpath):
             os.remove(wallet.fullpath)
+        del self.wallets[wallet.name]
         self.update()
 
     def rename_wallet(self, wallet, name):

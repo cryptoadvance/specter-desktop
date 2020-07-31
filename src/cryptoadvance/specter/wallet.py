@@ -201,9 +201,6 @@ class Wallet():
     def get_info(self):
         try:
             self.info = self.cli.getwalletinfo()
-            if self.info['keypoolsize'] == 0:
-                self.keypoolrefill(0, end=self.keypool, change=False)
-                self.keypoolrefill(0, end=self.change_keypool, change=True)
         except Exception:
             self.info = {}
 
@@ -215,10 +212,18 @@ class Wallet():
         self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
-        value_on_address = self.cli.getreceivedbyaddress(
-            self.change_address,
-            0
-        )
+        try:
+            value_on_address = self.cli.getreceivedbyaddress(
+                self.change_address,
+                0
+            )
+        except:
+            # Could happen if address not in wallet (wallet was imported)
+            # try adding keypool
+            self.keypoolrefill(0, end=self.keypool, change=False)
+            self.keypoolrefill(0, end=self.change_keypool, change=True)
+            value_on_address = 0
+
         # if not - just return
         if value_on_address > 0:
             self.change_index += 1

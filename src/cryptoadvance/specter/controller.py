@@ -351,12 +351,15 @@ def general_settings():
                         True
                     )
                 except Exception as e:
-                    flash(
-                        'Failed to import wallet {}, error: {}'
-                        .format(wallet['name'], e),
-                        'error'
-                    )
-                    continue
+                    # if wallet already exists in Bitcoin Core
+                    # continue with the existing one
+                    if 'already exists' not in str(e):
+                        flash(
+                            'Failed to import wallet {}, error: {}'
+                            .format(wallet['name'], e),
+                            'error'
+                        )
+                        continue
                 with fslock:
                     with open(
                         os.path.join(
