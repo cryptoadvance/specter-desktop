@@ -89,6 +89,12 @@
             "{{ wallet.address }}".slice(0, -6) != "bcrt" + result.slice(2, -6))
         ) {
             showError("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+        } else {
+            if (device.type == 'coldcard') {
+                showNotification("Address displayed successfully! Please check the device screen.", 7000);
+            } else {
+                showNotification("Address was verified successfully!", 5000);
+            }
         }
     }
 </script>

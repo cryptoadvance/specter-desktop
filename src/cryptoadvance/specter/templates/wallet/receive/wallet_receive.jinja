@@ -17,7 +17,6 @@
 		#address {
 			font-weight: bolder;
 			margin: 0px auto;
-			word-break: break-word;
 			font-size: 16px;
 		}
 
@@ -66,8 +65,10 @@
 			{% set supports_hwi = supports_hwi.append(device) %}
 		{% endfor %}
 		{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-			<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display Address on Device</button><br>
-			<p class="note center">Multsig address on-device display is only available for ColdCard, KeepKey, and Trezor devices.</p>
+			<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display address on device</button><br>
+			{% if wallet.is_multisig %}
+				<p class="note center">Multsig address on-device display is only available for ColdCard, KeepKey, Specter, and Trezor devices.</p>
+			{% endif %}
 		{% endif %}
 	</form>
 	</div>

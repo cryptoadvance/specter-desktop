@@ -63,7 +63,15 @@
 		{% for device in wallet.devices %}
 			{% if device.exportable_to_wallet %}
 				{% if device.wallet_export_type == 'file' %}
-					<a download="{{ wallet.name }}" href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}" class="btn centered padded">Download {{ device.name }} file</a>
+					<a 
+					download="{{ wallet.name }}"
+					href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
+					{% if device.device_type == 'coldcard' %}
+						onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+					{% endif %}
+					class="btn centered padded">
+						Download {{ device.name }} file
+					</a>
 				{% elif device.wallet_export_type == 'qr' %}
 					<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
 					<div id="{{ device.alias }}_export_qr_code" style="display: none;">
