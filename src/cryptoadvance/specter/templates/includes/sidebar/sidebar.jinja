@@ -4,11 +4,22 @@
         {% if specter.info["initialblockdownload"] %}
             <p class="warning">&#9432;<br>Bitcoin Core is still syncing...<br>(data might be outdated)</p>
         {% endif %}
-        <a href="/settings/" class="item core">
+        {% if specter.network_info.version < 190000 %}
+            <p class="warning">&#9432;<br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
+        {% endif %}
+        {% if specter.chain %}
+            <div onclick="showPageOverlay('bitcoin_core_info')" class="item core" style="cursor: pointer;">
+            {% else %}
+            <a href="/settings/" class="item core">
+        {% endif %}
             {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
             {{ bitcoin_svg(specter.info.chain, 40) }}
+            {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
             <div>
-                Bitcoin Core<br>
+                Bitcoin Core
+                {% if specter.bitcoin_core_version != '' %}
+                    <span class="note">v{{ specter.bitcoin_core_version }}</span>
+                {% endif %}<br>
                 <small>
                     {% if specter.chain %}
                         {{specter.chain}}:
@@ -22,7 +33,11 @@
                     {% endif %}
                 </small>
             </div>
-        </a>
+        {% if specter.chain %}
+            </div>
+            {% else %}
+            </a>
+        {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
         </div>
