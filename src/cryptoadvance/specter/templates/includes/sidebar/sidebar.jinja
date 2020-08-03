@@ -16,13 +16,13 @@
             {{ bitcoin_svg(specter.info.chain, 40) }}
             {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
             <div>
-                Bitcoin Core
-                {% if specter.bitcoin_core_version != '' %}
-                    <span class="note">v{{ specter.bitcoin_core_version }}</span>
-                {% endif %}<br>
+                Bitcoin Core<br>
                 <small>
                     {% if specter.chain %}
-                        {{specter.chain}}:
+                        {% if specter.bitcoin_core_version != '' %}
+                            v{{ specter.bitcoin_core_version }}
+                        {% endif %}
+                        ({{specter.chain}}):
                         {% if specter.info["blocks"] %}
                             {{ specter.info.blocks }} blocks
                         {% else %}

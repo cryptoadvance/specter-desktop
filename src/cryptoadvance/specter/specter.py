@@ -117,7 +117,8 @@ class Specter:
                             ("getblockchaininfo", None),
                             ("getnetworkinfo", None),
                             ("getmempoolinfo", None),
-                            ("uptime", None)
+                            ("uptime", None),
+                            ("getblockhash", 0),
                         ]
                     )
                 ]
@@ -125,6 +126,11 @@ class Specter:
                 self._network_info = res[1]
                 self._info['mempool_info'] = res[2]
                 self._info['uptime'] = res[3]
+                try:
+                    self.cli.getblockfilter(res[4])
+                    self._info['blockfilterindex'] = True
+                except:
+                    self._info['blockfilterindex'] = False
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
