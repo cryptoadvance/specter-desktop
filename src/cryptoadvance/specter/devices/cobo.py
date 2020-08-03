@@ -13,7 +13,6 @@ class Cobo(Device):
         self.wallet_export_type = 'qr'
 
     def create_psbts(self, base64_psbt, wallet):
-        # TODO - convert to bc-ur
         base64_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=True)
         raw_psbt = a2b_base64(base64_psbt)
         enc, hsh = bcur.bcur_encode(raw_psbt)
