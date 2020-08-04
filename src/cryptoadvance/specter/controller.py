@@ -185,9 +185,9 @@ def index():
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
 
     # TODO: add onboarding process
-    if len(app.specter.device_manager.devices) == 0:
-        # For now: can't do anything until a device is registered
-        return redirect("/new_device/")
+    # if len(app.specter.device_manager.devices) == 0:
+    #     # For now: can't do anything until a device is registered
+    #     return redirect("/new_device/")
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
 

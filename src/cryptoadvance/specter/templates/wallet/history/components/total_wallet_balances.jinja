@@ -16,4 +16,11 @@
             <small>( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcamount }} pending )</small>
         {% endif %}
     </h1>
+    {% if wallet.rescan_progress %}
+        <h2>Rescanning blockchain: {{ "%.2f"|format(wallet.rescan_progress * 100) }}%</h2>
+        <span class="warning">
+            &#9432;<br>
+             Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
+        </span>
+    {% endif %}
 {%- endmacro %}

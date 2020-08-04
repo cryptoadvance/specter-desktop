@@ -11,6 +11,9 @@
         <div class="grow">
             {{ wallet.name }}<br>
             <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% else %}Single Key{% endif %}</span>
+            {% if wallet.rescan_progress %}
+                <br><span class="note" style="font-size: 0.7em;">Rescanning blockchain: {{ "%.2f"|format(wallet.rescan_progress * 100) }}%</span>
+            {% endif %}
         </div>
     </a>
     {% if wallet.rescan_progress %}

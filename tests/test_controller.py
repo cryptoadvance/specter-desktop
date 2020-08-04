@@ -9,7 +9,7 @@ def test_home(caplog, client):
     result = client.get('/')
     # By default there is no authentication
     assert result.status_code == 200 # OK.
-    assert b'Nothing here' in result.data
+    assert b'Welcome to Specter' in result.data
     result = client.get('/new_device', follow_redirects=True)
     assert result.status_code == 200 # OK.
     assert b'Setting up a new device' in result.data
