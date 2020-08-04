@@ -113,7 +113,8 @@ def server(daemon, stop, restart, force,
     if hwibridge:
         print(
             " * Running HWI Bridge mode.\n"
-            " * You can configure access to the API at: %s://%s:%d/hwi/settings"
+            " * You can configure access to the API "
+            "at: %s://%s:%d/hwi/settings"
             % (protocol, host, port)
         )
 
