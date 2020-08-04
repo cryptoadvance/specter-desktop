@@ -40,6 +40,20 @@ ul, li{
     margin: 0;
     padding: 0;
 }
+.list-item {
+    margin-bottom: 25px;
+}
+.list-item::before {
+    content: "\2022";
+    color: var(--cmap-blue);
+    font-weight: bold;
+    display: inline-block;
+    width: 0.5em;
+    margin-left: -0.6em;
+    font-size: 2.5em;
+    vertical-align: middle;
+    line-height: 20px;
+}
 #menubtn{
     position: absolute;
     top: 10px;
