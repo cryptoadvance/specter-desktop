@@ -1267,17 +1267,24 @@ def device(device_alias):
             device=device, device_alias=device_alias, purposes=purposes, wallets=wallets, error=err, specter=app.specter, rand=rand)
 
 
-
 ############### filters ##################
 
 @app.template_filter('datetime')
 def timedatetime(s):
     return format(datetime.fromtimestamp(s), "%d.%m.%Y %H:%M")
 
+
 @app.template_filter('btcamount')
 def btcamount(value):
     value = float(value)
     return "{:.8f}".format(value).rstrip("0").rstrip(".")
+
+
+@app.template_filter('bytessize')
+def bytessize(value):
+    value = float(value)
+    return '{:,.0f}'.format(value / float(1 << 30)) + " GB"
+
 
 def notify_upgrade():
     ''' If a new version is available, notifies the user via flash 

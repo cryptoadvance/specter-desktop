@@ -78,7 +78,6 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
-        self._info = {"chain": None}
         self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
@@ -99,22 +98,48 @@ class Specter:
             # otherwise - create one and assign unique id
         else:
             if self.config["uid"] == "":
-                self.config["uid"] = random.randint(0,256**8).to_bytes(8,'big').hex()
+                self.config["uid"] = random.randint(
+                    0, 256 ** 8
+                ).to_bytes(8, 'big').hex()
             self._save()
 
         # init arguments
-        deep_update(self.config, self.arg_config) # override loaded config
-        
+        deep_update(self.config, self.arg_config)  # override loaded config
+
         self.cli = get_cli(self.config["rpc"])
         self._is_configured = (self.cli is not None)
         self._is_running = False
         if self._is_configured:
             try:
-                self._info = self.cli.getblockchaininfo()
+                res = [
+                    r["result"] for r in self.cli.multi(
+                        [
+                            ("getblockchaininfo", None),
+                            ("getnetworkinfo", None),
+                            ("getmempoolinfo", None),
+                            ("uptime", None),
+                            ("getblockhash", 0),
+                        ]
+                    )
+                ]
+                self._info = res[0]
+                self._network_info = res[1]
+                self._info['mempool_info'] = res[2]
+                self._info['uptime'] = res[3]
+                try:
+                    self.cli.getblockfilter(res[4])
+                    self._info['blockfilterindex'] = True
+                except:
+                    self._info['blockfilterindex'] = False
                 self._is_running = True
             except Exception as e:
+                self._info = {"chain": None}
+                self._network_info = {"subversion": '', "version": 999999}
                 logger.error("Exception %s while specter.check()" % e)
                 pass
+        else:
+            self._info = {"chain": None}
+            self._network_info = {"subversion": '', "version": 999999}
 
         if not self._is_running:
             self._info["chain"] = None
@@ -296,6 +321,20 @@ class Specter:
     @property
     def info(self):
         return self._info
+
+    @property
+    def network_info(self):
+        return self._network_info
+
+    @property
+    def bitcoin_core_version(self):
+        return self.network_info['subversion'].replace(
+            '/',
+            ''
+        ).replace(
+            'Satoshi:',
+            ''
+        )
 
     @property
     def chain(self):
