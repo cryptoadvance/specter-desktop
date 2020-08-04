@@ -197,10 +197,21 @@ class BitcoinCLI:
             return False
 
     def clone(self):
-        ''' returns a clone of self. Usefull if you want to mess with the properties '''
-        return BitcoinCLI(self.user, self.passwd, self.host, self.port, self.protocol, self.path, self.timeout)
+        """
+            Returns a clone of self.
+            Usefull if you want to mess with the properties
+        """
+        return BitcoinCLI(
+            self.user,
+            self.passwd,
+            self.host,
+            self.port,
+            self.protocol,
+            self.path,
+            self.timeout
+        )
 
-    def multi(self, calls:list, **kwargs):
+    def multi(self, calls: list, **kwargs):
         """Makes batch request to Core"""
         type(self).counter += len(calls)
         # some debug info for optimizations
@@ -210,7 +221,7 @@ class BitcoinCLI:
         headers = {'content-type': 'application/json'}
         payload = [{
             "method": method,
-            "params": args,
+            "params": args if args != [None] else [],
             "jsonrpc": "2.0",
             "id": i,
         } for i, (method, *args) in enumerate(calls)]
@@ -224,7 +235,11 @@ class BitcoinCLI:
             url, data=json.dumps(payload), headers=headers, timeout=timeout)
         self.r = r
         if r.status_code != 200:
-            raise RpcError("Server responded with error code %d: %s" % (r.status_code, r.text), r)
+            raise RpcError(
+                "Server responded with error code %d: %s" % (
+                    r.status_code, r.text
+                ), r
+            )
         r = r.json()
         return r
 
@@ -236,10 +251,15 @@ class BitcoinCLI:
             return r["result"]
         return fn
 
+
 if __name__ == '__main__':
 
-    cli = BitcoinCLI("bitcoinrpc", "foi3uf092ury97iufhjf30982hf928uew9jd209j", port=18443)
-    
+    cli = BitcoinCLI(
+        "bitcoinrpc",
+        "foi3uf092ury97iufhjf30982hf928uew9jd209j",
+        port=18443
+    )
+
     print(cli.url)
 
     print(cli.getmininginfo())

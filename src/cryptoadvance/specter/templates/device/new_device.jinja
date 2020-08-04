@@ -329,6 +329,14 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
 					addKeys(str);
 					setDeviceType('cobo');
+				}else if( ("xfp" in obj) &&
+						  ("xpub" in obj) &&
+						  ("path" in obj)){
+					console.log(obj);
+					let path = obj.path.replace(/'/g,'h').replace("m/","");
+					let str = `[${obj.xfp}/${path}]${obj.xpub}`;
+					addKeys(str);
+					setDeviceType('cobo');
 				}else{
 					showError("Unknown key format");
 				}
