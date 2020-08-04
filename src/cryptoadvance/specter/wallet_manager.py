@@ -268,3 +268,21 @@ Silently ignored!" % wallet_alias)
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()
+
+    def full_txlist(self, idx):
+        txlists = [
+            [
+                {
+                    **tx,
+                    'wallet_alias': wallet.alias
+                } for tx in wallet.txlist(
+                    idx,
+                    wallet_tx_batch=100 // len(self.wallets)
+                )
+            ] for wallet in self.wallets.values()
+        ]
+        result = []
+        for txlist in txlists:
+            for tx in txlist:
+                result.append(tx)
+        return list(reversed(sorted(result, key=lambda tx: tx["time"])))

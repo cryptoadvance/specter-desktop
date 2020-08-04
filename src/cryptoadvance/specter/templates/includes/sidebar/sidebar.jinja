@@ -1,4 +1,17 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
+<style>
+    #wallets_overview_link {
+        text-transform: none;
+        text-decoration: none;
+        float: right;
+        margin-right: 10px;
+    }
+
+    #wallets_overview_link:hover {
+        text-decoration: underline;
+        color: #fff;
+    }
+</style>
 <div id="side-content">
     <nav class="side">
         {% if specter.info["initialblockdownload"] %}
@@ -40,6 +53,11 @@
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
+            {% if (specter.wallet_manager.wallets | length) > 1 %}
+                <a class="note" id="wallets_overview_link" href="/wallets_overview/" style="cursor: pointer;">
+                    Wallets overview
+                </a>
+            {% endif %}
         </div>
         {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
             {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
