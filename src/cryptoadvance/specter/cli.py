@@ -111,9 +111,10 @@ def server(daemon, stop, restart, force,
         protocol = "https"
 
     if hwibridge:
-        app.logger.info(
-            "Running HWI Bridge mode, you can configure access \
-            to the API at: %s://%s:%d/hwi/settings"
+        print(
+            " * Running HWI Bridge mode.\n"
+            " * You can configure access to the API "
+            "at: %s://%s:%d/hwi/settings"
             % (protocol, host, port)
         )
 

@@ -1,5 +1,5 @@
 ## v0.6.0 August 4, 2020
-- Build: Create `specterd` binaries (#258) (@stepansnigirev)
+- Build: Create `specterd` and `hwibridge` binaries (#258, #271) (@stepansnigirev)
 - Devices: [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) multisig support (#268) (@stepansnigirev)
 - Bugfix: Fix issues and improve performance by removing local caching (#242) (@ben-kaufman)
 - Bugfix: Fix installation issue on ARM machines by removing the BIP32 dependency (#259) (@stepansnigirev)
