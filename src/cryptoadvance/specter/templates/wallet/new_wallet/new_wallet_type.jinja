@@ -4,7 +4,7 @@
 	<h1>Select the type of the wallet</h1>
 	<div>
 		<center>
-			<span>Importing an existing wallet?</span>
+			<span>Adding a wallet with existing funds?</span>
 			<div class="tool-tip">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -13,8 +13,8 @@
 						After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.
 						<br>
 						{% if specter.info["pruned"] %}
-							<span class="warning" style="display: inline-block;">
-								Please Note:<br>You are using a pruned node.<br> Wallet history may not fully appear.
+							<span class="warning" style="display: inline-block;">&#9432;<br>
+								Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
 							</span>
 						{% endif %}
 					</span>
@@ -33,7 +33,24 @@
 		</a>
 	</nav>
 	<div class="raw">
-		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">Import Existing Wallet</button>
+		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">
+		Import from wallet software
+		<div class="tool-tip">
+			<i class="tool-tip__icon">i</i>
+			<p class="tool-tip__info">
+				<span class="info">
+					<span class="info__title">Import From Wallet Software<br> <br></span>
+					Click here to import an existing wallet from a wallet software like Fully-Noded or another Specter instance.
+					<br>
+					{% if specter.info["pruned"] %}
+						<span class="warning" style="display: inline-block;">&#9432;<br>
+							Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
+						</span>
+					{% endif %}
+				</span>
+			</p>
+		</div>
+		</button>
 	</div>
 	{% include "wallet/new_wallet/components/import_wallet_account_map.jinja" %}
 	<div class="note">
