@@ -21,7 +21,10 @@
             {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
         </td>
         <td class="tx scroll">
-            {{ explorer_link('address', tx['address'], wallet.get_address_name(tx['address'], -1), specter.explorer) }}
+            {% if wallet == none %}
+                {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
+            {% endif %}
+            {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </td>
         <td>
             {{ tx['amount'] | btcamount }}

@@ -11,7 +11,7 @@ import threading
 
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
-WALLET_TX_BATCH = 100
+wallet_tx_batch = 100
 
 class Wallet():
     def __init__(
@@ -301,11 +301,11 @@ class Wallet():
         self.cli.lockunspent(False, psbt["tx"]["vin"])
         self.save_to_file()
 
-    def txlist(self, idx):
+    def txlist(self, idx, wallet_tx_batch=100):
         try:
-            cli_txs = self.cli.listtransactions("*", WALLET_TX_BATCH + 2, WALLET_TX_BATCH * idx, True) # get batch + 2 to make sure you have information about send
+            cli_txs = self.cli.listtransactions("*", wallet_tx_batch + 2, wallet_tx_batch * idx, True) # get batch + 2 to make sure you have information about send
             cli_txs.reverse()
-            transactions = cli_txs[:WALLET_TX_BATCH]
+            transactions = cli_txs[:wallet_tx_batch]
         except:
             return []
         txids = []

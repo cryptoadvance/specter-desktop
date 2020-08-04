@@ -10,6 +10,7 @@
 - Feature: Dynamically start and manage Specter's Tor Hidden Service from the UI (#257) (@ben-kaufman)
 - Feature: Allow user to customize the Bitcoin Core data-dir path (#260) (@ben-kaufman)
 - Feature: Automatically derive key origin for depth 0 and 1 (#264) (@hodlwave)
+- UI: Add Wallets Overview page showing the combined balance and transactions history of all user's wallets. (#272) (@ben-kaufman)
 - UI: Add Bitcoin Core node info dashboard (#267) (@ben-kaufman)
 - UI: New landing page and multiple UI fixes. (#269) (@ben-kaufman)
 - UI: Make sidebar wallets and devices lists foldable (#263) (@ben-kaufman)

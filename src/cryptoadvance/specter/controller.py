@@ -857,6 +857,7 @@ def new_wallet(wallet_type):
         rand=rand
     )
 
+
 @app.route('/wallets/<wallet_alias>/')
 @login_required
 def wallet(wallet_alias):
@@ -871,10 +872,26 @@ def wallet(wallet_alias):
     else:
         return redirect("/wallets/%s/tx/" % wallet_alias)
 
+
+@app.route('/wallets_overview/')
+@login_required
+def wallets_overview():
+    app.specter.check()
+    idx = int(request.args.get('idx', default=0))
+    return render_template(
+        "wallet/wallets_overview.jinja",
+        idx=idx,
+        history=True,
+        specter=app.specter,
+        rand=rand
+    )
+
+
 @app.route('/wallets/<wallet_alias>/tx/')
 @login_required
 def wallet_tx(wallet_alias):
     return redirect("/wallets/%s/tx/history" % wallet_alias)
+
 
 @app.route('/wallets/<wallet_alias>/tx/history/')
 @login_required
