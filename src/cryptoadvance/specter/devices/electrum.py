@@ -1,8 +1,8 @@
 from binascii import hexlify, unhexlify, b2a_base64, a2b_base64
 from typing import List
-from .generic import GenericDevice
+from ..device import Device
 
-class Electrum(GenericDevice):
+class Electrum(Device):
     def __init__(self, name, alias, device_type, keys, fullpath, manager):
         super().__init__(name, alias, 'electrum', keys, fullpath, manager)
         self.sd_card_support = True
