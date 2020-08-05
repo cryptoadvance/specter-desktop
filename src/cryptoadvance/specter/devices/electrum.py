@@ -2,9 +2,13 @@ from binascii import hexlify, unhexlify, b2a_base64, a2b_base64
 from typing import List
 from ..device import Device
 
+
 class Electrum(Device):
-    def __init__(self, name, alias, device_type, keys, fullpath, manager):
-        super().__init__(name, alias, 'electrum', keys, fullpath, manager)
+    device_type = "electrum"
+    name = "Electrum"
+
+    def __init__(self, name, alias, keys, fullpath, manager):
+        super().__init__(name, alias, keys, fullpath, manager)
         self.sd_card_support = True
         self.qr_code_support = True
 
@@ -17,7 +21,9 @@ class Electrum(Device):
 
 ########### base43 encodings ###############
 
+
 BASE43_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$*+-./:"
+
 
 def b43_encode(b: bytes) -> str:
     """Encode bytes to a base58-encoded string"""
@@ -42,6 +48,7 @@ def b43_encode(b: bytes) -> str:
             break
     return BASE43_CHARS[0] * pad + res
 
+
 def b43_decode(s: str) -> bytes:
     """Decode a base58-encoding string, returning bytes"""
     if not s:
@@ -52,7 +59,8 @@ def b43_decode(s: str) -> bytes:
     for c in s:
         n *= 43
         if c not in BASE43_CHARS:
-            raise ValueError('Character %r is not a valid base43 character' % c)
+            raise ValueError(
+                'Character %r is not a valid base43 character' % c)
         digit = BASE43_CHARS.index(c)
         n += digit
 

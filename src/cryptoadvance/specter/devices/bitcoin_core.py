@@ -1,4 +1,5 @@
-import os, shutil
+import os
+import shutil
 from mnemonic import Mnemonic
 from hwilib.descriptor import AddChecksum
 from ..device import Device
@@ -10,42 +11,87 @@ from ..rpc import get_default_datadir
 from io import BytesIO
 import hmac
 
+
 class BitcoinCore(Device):
-    def __init__(self, name, alias, device_type, keys, fullpath, manager):
-        Device.__init__(self, name, alias, device_type, keys, fullpath, manager)
-        self.hwi_support = False
-        self.exportable_to_wallet = False
+    device_type = "bitcoincore"
+    name = "Bitcoin Core (hot wallet)"
+
+    def __init__(self, name, alias, keys, fullpath, manager):
+        Device.__init__(self, name, alias, keys, fullpath, manager)
         self.hot_wallet = True
 
-    def setup_device(self, mnemonic, passphrase, wallet_manager, testnet):
+    def setup_device(self, mnemonic, passphrase,
+                     wallet_manager, testnet):
         seed = Mnemonic.to_seed(mnemonic)
         xprv = seed_to_hd_master_key(seed, testnet=testnet)
-        wallet_name = os.path.join(wallet_manager.cli_path + '_hotstorage', self.alias)
+        wallet_name = os.path.join(
+            wallet_manager.cli_path + '_hotstorage', self.alias)
         wallet_manager.cli.createwallet(wallet_name, False, True)
         cli = wallet_manager.cli.wallet(wallet_name)
         # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
-        ## NOTE: This will work only on the network the device was added, so hot devices should be filtered out by network.
+        # NOTE: This will work only on the network the device was added,
+        #       so hot devices should be filtered out by network.
         coin = int(testnet)
         cli.importmulti([
-            { 'desc': AddChecksum('sh(wpkh({}/49h/{}h/0h/0/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/49h/{}h/0h/1/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/84h/{}h/0h/0/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/84h/{}h/0h/1/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/48h/{}h/0h/1h/0/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('sh(wpkh({}/48h/{}h/0h/1h/1/*))'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/48h/{}h/0h/2h/0/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
-            { 'desc': AddChecksum('wpkh({}/48h/{}h/0h/2h/1/*)'.format(xprv, coin)), 'range': 1000, 'timestamp': 'now'},
+            {
+                'desc': AddChecksum(
+                    'sh(wpkh({}/49h/{}h/0h/0/*))'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'sh(wpkh({}/49h/{}h/0h/1/*))'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'wpkh({}/84h/{}h/0h/0/*)'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'wpkh({}/84h/{}h/0h/1/*)'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'sh(wpkh({}/48h/{}h/0h/1h/0/*))'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'sh(wpkh({}/48h/{}h/0h/1h/1/*))'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'wpkh({}/48h/{}h/0h/2h/0/*)'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
+            {
+                'desc': AddChecksum(
+                    'wpkh({}/48h/{}h/0h/2h/1/*)'.format(xprv, coin)),
+                'range': 1000,
+                'timestamp': 'now'
+            },
         ])
         if passphrase:
             cli.encryptwallet(passphrase)
 
         xpubs_str = ""
         paths = [
-            "m", # to get fingerprint
-            f"m/49h/{coin}h/0h", # nested
-            f"m/84h/{coin}h/0h", # native
-            f"m/48h/{coin}h/0h/1h", # nested multisig
-            f"m/48h/{coin}h/0h/2h", # native multisig
+            "m",  # to get fingerprint
+            f"m/49h/{coin}h/0h",  # nested
+            f"m/84h/{coin}h/0h",  # native
+            f"m/48h/{coin}h/0h/1h",  # nested multisig
+            f"m/48h/{coin}h/0h/2h",  # native multisig
         ]
         xpubs = derive_xpubs_from_xprv(xprv, paths, wallet_manager.cli)
         # it's not parent fingerprint, it's self fingerprint
@@ -88,33 +134,42 @@ class BitcoinCore(Device):
 
         keys, failed = Key.parse_xpubs(xpubs_str)
         if len(failed) > 0:
-            # TODO: This should never occur, but just in case, 
-            # we must make sure to catch it properly so it 
+            # TODO: This should never occur, but just in case,
+            # we must make sure to catch it properly so it
             # doesn't crash the app no matter what.
-            raise Exception("Failed to parse these xpubs:\n" + "\n".join(failed))
+            raise Exception(
+                "Failed to parse these xpubs:\n" + "\n".join(failed))
         else:
             self.add_keys(keys)
 
     def _load_wallet(self, wallet_manager):
-        existing_wallets = [w["name"] for w in wallet_manager.cli.listwalletdir()["wallets"]]
+        existing_wallets = [w["name"]
+                            for w
+                            in wallet_manager.cli.listwalletdir()["wallets"]]
         loaded_wallets = wallet_manager.cli.listwallets()
-        not_loaded_wallets = [w for w in existing_wallets if w not in loaded_wallets]
-        if os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias) in existing_wallets:
-            if os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias) in not_loaded_wallets:
-                wallet_manager.cli.loadwallet(os.path.join(wallet_manager.cli_path + "_hotstorage", self.alias))
+        not_loaded_wallets = [
+            w for w in existing_wallets if w not in loaded_wallets]
+
+        hotstorage_path = wallet_manager.cli_path + "_hotstorage"
+        if os.path.join(hotstorage_path, self.alias) in existing_wallets:
+            if os.path.join(hotstorage_path, self.alias) in not_loaded_wallets:
+                wallet_manager.cli.loadwallet(os.path.join(
+                    hotstorage_path, self.alias))
 
     def create_psbts(self, base64_psbt, wallet):
-        return { 'core': base64_psbt }
+        return {'core': base64_psbt}
 
     def sign_psbt(self, base64_psbt, wallet, passphrase):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
-        cli = wallet.manager.cli.wallet(os.path.join(wallet.manager.cli_path + "_hotstorage", self.alias))
+        cli = wallet.manager.cli.wallet(os.path.join(
+            wallet.manager.cli_path + "_hotstorage", self.alias))
         if passphrase:
             cli.walletpassphrase(passphrase, 60)
         signed_psbt = cli.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt['psbt']:
-            raise Exception('Make sure you have entered the passphrase correctly.')
+            raise Exception(
+                'Make sure you have entered the passphrase correctly.')
         if passphrase:
             cli.walletlock()
         return signed_psbt
@@ -134,18 +189,22 @@ class BitcoinCore(Device):
             if bitcoin_datadir and os.path.exists(wallet_cli_path):
                 shutil.rmtree(os.path.join(bitcoin_datadir, wallet_cli_path))
         except:
-            pass # We tried...
+            pass  # We tried...
 
-# We need to copy it like this because HWI uses it as a dependency, but requires v0.18 which doesn't have this function.
+# We need to copy it like this because HWI uses it as a dependency,
+# but requires v0.18 which doesn't have this function.
+
+
 def seed_to_hd_master_key(seed, testnet=False) -> str:
-    """Converts 64-byte seed to xprv"""
-    if len(seed) != 64:
-        raise ValueError("Provided seed should have length of 64")
+    """Converts bip32 seed to xprv"""
+    if len(seed) < 16 or len(seed) > 64:
+        raise ValueError("Provided seed should be between 16 and 64 bytes")
 
     # Compute HMAC-SHA512 of seed
     seed = hmac.new(b"Bitcoin seed", seed, digestmod='sha512').digest()
 
-    # Serialization format can be found at: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
+    # Serialization format can be found at:
+    # https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
     xprv = b"\x04\x88\xad\xe4"  # Version for private mainnet
     if testnet:
         xprv = b"\x04\x35\x83\x94"  # Version for private testnet
@@ -155,7 +214,8 @@ def seed_to_hd_master_key(seed, testnet=False) -> str:
 
     return encode_base58_checksum(xprv)
 
-def derive_xpubs_from_xprv(xprv, paths:list, cli):
+
+def derive_xpubs_from_xprv(xprv, paths: list, cli):
     """
     Derives xpubs from root xprv and list of paths.
     Requires running BitcoinCLI instance to derive xpub from xprv
@@ -185,14 +245,17 @@ def derive_xpubs_from_xprv(xprv, paths:list, cli):
         xpubs.append(xpub)
     return xpubs
 
+
 def swap_fingerprint(xpub, fingerprint):
     """Replaces fingerprint in xpub"""
     raw = decode_base58(xpub)
     swapped = raw[:5]+fingerprint+raw[9:]
     return encode_base58_checksum(swapped)
 
+
 # curve order
 N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+
 
 def get_child(xprv, index):
     """Derives a child from xprv but without fingerprint information"""
@@ -215,10 +278,12 @@ def get_child(xprv, index):
     tweak = raw[:32]
     chain_code = raw[32:]
 
-    new_secret = (int.from_bytes(secret, 'big') + int.from_bytes(tweak, 'big')) % N
+    new_secret = (int.from_bytes(secret, 'big') +
+                  int.from_bytes(tweak, 'big')) % N
     res = version+bytes([depth+1])+fingerprint+index.to_bytes(4, 'big')
-    res += chain_code+b"\x00"+new_secret.to_bytes(32,'big')
+    res += chain_code+b"\x00"+new_secret.to_bytes(32, 'big')
     return encode_base58_checksum(res)
+
 
 def parse_path(path: str) -> list:
     """
