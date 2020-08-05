@@ -1,0 +1,50 @@
+<style>
+    .key {
+        width: 380px;
+        word-break: break-word;
+        margin: auto;
+    }
+    .key:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+</style>
+<form id="{{ key }}_export_qr" class="flex-center flex-column hidden">
+    <nav class="row">
+        <label>
+            <input autocomplete="off" type="radio" name="key_export_type" value="full_key" class="hidden" checked>
+            <div class="btn radio left" style="width:200px">Full Key</div>
+        </label>
+        <label>
+            <input autocomplete="off" type="radio" name="key_export_type" value="original_key" class="hidden">
+            <div class="btn radio right" style="width:200px">Canonical XPUB</div>
+        </label>
+    </nav>
+    <br>
+    <div class="row" style="min-height: 400px;">
+        <span id="full_key">
+            <qr-code class='center' value="{{ key }}" width="400"></qr-code>
+            <br><pre class='key center' style="width: 370px; word-break: break-word; margin: auto;" onclick="copyText('{{ key }}', 'Coppied full key')">{{ key }}</pre>
+        </span>
+        <span id="original_key" style="display: none">
+            <qr-code class='center' value="{{ key.original }}" width="400"></qr-code>
+            <br><pre class='key center' onclick="copyText('{{ key.original }}', 'Coppied xpub')">{{ key.original }}</pre>
+        </span>
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function(){
+        document.getElementById('{{ key }}_export_qr').elements.key_export_type.forEach((o)=>{
+            o.addEventListener('change', e => {
+                ["full_key","original_key"].forEach(id => {
+                    let el = document.getElementById(id);
+                    if (id == document.getElementById('{{ key }}_export_qr').elements.key_export_type.value) {
+                        el.style.display = "block";
+                    } else {
+                        el.style.display = "none";
+                    }
+                });
+            })
+        });
+    });
+    </script>
+</form>

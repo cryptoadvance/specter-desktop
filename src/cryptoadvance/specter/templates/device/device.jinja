@@ -29,9 +29,9 @@
 						</td>
 						<td>{{ key.purpose }}</td>
 						<td>{{ key.derivation }}</td>
-						<td width="10" class="qr-trigger">
-							<img src="/static/img/qr_tiny.svg"/>
-							<qr-code class="qr-popup" value="{{key}}" width="200"></qr-code>
+						<td width="15" onclick="showPageOverlay('{{ key }}_export_qr')" title="Show key QR code" style="cursor: pointer;">
+							<img style="margin-top: 5px;" width="15" src="/static/img/qr_tiny.svg"/>
+							{% include "includes/overlay/key_export_qr.jinja" %}
 						</td>
 						<td class="xpub scroll">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
@@ -62,7 +62,6 @@
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
 		</form>
-		{# TODO: Add wallets used in #}
 	</div>
 	<br>
 	{% if wallets %}
