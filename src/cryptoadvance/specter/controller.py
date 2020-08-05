@@ -2,7 +2,7 @@ import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
-from hwilib.descriptor import AddChecksum, Descriptor
+from .descriptor import AddChecksum, Descriptor
 from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
@@ -654,7 +654,10 @@ def new_wallet(wallet_type):
             wallet_name = wallet_data['label'] if 'label' in wallet_data else 'Imported Wallet'
             startblock = wallet_data['blockheight'] if 'blockheight' in wallet_data else app.specter.wallet_manager.cli.getblockcount()
             try:
-                descriptor = Descriptor.parse(AddChecksum(wallet_data['descriptor'].split('#')[0]), testnet=app.specter.chain != 'main')
+                descriptor = Descriptor.parse(
+                    AddChecksum(wallet_data['descriptor'].split('#')[0]),
+                    testnet=app.specter.chain != 'main'
+                )
                 if descriptor is None:
                     err = "Invalid wallet descriptor."
             except:
@@ -691,9 +694,18 @@ def new_wallet(wallet_type):
                         cosigner_found = False
                         for device in app.specter.device_manager.devices:
                             cosigner = app.specter.device_manager.devices[device]
+                            if descriptor.origin_fingerprint[i] is None:
+                                descriptor.origin_fingerprint[i] = ''
+                            if descriptor.origin_path[i] is None:
+                                descriptor.origin_path[i] = \
+                                    descriptor.origin_fingerprint[i]
                             for key in cosigner.keys:
-                                if key.fingerprint + key.derivation.replace('m', '') == \
-                                    descriptor.origin_fingerprint[i] + descriptor.origin_path[i].replace("'", 'h'):
+                                if key.fingerprint + \
+                                    key.derivation.replace('m', '') == \
+                                    descriptor.origin_fingerprint[i] + \
+                                    descriptor.origin_path[i].replace(
+                                        "'", 'h'
+                                        ):
                                     keys.append(key)
                                     cosigners.append(cosigner)
                                     cosigner_found = True
