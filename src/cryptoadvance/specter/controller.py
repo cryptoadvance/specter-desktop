@@ -1158,6 +1158,8 @@ def wallet_settings(wallet_alias):
             if not res:
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
+        elif action == "rescanutxo":
+            wallet.rescan_utxo()
         elif action == "keypoolrefill":
             delta = int(request.form['keypooladd'])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
