@@ -119,6 +119,7 @@ class Specter:
                             ("getmempoolinfo", None),
                             ("uptime", None),
                             ("getblockhash", 0),
+                            ("scantxoutset", "status"),
                         ]
                     )
                 ]
@@ -131,6 +132,9 @@ class Specter:
                     self._info['blockfilterindex'] = True
                 except:
                     self._info['blockfilterindex'] = False
+                self._info["utxorescan"] = (res[5]["progress"]
+                                            if res[5] is not None and "progress" in res[5]
+                                            else None)
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
@@ -175,6 +179,12 @@ class Specter:
                     self.cli, 
                     chain=chain
                 )
+
+    def abortrescanutxo(self):
+        self.cli.scantxoutset("abort")
+        # Bitcoin Core doesn't catch up right away
+        # so app.specter.check() doesn't work
+        self._info["utxorescan"] = None
 
     def clear_user_session(self):
         self.device_manager = None

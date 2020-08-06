@@ -48,9 +48,10 @@
             </div>
         {% if specter.chain %}
             </div>
-            {% else %}
+        {% else %}
             </a>
         {% endif %}
+
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
