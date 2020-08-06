@@ -321,11 +321,11 @@ class Wallet():
 
         return result
 
-    def rescan_utxo(self):
-        t = threading.Thread(target=self.rescan_utxo_thread)
+    def rescanutxo(self):
+        t = threading.Thread(target=self._rescan_utxo_thread)
         t.start()
 
-    def rescan_utxo_thread(self):
+    def _rescan_utxo_thread(self):
         args = [
             "start",
             [{

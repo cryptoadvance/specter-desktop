@@ -1159,7 +1159,7 @@ def wallet_settings(wallet_alias):
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
         elif action == "rescanutxo":
-            wallet.rescan_utxo()
+            wallet.rescanutxo()
             app.specter.check()
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
