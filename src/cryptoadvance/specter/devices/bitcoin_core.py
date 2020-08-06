@@ -37,51 +37,51 @@ class BitcoinCore(Device):
                 'desc': AddChecksum(
                     'sh(wpkh({}/49h/{}h/0h/0/*))'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'sh(wpkh({}/49h/{}h/0h/1/*))'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'wpkh({}/84h/{}h/0h/0/*)'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'wpkh({}/84h/{}h/0h/1/*)'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'sh(wpkh({}/48h/{}h/0h/1h/0/*))'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'sh(wpkh({}/48h/{}h/0h/1h/1/*))'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'wpkh({}/48h/{}h/0h/2h/0/*)'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
             {
                 'desc': AddChecksum(
                     'wpkh({}/48h/{}h/0h/2h/1/*)'.format(xprv, coin)),
                 'range': 1000,
-                'timestamp': 'now'
+                'timestamp': 'now',
             },
-        ])
+        ], {"rescan": False})
         if passphrase:
             cli.encryptwallet(passphrase)
 
@@ -177,17 +177,26 @@ class BitcoinCore(Device):
     def delete(
         self,
         wallet_manager,
-        bitcoin_datadir=get_default_datadir()
+        bitcoin_datadir=get_default_datadir(),
+        chain = 'main'
     ):
         try:
             wallet_cli_path = os.path.join(
                 wallet_manager.cli_path + "_hotstorage", self.alias
             )
-            cli = wallet_manager.cli.wallet(wallet_cli_path)
-            cli.unloadwallet(wallet_cli_path)
+            wallet_manager.cli.unloadwallet(wallet_cli_path)
             # Try deleting wallet file
-            if bitcoin_datadir and os.path.exists(wallet_cli_path):
-                shutil.rmtree(os.path.join(bitcoin_datadir, wallet_cli_path))
+            if bitcoin_datadir:
+                if chain != 'main':
+                    bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
+                candidates = [
+                    os.path.join(bitcoin_datadir, wallet_cli_path),
+                    os.path.join(bitcoin_datadir, "wallets", wallet_cli_path),
+                ]
+                for path in candidates:
+                    if os.path.exists(path):
+                        shutil.rmtree(path)
+                        break
         except:
             pass  # We tried...
 

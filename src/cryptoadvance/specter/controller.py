@@ -1164,7 +1164,7 @@ def wallet_settings(wallet_alias):
             wallet.getdata()
         elif action == "deletewallet":
             app.specter.wallet_manager.delete_wallet(
-                wallet, app.specter.bitcoin_datadir
+                wallet, app.specter.bitcoin_datadir, app.specter.chain
             )
             response = redirect(url_for('index'))
             return response
@@ -1266,7 +1266,8 @@ def device(device_alias):
                 app.specter.device_manager.remove_device(
                     device,
                     app.specter.wallet_manager,
-                    bitcoin_datadir=app.specter.bitcoin_datadir
+                    bitcoin_datadir=app.specter.bitcoin_datadir,
+                    chain=app.specter.chain
                 )
                 return redirect("/")
         elif action == "delete_key":

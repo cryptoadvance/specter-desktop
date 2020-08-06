@@ -7,7 +7,6 @@ from io import BytesIO
 from .helpers import alias, load_jsons, fslock
 from .rpc import get_default_datadir
 
-
 logger = logging.getLogger(__name__)
 
 from .devices import __all__ as device_classes
@@ -85,11 +84,13 @@ class DeviceManager:
         self,
         device,
         wallet_manager=None,
-        bitcoin_datadir=get_default_datadir()
+        bitcoin_datadir=get_default_datadir(),
+        chain='main'
     ):
         os.remove(device.fullpath)
-        if isinstance(device, BitcoinCore):
-            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir)
+        # if device can delete itself - call it
+        if hasattr(device,'delete'):
+            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir, chain=chain)
         self.update()
 
     @property
