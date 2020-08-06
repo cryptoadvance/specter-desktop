@@ -1,7 +1,7 @@
 import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
-from ..specter_hwi import enumerate as _enumerate, SpecterClient
+from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 
 class Specter(HWIDevice):
     device_type = "specter"
@@ -40,7 +40,7 @@ class Specter(HWIDevice):
 
     @classmethod
     def enumerate(cls, *args, **kwargs):
-        return _enumerate(*args, **kwargs)
+        return specter_enumerate(*args, **kwargs)
 
     @classmethod
     def get_client(cls, *args, **kwargs):
