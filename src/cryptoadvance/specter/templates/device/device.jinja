@@ -1,5 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
+	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
 	<h1>{{ device.name }}</h1>
 	<form action="./" method="POST">
@@ -16,6 +17,7 @@
 					<th>Network</th><th>Purpose</th><th>Derivation</th><th></th><th>Key</th><th>Actions</th>
 				</tr>
 			</thead>
+			<input type="hidden" id="key_selected" value="0" />
 			<tbody>
 				{% for key in device.keys %}
 					<tr>
@@ -29,9 +31,8 @@
 						</td>
 						<td>{{ key.purpose }}</td>
 						<td>{{ key.derivation }}</td>
-						<td width="15" onclick="showPageOverlay('{{ key }}_export_qr')" title="Show key QR code" style="cursor: pointer;">
+						<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
 							<img style="margin-top: 5px;" width="15" src="/static/img/qr_tiny.svg"/>
-							{% include "includes/overlay/key_export_qr.jinja" %}
 						</td>
 						<td class="xpub scroll">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
