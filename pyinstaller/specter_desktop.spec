@@ -24,6 +24,7 @@ a = Analysis(['specter_desktop.py'],
              binaries=binaries,
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
                     ('../src/cryptoadvance/specter/static', 'static'),
+                    ('./specterd', 'specterd'),
                     (mnemonic_path, 'mnemonic/wordlist'),
              ],
              hiddenimports=[
