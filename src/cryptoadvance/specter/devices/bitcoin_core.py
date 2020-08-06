@@ -16,9 +16,10 @@ class BitcoinCore(Device):
     device_type = "bitcoincore"
     name = "Bitcoin Core (hot wallet)"
 
+    hot_wallet = True
+
     def __init__(self, name, alias, keys, fullpath, manager):
         Device.__init__(self, name, alias, keys, fullpath, manager)
-        self.hot_wallet = True
 
     def setup_device(self, mnemonic, passphrase,
                      wallet_manager, testnet):

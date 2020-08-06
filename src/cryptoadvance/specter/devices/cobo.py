@@ -11,13 +11,14 @@ class Cobo(SDCardDevice):
     device_type = "cobo"
     name = "Cobo Vault"
 
+    hwi_support = False
+    sd_card_support = True
+    qr_code_support = True
+    exportable_to_wallet = True
+    wallet_export_type = 'qr'
+
     def __init__(self, name, alias, keys, fullpath, manager):
         super().__init__(name, alias, keys, fullpath, manager)
-        self.hwi_support = False
-        self.sd_card_support = True
-        self.qr_code_support = True
-        self.exportable_to_wallet = True
-        self.wallet_export_type = 'qr'
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)

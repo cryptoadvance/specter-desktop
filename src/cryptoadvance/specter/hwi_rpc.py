@@ -2,12 +2,19 @@ from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
 from .helpers import convert_xpub_prefix, locked
-from .specter_hwi import SpecterClient, enumerate as specter_enumerate
 from .json_rpc import JSONRPC
 import threading
+from .devices import __all__ as device_classes
+
+hwi_classes = [ cls for cls in device_classes if cls.hwi_support ]
 
 # use this lock for all hwi operations
 hwilock = threading.Lock()
+
+def get_device_class(device_type):
+    for cls in hwi_classes:
+        if cls.device_type == device_type:
+            return cls
 
 class HWIBridge(JSONRPC):
     """
@@ -37,16 +44,21 @@ class HWIBridge(JSONRPC):
         Returns a list of all connected devices (dicts).
         Standard HWI enumerate() command + Specter.
         """
-        self.devices = hwi_commands.enumerate(passphrase)
-        self.devices += specter_enumerate(passphrase)
-        for device in self.devices:
-            client = self._get_client(device_type=device['type'], path=device['path'], passphrase=passphrase, chain=chain)
-            try:
-                 device['fingerprint'] = client.get_master_fingerprint_hex()
-            except:
-                pass
-            if client:
-                client.close()
+        devices = []
+        # going through all device classes
+        for devcls in hwi_classes:
+            # calling device-specific enumerate
+            devs = devcls.enumerate(passphrase)
+            # extracting fingerprint info
+            for dev in devs:
+                client = devcls.get_client(dev["path"], passphrase)
+                try:
+                     dev['fingerprint'] = client.get_master_fingerprint_hex()
+                finally:
+                    client.close()
+            devices += devs
+
+        self.devices = devices
         return self.devices
     
     def detect_device(self, device_type=None, path=None, fingerprint=None, rescan_devices=False):
@@ -159,10 +171,9 @@ class HWIBridge(JSONRPC):
             # The device will not return the fingerprint properly.
             device = self.detect_device(device_type=device_type, fingerprint=fingerprint, path=path)
             if device:
-                if device["type"] == "specter":
-                    client = SpecterClient(device["path"])
-                else:
-                    client = hwi_commands.get_client(device_type, path, passphrase)
+                devcls = get_device_class(device["type"])
+                if devcls:
+                    client = devcls.get_client(device["path"], passphrase)
                 if not client:
                     raise Exception('The device was identified but could not be reached.  Please check it is properly connected and try again')
                 client.is_testnet = chain != 'main'

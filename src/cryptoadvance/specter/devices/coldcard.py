@@ -14,12 +14,12 @@ class ColdCard(SDCardDevice):
     device_type = "coldcard"
     name = "ColdCard"
 
+    sd_card_support = True
+    wallet_export_type = 'file'
+    supports_hwi_multisig_display_address = True
+
     def __init__(self, name, alias, keys, fullpath, manager):
         SDCardDevice.__init__(self, name, alias, keys, fullpath, manager)
-        self.sd_card_support = True
-        self.qr_code_support = False
-        self.wallet_export_type = 'file'
-        self.supports_hwi_multisig_display_address = True
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)

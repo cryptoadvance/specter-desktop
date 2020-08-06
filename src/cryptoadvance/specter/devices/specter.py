@@ -1,19 +1,20 @@
 import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
-
+from ..specter_hwi import enumerate as _enumerate, SpecterClient
 
 class Specter(HWIDevice):
     device_type = "specter"
     name = "Specter-DIY"
 
+    exportable_to_wallet = True
+    sd_card_support = False
+    qr_code_support = True
+    wallet_export_type = 'qr'
+    supports_hwi_multisig_display_address = True
+
     def __init__(self, name, alias, keys, fullpath, manager):
         super().__init__(name, alias, keys, fullpath, manager)
-        self.exportable_to_wallet = True
-        self.sd_card_support = False
-        self.qr_code_support = True
-        self.wallet_export_type = 'qr'
-        self.supports_hwi_multisig_display_address = True
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
@@ -37,6 +38,13 @@ class Specter(HWIDevice):
     def export_wallet(self, wallet):
         return wallet.name + "&" + get_wallet_qr_descriptor(wallet)
 
+    @classmethod
+    def enumerate(cls, *args, **kwargs):
+        return _enumerate(*args, **kwargs)
+
+    @classmethod
+    def get_client(cls, *args, **kwargs):
+        return SpecterClient(*args, **kwargs)
 
 def get_wallet_qr_descriptor(wallet):
     return wallet.recv_descriptor.split("#")[0].replace("/0/*", "")

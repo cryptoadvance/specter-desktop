@@ -7,6 +7,14 @@ class Device:
     device_type = None  # this is saved to json
     name = "Unknown device"  # this is how device appears in UI
 
+    # override these vars to add support
+    # of different communication methods
+    sd_card_support = False
+    qr_code_support = False
+    hwi_support = False
+    supports_hwi_toggle_passphrase = False
+    supports_hwi_multisig_display_address = False
+
     def __init__(self, name, alias, keys, fullpath, manager):
         """
         From child classes call super().__init__ and also set
@@ -17,13 +25,6 @@ class Device:
         self.keys = keys
         self.fullpath = fullpath
         self.manager = manager
-        # override these vars to add support
-        # of different communication methods
-        self.sd_card_support = False
-        self.qr_code_support = False
-        self.hwi_support = False
-        self.supports_hwi_toggle_passphrase = False
-        self.supports_hwi_multisig_display_address = False
 
     def create_psbts(self, base64_psbt, wallet):
         """
