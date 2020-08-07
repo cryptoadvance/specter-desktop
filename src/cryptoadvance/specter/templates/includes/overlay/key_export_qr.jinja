@@ -1,0 +1,80 @@
+<style>
+    .key {
+        width: 380px;
+        word-break: break-word;
+        margin: auto;
+    }
+    .key:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+</style>
+<div class="hidden" id="key_export_qr">
+    <form class="flex-center flex-column">
+        <div style="min-height: 400px;">
+            <span id='key_qr_code'></span>
+            <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, 'Coppied full key')">{{ key }}</pre>
+        </div>
+        <br>
+        <table style="text-align: left; width: 70%; margin: auto; border: none;">
+            <tr style="background: unset; border: none;">
+            <td style="border: none;">
+                <label style="height: 25px; vertical-align: sub; font-size: 1.3em; font-weight: bolder;">Show derivation path:&nbsp;</label>
+            </td>
+            <td style="border: none;">
+                <label class="switch">
+                    <input type="checkbox" id="show_der_path" onchange="toggleKeyDisplay()" checked>
+                    <span class="slider"></span>
+                </label>
+            </td>
+            </tr>
+            <tr style="background: unset; border: none;">
+            <td style="border: none;">
+                <label style="height: 25px; vertical-align: sub; font-size: 1.3em; font-weight: bolder;">Use SLIP-132:&nbsp;</label>
+            </td>
+            <td style="border: none;">
+                <label class="switch">
+                    <input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+                    <span class="slider"></span>
+                </label>
+            </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<script>
+    let keys = [];
+    {% for key in device.keys %}
+        keys.push({
+            full_der_slip132: '{{ key }}',
+            full_der_no_slip132: '{{ key.to_string(slip132=False) }}',
+            no_der_slip132: '{{ key.original }}',
+            no_der_no_slip132: '{{ key.xpub }}'
+        });
+    {% endfor %}
+
+    function toggleKeyDisplay() {
+        let toggleDerPath = document.getElementById('show_der_path');
+        let toggleSlip132 = document.getElementById('use_slip_132');
+        let keyQr = document.getElementById('key_qr_code');
+        let keyText = document.getElementById('key_text');
+        let i = document.getElementById('key_selected').value;
+        if (toggleDerPath.checked) {
+            if (toggleSlip132.checked) {
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_slip132}" width="400"></qr-code>`
+                keyText.innerText = keys[i].full_der_slip132;
+            } else {
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_no_slip132}" width="400"></qr-code>`
+                keyText.innerText = keys[i].full_der_no_slip132;
+            }
+        } else {
+            if (toggleSlip132.checked) {
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_slip132}" width="400"></qr-code>`
+                keyText.innerText = keys[i].no_der_slip132;
+            } else {
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_no_slip132}" width="400"></qr-code>`
+                keyText.innerText = keys[i].no_der_no_slip132;
+            }
+        }
+    }
+</script>
