@@ -35,10 +35,12 @@ def wait_for_specterd(menu):
             print("* Started Specter daemon...")
             start_specterd_menu.setText('Specter daemon is running')
             toggle_specterd_status(menu)
-            break
+            open_specter_window()
+            return
         elif b'Failed' in line or b'Error' in line:
             start_specterd_menu.setText('Start Specter daemon')
             start_specterd_menu.setEnabled(True)
+            return
 
 
 def run_specterd(menu):
@@ -141,6 +143,8 @@ def init_desktop_app():
     tray.setContextMenu(menu)
 
     app.setWindowIcon(icon)
+
+    run_specterd(menu)
 
     sys.exit(app.exec_())
 
