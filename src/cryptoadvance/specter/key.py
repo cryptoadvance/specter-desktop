@@ -69,9 +69,11 @@ class Key:
             if derivation[0] != "[":
                 raise Exception("Missing leading [")
             derivation_path = derivation[1:].split("/")
-            try: 
-                fng = bytes.fromhex(derivation_path[0].replace("-","")) # coldcard has hexstrings like 7c-2c-8e-1b
-            except:
+            try:
+                fng = bytes.fromhex(
+                    derivation_path[0].replace("-", "")
+                )  # coldcard has hexstrings like 7c-2c-8e-1b
+            except Exception:
                 raise Exception("Fingerprint is not hex")
             if len(fng) != 4:
                 raise Exception("Incorrect fingerprint length")
