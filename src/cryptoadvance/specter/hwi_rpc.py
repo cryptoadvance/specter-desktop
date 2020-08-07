@@ -5,6 +5,7 @@ from .helpers import convert_xpub_prefix, locked
 from .json_rpc import JSONRPC
 import threading
 from .devices import __all__ as device_classes
+from contextlib import contextmanager
 
 hwi_classes = [ cls for cls in device_classes if cls.hwi_support ]
 
@@ -99,8 +100,11 @@ class HWIBridge(JSONRPC):
     @locked(hwilock)
     def toggle_passphrase(self, device_type=None, path=None, passphrase='', chain=''):
         if device_type == "keepkey" or device_type == "trezor":
-            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
-            return hwi_commands.toggle_passphrase(client)
+            with self._get_client(device_type=device_type,
+                                  path=path,
+                                  passphrase=passphrase,
+                                  chain=chain) as client:
+                return hwi_commands.toggle_passphrase(client)
         else:
             raise Exception("Invalid HWI device type %s, toggle_passphrase is only supported for Trezor and Keepkey devices" % device_type)
 
@@ -113,8 +117,11 @@ class HWIBridge(JSONRPC):
             #       7 8 9
             #       4 5 6
             #       1 2 3
-            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
-            return hwi_commands.prompt_pin(client)
+            with self._get_client(device_type=device_type,
+                                  path=path,
+                                  passphrase=passphrase,
+                                  chain=chain) as client:
+                return hwi_commands.prompt_pin(client)
         else:
             raise Exception("Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices" % device_type)
 
@@ -123,15 +130,22 @@ class HWIBridge(JSONRPC):
         if device_type == "keepkey" or device_type == "trezor":
             if pin == '':
                 raise Exception("Must enter a non-empty PIN")
-            client = self._get_client(device_type=device_type, path=path, passphrase=passphrase, chain=chain)
-            return hwi_commands.send_pin(client, pin)
+            with self._get_client(device_type=device_type,
+                                  path=path,
+                                  passphrase=passphrase,
+                                  chain=chain) as client:
+                return hwi_commands.send_pin(client, pin)
         else:
             raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % device_type)
 
     @locked(hwilock)
     def extract_xpubs(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
-        xpubs = self._extract_xpubs_from_client(client)
+        with self._get_client(device_type=device_type,
+                              fingerprint=fingerprint,
+                              path=path,
+                              passphrase=passphrase,
+                              chain=chain) as client:
+            xpubs = self._extract_xpubs_from_client(client)
         return xpubs
 
     @locked(hwilock)
@@ -139,8 +153,11 @@ class HWIBridge(JSONRPC):
         if descriptor == '':
             raise Exception("Descriptor must not be empty")
 
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
-        try:
+        with self._get_client(device_type=device_type,
+                              fingerprint=fingerprint,
+                              path=path,
+                              passphrase=passphrase,
+                              chain=chain) as client:
             status = hwi_commands.displayaddress(client, desc=descriptor)
             client.close()
             if 'error' in status:
@@ -149,31 +166,26 @@ class HWIBridge(JSONRPC):
                 return status['address']
             else:
                 raise Exception("Failed to validate address on device: Unknown Error")
-        except Exception as e:
-            if client:
-                client.close()
-            raise e
 
     @locked(hwilock)
     def sign_tx(self, psbt='', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         if psbt == '':
             raise Exception("PSBT must not be empty")
-        client = self._get_client(device_type=device_type, fingerprint=fingerprint, path=path, passphrase=passphrase, chain=chain)
-        try:
+        with self._get_client(device_type=device_type,
+                              fingerprint=fingerprint,
+                              path=path,
+                              passphrase=passphrase,
+                              chain=chain) as client:
             status = hwi_commands.signtx(client, psbt)
-            client.close()
             if 'error' in status:
                 raise Exception(status['error'])
             elif 'psbt' in status:
                 return status['psbt']
             else:
                 raise Exception("Failed to sign transaction with device: Unknown Error")
-        except Exception as e:
-            if client:
-                client.close()
-            raise e
 
     ######################## HWI Utils ########################
+    @contextmanager
     def _get_client(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
             """
             Returns a hardware wallet class instance 
@@ -191,8 +203,11 @@ class HWIBridge(JSONRPC):
                     client = devcls.get_client(device["path"], passphrase)
                 if not client:
                     raise Exception('The device was identified but could not be reached.  Please check it is properly connected and try again')
-                client.is_testnet = chain != 'main'
-                return client
+                try:
+                    client.is_testnet = chain != 'main'
+                    yield client
+                finally:
+                    client.close()
             else:
                 raise Exception('The device could not be found. Please check it is properly connected and try again')
 
