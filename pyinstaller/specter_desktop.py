@@ -223,6 +223,34 @@ def open_settings():
             'specter_url',
             specter_url_temp if is_remote_mode else 'http://localhost:25441/'
         )
+
+        hwibridge_settings_path = os.path.join(
+            os.path.expanduser(DATA_FOLDER),
+            "hwi_bridge_config.json"
+        )
+
+        if is_remote_mode:
+            config = {
+                'whitelisted_domains': 'http://127.0.0.1:25441/'
+            }
+            if os.path.isfile(hwibridge_settings_path):
+                with open(hwibridge_settings_path, "r") as f:
+                    file_config = json.loads(f.read())
+                    deep_update(config, file_config)
+            with open(hwibridge_settings_path, "w") as f:
+                if 'whitelisted_domains' in config:
+                    whitelisted_domains = ''
+                    if specter_url_temp not in config[
+                        'whitelisted_domains'
+                    ].split():
+                        config['whitelisted_domains'] += ' ' + specter_url_temp
+                    for url in config['whitelisted_domains'].split():
+                        if not url.endswith("/") and url != '*':
+                            # make sure the url end with a "/"
+                            url += "/"
+                        whitelisted_domains += url.strip() + '\n'
+                    config['whitelisted_domains'] = whitelisted_domains
+                f.write(json.dumps(config, indent=4))
         # TODO: Add PORT setting
 
 
