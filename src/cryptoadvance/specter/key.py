@@ -184,12 +184,16 @@ class Key:
     def purpose(self):
         return purposes[self.key_type]
 
-    def __str__(self):
+    def to_string(self, slip132=True):
         if self.derivation and self.fingerprint:
-            path_str = f"/{self.derivation[2:]}" if self.derivation != "m" else ""
-            return f"[{self.fingerprint}{path_str}]{self.original}"
+            path_str = \
+                f"/{self.derivation[2:]}" if self.derivation != "m" else ""
+            return f"[{self.fingerprint}{path_str}]{self.original if slip132 else self.xpub}"
         else:
-            return self.original
+            return self.original if slip132 else self.xpub
+
+    def __str__(self):
+        return self.to_string()
 
     def __eq__(self, other):
         return self.original == other.original
