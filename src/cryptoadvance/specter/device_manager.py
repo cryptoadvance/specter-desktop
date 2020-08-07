@@ -4,36 +4,20 @@ import logging
 import time
 import zipfile
 from io import BytesIO
-from .devices.coldcard import ColdCard
-from .devices.trezor import Trezor
-from .devices.ledger import Ledger
-from .devices.keepkey import Keepkey
-from .devices.specter import Specter
-from .devices.cobo import Cobo
-from .devices.generic import GenericDevice
-from .devices.electrum import Electrum
-from .devices.bitcoin_core import BitcoinCore
 from .helpers import alias, load_jsons, fslock
 from .rpc import get_default_datadir
 
-
 logger = logging.getLogger(__name__)
 
-device_classes = {
-    'coldcard': ColdCard,
-    'trezor': Trezor,
-    'keepkey': Keepkey,
-    'ledger': Ledger,
-    'specter': Specter,
-    'cobo': Cobo,
-    'bitcoincore': BitcoinCore,
-    'electrum': Electrum,
-    'other': GenericDevice,
-}
+from .devices import __all__ as device_classes
+# default device type
+from .devices.generic import GenericDevice
 
 def get_device_class(device_type):
-    if device_type in device_classes:
-        return device_classes[device_type]
+    """Look up device class by its type"""
+    for cls in device_classes:
+        if device_type == cls.device_type:
+            return cls
     return GenericDevice
 
 class DeviceManager:
@@ -82,7 +66,7 @@ class DeviceManager:
             if key not in non_dup_keys:
                 non_dup_keys.append(key)
         keys = non_dup_keys
-        device = get_device_class(device_type)(name, device_alias, device_type, keys, fullpath, self)
+        device = get_device_class(device_type)(name, device_alias, keys, fullpath, self)
         with fslock:
             with open(fullpath, "w") as file:
                 file.write(json.dumps(device.json, indent=4))
@@ -100,9 +84,16 @@ class DeviceManager:
         self,
         device,
         wallet_manager=None,
-        bitcoin_datadir=get_default_datadir()
+        bitcoin_datadir=get_default_datadir(),
+        chain='main'
     ):
         os.remove(device.fullpath)
-        if isinstance(device, BitcoinCore):
-            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir)
+        # if device can delete itself - call it
+        if hasattr(device,'delete'):
+            device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir, chain=chain)
         self.update()
+
+    @property
+    def supported_devices(self):
+        return device_classes
+    
