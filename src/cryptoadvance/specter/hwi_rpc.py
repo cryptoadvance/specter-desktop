@@ -36,6 +36,7 @@ class HWIBridge(JSONRPC):
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
         # devices once per session and save them.
+        print("Initializing HWI...") # to explain user why it takes so long
         self.enumerate()
 
     @locked(hwilock)
@@ -48,12 +49,26 @@ class HWIBridge(JSONRPC):
         # going through all device classes
         for devcls in hwi_classes:
             # calling device-specific enumerate
-            devs = devcls.enumerate(passphrase)
+            if passphrase is not None:
+                devs = devcls.enumerate(passphrase)
+            # not sure if it will handle passphrase correctly
+            # so remove it if None
+            else:
+                devs = devcls.enumerate()
             # extracting fingerprint info
             for dev in devs:
+                # we can't get fingerprint if device is locked
+                if "needs_pin_sent" in dev and dev["needs_pin_sent"]:
+                    continue
+                # we can't get fingerprint if passphrase is not provided
+                if ("needs_passphrase_sent" in dev
+                    and dev["needs_passphrase_sent"]
+                    and passphrase is None
+                ):
+                    continue
                 client = devcls.get_client(dev["path"], passphrase)
                 try:
-                     dev['fingerprint'] = client.get_master_fingerprint_hex()
+                    dev['fingerprint'] = client.get_master_fingerprint_hex()
                 finally:
                     client.close()
             devices += devs
