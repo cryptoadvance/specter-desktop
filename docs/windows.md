@@ -19,4 +19,10 @@ python3 -m cryptoadvance.specter server
 
 Web interface should be on http://localhost:25441/
 
-*Note:* `--daemon` flag is not available on Windows yet. Also communication with a remote node is not tested yet.
+If you are running into problems with pip, you can install it via:
+- download [get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+- in Command Prompt navigate to the folder where this file is located
+- run `python3 get-pip.py`
+- now you can install specter-desktop from Command Prompt and run as usual
+
+*Note:* `--daemon` flag is not available on Windows yet

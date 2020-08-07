@@ -69,9 +69,11 @@ class Key:
             if derivation[0] != "[":
                 raise Exception("Missing leading [")
             derivation_path = derivation[1:].split("/")
-            try: 
-                fng = bytes.fromhex(derivation_path[0].replace("-","")) # coldcard has hexstrings like 7c-2c-8e-1b
-            except:
+            try:
+                fng = bytes.fromhex(
+                    derivation_path[0].replace("-", "")
+                )  # coldcard has hexstrings like 7c-2c-8e-1b
+            except Exception:
                 raise Exception("Fingerprint is not hex")
             if len(fng) != 4:
                 raise Exception("Incorrect fingerprint length")
@@ -182,12 +184,16 @@ class Key:
     def purpose(self):
         return purposes[self.key_type]
 
-    def __str__(self):
+    def to_string(self, slip132=True):
         if self.derivation and self.fingerprint:
-            path_str = f"/{self.derivation[2:]}" if self.derivation != "m" else ""
-            return f"[{self.fingerprint}{path_str}]{self.original}"
+            path_str = \
+                f"/{self.derivation[2:]}" if self.derivation != "m" else ""
+            return f"[{self.fingerprint}{path_str}]{self.original if slip132 else self.xpub}"
         else:
-            return self.original
+            return self.original if slip132 else self.xpub
+
+    def __str__(self):
+        return self.to_string()
 
     def __eq__(self, other):
         return self.original == other.original
