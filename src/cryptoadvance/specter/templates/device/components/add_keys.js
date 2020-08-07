@@ -16,7 +16,8 @@ function addKeys(data){
 }
 function setDeviceType(type){
 	var deviceType = document.getElementById("device_type");
-	if (deviceType != null && deviceType.value != type) {
+	// if deviceType exists and it's empty
+	if (deviceType != null && deviceType.value == "") {
 		deviceType.value = type;
 		let name = type[0].toUpperCase() + type.slice(1);
 		showNotification(`Device type changed to ${name}`);

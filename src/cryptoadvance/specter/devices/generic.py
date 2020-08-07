@@ -1,10 +1,15 @@
 from ..device import Device
 
+
 class GenericDevice(Device):
-    def __init__(self, name, alias, device_type, keys, fullpath, manager):
-        super().__init__(name, alias, 'other', keys, fullpath, manager)
-        self.sd_card_support = True
-        self.qr_code_support = True
+    device_type = "other"
+    name = "Other"
+
+    sd_card_support = True
+    qr_code_support = True
+
+    def __init__(self, name, alias, keys, fullpath, manager):
+        super().__init__(name, alias, keys, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = {
