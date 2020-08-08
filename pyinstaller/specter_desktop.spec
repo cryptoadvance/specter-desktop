@@ -58,8 +58,7 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True,
-          icon='../src/cryptoadvance/specter/static/img/icon.icns' )
+          console=True )
 
 if sys.platform == 'darwin':
    app = BUNDLE(exe,

@@ -18,6 +18,14 @@ settings = QSettings('cryptoadvance', 'specter')
 wait_for_specterd_process = None
 
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 class SpecterPreferencesDialog(QDialog):
     global settings
 
@@ -134,7 +142,7 @@ def wait_for_specterd(menu):
 def run_specterd(menu):
     global specterd_thread, wait_for_specterd_process
     try:
-        specterd_command = [os.path.join(sys._MEIPASS, 'specterd/{}'.format(
+        specterd_command = [resource_path('specterd/{}'.format(
             'hwibridge' if settings.value(
                 "remote_mode", defaultValue=False, type=bool
             ) else 'specterd'
@@ -262,10 +270,7 @@ def init_desktop_app():
     # Create the icon
     icon = QIcon(os.path.join(
         path,
-        os.path.join(
-            sys._MEIPASS,
-            'static/img/icon.png'
-        )
+        resource_path('static/img/icon.png')
     ))
 
     # Create the tray
