@@ -321,6 +321,48 @@ class Wallet():
 
         return result
 
+    def rescanutxo(self):
+        t = threading.Thread(target=self._rescan_utxo_thread)
+        t.start()
+
+    def _rescan_utxo_thread(self):
+        args = [
+            "start",
+            [{
+                "desc": self.recv_descriptor,
+                "range": self.keypool
+            },{
+                "desc": self.change_descriptor,
+                "range": self.change_keypool
+            }]
+        ]
+        unspents = self.cli.scantxoutset(*args)["unspents"]
+        res = self.cli.multi([
+            ("getblockhash", tx["height"])
+            for tx in unspents
+        ])
+        block_hashes = [r["result"] for r in res]
+        for i, tx in enumerate(unspents):
+            tx["blockhash"] = block_hashes[i]
+        res = self.cli.multi([
+            ("gettxoutproof", [tx["txid"]], tx["blockhash"])
+            for tx in unspents
+        ])
+        proofs = [r["result"] for r in res]
+        for i, tx in enumerate(unspents):
+            tx["proof"] = proofs[i]
+        res = self.cli.multi([
+            ("getrawtransaction", tx["txid"], False, tx["blockhash"])
+            for tx in unspents
+        ])
+        raws = [r["result"] for r in res]
+        for i, tx in enumerate(unspents):
+            tx["raw"] = raws[i]
+        self.cli.multi([
+            ("importprunedfunds", tx["raw"], tx["proof"])
+            for tx in unspents
+        ])
+
     @property
     def rescan_progress(self):
         """Returns None if rescanblockchain is not launched,

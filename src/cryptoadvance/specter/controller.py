@@ -1157,6 +1157,12 @@ def wallet_settings(wallet_alias):
             if not res:
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
+        elif action == "rescanutxo":
+            wallet.rescanutxo()
+            app.specter._info["utxorescan"] = 1
+        elif action == "abortrescanutxo":
+            app.specter.abortrescanutxo()
+            app.specter._info["utxorescan"] = None
         elif action == "keypoolrefill":
             delta = int(request.form['keypooladd'])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)

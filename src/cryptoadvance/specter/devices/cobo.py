@@ -23,11 +23,8 @@ class Cobo(SDCardDevice):
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
         raw_psbt = a2b_base64(base64_psbt)
-        if wallet.is_multisig:
-            qrpsbt = b43_encode(raw_psbt)
-        else:
-            enc, hsh = bcur.bcur_encode(raw_psbt)
-            qrpsbt = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
+        enc, hsh = bcur.bcur_encode(raw_psbt)
+        qrpsbt = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
         psbts['qrcode'] = qrpsbt
         return psbts
 
