@@ -11,3 +11,4 @@ dist
 cert.pem
 key.pem
 *.dmg
+pyinstaller/specterd/*

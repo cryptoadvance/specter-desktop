@@ -61,27 +61,31 @@ exe = EXE(pyz,
           console=True )
 
 if sys.platform == 'darwin':
-   app = BUNDLE(exe,
-                name='Specter.app',
-                icon='../src/cryptoadvance/specter/static/img/icon.icns',
-                bundle_identifier=None,
-                info_plist={
-                    'NSPrincipleClass': 'NSApplication',
-                    'NSAppleScriptEnabled': False,
-                    'NSHighResolutionCapable': 'True',
-                    'NSRequiresAquaSystemAppearance': 'True',
-                    'LSUIElement': 1
-                })
+   app = BUNDLE(
+        exe,
+        name='Specter.app',
+        icon='../src/cryptoadvance/specter/static/img/icon.icns',
+        bundle_identifier=None,
+        info_plist={
+            'NSPrincipleClass': 'NSApplication',
+            'NSAppleScriptEnabled': False,
+            'NSHighResolutionCapable': 'True',
+            'NSRequiresAquaSystemAppearance': 'True',
+            'LSUIElement': 1
+        }
+    )
 if sys.platform == 'win32' or sys.platform == 'win64' or sys.platform == 'linux':
-  exe = EXE(pyz,
-            a.scripts,
-            a.binaries,
-            a.zipfiles,
-            a.datas,
-            name='Specter',
-            debug=False,
-            strip=False,
-            upx=True,
-            runtime_tmpdir=None,
-            console=False,
-            icon='../src/cryptoadvance/specter/static/img/icon.ico')
+  exe = EXE(
+        pyz,
+        a.scripts,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        name='Specter',
+        debug=False,
+        strip=False,
+        upx=True,
+        runtime_tmpdir=None,
+        console=False,
+        icon='../src/cryptoadvance/specter/static/img/icon.ico'
+    )

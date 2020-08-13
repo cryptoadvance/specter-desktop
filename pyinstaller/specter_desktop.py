@@ -7,6 +7,7 @@ import os
 import subprocess
 import webbrowser
 import json
+import platform
 from cryptoadvance.specter.cli import DATA_FOLDER
 from cryptoadvance.specter.helpers import deep_update
 
@@ -142,11 +143,14 @@ def wait_for_specterd(menu):
 def run_specterd(menu):
     global specterd_thread, wait_for_specterd_process
     try:
-        specterd_command = [resource_path('specterd/{}'.format(
-            'hwibridge' if settings.value(
-                "remote_mode", defaultValue=False, type=bool
-            ) else 'specterd'
-        ))]
+        specterd_command = [
+            resource_path('specterd/{}{}'.format(
+                'hwibridge' if settings.value(
+                    "remote_mode", defaultValue=False, type=bool
+                ) else 'specterd',
+                '.exe' if platform.system() == "Windows" else '')
+            )
+        ]
         specterd_thread = subprocess.Popen(
             specterd_command,
             stdout=subprocess.PIPE,
