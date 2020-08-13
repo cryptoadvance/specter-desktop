@@ -1,3 +1,16 @@
+## v0.6.1 August 13, 2020
+- Devices: Add animated QR codes support for [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) (#279) (@stepansnigirev)
+- Bugfix: Fix malformed JSON issue when exporting wallet to file in Chrome (#274) (@ben-kaufman)
+- Bugfix: Fix issue with importing wallet using a key with no origin derivation data (#274) (@ben-kaufman)
+- Bugfix: Fix issue with adding an Electrum device (#276) (@stepansnigirev)
+- Bugfix: Fix issue with deleting wallets (#276) (@stepansnigirev)
+- Feature: Add Rescan UTXO to improve rescanning speed (#277) (@stepansnigirev)
+- HWI: Trezor and KeepKey change address verification (#276) (@stepansnigirev)
+- UI: New export options for keys of devices (#275) (@ben-kaufman)
+- UI: Add toggle device passphrase option when adding a Trezor or KeepKey device (#278) (@ben-kaufman)
+- Refactoring: Restructure the device classes to improve modularity and flexibility (#276) (@stepansnigirev) 
+- Refactoring: Improve HWI detect device speed by enumerating only on the specific type needed (#280) (@stepansnigirev) 
+
 ## v0.6.0 August 4, 2020
 - Build: Create `specterd` and `hwibridge` binaries (#258, #271) (@stepansnigirev)
 - Devices: [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) multisig support (#268) (@stepansnigirev)
