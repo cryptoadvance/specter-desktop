@@ -119,7 +119,7 @@ class Specter:
                             ("getmempoolinfo", None),
                             ("uptime", None),
                             ("getblockhash", 0),
-                            ("scantxoutset", "status"),
+                            ("scantxoutset", "status", []),
                         ]
                     )
                 ]
@@ -181,7 +181,7 @@ class Specter:
                 )
 
     def abortrescanutxo(self):
-        self.cli.scantxoutset("abort")
+        self.cli.scantxoutset("abort", [])
         # Bitcoin Core doesn't catch up right away
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None

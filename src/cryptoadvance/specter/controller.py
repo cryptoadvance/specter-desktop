@@ -1159,9 +1159,10 @@ def wallet_settings(wallet_alias):
             wallet.getdata()
         elif action == "rescanutxo":
             wallet.rescanutxo()
-            app.specter.check()
+            app.specter._info["utxorescan"] = 1
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
+            app.specter._info["utxorescan"] = None
         elif action == "keypoolrefill":
             delta = int(request.form['keypooladd'])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)

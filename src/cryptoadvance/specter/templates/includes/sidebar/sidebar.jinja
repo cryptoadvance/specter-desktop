@@ -51,7 +51,11 @@
         {% else %}
             </a>
         {% endif %}
-
+        {% if specter.info["utxorescan"] %}
+        <div class="rescan_progress {{ chain }}">
+            <div style='width: {{ specter.info["utxorescan"] }}%'></div>
+        </div>
+        {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
