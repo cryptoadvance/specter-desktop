@@ -1,17 +1,14 @@
 import os
 import json
 import logging
-import time
-import zipfile
-from io import BytesIO
 from .helpers import alias, load_jsons, fslock
 from .rpc import get_default_datadir
 
+from .devices import __all__ as device_classes
+from .devices.generic import GenericDevice  # default device type
+
 logger = logging.getLogger(__name__)
 
-from .devices import __all__ as device_classes
-# default device type
-from .devices.generic import GenericDevice
 
 def get_device_class(device_type):
     """Look up device class by its type"""
@@ -19,6 +16,7 @@ def get_device_class(device_type):
         if device_type == cls.device_type:
             return cls
     return GenericDevice
+
 
 class DeviceManager:
     ''' A DeviceManager mainly manages the persistence of a device-json-structures
@@ -96,4 +94,3 @@ class DeviceManager:
     @property
     def supported_devices(self):
         return device_classes
-    

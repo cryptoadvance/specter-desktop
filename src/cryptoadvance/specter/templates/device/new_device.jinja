@@ -18,6 +18,12 @@
 				<br>
 				{% include "device/components/device_type.jinja" %}
 				<p class="warning hidden" id="type_reminder">&#9432;<br>Please make sure to choose the device type before continuing</p>
+				<div id="toggle_passphrase_container" class="hidden">
+					<p>Device Management:</p>
+					<div class="row">
+						<button type="button" class="btn centered" onclick="togglePassphrase(document.getElementById('device_type').value)">Toggle device passphrase</button>
+					</div>
+				</div>
 			{% endif %}
 			<div id="cold_device">
 				<br>
@@ -171,6 +177,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		}
 		return false;
 	}
+
 	document.addEventListener("DOMContentLoaded", function(){
 		function setPubkeysView() {
 			var coldDevice = document.getElementById("cold_device");
@@ -182,6 +189,16 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				coldDevice.style.display = 'block';
 				hotDevice.style.display = 'none';
 			}
+			{% for cls in specter.device_manager.supported_devices %}
+            	if (deviceType.value == '{{ cls.device_type }}') {
+					if ('{{ cls.supports_hwi_toggle_passphrase }}' === 'True') {
+						document.getElementById('toggle_passphrase_container').style.display = 'block';
+					} else {
+						document.getElementById('toggle_passphrase_container').style.display = 'none';
+					}
+				}
+            {% endfor %}
+			
 		}
 		var deviceType = document.getElementById("device_type");
 		var typeReminder = document.getElementById("type_reminder");

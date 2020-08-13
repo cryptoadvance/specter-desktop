@@ -92,4 +92,36 @@
         }
         return null;
     }
+
+    async function togglePassphrase(deviceType){
+        let devices = await enumerate(deviceType);
+        if(devices == null || devices.length == 0){
+            return;
+        }
+        let device = await selectDevice(devices, '');
+        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+        let result = null;
+        try {
+            result = await hwi.togglePassphrase(device);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        if(!overlayIsActive()){
+            showNotification("HWI is ready again", 10000);
+            // no need to proceed at all
+            return null;
+        }
+        hidePageOverlay();
+        if (device.type == "keepkey") {
+            result = await enterPin(device, false);
+            if(result == null){
+                return null;
+            }
+            if(!('success' in result) || !result.success){
+                throw "Failed to unlock device! Invalid PIN code?";
+            }
+        }
+        showNotification(device.type + " passphrase toggled successfuly", 5000)
+    }
 </script>
