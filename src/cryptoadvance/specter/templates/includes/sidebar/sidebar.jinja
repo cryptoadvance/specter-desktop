@@ -48,8 +48,13 @@
             </div>
         {% if specter.chain %}
             </div>
-            {% else %}
+        {% else %}
             </a>
+        {% endif %}
+        {% if specter.info["utxorescan"] %}
+        <div class="rescan_progress {{ chain }}">
+            <div style='width: {{ specter.info["utxorescan"] }}%'></div>
+        </div>
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
