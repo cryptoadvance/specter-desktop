@@ -291,7 +291,7 @@ def der_to_bytes(derivation):
         return b''
     if items[0] == 'm':
         items = items[1:]
-    if items[-1] == '':
+    if len(items) > 0 and items[-1] == '':
         items = items[:-1]
     res = b''
     for item in items:
