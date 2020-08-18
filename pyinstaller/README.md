@@ -1,5 +1,11 @@
 # Pyinstaller build
 
-To build a binary: `pip3 install pyinstaller`
+Install `pyinstaller`:
+```bash
+$ pip3 install pyinstaller
+```
 
-Then from this folder run `pyinstaller --onefile specterd.spec`
+`cd` into this directory (`specter-desktop/pyinstaller`) and run:
+```bash
+$ pyinstaller --onefile specterd.spec
+```
