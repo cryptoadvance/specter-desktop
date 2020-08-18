@@ -716,8 +716,8 @@ class Wallet():
         # TODO: check maybe some of the inputs are already locked
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
-        amount = 0
-        address = None
+        amount = []
+        address = []
         # get output address and amount
         for out in psbt["tx"]["vout"]:
             if "addresses" not in out["scriptPubKey"] or len(out["scriptPubKey"]["addresses"]) == 0:
@@ -728,13 +728,8 @@ class Wallet():
             # check if it's a change
             if info["iswatchonly"] or info["ismine"]:
                 continue
-            # if not - this is out address
-            # ups, more than one sending address
-            if address is not None:
-                # TODO: we need to have multiple address support 
-                raise SpecterError("Sending to multiple addresses is not supported yet")
-            address = addr
-            amount += out["value"]
+            address.append(addr)
+            amount.append(out["value"])
         # detect signatures
         signed_devices = self.get_signed_devices(psbt)
         psbt["devices_signed"] = [dev.name for dev in signed_devices]
