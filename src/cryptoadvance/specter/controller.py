@@ -1037,7 +1037,7 @@ def wallet_sendnew(wallet_alias):
                                                     specter=app.specter, rand=rand)
         elif action == "importpsbt":
             try:
-                b64psbt = request.form["rawpsbt"]
+                b64psbt = "".join(request.form["rawpsbt"].split())
                 psbt = wallet.importpsbt(b64psbt)
             except Exception as e:
                 flash("Could not import PSBT: %s" % e, "error")

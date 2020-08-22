@@ -1,9 +1,19 @@
 # Pyinstaller build
 
-To build a binary: `pip3 install pyinstaller`
+Install `pyinstaller`:
+```bash
+$ pip3 install pyinstaller
+```
 
-Then from this folder run `pyinstaller --onefile specterd.spec`
-And for HWIBridge, run run `pyinstaller --onefile hwibridge.spec`
+`cd` into this directory (`specter-desktop/pyinstaller`) and run:
+```bash
+$ pyinstaller --onefile specterd.spec
+```
+
+And for HWIBridge, run: 
+```bash
+pyinstaller --onefile hwibridge.spec
+```
 
 ## Creating a Specter Desktop DMG (macOS only)
 1. First, follow the steps above to create an up-to-date `specterd` and `hwibridge` executables.

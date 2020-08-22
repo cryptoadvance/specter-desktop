@@ -420,9 +420,14 @@ class Wallet():
             try:
                 # first try with sortedmulti
                 addr = self.cli.deriveaddresses(desc, [index, index+1])[0]
-            except:
+            except Exception:
                 # if sortedmulti is not supported
-                desc = sort_descriptor(self.cli, desc, index=index, change=change)
+                desc = sort_descriptor(
+                    self.cli,
+                    desc,
+                    index=index,
+                    change=change
+                )
                 addr = self.cli.deriveaddresses(desc)[0]
             return addr
         return self.cli.deriveaddresses(desc, [index, index + 1])[0]
@@ -538,7 +543,7 @@ class Wallet():
         if label == "":
             label = address
         return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
-    
+
     def get_address_name(self, address, addr_idx):
         if self.getlabel(address) == address and addr_idx > -1:
             self.setlabel(address, "Address #{}".format(addr_idx))
@@ -576,7 +581,7 @@ class Wallet():
     @property
     def active_addresses(self):
         return list(dict.fromkeys(self.addresses + self.utxo_addresses))
-    
+
     @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0, self.change_index + 1)]
@@ -716,8 +721,8 @@ class Wallet():
         # TODO: check maybe some of the inputs are already locked
         psbt = self.cli.decodepsbt(b64psbt)
         psbt['base64'] = b64psbt
-        amount = 0
-        address = None
+        amount = []
+        address = []
         # get output address and amount
         for out in psbt["tx"]["vout"]:
             if "addresses" not in out["scriptPubKey"] or len(out["scriptPubKey"]["addresses"]) == 0:
@@ -728,13 +733,8 @@ class Wallet():
             # check if it's a change
             if info["iswatchonly"] or info["ismine"]:
                 continue
-            # if not - this is out address
-            # ups, more than one sending address
-            if address is not None:
-                # TODO: we need to have multiple address support 
-                raise SpecterError("Sending to multiple addresses is not supported yet")
-            address = addr
-            amount += out["value"]
+            address.append(addr)
+            amount.append(out["value"])
         # detect signatures
         signed_devices = self.get_signed_devices(psbt)
         psbt["devices_signed"] = [dev.name for dev in signed_devices]

@@ -28,48 +28,98 @@
 	{% include "includes/hwi/hwi.jinja" %}
 	<br>
 	<div class="center card" style="width: 610px; padding-top: 25px;">
-	<form action="./" method="POST">
-		{% set address_label = wallet.get_address_name(wallet.address, wallet.address_index) %}
-		{% from 'wallet/components/editable_label.jinja' import editable_label %}
-		{{ editable_label(address_label, -1) }}
-	</form>
-	<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:30px auto 30px; border: 1px solid #777; padding: 20px;">
-	<p title="Click to copy" id="address" class="padded" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
-	(click to copy)
-	<br><br>
-	<qr-code value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
-	</div><br>
-	<form action="./" method="POST">
-		<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
-		{% set supports_qr_code = [] %}
-		{% for device in wallet.devices if device.qr_code_support %}
-			{% set supports_qr_code = supports_qr_code.append(device) %}
-		{% endfor %}
-		{% if supports_qr_code != [] %}
-			<div id="verify_address_qr_code" class="hidden">
-				<h1>Scan to Verify Address on Your Device</h1><br>
-				<qr-code value="{{'bitcoin:' + wallet.address + '?index='+(wallet.address_index | string) }}" width="256"></qr-code><br>
-				<p>
-						Specter can verify this address if you scan it.<br>
-						It has an address index included in the QR code.
-				</p><br>
-			</div>
-			<button onclick="showPageOverlay('verify_address_qr_code')" type="button" class="btn centered padded">Verify address via QR code</button>
-		{% endif %}
-		{% set supports_hwi = [] %}
-		{% set supports_hwi_multisig_display_address = [] %}
-		{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
-			{% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
-		{% endfor %}
-		{% for device in wallet.devices if device.hwi_support %}
-			{% set supports_hwi = supports_hwi.append(device) %}
-		{% endfor %}
-		{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-			<button type="button" onclick="displayAddressOnDevice()" class="btn centered">Display address on device</button><br>
-			{% if wallet.is_multisig %}
-				<p class="note center">Multsig address on-device display is only available for ColdCard, KeepKey, Specter, and Trezor devices.</p>
+		<form action="./" method="POST">
+			{% set address_label = wallet.get_address_name(wallet.address, wallet.address_index) %}
+			{% from 'wallet/components/editable_label.jinja' import editable_label %}
+			{{ editable_label(address_label, -1) }}
+		</form>
+		<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:30px auto 30px; border: 1px solid #777; padding: 20px;">
+		<p title="Click to copy" id="address" class="padded" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
+		(click to copy)
+		<br><br>
+		<qr-code value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
+		</div><br>
+		<form action="./" method="POST">
+			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
+			{% set supports_qr_code = [] %}
+			{% for device in wallet.devices if device.qr_code_support %}
+				{% set supports_qr_code = supports_qr_code.append(device) %}
+			{% endfor %}
+			{% if supports_qr_code != [] %}
+				<div id="verify_address_qr_code" class="hidden">
+					<h1>Scan to Verify Address on Your Device</h1><br>
+					<div id="verify_address_qr_code_container"></div><br>
+					<p>
+							Specter can verify this address if you scan it.<br>
+							It has an address index included in the QR code.
+					</p><br>
+				</div>
+				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">Verify address via QR code</button>
 			{% endif %}
-		{% endif %}
-	</form>
+			{% set supports_hwi = [] %}
+			{% set supports_hwi_multisig_display_address = [] %}
+			{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
+				{% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
+			{% endfor %}
+			{% for device in wallet.devices if device.hwi_support %}
+				{% set supports_hwi = supports_hwi.append(device) %}
+			{% endfor %}
+			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+				<button type="button" onclick="displayAddressOnDevice(`{{ wallet.address }}`, `{{ (wallet.cli.getaddressinfo(wallet.address)['desc']) }}`)" class="btn centered">Display address on device</button><br>
+				{% if wallet.is_multisig %}
+					<p class="note center">Multsig address on-device display is only available for ColdCard, KeepKey, Specter, and Trezor devices.</p>
+				{% endif %}
+			{% endif %}
+		</form>
 	</div>
+	<br>
+	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
+	<div id="addresses_list" class="hidden" style="width: 80%;">
+		<div class="table-holder">
+			<table>
+				<thead>
+					<tr>
+						<th>Label</th><th>Address</th><th style="width: 400px;">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for address in wallet.addresses[:-1]|reverse %}
+						<tr>
+							<td class="tx scroll">{{ explorer_link('address', address, wallet.get_address_name(address, -1), specter.explorer) }}</td>
+							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
+							<td>
+								{% if supports_qr_code != [] %}
+									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="width:170px; float: left; margin-right: 20px; margin-bottom: 2px; margin-top: 2px;">Verify address via QR code</button>
+								{% endif %}
+								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+									<button type="button" onclick="displayAddressOnDevice(`{{ address }}`, `{{ (wallet.cli.getaddressinfo(address)['desc']) }}`)" class="btn" style="width:170px; margin-bottom: 2px; margin-top: 2px;">Display address on device</button>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<br>
+	</div>
+	{% if wallet.address_index > 0 %}
+		<button type="button" class="center btn" style="width: 300px; max-height: 34px;" id="show_all_addresses" onclick="toggleAddressHistory(this)">Show past addresses</button>
+	{% endif %}
+	<br>
+	<script>
+		function verifyQRCode(address, idx) {
+			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256"></qr-code>`;
+			showPageOverlay('verify_address_qr_code');
+		}
+		function toggleAddressHistory(btn) {
+			let addressesList = document.getElementById('addresses_list');
+			if (addressesList.style.display == 'block') {
+				addressesList.style.display = 'none';
+				btn.innerText = 'Show past addresses';
+			} else {
+				addressesList.style.display = 'block';
+				btn.innerText = 'Hide past addresses';
+			}
+		}
+	</script>
 {% endblock %}

@@ -9,7 +9,7 @@
     var el = document.getElementById("{{ device.alias }}_signing_file");
 
     el.addEventListener("change", (e) => {
-        let files = el.files;
+        let files = e.currentTarget.files;
         for (let i = 0; i < files.length; i++) {
             let reader = new FileReader();
             reader.onload = function(e) {
