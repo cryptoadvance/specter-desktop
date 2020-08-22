@@ -420,9 +420,14 @@ class Wallet():
             try:
                 # first try with sortedmulti
                 addr = self.cli.deriveaddresses(desc, [index, index+1])[0]
-            except:
+            except Exception:
                 # if sortedmulti is not supported
-                desc = sort_descriptor(self.cli, desc, index=index, change=change)
+                desc = sort_descriptor(
+                    self.cli,
+                    desc,
+                    index=index,
+                    change=change
+                )
                 addr = self.cli.deriveaddresses(desc)[0]
             return addr
         return self.cli.deriveaddresses(desc, [index, index + 1])[0]
@@ -538,7 +543,7 @@ class Wallet():
         if label == "":
             label = address
         return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
-    
+
     def get_address_name(self, address, addr_idx):
         if self.getlabel(address) == address and addr_idx > -1:
             self.setlabel(address, "Address #{}".format(addr_idx))
@@ -576,7 +581,7 @@ class Wallet():
     @property
     def active_addresses(self):
         return list(dict.fromkeys(self.addresses + self.utxo_addresses))
-    
+
     @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0, self.change_index + 1)]

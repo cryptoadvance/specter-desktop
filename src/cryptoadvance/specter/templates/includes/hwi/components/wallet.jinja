@@ -4,7 +4,7 @@
     <h2>Confirm Address</h2><br>
     <div>
         Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
-        Expected address:<br>{{ wallet.address }}
+        Expected address:<br><span id="expected_address"></span>
     </div>
     <div class="flex-center">
         <img src="/static/img/loader_boxes.svg"/>
@@ -54,7 +54,7 @@
         console.log(psbt);
     }
 
-    async function displayAddressOnDevice(){
+    async function displayAddressOnDevice(address, descriptor){
         let supportedDevices = [
             {% for device in wallet.devices %}
                 {% if device.supports_hwi_multisig_display_address or not wallet.is_multisig %}
@@ -72,21 +72,20 @@
             return;
         }
         console.log(device);
-        showPageOverlay('hwi_display_address');
-        let descr = JSON.parse(`{{ wallet.cli.getaddressinfo(wallet.address)['desc']|tojson }}`);
-        console.log(descr);
+        document.getElementById('expected_address').innerText = address;
+        showPageOverlay('hwi_display_address');        
         let result = null;
         try {
-            result = await hwi.displayAddress(device, descr);
+            result = await hwi.displayAddress(device, descriptor);
         } catch (error) {
             handleHWIError(error);
             return null;
         }
         console.log(result);
         hidePageOverlay();
-        if ("{{ wallet.address }}" != result &&
+        if (address != result &&
             (("{{ specter.chain }}" != "regtest" || !result.startsWith("tb")) ||
-            "{{ wallet.address }}".slice(0, -6) != "bcrt" + result.slice(2, -6))
+            address.slice(0, -6) != "bcrt" + result.slice(2, -6))
         ) {
             showError("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
         } else {

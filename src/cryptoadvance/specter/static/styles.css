@@ -756,6 +756,7 @@ table tr:hover .btn.hovering{
 .explorer-link:hover {
     color: #fff;
     text-decoration: underline;
+    cursor: pointer;
 }
 
 /************** Send Tab ********************************/
