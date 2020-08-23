@@ -22,7 +22,9 @@ class Cobo(SDCardDevice):
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
-        raw_psbt = a2b_base64(base64_psbt)
+        # make sure nonwitness and xpubs are not there
+        updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        raw_psbt = a2b_base64(updated_psbt)
         enc, hsh = bcur.bcur_encode(raw_psbt)
         qrpsbt = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
         psbts['qrcode'] = qrpsbt
@@ -38,14 +40,14 @@ class Cobo(SDCardDevice):
         # try to find at least one derivation
         # cc assume the same derivation for all keys :(
         derivation = None
+        # find correct key
         for k in wallet.keys:
-            if k.derivation != '':
+            if k in self.keys and k.derivation != '':
                 derivation = k.derivation.replace("h", "'")
                 break
         if derivation is None:
             return None
-        cc_file = """# CoboVault Multisig setup file (created on Specter Desktop)
-#
+        cc_file = """
 Name: {}
 Policy: {} of {}
 Derivation: {}
