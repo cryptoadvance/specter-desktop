@@ -152,7 +152,7 @@ class QRCodeElement extends HTMLElement {
           let arr = text.split("/");
           for (let j=0; j<this.chunks.length; j++) {
             // ur:bytes/1of3/checksum/payload
-            this.chunks[j] = arr[0]+"/"+(j+1)+"of"+number_of_chunks+"/"+arr[1]+"/"+this.chunks[j];
+            this.chunks[j] = arr[0]+"/"+(j+1)+"OF"+number_of_chunks+"/"+arr[1]+"/"+this.chunks[j];
           }
         }else{
           for (let j=0; j<this.chunks.length; j++) {
