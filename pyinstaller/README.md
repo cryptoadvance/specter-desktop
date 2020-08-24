@@ -1,16 +1,19 @@
 # Pyinstaller build
 
-Install `pyinstaller`:
+`cd` into this directory (`specter-desktop/pyinstaller`) and install requirements:
+
 ```bash
 $ pip3 install -r requirements.txt
 ```
 
-`cd` into this directory (`specter-desktop/pyinstaller`) and run:
+Now run:
+
 ```bash
 $ pyinstaller specterd.spec
 ```
 
 And for HWIBridge, run: 
+
 ```bash
 pyinstaller hwibridge.spec
 ```
