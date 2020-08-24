@@ -25,7 +25,31 @@ style="text-align: left;">
             <tr> <td style="text-align: left;">Prune target size:<td> <td style="text-align: right;">{{specter.info['prune_target_size']}}</td> </tr>
         {% endif %}
         </table>
-        <br>
+        <p id="total_supply"></p>
+        <div class="row">
+            <button type="button" onclick="fetchTotalSupply()" class="btn centered" href="/settings/bitcoin_core">
+                Calculate total Bitcoin supply
+            </button>
+        </div><br>
+        <script>
+            async function fetchTotalSupply() {
+                document.getElementById('total_supply').innerText = 'Calculating total supply... (this might take a few minutes)';
+                try {
+                    const response = await fetch(
+                        '/get_txout_set_info',
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    console.log(result)
+                    document.getElementById('total_supply').innerText = `Bitcoin Total Supply: ${result.total_amount} BTC`
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+        </script>
         {% if current_user.is_admin %}
             <div class="row">
                 <a class="btn centered" href="/settings/bitcoin_core">

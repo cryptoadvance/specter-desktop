@@ -966,6 +966,14 @@ def fees(blocks):
     res = app.specter.estimatesmartfee(int(blocks))
     return res
 
+
+@app.route('/get_txout_set_info')
+@login_required
+def txout_set_info():
+    res = app.specter.cli.gettxoutsetinfo()
+    return res
+
+
 @app.route('/wallets/<wallet_alias>/send')
 @login_required
 def wallet_send(wallet_alias):
