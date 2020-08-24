@@ -1,0 +1,2 @@
+pyinstaller
+PyQt5
