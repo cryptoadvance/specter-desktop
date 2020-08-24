@@ -11,7 +11,8 @@ import docker
 
 from .bitcoind import (BitcoindDockerController,
                        fetch_wallet_addresses_for_mining)
-from .server import DATA_FOLDER, create_app, init_app
+from .server import create_app, init_app
+from .config import DATA_FOLDER
 
 from os import path
 import signal

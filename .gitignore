@@ -10,3 +10,5 @@ dist
 .vscode
 cert.pem
 key.pem
+*.dmg
+pyinstaller/specterd/*
