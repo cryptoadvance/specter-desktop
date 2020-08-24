@@ -7,15 +7,34 @@ $ pip3 install pyinstaller
 
 `cd` into this directory (`specter-desktop/pyinstaller`) and run:
 ```bash
-$ pyinstaller --onefile specterd.spec
+$ pyinstaller specterd.spec
 ```
 
 And for HWIBridge, run: 
 ```bash
-pyinstaller --onefile hwibridge.spec
+pyinstaller hwibridge.spec
 ```
 
+## Building launcher for Windows
+
+From Powershell:
+
+1. Build `specterd` and `hwibridge` in onedir mode:
+
+```bash
+pyinstaller specterd_onedir.spec
+pyinstaller hwibridge_onedir.spec
+```
+
+You should get two folders in the `dist` folder: `specterd` and `hwibridge`.
+
+2. Copy `specterd` folder from `dist` folder to this directory.
+3. Copy `hwibridge.exe` and `hwibridge.exe.manifest` from `dist\hwibridge\` to `specterd` folder.
+4. Run `pyinstaller specter_desktop.spec` - this should create a `specter_desktop` folder in the `dist` directory. Check that it works by running `dist\specter_desktop\specter_desktop.exe`
+5. Create an installer using [InnoSetup](https://jrsoftware.org/isdl.php#stable)
+
 ## Creating a Specter Desktop DMG (macOS only)
+
 1. First, follow the steps above to create an up-to-date `specterd` and `hwibridge` executables.
 2. Copy the executables from the `dist` folder and place it under the `specterd` folder.
 3. Now in the terminal, run `pyinstaller --onefile specter_desktop.spec` (you might need to use `sudo`). This should create a new `Specter` and `Specter.app` files.

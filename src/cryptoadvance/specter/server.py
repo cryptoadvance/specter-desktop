@@ -11,13 +11,12 @@ from .helpers import hwi_get_config
 from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
+from .config import DATA_FOLDER
 
 logger = logging.getLogger(__name__)
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
-
-DATA_FOLDER = "~/.specter"
 
 
 def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
