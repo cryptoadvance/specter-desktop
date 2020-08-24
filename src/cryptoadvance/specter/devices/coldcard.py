@@ -34,8 +34,9 @@ class ColdCard(SDCardDevice):
         # try to find at least one derivation
         # cc assume the same derivation for all keys :(
         derivation = None
+        # find correct key
         for k in wallet.keys:
-            if k.derivation != '':
+            if k in self.keys and k.derivation != '':
                 derivation = k.derivation.replace("h", "'")
                 break
         if derivation is None:

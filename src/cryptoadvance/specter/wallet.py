@@ -678,6 +678,12 @@ class Wallet():
                 prevtx = CTransaction()
                 prevtx.deserialize(stream)
                 psbt.inputs[i].non_witness_utxo = prevtx
+        else:
+            # remove non_witness_utxo if we don't want them
+            for inp in psbt.inputs:
+                if inp.witness_utxo is not None:
+                    inp.non_witness_utxo = None
+
         if xpubs:
             # for multisig add xpub fields
             if len(self.keys) > 1:

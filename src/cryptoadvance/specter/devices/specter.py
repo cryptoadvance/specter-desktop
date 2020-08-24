@@ -19,7 +19,9 @@ class Specter(HWIDevice):
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
         qr_psbt = PSBT()
-        qr_psbt.deserialize(base64_psbt)
+        # remove non-witness utxo if they are there to reduce QR code size
+        updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        qr_psbt.deserialize(updated_psbt)
         # replace with compressed wallet information
         for inp in qr_psbt.inputs + qr_psbt.outputs:
             inp.witness_script = b""
