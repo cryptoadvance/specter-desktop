@@ -8,7 +8,7 @@ import subprocess
 import webbrowser
 import json
 import platform
-from cryptoadvance.specter.cli import DATA_FOLDER
+from cryptoadvance.specter.config import DATA_FOLDER
 from cryptoadvance.specter.helpers import deep_update
 
 running = True
@@ -144,17 +144,18 @@ def run_specterd(menu):
     global specterd_thread, wait_for_specterd_process
     try:
         specterd_command = [
-            resource_path('specterd/{}{}'.format(
-                'hwibridge' if settings.value(
-                    "remote_mode", defaultValue=False, type=bool
-                ) else 'specterd',
-                '.exe' if platform.system() == "Windows" else '')
+            os.path.join(
+                resource_path('specterd'),
+                '{}{}'.format(
+                    'hwibridge' if settings.value(
+                        "remote_mode", defaultValue=False, type=bool
+                    ) else 'specterd',
+                    '.exe' if platform.system() == "Windows" else '')
             )
         ]
         specterd_thread = subprocess.Popen(
             specterd_command,
-            stdout=subprocess.PIPE,
-            shell=True
+            stdout=subprocess.PIPE
         )
         wait_for_specterd_process = ProcessRunnable(
             target=wait_for_specterd,
@@ -273,8 +274,8 @@ def init_desktop_app():
 
     # Create the icon
     icon = QIcon(os.path.join(
-        path,
-        resource_path('static/img/icon.png')
+        resource_path('specterd'),
+        'static/img/icon.png'
     ))
 
     # Create the tray

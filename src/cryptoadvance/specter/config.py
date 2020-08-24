@@ -12,6 +12,8 @@ except ImportError:
     # Python 3
     import configparser
 
+DATA_FOLDER = "~/.specter"
+
 # BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Loading env-vars from .flaskenv (4 levels above this file)

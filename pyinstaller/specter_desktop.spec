@@ -45,7 +45,10 @@ if platform.system() == 'Linux':
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-exe = EXE(pyz,
+
+if sys.platform == 'darwin':
+
+    exe = EXE(pyz,
           a.scripts,
           a.binaries,
           a.zipfiles,
@@ -60,8 +63,7 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=True )
 
-if sys.platform == 'darwin':
-   app = BUNDLE(
+    app = BUNDLE(
         exe,
         name='Specter.app',
         icon='../src/cryptoadvance/specter/static/img/icon.icns',
@@ -74,8 +76,8 @@ if sys.platform == 'darwin':
             'LSUIElement': 1
         }
     )
-if sys.platform == 'win32' or sys.platform == 'win64' or sys.platform == 'linux':
-  exe = EXE(
+if sys.platform == 'linux':
+    exe = EXE(
         pyz,
         a.scripts,
         a.binaries,
@@ -89,3 +91,27 @@ if sys.platform == 'win32' or sys.platform == 'win64' or sys.platform == 'linux'
         console=False,
         icon='../src/cryptoadvance/specter/static/img/icon.ico'
     )
+
+if sys.platform == 'win32' or sys.platform == 'win64':
+    exe = EXE(pyz,
+              a.scripts,
+              [],
+              exclude_binaries=True,
+              name='specter_desktop',
+              debug=False,
+              bootloader_ignore_signals=False,
+              strip=False,
+              upx=True,
+              console=False,
+              icon='../src/cryptoadvance/specter/static/img/icon.ico' )
+
+    coll = COLLECT(exe,
+                   a.binaries,
+                   a.zipfiles,
+                   a.datas,
+                   strip=False,
+                   upx=True,
+                   upx_exclude=[],
+                   console=False,
+                   name='specter_desktop')
+ 
