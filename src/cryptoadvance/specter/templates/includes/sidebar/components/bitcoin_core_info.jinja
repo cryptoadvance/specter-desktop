@@ -28,12 +28,23 @@ style="text-align: left;">
         <p id="total_supply"></p>
         <div class="row">
             <button type="button" onclick="fetchTotalSupply()" class="btn centered" href="/settings/bitcoin_core">
-                Calculate total Bitcoin supply
+                Run the numbers!
+                <div class="tool-tip">
+                    <i class="tool-tip__icon">i</i>
+                    <p class="tool-tip__info">
+                        <span class="info">
+                            <span class="info__title">Calculate the total Bitcoin supply<br><br></span>
+                            This will run Bitcoin Core's <code>gettxoutsetinfo</code> command,
+                            which will calculate the total amount of Bitcoin's UTXO set.<br><br>
+                            This might take a few minutes...<br>
+                        </span>
+                    </p>
+                </div>
             </button>
         </div><br>
         <script>
             async function fetchTotalSupply() {
-                document.getElementById('total_supply').innerText = 'Calculating total supply... (this might take a few minutes)';
+                document.getElementById('total_supply').innerText = 'Running the numbers... (this might take a few minutes)';
                 try {
                     const response = await fetch(
                         '/get_txout_set_info',
