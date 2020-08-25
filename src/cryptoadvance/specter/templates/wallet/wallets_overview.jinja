@@ -24,11 +24,15 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            {{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') | btcamount }}
-            {% if specter.chain !='main' %}t{%endif%}BTC
+            {{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') | btcunitamount }}
+            {% if specter.unit == 'sat' %}
+				sats
+			{% else %}
+				{% if specter.chain !='main' %}t{%endif%}BTC
+			{% endif %}
         </span>
         {% if specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') > 0 %}<br>
-            <small>( {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.trusted') | btcamount }} confirmed, {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') | btcamount }} pending )</small>
+            <small>( {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.trusted') | btcunitamount }} confirmed, {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') | btcunitamount }} pending )</small>
         {% endif %}
     </h1>
     {% set transactions = specter.wallet_manager.full_txlist(idx) %}

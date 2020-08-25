@@ -18,7 +18,7 @@
             {% endif %}
         </td>
         <td>
-            {{ (pending_psbt['amount'] | sum) | btcamount }}
+            {{ (pending_psbt['amount'] | sum) | btcunitamount }}
         </td>
         <td>
             {{ pending_psbt['time'] | datetime }}

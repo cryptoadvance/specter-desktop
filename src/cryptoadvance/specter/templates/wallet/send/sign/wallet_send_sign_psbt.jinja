@@ -67,7 +67,13 @@
 		<div class="tx_info">
 			
 			{% for i in range(psbt['address']|length) %}
-				<div>Sending <b>{{ psbt["amount"][i] | btcamount }}</b> BTC to<b>
+				<div>Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
+					{% if specter.unit == 'sat' %}
+						sats
+					{% else %}
+						{% if specter.chain !='main' %}t{%endif%}BTC
+					{% endif %}
+					to<b>
 					{{ explorer_link('address', psbt['address'][i], wallet.get_address_name(psbt["address"][i], -1), specter.explorer) }}
 					</b><br><br>
 				</div>

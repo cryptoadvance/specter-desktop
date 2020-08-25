@@ -14,7 +14,13 @@
 
 	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST">
 		<h1 class="padded">Create Transaction</h1>
-		<p class="center">Available Funds: {{wallet.full_available_balance | btcamount}}</p>
+		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
+			{% if specter.unit == 'sat' %}
+				sats
+			{% else %}
+				{% if specter.chain !='main' %}t{%endif%}BTC
+			{% endif %}
+		</p>
 		{% if wallet.locked_amount > 0 %}
 			<div class="tool-tip" style="text-align: center;">
 				<i class="tool-tip__icon">i</i>
@@ -25,7 +31,7 @@
 					</span>
 				</p>
 			</div>
-			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcamount}} BTC still in usigned transactions.</p>
+			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in usigned transactions.</p>
 			<br><br>
 		{% endif %}
 		<div class="card">
@@ -60,7 +66,7 @@
 		function addRecipient() {
 			let i = amounts.length;
 			amounts.push(0.0);
-			units.push('sat');
+			units.push('{% if specter.unit == "sat" %}sat{% else %}BTC{% endif %}');
 
 			let recipientForm = `
 			<div id="recipient_${i}" style="border-bottom: 1px solid var(--cmap-border); padding-bottom: 10px; margin-bottom: 10px;">
@@ -78,10 +84,10 @@
 				Amount:<br>
 				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="1e-8" autocomplete="off">
 				<input type="hidden" name="btc_amount_${i}" id="btc_amount_${i}">
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" checked>sat</label>
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})">BTC</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
 				<div>
-					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">BTC</span>
+					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">{% if specter.unit == "sat" %}BTC{% else %}sat{% endif %}</span>
 				</div>
 			<div>
 			`
@@ -186,7 +192,7 @@
 			} else if (isAboveWalletBalance(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
-					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!";
+					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcunitamount }} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %}!";
 				return false;
 			} else if (shouldSelectMoreCoins(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
