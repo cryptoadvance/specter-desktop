@@ -29,7 +29,7 @@ class User(UserMixin):
             user = User.from_json(user_dict)
             if user.id == id:
                 return user
-    
+
     @classmethod
     def get_user_by_name(cls, specter, username):
         users = get_users_json(specter)
@@ -72,7 +72,7 @@ class User(UserMixin):
                 break
         if not existing and not delete:
             users.append(self.json)
-        
+
         save_users_json(specter, users)
 
     def set_explorer(self, specter, explorer):
@@ -81,6 +81,10 @@ class User(UserMixin):
 
     def set_hwi_bridge_url(self, specter, url):
         self.config['hwi_bridge_url'] = url
+        self.save_info(specter)
+
+    def set_unit(self, specter, unit):
+        self.config['unit'] = unit
         self.save_info(specter)
 
     def delete(self, specter):
