@@ -313,6 +313,8 @@ class WebEnginePage(QWebEnginePage):
 def open_webview(view):
     view.load(QUrl(settings.value("specter_url", type=str)))
     view.show()
+    getattr(view, "raise")()
+    view.activateWindow()
 
 class WebView(QWebEngineView):
     """Window with the web browser"""
