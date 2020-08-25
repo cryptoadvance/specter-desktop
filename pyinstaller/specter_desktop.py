@@ -325,13 +325,14 @@ class WebView(QWebEngineView):
         self.move(settings.value("pos", QPoint(50, 50)))
         self.loadStarted.connect(self.loadStartedHandler)
         self.loadFinished.connect(self.loadFinishedHandler)
+        self.urlChanged.connect(self.loadFinishedHandler)
         self.setWindowTitle("Specter Desktop")
 
     def loadStartedHandler(self):
         """Set waiting cursor when the page is loading"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-    def loadFinishedHandler(self):
+    def loadFinishedHandler(self, *args, **kwargs):
         """Recover cursor when done"""
         QApplication.restoreOverrideCursor()
 
