@@ -8,7 +8,7 @@ from .specter_error import SpecterError
 from .wallet import Wallet
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 purposes = OrderedDict({
     None: "General",
@@ -209,7 +209,7 @@ Silently ignored!" % wallet_alias)
 
         self.cli.createwallet(os.path.join(self.cli_path, wallet_alias), True)
 
-        self.wallets[name] = Wallet(
+        w = Wallet(
             name,
             wallet_alias,
             "{} of {} {}".format(
@@ -235,9 +235,10 @@ Silently ignored!" % wallet_alias)
         )
         # save wallet file to disk
         if self.working_folder is not None:
-            self.wallets[name].save_to_file()
+            w.save_to_file()
         # get Wallet class instance
-        return self.wallets[name]
+        self.wallets[name] = w
+        return w
 
     def delete_wallet(self, wallet, bitcoin_datadir=get_default_datadir(), chain='main'):
         logger.info("Deleting {}".format(wallet.alias))

@@ -383,6 +383,10 @@ input, textarea, .input, select{
     min-width: 170px;
     color: #fff;
 }
+select option{
+    background: var(--cmap-bg);
+    color: #fff;
+}
 .input{
     text-align: left;
     background: rgba(255,255,255,0.05);

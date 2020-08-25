@@ -9,6 +9,8 @@ from io import BytesIO
 from .specter_error import SpecterError
 import threading
 
+logger = logging.getLogger()
+
 # a gap of 20 addresses is what many wallets do
 WALLET_CHUNK = 20
 wallet_tx_batch = 100
@@ -91,12 +93,15 @@ class Wallet():
         """Checking the gap limit is still ok"""
         if self.last_block is None:
             obj = self.cli.listsinceblock()
-            txs = obj["transactions"]
-            last_block = obj["lastblock"]
         else:
-            obj = self.cli.listsinceblock(self.last_block)
-            txs = obj["transactions"]
-            last_block = obj["lastblock"]
+            # sometimes last_block is invalid, not sure why
+            try:
+                obj = self.cli.listsinceblock(self.last_block)
+            except:
+                logger.error(f"Invalid block {self.last_block}")
+                obj = self.cli.listsinceblock()
+        txs = obj["transactions"]
+        last_block = obj["lastblock"]
         addresses = [tx["address"] for tx in txs]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
@@ -172,7 +177,7 @@ class Wallet():
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict['keys']]
             devices = wallet_dict['devices']
         except:
-            Exception('Could not construct a Wallet object from the data provided.')
+            raise Exception('Could not construct a Wallet object from the data provided.')
 
         return cls(
             name,
@@ -220,6 +225,7 @@ class Wallet():
         except:
             # Could happen if address not in wallet (wallet was imported)
             # try adding keypool
+            logger.info(f"Didn't get transactions on address {self.change_address}. Refilling keypool.")
             self.keypoolrefill(0, end=self.keypool, change=False)
             self.keypoolrefill(0, end=self.change_keypool, change=True)
             value_on_address = 0

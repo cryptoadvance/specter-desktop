@@ -13,7 +13,7 @@ from .hwi_server import hwi_server
 from .user import User
 from .config import DATA_FOLDER
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 env_path = Path('.') / '.flaskenv'
 load_dotenv(env_path)
@@ -44,7 +44,6 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
 
 def init_app(app, hwibridge=False, specter=None):
     '''  see blogpost 19nd Feb 2020 '''
-    app.logger.info("Initializing QRcode")
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     if specter is None:
