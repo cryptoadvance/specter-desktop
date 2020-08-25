@@ -311,7 +311,8 @@ class WebEnginePage(QWebEnginePage):
         page.deleteLater()
 
 def open_webview(view):
-    view.load(QUrl(settings.value("specter_url", type=str)))
+    if not view.isVisible():
+        view.load(QUrl(settings.value("specter_url", type=str)))
     view.show()
     getattr(view, "raise")()
     view.activateWindow()
