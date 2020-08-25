@@ -97,6 +97,10 @@
 					let wallets = []
 					let devices = []
 					files = el.files;
+					if (el.files.length == 1 && el.files[0].type == 'application/zip') {
+						showError("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder", 10000);
+						return;
+					}
 					console.log(files);
 					for(let i=0; i<files.length; i++){
 						if (files[i].type == 'application/json'){
