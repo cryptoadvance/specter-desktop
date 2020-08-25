@@ -72,6 +72,7 @@ class Specter:
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
             "uid": "",
+            "unit": "btc",
         }
 
         # creating folders if they don't exist
@@ -284,6 +285,13 @@ class Specter:
         else:
             user.set_hwi_bridge_url(self, url)
 
+    def update_unit(self, unit, user):
+        if user.id == 'admin':
+            self.config["unit"] = unit
+            self._save()
+        else:
+            user.set_unit(self, unit)
+
     def add_new_user_otp(self, otp_dict):
         ''' adds an OTP for user registration '''
         if 'new_user_otps' not in self.config:
@@ -377,6 +385,20 @@ class Specter:
                 return current_user.config["hwi_bridge_url"]
             else:
                 return ""
+
+    @property
+    def unit(self):
+        # TODO: Unify for user and admin
+        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
+            if "unit" in self.config:
+                return self.config["unit"]
+            else:
+                return "btc"
+        else:
+            if "unit" in current_user.config:
+                return current_user.config["unit"]
+            else:
+                return "btc"
 
     def specter_backup_file(self):
         memory_file = BytesIO()

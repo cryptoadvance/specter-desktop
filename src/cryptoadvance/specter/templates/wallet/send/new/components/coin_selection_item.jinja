@@ -19,6 +19,6 @@
         <td class="tx scroll">
             {{ explorer_link('address', address, (label if label != '' else address), specter.explorer) }}
         </td>
-        <td>{{ amount | btcamount }}</td>
+        <td>{{ amount | btcunitamount }}</td>
     </tr>
 {%- endmacro %}
