@@ -84,24 +84,24 @@ Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about ha
 
 ### Adding a new device
 
-![](screenshots/devices.jpg)
+![](screenshots/devices.png)
 
-![](screenshots/device_keys.jpg)
+![](screenshots/device_keys.png)
 
 ### Creating a new wallet
 
-![](screenshots/wallets.jpg)
+![](screenshots/wallets.png)
 
-![](screenshots/new_multisig.jpg)
+![](screenshots/new_multisig.png)
 
 ### Wallet interface
 
-![](screenshots/transactions.jpg)
+![](screenshots/transactions.png)
 
-![](screenshots/receive.jpg)
+![](screenshots/receive.png)
 
-![](screenshots/send.jpg)
+![](screenshots/send.png)
 
 ### Configuration
 
-![](screenshots/bitcoin-rpc.jpg)
+![](screenshots/bitcoin-rpc.png)
