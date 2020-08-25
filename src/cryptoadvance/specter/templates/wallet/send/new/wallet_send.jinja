@@ -45,7 +45,7 @@
 				</div><br>
 				{% include "wallet/send/new/components/coin_selection.jinja" %}
 			</div>
-			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
 		</div>
 	</form>
 {% endblock %}
@@ -181,7 +181,9 @@
 				amountInput.max = getSpendableAmount(unit);
 			}
 			
-			if (isAboveWalletBalance(unit, amount)) {
+			if (!amount) {
+				return false;
+			} else if (isAboveWalletBalance(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!";
@@ -211,32 +213,38 @@
 			return false;
 		}
 
-		function validateForm() {
+		function validateForm(submitted=false) {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			let totalAmount = 0.0;
 			for(let i in amounts) {
 				let unit = units[i]
 				let amount = amounts[i]
 				totalAmount += (unit == 'sat' ? amount / 100000000 : amount);
+				if (submitted && !amount) {
+					showError('Please enter the amount that you wish to send', 5000);
+				}
 				if (!validateAmount(unit, amount, i)) {
-					createPSBTButton.disabled = true;
+					createPSBTButton.setAttribute('type', 'button');
 					return;
 				}
 			}
 
 			if (!validateAmount('BTC', totalAmount)) {
-				createPSBTButton.disabled = true;
+				createPSBTButton.setAttribute('type', 'button');
 				return;
 			}
 			
 			for(let i in amounts) {
 				if (!validateAddress(i)) {
-					createPSBTButton.disabled = true;
+					if (submitted) {
+						showError('Please enter a valid recipient address', 5000);
+					}
+					createPSBTButton.setAttribute('type', 'button');
 					return;
 				}
 			}
 
-			createPSBTButton.disabled = false;
+			createPSBTButton.setAttribute('type', 'submit');
 		}
 
 		// Utils
