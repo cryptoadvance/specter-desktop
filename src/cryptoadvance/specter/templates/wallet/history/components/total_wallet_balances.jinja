@@ -9,11 +9,15 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            {{ wallet.fullbalance | btcamount }}
-            {% if specter.chain !='main' %}t{%endif%}BTC
+            {{ wallet.fullbalance | btcunitamount }}
+            {% if specter.unit == 'sat' %}
+				sats
+			{% else %}
+				{% if specter.chain !='main' %}t{%endif%}BTC
+			{% endif %}
         </span>
         {% if wallet.balance["untrusted_pending"] > 0 %}<br>
-            <small>( {{ wallet.balance["trusted"] | btcamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcamount }} pending )</small>
+            <small>( {{ wallet.balance["trusted"] | btcunitamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcunitamount }} pending )</small>
         {% endif %}
     </h1>
     {% if wallet.rescan_progress %}
