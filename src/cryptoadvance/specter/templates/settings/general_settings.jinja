@@ -44,6 +44,7 @@
 					<span class="info">
 						<span class="info__title">Restoring Specter from backup<br><br></span>
 						Here you can restore your wallets and devices from an existing Secter backup.<br>
+						Please make sure to unzip the backup file first, then to select the extracted folder for upload.<br>
 						Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
 					</span>
 				</p>
@@ -62,6 +63,12 @@
 				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
 			<h1> Miscellaneous </h1>
+			Bitcoin unit to use (BTC/sats):
+			<select name="unit">
+				<option value="btc" {% if unit!="sat" %} selected="selected"{% endif %}>BTC</option>
+				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
+			</select>
+			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
@@ -97,6 +104,10 @@
 					let wallets = []
 					let devices = []
 					files = el.files;
+					if (el.files.length == 1 && el.files[0].type == 'application/zip') {
+						showError("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder", 10000);
+						return;
+					}
 					console.log(files);
 					for(let i=0; i<files.length; i++){
 						if (files[i].type == 'application/json'){

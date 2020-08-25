@@ -27,7 +27,7 @@
             {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </td>
         <td>
-            {{ tx['amount'] | btcamount }}
+            {{ tx['amount'] | btcunitamount }}
         </td>
         <td>
             {%if tx['confirmations'] == 0 %}

@@ -6,6 +6,8 @@
   - [DISCLAIMER](#disclaimer)
   - [Why?](#why)
   - [How to run](#how-to-run)
+    - [Using the Specter Desktop app](#using-the-specter-desktop-app)
+    - [Installing Specter from Pip](#installing-specter-from-pip)
   - [Detailed instructions](#detailed-instructions)
   - [A few screenshots](#a-few-screenshots)
     - [Adding a new device](#adding-a-new-device)
@@ -24,19 +26,34 @@
 
 ## DISCLAIMER
 
-This software might be ready to be used but at your own risk. The UI is currently only tested and optimised in Chrome, and looks a bit weird but usable in firefox. So in other browsers, it may even look more weird.
+This software might be ready to be used but at your own risk.
 
 If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
 
 ## Why?
 
-Bitcoin Core has a very powerful command line interface and a wonderful daemon. Using PSBT and HWI it can also work with hardware wallets, but at the moment it is too linux-way. The same applies to multisignature setups. 
+Bitcoin Core has a very powerful command line interface and a wonderful daemon. Using PSBT and [HWI](https://github.com/bitcoin-core/HWI) it can also work with hardware wallets, but at the moment it is too linux-way. The same applies to multisignature setups. 
 
-The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped hardware wallets.
+The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with hardware wallets and airgapped devices.
 
-At the moment Specter-Desktop is working with all major Hardware-Wallets including [Specter-DIY hardware wallet](https://github.com/cryptoadvance/specter-diy) which uses QR codes as a main communication channel and ColdCard that uses SD cards. Also it already supports "hot" hardware wallets using [HWI tool](https://github.com/bitcoin-core/HWI) and is tested to work with Trezor One. It should also work with Keepkey and Ledger (Firmware >= 1.6.0).
+At the moment Specter-Desktop is working with all major hardware wallets including:
+- Trezor
+- Ledger
+- KeepKey
+- ColdCard (optionally airgapped, using an SD card)
+- Electrum (optionally airgapped, if running Electrum on an airgapped computer/ phone)
+- Specter DIY (optionally airgapped, using QR codes)
+- Cobo (airgapped, using QR codes)
+
+We also support using the Bitcoin Core as a hot wallet, by importing or generating a random BIP39 mnemonic, but this feature is experimental and we do not recommend using it at this stage.
+We plan to add support for other hardware wallets as they come up. If you are interested in using Specter with a hardware wallet currently unsupported, let us know by opening an issue here or asking in our [Telegram group](https://t.me/spectersupport).
 
 ## How to run
+### Using the Specter Desktop app
+The easiest way to run Specter Desktop is by installing the Specter Desktop app, which you can find on the [GitHub release page](https://github.com/cryptoadvance/specter-desktop/releases).
+With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app.
+
+### Installing Specter from Pip
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
   * macOS: `brew install libusb`
@@ -84,24 +101,24 @@ Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about ha
 
 ### Adding a new device
 
-![](screenshots/devices.jpg)
+![](screenshots/devices.png)
 
-![](screenshots/device_keys.jpg)
+![](screenshots/device_keys.png)
 
 ### Creating a new wallet
 
-![](screenshots/wallets.jpg)
+![](screenshots/wallets.png)
 
-![](screenshots/new_multisig.jpg)
+![](screenshots/new_multisig.png)
 
 ### Wallet interface
 
-![](screenshots/transactions.jpg)
+![](screenshots/transactions.png)
 
-![](screenshots/receive.jpg)
+![](screenshots/receive.png)
 
-![](screenshots/send.jpg)
+![](screenshots/send.png)
 
 ### Configuration
 
-![](screenshots/bitcoin-rpc.jpg)
+![](screenshots/bitcoin-rpc.png)
