@@ -40,6 +40,8 @@ You should get two folders in the `dist` folder: `specterd` and `hwibridge`.
 
 ## Creating a DMG for macOS
 
+*Note*: pyinstaller doesn't fully support python3.8 at the moment, use python3.7.
+
 1. Build `specterd` and `hwibridge` in onedir mode:
 
 ```bash
