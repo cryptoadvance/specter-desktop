@@ -319,10 +319,12 @@ def general_settings():
     explorer = app.specter.explorer
     hwi_bridge_url = app.specter.hwi_bridge_url
     loglevel = get_loglevel(app)
+    unit = app.specter.unit
     if request.method == 'POST':
         action = request.form['action']
         explorer = request.form['explorer']
         hwi_bridge_url = request.form['hwi_bridge_url']
+        unit = request.form['unit']
         if current_user.is_admin:
             loglevel = request.form['loglevel']
 
@@ -332,6 +334,7 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
+            app.specter.update_unit(unit, current_user)
             app.specter.check()
         elif action == "backup":
             return send_file(
@@ -425,6 +428,7 @@ This may take a few hours to complete.', 'info')
         explorer=explorer,
         hwi_bridge_url=hwi_bridge_url,
         loglevel=loglevel,
+        unit=unit,
         specter=app.specter,
         current_version=current_version,
         rand=rand
@@ -1320,7 +1324,15 @@ def timedatetime(s):
 @app.template_filter('btcamount')
 def btcamount(value):
     value = float(value)
-    return "{:.8f}".format(value).rstrip("0").rstrip(".")
+    return "{:,.8f}".format(value).rstrip("0").rstrip(".")
+
+
+@app.template_filter('btcunitamount')
+def btcunitamount(value):
+    if app.specter.unit != 'sat':
+        return btcamount(value)
+    value = float(value)
+    return "{:,.0f}".format(round(value * 100000000))
 
 
 @app.template_filter('bytessize')

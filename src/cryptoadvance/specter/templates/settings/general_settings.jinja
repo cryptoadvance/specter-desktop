@@ -63,6 +63,12 @@
 				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
 			<h1> Miscellaneous </h1>
+			Bitcoin unit to use (BTC/sats):
+			<select name="unit">
+				<option value="btc" {% if unit!="sat" %} selected="selected"{% endif %}>BTC</option>
+				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
+			</select>
+			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
