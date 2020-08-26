@@ -301,12 +301,15 @@ def settings():
 @app.route('/settings/hwi', methods=['GET', 'POST'])
 @login_required
 def hwi_settings():
+    current_version = notify_upgrade()
+    app.specter.check()
     if request.method == 'POST':
         hwi_bridge_url = request.form['hwi_bridge_url']
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,
+        current_version=current_version,
         rand=rand
     )
 
