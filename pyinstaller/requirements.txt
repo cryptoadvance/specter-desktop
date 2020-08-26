@@ -1,2 +1,3 @@
 pyinstaller
 PyQt5
+PyQtWebEngine
