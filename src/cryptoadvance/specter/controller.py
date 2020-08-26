@@ -306,6 +306,7 @@ def hwi_settings():
     if request.method == 'POST':
         hwi_bridge_url = request.form['hwi_bridge_url']
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
+        flash("HWIBridge URL is updated! Don't forget to whitelist Specter!")
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,

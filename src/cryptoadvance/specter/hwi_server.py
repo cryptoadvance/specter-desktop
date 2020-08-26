@@ -1,5 +1,5 @@
 import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, redirect, render_template, request
+from flask import Blueprint, Flask, jsonify, redirect, render_template, request, flash
 from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
@@ -71,4 +71,5 @@ def hwi_bridge_settings():
         if action == "update":
             config['whitelisted_domains'] = request.form['whitelisted_domains']
             save_hwi_bridge_config(app.specter, config)
+            flash("Whitelist is updated!")
     return render_template("hwi_bridge.jinja", specter=app.specter, whitelisted_domains=config['whitelisted_domains'], rand=rand)
