@@ -12,6 +12,8 @@ import subprocess
 import webbrowser
 import json
 import platform
+import time
+import signal
 from cryptoadvance.specter.config import DATA_FOLDER
 from cryptoadvance.specter.helpers import deep_update
 
@@ -21,7 +23,6 @@ is_specterd_running = False
 specterd_thread = None
 settings = QSettings('cryptoadvance', 'specter')
 wait_for_specterd_process = None
-
 
 def resource_path(relative_path):
     try:
@@ -101,15 +102,15 @@ class SpecterPreferencesDialog(QDialog):
 # Cross communication between threads via signals
 # https://www.learnpyqt.com/courses/concurrent-execution/multithreading-pyqt-applications-qthreadpool/
 
-class WorkerSignals(QObject):
+class ProcessSignals(QObject):
     error = pyqtSignal()
     result = pyqtSignal()
 
 class ProcessRunnable(QRunnable):
     def __init__(self, menu):
-        QRunnable.__init__(self)
+        super().__init__()
         self.menu = menu
-        self.signals = WorkerSignals()
+        self.signals = ProcessSignals()
 
     @pyqtSlot()
     def run(self):
@@ -150,16 +151,19 @@ class ProcessRunnable(QRunnable):
 def run_specterd(menu, view):
     global specterd_thread, wait_for_specterd_process
     try:
+        extention = '.exe' if platform.system() == "Windows" else ''
         specterd_command = [
             os.path.join(
                 resource_path('specterd'),
-                '{}{}'.format(
-                    'hwibridge' if settings.value(
-                        "remote_mode", defaultValue=False, type=bool
-                    ) else 'specterd',
-                    '.exe' if platform.system() == "Windows" else '')
-            )
+                f"specterd{extention}"
+            ),
+            "--no-debug",
         ]
+        if settings.value("remote_mode", defaultValue=False, type=bool):
+            specterd_command.append("--hwibridge")
+        # add any parameters from command line:
+        specterd_command += sys.argv[1:]
+        # TODO: we should parse the command line args in QTapp as well
         specterd_thread = subprocess.Popen(
             specterd_command,
             stdout=subprocess.PIPE
@@ -273,6 +277,17 @@ def open_settings():
                 f.write(json.dumps(config, indent=4))
         # TODO: Add PORT setting
 
+def open_webview(view):
+    if not view.isVisible():
+        view.load(QUrl(settings.value("specter_url", type=str)))
+        view.show()
+    # if the window is already open just bring it to top
+    # hack to make it pop-up
+    else:
+        view.show()
+        getattr(view, "raise")()
+        view.activateWindow()
+
 class WebEnginePage(QWebEnginePage):
     """Web page"""
     def __init__(self, *args, **kwargs):
@@ -310,33 +325,48 @@ class WebEnginePage(QWebEnginePage):
         QDesktopServices.openUrl(url)
         page.deleteLater()
 
-def open_webview(view):
-    if not view.isVisible():
-        view.load(QUrl(settings.value("specter_url", type=str)))
-    view.show()
-    getattr(view, "raise")()
-    view.activateWindow()
-
-class WebView(QWebEngineView):
+class WebView(QWidget):
     """Window with the web browser"""
     def __init__(self, tray, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setStyleSheet("background-color:#263044;")
         self.tray = tray
-        self.page = WebEnginePage()
-        self.setPage(self.page)
+        self.browser = QWebEngineView()
+        self.browser.page = WebEnginePage()
+        self.browser.setPage(self.browser.page)
+        # loading progress widget
+        self.progress = QWidget()
+        self.progress.setFixedHeight(1)
+        self.progress.setStyleSheet("background-color:#263044;")
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.progress, stretch=0)
+        vbox.addWidget(self.browser)
+        vbox.setSpacing(0)
+        vbox.setContentsMargins(0,0,0,0)
+        self.setLayout(vbox)
         self.resize(settings.value("size", QSize(1200, 900)))
         self.move(settings.value("pos", QPoint(50, 50)))
-        self.loadStarted.connect(self.loadStartedHandler)
-        self.loadFinished.connect(self.loadFinishedHandler)
-        self.urlChanged.connect(self.loadFinishedHandler)
+        self.browser.loadStarted.connect(self.loadStartedHandler)
+        self.browser.loadProgress.connect(self.loadProgressHandler)
+        self.browser.loadFinished.connect(self.loadFinishedHandler)
+        self.browser.urlChanged.connect(self.loadFinishedHandler)
         self.setWindowTitle("Specter Desktop")
+
+    def load(self, *args, **kwargs):
+        self.browser.load(*args, **kwargs)
 
     def loadStartedHandler(self):
         """Set waiting cursor when the page is loading"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
+    def loadProgressHandler(self, progress):
+        # just changes opacity over time for now
+        alpha = int(time.time()*100)%100
+        self.progress.setStyleSheet(f"background-color:rgba(75,140,26,{alpha});")
+
     def loadFinishedHandler(self, *args, **kwargs):
         """Recover cursor when done"""
+        self.progress.setStyleSheet("background-color:#263044;")
         QApplication.restoreOverrideCursor()
 
     def closeEvent(self, *args, **kwargs):
@@ -355,9 +385,14 @@ class WebView(QWebEngineView):
                                   self.tray.icon())
         super().closeEvent(*args, **kwargs)
 
+
+
 def init_desktop_app():
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
+
+    # fix termination ctrl+c
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Create the icon
     icon = QIcon(os.path.join(
@@ -415,7 +450,7 @@ def init_desktop_app():
     if settings.value('first_time', defaultValue=True, type=bool):
         settings.setValue('first_time', False)
         settings.setValue('remote_mode', False)
-        settings.setValue('specter_url', 'http://localhost:25441/')
+        settings.setValue('specter_url', "http://localhost:25441/")
         open_settings()
 
     run_specterd(menu, view)
