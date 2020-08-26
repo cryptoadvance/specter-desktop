@@ -50,11 +50,9 @@ if sys.platform == 'darwin':
 
     exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
           [],
           name='Specter',
+          exclude_binaries=True,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -64,11 +62,14 @@ if sys.platform == 'darwin':
           console=True )
 
     app = BUNDLE(
-        exe,
-        name='Specter.app',
-        icon='../src/cryptoadvance/specter/static/img/icon.icns',
-        bundle_identifier=None,
-        info_plist={
+          exe,
+          a.binaries,
+          a.zipfiles,
+          a.datas,
+          name='Specter.app',
+          icon='../src/cryptoadvance/specter/static/img/icon.icns',
+          bundle_identifier=None,
+          info_plist={
             'NSPrincipleClass': 'NSApplication',
             'NSAppleScriptEnabled': False,
             'NSHighResolutionCapable': 'True',
