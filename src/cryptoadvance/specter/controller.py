@@ -298,15 +298,15 @@ def settings():
         return redirect("/settings/general")
 
 
-@app.route('/settings/hwi', methods=['GET'])
+@app.route('/settings/hwi', methods=['GET', 'POST'])
 @login_required
 def hwi_settings():
-    current_version = notify_upgrade()
-    app.specter.check()
+    if request.method == 'POST':
+        hwi_bridge_url = request.form['hwi_bridge_url']
+        app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,
-        current_version=current_version,
         rand=rand
     )
 
@@ -317,13 +317,11 @@ def general_settings():
     current_version = notify_upgrade()
     app.specter.check()
     explorer = app.specter.explorer
-    hwi_bridge_url = app.specter.hwi_bridge_url
     loglevel = get_loglevel(app)
     unit = app.specter.unit
     if request.method == 'POST':
         action = request.form['action']
         explorer = request.form['explorer']
-        hwi_bridge_url = request.form['hwi_bridge_url']
         unit = request.form['unit']
         if current_user.is_admin:
             loglevel = request.form['loglevel']
@@ -333,7 +331,6 @@ def general_settings():
                 set_loglevel(app, loglevel)
 
             app.specter.update_explorer(explorer, current_user)
-            app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.check()
         elif action == "backup":
@@ -426,7 +423,6 @@ This may take a few hours to complete.', 'info')
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
-        hwi_bridge_url=hwi_bridge_url,
         loglevel=loglevel,
         unit=unit,
         specter=app.specter,
