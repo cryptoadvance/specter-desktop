@@ -158,7 +158,7 @@
 		function calculateConvertedUnit(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			amounts[i] = parseFloat(amountInput.value);
-			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 100000000 : 0.000000001)).toFixed((units[i] == 'sat' ? 8 : 0));
+			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 100000000 : 0.00000001)).toFixed((units[i] == 'sat' ? 8 : 0));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
