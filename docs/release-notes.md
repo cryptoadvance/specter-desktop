@@ -1,3 +1,21 @@
+## v0.7.0 August 26, 2020
+- Build: Create Specter Desktop app  (#273, #308) (@stepansnigirev, @ben-kaufman)
+- Bugfix: Fix importing PSBT functionality (#291) (@ben-kaufman)
+- Bugfix: Fix issue with using xpub with no derivation (`m` only) (#282) (@hodlwave)
+- Bugfix: Fix issue with uploading PSBT from SD card (#292) (@luclefleur)
+- Bugfix: Fix error when creating wallet with single quotes in name (#300) (@luclefleur)
+- Bugfix: Fix signing issue on Cobo Vault (#301) (@stepansnigirev)
+- Bugfix: Fix export format for Cobo Vault and Coldcard (#301) (@stepansnigirev)
+- Bugfix: Fix validation of send form when the amount field is empty (#303) (@ben-kaufman)
+- Bugfix: Fix issue with creating wallets (#305) (@stepansnigirev)
+- Feature: Sats the standard - allow using sats instead of BTC as Specter's unit of account (#306) (@ben-kaufman)
+- Feature: Add a list of the wallet's past addresses to the Receive tab (#296) (@ben-kaufman)
+- Feature: Run the numbers! (Add calculate total BTC supply options to node info screen) (#304) (@ben-kaufman)
+- UI: Ask user to extract backup ZIP before uploading Specter backup folder (#307) (@ben-kaufman)
+- UI: Fix Tor popup typo (#310) (@TheCharlatan)
+- Docs: Add a missing instruction for building with pyinstaller (#285) (@mflaxman)
+- Docs: Update README and screenshots (#309) (@ben-kaufman)
+
 ## v0.6.1 August 13, 2020
 - Devices: Add animated QR codes support for [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) (#279) (@stepansnigirev)
 - Bugfix: Fix malformed JSON issue when exporting wallet to file in Chrome (#274) (@ben-kaufman)
