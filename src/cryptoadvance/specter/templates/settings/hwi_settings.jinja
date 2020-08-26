@@ -45,7 +45,6 @@
 		<script type="text/javascript">
 			let url = window.location.href;
 			let arr = url.split("/");
-			console.log(arr);
 			document.getElementById("url").innerHTML = arr[0] + "//" + arr[2]+"/";
 		</script>
 		<iframe src='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' style="min-height: 550px; width: 100%; margin: 0px;" frameBorder="0"></iframe>
