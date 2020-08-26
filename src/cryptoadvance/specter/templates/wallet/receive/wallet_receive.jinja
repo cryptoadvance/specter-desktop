@@ -34,7 +34,7 @@
 			{{ editable_label(address_label, -1) }}
 		</form>
 		<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:30px auto 30px; border: 1px solid #777; padding: 20px;">
-		<p title="Click to copy" id="address" class="padded" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
+		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
 		(click to copy)
 		<br><br>
 		<qr-code value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
