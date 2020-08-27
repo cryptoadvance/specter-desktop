@@ -158,26 +158,26 @@
 		function calculateConvertedUnit(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			amounts[i] = parseFloat(amountInput.value);
-			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 100000000 : 0.000000001)).toFixed((units[i] == 'sat' ? 8 : 0));
+			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 1e8 : 1e-8)).toFixed((units[i] == 'sat' ? 8 : 0));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
 			document.getElementById('converted_unit_amount_' + i).innerHTML = convertedAmount;
 
-			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 100000000);
+			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
 
 			validateForm();
 		}
 
 		function isAboveWalletBalance(unit, amount) {
-			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.full_available_balance }}');
+			return (unit == 'sat' ? amount / 1e8 : amount) > parseFloat('{{ wallet.full_available_balance }}');
 		}
 
 		function isInvalidValue(unit, amount){
 			if (!amount) {
 			    return false;
 			}
-			return (unit == 'sat' ? amount / 100000000 : amount) < 1e-8;
+			return (unit == 'sat' ? amount / 1e8 : amount) < 1e-8;
 		}
 
 		// Form validation
@@ -225,7 +225,7 @@
 			for(let i in amounts) {
 				let unit = units[i]
 				let amount = amounts[i]
-				totalAmount += (unit == 'sat' ? amount / 100000000 : amount);
+				totalAmount += (unit == 'sat' ? amount / 1e8 : amount);
 				if (submitted && !amount) {
 					showError('Please enter the amount that you wish to send', 5000);
 				}

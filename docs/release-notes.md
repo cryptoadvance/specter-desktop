@@ -8,6 +8,7 @@
 - Bugfix: Fix export format for Cobo Vault and Coldcard (#301) (@stepansnigirev)
 - Bugfix: Fix validation of send form when the amount field is empty (#303) (@ben-kaufman)
 - Bugfix: Fix issue with creating wallets (#305) (@stepansnigirev)
+- Bugfix: Fix BTC to sat unit conversion mistake of x10 on Send tab amount input (#314) (@ben-kaufman)
 - Feature: Sats the standard - allow using sats instead of BTC as Specter's unit of account (#306) (@ben-kaufman)
 - Feature: Add a list of the wallet's past addresses to the Receive tab (#296) (@ben-kaufman)
 - Feature: Run the numbers! (Add calculate total BTC supply options to node info screen) (#304) (@ben-kaufman)
