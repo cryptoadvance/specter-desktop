@@ -46,4 +46,5 @@ before_install:
   - set -o errexit; source ./tests/install_bitcoind.sh
 script: 
   - pip install -e .
+  - pip install -r test_requirements.txt
   - pytest

@@ -2,7 +2,6 @@
 
 Install dependencies:
 
-HWI support requires `libusb` (necessary? Or is `pip install libusb1` sufficient?):
 * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
 * macOS: `brew install libusb`
 
@@ -11,7 +10,6 @@ git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
 virtualenv --python=python3 .env
 source .env/bin/activate
-pip3 install -r requirements.txt
 pip3 install -e .
 ```
 
@@ -25,8 +23,9 @@ python3 -m cryptoadvance.specter server
 # Run the tests
 Run the tests (still very limited):
 
-```
+```sh
 pip3 install -e .
+pip3 install -r test_requirements.txt
 
 # needs a bitcoind on your path
 pytest 
