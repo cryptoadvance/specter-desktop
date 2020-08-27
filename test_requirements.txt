@@ -1,0 +1,4 @@
+# requirements for testing
+docker==4.1.0
+pytest==5.2.2
+PySocks==1.7.1
