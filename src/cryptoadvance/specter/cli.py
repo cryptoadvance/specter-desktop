@@ -7,10 +7,6 @@ from stem.control import Controller
 from . import tor_util
 import click
 
-import docker
-
-from .bitcoind import (BitcoindDockerController,
-                       fetch_wallet_addresses_for_mining)
 from .server import create_app, init_app
 from .config import DATA_FOLDER
 
@@ -186,6 +182,11 @@ def server(daemon, stop, restart, force,
 @click.option('--mining/--no-mining', default=True)
 @click.option('--docker-tag', "docker_tag", default="latest")
 def bitcoind(debug, mining, docker_tag):
+    import docker
+
+    from .bitcoind import (BitcoindDockerController,
+                           fetch_wallet_addresses_for_mining)
+
     mining_every_x_seconds = 15
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
