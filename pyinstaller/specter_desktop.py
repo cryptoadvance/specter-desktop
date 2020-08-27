@@ -459,7 +459,6 @@ def init_desktop_app():
 
     # Setup settings
     first_time = settings.value('first_time', defaultValue=True, type=bool)
-    first_time = True
     if first_time:
         settings.setValue('first_time', False)
         settings.setValue('remote_mode', False)
