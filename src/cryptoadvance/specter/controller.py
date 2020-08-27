@@ -1332,7 +1332,7 @@ def btcunitamount(value):
     if app.specter.unit != 'sat':
         return btcamount(value)
     value = float(value)
-    return "{:,.0f}".format(round(value * 100000000))
+    return "{:,.0f}".format(round(value * 1e8))
 
 
 @app.template_filter('bytessize')
