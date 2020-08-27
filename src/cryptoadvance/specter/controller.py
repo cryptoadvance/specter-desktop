@@ -232,7 +232,7 @@ def login():
 
 def redirect_login(request):
     flash('Logged in successfully.',"info")
-    if request.form.get('next'):
+    if request.form.get('next') and request.form.get('next') != 'None':
         response = redirect(request.form['next'])
     else:
         response = redirect(url_for('index'))
