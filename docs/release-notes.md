@@ -1,3 +1,6 @@
+## v0.7.1 August 26, 2020
+- Bugfix: Move docker dependency away from main code (#316) (@stepansnigirev)
+
 ## v0.7.0 August 26, 2020
 - Build: Create Specter Desktop app  (#273, #308) (@stepansnigirev, @ben-kaufman)
 - Bugfix: Fix importing PSBT functionality (#291) (@ben-kaufman)
