@@ -13,6 +13,7 @@
 - Feature: Run the numbers! (Add calculate total BTC supply options to node info screen) (#304) (@ben-kaufman)
 - UI: Ask user to extract backup ZIP before uploading Specter backup folder (#307) (@ben-kaufman)
 - UI: Fix Tor popup typo (#310) (@TheCharlatan)
+- UI: Configure local and remote HWI in one place (#312) (@stepansnigirev)
 - Docs: Add a missing instruction for building with pyinstaller (#285) (@mflaxman)
 - Docs: Update README and screenshots (#309) (@ben-kaufman)
 
