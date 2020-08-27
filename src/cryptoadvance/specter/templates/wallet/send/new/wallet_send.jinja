@@ -66,7 +66,7 @@
 		function addRecipient() {
 			let i = amounts.length;
 			amounts.push(0.0);
-			units.push('{% if specter.unit == "sat" %}sat{% else %}BTC{% endif %}');
+			units.push('{% if specter.unit == "sat" %}sat{% else %}btc{% endif %}');
 
 			let recipientForm = `
 			<div id="recipient_${i}" style="border-bottom: 1px solid var(--cmap-border); padding-bottom: 10px; margin-bottom: 10px;">
@@ -151,7 +151,7 @@
 
 		function toggleUnit(unitSelected, i) {
 			units[i] = unitSelected.value;
-			document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'BTC' : 'sat');
+			document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'btc' : 'sat');
 			calculateConvertedUnit(i);
 		}
 
@@ -235,7 +235,7 @@
 				}
 			}
 
-			if (!validateAmount('BTC', totalAmount)) {
+			if (!validateAmount('btc', totalAmount)) {
 				createPSBTButton.setAttribute('type', 'button');
 				return;
 			}
