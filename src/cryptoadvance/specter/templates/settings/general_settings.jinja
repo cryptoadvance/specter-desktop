@@ -5,22 +5,6 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
 		<div class="card" style="margin: 20px auto;">
-			<h1> HWI Bridge </h1>
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
-						If you connect the USB directly to the machine you are running Specter on, leave the default value here (/hwi/api/).<br><br>
-						If you are using Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.<br><br>
-						Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
-					</span>
-				</p>
-			</div>
-			HWI Bridge URL:
-			<br>
-			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
-			<br><br><br>
 			<h1> Backup and Restore </h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>

@@ -279,6 +279,17 @@ class Specter:
         if url and not url.endswith("/"):
             # make sure the urls end with a "/"
             url += "/"
+        # a few dummy checks:
+        # no schema and not local
+        if "://" not in url and not url.startswith("/"):
+            url = "http://"+url
+        # wrong ending:
+        if url.endswith("/hwi/settings/"):
+            url = url.replace("/hwi/settings/", "/hwi/api/")
+        # no ending
+        if not url.endswith("/hwi/api/"):
+            url += "hwi/api/"
+
         if user.id == 'admin':
             self.config["hwi_bridge_url"] = url
             self._save()
