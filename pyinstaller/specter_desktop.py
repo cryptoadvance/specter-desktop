@@ -148,7 +148,7 @@ class ProcessRunnable(QRunnable):
     def start(self):
         QThreadPool.globalInstance().start(self)
 
-def run_specterd(menu, view):
+def run_specterd(menu, view, first_time=False):
     global specterd_thread, wait_for_specterd_process
     try:
         extention = '.exe' if platform.system() == "Windows" else ''
@@ -169,7 +169,7 @@ def run_specterd(menu, view):
             stdout=subprocess.PIPE
         )
         wait_for_specterd_process = ProcessRunnable(menu)
-        wait_for_specterd_process.signals.result.connect(lambda: open_webview(view))
+        wait_for_specterd_process.signals.result.connect(lambda: open_webview(view, first_time))
         wait_for_specterd_process.signals.error.connect(lambda: print("error"))
         wait_for_specterd_process.start()
     except Exception as e:
@@ -242,6 +242,11 @@ def open_settings():
             defaultValue='http://localhost:25441/',
             type=str
         )
+        if not specter_url_temp.endswith("/"):
+            specter_url_temp += "/"
+        # missing schema?
+        if "://" not in specter_url_temp:
+            specter_url_temp = "http://"+specter_url_temp
 
         settings.setValue(
             'specter_url',
@@ -277,9 +282,15 @@ def open_settings():
                 f.write(json.dumps(config, indent=4))
         # TODO: Add PORT setting
 
-def open_webview(view):
+def open_webview(view, first_time=False):
+    url = settings.value("specter_url", type=str).strip("/")
+    if first_time and settings.value('remote_mode', defaultValue=False, type=bool):
+        url += "/settings/hwi"
+    # missing schema?
+    if "://" not in url:
+        url = "http://"+url
     if not view.isVisible():
-        view.load(QUrl(settings.value("specter_url", type=str)))
+        view.load(QUrl(url))
         view.show()
     # if the window is already open just bring it to top
     # hack to make it pop-up
@@ -447,13 +458,15 @@ def init_desktop_app():
     app.setWindowIcon(icon)
 
     # Setup settings
-    if settings.value('first_time', defaultValue=True, type=bool):
+    first_time = settings.value('first_time', defaultValue=True, type=bool)
+    first_time = True
+    if first_time:
         settings.setValue('first_time', False)
         settings.setValue('remote_mode', False)
         settings.setValue('specter_url', "http://localhost:25441/")
         open_settings()
 
-    run_specterd(menu, view)
+    run_specterd(menu, view, first_time)
 
     sys.exit(app.exec_())
 
