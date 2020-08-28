@@ -49,7 +49,7 @@ def test_call_non_existing_method(client):
     })
     assert { 
         "jsonrpc": "2.0",
-        "error": { "code": -32601, "message": "Method not found" },
+        "error": { "code": -32601, "message": "Method not found." },
         "id": 1
     } == json.loads(req.data)
 
@@ -86,7 +86,7 @@ def test_calling_method_with_non_existing_parameters(client):
     })
     assert { 
         "jsonrpc": "2.0",
-        "error": { "code": -32000, "message": "Internal error: enumerate() got an unexpected keyword argument 'non_existing_parameter'" },
+        "error": { "code": -32000, "message": "Internal error: enumerate() got an unexpected keyword argument 'non_existing_parameter'." },
         "id": 1
     } == json.loads(req.data)
 
@@ -101,7 +101,7 @@ def test_call_not_connected_device(client):
     })
     assert { 
         "jsonrpc": "2.0",
-        "error": { "code": -32000, "message": "Internal error: The device could not be found. Please check it is properly connected and try again" },
+        "error": { "code": -32000, "message": "Internal error: The device could not be found. Please check it is properly connected and try again." },
         "id": 1
     } == json.loads(req.data)
 
@@ -116,6 +116,6 @@ def test_call_prompt_pin_invalid_device(client):
     })
     assert { 
         "jsonrpc": "2.0",
-        "error": { "code": -32000, "message": "Internal error: Invalid HWI device type ledger, prompt_pin is only supported for Trezor and Keepkey devices" },
+        "error": { "code": -32000, "message": "Internal error: Invalid HWI device type ledger, prompt_pin is only supported for Trezor and Keepkey devices." },
         "id": 1
     } == json.loads(req.data)
