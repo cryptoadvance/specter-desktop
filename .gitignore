@@ -12,3 +12,4 @@ cert.pem
 key.pem
 *.dmg
 pyinstaller/specterd/*
+pyinstaller/release
