@@ -1,3 +1,10 @@
+## v0.7.2 August 28, 2020
+- Build: Add build scripts for building the release files (#319) (@stepansnigirev)
+- Bugfix: In the desktop app, open a remote https/ Tor Specter node in browser instead of Qtweb  (#320) (@stepansnigirev)
+- Bugfix: Fix specterd not shutting down after closing desktop app with `cmd+q` (#320) (@stepansnigirev)
+- Bugfix: Fix send amount using sats units by default even when using BTC as wallet unit (#318) (@ben-kaufman)
+- Bugfix: Fix redirect error after login (#318) (@ben-kaufman)
+
 ## v0.7.1 August 26, 2020
 - Bugfix: Move docker dependency away from main code (#316) (@stepansnigirev)
 
