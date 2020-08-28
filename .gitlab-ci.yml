@@ -55,14 +55,11 @@ release_pip:
 
 release_binaries:
   stage: releasing
-#  only: 
-#    - tags
+  only: 
+    - tags
   script:
     # Make sure the version-number is compatibe to the scheme
-    # - if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
+    - if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
     - pip3 install github-binary-upload
-    - cd pyinstaller && ./build-unix.sh v0.0.1 # ToDo $CI_COMMIT_TAG
-    - pwd && echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries k9ert/specter-desktop v0.0.1 ./release/specterd-v0.0.1-x86_64-linux-gnu.tar.gz ./release/specter_desktop-v0.0.1-x86_64-linux-gnu.tar.gz
-
-
-
+    - cd pyinstaller && ./build-unix.sh $CI_COMMIT_TAG
+    - pwd && echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries k9ert/specter-desktop $CI_COMMIT_TAG ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
