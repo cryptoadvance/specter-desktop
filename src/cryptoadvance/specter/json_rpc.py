@@ -13,18 +13,13 @@ class JSONRPC:
         """Processes json-rpc request"""
         # if it is a list (not bundled) run one by one
         if isinstance(request, list):
-            responses = []
-            for req in request:
-                responses.append(self.jsonrpc(req))
-            return responses
-        if "id" not in request:
-            request["id"] = None
-        response = { "jsonrpc": "2.0", "id": request["id"] }
+            return [self.jsonrpc(req) for req in request]
+        response = { "jsonrpc": "2.0", "id": request["id"] if "id" in request else None }
         if "method" not in request:
             response["error"] = { "code": -32600, "message": "Invalid Request. Request must specify a 'method'." }
             return response
         if request["method"] not in self.exposed_rpc:
-            response["error"] = { "code": -32601, "message": "Method not found" }
+            response["error"] = { "code": -32601, "message": "Method not found." }
             return response
         method = self.exposed_rpc[request["method"]]
         try:
@@ -36,5 +31,5 @@ class JSONRPC:
                 response["result"] = method(**request["params"]) # dict -> **kwargs
         except Exception as e:
             traceback.print_exc()
-            response["error"] = { "code": -32000, "message": f"Internal error: {e}" }
+            response["error"] = { "code": -32000, "message": f"Internal error: {e}." }
         return response
