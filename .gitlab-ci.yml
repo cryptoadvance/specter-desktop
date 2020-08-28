@@ -36,7 +36,7 @@ test:
     # - python3 tests/conftest.py 
     - pytest --docker
 
-release:
+release_pip:
   stage: releasing
   only: 
     - tags
@@ -52,5 +52,17 @@ release:
     # twine ready the password from the env-var TWINE_PASSWORD
     # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
     - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
+
+release_binaries:
+  stage: releasing
+#  only: 
+#    - tags
+  script:
+    # Make sure the version-number is compatibe to the scheme
+    # - if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
+    - pip3 install github-binary-upload
+    - cd pyinstaller && ./build-unix.sh v0.0.1 # ToDo $CI_COMMIT_TAG
+    - cd pyinstaller && echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries k9ert/specter-desktop v0.0.1 ./release/specterd-v0.0.1-x86_64-linux-gnu.tar.gz ./release/specter_desktop-v0.0.1-x86_64-linux-gnu.tar.gz
+
 
 
