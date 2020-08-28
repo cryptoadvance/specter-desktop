@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, \
     QDialog, QDialogButtonBox, QVBoxLayout, QRadioButton, QLineEdit, \
     QFileDialog, QLabel, QWidget
 from PyQt5.QtCore import QRunnable, QThreadPool, QSettings, QUrl, \
-    Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint
+    Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint, QEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import sys
@@ -132,7 +132,6 @@ class ProcessRunnable(QRunnable):
                     ) else ''
                 ))
                 toggle_specterd_status(menu)
-                # open_specter_window()
                 self.signals.result.emit()
                 return
             elif b'Failed' in line or b'Error' in line:
@@ -289,6 +288,10 @@ def open_webview(view, first_time=False):
     # missing schema?
     if "://" not in url:
         url = "http://"+url
+    # if https:// or .onion - use browser
+    if "https://" in url or ".onion" in url:
+        webbrowser.open(settings.value("specter_url", type=str), new=1)
+        return
     if not view.isVisible():
         view.load(QUrl(url))
         view.show()
@@ -396,14 +399,23 @@ class WebView(QWidget):
                                   self.tray.icon())
         super().closeEvent(*args, **kwargs)
 
-
+class Application(QApplication):
+    def event(self, event):
+        # not sure what 20 means
+        if event and event.type() in [QEvent.Close, 20]:
+            quit_specter(self)
+        return False
 
 def init_desktop_app():
-    app = QApplication([])
+    app = Application([])
     app.setQuitOnLastWindowClosed(False)
 
+    def sigint_handler(*args):
+        """Handler for the SIGINT signal."""
+        quit_specter(app)
+
     # fix termination ctrl+c
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, sigint_handler)
 
     # Create the icon
     icon = QIcon(os.path.join(

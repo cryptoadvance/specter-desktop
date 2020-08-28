@@ -1,3 +1,11 @@
+# Build scripts
+
+Run `build-<your-os> <version_number>` file to build everything.
+
+For example, `build-osx.sh 1.2.3` will create `SpecterDesktop-1.2.3.dmg` and `specterd-1.2.3-osx.zip` in the `release` folder.
+
+On Windows `release` folder is empty, but `dist` folder contains a `specter_desktop` folder for inno setup and `specterd.exe` binary.
+
 # Pyinstaller build
 
 `cd` into this directory (`specter-desktop/pyinstaller`) and install requirements:
