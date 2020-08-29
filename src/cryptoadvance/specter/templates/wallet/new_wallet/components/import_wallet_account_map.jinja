@@ -54,7 +54,7 @@
 
 		if (el != null) {
 			el.addEventListener("change", (e) => {
-				files = el.files;
+				files = e.currentTarget.files;
 				console.log(files);
 				for(let i=0; i<files.length; i++){
 					console.log(files[i].name);
