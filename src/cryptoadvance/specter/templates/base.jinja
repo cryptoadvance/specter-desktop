@@ -4,6 +4,7 @@
 		<link rel="shortcut icon" type="image/png" href="/static/img/icon.png"/>
 		<title>Specter Desktop</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="format-detection" content="telephone=no">
 		<link rel="stylesheet" type="text/css" href="/static/styles.css?{{rand}}">
 	</head>
 	<body>
@@ -29,8 +30,8 @@
 						</a>
 					{% endif %}
 				</div>
-			{% endif %}
 			<img id="menubtn" src="/static/img/menu.svg"/>
+			{% endif %}
 
 			<div id="messages">
 			{% with messages = get_flashed_messages(with_categories=True) %}

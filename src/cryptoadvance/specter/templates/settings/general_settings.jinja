@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST">
-		<h1>General settings - Specter Desktop {{ current_version }}</h1>
+		<h1 class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
 		<div class="card" style="margin: 20px auto;">

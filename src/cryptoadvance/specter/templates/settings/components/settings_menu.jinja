@@ -11,10 +11,10 @@
 		{% if current_user.is_admin %}
 			{{ settings_menu_item('bitcoin_core_settings', 'Bitcoin Core', active_menuitem, isLeft=true) }}
 		{% endif %}
-		{{ settings_menu_item('general_settings', 'General', active_menuitem, isLeft=not current_user.is_admin) }}
-		{{ settings_menu_item('auth_settings', 'Authentication', active_menuitem, isRight=not current_user.is_admin) }}
+		{{ settings_menu_item('general_settings', 'General', active_menuitem, isLeft=(not current_user.is_admin)) }}
+		{{ settings_menu_item('auth_settings', 'Authentication', active_menuitem, optional=true, isRight=not current_user.is_admin) }}
 		{% if current_user.is_admin %}
-			{{ settings_menu_item('hwi_settings', 'HWI Bridge', active_menuitem, isRight=true) }}
+			{{ settings_menu_item('hwi_settings', 'HWI Bridge', active_menuitem, optional=true, isRight=true) }}
 		{% endif %}
 	</nav>
 {%- endmacro %}

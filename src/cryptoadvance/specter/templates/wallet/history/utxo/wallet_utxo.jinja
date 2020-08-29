@@ -62,7 +62,8 @@
 					<br>
 				</form><br><br>
 				{% if is_address_view %}
-					<span class="address">{{ explorer_link('address', account, account, specter.explorer) }}</span>
+					<span class="address optional">{{ explorer_link('address', account, account, specter.explorer) }}</span>
+					<span class="tx scroll mobile-only">{{ explorer_link('address', account, account, specter.explorer) }}</span>
 				{% endif %}
 				<p class="balance">Balance: 
 					{{wallet.balance_on_address(account) if is_address_view else wallet.balance_on_label(account) | btcunitamount}} 

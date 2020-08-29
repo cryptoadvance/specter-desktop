@@ -11,7 +11,7 @@
 </style>
 <div class="hidden" id="key_export_qr">
     <form class="flex-center flex-column">
-        <div style="min-height: 400px;">
+        <div>
             <span id='key_qr_code'></span>
             <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, 'Coppied full key')">{{ key }}</pre>
         </div>
@@ -19,7 +19,7 @@
         <table style="text-align: left; width: 70%; margin: auto; border: none;">
             <tr style="background: unset; border: none;">
             <td style="border: none;">
-                <label style="height: 25px; vertical-align: sub; font-size: 1.3em; font-weight: bolder;">Show derivation path:&nbsp;</label>
+                <label class="switch-label">Show derivation path:&nbsp;</label>
             </td>
             <td style="border: none;">
                 <label class="switch">
@@ -30,7 +30,7 @@
             </tr>
             <tr style="background: unset; border: none;">
             <td style="border: none;">
-                <label style="height: 25px; vertical-align: sub; font-size: 1.3em; font-weight: bolder;">Use SLIP-132:&nbsp;</label>
+                <label class="switch-label">Use SLIP-132:&nbsp;</label>
             </td>
             <td style="border: none;">
                 <label class="switch">
@@ -61,18 +61,18 @@
         let i = document.getElementById('key_selected').value;
         if (toggleDerPath.checked) {
             if (toggleSlip132.checked) {
-                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_slip132}" width="400"></qr-code>`
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_slip132}" width="${Math.min(window.innerWidth * 0.6, 400)}"></qr-code>`
                 keyText.innerText = keys[i].full_der_slip132;
             } else {
-                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_no_slip132}" width="400"></qr-code>`
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].full_der_no_slip132}" width="${Math.min(window.innerWidth * 0.6, 400)}"></qr-code>`
                 keyText.innerText = keys[i].full_der_no_slip132;
             }
         } else {
             if (toggleSlip132.checked) {
-                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_slip132}" width="400"></qr-code>`
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_slip132}" width="${Math.min(window.innerWidth * 0.6, 400)}"></qr-code>`
                 keyText.innerText = keys[i].no_der_slip132;
             } else {
-                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_no_slip132}" width="400"></qr-code>`
+                keyQr.innerHTML = `<qr-code class='center' value="${keys[i].no_der_no_slip132}" width="${Math.min(window.innerWidth * 0.6, 400)}"></qr-code>`
                 keyText.innerText = keys[i].no_der_no_slip132;
             }
         }
