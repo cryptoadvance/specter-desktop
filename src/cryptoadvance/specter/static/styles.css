@@ -958,7 +958,7 @@ a:focus + .tool-tip .tool-tip__info {
     display: none;
   }
 }
-@media (max-width: 600px){
+@media (max-width: 690px){
     .card{
         border-width: 0px;
         width: 90%;
@@ -1010,8 +1010,8 @@ a:focus + .tool-tip .tool-tip__info {
         width: 200px !important;
         margin: auto !important;
     }
-    button.btn {
-        max-width: 40%;
+    .cancel, .update, .edit {
+        max-width: 45%;
     }
     .label {
         margin-bottom: 10px;
