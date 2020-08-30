@@ -144,16 +144,18 @@ class BitcoinCore(Device):
             self.add_keys(keys)
 
     def _load_wallet(self, wallet_manager):
-        existing_wallets = [w["name"]
-                            for w
-                            in wallet_manager.cli.listwalletdir()["wallets"]]
+        try:
+            existing_wallets = [w["name"]
+                                for w
+                                in wallet_manager.cli.listwalletdir()["wallets"]]
+        except:
+            existing_wallets = None
         loaded_wallets = wallet_manager.cli.listwallets()
-        not_loaded_wallets = [
-            w for w in existing_wallets if w not in loaded_wallets]
 
         hotstorage_path = wallet_manager.cli_path + "_hotstorage"
-        if os.path.join(hotstorage_path, self.alias) in existing_wallets:
-            if os.path.join(hotstorage_path, self.alias) in not_loaded_wallets:
+        if (existing_wallets is None or
+            os.path.join(hotstorage_path, self.alias) in existing_wallets):
+            if os.path.join(hotstorage_path, self.alias) not in loaded_wallets:
                 wallet_manager.cli.loadwallet(os.path.join(
                     hotstorage_path, self.alias))
 
