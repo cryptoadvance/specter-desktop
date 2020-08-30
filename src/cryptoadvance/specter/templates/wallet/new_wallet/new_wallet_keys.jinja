@@ -45,8 +45,8 @@
 							<tr>
 								<th>Network</th>
 								<th>Purpose</th>
-								<th>Derivation</th>
-								<th>Key</th>
+								<th class="optional">Derivation</th>
+								<th class="optional">Key</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
@@ -62,8 +62,8 @@
 										{% endif %}
 									</td>
 									<td>{{ purposes[key.key_type] }}</td>
-									<td>{{ key.derivation }}</td>
-									<td class="scroll xpub"><span>{{ key.original }}</span></td>
+									<td class="optional">{{ key.derivation }}</td>
+									<td class="scroll xpub optional"><span>{{ key.original }}</span></td>
 									<td width="120px">
 										<label>
 											<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>

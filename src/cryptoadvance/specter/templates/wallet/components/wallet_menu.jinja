@@ -10,7 +10,7 @@
 	<nav class="row">
 		{{ wallet_menu_item('wallet_tx', 'Transactions', wallet_alias, active_menuitem, isLeft=true) }}
 		{{ wallet_menu_item('wallet_receive', 'Receive', wallet_alias, active_menuitem) }}
-		{{ wallet_menu_item('wallet_send', 'Send', wallet_alias, active_menuitem) }}
-		{{ wallet_menu_item('wallet_settings', 'Settings', wallet_alias, active_menuitem, isRight=true) }}
+		{{ wallet_menu_item('wallet_send', 'Send', wallet_alias, active_menuitem, optional=True) }}
+		{{ wallet_menu_item('wallet_settings', 'Settings', wallet_alias, active_menuitem, optional=True, isRight=true) }}
 	</nav>
 {%- endmacro %}

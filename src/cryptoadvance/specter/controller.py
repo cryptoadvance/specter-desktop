@@ -769,15 +769,6 @@ def new_wallet(wallet_type):
             if wallet_name in app.specter.wallet_manager.wallets_names:
                 err = "Wallet already exists"
             address_type = request.form['type']
-            pur = {
-                '': "General",
-                "wpkh": "Segwit (bech32)",
-                "sh-wpkh": "Nested Segwit",
-                "pkh": "Legacy",
-                "wsh": "Segwit (bech32)",
-                "sh-wsh": "Nested Segwit",
-                "sh": "Legacy",
-            }
             sigs_total = int(request.form.get('sigs_total', 1))
             sigs_required = int(request.form.get('sigs_required', 1))
 
@@ -802,7 +793,7 @@ def new_wallet(wallet_type):
                         break
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
-                purposes=pur, 
+                purposes=purposes, 
                 wallet_type=address_type,
                 wallet_name=wallet_name, 
                 cosigners=devices,
@@ -833,7 +824,7 @@ def new_wallet(wallet_type):
                 err = "Did you select enough keys?"
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=pur, 
+                    purposes=purposes, 
                     wallet_type=address_type,
                     wallet_name=wallet_name, 
                     cosigners=devices,

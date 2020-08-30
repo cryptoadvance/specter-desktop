@@ -2,7 +2,7 @@
 {% block main %}
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
-	<h1>{{ device.name }}</h1>
+	<h1 id="title">{{ device.name }}</h1>
 	<form action="./" method="POST">
 		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
@@ -14,7 +14,7 @@
 		<table>
 			<thead>
 				<tr>
-					<th>Network</th><th>Purpose</th><th>Derivation</th><th></th><th>Key</th><th>Actions</th>
+					<th>Network</th><th>Purpose</th><th class="optional">Derivation</th><th class="mobile-only">Export</th><th class="optional"></th><th class="optional">Key</th><th class="optional">Actions</th>
 				</tr>
 			</thead>
 			<input type="hidden" id="key_selected" value="0" />
@@ -30,14 +30,14 @@
 							{% endif %}
 						</td>
 						<td>{{ key.purpose }}</td>
-						<td>{{ key.derivation }}</td>
+						<td class="optional">{{ key.derivation }}</td>
 						<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
 							<img style="margin-top: 5px;" width="15" src="/static/img/qr_tiny.svg"/>
 						</td>
-						<td class="xpub scroll">
+						<td class="xpub scroll optional">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
 						</td>
-						<td width="80px">
+						<td width="80px" class="optional">
 							<form action="./" method="POST">
 								<input type="hidden" name="key" value="{{ key.original }}">
 								<button type="submit" name="action" value="delete_key" class="btn danger hovering">Delete</button>
@@ -49,7 +49,7 @@
 		</table>
 	</div>
 	<div class="spacer"></div>
-	<div class="row">
+	<div class="row optional">
 		{% if device.supports_hwi_toggle_passphrase %}
 		<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
 		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
