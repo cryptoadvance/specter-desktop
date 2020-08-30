@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QIcon, QCursor, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, \
     QDialog, QDialogButtonBox, QVBoxLayout, QRadioButton, QLineEdit, \
-    QFileDialog, QLabel, QWidget
+    QFileDialog, QLabel, QWidget, QMessageBox
 from PyQt5.QtCore import QRunnable, QThreadPool, QSettings, QUrl, \
     Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint, QEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -476,6 +476,13 @@ def init_desktop_app():
         settings.setValue('remote_mode', False)
         settings.setValue('specter_url', "http://localhost:25441/")
         open_settings()
+        if platform.system() == 'Darwin':
+            macos_first_launch_warning_dialog = QMessageBox()
+            macos_first_launch_warning_dialog.information(
+                None,
+                '',
+                'Please note:\n\nThere is a known issue with first launch of the app on macOS due to Apple\'s Gatekeeper feature.\n\nIf the app takes more than a few seconds to appear, please try to quit and reopen it.\n\nFor more information and troubleshooting please see this note:\nhttps://github.com/cryptoadvance/specter-desktop/issues/329#issuecomment-683330627'
+            )
 
     run_specterd(menu, view, first_time)
 
