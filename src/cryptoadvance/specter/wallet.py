@@ -3,6 +3,7 @@ from time import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
+from .merkle import hex_merkleroot, calc_block_hash
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
@@ -314,15 +315,41 @@ class Wallet():
             transactions = cli_txs[:wallet_tx_batch]
         except:
             return []
-        txids = []
         result = []
+        blocks = {}
         for tx in transactions:
             if 'confirmations' not in tx:
                 tx['confirmations'] = 0
             if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
                 continue # means the tx is duplicated (change), continue
 
-            txids.append(tx["txid"])
+            # Cache queries to be safe:
+            blockhash = tx['blockhash']
+            if blockhash not in blocks:
+                blocks[blockhash] = self.cli.getblock(blockhash)
+
+            merkle_root = blocks[blockhash]['merkleroot']
+            calculated_merkle_root = hex_merkleroot(tx_hashes_hex=blocks[blockhash]['tx'])
+            if calculated_merkle_root != merkle_root:
+                # TODO: handle this nicely, just crashing for now (should never happen)
+                # This would happen if your bitcoin node gave you a merkle root that didn't match the block it gave you (figuring you wouldn't check)
+                raise Exception("Bad Merkle Root %s for block %s, expecting %s" % (calculated_merkle_root, tx['blockhash'], merkle_root))
+
+            calculated_block_hash = calc_block_hash(
+                version=blocks[blockhash]['version'],  # could be versionHex
+                prev_block_hash=blocks[blockhash]['previousblockhash'],
+                merkle_root=merkle_root,
+                timestamp=blocks[blockhash]['time'],  # FIXME: formatting  # could b emediantime
+                bits=blocks[blockhash]['bits'],
+                nonce=blocks[blockhash]['nonce'],
+            )
+
+            if calculated_block_hash != blockhash:
+                # TODO: handle this nicely, just crashing for now (should never happen)
+                # This would happen if the merkle root that your bitcoin node gave you was part of a blockhash that wasn't in the actual blockchain
+                raise Exception("Invalid block hash! Expecting %s but got %s" % (blockhash, calculated_block_hash))
+
+            tx['validate_merkle_root'] = True  # this could be used for something where you display that transaction X was in block Y (result['blockhash'])
             result.append(tx)
 
         return result
