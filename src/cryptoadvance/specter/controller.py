@@ -1166,7 +1166,15 @@ def wallet_settings(wallet_alias):
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
         elif action == "rescanutxo":
-            wallet.rescanutxo()
+            explorer = None
+            if "use_explorer" in request.form:
+                if app.specter.chain == "main":
+                    explorer = "https://blockstream.info/"
+                elif app.specter.chain == "test":
+                    explorer = "https://test.blockstream.info/"
+                elif app.specter.chain == "signet":
+                    explorer = "https://explorer.bc-2.jp/"
+            wallet.rescanutxo(explorer)
             app.specter._info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":

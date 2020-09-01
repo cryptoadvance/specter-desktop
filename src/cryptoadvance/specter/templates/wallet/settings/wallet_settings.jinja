@@ -57,6 +57,24 @@
 				</div>
 			</button>
 		</div>
+		{% if specter.info['pruned']  %}
+			<div class="row" style="margin-top: 10px">
+				<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+					<div class="tool-tip">
+						<i class="tool-tip__icon">i</i>
+						<p class="tool-tip__info">
+							<span class="info">
+								<span class="info__title">Fetch missing data</span><br><br>
+								You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+								Check this checkbox if you want to fetch missing information from blockstream.info
+							</span>
+						</p>
+					</div>
+
+				</label>
+			</div>
+		{% endif %}
+
 		{% endif %}
 	</form>
 	<br>

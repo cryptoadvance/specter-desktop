@@ -8,6 +8,7 @@ from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
+import requests
 
 logger = logging.getLogger()
 
@@ -327,11 +328,11 @@ class Wallet():
 
         return result
 
-    def rescanutxo(self):
-        t = threading.Thread(target=self._rescan_utxo_thread)
+    def rescanutxo(self, explorer=None):
+        t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
 
-    def _rescan_utxo_thread(self):
+    def _rescan_utxo_thread(self, explorer=None):
         args = [
             "start",
             [{
@@ -364,10 +365,29 @@ class Wallet():
         raws = [r["result"] for r in res]
         for i, tx in enumerate(unspents):
             tx["raw"] = raws[i]
+        missing = [tx for tx in unspents if tx["raw"] is None]
+        existing = [tx for tx in unspents if tx["raw"] is not None]
         self.cli.multi([
             ("importprunedfunds", tx["raw"], tx["proof"])
-            for tx in unspents
+            for tx in existing
         ])
+        # handle missing transactions now
+        # TODO: do it over Tor
+        if explorer is not None:
+            # make sure there is no leading /
+            explorer = explorer.rstrip("/")
+            raws = [requests.get(
+                        f"{explorer}/api/tx/{tx['txid']}/hex"
+                        ).text
+                    for tx in missing]
+            proofs = [requests.get(
+                        f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                        ).text
+                      for tx in missing]
+            self.cli.multi([
+                ("importprunedfunds", raws[i], proofs[i])
+                for i in range(len(raws))
+            ])
 
     @property
     def rescan_progress(self):
