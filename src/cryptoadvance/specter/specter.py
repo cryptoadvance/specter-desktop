@@ -46,6 +46,7 @@ class Specter:
         self.cli = None
         self.device_manager = None
         self.wallet_manager = None
+        self._current_version = None
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
@@ -439,6 +440,8 @@ class Specter:
         pass
 
     @property
-    def get_version(self):
-        return get_version_info()[0]
+    def specter_version(self):
+        if not self._current_version:
+            self._current_version = get_version_info()[0]
+        return self._current_version
 
