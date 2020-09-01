@@ -94,7 +94,15 @@
             <a href="https://github.com/cryptoadvance/" target="_blank">
                 <img src="/static/img/ca.png">
             </a>
-	    <span>Specter v<strong>{{ specter.get_version }}</strong></span>
+	    <span>Specter Version: 
+		<strong>
+		    {% if specter.get_version == 'vx.y.z-get-replaced-by-release-script' %}
+			custom
+    		    {% else %}
+			{{ specter.get_version }}
+		    {% endif %}
+		</strong>
+	    </span>
         </div>
     </nav>
     <div id="side-expand">

@@ -344,6 +344,7 @@ button.btn{
     justify-content: flex-end;
     font-size: 0.7em;
     flex-grow: 1;
+    padding-bottom: 10px;
 }
 .footer img{
     width: 85px;

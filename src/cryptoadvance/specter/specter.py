@@ -440,5 +440,5 @@ class Specter:
 
     @property
     def get_version(self):
-        return get_version_info()[1]
+        return get_version_info()[0]
 
