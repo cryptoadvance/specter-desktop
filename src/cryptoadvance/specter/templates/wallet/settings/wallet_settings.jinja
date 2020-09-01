@@ -96,7 +96,14 @@
 	</div>
 	<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">Show keys details</button>
 	<br>
-	<div id="keys_list" style="display: none; width: 85%;">
+	<div id="keys_list" class="center" style="display: none; width: 85%;">
+		<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
+		<label class="switch">
+			<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+			<span class="slider"></span>
+		</label><br>
+		<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
+		<br>
 		{% for i in range(wallet.devices | length) %}
 			{% set device = wallet.devices[i] %}
 			{% set key = wallet.keys[i] %}
@@ -123,7 +130,7 @@
 							</td>
 							<td>{{ purposes[key.key_type] }}</td>
 							<td class="optional">{{ key.derivation }}</td>
-							<td class="scroll xpub optional"><span>{{ key.xpub }}</span></td>
+							<td class="scroll xpub optional"><span class="normal_xpub">{{ key.original }}</span><span class="slip132_xpub hidden">{{ key.xpub }}</span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -188,6 +195,27 @@
 			} else {
 				keysList.style.display = 'block';
 				titleButton.innerHTML = 'Hide keys details';
+			}
+		}
+
+		function toggleKeyDisplay() {
+			let slip132Checkbox = document.getElementById('use_slip_132');
+			let xpubs = document.getElementsByClassName('slip132_xpub');
+			let zpubs = document.getElementsByClassName('normal_xpub');
+			if (slip132Checkbox.checked) {
+				for (xpub of xpubs) {
+					xpub.style.display = 'none';
+				}
+				for (zpub of zpubs) {
+					zpub.style.display = 'block';
+				}
+			} else {
+				for (xpub of xpubs) {
+					xpub.style.display = 'block';
+				}
+				for (zpub of zpubs) {
+					zpub.style.display = 'none';
+				}
 			}
 		}
 	</script>
