@@ -840,7 +840,7 @@ def new_wallet(wallet_type):
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
                 app.logger.info("Rescanning Blockchain ...")
-                startblock = get_startblock_by_chain(app.specter)
+                startblock = int(request.form['startblock'])
                 try:
                     wallet.cli.rescanblockchain(startblock, timeout=1)
                 except requests.exceptions.ReadTimeout:

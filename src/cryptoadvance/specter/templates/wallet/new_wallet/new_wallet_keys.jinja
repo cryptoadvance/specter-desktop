@@ -1,33 +1,44 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<div class="spacer"></div>
-	{% if cosigners | length == 1 %}
-		<h1>Select the {{ cosigners[0].name }}'s key to use in {{ wallet_name }}.</h1>
-	{% else %}
-		<h1>Select the key of devices to use in {{ wallet_name }}.</h1>
-	{% endif %}
-	<div class="center">
-		<div style="display: inline-block; text-align: center; margin-top: 10px;">
-			<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline">
-			<label for="rescan">Scan for existing funds?</label>
-			<div class="tool-tip">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">Importing an existing wallet<br></span>
-						Check this option to scan the blockchain for existing wallet balance and history.
-						{% if specter.info["pruned"] %}
-							<span class="warning" style="display: inline-block;">
-								Please Note:<br>You are using a pruned node.<br> Wallet history may not fully appear.
-							</span>
-						{% endif %}
+	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+		<div class="spacer"></div>
+		{% if cosigners | length == 1 %}
+			<h1>Select the {{ cosigners[0].name }}'s key to use in {{ wallet_name }}.</h1>
+		{% else %}
+			<h1>Select the key of devices to use in {{ wallet_name }}.</h1>
+		{% endif %}
+		<div class="center" style="max-width: 500px; margin: auto;">
+			<div style="display: inline-block; text-align: center; margin-top: 10px;">
+				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline" onchange="toggleScanOptions(this)">
+				<label for="rescan">Scan for existing funds?</label>
+				<div class="tool-tip">
+					<i class="tool-tip__icon">i</i>
+					<p class="tool-tip__info">
+						<span class="info">
+							<span class="info__title">Importing an existing wallet<br></span>
+							Check this option to scan the blockchain for existing wallet balance and history.
+						</span>
+					</p>
+				</div>
+			</div>
+			<div id="scan-options" class="hidden">
+				<br>
+				{% if specter.info.chain == "main" %}
+					{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+				{% else %}
+					{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
+				{% endif %}
+				Rescan blockchain from block: <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
+				{% if specter.info['pruned']  %}
+					<span class="warning" style="display: inline-block; max-width:300px;">
+						&#9432;<br>You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}
 					</span>
-				</p>
+				{% endif %}
+				<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
+				<br>
 			</div>
 		</div>
-	</div>
-	<div class="spacer"></div>
-	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+		<div class="spacer"></div>
 		<input type="hidden" name="wallet_name" value="{{ wallet_name }}">
 		<input type="hidden" name="type" value="{{ wallet_type }}">
 		{% for cosigner in cosigners %}
@@ -88,3 +99,15 @@
 		<center>Here we only show <b>{{ purposes[wallet_type] }}</b> and <b>General</b> keys. Follow the standards.</center>
 	</div>
 {% endblock %}
+{% block scripts %}
+	<script>
+		function toggleScanOptions(scanCheckbox) {
+			let scanOptions = document.getElementById('scan-options');
+			if (scanCheckbox.checked) {
+				scanOptions.style.display = 'block';
+			} else {
+				scanOptions.style.display = 'none';
+			}
+		}
+	</script>
+{% endblock%}
