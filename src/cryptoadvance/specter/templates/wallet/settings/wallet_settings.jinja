@@ -61,6 +61,7 @@
 	</form>
 	<br>
 	<h1>Wallet Devices</h1>
+	{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% endif %}
 	<div class="row overflow">
 		{% for device in wallet.devices %}
 			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
