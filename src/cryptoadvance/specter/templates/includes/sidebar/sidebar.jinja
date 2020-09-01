@@ -52,7 +52,7 @@
             </a>
         {% endif %}
         {% if specter.info["utxorescan"] %}
-        <div class="rescan_progress {{ chain }}">
+        <div class="rescan_progress {{ specter.info.chain }}">
             <div style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
         {% endif %}

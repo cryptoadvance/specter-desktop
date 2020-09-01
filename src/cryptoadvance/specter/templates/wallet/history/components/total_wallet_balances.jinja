@@ -20,8 +20,8 @@
             <small>( {{ wallet.balance["trusted"] | btcunitamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcunitamount }} pending )</small>
         {% endif %}
     </h1>
-    {% if wallet.rescan_progress %}
-        <h2>Rescanning blockchain: {{ "%.2f"|format(wallet.rescan_progress * 100) }}%</h2>
+    {% if wallet.rescan_progress or specter.utxorescanwallet == wallet.alias %}
+        <h2>Rescanning blockchain: {{ "%.2f"|format(specter._info["utxorescan"] if specter.utxorescanwallet == wallet.alias else wallet.rescan_progress * 100) }}%</h2>
         <span class="warning">
             &#9432;<br>
              Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
