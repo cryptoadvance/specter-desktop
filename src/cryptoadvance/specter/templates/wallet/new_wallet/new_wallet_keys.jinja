@@ -23,19 +23,37 @@
 			</div>
 			<div id="scan-options" class="hidden">
 				<br>
-				{% if specter.info.chain == "main" %}
-					{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
-				{% else %}
-					{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
-				{% endif %}
-				Rescan blockchain from block: <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
-				{% if specter.info['pruned']  %}
-					<span class="warning" style="display: inline-block; max-width:300px;">
-						&#9432;<br>You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}
-					</span>
-				{% endif %}
-				<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
+				<div>
+					Rescan type: 
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full" onclick="toggleFullRescanOption(this)" checked>Full rescan</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo" onclick="toggleFullRescanOption(this);">UTXO only</label>
+					<div class="tool-tip">
+						<i class="tool-tip__icon">i</i>
+						<p class="tool-tip__info">
+							<span class="info">
+								<span class="info__title">Choosing Rescan Type<br></span>
+								Full rescan is a relativly slow process which looks for and imports the full wallet transaction history and balance.<br><br>
+								UTXO only is a fast rescan option which only looks for existing balances (UTXO), but will not import the full transaction history.
+							</span>
+						</p>
+					</div>
+				</div>
 				<br>
+				<div id="full-scan-options">
+					{% if specter.info.chain == "main" %}
+						{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+					{% else %}
+						{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
+					{% endif %}
+					Rescan blockchain from block: <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
+					{% if specter.info['pruned']  %}
+						<span class="warning" style="display: inline-block; max-width:300px;">
+							&#9432;<br>You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}
+						</span>
+					{% endif %}
+					<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
+					<br>
+				</div>
 			</div>
 		</div>
 		<div class="spacer"></div>
@@ -104,6 +122,15 @@
 		function toggleScanOptions(scanCheckbox) {
 			let scanOptions = document.getElementById('scan-options');
 			if (scanCheckbox.checked) {
+				scanOptions.style.display = 'block';
+			} else {
+				scanOptions.style.display = 'none';
+			}
+		}
+
+		function toggleFullRescanOption(scanOption) {
+			let scanOptions = document.getElementById('full-scan-options');
+			if (scanOption.value == 'full') {
 				scanOptions.style.display = 'block';
 			} else {
 				scanOptions.style.display = 'none';
