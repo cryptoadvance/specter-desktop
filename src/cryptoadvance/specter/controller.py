@@ -839,6 +839,9 @@ def new_wallet(wallet_type):
             app.logger.info("Created Wallet %s" % wallet_name)
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
+                # old wallet - import more addresses
+                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
+                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
                 if 'utxo' in request.form.get('full_rescan_option'):
                     explorer = None
                     if "use_explorer" in request.form:

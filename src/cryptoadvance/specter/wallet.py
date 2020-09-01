@@ -12,11 +12,12 @@ import requests
 
 logger = logging.getLogger()
 
-# a gap of 20 addresses is what many wallets do
-WALLET_CHUNK = 20
-wallet_tx_batch = 100
 
 class Wallet():
+    # if the wallet is old we import 300 addresses
+    IMPORT_KEYPOOL = 300
+    # a gap of 20 addresses is what many wallets do
+    GAP_LIMIT = 20
     def __init__(
         self,
         name,
@@ -442,8 +443,8 @@ class Wallet():
 
     def get_address(self, index, change=False):
         pool = self.change_keypool if change else self.keypool
-        if pool < index + WALLET_CHUNK:
-            self.keypoolrefill(pool, index + WALLET_CHUNK, change=change)
+        if pool < index + self.GAP_LIMIT:
+            self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         if self.is_multisig:
             try:
@@ -470,7 +471,7 @@ class Wallet():
 
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
-            end = start + WALLET_CHUNK
+            end = start + self.GAP_LIMIT
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
             {
