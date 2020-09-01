@@ -1193,6 +1193,7 @@ def wallet_settings(wallet_alias):
 
         return render_template(
             "wallet/settings/wallet_settings.jinja",
+            purposes=purposes,
             wallet_alias=wallet_alias,
             wallet=wallet,
             specter=app.specter,
@@ -1202,6 +1203,7 @@ def wallet_settings(wallet_alias):
     else:
         return render_template(
             "wallet/settings/wallet_settings.jinja", 
+            purposes=purposes,
             wallet_alias=wallet_alias,
             wallet=wallet, 
             specter=app.specter,
