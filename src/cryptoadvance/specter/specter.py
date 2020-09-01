@@ -50,6 +50,7 @@ class Specter:
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
+        self.utxorescanwallet = None
 
         # default config
         self.config = {
@@ -137,6 +138,8 @@ class Specter:
                 self._info["utxorescan"] = (res[5]["progress"]
                                             if res[5] is not None and "progress" in res[5]
                                             else None)
+                if self._info["utxorescan"] is None:
+                    self.utxorescanwallet = None
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
@@ -187,6 +190,7 @@ class Specter:
         # Bitcoin Core doesn't catch up right away
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None
+        self.utxorescanwallet = None
 
     def clear_user_session(self):
         self.device_manager = None

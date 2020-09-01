@@ -839,17 +839,22 @@ def new_wallet(wallet_type):
             app.logger.info("Created Wallet %s" % wallet_name)
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
-                app.logger.info("Rescanning Blockchain ...")
-                startblock = get_startblock_by_chain(app.specter)
-                try:
-                    wallet.cli.rescanblockchain(startblock, timeout=1)
-                except requests.exceptions.ReadTimeout:
-                    # this is normal behavior in our usecase
-                    pass
-                except Exception as e:
-                    app.logger.error("Exception while rescanning blockchain: %e" % e)
-                    err = "%r" % e
-                wallet.getdata()
+                if 'utxo' in request.form.get('full_rescan_option'):
+                    wallet.rescanutxo()
+                    app.specter._info["utxorescan"] = 1
+                    app.specter.utxorescanwallet = wallet.alias
+                else:
+                    app.logger.info("Rescanning Blockchain ...")
+                    startblock = int(request.form['startblock'])
+                    try:
+                        wallet.cli.rescanblockchain(startblock, timeout=1)
+                    except requests.exceptions.ReadTimeout:
+                        # this is normal behavior in our usecase
+                        pass
+                    except Exception as e:
+                        app.logger.error("Exception while rescanning blockchain: %e" % e)
+                        err = "%r" % e
+                    wallet.getdata()
             return redirect("/wallets/%s/" % wallet.alias)
 
     return render_template(
@@ -1163,9 +1168,11 @@ def wallet_settings(wallet_alias):
         elif action == "rescanutxo":
             wallet.rescanutxo()
             app.specter._info["utxorescan"] = 1
+            app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
             app.specter._info["utxorescan"] = None
+            app.specter.utxorescanwallet = None
         elif action == "keypoolrefill":
             delta = int(request.form['keypooladd'])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
@@ -1186,6 +1193,7 @@ def wallet_settings(wallet_alias):
 
         return render_template(
             "wallet/settings/wallet_settings.jinja",
+            purposes=purposes,
             wallet_alias=wallet_alias,
             wallet=wallet,
             specter=app.specter,
@@ -1195,6 +1203,7 @@ def wallet_settings(wallet_alias):
     else:
         return render_template(
             "wallet/settings/wallet_settings.jinja", 
+            purposes=purposes,
             wallet_alias=wallet_alias,
             wallet=wallet, 
             specter=app.specter,
