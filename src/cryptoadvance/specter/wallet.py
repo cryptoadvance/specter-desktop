@@ -374,16 +374,19 @@ class Wallet():
         # handle missing transactions now
         # TODO: do it over Tor
         if explorer is not None:
-            # make sure there is no leading /
+            # make sure there is no trailing /
             explorer = explorer.rstrip("/")
+            # get raw transactions
             raws = [requests.get(
                         f"{explorer}/api/tx/{tx['txid']}/hex"
                         ).text
                     for tx in missing]
+            # get proofs
             proofs = [requests.get(
                         f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
                         ).text
                       for tx in missing]
+            # import funds
             self.cli.multi([
                 ("importprunedfunds", raws[i], proofs[i])
                 for i in range(len(raws))
