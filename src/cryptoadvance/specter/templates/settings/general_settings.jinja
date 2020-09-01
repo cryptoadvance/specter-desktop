@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST">
-		<h1>General settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
 		<div class="card" style="margin: 20px auto;">
@@ -87,8 +87,8 @@
 				el.addEventListener("change", (e) => {
 					let wallets = []
 					let devices = []
-					files = el.files;
-					if (el.files.length == 1 && el.files[0].type == 'application/zip') {
+					files = e.currentTarget.files;
+					if (e.currentTarget.files.length == 1 && e.currentTarget.files[0].type == 'application/zip') {
 						showError("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder", 10000);
 						return;
 					}

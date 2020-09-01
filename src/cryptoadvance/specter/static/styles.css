@@ -657,23 +657,23 @@ tbody tr:hover{
     background: rgba(255,255,255,0.03);
     color: #fff;
 }
-td.xpub{
+.xpub{
     max-width: 300px;
 }
-td.tx{
+.tx{
     max-width: 200px;
 }
-td.scroll{
+.scroll{
     padding: 0 10px;
 }
-td.scroll > *{
+.scroll > *{
     /* ugly fix for firefox - scrolling child element */
     display: block;
     overflow-x: scroll;
     width: 100%;
     padding: 20px 0;
 }
-td.scroll > *::-webkit-scrollbar,
+.scroll > *::-webkit-scrollbar,
 #side-content::-webkit-scrollbar,
 main::-webkit-scrollbar,
 pre::-webkit-scrollbar{
@@ -758,9 +758,13 @@ table tr:hover .btn.hovering{
     border-radius: 7px;
     line-height: 1.5;
 }
+.explorer-link {
+    color: inherit;
+    text-decoration: none;
+}
 .explorer-link:hover {
-    color: #fff;
-    text-decoration: underline;
+    color: #fff !important;
+    text-decoration: underline !important;
     cursor: pointer;
 }
 
@@ -800,7 +804,7 @@ table tr:hover .btn.hovering{
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0, 0.75);
-    z-index: 2;
+    z-index: 4;
     padding: 20px;
 }
 .page_overlay_popup {
@@ -811,7 +815,7 @@ table tr:hover .btn.hovering{
     border-radius: 0.5em;
     border: 2px solid #313E50;
     background-color: #192432;
-    z-index: 3;
+    z-index: 5;
     padding: 1.5em;
 }
 .page_overlay_popup_cancel {
@@ -876,6 +880,23 @@ table tr:hover .btn.hovering{
 a:focus + .tool-tip .tool-tip__info {
     display: inline-block;
 }
+.switch-label {
+    height: 25px;
+    vertical-align: sub;
+    font-size: 1.3em;
+    font-weight: bolder;
+}
+.settings-title {
+    width: 80%;
+    margin: auto;
+}
+.mobile-only {
+    display: none;
+}
+.key-qr-code {
+    width: 400px;
+}
+
 /************** Mobile styles ********************************/
 #side-expand{
     display: none;
@@ -937,15 +958,73 @@ a:focus + .tool-tip .tool-tip__info {
     display: none;
   }
 }
-@media (max-width: 600px){
-  .card{
-    border-width: 0px;
-    width: 100%;
-  }
-  nav.row{
-    padding-left: 0;
-    padding-right: 0;
-  }
+@media (max-width: 690px){
+    .card{
+        border-width: 0px;
+        width: 90%;
+    }
+    nav.row{
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .optional{
+        display:none;
+        width:0;
+        height:0;
+        opacity:0;
+        visibility: collapse;
+    }
+    .mobile-only {
+        display: revert;
+    }
+    .mobile-right {
+        border-radius: 0 10px 10px 0 !important;
+    }
+    .mobile-right.left {
+        border-radius: 10px 10px 10px 10px !important;
+    }
+    .key-qr-code {
+        width: 200px !important;
+    }
+    .page_overlay_popup {
+     max-width: 95%;   
+    }
+    .key {
+        width: 25% !important;
+    }
+    .switch-label {
+        font-size: 1em;
+        font-weight: normal;
+    }
+    .btn.radio {
+        max-width: 130px;
+    }
+    .btn.centered {
+        max-width: 200px;
+    }
+    .tool-tip {
+        display: none;
+    }
+    .log {
+        max-width: 100% !important;
+        width: 200px !important;
+        margin: auto !important;
+    }
+    .cancel, .update, .edit {
+        max-width: 45%;
+    }
+    .label {
+        margin-bottom: 10px;
+    }
+    .edit {
+        float: left !important;
+    }
+    body {
+        padding-bottom: 10px;
+    }
+    #title {
+        margin-top: 20px;
+    }
 }
 
 /************** Switch checkbox styles ********************************/

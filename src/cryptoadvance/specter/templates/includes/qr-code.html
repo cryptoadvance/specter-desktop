@@ -171,6 +171,8 @@ class QRCodeElement extends HTMLElement {
       if(width==NaN){
         width=400;
       }
+      if (window.innerWidth < 600)
+      width = Math.min(window.innerWidth * 0.4, width);
       this.width = width;
       if(this.qrcode != null){
         this.qrcode.clear();
