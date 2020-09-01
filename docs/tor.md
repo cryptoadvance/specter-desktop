@@ -33,7 +33,7 @@ Restart the Tor service:
 * `sudo /etc/init.d/tor restart` on linux
 * `brew services restart tor` on macOS Homebrew installs
 
-On Linux you also need to add yourself to the tor group (depends on the system `debian-tor` on Ubuntu):
+On Linux you also need to add yourself to the Tor group (depends on the system `debian-tor` on Ubuntu):
 ```sh
 usermod -a -G debian-tor `whoami`
 ```
