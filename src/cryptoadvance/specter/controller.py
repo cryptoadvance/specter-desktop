@@ -840,7 +840,10 @@ def new_wallet(wallet_type):
             rescan_blockchain = 'rescanblockchain' in request.form
             if rescan_blockchain:
                 if 'utxo' in request.form.get('full_rescan_option'):
-                    wallet.rescanutxo()
+                    explorer = None
+                    if "use_explorer" in request.form:
+                        explorer = app.specter.get_default_explorer()
+                    wallet.rescanutxo(explorer)
                     app.specter._info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
@@ -1168,12 +1171,7 @@ def wallet_settings(wallet_alias):
         elif action == "rescanutxo":
             explorer = None
             if "use_explorer" in request.form:
-                if app.specter.chain == "main":
-                    explorer = "https://blockstream.info/"
-                elif app.specter.chain == "test":
-                    explorer = "https://blockstream.info/testnet/"
-                elif app.specter.chain == "signet":
-                    explorer = "https://explorer.bc-2.jp/"
+                explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
             app.specter._info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias

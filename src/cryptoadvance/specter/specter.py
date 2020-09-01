@@ -343,6 +343,14 @@ class Specter:
     def estimatesmartfee(self, blocks):
         return self.cli.estimatesmartfee(blocks)
 
+    def get_default_explorer(self):
+        if self.chain == "main":
+            return "https://blockstream.info/"
+        elif self.chain == "test":
+            return "https://blockstream.info/testnet/"
+        elif self.chain == "signet":
+            return "https://explorer.bc-2.jp/"
+
     @property
     def is_running(self):
         return self._is_running

@@ -54,6 +54,22 @@
 					<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
 					<br>
 				</div>
+				<div id="utxo-scan-options">
+					{% if specter.info['pruned']  %}
+						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+							<div class="tool-tip">
+								<i class="tool-tip__icon">i</i>
+								<p class="tool-tip__info">
+									<span class="info">
+										<span class="info__title">Fetch missing data</span><br><br>
+										You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+										Check this checkbox if you want to fetch missing information from blockstream.info
+									</span>
+								</p>
+							</div>
+						</label>
+					{% endif %}
+				</div>
 			</div>
 		</div>
 		<div class="spacer"></div>
@@ -130,10 +146,13 @@
 
 		function toggleFullRescanOption(scanOption) {
 			let scanOptions = document.getElementById('full-scan-options');
+			let utxoOptions = document.getElementById('utxo-scan-options');
 			if (scanOption.value == 'full') {
 				scanOptions.style.display = 'block';
+				utxoOptions.style.display = 'none';
 			} else {
 				scanOptions.style.display = 'none';
+				utxoOptions.style.display = 'block';
 			}
 		}
 	</script>
