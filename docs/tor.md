@@ -22,7 +22,7 @@ Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor
 ControlPort 9051
 ```
 
-You may also need to add the following lines in the torrc file:
+You may also need to add the following lines in the `torrc` file:
 
 ```sh
 CookieAuthentication 1
