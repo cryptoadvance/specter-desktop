@@ -1171,7 +1171,7 @@ def wallet_settings(wallet_alias):
                 if app.specter.chain == "main":
                     explorer = "https://blockstream.info/"
                 elif app.specter.chain == "test":
-                    explorer = "https://test.blockstream.info/"
+                    explorer = "https://blockstream.info/testnet/"
                 elif app.specter.chain == "signet":
                     explorer = "https://explorer.bc-2.jp/"
             wallet.rescanutxo(explorer)
