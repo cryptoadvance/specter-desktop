@@ -79,24 +79,24 @@ class WalletManager:
         try:
             if self.working_folder is not None and self.cli is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
-                existing_wallets = [
-                    w["name"] for w in self.cli.listwalletdir()["wallets"]
-                ]
+                try:
+                    existing_wallets = [
+                        w["name"] for w in self.cli.listwalletdir()["wallets"]
+                    ]
+                except:
+                    existing_wallets = None
                 loaded_wallets = self.cli.listwallets()
-                not_loaded_wallets = [
-                    w for w in existing_wallets if w not in loaded_wallets
-                ]
                 for wallet in wallets_files:
                     wallet_alias = wallets_files[wallet]["alias"]
                     wallet_name = wallets_files[wallet]["name"]
-                    if os.path.join(
+                    if existing_wallets is None or os.path.join(
                         self.cli_path,
                         wallet_alias
                     ) in existing_wallets:
                         if os.path.join(
                             self.cli_path,
                             wallet_alias
-                        ) in not_loaded_wallets:
+                        ) not in loaded_wallets:
                             try:
                                 logger.debug(
                                     "loading %s " %
@@ -134,10 +134,7 @@ class WalletManager:
                                 logger.warn(
                                     "Couldn't load wallet %s into core.\
 Silently ignored!" % wallet_alias)
-                        elif os.path.join(
-                            self.cli_path,
-                            wallet_alias
-                        ) in loaded_wallets:
+                        else:
                             if wallet_name not in existing_names:
                                 # ok wallet is already there
                                 # we only need to update
