@@ -4,6 +4,7 @@
     - tx: The transaction to display
     - wallet: Wallet object
     - specter: Specter object.
+
  #}
 {% macro tx_item(tx, wallet, specter) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
@@ -37,6 +38,15 @@
             {% endif %}
             ({{ tx['time'] | datetime }})
         </td>
+	{% if specter.config.validate_merkle_proofs %}
+	  <td class="tx scroll optional">
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </td>
+	{% endif %}
     </tr>
     <div id="{{tx['txid']}}_tx_info_popup" class="hidden" style="text-align:left;">
         <h1>Transaction details</h1>
@@ -66,5 +76,14 @@
         {% endif %}
         ({{ tx['time'] | datetime }})
         </p>
+	{% if specter.config.validate_merkle_proofs %}
+	  <p>
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </p>
+	{% endif %}
     </div>
 {%- endmacro %}

@@ -308,7 +308,7 @@ class Wallet():
         self.cli.lockunspent(False, psbt["tx"]["vin"])
         self.save_to_file()
 
-    def txlist(self, idx, wallet_tx_batch=100):
+    def txlist(self, idx, wallet_tx_batch=100, validate_merkle_proofs=False):
         try:
             cli_txs = self.cli.listtransactions("*", wallet_tx_batch + 2, wallet_tx_batch * idx, True) # get batch + 2 to make sure you have information about send
             cli_txs.reverse()
@@ -323,19 +323,19 @@ class Wallet():
             if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
                 continue # means the tx is duplicated (change), continue
 
-            proof_hex = self.cli.gettxoutproof([tx['txid']])
-
-            is_valid = is_valid_merkle_proof(
-                proof_hex=proof_hex,
-                target_tx_hex=tx['txid'],
-                target_block_hash_hex=tx['blockhash'],
-                target_merkle_root_hex=None,
-            )
-            if is_valid:
-                # NOTE: this does not guarantee this blockhash is in the bitcoin blockchain!
-                tx['validated_blockhash'] = tx['blockhash']
-            else:
-                tx['validated_blockhash'] = ""
+            tx['validated_blockhash'] = ""  # default is assume unvalidated
+            if validate_merkle_proofs is True:
+                proof_hex = self.cli.gettxoutproof([tx['txid']])
+                is_valid = is_valid_merkle_proof(
+                    proof_hex=proof_hex,
+                    target_tx_hex=tx['txid'],
+                    target_block_hash_hex=tx['blockhash'],
+                    target_merkle_root_hex=None,
+                )
+                if is_valid:
+                    # NOTE: this does NOT guarantee this blockhash is actually in the bitcoin blockchain!
+                    # Compare this blockhash against other nodes/explorers to confirm if this blockhash (and thus this TX) made it into the actual blockchain
+                    tx['validated_blockhash'] = tx['blockhash']
 
             result.append(tx)
 

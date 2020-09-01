@@ -74,6 +74,7 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
+            "validate_merkle_proofs": False,
         }
 
         # creating folders if they don't exist
@@ -306,6 +307,10 @@ class Specter:
             self._save()
         else:
             user.set_unit(self, unit)
+
+    def update_merkleproof_settings(self, validate_bool):
+        self.config['validate_merkle_proofs'] = validate_bool
+        self._save()
 
     def add_new_user_otp(self, otp_dict):
         ''' adds an OTP for user registration '''

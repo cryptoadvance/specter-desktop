@@ -581,20 +581,23 @@ class MerkleBlockTest(TestCase):
 
 
 def is_valid_merkle_proof(proof_hex, target_tx_hex, target_block_hash_hex, target_merkle_root_hex=None):
+    """
+    Validate a `target_tx` and `target_block_hash` are part of a BIP37 merkle `proof`
+    """
 
-  mb = MerkleBlock.parse(BytesIO(bytes.fromhex(proof_hex)))
+    mb = MerkleBlock.parse(BytesIO(bytes.fromhex(proof_hex)))
 
-  if mb.is_valid() is not True:
-      return False
+    if mb.is_valid() is not True:
+        return False
 
-  if mb.proved_txs()[0].hex() != target_tx_hex:
-      return False
+    if mb.proved_txs()[0].hex() != target_tx_hex:
+        return False
 
-  if target_merkle_root_hex is not None:
-      if mb.merkle_tree.root()[::-1].hex() != target_merkle_root_hex:
-          return False
-      
-  if mb.hash().hex() != target_block_hash_hex:
-      return False
+    if target_merkle_root_hex is not None:
+        if mb.merkle_tree.root()[::-1].hex() != target_merkle_root_hex:
+            return False
+         
+    if mb.hash().hex() != target_block_hash_hex:
+        return False
 
-  return True
+    return True
