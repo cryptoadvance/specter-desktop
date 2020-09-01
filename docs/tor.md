@@ -22,9 +22,21 @@ Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor
 ControlPort 9051
 ```
 
+You may also need to add the following lines in the `torrc` file:
+
+```sh
+CookieAuthentication 1
+CookieAuthFileGroupReadable 1
+```
+
 Restart the Tor service:
 * `sudo /etc/init.d/tor restart` on linux
 * `brew services restart tor` on macOS Homebrew installs
+
+On Linux you also need to add yourself to the Tor group (depends on the system `debian-tor` on Ubuntu):
+```sh
+usermod -a -G debian-tor `whoami`
+```
 
 ### Running with Tor using command line
 
