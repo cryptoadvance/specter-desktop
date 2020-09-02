@@ -179,7 +179,7 @@
 		}
 
 		function isAboveWalletBalance(unit, amount) {
-			return (unit == 'sat' ? amount / 1e8 : amount) > parseFloat('{{ wallet.full_available_balance }}');
+			return (unit == 'sat' ? Math.round(amount / 1e8) : amount.toFixed(8)) > parseFloat('{{ wallet.full_available_balance }}').toFixed(8);
 		}
 
 		function isInvalidValue(unit, amount){
