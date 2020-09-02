@@ -108,7 +108,7 @@ Whereas, [Specter-DIY](https://github.com/cryptoadvance/specter-diy) is a do-it-
 
 ## *Is a full node necessary for using specter-desktop?*
 
-Yes, a bitcoin full node is needed to provide the Bitcoin Core data so you don't rely on 3rd parties, and also for its watch-only wallet capablities.
+Yes, a Bitcoin full node is needed to provide the Bitcoin Core data so you don't rely on 3rd parties, and also for its watch-only wallet capabilities.
 
 ## *Can I use pruned mode?*
 
