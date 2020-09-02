@@ -76,6 +76,9 @@
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 			    {% include "includes/merkletooltip.html" %}
 			</div>
+			<div class="note">
+			    Cannot enable when using a pruned bitcoin node
+			</div>
 			<div class="row">
 			    <label class="switch">
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>

@@ -310,6 +310,10 @@ class Specter:
             user.set_unit(self, unit)
 
     def update_merkleproof_settings(self, validate_bool):
+        if validate_bool is True and self._info.get('pruned') is True:
+            validate_bool = False
+            logger.warning("Cannot enable merkleproof setting on pruned node.")
+
         self.config['validate_merkle_proofs'] = validate_bool
         self._save()
 
