@@ -124,4 +124,31 @@
         }
         showNotification(device.type + " passphrase toggled successfuly", 5000)
     }
+
+    async function signMessage(deviceType, message, derivationPath, fingerprint=null){
+        let devices = await enumerate(deviceType);
+        if(devices == null || devices.length == 0){
+            return;
+        }
+        let device = await selectDevice(devices);
+        console.log(device)
+        if(device == null){
+            return;
+        }
+
+        if (fingerprint && device.fingerprint != fingerprint) {
+            handleHWIError("Selected device does not have matching signing key.");
+            return;
+        }
+        showHWIProgress("Signing message...", `Confirm on your ${capitalize(device.type)}.`);
+        let signature = null;
+        try {
+            signature = await hwi.signMessage(device, message, derivationPath);
+        } catch (error) {
+            handleHWIError(error);
+            return;
+        }
+        hidePageOverlay();
+        return signature;
+    }
 </script>
