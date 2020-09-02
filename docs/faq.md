@@ -113,7 +113,7 @@ Yes, a bitcoin full node is needed to provide the Bitcoin Core data so you don't
 ## *Can I use pruned mode?*
 
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
-This is just temporary though as it is actively being worked on [here](https://github.com/cryptoadvance/specter-desktop/issues/224)
+This is just temporary though as it is actively being worked on [here](https://github.com/cryptoadvance/specter-desktop/issues/224).
 
 ## *I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*
 
