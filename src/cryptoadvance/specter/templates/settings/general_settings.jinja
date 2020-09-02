@@ -71,8 +71,12 @@
 			</select>
 			<br><br>
 			{% endif %}
+
+			Validate Merkle Proofs:
+			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
+			    {% include "includes/merkletooltip.html" %}
+			</div>
 			<div class="row">
-			    <label>Validate Merkle Proofs:&nbsp;</label>
 			    <label class="switch">
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
 				<span class="slider"></span>

@@ -324,18 +324,21 @@ class Wallet():
                 continue # means the tx is duplicated (change), continue
 
             tx['validated_blockhash'] = ""  # default is assume unvalidated
-            if validate_merkle_proofs is True:
-                proof_hex = self.cli.gettxoutproof([tx['txid']])
-                is_valid = is_valid_merkle_proof(
+            if validate_merkle_proofs is True and tx['confirmations'] > 0 and tx.get('blockhash'):
+                proof_hex = self.cli.gettxoutproof([tx['txid']], tx['blockhash'])
+                logger.debug(f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }")
+                if is_valid_merkle_proof(
                     proof_hex=proof_hex,
                     target_tx_hex=tx['txid'],
                     target_block_hash_hex=tx['blockhash'],
                     target_merkle_root_hex=None,
-                )
-                if is_valid:
+                ):
                     # NOTE: this does NOT guarantee this blockhash is actually in the bitcoin blockchain!
-                    # Compare this blockhash against other nodes/explorers to confirm if this blockhash (and thus this TX) made it into the actual blockchain
+                    # See merkletooltip.html for details
+                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
                     tx['validated_blockhash'] = tx['blockhash']
+                else:
+                    logger.warning(f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}")
 
             result.append(tx)
 
