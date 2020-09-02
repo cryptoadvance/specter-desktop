@@ -333,7 +333,7 @@ class Wallet():
                     target_block_hash_hex=tx['blockhash'],
                     target_merkle_root_hex=None,
                 ):
-                    # NOTE: this does NOT guarantee this blockhash is actually in the bitcoin blockchain!
+                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
                     # See merkletooltip.html for details
                     logger.debug(f"Merkle proof of { tx['txid'] } validation success")
                     tx['validated_blockhash'] = tx['blockhash']
