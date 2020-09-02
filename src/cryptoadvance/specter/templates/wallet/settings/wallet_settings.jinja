@@ -73,6 +73,22 @@
 
 				</label>
 			</div>
+			<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+				&#9432;<br>Careful with block explorers!<br>
+				This may have privacy implication!<br>
+				Information fetched from the block explorer contains a list of unspent transactions of your wallet from the old (pruned) blocks. This means 
+			</span>
+			<script type="text/javascript">
+				let utxocheckbox = document.getElementById("use_explorer");
+				utxocheckbox.addEventListener('change', e=>{
+					let el = document.getElementById("utxo-warning")
+					if(utxocheckbox.checked){
+						el.style.display = "inline-block";
+					}else{
+						el.style.display = "none";
+					}
+				});
+			</script>
 		{% endif %}
 
 		{% endif %}
