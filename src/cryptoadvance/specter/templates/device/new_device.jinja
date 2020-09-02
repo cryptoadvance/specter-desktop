@@ -304,7 +304,22 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 								}
 								let s = prefix + json.keystore.xpub + "\n";
 								data += s;
-							} else if ("xfp" in json) { // probably ColdCard multisig file
+							} else if (("bip84" in json) && ("xfp" in json)){
+							// coldcard generic file
+								let s = "";
+								["bip44","bip49","bip84"].forEach((bip)=>{
+									if(bip in json){
+										let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
+										let xpub = json[bip].xpub;
+										if("_pub" in json[bip]){
+											xpub = json[bip]["_pub"];
+										}
+										s += `[${json.xfp}${der}]${xpub}\n`;
+									}
+								});
+								data += s;
+							} else if ("xfp" in json) {
+							// probably ColdCard multisig file
 								let s = "";
 								for (let k in json) {
 									if (k+"_deriv" in json) {
