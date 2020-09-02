@@ -119,10 +119,16 @@ class Wallet():
             max_recv = max([int(p[1]) for p in paths if p[0]=="0"], default=-1)
             max_change = max([int(p[1]) for p in paths if p[0]=="1"], default=-1)
             # these calls will happen only if current addresses are used
+            updated = False
             while max_recv >= self.address_index:
-                self.getnewaddress(change=False)
+                self.getnewaddress(change=False, save=False)
+                updated = True
             while max_change >= self.change_index:
-                self.getnewaddress(change=True)
+                self.getnewaddress(change=True, save=False)
+                updated = True
+            # save only if needed
+            if updated:
+                self.save_to_file()
         self.last_block = last_block
 
     @staticmethod
@@ -351,17 +357,49 @@ class Wallet():
         t.start()
 
     def _rescan_utxo_thread(self, explorer=None):
+        # rescan utxo is pretty fast,
+        # so we can check large range of addresses
+        # and adjust keypool accordingly
         args = [
             "start",
             [{
                 "desc": self.recv_descriptor,
-                "range": self.keypool
+                "range": max(self.keypool, 1000)
             },{
                 "desc": self.change_descriptor,
-                "range": self.change_keypool
+                "range": max(self.change_keypool, 1000)
             }]
         ]
         unspents = self.cli.scantxoutset(*args)["unspents"]
+        # if keypool adjustments fails - not a big deal
+        try:
+            # check derivation indexes in found unspents (last 2 indexes in [brackets])
+            derivations = [tx["desc"].split("[")[1].split("]")[0].split("/")[-2:]
+                           for tx in unspents]
+            # get max derivation for change and receive branches
+            max_recv = max([-1]+[int(der[1]) for der in derivations if der[0] == '0'])
+            max_change = max([-1]+[int(der[1]) for der in derivations if der[0] == '1'])
+
+            updated = False
+            if max_recv >= self.address_index:
+                # skip to max_recv
+                self.address_index = max_recv
+                # get next
+                self.getnewaddress(change=False, save=False)
+                updated = True
+            while max_change >= self.change_index:
+                # skip to max_change
+                self.change_index = max_change
+                # get next
+                self.getnewaddress(change=True, save=False)
+                updated = True
+            # save only if needed
+            if updated:
+                self.save_to_file()
+        except Exception as e:
+            logger.warning(f"Failed to get derivation path from utxo transaction: {e}")
+
+        # keep working with unspents
         res = self.cli.multi([
             ("getblockhash", tx["height"])
             for tx in unspents
@@ -394,21 +432,24 @@ class Wallet():
         if explorer is not None:
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
-            # get raw transactions
-            raws = [requests.get(
-                        f"{explorer}/api/tx/{tx['txid']}/hex"
-                        ).text
-                    for tx in missing]
-            # get proofs
-            proofs = [requests.get(
-                        f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                        ).text
-                      for tx in missing]
-            # import funds
-            self.cli.multi([
-                ("importprunedfunds", raws[i], proofs[i])
-                for i in range(len(raws))
-            ])
+            try:
+                # get raw transactions
+                raws = [requests.get(
+                            f"{explorer}/api/tx/{tx['txid']}/hex"
+                            ).text
+                        for tx in missing]
+                # get proofs
+                proofs = [requests.get(
+                            f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                            ).text
+                          for tx in missing]
+                # import funds
+                self.cli.multi([
+                    ("importprunedfunds", raws[i], proofs[i])
+                    for i in range(len(raws))
+                ])
+            except Exception as e:
+                logger.warning(f"Failed to fetch data from block explorer: {e}")
 
     @property
     def rescan_progress(self):
@@ -441,7 +482,7 @@ class Wallet():
     def account_map(self):
         return '{ "label": "' + self.name.replace("'","\\'") + '", "blockheight": ' + str(self.blockheight) + ', "descriptor": "' + self.recv_descriptor.replace("/", "\\/") + '" }'
 
-    def getnewaddress(self, change=False):
+    def getnewaddress(self, change=False, save=True):
         label = "Change" if change else "Address"
         if change:
             self.change_index += 1
@@ -455,7 +496,8 @@ class Wallet():
             self.change_address = address
         else:
             self.address = address
-        self.save_to_file()
+        if save:
+            self.save_to_file()
         return address
 
     def get_address(self, index, change=False):
