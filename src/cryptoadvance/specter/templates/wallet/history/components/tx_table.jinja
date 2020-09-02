@@ -3,8 +3,9 @@
     Parameters:
     - isEmpty: Boolean, true if should show an item indicating empty list, false if should show the list contents.
     - content: The content of the table (its rows).
+    - includeValidatedBlockhash: boolean
  #}
-{% macro tx_table(isEmpty, content) -%}
+{% macro tx_table(isEmpty, content, includeValidatedBlockhash) -%}
     <table>
         <thead>
             <tr>
@@ -13,18 +14,27 @@
                 <th class="optional">Address</th>
                 <th>Amount</th>
                 <th>Status</th>
+		{% if includeValidatedBlockhash %}
+		  <th>
+		      <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
+		      Block Hash
+		  </th>
+	        {% endif %}
             </tr>
-		</thead>
-		<tbody>
-			{% if not isEmpty %}
+	</thead>
+	<tbody>
+	    {% if not isEmpty %}
                 {{ content }}
             {% else %}
                 <td></td>
                 <td>No transactions yet.</td>
                 <td class="optional"></td>
                 <td class="optional"></td>
+		{% if includeValidatedBlockhash %}
+		  <td class="optional"></td>
+		{% endif %}
                 <td></td>
-			{% endif %}
-		</tbody>
-	</table>
+	    {% endif %}
+	</tbody>
+    </table>
 {%- endmacro %}

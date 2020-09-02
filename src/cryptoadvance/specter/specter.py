@@ -75,6 +75,7 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
+            "validate_merkle_proofs": False,
         }
 
         # creating folders if they don't exist
@@ -307,6 +308,14 @@ class Specter:
             self._save()
         else:
             user.set_unit(self, unit)
+
+    def update_merkleproof_settings(self, validate_bool):
+        if validate_bool is True and self._info.get('pruned') is True:
+            validate_bool = False
+            logger.warning("Cannot enable merkleproof setting on pruned node.")
+
+        self.config['validate_merkle_proofs'] = validate_bool
+        self._save()
 
     def add_new_user_otp(self, otp_dict):
         ''' adds an OTP for user registration '''
