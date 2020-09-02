@@ -168,7 +168,7 @@ There are many ways how to run Specter:
 
 It depends on your setup, and can be customized accordingly.
 
-Specter-desktop makes many requests to bitcoin RPC, so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default bitcoin rpc is connecting over http, so everything including your RPC login and password are flying around as plaintext. You can use https and a [self-signed certificate](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md) to fix that.
+Specter-desktop makes many requests to Bitcoin Core RPC, so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default Bitcoin Core RPC is connecting over HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md) to fix that.
 
 If you use hardware wallets and they are usb-conneced to specter-desktop then you should take these precautions, but if they are airgapped (coldcard, specter-diy, cobo) - then you can use remote web interface.
 
