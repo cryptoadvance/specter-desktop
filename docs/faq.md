@@ -187,7 +187,7 @@ Full Electrum support is not out yet, but it should already work with files and 
 
 ## *Can I use Ledger and Coldcard multisig while CC remains airgapped?*
 
-Yes you can use the Coldcard with its SD card without connecting it to the computer directly. You just need to import the Coldcard public keys with SD card. Just after creating the multisig wallet, you should go to the wallet page, click on the Settings tab, then scroll down to the Export and click on the export to Coldcard option. It will download a file you can import with the SD card to Coldcard and show you a notification with the instructions on how to do this. This will allow the coldcard to be “aware” of the multisig and sign transactions for it.
+Yes you can use the Coldcard with its SD card without connecting it to the computer directly. You just need to import the Coldcard public keys with SD card. Just after creating the multisig wallet, you should go to the wallet page, click on the Settings tab, then scroll down to the Export and click on the export to Coldcard option. It will download a file you can import with the SD card to Coldcard and show you a notification with the instructions on how to do this. This will allow the Coldcard to be “aware” of the multisig and sign transactions for it.
 
 ## *Can I use Bluewallet with Specter DIY?*
 
