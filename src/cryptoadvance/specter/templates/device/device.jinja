@@ -48,17 +48,29 @@
 			</tbody>
 		</table>
 	</div>
-	<div class="spacer"></div>
-	<div class="row optional">
-		{% if device.supports_hwi_toggle_passphrase %}
-		<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
-		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
-		{% endif %}
+	<div class="optional" style="line-height: 1; margin-top: 30px;">
 		{% if device.device_type != 'bitcoincore' %}
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
 		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
+		{% endif %}
+		{% if device.hwi_support %}
+			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
+			<div id="message-signing" class="hidden" style="text-align: left;">
+				Derivation path:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
+				Message:<br>
+				<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
+				<span id="signature-label" class="hidden">Message signature:</span>
+				<p style="word-break: break-all; margin-top: 5px;" id="signature" title="Copy message signature" class="explorer-link" onclick="copyText(this.innerText, 'Copied message signature')">
+				</p>
+				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
+			</div>
+			<br>
+		{% endif %}
+		{% if device.supports_hwi_toggle_passphrase %}
+			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
+			<br>
 		{% endif %}
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
@@ -87,6 +99,7 @@
 {% block scripts %}
 	<script>
 		document.addEventListener("DOMContentLoaded", function(){
+			
 			var deviceType = document.getElementById("device_type");
 			if (deviceType != null) {
 				deviceType.value = '{{ device.device_type }}';
@@ -100,5 +113,18 @@
 				}
 			}, false);
 		});
+
+		async function signMessageOnDevice() {
+			hidePageOverlay();
+			let signature = await signMessage(
+				'{{ device.device_type }}',
+				document.getElementById('message').value,
+				document.getElementById('messageDerivationPath').value
+			);
+			document.getElementById('signature-label').style.display = 'block';
+			document.getElementById('signature').innerText = signature;
+			showPageOverlay('message-signing');
+			showNotification('Message was signed successfully!')
+		}
 	</script>
 {% endblock %}
