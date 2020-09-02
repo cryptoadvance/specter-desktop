@@ -327,6 +327,8 @@ def general_settings():
         action = request.form['action']
         explorer = request.form['explorer']
         unit = request.form['unit']
+        validate_merkleproof_bool = request.form.get('validatemerkleproof') == "on"
+
         if current_user.is_admin:
             loglevel = request.form['loglevel']
 
@@ -336,6 +338,7 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_unit(unit, current_user)
+            app.specter.update_merkleproof_settings(validate_bool=validate_merkleproof_bool)
             app.specter.check()
         elif action == "backup":
             return send_file(
@@ -428,6 +431,7 @@ This may take a few hours to complete.', 'info')
         "settings/general_settings.jinja",
         explorer=explorer,
         loglevel=loglevel,
+        validate_merkle_proofs=app.specter.config.get('validate_merkle_proofs') is True,
         unit=unit,
         specter=app.specter,
         current_version=current_version,
