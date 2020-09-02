@@ -2,6 +2,13 @@
 {% set tab = 'wallet_send' %}
 {% block content %}
 
+	<style>
+	.max-btn:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+	</style>
+
 	{% include "includes/qr-scanner.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
@@ -86,6 +93,7 @@
 				<input type="hidden" name="btc_amount_${i}" id="btc_amount_${i}">
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
+				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
 				<div>
 					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">{% if specter.unit == "sat" %}BTC{% else %}sat{% endif %}</span>
 				</div>
@@ -179,6 +187,31 @@
 			    return false;
 			}
 			return (unit == 'sat' ? amount / 1e8 : amount) < 1e-8;
+		}
+
+		function setMaxAmount(i) {
+			let amountInput = document.getElementById('amount_' + i);
+			let subtract = document.getElementById('subtract');
+			let othersAmount = 0;
+			for(let j in amounts) {
+				if (j != i) {
+					let unit = units[j];
+					let amount = amounts[j];
+					othersAmount += (unit == 'sat' ? amount / 1e8 : amount);
+				}
+			}
+			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
+			if (units[i] == 'sat') {
+				maxAmount = Math.round(maxAmount);
+			} else {
+				maxAmount = maxAmount.toFixed(8);
+			}
+			if (maxAmount < 0) {
+				maxAmount = 0;
+			}
+			amountInput.value = maxAmount;
+			subtract.checked = true;
+			calculateConvertedUnit(i);
 		}
 
 		// Form validation
