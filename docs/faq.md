@@ -180,7 +180,7 @@ XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, specter-DIY, 
 
 As of late, you can also use a hot wallet as a signer with specter-desktop, but since it is so new it is not recommended. You can however use devices like Electrum wallet or FullyNoded for example (Electrum or Bitcoin Core can be air-gapped). This [video](https://youtu.be/4YXklLh2srA) is quite useful for using Electrum, and this [guide](https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Connect-node.md#importing-a-wallet-from-specter) is useful for connecting with FullyNoded.
 
-## *How would one sign with Electrum? Do I need to create multisig wallet in electrum first or can I create it with specter-desktop?*
+## *How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*
 
 You need to create it in both wallets. When you start creating multisig wallet in Electrum it will give you the bech32 extended public key (ZPUB) where you can then add it to specter-desktop as well as other ZPUBS from other devices, and then add them to Electrum. After that you can start using Electrum as a signer.
 Full Electrum support is not out yet, but it should already work with files and copy paste of the transaction.
