@@ -54,7 +54,7 @@
 					<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
 					<br>
 				</div>
-				<div id="utxo-scan-options">
+				<div id="utxo-scan-options" style="display: none">
 					{% if specter.info['pruned']  %}
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
 							<div class="tool-tip">
@@ -68,6 +68,11 @@
 								</p>
 							</div>
 						</label>
+						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+							&#9432;<br>Careful with block explorers!<br>
+							This may have privacy implication!<br>
+							Information fetched from the block explorer contains a list of unspent transactions of your wallet from the old (pruned) blocks. This means 
+						</span>
 					{% endif %}
 				</div>
 			</div>
@@ -154,6 +159,17 @@
 				scanOptions.style.display = 'none';
 				utxoOptions.style.display = 'block';
 			}
+		}
+		let utxocheckbox = document.getElementById("use_explorer");
+		if(utxocheckbox){
+			utxocheckbox.addEventListener('change', e=>{
+				let el = document.getElementById("utxo-warning")
+				if(utxocheckbox.checked){
+					el.style.display = "inline-block";
+				}else{
+					el.style.display = "none";
+				}
+			});
 		}
 	</script>
 {% endblock%}
