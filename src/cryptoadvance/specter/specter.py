@@ -6,7 +6,7 @@ import random
 import time
 import zipfile
 from io import BytesIO
-from .helpers import deep_update, clean_psbt
+from .helpers import deep_update, clean_psbt, get_version_info
 from .rpc import autodetect_cli_confs, get_default_datadir, RpcError
 from .rpc import BitcoinCLI
 from .device_manager import DeviceManager
@@ -46,6 +46,7 @@ class Specter:
         self.cli = None
         self.device_manager = None
         self.wallet_manager = None
+        self._current_version = None
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
@@ -458,3 +459,10 @@ class Specter:
 
     def restore_from_backup(self):
         pass
+
+    @property
+    def specter_version(self):
+        if not self._current_version:
+            self._current_version = get_version_info()[0]
+        return self._current_version
+
