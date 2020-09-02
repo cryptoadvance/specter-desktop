@@ -6,7 +6,7 @@ import random
 import time
 import zipfile
 from io import BytesIO
-from .helpers import deep_update, clean_psbt
+from .helpers import deep_update, clean_psbt, get_version_info
 from .rpc import autodetect_cli_confs, get_default_datadir, RpcError
 from .rpc import BitcoinCLI
 from .device_manager import DeviceManager
@@ -46,9 +46,11 @@ class Specter:
         self.cli = None
         self.device_manager = None
         self.wallet_manager = None
+        self._current_version = None
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
+        self.utxorescanwallet = None
 
         # default config
         self.config = {
@@ -136,6 +138,8 @@ class Specter:
                 self._info["utxorescan"] = (res[5]["progress"]
                                             if res[5] is not None and "progress" in res[5]
                                             else None)
+                if self._info["utxorescan"] is None:
+                    self.utxorescanwallet = None
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
@@ -186,6 +190,7 @@ class Specter:
         # Bitcoin Core doesn't catch up right away
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None
+        self.utxorescanwallet = None
 
     def clear_user_session(self):
         self.device_manager = None
@@ -437,3 +442,10 @@ class Specter:
 
     def restore_from_backup(self):
         pass
+
+    @property
+    def specter_version(self):
+        if not self._current_version:
+            self._current_version = get_version_info()[0]
+        return self._current_version
+

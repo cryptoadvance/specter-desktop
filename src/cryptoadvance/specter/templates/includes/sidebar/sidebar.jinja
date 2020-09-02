@@ -52,7 +52,7 @@
             </a>
         {% endif %}
         {% if specter.info["utxorescan"] %}
-        <div class="rescan_progress {{ chain }}">
+        <div class="rescan_progress {{ specter.info.chain }}">
             <div style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
         {% endif %}
@@ -94,6 +94,7 @@
             <a href="https://github.com/cryptoadvance/" target="_blank">
                 <img src="/static/img/ca.png">
             </a>
+	    <span>Specter Version: <strong>{{ specter.specter_version }}</strong></span>
         </div>
     </nav>
     <div id="side-expand">
