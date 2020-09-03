@@ -44,7 +44,7 @@
 		<div class="card">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
-			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="font-size: 0.95em;">{{ recipients_txt }}</textarea>
+			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
 				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					Enter each recipient address, amount as a new line:<br>
 					&lt;ADDRESS1&gt;, &lt;AMOUNT1&gt;<br>
@@ -229,6 +229,13 @@
 
 		// Form validation
 		function validateAmount(unit, amount, i) {
+			if (isNaN(amount)) {
+				setVisibility('amount_errors_container', 'block');
+				document.getElementById('amount_errors_container')
+					.innerHTML = "Amount entered is invalid!";
+				return false;
+			}
+
 			if (i) {
 				let amountInput = document.getElementById('amount_' + i);
 				amountInput.max = getSpendableAmount(unit);
@@ -268,8 +275,8 @@
 
 		function validateForm(submitted=false) {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
+			let totalAmount = 0.0;
 			if (document.getElementById('ui-radio-btn').checked) {
-				let totalAmount = 0.0;
 				for(let i in amounts) {
 					let unit = units[i]
 					let amount = amounts[i]
@@ -277,15 +284,13 @@
 					if (submitted && !amount) {
 						showError('Please enter the amount that you wish to send', 5000);
 					}
+					if (document.getElementById("amount_" + i).value == '') {
+						amount = 0;
+					}
 					if (!validateAmount(unit, amount, i)) {
 						createPSBTButton.setAttribute('type', 'button');
 						return;
 					}
-				}
-
-				if (!validateAmount('btc', totalAmount)) {
-					createPSBTButton.setAttribute('type', 'button');
-					return;
 				}
 				
 				for(let i in amounts) {
@@ -297,6 +302,16 @@
 						return;
 					}
 				}
+			} else {
+				let outputs = document.getElementById('recipients-txt').value.split('\n');
+				for (let output of outputs) {
+					totalAmount += parseFloat(output.split(',')[1].trim());
+				}
+			}
+
+			if (!validateAmount('btc', totalAmount)) {
+				createPSBTButton.setAttribute('type', 'button');
+				return;
 			}
 
 			createPSBTButton.setAttribute('type', 'submit');
