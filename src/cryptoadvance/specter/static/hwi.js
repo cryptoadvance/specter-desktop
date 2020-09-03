@@ -104,6 +104,23 @@ class HWIBridge {
             psbt: psbt
         });
     }
+
+    async signMessage(device, message, derivationPath, passphrase="") {
+        /**
+            Sends the message and derivation path to sign with to the server to relay to the HWI wallet.
+        **/
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.fetch('sign_message', {
+            device_type: device.type,
+            path: device.path,
+            passphrase: device.passphrase,
+            message: message,
+            derivation_path: derivationPath
+        });
+    }
+
     async getXpubs(device, passphrase=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;

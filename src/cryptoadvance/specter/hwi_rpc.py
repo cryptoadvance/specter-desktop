@@ -32,7 +32,8 @@ class HWIBridge(JSONRPC):
             "send_pin": self.send_pin,
             "extract_xpubs": self.extract_xpubs,
             "display_address": self.display_address,
-            "sign_tx": self.sign_tx
+            "sign_tx": self.sign_tx,
+            "sign_message": self.sign_message
         }
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
@@ -76,7 +77,7 @@ class HWIBridge(JSONRPC):
 
         self.devices = devices
         return self.devices
-    
+
     def detect_device(self, device_type=None, path=None, fingerprint=None, rescan_devices=False):
         """
         Returns a hardware wallet details 
@@ -183,6 +184,24 @@ class HWIBridge(JSONRPC):
                 return status['psbt']
             else:
                 raise Exception("Failed to sign transaction with device: Unknown Error")
+
+    @locked(hwilock)
+    def sign_message(self, message='', derivation_path='m', device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
+        if message == '':
+            raise Exception("Message must not be empty")
+        print(derivation_path)
+        with self._get_client(device_type=device_type,
+                              fingerprint=fingerprint,
+                              path=path,
+                              passphrase=passphrase,
+                              chain=chain) as client:
+            status = hwi_commands.signmessage(client, message, derivation_path)
+            if 'error' in status:
+                raise Exception(status['error'])
+            elif 'signature' in status:
+                return status['signature']
+            else:
+                raise Exception("Failed to sign message with device: Unknown Error")
 
     ######################## HWI Utils ########################
     @contextmanager

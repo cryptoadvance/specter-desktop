@@ -3,6 +3,7 @@ from time import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
+from .merkleblock import is_valid_merkle_proof
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
@@ -307,22 +308,38 @@ class Wallet():
         self.cli.lockunspent(False, psbt["tx"]["vin"])
         self.save_to_file()
 
-    def txlist(self, idx, wallet_tx_batch=100):
+    def txlist(self, idx, wallet_tx_batch=100, validate_merkle_proofs=False):
         try:
             cli_txs = self.cli.listtransactions("*", wallet_tx_batch + 2, wallet_tx_batch * idx, True) # get batch + 2 to make sure you have information about send
             cli_txs.reverse()
             transactions = cli_txs[:wallet_tx_batch]
         except:
             return []
-        txids = []
         result = []
+        blocks = {}
         for tx in transactions:
             if 'confirmations' not in tx:
                 tx['confirmations'] = 0
             if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
                 continue # means the tx is duplicated (change), continue
 
-            txids.append(tx["txid"])
+            tx['validated_blockhash'] = ""  # default is assume unvalidated
+            if validate_merkle_proofs is True and tx['confirmations'] > 0 and tx.get('blockhash'):
+                proof_hex = self.cli.gettxoutproof([tx['txid']], tx['blockhash'])
+                logger.debug(f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }")
+                if is_valid_merkle_proof(
+                    proof_hex=proof_hex,
+                    target_tx_hex=tx['txid'],
+                    target_block_hash_hex=tx['blockhash'],
+                    target_merkle_root_hex=None,
+                ):
+                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
+                    # See merkletooltip.html for details
+                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
+                    tx['validated_blockhash'] = tx['blockhash']
+                else:
+                    logger.warning(f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}")
+
             result.append(tx)
 
         return result
