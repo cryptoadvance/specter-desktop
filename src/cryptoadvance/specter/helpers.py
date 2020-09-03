@@ -11,8 +11,8 @@ import subprocess
 import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
-from hwilib.descriptor import AddChecksum
 from hwilib.serializations import PSBT, CTransaction
+from .util.descriptor import AddChecksum
 from .util.bcur import bcur_decode
 import threading
 from io import BytesIO

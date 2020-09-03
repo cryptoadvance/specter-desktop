@@ -2,7 +2,7 @@ import ast, sys, json, os, time, base64
 import requests
 import random, copy
 from collections import OrderedDict
-from .descriptor import AddChecksum, Descriptor
+from .util.descriptor import AddChecksum, Descriptor
 from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key

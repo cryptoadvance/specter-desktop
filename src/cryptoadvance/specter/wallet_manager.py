@@ -1,7 +1,7 @@
 import os, json, logging, shutil, time, zipfile
 from io import BytesIO
 from collections import OrderedDict
-from hwilib.descriptor import AddChecksum
+from .util.descriptor import AddChecksum
 from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
