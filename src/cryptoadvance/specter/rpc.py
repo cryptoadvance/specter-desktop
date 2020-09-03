@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 RPC_PORTS = { "test": 18332, "regtest": 18443, "main": 8332, 'signet': 38332 }
 
 def get_default_datadir():
+    """Get default Bitcoin directory depending on the system"""
     datadir = None
     if sys.platform == 'darwin':
         datadir = os.path.join(os.environ['HOME'], "Library/Application Support/Bitcoin/")
@@ -47,7 +48,12 @@ def get_rpcconfig(datadir=get_default_datadir()):
                     if '=' not in line:
                         continue
                     k, v = line.split('=', 1)
-                    current[k.strip()] = v.strip()
+                    # lines like main.rpcuser and so on
+                    if "." in k:
+                        net, k = k.split(".", 1)
+                        config["bitcoin.conf"][net.strip()][k.strip()] = v.strip()
+                    else:
+                        current[k.strip()] = v.strip()
         except Exception:
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {
