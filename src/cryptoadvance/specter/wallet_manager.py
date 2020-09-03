@@ -175,9 +175,12 @@ Silently ignored!" % wallet_alias)
         return sorted(self.wallets.keys())
 
     def create_wallet(self, name, sigs_required, key_type, keys, devices):
-        walletsindir = [
-            wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]
-        ]
+        try:
+            walletsindir = [
+                wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]
+            ]
+        except:
+            walletsindir = []
         wallet_alias = alias(name)
         i = 2
         while os.path.isfile(
