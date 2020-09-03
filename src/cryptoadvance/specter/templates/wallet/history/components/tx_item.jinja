@@ -4,8 +4,9 @@
     - tx: The transaction to display
     - wallet: Wallet object
     - specter: Specter object.
+    - includeValidatedBlockhash: boolean
  #}
-{% macro tx_item(tx, wallet, specter) -%}
+{% macro tx_item(tx, wallet, specter, includeValidatedBlockhash=False) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     {% set txid = tx['txid'] %}
     <tr class="{%if tx['confirmations'] == 0 %}unconfirmed{%endif%}" onclick="if(window.innerWidth<=600){showPageOverlay(`{{tx['txid']}}_tx_info_popup`)}">
@@ -37,6 +38,15 @@
             {% endif %}
             ({{ tx['time'] | datetime }})
         </td>
+	{% if includeValidatedBlockhash %}
+	  <td class="tx scroll optional">
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </td>
+	{% endif %}
     </tr>
     <div id="{{tx['txid']}}_tx_info_popup" class="hidden" style="text-align:left;">
         <h1>Transaction details</h1>
@@ -66,5 +76,14 @@
         {% endif %}
         ({{ tx['time'] | datetime }})
         </p>
+	{% if includeValidatedBlockhash %}
+	  <p>
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </p>
+	{% endif %}
     </div>
 {%- endmacro %}

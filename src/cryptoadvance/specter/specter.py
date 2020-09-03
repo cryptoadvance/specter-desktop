@@ -75,6 +75,7 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
+            "validate_merkle_proofs": False,
         }
 
         # creating folders if they don't exist
@@ -308,6 +309,14 @@ class Specter:
         else:
             user.set_unit(self, unit)
 
+    def update_merkleproof_settings(self, validate_bool):
+        if validate_bool is True and self._info.get('pruned') is True:
+            validate_bool = False
+            logger.warning("Cannot enable merkleproof setting on pruned node.")
+
+        self.config['validate_merkle_proofs'] = validate_bool
+        self._save()
+
     def add_new_user_otp(self, otp_dict):
         ''' adds an OTP for user registration '''
         if 'new_user_otps' not in self.config:
@@ -343,6 +352,23 @@ class Specter:
 
     def estimatesmartfee(self, blocks):
         return self.cli.estimatesmartfee(blocks)
+
+    def get_default_explorer(self):
+        """
+        Returns a blockexplorer url:
+        user-defined if it's set, otherwise
+        blockstream.info for main and testnet,
+        bc-2.jp for signet
+        """
+        # not None or ""
+        if self.explorer:
+            return self.explorer
+        if self.chain == "main":
+            return "https://blockstream.info/"
+        elif self.chain == "test":
+            return "https://blockstream.info/testnet/"
+        elif self.chain == "signet":
+            return "https://explorer.bc-2.jp/"
 
     @property
     def is_running(self):

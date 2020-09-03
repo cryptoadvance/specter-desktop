@@ -3,19 +3,22 @@ from time import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
+from .merkleblock import is_valid_merkle_proof
 from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
+import requests
 
 logger = logging.getLogger()
 
-# a gap of 20 addresses is what many wallets do
-WALLET_CHUNK = 20
-wallet_tx_batch = 100
 
 class Wallet():
+    # if the wallet is old we import 300 addresses
+    IMPORT_KEYPOOL = 300
+    # a gap of 20 addresses is what many wallets do
+    GAP_LIMIT = 20
     def __init__(
         self,
         name,
@@ -116,10 +119,16 @@ class Wallet():
             max_recv = max([int(p[1]) for p in paths if p[0]=="0"], default=-1)
             max_change = max([int(p[1]) for p in paths if p[0]=="1"], default=-1)
             # these calls will happen only if current addresses are used
+            updated = False
             while max_recv >= self.address_index:
-                self.getnewaddress(change=False)
+                self.getnewaddress(change=False, save=False)
+                updated = True
             while max_change >= self.change_index:
-                self.getnewaddress(change=True)
+                self.getnewaddress(change=True, save=False)
+                updated = True
+            # save only if needed
+            if updated:
+                self.save_to_file()
         self.last_block = last_block
 
     @staticmethod
@@ -307,42 +316,90 @@ class Wallet():
         self.cli.lockunspent(False, psbt["tx"]["vin"])
         self.save_to_file()
 
-    def txlist(self, idx, wallet_tx_batch=100):
+    def txlist(self, idx, wallet_tx_batch=100, validate_merkle_proofs=False):
         try:
             cli_txs = self.cli.listtransactions("*", wallet_tx_batch + 2, wallet_tx_batch * idx, True) # get batch + 2 to make sure you have information about send
             cli_txs.reverse()
             transactions = cli_txs[:wallet_tx_batch]
         except:
             return []
-        txids = []
         result = []
+        blocks = {}
         for tx in transactions:
             if 'confirmations' not in tx:
                 tx['confirmations'] = 0
             if len([_tx for _tx in cli_txs if (_tx['txid'] == tx['txid'] and _tx['address'] == tx['address'])]) > 1:
                 continue # means the tx is duplicated (change), continue
 
-            txids.append(tx["txid"])
+            tx['validated_blockhash'] = ""  # default is assume unvalidated
+            if validate_merkle_proofs is True and tx['confirmations'] > 0 and tx.get('blockhash'):
+                proof_hex = self.cli.gettxoutproof([tx['txid']], tx['blockhash'])
+                logger.debug(f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }")
+                if is_valid_merkle_proof(
+                    proof_hex=proof_hex,
+                    target_tx_hex=tx['txid'],
+                    target_block_hash_hex=tx['blockhash'],
+                    target_merkle_root_hex=None,
+                ):
+                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
+                    # See merkletooltip.html for details
+                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
+                    tx['validated_blockhash'] = tx['blockhash']
+                else:
+                    logger.warning(f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}")
+
             result.append(tx)
 
         return result
 
-    def rescanutxo(self):
-        t = threading.Thread(target=self._rescan_utxo_thread)
+    def rescanutxo(self, explorer=None):
+        t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
 
-    def _rescan_utxo_thread(self):
+    def _rescan_utxo_thread(self, explorer=None):
+        # rescan utxo is pretty fast,
+        # so we can check large range of addresses
+        # and adjust keypool accordingly
         args = [
             "start",
             [{
                 "desc": self.recv_descriptor,
-                "range": self.keypool
+                "range": max(self.keypool, 1000)
             },{
                 "desc": self.change_descriptor,
-                "range": self.change_keypool
+                "range": max(self.change_keypool, 1000)
             }]
         ]
         unspents = self.cli.scantxoutset(*args)["unspents"]
+        # if keypool adjustments fails - not a big deal
+        try:
+            # check derivation indexes in found unspents (last 2 indexes in [brackets])
+            derivations = [tx["desc"].split("[")[1].split("]")[0].split("/")[-2:]
+                           for tx in unspents]
+            # get max derivation for change and receive branches
+            max_recv = max([-1]+[int(der[1]) for der in derivations if der[0] == '0'])
+            max_change = max([-1]+[int(der[1]) for der in derivations if der[0] == '1'])
+
+            updated = False
+            if max_recv >= self.address_index:
+                # skip to max_recv
+                self.address_index = max_recv
+                # get next
+                self.getnewaddress(change=False, save=False)
+                updated = True
+            while max_change >= self.change_index:
+                # skip to max_change
+                self.change_index = max_change
+                # get next
+                self.getnewaddress(change=True, save=False)
+                updated = True
+            # save only if needed
+            if updated:
+                self.save_to_file()
+        except Exception as e:
+            logger.warning(f"Failed to get derivation path from utxo transaction: {e}")
+
+        # keep working with unspents
         res = self.cli.multi([
             ("getblockhash", tx["height"])
             for tx in unspents
@@ -364,10 +421,35 @@ class Wallet():
         raws = [r["result"] for r in res]
         for i, tx in enumerate(unspents):
             tx["raw"] = raws[i]
+        missing = [tx for tx in unspents if tx["raw"] is None]
+        existing = [tx for tx in unspents if tx["raw"] is not None]
         self.cli.multi([
             ("importprunedfunds", tx["raw"], tx["proof"])
-            for tx in unspents
+            for tx in existing
         ])
+        # handle missing transactions now
+        # TODO: do it over Tor
+        if explorer is not None:
+            # make sure there is no trailing /
+            explorer = explorer.rstrip("/")
+            try:
+                # get raw transactions
+                raws = [requests.get(
+                            f"{explorer}/api/tx/{tx['txid']}/hex"
+                            ).text
+                        for tx in missing]
+                # get proofs
+                proofs = [requests.get(
+                            f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                            ).text
+                          for tx in missing]
+                # import funds
+                self.cli.multi([
+                    ("importprunedfunds", raws[i], proofs[i])
+                    for i in range(len(raws))
+                ])
+            except Exception as e:
+                logger.warning(f"Failed to fetch data from block explorer: {e}")
 
     @property
     def rescan_progress(self):
@@ -400,7 +482,7 @@ class Wallet():
     def account_map(self):
         return '{ "label": "' + self.name.replace("'","\\'") + '", "blockheight": ' + str(self.blockheight) + ', "descriptor": "' + self.recv_descriptor.replace("/", "\\/") + '" }'
 
-    def getnewaddress(self, change=False):
+    def getnewaddress(self, change=False, save=True):
         label = "Change" if change else "Address"
         if change:
             self.change_index += 1
@@ -414,13 +496,14 @@ class Wallet():
             self.change_address = address
         else:
             self.address = address
-        self.save_to_file()
+        if save:
+            self.save_to_file()
         return address
 
     def get_address(self, index, change=False):
         pool = self.change_keypool if change else self.keypool
-        if pool < index + WALLET_CHUNK:
-            self.keypoolrefill(pool, index + WALLET_CHUNK, change=change)
+        if pool < index + self.GAP_LIMIT:
+            self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         if self.is_multisig:
             try:
@@ -447,7 +530,7 @@ class Wallet():
 
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
-            end = start + WALLET_CHUNK
+            end = start + self.GAP_LIMIT
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
             {
