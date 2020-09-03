@@ -1007,6 +1007,8 @@ def wallet_sendnew(wallet_alias):
     amounts = [0]
     fee_rate = 0.0
     err = None
+    ui_option = 'ui'
+    recipients_txt = ''
     if request.method == "POST":
         action = request.form['action']
         if action == "createpsbt":
@@ -1014,13 +1016,22 @@ def wallet_sendnew(wallet_alias):
             addresses = []
             labels = []
             amounts = []
-            while 'address_{}'.format(i) in request.form:
-                addresses.append(request.form['address_{}'.format(i)])
-                amounts.append(float(request.form['btc_amount_{}'.format(i)]))
-                labels.append(request.form['label_{}'.format(i)])
-                if request.form['label_{}'.format(i)] != '':
-                    wallet.setlabel(addresses[i], labels[i])
-                i += 1
+            ui_option = request.form.get('ui_option')
+            if 'ui' in ui_option:
+                while 'address_{}'.format(i) in request.form:
+                    addresses.append(request.form['address_{}'.format(i)])
+                    amounts.append(
+                        float(request.form['btc_amount_{}'.format(i)])
+                    )
+                    labels.append(request.form['label_{}'.format(i)])
+                    if request.form['label_{}'.format(i)] != '':
+                        wallet.setlabel(addresses[i], labels[i])
+                    i += 1
+            else:
+                recipients_txt = request.form['recipients']
+                for output in recipients_txt.splitlines():
+                    addresses.append(output.split(',')[0].strip())
+                    amounts.append(float(output.split(',')[1].strip()))
             subtract = bool(request.form.get("subtract", False))
             fee_unit = request.form.get('fee_unit')
             selected_coins = request.form.getlist('coinselect')
@@ -1094,8 +1105,8 @@ def wallet_sendnew(wallet_alias):
             return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", signed_psbt=signed_psbt, psbt=psbt, labels=labels, 
                                                 wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand)
-    return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, labels=labels, 
-                                                wallet_alias=wallet_alias, wallet=wallet, 
+    return render_template("wallet/send/new/wallet_send.jinja", psbt=psbt, ui_option=ui_option, recipients_txt=recipients_txt,
+                                                labels=labels, wallet_alias=wallet_alias, wallet=wallet, 
                                                 specter=app.specter, rand=rand, error=err)
 
 @app.route('/wallets/<wallet_alias>/send/import')

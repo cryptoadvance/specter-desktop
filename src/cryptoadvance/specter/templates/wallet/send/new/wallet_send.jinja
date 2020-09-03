@@ -42,12 +42,25 @@
 			<br><br>
 		{% endif %}
 		<div class="card">
-			<div id="recipients"></div>
+			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
+			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
+			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="font-size: 0.95em;">{{ recipients_txt }}</textarea>
+				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
+					Enter each recipient address, amount as a new line:<br>
+					&lt;ADDRESS1&gt;, &lt;AMOUNT1&gt;<br>
+					&lt;ADDRESS2&gt;, &lt;AMOUNT2&gt;<br>
+					&lt;ADDRESS3&gt;, &lt;AMOUNT3&gt;<br>
+				</p>
+			</div>
 			<button style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()" id="remove_recipient"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
 			<br>
 			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
 			<br><br>
 			<div id="advanced_settings" class="hidden">
+				<div>Transaction editor: 
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
+				</div><br>
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
 				{% set unspents = wallet.cli.listunspent(0) %}
 				<div class="row" style="margin-top: 30px;">
@@ -59,7 +72,7 @@
 				{% include "wallet/send/new/components/coin_selection.jinja" %}
 			</div>
 			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
-		</div>
+		</div>		
 	</form>
 {% endblock %}
 
@@ -255,32 +268,34 @@
 
 		function validateForm(submitted=false) {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
-			let totalAmount = 0.0;
-			for(let i in amounts) {
-				let unit = units[i]
-				let amount = amounts[i]
-				totalAmount += (unit == 'sat' ? amount / 1e8 : amount);
-				if (submitted && !amount) {
-					showError('Please enter the amount that you wish to send', 5000);
-				}
-				if (!validateAmount(unit, amount, i)) {
-					createPSBTButton.setAttribute('type', 'button');
-					return;
-				}
-			}
-
-			if (!validateAmount('btc', totalAmount)) {
-				createPSBTButton.setAttribute('type', 'button');
-				return;
-			}
-			
-			for(let i in amounts) {
-				if (!validateAddress(i)) {
-					if (submitted) {
-						showError('Please enter a valid recipient address', 5000);
+			if (document.getElementById('ui-radio-btn').checked) {
+				let totalAmount = 0.0;
+				for(let i in amounts) {
+					let unit = units[i]
+					let amount = amounts[i]
+					totalAmount += (unit == 'sat' ? amount / 1e8 : amount);
+					if (submitted && !amount) {
+						showError('Please enter the amount that you wish to send', 5000);
 					}
+					if (!validateAmount(unit, amount, i)) {
+						createPSBTButton.setAttribute('type', 'button');
+						return;
+					}
+				}
+
+				if (!validateAmount('btc', totalAmount)) {
 					createPSBTButton.setAttribute('type', 'button');
 					return;
+				}
+				
+				for(let i in amounts) {
+					if (!validateAddress(i)) {
+						if (submitted) {
+							showError('Please enter a valid recipient address', 5000);
+						}
+						createPSBTButton.setAttribute('type', 'button');
+						return;
+					}
 				}
 			}
 
@@ -304,6 +319,18 @@
 			} else {
 				advancedSettigns.style.display = 'block';
 				advancedButton.innerHTML = 'Advanced &#9660;';
+			}
+		}
+
+		function toggleSendUIType(radioBtn) {
+			let feeUnit = document.getElementById('fee_unit');
+
+			if (radioBtn.value == 'ui') {
+				setVisibility('recipients', 'block');
+				setVisibility('recipients-txt-container', 'none');
+			} else {
+				setVisibility('recipients', 'none');
+				setVisibility('recipients-txt-container', 'block');
 			}
 		}
 
