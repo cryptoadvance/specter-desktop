@@ -617,7 +617,7 @@ class Wallet():
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
+    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[], readonly=False):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
@@ -663,9 +663,10 @@ class Wallet():
 
         self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
-        if fee_rate > 0.0 and fee_unit == "SAT_B":
+        # if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
-            options["feeRate"] = fee_rate / 10 ** 8 * 1024
+        options["feeRate"] = 0.0001 #(fee_rate * 1000) / 10 ** 8
+        print(options["feeRate"])
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.cli.walletcreatefundedpsbt(
@@ -673,7 +674,7 @@ class Wallet():
             [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
             0,                      # locktime
             options,                # options
-            True                    # replaceable
+            True                    # bip32-der
         )
 
         b64psbt = r["psbt"]
@@ -683,7 +684,8 @@ class Wallet():
         psbt["address"] = addresses
         psbt["time"] = time()
         psbt["sigs_count"] = 0
-        self.save_pending_psbt(psbt)
+        if not readonly:
+            self.save_pending_psbt(psbt)
 
         return psbt
 

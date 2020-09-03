@@ -1043,7 +1043,7 @@ def wallet_sendnew(wallet_alias):
                     fee_rate = float(request.form.get('fee_rate'))
 
             try:
-                psbt = wallet.createpsbt(addresses, amounts, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit, selected_coins=selected_coins)
+                psbt = wallet.createpsbt(addresses, amounts, subtract=subtract, fee_rate=fee_rate, fee_unit=fee_unit, selected_coins=selected_coins, readonly='estimate_fee' in request.form)
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
                 else:
@@ -1055,6 +1055,8 @@ def wallet_sendnew(wallet_alias):
             except Exception as e:
                 err = e
             if err is None:
+                if 'estimate_fee' in request.form:
+                    return psbt
                 return render_template("wallet/send/sign/wallet_send_sign_psbt.jinja", psbt=psbt, labels=labels, 
                                                     wallet_alias=wallet_alias, wallet=wallet, 
                                                     specter=app.specter, rand=rand)
