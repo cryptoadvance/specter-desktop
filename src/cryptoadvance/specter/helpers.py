@@ -219,14 +219,17 @@ def get_version_info():
         current_version = current_version[current_version.find('Version:')+8:]
         current_version = current_version[:current_version.find('\\n')].replace(' ','')
         # master?
-        if not re.search(r"v?([\d+]).([\d+]).([\d+]).*", current_version):
-            return current_version, latest_version, False
-        return current_version, latest_version, latest_version != current_version
+        if current_version == 'vx.y.z-get-replaced-by-release-script':
+            current_version = 'custom'
+
+        if re.search(r"v?([\d+]).([\d+]).([\d+]).*", current_version):
+            return current_version, latest_version, latest_version != current_version
+        return current_version, latest_version, False
     except Exception as exc:
         # if pip is not installed or we are using python3.6 or below
         # we just don't show the version
         logger.error(exc)
-        return "Unknown version", "Unknown version", False
+        return "unknown", "unknown", False
 
 
 def get_users_json(specter):
