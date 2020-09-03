@@ -163,7 +163,7 @@ If not, see [Troubleshoot](https://github.com/cryptoadvance/specter-desktop/new/
 
 There are many ways how to run Specter:
 - Specter on local computer, node on remote
-- Specter on a remote node, web interface in local network or over tor (but hardware wallets need to be connected to the node where Specter is running)
+- Specter on a remote node, web interface in local network or over Tor (but hardware wallets need to be connected to the node where Specter is running)
 - Specter on a remote node, another Specter on your computer in "hwibridge" mode that gives access to your hardware wallets from the remote node (configurable whitelist)
 
 It depends on your setup, and can be customized accordingly.
