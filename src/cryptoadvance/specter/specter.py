@@ -7,8 +7,8 @@ import time
 import zipfile
 from io import BytesIO
 from .helpers import deep_update, clean_psbt, get_version_info
-from .rpc import autodetect_cli_confs, get_default_datadir, RpcError
-from .rpc import BitcoinCLI
+from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
+from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from flask_login import current_user
@@ -16,22 +16,22 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-def get_cli(conf):
+def get_rpc(conf):
     if "autodetect" not in conf:
         conf["autodetect"] = True
     if conf["autodetect"]:
         if "port" in conf:
-            cli_conf_arr = autodetect_cli_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
+            rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
         else:
-            cli_conf_arr = autodetect_cli_confs(datadir=os.path.expanduser(conf["datadir"]))
-        if len(cli_conf_arr) > 0:
-            cli = BitcoinCLI(**cli_conf_arr[0])
+            rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]))
+        if len(rpc_conf_arr) > 0:
+            rpc = BitcoinRPC(**rpc_conf_arr[0])
         else:
             return None
     else:
-        cli = BitcoinCLI(conf["user"], conf["password"], 
+        rpc = BitcoinRPC(conf["user"], conf["password"], 
                           host=conf["host"], port=conf["port"], protocol=conf["protocol"])
-    return cli
+    return rpc
 
 class Specter:
     ''' A central Object mostly holding app-settings '''
@@ -44,7 +44,7 @@ class Specter:
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
         self.data_folder = data_folder
-        self.cli = None
+        self.rpc = None
         self.device_manager = None
         self.wallet_manager = None
         self._current_version = None
@@ -111,13 +111,13 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config)  # override loaded config
 
-        self.cli = get_cli(self.config["rpc"])
-        self._is_configured = (self.cli is not None)
+        self.rpc = get_rpc(self.config["rpc"])
+        self._is_configured = (self.rpc is not None)
         self._is_running = False
         if self._is_configured:
             try:
                 res = [
-                    r["result"] for r in self.cli.multi(
+                    r["result"] for r in self.rpc.multi(
                         [
                             ("getblockchaininfo", None),
                             ("getnetworkinfo", None),
@@ -133,7 +133,7 @@ class Specter:
                 self._info['mempool_info'] = res[2]
                 self._info['uptime'] = res[3]
                 try:
-                    self.cli.getblockfilter(res[4])
+                    self.rpc.getblockfilter(res[4])
                     self._info['blockfilterindex'] = True
                 except:
                     self._info['blockfilterindex'] = False
@@ -171,11 +171,11 @@ class Specter:
             # if chain, user or data folder changed
             if (self.wallet_manager is None
                 or self.wallet_manager.data_folder != self.data_folder
-                or self.wallet_manager.cli_path != wallets_path
+                or self.wallet_manager.rpc_path != wallets_path
                 or self.wallet_manager.chain != chain):
                 self.wallet_manager = WalletManager(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                    self.cli, 
+                    self.rpc, 
                     chain,
                     self.device_manager,
                     path=wallets_path
@@ -183,12 +183,12 @@ class Specter:
             else:
                 self.wallet_manager.update(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                    self.cli, 
+                    self.rpc, 
                     chain=chain
                 )
 
     def abortrescanutxo(self):
-        self.cli.scantxoutset("abort", [])
+        self.rpc.scantxoutset("abort", [])
         # Bitcoin Core doesn't catch up right away
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None
@@ -201,17 +201,17 @@ class Specter:
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
         conf.update(kwargs)
-        cli = get_cli(conf)
-        if cli is None:
+        rpc = get_rpc(conf)
+        if rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
         r['tests'] = {}
         try:
-            r['tests']['recent_version'] = int(cli.getnetworkinfo()['version']) >= 170000
+            r['tests']['recent_version'] = int(rpc.getnetworkinfo()['version']) >= 170000
             r['tests']['connectable'] = True
             r['tests']['credentials'] = True
             try:
-                cli.listwallets()
+                rpc.listwallets()
                 r['tests']['wallets'] = True
             except RpcError as rpce:
                 logger.error(rpce)
@@ -219,7 +219,7 @@ class Specter:
                     r['tests']['wallets'] = False
                 else:
                     raise rpce
-            r["out"] = json.dumps(cli.getblockchaininfo(),indent=4)
+            r["out"] = json.dumps(rpc.getblockchaininfo(),indent=4)
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
@@ -236,9 +236,9 @@ class Specter:
         except Exception as e:
             logger.error(e)
             r["out"] = ""
-            if cli.r is not None and "error" in cli.r:
-                r["err"] = cli.r["error"]
-                r["code"] = cli.r.status_code
+            if rpc.r is not None and "error" in rpc.r:
+                r["err"] = rpc.r["error"]
+                r["code"] = rpc.r.status_code
             else:
                 r["err"] = "Failed to connect"
                 r["code"] = -1
@@ -340,19 +340,19 @@ class Specter:
     def combine(self, psbt_arr):
         # backward compatibility with current Core psbt parser
         psbt_arr = [clean_psbt(psbt) for psbt in psbt_arr]
-        final_psbt = self.cli.combinepsbt(psbt_arr)
+        final_psbt = self.rpc.combinepsbt(psbt_arr)
         return final_psbt
 
     def finalize(self, psbt):
-        final_psbt = self.cli.finalizepsbt(psbt)
+        final_psbt = self.rpc.finalizepsbt(psbt)
         return final_psbt
 
     def broadcast(self, raw):
-        res = self.cli.sendrawtransaction(raw)
+        res = self.rpc.sendrawtransaction(raw)
         return res
 
     def estimatesmartfee(self, blocks):
-        return self.cli.estimatesmartfee(blocks)
+        return self.rpc.estimatesmartfee(blocks)
 
     def get_default_explorer(self):
         """

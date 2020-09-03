@@ -242,17 +242,17 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     return devices
 
 
-def sort_descriptor(cli, descriptor, index=None, change=False):
+def sort_descriptor(rpc, descriptor, index=None, change=False):
     descriptor = descriptor.replace("sortedmulti", "multi")
     if index is not None:
         descriptor = descriptor.replace("*", f"{index}")
     # remove checksum
     descriptor = descriptor.split("#")[0]
     # get address (should be already imported to the wallet)
-    address = cli.deriveaddresses(AddChecksum(descriptor), change=change)[0]
+    address = rpc.deriveaddresses(AddChecksum(descriptor), change=change)[0]
 
     # get pubkeys involved
-    address_info = cli.getaddressinfo(address)
+    address_info = rpc.getaddressinfo(address)
     if 'pubkeys' in address_info:
         pubkeys = address_info["pubkeys"]
     elif 'embedded' in address_info and 'pubkeys' in address_info['embedded']:
@@ -331,7 +331,7 @@ def generate_mnemonic(strength=256):
 # Transaction processing helpers
 def parse_utxo(wallet, utxo):
     for tx in utxo:
-        tx_data = wallet.cli.gettransaction(tx['txid'])
+        tx_data = wallet.rpc.gettransaction(tx['txid'])
         tx['time'] = tx_data['time']
         if (len(tx_data['details']) > 1):
             for details in tx_data['details']:

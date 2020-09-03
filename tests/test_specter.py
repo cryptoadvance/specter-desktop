@@ -1,7 +1,7 @@
 import json, logging, pytest
-from cryptoadvance.specter.specter import get_cli, Specter
+from cryptoadvance.specter.specter import get_rpc, Specter
 from cryptoadvance.specter.helpers import alias
-from cryptoadvance.specter.rpc import BitcoinCLI
+from cryptoadvance.specter.rpc import BitcoinRPC
 
 
 def test_alias():
@@ -10,7 +10,7 @@ def test_alias():
     assert alias("Wurst$ 1") == "wurst_1"
 
 @pytest.mark.skip(reason="no idea why this does not pass on gitlab exclusively")
-def test_get_cli(specter_regtest_configured):
+def test_get_rpc(specter_regtest_configured):
     specter_regtest_configured.check()
     rpc_config_data = {
         "autodetect": False,
@@ -21,9 +21,9 @@ def test_get_cli(specter_regtest_configured):
         "protocol": "http"
     }
     print("rpc_config_data: {}".format(rpc_config_data))
-    cli = get_cli(rpc_config_data)
-    assert cli.getblockchaininfo() 
-    assert isinstance(cli, BitcoinCLI)
+    rpc = get_rpc(rpc_config_data)
+    assert rpc.getblockchaininfo() 
+    assert isinstance(rpc, BitcoinRPC)
     # ToDo test autodetection-features
 
 def test_specter(specter_regtest_configured,caplog): 

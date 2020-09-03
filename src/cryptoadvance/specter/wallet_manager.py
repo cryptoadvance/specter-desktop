@@ -30,25 +30,25 @@ addrtypes = {
 }
 
 class WalletManager:
-    # chain is required to manage wallets when bitcoin-cli is not running
+    # chain is required to manage wallets when bitcoind is not running
     def __init__(
         self,
         data_folder,
-        cli,
+        rpc,
         chain,
         device_manager,
         path="specter"
     ):
         self.data_folder = data_folder
         self.chain = chain
-        self.cli = cli
-        self.cli_path = path
+        self.rpc = rpc
+        self.rpc_path = path
         self.device_manager = device_manager
         self.is_loading = False
         self.wallets = {}
-        self.update(data_folder, cli, chain)
+        self.update(data_folder, rpc, chain)
 
-    def update(self, data_folder=None, cli=None, chain=None):
+    def update(self, data_folder=None, rpc=None, chain=None):
         if self.is_loading:
             return
         self.is_loading = True
@@ -68,8 +68,8 @@ class WalletManager:
             self.working_folder
         ):
             os.mkdir(self.working_folder)
-        if cli is not None:
-            self.cli = cli
+        if rpc is not None:
+            self.rpc = rpc
 
         wallets = {}
         # list of wallets in the dict
@@ -77,24 +77,24 @@ class WalletManager:
         # list of wallet to keep
         keep_wallets = []
         try:
-            if self.working_folder is not None and self.cli is not None:
+            if self.working_folder is not None and self.rpc is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
                 try:
                     existing_wallets = [
-                        w["name"] for w in self.cli.listwalletdir()["wallets"]
+                        w["name"] for w in self.rpc.listwalletdir()["wallets"]
                     ]
                 except:
                     existing_wallets = None
-                loaded_wallets = self.cli.listwallets()
+                loaded_wallets = self.rpc.listwallets()
                 for wallet in wallets_files:
                     wallet_alias = wallets_files[wallet]["alias"]
                     wallet_name = wallets_files[wallet]["name"]
                     if existing_wallets is None or os.path.join(
-                        self.cli_path,
+                        self.rpc_path,
                         wallet_alias
                     ) in existing_wallets:
                         if os.path.join(
-                            self.cli_path,
+                            self.rpc_path,
                             wallet_alias
                         ) not in loaded_wallets:
                             try:
@@ -102,8 +102,8 @@ class WalletManager:
                                     "loading %s " %
                                     wallets_files[wallet]["alias"]
                                 )
-                                self.cli.loadwallet(
-                                    os.path.join(self.cli_path, wallet_alias)
+                                self.rpc.loadwallet(
+                                    os.path.join(self.rpc_path, wallet_alias)
                                 )
                                 wallets[wallet_name] = Wallet.from_json(
                                     wallets_files[wallet],
@@ -122,7 +122,7 @@ class WalletManager:
                                                 wallet_name
                                             ].pending_psbts[psbt]["tx"]["vin"]
                                         )
-                                        wallets[wallet_name].cli.lockunspent(
+                                        wallets[wallet_name].rpc.lockunspent(
                                             False,
                                             [utxo for utxo in wallets[
                                                 wallet_name
@@ -177,7 +177,7 @@ Silently ignored!" % wallet_alias)
     def create_wallet(self, name, sigs_required, key_type, keys, devices):
         try:
             walletsindir = [
-                wallet["name"] for wallet in self.cli.listwalletdir()["wallets"]
+                wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]
             ]
         except:
             walletsindir = []
@@ -185,7 +185,7 @@ Silently ignored!" % wallet_alias)
         i = 2
         while os.path.isfile(
             os.path.join(self.working_folder, "%s.json" % wallet_alias)
-        ) or os.path.join(self.cli_path, wallet_alias) in walletsindir:
+        ) or os.path.join(self.rpc_path, wallet_alias) in walletsindir:
             wallet_alias = alias("%s %d" % (name, i))
             i += 1
 
@@ -207,7 +207,7 @@ Silently ignored!" % wallet_alias)
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
 
-        self.cli.createwallet(os.path.join(self.cli_path, wallet_alias), True)
+        self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
 
         w = Wallet(
             name,
@@ -242,15 +242,15 @@ Silently ignored!" % wallet_alias)
 
     def delete_wallet(self, wallet, bitcoin_datadir=get_default_datadir(), chain='main'):
         logger.info("Deleting {}".format(wallet.alias))
-        wallet_cli_path = os.path.join(self.cli_path, wallet.alias)
-        self.cli.unloadwallet(wallet_cli_path)
+        wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
+        self.rpc.unloadwallet(wallet_rpc_path)
         # Try deleting wallet folder
         if bitcoin_datadir:
             if chain != 'main':
                 bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
             candidates = [
-                os.path.join(bitcoin_datadir, wallet_cli_path),
-                os.path.join(bitcoin_datadir, "wallets", wallet_cli_path),
+                os.path.join(bitcoin_datadir, wallet_rpc_path),
+                os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
                 print(path, os.path.exists(path))

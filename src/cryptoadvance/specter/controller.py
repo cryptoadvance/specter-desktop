@@ -52,8 +52,8 @@ def server_error(e):
 @app.before_request
 def selfcheck():
     """check status before every request"""
-    if app.specter.cli is not None:
-        type(app.specter.cli).counter=0
+    if app.specter.rpc is not None:
+        type(app.specter.rpc).counter=0
     if app.config.get('LOGIN_DISABLED'):
         app.login('admin')
 
@@ -166,7 +166,7 @@ def broadcast(wallet_alias):
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == 'POST':
         tx = request.form.get('tx')
-        res = wallet.cli.testmempoolaccept([tx])[0]
+        res = wallet.rpc.testmempoolaccept([tx])[0]
         if res['allowed']:
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(get_txid(tx))
@@ -196,13 +196,13 @@ def login():
             return redirect_login(request)
         if app.specter.config['auth'] == 'rpcpasswordaspin':
             # TODO: check the password via RPC-call
-            if app.specter.cli is None:
+            if app.specter.rpc is None:
                 flash("We could not check your password, maybe Bitcoin Core is not running or not configured?","error")
                 app.logger.info("AUDIT: Failed to check password")
                 return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
-            cli = app.specter.cli.clone()
-            cli.passwd = request.form['password']
-            if cli.test_connection():
+            rpc = app.specter.rpc.clone()
+            rpc.passwd = request.form['password']
+            if rpc.test_connection():
                 app.login('admin')
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
@@ -359,9 +359,9 @@ def general_settings():
             rescanning = False
             for wallet in restore_wallets:
                 try:
-                    app.specter.wallet_manager.cli.createwallet(
+                    app.specter.wallet_manager.rpc.createwallet(
                         os.path.join(
-                            app.specter.wallet_manager.cli_path,
+                            app.specter.wallet_manager.rpc_path,
                             wallet['alias']
                         ),
                         True
@@ -391,7 +391,7 @@ def general_settings():
                         wallet['alias']
                     )
                     try:
-                        wallet_obj.cli.rescanblockchain(
+                        wallet_obj.rpc.rescanblockchain(
                             wallet['blockheight']
                             if 'blockheight' in wallet
                             else get_startblock_by_chain(app.specter),
@@ -654,7 +654,7 @@ def new_wallet(wallet_type):
         if action == "importwallet":
             wallet_data = json.loads(request.form['wallet_data'].replace("'", "h"))
             wallet_name = wallet_data['label'] if 'label' in wallet_data else 'Imported Wallet'
-            startblock = wallet_data['blockheight'] if 'blockheight' in wallet_data else app.specter.wallet_manager.cli.getblockcount()
+            startblock = wallet_data['blockheight'] if 'blockheight' in wallet_data else app.specter.wallet_manager.rpc.getblockcount()
             try:
                 descriptor = Descriptor.parse(
                     AddChecksum(wallet_data['descriptor'].split('#')[0]),
@@ -734,7 +734,7 @@ def new_wallet(wallet_type):
                         wallet = app.specter.wallet_manager.create_wallet(wallet_name, sigs_required, address_type, keys, cosigners)
                         flash("Wallet imported successfully", "info")
                         try:
-                            wallet.cli.rescanblockchain(startblock, timeout=1)
+                            wallet.rpc.rescanblockchain(startblock, timeout=1)
                             app.logger.info("Rescanning Blockchain ...")
                         except requests.exceptions.ReadTimeout:
                             # this is normal behavior in our usecase
@@ -852,7 +852,7 @@ def new_wallet(wallet_type):
                     app.logger.info("Rescanning Blockchain ...")
                     startblock = int(request.form['startblock'])
                     try:
-                        wallet.cli.rescanblockchain(startblock, timeout=1)
+                        wallet.rpc.rescanblockchain(startblock, timeout=1)
                     except requests.exceptions.ReadTimeout:
                         # this is normal behavior in our usecase
                         pass
@@ -975,7 +975,7 @@ def fees(blocks):
 @app.route('/get_txout_set_info')
 @login_required
 def txout_set_info():
-    res = app.specter.cli.gettxoutsetinfo()
+    res = app.specter.rpc.gettxoutsetinfo()
     return res
 
 
@@ -1082,7 +1082,7 @@ def wallet_sendnew(wallet_alias):
                         # TODO: This uses device name, but should use device alias...
                         psbt['devices_signed'].append(app.specter.device_manager.get_by_alias(device).name)
                         psbt['sigs_count'] = len(psbt['devices_signed'])
-                        raw = wallet.cli.finalizepsbt(b64psbt)
+                        raw = wallet.rpc.finalizepsbt(b64psbt)
                         if "hex" in raw:
                             psbt["raw"] = raw["hex"]
                     signed_psbt = signed_psbt['psbt']
@@ -1157,7 +1157,7 @@ def wallet_settings(wallet_alias):
         if action == "rescanblockchain":
             startblock = int(request.form['startblock'])
             try:
-                res = wallet.cli.rescanblockchain(startblock, timeout=1)
+                res = wallet.rpc.rescanblockchain(startblock, timeout=1)
             except requests.exceptions.ReadTimeout:
                 # this is normal behaviour in our usecase
                 pass
@@ -1166,7 +1166,7 @@ def wallet_settings(wallet_alias):
                 error = "%r" % e
             wallet.getdata()
         elif action == "abortrescan":
-            res = wallet.cli.abortrescan()
+            res = wallet.rpc.abortrescan()
             if not res:
                 error="Failed to abort rescan. Maybe already complete?"
             wallet.getdata()
