@@ -57,6 +57,41 @@
 				</div>
 			</button>
 		</div>
+		{% if specter.info['pruned']  %}
+			<div class="row" style="margin-top: 10px">
+				<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+					<div class="tool-tip">
+						<i class="tool-tip__icon">i</i>
+						<p class="tool-tip__info">
+							<span class="info">
+								<span class="info__title">Fetch missing data</span><br><br>
+								You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+								Check this checkbox if you want to fetch missing information from block explorer.
+							</span>
+						</p>
+					</div>
+
+				</label>
+			</div>
+			<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+				&#9432;<br>Careful with block explorers!<br>
+				This may have privacy implication!<br>
+				Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
+				"They" will know what transactions you are interested in.
+			</span>
+			<script type="text/javascript">
+				let utxocheckbox = document.getElementById("use_explorer");
+				utxocheckbox.addEventListener('change', e=>{
+					let el = document.getElementById("utxo-warning")
+					if(utxocheckbox.checked){
+						el.style.display = "inline-block";
+					}else{
+						el.style.display = "none";
+					}
+				});
+			</script>
+		{% endif %}
+
 		{% endif %}
 	</form>
 	<br>
