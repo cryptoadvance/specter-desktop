@@ -267,7 +267,7 @@ Silently ignored!" % wallet_alias)
             wallet.save_to_file()
         self.update()
 
-    def full_txlist(self, idx):
+    def full_txlist(self, idx, validate_merkle_proofs=False):
         txlists = [
             [
                 {
@@ -275,7 +275,8 @@ Silently ignored!" % wallet_alias)
                     'wallet_alias': wallet.alias
                 } for tx in wallet.txlist(
                     idx,
-                    wallet_tx_batch=100 // len(self.wallets)
+                    wallet_tx_batch=100 // len(self.wallets),
+                    validate_merkle_proofs=validate_merkle_proofs,
                 )
             ] for wallet in self.wallets.values()
         ]
