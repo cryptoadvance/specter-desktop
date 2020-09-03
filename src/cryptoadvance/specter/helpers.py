@@ -1,9 +1,19 @@
-import binascii, collections, copy, hashlib, hmac, json, logging, os, six, subprocess, sys
+import binascii
+import collections
+import copy
+import hashlib
+import hmac
+import json
+import logging
+import os
+import six
+import subprocess
+import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
 from hwilib.descriptor import AddChecksum
 from hwilib.serializations import PSBT, CTransaction
-from .bcur import bcur_decode
+from .util.bcur import bcur_decode
 import threading
 from io import BytesIO
 import re
@@ -27,11 +37,6 @@ def locked(customlock=fslock):
         return wrapper_fn
     return wrapper
 
-try:
-    collectionsAbc = collections.abc
-except:
-    collectionsAbc = collections
-
 
 def alias(name):
     name = name.replace(" ", "_")
@@ -41,9 +46,9 @@ def alias(name):
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
-        if not isinstance(dv, collectionsAbc.Mapping):
+        if not isinstance(dv, collections.Mapping):
             d[k] = v
-        elif isinstance(v, collectionsAbc.Mapping):
+        elif isinstance(v, collections.Mapping):
             d[k] = deep_update(dv, v)
         else:
             d[k] = v
@@ -65,67 +70,6 @@ def load_jsons(folder, key=None):
             d["alias"] = fname[:-5]
             dd[d[key]] = d
     return dd
-
-
-BASE58_ALPHABET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-
-def double_sha256(s):
-    return hashlib.sha256(hashlib.sha256(s).digest()).digest()
-
-
-def hash160(d):
-    return hashlib.new('ripemd160', hashlib.sha256(d).digest()).digest()
-
-
-def encode_base58(s):
-    # determine how many 0 bytes (b'\x00') s starts with
-    count = 0
-    for c in s:
-        if c == 0:
-            count += 1
-        else:
-            break
-    prefix = b'1' * count
-    # convert from binary to hex, then hex to integer
-    num = int.from_bytes(s, 'big')
-    result = bytearray()
-    while num > 0:
-        num, mod = divmod(num, 58)
-        result.insert(0, BASE58_ALPHABET[mod])
-
-    return prefix + bytes(result)
-
-
-def encode_base58_checksum(s):
-    return encode_base58(s + double_sha256(s)[:4]).decode('ascii')
-
-
-def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
-    num = 0
-    for c in s.encode('ascii'):
-        num *= 58
-        num += BASE58_ALPHABET.index(c)
-    combined = num.to_bytes(num_bytes, byteorder='big')
-    if strip_leading_zeros:
-        while combined[0] == 0:
-            combined = combined[1:]
-    checksum = combined[-4:]
-    if double_sha256(combined[:-4])[:4] != checksum:
-        raise ValueError('bad address: {} {}'.format(
-            checksum, double_sha256(combined)[:4]))
-    return combined[:-4]
-
-
-def convert_xpub_prefix(xpub, prefix_bytes):
-    # Update xpub to specified prefix and re-encode
-    b = decode_base58(xpub)
-    return encode_base58_checksum(prefix_bytes + b[4:])
-
-
-def get_xpub_fingerprint(xpub):
-    b = decode_base58(xpub)
-    return hash160(b[-33:])[:4]
 
 
 def which(program):
@@ -232,33 +176,6 @@ def get_version_info():
         return "unknown", "unknown", False
 
 
-def get_users_json(specter):
-    users = [
-        {
-            'id': 'admin',
-            'username': 'admin',
-            'password': hash_password('admin'),
-            'is_admin': True
-        }
-    ]
-
-    # if users.json file exists - load from it
-    if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        with fslock:
-            with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-                users = json.loads(f.read())
-    # otherwise - create one and assign unique id
-    else:
-        save_users_json(specter, users)
-    return users
-
-
-def save_users_json(specter, users):
-    with fslock:
-        with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-            f.write(json.dumps(users, indent=4))
-
-
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'
@@ -361,22 +278,6 @@ def sort_descriptor(cli, descriptor, index=None, change=False):
     return AddChecksum(desc)
 
 
-def hash_password(password):
-    """Hash a password for storing."""
-    salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
-    pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
-    return { 'salt': salt.decode(), 'pwdhash': pwdhash }
-
-
-def verify_password(stored_password, provided_password):
-    """Verify a stored password against one provided by user"""
-    pwdhash = hashlib.pbkdf2_hmac('sha256', 
-                                  provided_password.encode('utf-8'), 
-                                  stored_password['salt'].encode(), 
-                                  10000)
-    return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])
-
-
 def clean_psbt(b64psbt):
     psbt = PSBT()
     psbt.deserialize(b64psbt)
@@ -417,10 +318,10 @@ def get_startblock_by_chain(specter):
 
 # Hot wallet helpers
 def generate_mnemonic(strength=256):
-        # Generate words list
-        mnemo = Mnemonic("english")
-        words = mnemo.generate(strength=strength)
-        return words
+    # Generate words list
+    mnemo = Mnemonic("english")
+    words = mnemo.generate(strength=strength)
+    return words
 
 
 # Transaction processing helpers

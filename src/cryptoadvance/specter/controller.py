@@ -15,22 +15,22 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import (alias, get_devices_with_keys_by_type, hash_password, 
+from .helpers import (alias, get_devices_with_keys_by_type, 
                       get_loglevel, get_version_info, run_shell, set_loglevel, 
-                      verify_password, bcur2base64, get_txid, generate_mnemonic,
+                      bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
 from .rpc import RpcError
-from .user import User
+from .user import User, hash_password, verify_password
 from datetime import datetime
 import urllib
 from io import BytesIO
 import traceback
 from .devices.electrum import b43_decode
 from binascii import b2a_base64
-from .tor_util import start_hidden_service, stop_hidden_services
+from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
 
 from pathlib import Path
@@ -182,11 +182,6 @@ def index():
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
-
-    # TODO: add onboarding process
-    # if len(app.specter.device_manager.devices) == 0:
-    #     # For now: can't do anything until a device is registered
-    #     return redirect("/new_device/")
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
 

@@ -3,9 +3,9 @@ import shutil
 from mnemonic import Mnemonic
 from hwilib.descriptor import AddChecksum
 from ..device import Device
-from ..helpers import (alias, convert_xpub_prefix,
-                       encode_base58_checksum, decode_base58,
-                       get_xpub_fingerprint)
+from ..helpers import alias
+from ..util.base58 import encode_base58_checksum, decode_base58
+from ..util.xpub import get_xpub_fingerprint, convert_xpub_prefix
 from ..key import Key
 from ..rpc import get_default_datadir
 from io import BytesIO

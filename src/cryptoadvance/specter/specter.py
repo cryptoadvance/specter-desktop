@@ -42,6 +42,7 @@ class Specter:
     def __init__(self, data_folder="./data", config={}):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
+        data_folder = os.path.abspath(data_folder)
         self.data_folder = data_folder
         self.cli = None
         self.device_manager = None

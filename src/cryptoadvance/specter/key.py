@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from binascii import hexlify
-from .helpers import decode_base58, encode_base58_checksum, get_xpub_fingerprint
+from .util.base58 import decode_base58, encode_base58_checksum
+from .util.xpub import get_xpub_fingerprint
 
 
 purposes = OrderedDict({

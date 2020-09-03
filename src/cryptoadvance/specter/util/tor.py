@@ -1,12 +1,11 @@
 import os
 from stem.control import Controller
-from .server import DATA_FOLDER
 
 
 def start_hidden_service(app):
     app.controller.reconnect()
     key_path = os.path.abspath(
-        os.path.expanduser(os.path.join(DATA_FOLDER, '.tor_service_key'))
+        os.path.join(app.specter.data_folder, '.tor_service_key')
     )
     app.tor_service_id = None
 

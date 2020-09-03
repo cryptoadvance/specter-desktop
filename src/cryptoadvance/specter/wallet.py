@@ -1,10 +1,12 @@
 import copy, hashlib, json, logging, os
-from time import time
+import time
 from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
-from .merkleblock import is_valid_merkle_proof
-from .helpers import decode_base58, der_to_bytes, get_xpub_fingerprint, sort_descriptor, fslock, parse_utxo
+from .util.merkleblock import is_valid_merkle_proof
+from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
+from .util.base58 import decode_base58
+from .util.xpub import get_xpub_fingerprint
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -163,19 +165,19 @@ class Wallet():
 
     @classmethod
     def from_json(cls, wallet_dict, device_manager, manager, default_alias='', default_fullpath=''):
-        name = wallet_dict['name'] if 'name' in wallet_dict else ''
-        alias = wallet_dict['alias'] if 'alias' in wallet_dict else default_alias
-        description = wallet_dict['description'] if 'description' in wallet_dict else ''
-        address = wallet_dict['address'] if 'address' in wallet_dict else ''
-        address_index = wallet_dict['address_index'] if 'address_index' in wallet_dict else 0
-        change_address = wallet_dict['change_address'] if 'change_address' in wallet_dict else ''
-        change_index = wallet_dict['change_index'] if 'change_index' in wallet_dict else 0
-        keypool = wallet_dict['keypool'] if 'keypool' in wallet_dict else 0
-        change_keypool = wallet_dict['change_keypool'] if 'change_keypool' in wallet_dict else 0
-        sigs_required = wallet_dict['sigs_required'] if 'sigs_required' in wallet_dict else 1
-        pending_psbts = wallet_dict['pending_psbts'] if 'pending_psbts' in wallet_dict else {}
-        fullpath = wallet_dict['fullpath'] if 'fullpath' in wallet_dict else default_fullpath
-        last_block = wallet_dict['last_block'] if 'last_block' in wallet_dict else None
+        name = wallet_dict.get('name', '')
+        alias = wallet_dict.get('alias', default_alias)
+        description = wallet_dict.get('description', '')
+        address = wallet_dict.get('address', '')
+        address_index = wallet_dict.get('address_index', 0)
+        change_address = wallet_dict.get('change_address', '')
+        change_index = wallet_dict.get('change_index', 0)
+        keypool = wallet_dict.get('keypool', 0)
+        change_keypool = wallet_dict.get('change_keypool', 0)
+        sigs_required = wallet_dict.get('sigs_required', 1)
+        pending_psbts = wallet_dict.get('pending_psbts', {})
+        fullpath = wallet_dict.get('fullpath', default_fullpath)
+        last_block = wallet_dict.get('last_block', None)
 
         wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager)
 
@@ -217,6 +219,7 @@ class Wallet():
             self.info = self.cli.getwalletinfo()
         except Exception:
             self.info = {}
+        return self.info
 
     def getdata(self):
         try:
@@ -456,7 +459,7 @@ class Wallet():
         """Returns None if rescanblockchain is not launched,
            value between 0 and 1 otherwise
         """
-        if self.info is {} or "scanning" not in self.info or self.info["scanning"] == False:
+        if "scanning" not in self.info or self.info["scanning"] == False:
             return None
         else:
             return self.info["scanning"]["progress"]
@@ -747,7 +750,7 @@ class Wallet():
         psbt['base64'] = b64psbt
         psbt["amount"] = amounts
         psbt["address"] = addresses
-        psbt["time"] = time()
+        psbt["time"] = time.time()
         psbt["sigs_count"] = 0
         self.save_pending_psbt(psbt)
 
@@ -835,7 +838,7 @@ class Wallet():
         psbt["devices_signed"] = [dev.name for dev in signed_devices]
         psbt["amount"] = amount
         psbt["address"] = address
-        psbt["time"] = time()
+        psbt["time"] = time.time()
         psbt["sigs_count"] = len(signed_devices)
         raw = self.cli.finalizepsbt(b64psbt)
         if "hex" in raw:
