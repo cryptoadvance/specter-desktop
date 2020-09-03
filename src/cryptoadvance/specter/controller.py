@@ -28,8 +28,8 @@ from datetime import datetime
 import urllib
 from io import BytesIO
 import traceback
-from .devices.electrum import b43_decode
 from binascii import b2a_base64
+from .util.base43 import b43_decode
 from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
 

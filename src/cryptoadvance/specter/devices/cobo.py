@@ -4,7 +4,7 @@ from .sd_card_device import SDCardDevice
 from hwilib.serializations import PSBT
 from binascii import a2b_base64
 from ..util import bcur
-from .electrum import b43_encode
+from ..util.base43 import b43_encode
 from ..util.xpub import get_xpub_fingerprint
 
 
