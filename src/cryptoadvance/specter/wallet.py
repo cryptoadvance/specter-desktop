@@ -274,7 +274,7 @@ class Wallet():
     def save_to_file(self):
         with fslock:
             with open(self.fullpath, "w+") as f:
-                f.write(json.dumps(self.json, indent=4))
+                json.dump(self.json, f, indent=4)
         self.manager.update()
 
     @property

@@ -39,6 +39,10 @@ def locked(customlock=fslock):
 
 
 def alias(name):
+    """
+    Create a filesystem-friendly alias from a string.
+    Replaces space with _ and keeps only alphanumeric chars.
+    """
     name = name.replace(" ", "_")
     return "".join(x for x in name if x.isalnum() or x=="_").lower()
 
@@ -62,7 +66,7 @@ def load_jsons(folder, key=None):
     for fname in files:
         with fslock:
             with open(os.path.join(folder, fname)) as f:
-                d = json.loads(f.read())
+                d = json.load(f)
         if key is None:
             dd[fname[:-5]] = d
         else:
@@ -184,7 +188,7 @@ def hwi_get_config(specter):
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
         with fslock:
             with open(os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r") as f:
-                file_config = json.loads(f.read())
+                file_config = json.load(f)
                 deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
@@ -203,7 +207,7 @@ def save_hwi_bridge_config(specter, config):
         config['whitelisted_domains'] = whitelisted_domains
     with fslock:
         with open(os.path.join(specter.data_folder, 'hwi_bridge_config.json'), "w") as f:
-            f.write(json.dumps(config, indent=4))
+            json.dump(config, f, indent=4)
 
 
 def der_to_bytes(derivation):

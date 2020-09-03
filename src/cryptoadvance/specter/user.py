@@ -36,7 +36,7 @@ def get_users_json(specter):
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
         with fslock:
             with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-                users = json.loads(f.read())
+                users = json.load(f)
     # otherwise - create one and assign unique id
     else:
         save_users_json(specter, users)
@@ -46,7 +46,7 @@ def get_users_json(specter):
 def save_users_json(specter, users):
     with fslock:
         with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-            f.write(json.dumps(users, indent=4))
+            json.dump(users, f, indent=4)
 
 
 class User(UserMixin):
