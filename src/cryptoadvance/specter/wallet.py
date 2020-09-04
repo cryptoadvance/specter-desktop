@@ -691,7 +691,7 @@ class Wallet():
             adjusted_fee_rate = fee_rate * (
                 fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
                 ) * (tx_full_size / psbt['tx']['vsize'])
-            options["feeRate"] = '%.8f' % float((float('%.8f' % adjusted_fee_rate) * 1000) / 1e8)
+            options["feeRate"] = '%.8f' % round(adjusted_fee_rate * 1000 / 1e8, 8)
             r = self.cli.walletcreatefundedpsbt(
                 extra_inputs,           # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
