@@ -686,7 +686,8 @@ class Wallet():
             psbt_fees_sats = int(psbt['fee'] * 1e8)
             tx_full_size = psbt['tx']['vsize']
             for _ in psbt['inputs']:
-                tx_full_size += int(self.weight_per_input)
+                # size is weight / 4
+                tx_full_size += int(self.weight_per_input)//4
             adjusted_fee_rate = fee_rate * (
                 fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
                 ) * (tx_full_size / psbt['tx']['vsize'])
