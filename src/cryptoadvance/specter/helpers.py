@@ -219,16 +219,16 @@ def get_version_info():
         current_version = current_version[current_version.find('Version:')+8:]
         current_version = current_version[:current_version.find('\\n')].replace(' ','')
         # master?
-
         if current_version == 'vx.y.z-get-replaced-by-release-script':
             current_version = 'custom'
 
-        if re.search(r"v([\d+]).([\d+]).([\d+]).*", current_version):
+        if re.search(r"v?([\d+]).([\d+]).([\d+]).*", current_version):
             return current_version, latest_version, latest_version != current_version
         return current_version, latest_version, False
-    except:
+    except Exception as exc:
         # if pip is not installed or we are using python3.6 or below
         # we just don't show the version
+        logger.error(exc)
         return "unknown", "unknown", False
 
 
