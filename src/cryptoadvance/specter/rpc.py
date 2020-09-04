@@ -21,6 +21,9 @@ def get_default_datadir():
 
 
 def get_rpcconfig(datadir=get_default_datadir()):
+    ''' returns the bitcoin.conf configurations (multiple) in a datastructure
+        for all networks of a specific datadir.
+    ''' 
     config = {
         "bitcoin.conf": {
             "default": {},
@@ -118,13 +121,37 @@ def detect_rpc_confs(config=None, datadir=get_default_datadir()):
         rpc_arr.append(conf)
     return rpc_arr
 
+def detect_rpc_confs_via_env():
+    ''' returns an array which might contain one configmap derived from Env-Vars
+        Env-Vars: BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT
+        configmap: {"user":"user","passwd":"password","host":"host","port":"port","protocol":"https"}
+    '''
+    rpc_arr = []
+    if os.getenv("BTC_RPC_USER") and os.getenv("BTC_RPC_PASSWORD") and \
+        os.getenv("BTC_RPC_HOST") and os.getenv("BTC_RPC_PORT") :
+        logger.info("Detected RPC-Config on Environment-Variables")
+        env_conf = {
+            "user"    : os.getenv("BTC_RPC_USER"),
+            "passwd"  : os.getenv("BTC_RPC_PASSWORD"),
+            "host"    : os.getenv("BTC_RPC_HOST"),
+            "port"    : os.getenv("BTC_RPC_PORT"),
+            "protocol": os.getenv("BTC_RPC_PROTOCOL","https") # https by default
+        }
+        rpc_arr.append(env_conf)
+    return rpc_arr
 
 def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
+    ''' Returns an array of valid and working configurations which
+        got autodetected.
+        autodetection checks env-vars and bitcoin-data-dirs
+    '''
     if port == "":
         port = None
     if port is not None:
         port = int(port)
-    conf_arr = detect_rpc_confs(datadir=datadir)
+    conf_arr = []
+    conf_arr.extend(detect_rpc_confs_via_env())
+    conf_arr.extend(detect_rpc_confs(datadir=datadir))
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:

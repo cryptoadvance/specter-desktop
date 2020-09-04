@@ -188,6 +188,7 @@ def bitcoind(debug, mining, docker_tag):
     from .bitcoind import (BitcoindDockerController,
                            fetch_wallet_addresses_for_mining)
 
+    logging.getLogger().setLevel(logging.INFO)
     mining_every_x_seconds = 15
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
