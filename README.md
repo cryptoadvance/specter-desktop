@@ -97,6 +97,10 @@ Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about ha
 - Setting up Specter over Tor: [docs/tor.md](docs/tor.md)
 - Using self-signed certificates in local network or Tor: [docs/self-signed-certificates.md](docs/self-signed-certificates.md)
 
+## Errors, doubts.. Read our FAQ!
+
+If you're stuck while installing/configuring Specter or you're looking for more informations about the project, read our [FAQ](docs/faq.md)!
+
 ## A few screenshots
 
 ### Adding a new device
