@@ -208,6 +208,10 @@
 
 		async function setMaxAmount(i) {
 			let amountInput = document.getElementById('amount_' + i);
+			if (!validateAddress(i)) {
+				showError('Please first enter a valid address');
+				return;
+			}
 			let subtract = document.getElementById('subtract');
 			let shouldSubtract = subtract.checked
 			let othersAmount = 0;
@@ -244,6 +248,8 @@
 					amountInput.value = maxAmount;
 				}
 				subtract.checked = shouldSubtract;
+			} else {
+				await calculateEstimatedFee();
 			}
 			
 			calculateConvertedUnit(i);
@@ -381,6 +387,12 @@
 
 		async function calculateEstimatedFee() {
 			try {
+				let feeOptionManual = document.getElementById('fee_option_manual')
+				if (!feeOptionManual.checked) {
+					feeOptionManual.checked = true;
+					showFeeOption(feeOptionManual);
+					document.getElementById('fee_rate').value = Math.round(document.getElementById('fee_rate_dynamic').value / 1000 * 2 * 1e8) / 2;
+				}
 				var formData = new FormData(document.getElementById('send-form'));
 				formData.append("estimate_fee", true);
 				formData.append("action", "createpsbt");
@@ -396,13 +408,6 @@
 				console.log(psbt);
 				let fees = psbt.fee * 1e8
 				document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
-				let manualFee = Math.round(psbt['fee'] * 1e8 / psbt['tx']['weight'])
-				let feeOptionManual = document.getElementById('fee_option_manual')
-				if (!feeOptionManual.checked) {
-					feeOptionManual.checked = true;
-					showFeeOption(feeOptionManual);
-					document.getElementById('fee_rate').value = manualFee;
-				}
 				return fees;
 			} catch {
 				document.getElementById('calculated_tx_fee').innerText = `: failed to calculate transaction fees`;

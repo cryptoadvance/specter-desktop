@@ -663,10 +663,13 @@ class Wallet():
 
         self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
-        # if fee_rate > 0.0 and fee_unit == "SAT_B":
+        if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
-        options["feeRate"] = 0.0001 #(fee_rate * 1000) / 10 ** 8
-        print(options["feeRate"])
+            options["feeRate"] = (fee_rate * 1000) / 1e8
+            print(options["feeRate"])
+        elif fee_rate > 0.0:
+            fee_rate = (fee_rate / 1000) * 1e8 # convert to sats for our inner calculations of fee corrrection
+            options["feeRate"] = fee_rate
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.cli.walletcreatefundedpsbt(
@@ -679,6 +682,26 @@ class Wallet():
 
         b64psbt = r["psbt"]
         psbt = self.cli.decodepsbt(b64psbt)
+        if fee_rate > 0.0:
+            psbt_fees_sats = int(psbt['fee'] * 1e8)
+            tx_full_size = psbt['tx']['vsize']
+            for _ in psbt['inputs']:
+                tx_full_size += int(self.weight_per_input)
+            adjusted_fee_rate = fee_rate * (
+                fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
+                ) * (tx_full_size / psbt['tx']['vsize'])
+            options["feeRate"] = '%.8f' % float((float('%.8f' % adjusted_fee_rate) * 1000) / 1e8)
+            r = self.cli.walletcreatefundedpsbt(
+                extra_inputs,           # inputs
+                [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
+                0,                      # locktime
+                options,                # options
+                True                    # bip32-der
+            )
+
+            b64psbt = r["psbt"]
+            psbt = self.cli.decodepsbt(b64psbt)
+
         psbt['base64'] = b64psbt
         psbt["amount"] = amounts
         psbt["address"] = addresses
@@ -778,3 +801,21 @@ class Wallet():
             psbt["raw"] = raw["hex"]
         self.save_pending_psbt(psbt)
         return psbt
+
+    @property
+    def weight_per_input(self):
+        if self.is_multisig:
+            input_size = 0
+            for i in range(0, len(self.keys)):
+                input_size += 34
+            for i in range(0, self.sigs_required):
+                input_size += 75
+
+            if not self.recv_descriptor.startswith('wsh'):
+                input_size += 136
+            return input_size
+        else:
+            if self.recv_descriptor.startswith('wpkh'):
+                return 109
+            else:
+                return 197
