@@ -56,7 +56,7 @@
 					&lt;ADDRESS3&gt;, &lt;AMOUNT3&gt;<br>
 				</p>
 			</div>
-			<button style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()" id="remove_recipient"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
+			<button id="remove-recipient" style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
 			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">Calculate estimated fee</span><span class="note" id="calculated_tx_fee"></span><p>
 			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
 			<br><br>
@@ -68,7 +68,7 @@
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
 				{% set unspents = wallet.cli.listunspent(0) %}
 				<div class="row" style="margin-top: 30px;">
-					<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
+					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
 				{% if unspents | length > 0 %}
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
 				{% endif %}
@@ -155,9 +155,9 @@
 				}
 			});
 			if (amounts.length == 1) {
-				document.getElementById('remove_recipient').style.display = 'none';
+				document.getElementById('remove-recipient').style.display = 'none';
 			} else {
-				document.getElementById('remove_recipient').style.display = 'block';
+				document.getElementById('remove-recipient').style.display = 'block';
 			}
 		} 
 
@@ -168,9 +168,9 @@
 			amounts.splice(i, 1);
 			units.splice(i, 1);
 			if (amounts.length == 1) {
-				document.getElementById('remove_recipient').style.display = 'none';
+				document.getElementById('remove-recipient').style.display = 'none';
 			} else {
-				document.getElementById('remove_recipient').style.display = 'block';
+				document.getElementById('remove-recipient').style.display = 'block';
 			}
 		}
 
@@ -374,13 +374,15 @@
 		}
 
 		function toggleSendUIType(radioBtn) {
-			let feeUnit = document.getElementById('fee_unit');
-
 			if (radioBtn.value == 'ui') {
 				setVisibility('recipients', 'block');
+				setVisibility('add-recipient', 'flex');
+				setVisibility('remove-recipient', 'flex');
 				setVisibility('recipients-txt-container', 'none');
 			} else {
 				setVisibility('recipients', 'none');
+				setVisibility('add-recipient', 'none');
+				setVisibility('remove-recipient', 'none');
 				setVisibility('recipients-txt-container', 'block');
 			}
 		}
