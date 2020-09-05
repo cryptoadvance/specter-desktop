@@ -1,6 +1,6 @@
 <div class="fee_container">
     <div>
-        <label><input type="checkbox" class="inline" name="subtract" id="subtract" value="1"> Subtract fees from amount</label>
+        <label><input type="checkbox" class="inline" name="subtract" id="subtract" value="1" onchange="toggleSubtractFrom(this)"> Subtract fees from amount</label>
         <div class="tool-tip" style="text-align: center;">
             <i class="tool-tip__icon">i</i>
             <p class="tool-tip__info">
@@ -11,6 +11,7 @@
             </p>
         </div>
     </div>
+    <span id="subtract_from" class="hidden"><br>Subtract from recipient number: <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br></span>
     <br>
     <div>
         Fees: 
@@ -83,5 +84,15 @@
         }
 
         document.getElementById('blocks').innerHTML = 'Confirmation time: '.concat(blocks);
+    }
+
+    function toggleSubtractFrom(checkbox) {
+        if (checkbox.checked && (amounts.length > 1 || !document.getElementById('ui-radio-btn').checked)) {
+            document.getElementById('subtract_from').style.display = 'block';
+            document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+        } else {
+            document.getElementById('subtract_from').style.display = 'none';
+            document.getElementById('coin-selection-row').style['margin-top'] = '30px';
+        }
     }
 </script>

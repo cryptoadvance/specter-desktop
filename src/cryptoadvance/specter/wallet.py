@@ -683,7 +683,7 @@ class Wallet():
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[], readonly=False):
+    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[], readonly=False):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
@@ -719,7 +719,7 @@ class Wallet():
         # subtract fee from amount of this output:
         # currently only one address is supported, so either
         # empty array (subtract from change) or [0]
-        subtract_arr = [0] if subtract else []
+        subtract_arr = [subtract_from] if subtract else []
 
         options = {
             "includeWatching": True, 

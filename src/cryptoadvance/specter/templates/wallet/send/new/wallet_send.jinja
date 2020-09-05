@@ -67,7 +67,7 @@
 				</div><br>
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
 				{% set unspents = wallet.cli.listunspent(0) %}
-				<div class="row" style="margin-top: 30px;">
+				<div class="row" id="coin-selection-row" style="margin-top: 30px;">
 					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
 				{% if unspents | length > 0 %}
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
@@ -156,8 +156,14 @@
 			});
 			if (amounts.length == 1) {
 				document.getElementById('remove-recipient').style.display = 'none';
+				document.getElementById('subtract_from').style.display = 'none';
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
 				document.getElementById('remove-recipient').style.display = 'block';
+				if (document.getElementById('subtract').checked) {
+					document.getElementById('subtract_from').style.display = 'block';
+				}
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		} 
 
@@ -169,8 +175,14 @@
 			units.splice(i, 1);
 			if (amounts.length == 1) {
 				document.getElementById('remove-recipient').style.display = 'none';
+				document.getElementById('subtract_from').style.display = 'none';
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
 				document.getElementById('remove-recipient').style.display = 'block';
+				if (document.getElementById('subtract').checked) {
+					document.getElementById('subtract_from').style.display = 'block';
+				}
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		}
 
@@ -213,7 +225,11 @@
 				return;
 			}
 			let subtract = document.getElementById('subtract');
-			let shouldSubtract = subtract.checked
+			subtract.checked = true;
+			if (amounts.length > 1) {
+				document.getElementById('subtract_from').style.display = 'block';
+				document.getElementById('subtract_from_input').value = i + 1;
+			}
 			let othersAmount = 0;
 			for(let j in amounts) {
 				if (j != i) {
@@ -232,25 +248,6 @@
 				maxAmount = 0;
 			}
 			amountInput.value = maxAmount;
-			
-			if (!shouldSubtract) {
-				subtract.checked = true;
-				calculateConvertedUnit(i);
-				let fees = await calculateEstimatedFee();
-				if (fees != -1) {
-					maxAmount -= (units[i] == 'sat' ? fees : fees / 1e8);
-					let currentMaxAmount = maxAmount;
-					if (units[i] == 'sat') {
-						maxAmount = Math.round(maxAmount);
-					} else {
-						maxAmount = maxAmount.toFixed(8);
-					}
-					amountInput.value = maxAmount;
-				}
-				subtract.checked = shouldSubtract;
-			} else {
-				await calculateEstimatedFee();
-			}
 			
 			calculateConvertedUnit(i);
 		}
@@ -377,12 +374,24 @@
 			if (radioBtn.value == 'ui') {
 				setVisibility('recipients', 'block');
 				setVisibility('add-recipient', 'flex');
-				setVisibility('remove-recipient', 'flex');
+				if (amounts.length > 1 && document.getElementById('subtract').checked) {
+					setVisibility('remove-recipient', 'block');
+					setVisibility('subtract_from', 'block');
+					document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+				} else {
+					setVisibility('remove-recipient', 'none');
+					setVisibility('subtract_from', 'none');
+					document.getElementById('coin-selection-row').style['margin-top'] = '30px';
+				}
 				setVisibility('recipients-txt-container', 'none');
 			} else {
 				setVisibility('recipients', 'none');
 				setVisibility('add-recipient', 'none');
 				setVisibility('remove-recipient', 'none');
+				if (document.getElementById('subtract').checked) {
+					setVisibility('subtract_from', 'block');
+					document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+				}
 				setVisibility('recipients-txt-container', 'block');
 			}
 		}
