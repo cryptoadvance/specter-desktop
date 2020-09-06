@@ -9,6 +9,7 @@
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
   - [Detailed instructions](#detailed-instructions)
+  - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
   - [A few screenshots](#a-few-screenshots)
     - [Adding a new device](#adding-a-new-device)
     - [Creating a new wallet](#creating-a-new-wallet)
