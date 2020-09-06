@@ -1037,7 +1037,12 @@ def wallet_sendnew(wallet_alias):
                 recipients_txt = request.form['recipients']
                 for output in recipients_txt.splitlines():
                     addresses.append(output.split(',')[0].strip())
-                    amounts.append(float(output.split(',')[1].strip()))
+                    if request.form.get('amount_unit_text') == 'sat':
+                        amounts.append(
+                            float(output.split(',')[1].strip()) / 1e8
+                        )
+                    else:
+                        amounts.append(float(output.split(',')[1].strip()))
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1)) - 1
             fee_unit = request.form.get('fee_unit')

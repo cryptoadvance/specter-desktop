@@ -48,7 +48,10 @@
 		<div class="card">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
-			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
+			Unit: 
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleUnit(this, 'text')" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
 				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					Enter each recipient address, amount as a new line:<br>
 					&lt;ADDRESS1&gt;, &lt;AMOUNT1&gt;<br>
@@ -86,6 +89,7 @@
 		// Amounts and units
 		var units = [];
 		var amounts = [];
+		var textUnit = '{{ specter.unit }}'
 
 		function addRecipient() {
 			let i = amounts.length;
@@ -187,10 +191,14 @@
 		}
 
 		function toggleUnit(unitSelected, i) {
-			units[i] = unitSelected.value;
-			document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'btc' : 'sat');
-			document.getElementById('amount_' + i).setAttribute('step', units[i] == 'sat' ? '1' : '1e-8');
-			calculateConvertedUnit(i);
+			if (i == 'text') {
+				textUnit = unitSelected.value
+			} else {
+				units[i] = unitSelected.value;
+				document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'btc' : 'sat');
+				document.getElementById('amount_' + i).setAttribute('step', units[i] == 'sat' ? '1' : '1e-8');
+				calculateConvertedUnit(i);
+			}
 		}
 
 		function calculateConvertedUnit(i) {
@@ -337,7 +345,11 @@
 			} else {
 				let outputs = document.getElementById('recipients-txt').value.split('\n');
 				for (let output of outputs) {
-					totalAmount += parseFloat(output.split(',')[1].trim());
+					if (textUnit == 'sat') {
+						totalAmount += parseInt(output.split(',')[1].trim()) / 1e8;
+					} else {
+						totalAmount += parseFloat(output.split(',')[1].trim());
+					}
 				}
 			}
 
@@ -397,6 +409,14 @@
 		}
 
 		async function calculateEstimatedFee() {
+			if (document.getElementById('ui-radio-btn').checked) {
+				for(let i in amounts) {
+					if (!validateAddress(i)) {
+						showError('Please first enter a valid address');
+						return;
+					}
+				}
+			}
 			try {
 				let feeOptionManual = document.getElementById('fee_option_manual')
 				if (!feeOptionManual.checked) {

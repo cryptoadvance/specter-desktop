@@ -768,6 +768,8 @@ class Wallet():
 
             b64psbt = r["psbt"]
             psbt = self.cli.decodepsbt(b64psbt)
+            psbt["tx_full_size"] = tx_full_size
+            psbt["fee_rate"] = options["feeRate"]
 
         psbt['base64'] = b64psbt
         psbt["amount"] = amounts
