@@ -83,7 +83,7 @@ You can also run it (as a daemon), using tor, provide ssl certificates to run ov
 An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor (make sure to walk through the [tor-document](docs/tor.md) ):
 
 ```sh
-python3 -m cryptoadvance.specter server --tor=mytorpassword --cert=./cert.pem --key=./key.pem --daemon
+python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem --daemon
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file or set in directly in the specter-app settings.
