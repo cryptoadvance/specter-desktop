@@ -80,10 +80,10 @@ After that, specter will be available at [http://127.0.0.1:25441/](http://127.0.
 
 You can also run it (as a daemon), using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
 
-An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor:
+An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor (make sure to walk through the [tor-document](docs/tor.md) ):
 
 ```sh
-python3 -m cryptoadvance.specter server --tor=mytorpassword --cert=./cert.pem --key=./key.pem --daemon
+python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem --daemon
 ```
 
 If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file or set in directly in the specter-app settings.
