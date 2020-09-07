@@ -416,7 +416,11 @@
 				if (!feeOptionManual.checked) {
 					feeOptionManual.checked = true;
 					showFeeOption(feeOptionManual);
-					document.getElementById('fee_rate').value = Math.round(document.getElementById('fee_rate_dynamic').value / 1000 * 2 * 1e8) / 2;
+					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value / 1000 * 2 * 1e8) / 2;
+					if (manualRate < 1) {
+						manualRate = 1;
+					}
+					document.getElementById('fee_rate').value = manualRate;
 				}
 				var formData = new FormData(document.getElementById('send-form'));
 				formData.append("estimate_fee", true);
