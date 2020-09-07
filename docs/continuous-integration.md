@@ -71,14 +71,14 @@ The package upload will need a token. How to obtain the token is described in th
 
 The alternative would have been to use travis-ci for releasing. In that case we would encrypt the token with a private-key from travis and commit to the repo. This looks more safe to me then the above scenario but less safe then the todo, where we're storing the token on the build-node.
 
-
-## Old pyinstaller based releases
-The old pyinstaller based artifact will be kept here for the reference:
-(attention, hirarchy changed, so below won't work ootb)
-```
-$ pyinstaller --onefile  --clean --paths .env/lib/python3.7/site-packages:src/specter  --add-data 'src/specter/templates:templates' --add-binary '.env/bin/hwi:.'  --add-data 'src/specter/static:static' src/specter/server.py
-```
-It would be great to name the app like --name specter-desktop  but the binary created is crashing the app after successfull startup for some unknown reason.
+## pyinstaller system-dependent binaries
+The [pyinstaller directory](../pyinstaller) contains scripts to create the platform-specific binaries to use specter-desktop as a desktop-software. Some of them are created and uploaded to [github-releases](https://github.com/cryptoadvance/specter-desktop/releases) via more or less special build-agents.
+The [windows-build-agent](https://docs.gitlab.com/runner/install/windows.html) needs manual installation 
+of git, python and docker. Docker is used to build the innosetup-file.
+As docker is available in windows only as a "desktop-edition", one need to also
+log into the windows-machine to get docker started.
+Clearly there is an opportunity to move all of the creation of the windows-binary to wine on docker,
+similiar to the way the innosetup is running withon docker.
 
 #  Summary
 
