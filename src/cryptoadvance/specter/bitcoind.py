@@ -14,7 +14,7 @@ import docker
 from .helpers import which
 from .server import DATA_FOLDER
 from .rpc import RpcError
-from .rpc import BitcoinCLI
+from .rpc import BitcoinRPC
 from .helpers import load_jsons
 
 logger = logging.getLogger(__name__)
@@ -39,12 +39,12 @@ class Btcd_conn:
     def ipaddress(self,ipaddress):
         self._ipaddress = ipaddress
 
-    def get_cli(self):
-        ''' returns a BitcoinCLI '''
+    def get_rpc(self):
+        ''' returns a BitcoinRPC '''
         # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
-        cli = BitcoinCLI(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
-        cli.getblockchaininfo()
-        return cli
+        rpc = BitcoinRPC(self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport)
+        rpc.getblockchaininfo()
+        return rpc
 
     def render_url(self):
         return 'http://{}:{}@{}:{}/wallet/'.format(self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport)
@@ -76,13 +76,13 @@ class BitcoindController:
 
     def version(self):
         ''' Returns the version of bitcoind, e.g. "v0.19.1" '''
-        version = self.get_cli().getnetworkinfo()['subversion']
+        version = self.get_rpc().getnetworkinfo()['subversion']
         version = version.replace('/','').replace('Satoshi:','v')
         return version
 
-    def get_cli(self):
+    def get_rpc(self):
         ''' wrapper for convenience '''
-        return self.rpcconn.get_cli()
+        return self.rpcconn.get_rpc()
 
     def _start_bitcoind(self, cleanup_at_exit):
         raise Exception("This should not be used in the baseclass!")
@@ -95,36 +95,36 @@ class BitcoindController:
 
     def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
         ''' Does mining to the attached address with as many as block_count blocks '''
-        self.rpcconn.get_cli().generatetoaddress(block_count, address)
+        self.rpcconn.get_rpc().generatetoaddress(block_count, address)
     
     def testcoin_faucet(self, address, amount=20, mine_tx=False):
         ''' an easy way to get some testcoins '''
-        cli = self.get_cli()
+        rpc = self.get_rpc()
         try:
-            test3rdparty_cli = cli.wallet("test3rdparty")
-            test3rdparty_cli.getbalance()
+            test3rdparty_rpc = rpc.wallet("test3rdparty")
+            test3rdparty_rpc.getbalance()
         except RpcError as rpce:
             # return-codes:
             # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
             if rpce.error_code == -18: # RPC_WALLET_NOT_FOUND
                 logger.debug("Creating test3rdparty wallet")
-                cli.createwallet("test3rdparty")
-                test3rdparty_cli = cli.wallet("test3rdparty")
+                rpc.createwallet("test3rdparty")
+                test3rdparty_rpc = rpc.wallet("test3rdparty")
             else:
                 raise rpce
-        balance = test3rdparty_cli.getbalance()
+        balance = test3rdparty_rpc.getbalance()
         if balance < amount:
-            test3rdparty_address = test3rdparty_cli.getnewaddress("test3rdparty")
-            cli.generatetoaddress(102, test3rdparty_address)
-        test3rdparty_cli.sendtoaddress(address,amount)
+            test3rdparty_address = test3rdparty_rpc.getnewaddress("test3rdparty")
+            rpc.generatetoaddress(102, test3rdparty_address)
+        test3rdparty_rpc.sendtoaddress(address,amount)
         if mine_tx:
-            cli.generatetoaddress(1, test3rdparty_address)
+            rpc.generatetoaddress(1, test3rdparty_address)
         
     @staticmethod
     def check_bitcoind(rpcconn):
         ''' returns true if bitcoind is running on that address/port '''
         try:
-            rpcconn.get_cli() # that call will also check the connection
+            rpcconn.get_rpc() # that call will also check the connection
             return True
         except ConnectionRefusedError:
             return False

@@ -60,10 +60,10 @@ class Device:
     def _update_keys(self):
         with fslock:
             with open(self.fullpath, "r") as f:
-                content = json.loads(f.read())
+                content = json.load(f)
             content['keys'] = [key.json for key in self.keys]
             with open(self.fullpath, "w") as f:
-                f.write(json.dumps(content, indent=4))
+                json.dump(content, f, indent=4)
         self.manager.update()
 
     def remove_key(self, key):
@@ -87,7 +87,7 @@ class Device:
         self.device_type = device_type
         with fslock:
             with open(self.fullpath, "w") as f:
-                f.write(json.dumps(self.json, indent=4))
+                json.dump(self.json, f, indent=4)
         self.manager.update()
 
     def key_types(self, network='main'):

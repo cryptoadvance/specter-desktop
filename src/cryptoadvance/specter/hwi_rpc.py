@@ -1,8 +1,9 @@
 from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
-from .helpers import convert_xpub_prefix, locked
-from .json_rpc import JSONRPC
+from .helpers import locked
+from .util.xpub import convert_xpub_prefix
+from .util.json_rpc import JSONRPC
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager

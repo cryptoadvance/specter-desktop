@@ -42,7 +42,7 @@
 			<br><br>
 			<div id="advanced_settings" class="hidden">
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
-				{% set unspents = wallet.cli.listunspent(0) %}
+				{% set unspents = wallet.rpc.listunspent(0) %}
 				<div class="row" style="margin-top: 30px;">
 					<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
 				{% if unspents | length > 0 %}

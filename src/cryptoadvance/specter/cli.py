@@ -4,11 +4,10 @@ import os
 import sys
 import time
 from stem.control import Controller
-from . import tor_util
+from .util.tor import stop_hidden_services, start_hidden_service
 import click
 
 from .server import create_app, init_app
-from .config import DATA_FOLDER
 
 from os import path
 import signal
@@ -38,9 +37,15 @@ def cli():
 def server(daemon, stop, restart, force,
            port, host, cert, key,
            debug, tor, hwibridge):
+    # create an app to get Specter instance
+    # and it's data folder
+    app = create_app()
+    app.app_context().push()
+    init_app(app, hwibridge=hwibridge)
+
     # we will store our daemon PID here
-    pid_file = path.expanduser(path.join(DATA_FOLDER, "daemon.pid"))
-    toraddr_file = path.expanduser(path.join(DATA_FOLDER, "onion.txt"))
+    pid_file = path.join(app.specter.data_folder, "daemon.pid")
+    toraddr_file = path.join(app.specter.data_folder, "onion.txt")
     # check if pid file exists
     if path.isfile(pid_file):
         # if we need to stop daemon
@@ -68,10 +73,6 @@ def server(daemon, stop, restart, force,
             print(f"Can't find PID file \"{pid_file}\"")
             if stop:
                 return
-
-    app = create_app()
-    app.app_context().push()
-    init_app(app, hwibridge=hwibridge)
 
     # watch templates folder to reload when something changes
     extra_dirs = ['templates']
@@ -142,7 +143,7 @@ def server(daemon, stop, restart, force,
             if tor or os.getenv('CONNECT_TOR') == 'True':
                 try:
                     app.tor_enabled = True
-                    tor_util.start_hidden_service(app)
+                    start_hidden_service(app)
                 except Exception as e:
                     print(f' * Failed to start Tor hidden service: {e}')
                     print(' * Continuing process with Tor disabled')
@@ -152,7 +153,7 @@ def server(daemon, stop, restart, force,
                 app.tor_service_id = None
                 app.tor_enabled = False
             app.run(debug=debug, **kwargs)
-            tor_util.stop_hidden_services(app)
+            stop_hidden_services(app)
         finally:
             if app.controller is not None:
                 app.controller.close()

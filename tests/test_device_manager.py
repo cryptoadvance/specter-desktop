@@ -100,7 +100,7 @@ def test_DeviceManager(empty_data_folder):
     assert some_device.keys[1] == another_key
 
 def test_device_wallets(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_rpc(), "regtest", device_manager)
     device = device_manager.get_by_alias('trezor')
     assert len(device.wallets(wm)) == 0
     wallet = wm.create_wallet('a_test_wallet', 1, 'wpkh', [device.keys[5]], [device])
