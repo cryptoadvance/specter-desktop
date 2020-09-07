@@ -28,9 +28,9 @@ def test_bitcoinddocker_running(caplog, docker, request):
     rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True)
     requested_version = request.config.getoption("--bitcoind-version")
     assert my_bitcoind.version() == requested_version
-    assert rpcconn.get_cli() != None
-    assert rpcconn.get_cli().ipaddress != None
-    rpcconn.get_cli().getblockchaininfo()
+    assert rpcconn.get_rpc() != None
+    assert rpcconn.get_rpc().ipaddress != None
+    rpcconn.get_rpc().getblockchaininfo()
     # you can use the testcoin_faucet:
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     my_bitcoind.testcoin_faucet(random_address, amount=25, mine_tx=True)

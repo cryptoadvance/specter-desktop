@@ -2,7 +2,7 @@
 from unittest import TestCase
 from io import BytesIO
 
-from cryptoadvance.specter.merkleblock import MerkleTree, Block, MerkleBlock, little_endian_to_int
+from cryptoadvance.specter.util.merkleblock import MerkleTree, Block, MerkleBlock, little_endian_to_int
 
 
 class BlockTest(TestCase):

@@ -1,6 +1,6 @@
 import urllib
 from .sd_card_device import SDCardDevice
-from ..helpers import get_xpub_fingerprint
+from ..util.xpub import get_xpub_fingerprint
 
 
 CC_TYPES = {

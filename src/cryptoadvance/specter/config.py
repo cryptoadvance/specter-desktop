@@ -1,16 +1,11 @@
 ''' A config module contains static configuration '''
 import datetime
 import os
+import configparser
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-try:
-    # Python 2.7
-    import ConfigParser as configparser
-except ImportError:
-    # Python 3
-    import configparser
 
 DATA_FOLDER = "~/.specter"
 

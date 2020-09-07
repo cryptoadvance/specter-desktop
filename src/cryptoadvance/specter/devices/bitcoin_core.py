@@ -1,11 +1,11 @@
 import os
 import shutil
 from mnemonic import Mnemonic
-from hwilib.descriptor import AddChecksum
 from ..device import Device
-from ..helpers import (alias, convert_xpub_prefix,
-                       encode_base58_checksum, decode_base58,
-                       get_xpub_fingerprint)
+from ..helpers import alias
+from ..util.descriptor import AddChecksum
+from ..util.base58 import encode_base58_checksum, decode_base58
+from ..util.xpub import get_xpub_fingerprint, convert_xpub_prefix
 from ..key import Key
 from ..rpc import get_default_datadir
 from io import BytesIO
@@ -26,14 +26,14 @@ class BitcoinCore(Device):
         seed = Mnemonic.to_seed(mnemonic)
         xprv = seed_to_hd_master_key(seed, testnet=testnet)
         wallet_name = os.path.join(
-            wallet_manager.cli_path + '_hotstorage', self.alias)
-        wallet_manager.cli.createwallet(wallet_name, False, True)
-        cli = wallet_manager.cli.wallet(wallet_name)
+            wallet_manager.rpc_path + '_hotstorage', self.alias)
+        wallet_manager.rpc.createwallet(wallet_name, False, True)
+        rpc = wallet_manager.rpc.wallet(wallet_name)
         # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
         # NOTE: This will work only on the network the device was added,
         #       so hot devices should be filtered out by network.
         coin = int(testnet)
-        cli.importmulti([
+        rpc.importmulti([
             {
                 'desc': AddChecksum(
                     'sh(wpkh({}/49h/{}h/0h/0/*))'.format(xprv, coin)),
@@ -84,7 +84,7 @@ class BitcoinCore(Device):
             },
         ], {"rescan": False})
         if passphrase:
-            cli.encryptwallet(passphrase)
+            rpc.encryptwallet(passphrase)
 
         xpubs_str = ""
         paths = [
@@ -94,7 +94,7 @@ class BitcoinCore(Device):
             f"m/48h/{coin}h/0h/1h",  # nested multisig
             f"m/48h/{coin}h/0h/2h",  # native multisig
         ]
-        xpubs = derive_xpubs_from_xprv(xprv, paths, wallet_manager.cli)
+        xpubs = derive_xpubs_from_xprv(xprv, paths, wallet_manager.rpc)
         # it's not parent fingerprint, it's self fingerprint
         master_fpr = get_xpub_fingerprint(xpubs[0]).hex()
 
@@ -147,16 +147,16 @@ class BitcoinCore(Device):
         try:
             existing_wallets = [w["name"]
                                 for w
-                                in wallet_manager.cli.listwalletdir()["wallets"]]
+                                in wallet_manager.rpc.listwalletdir()["wallets"]]
         except:
             existing_wallets = None
-        loaded_wallets = wallet_manager.cli.listwallets()
+        loaded_wallets = wallet_manager.rpc.listwallets()
 
-        hotstorage_path = wallet_manager.cli_path + "_hotstorage"
+        hotstorage_path = wallet_manager.rpc_path + "_hotstorage"
         if (existing_wallets is None or
             os.path.join(hotstorage_path, self.alias) in existing_wallets):
             if os.path.join(hotstorage_path, self.alias) not in loaded_wallets:
-                wallet_manager.cli.loadwallet(os.path.join(
+                wallet_manager.rpc.loadwallet(os.path.join(
                     hotstorage_path, self.alias))
 
     def create_psbts(self, base64_psbt, wallet):
@@ -165,16 +165,16 @@ class BitcoinCore(Device):
     def sign_psbt(self, base64_psbt, wallet, passphrase):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
-        cli = wallet.manager.cli.wallet(os.path.join(
-            wallet.manager.cli_path + "_hotstorage", self.alias))
+        rpc = wallet.manager.rpc.wallet(os.path.join(
+            wallet.manager.rpc_path + "_hotstorage", self.alias))
         if passphrase:
-            cli.walletpassphrase(passphrase, 60)
-        signed_psbt = cli.walletprocesspsbt(base64_psbt)
+            rpc.walletpassphrase(passphrase, 60)
+        signed_psbt = rpc.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt['psbt']:
             raise Exception(
                 'Make sure you have entered the passphrase correctly.')
         if passphrase:
-            cli.walletlock()
+            rpc.walletlock()
         return signed_psbt
 
     def delete(
@@ -184,17 +184,17 @@ class BitcoinCore(Device):
         chain = 'main'
     ):
         try:
-            wallet_cli_path = os.path.join(
-                wallet_manager.cli_path + "_hotstorage", self.alias
+            wallet_rpc_path = os.path.join(
+                wallet_manager.rpc_path + "_hotstorage", self.alias
             )
-            wallet_manager.cli.unloadwallet(wallet_cli_path)
+            wallet_manager.rpc.unloadwallet(wallet_rpc_path)
             # Try deleting wallet file
             if bitcoin_datadir:
                 if chain != 'main':
                     bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
                 candidates = [
-                    os.path.join(bitcoin_datadir, wallet_cli_path),
-                    os.path.join(bitcoin_datadir, "wallets", wallet_cli_path),
+                    os.path.join(bitcoin_datadir, wallet_rpc_path),
+                    os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
                 ]
                 for path in candidates:
                     if os.path.exists(path):
@@ -227,10 +227,10 @@ def seed_to_hd_master_key(seed, testnet=False) -> str:
     return encode_base58_checksum(xprv)
 
 
-def derive_xpubs_from_xprv(xprv, paths: list, cli):
+def derive_xpubs_from_xprv(xprv, paths: list, rpc):
     """
     Derives xpubs from root xprv and list of paths.
-    Requires running BitcoinCLI instance to derive xpub from xprv
+    Requires running BitcoinRPC instance to derive xpub from xprv
     """
     derived_xprvs = []
     for path in paths:
@@ -247,10 +247,10 @@ def derive_xpubs_from_xprv(xprv, paths: list, cli):
             derived_xprvs.append((parent, child))
     xpubs = []
     for parent, child in derived_xprvs:
-        res = cli.getdescriptorinfo(f"wpkh({child})")
+        res = rpc.getdescriptorinfo(f"wpkh({child})")
         xpub = res["descriptor"].split("(")[1].split(")")[0]
         if parent is not None:
-            res = cli.getdescriptorinfo(f"wpkh({parent})")
+            res = rpc.getdescriptorinfo(f"wpkh({parent})")
             parent_xpub = res["descriptor"].split("(")[1].split(")")[0]
             fingerprint = get_xpub_fingerprint(parent_xpub)
             xpub = swap_fingerprint(xpub, fingerprint)

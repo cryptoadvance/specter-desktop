@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 RPC_PORTS = { "test": 18332, "regtest": 18443, "main": 8332, 'signet': 38332 }
 
 def get_default_datadir():
+    """Get default Bitcoin directory depending on the system"""
     datadir = None
     if sys.platform == 'darwin':
         datadir = os.path.join(os.environ['HOME'], "Library/Application Support/Bitcoin/")
@@ -50,7 +51,12 @@ def get_rpcconfig(datadir=get_default_datadir()):
                     if '=' not in line:
                         continue
                     k, v = line.split('=', 1)
-                    current[k.strip()] = v.strip()
+                    # lines like main.rpcuser and so on
+                    if "." in k:
+                        net, k = k.split(".", 1)
+                        config["bitcoin.conf"][net.strip()][k.strip()] = v.strip()
+                    else:
+                        current[k.strip()] = v.strip()
         except Exception:
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {
@@ -92,7 +98,7 @@ def get_configs(config=None, datadir=get_default_datadir()):
         if "rpcport" in config["bitcoin.conf"][network]:
             default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
         if "user" in default and "passwd" in default:
-            if "port" not in config["bitcoin.conf"]["default"]: # only one bitcoin-cli makes sense in this case
+            if "port" not in config["bitcoin.conf"]["default"]: # only one rpc makes sense in this case
                 if network == "default":
                     continue
                 default["port"] = RPC_PORTS[network]
@@ -106,21 +112,21 @@ def get_configs(config=None, datadir=get_default_datadir()):
     return confs
 
 
-def detect_cli_confs(config=None, datadir=get_default_datadir()):
+def detect_rpc_confs(config=None, datadir=get_default_datadir()):
     if config is None:
         config = get_rpcconfig(datadir=datadir)
     rpcconfs = get_configs(config)
-    cli_arr = []
+    rpc_arr = []
     for conf in rpcconfs:
-        cli_arr.append(conf)
-    return cli_arr
+        rpc_arr.append(conf)
+    return rpc_arr
 
-def detect_cli_confs_via_env():
+def detect_rpc_confs_via_env():
     ''' returns an array which might contain one configmap derived from Env-Vars
         Env-Vars: BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT
         configmap: {"user":"user","passwd":"password","host":"host","port":"port","protocol":"https"}
     '''
-    cli_arr = []
+    rpc_arr = []
     if os.getenv("BTC_RPC_USER") and os.getenv("BTC_RPC_PASSWORD") and \
         os.getenv("BTC_RPC_HOST") and os.getenv("BTC_RPC_PORT") :
         logger.info("Detected RPC-Config on Environment-Variables")
@@ -131,10 +137,10 @@ def detect_cli_confs_via_env():
             "port"    : os.getenv("BTC_RPC_PORT"),
             "protocol": os.getenv("BTC_RPC_PROTOCOL","https") # https by default
         }
-        cli_arr.append(env_conf)
-    return cli_arr
+        rpc_arr.append(env_conf)
+    return rpc_arr
 
-def autodetect_cli_confs(datadir=get_default_datadir(), port=None):
+def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
     ''' Returns an array of valid and working configurations which
         got autodetected.
         autodetection checks env-vars and bitcoin-data-dirs
@@ -144,17 +150,17 @@ def autodetect_cli_confs(datadir=get_default_datadir(), port=None):
     if port is not None:
         port = int(port)
     conf_arr = []
-    conf_arr.extend(detect_cli_confs_via_env())
-    conf_arr.extend(detect_cli_confs(datadir=datadir))
+    conf_arr.extend(detect_rpc_confs_via_env())
+    conf_arr.extend(detect_rpc_confs(datadir=datadir))
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
-            cli = BitcoinCLI(**conf)
+            rpc = BitcoinRPC(**conf)
             if port is not None:
-                if int(cli.port) != port:
+                if int(rpc.port) != port:
                     continue
             try:
-                cli.getmininginfo()
+                rpc.getmininginfo()
                 available_conf_arr.append(conf)
             except requests.exceptions.RequestException:
                 pass
@@ -166,7 +172,7 @@ class RpcError(Exception):
     ''' Specifically created for error-handling of the BitcoiCore-API
         if thrown, check for errors like this:
         try:
-            cli.does_not_exist()
+            rpc.does_not_exist()
         except RpcError as rpce:
             assert rpce.error_code == -32601
             assert rpce.error_msg == "Method not found"
@@ -188,7 +194,7 @@ class RpcError(Exception):
             self.error = "UNKNOWN API-ERROR:%s" % response.text
 
 
-class BitcoinCLI:
+class BitcoinRPC:
     counter = 0
     def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=None, **kwargs):
         path = path.replace("//","/") # just in case
@@ -202,7 +208,7 @@ class BitcoinCLI:
         self.r = None
 
     def wallet(self, name=""):
-        return BitcoinCLI(user=self.user,
+        return BitcoinRPC(user=self.user,
                       passwd=self.passwd,
                       port=self.port,
                       protocol=self.protocol,
@@ -228,7 +234,7 @@ class BitcoinCLI:
             Returns a clone of self.
             Usefull if you want to mess with the properties
         """
-        return BitcoinCLI(
+        return BitcoinRPC(
             self.user,
             self.passwd,
             self.host,
@@ -281,25 +287,25 @@ class BitcoinCLI:
 
 if __name__ == '__main__':
 
-    cli = BitcoinCLI(
+    rpc = BitcoinRPC(
         "bitcoinrpc",
         "foi3uf092ury97iufhjf30982hf928uew9jd209j",
         port=18443
     )
 
-    print(cli.url)
+    print(rpc.url)
 
-    print(cli.getmininginfo())
+    print(rpc.getmininginfo())
 
-    print(cli.listwallets())
+    print(rpc.listwallets())
 
     ##### WORKING WITH WALLETS #########
 
-    # print(cli.getbalance(wallet=""))
+    # print(rpc.getbalance(wallet=""))
 
     # or
 
-    w = cli.wallet("") # will load default wallet.dat
+    w = rpc.wallet("") # will load default wallet.dat
 
     print(w.url)
 

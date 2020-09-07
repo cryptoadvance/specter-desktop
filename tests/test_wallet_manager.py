@@ -7,7 +7,7 @@ from cryptoadvance.specter.wallet_manager import WalletManager
 
 
 def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder,bitcoin_regtest.get_rpc(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('trezor')
     assert device != None
@@ -22,10 +22,10 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert wallet.fullbalance == 0
     address = wallet.getnewaddress()
     # newly minted coins need 100 blocks to get spendable
-    wallet.cli.generatetoaddress(1, address)
+    wallet.rpc.generatetoaddress(1, address)
     # let's mine another 100 blocks to get these coins spendable
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
-    wallet.cli.generatetoaddress(100, random_address)
+    wallet.rpc.generatetoaddress(100, random_address)
     # update the balance
     wallet.get_balance()
     assert wallet.fullbalance >= 25
@@ -38,8 +38,8 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert multisig_wallet != None
     assert multisig_wallet.fullbalance == 0
     multisig_address = multisig_wallet.getnewaddress()
-    multisig_wallet.cli.generatetoaddress(1, multisig_address)
-    multisig_wallet.cli.generatetoaddress(100, random_address)
+    multisig_wallet.rpc.generatetoaddress(1, multisig_address)
+    multisig_wallet.rpc.generatetoaddress(100, random_address)
     # update balance
     multisig_wallet.get_balance()
     assert multisig_wallet.fullbalance >= 12.5
@@ -60,7 +60,7 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert len(wm.wallets) == 1
 
 def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('specter')
     key = Key.from_json({
@@ -74,21 +74,21 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     # Let's fund the wallet with ... let's say 40 blocks a 50 coins each --> 200 coins
     address = wallet.getnewaddress()
     assert address == 'bcrt1qtnrv2jpygx2ef3zqfjhqplnycxak2m6ljnhq6z'
-    wallet.cli.generatetoaddress(20, address)
+    wallet.rpc.generatetoaddress(20, address)
     # in two addresses
     address = wallet.getnewaddress()
-    wallet.cli.generatetoaddress(20, address)
+    wallet.rpc.generatetoaddress(20, address)
     # newly minted coins need 100 blocks to get spendable
     # let's mine another 100 blocks to get these coins spendable
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
-    wallet.cli.generatetoaddress(110, random_address)
+    wallet.rpc.generatetoaddress(110, random_address)
     # update the wallet data
     wallet.get_balance()
     # Now we have loads of potential inputs
     # Let's spend 500 coins
     assert wallet.fullbalance >= 250
     # From this print-statement, let's grab some txids which we'll use for coinselect
-    unspents = wallet.cli.listunspent(0)
+    unspents = wallet.rpc.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:
     selected_coins = [
         "{},{},{}".format(unspents[5]['txid'], unspents[5]['vout'], unspents[5]['amount']), 
@@ -111,16 +111,16 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
         pass
 
     assert wallet.locked_amount == selected_coins_amount_sum
-    assert len(wallet.cli.listlockunspent()) == 3
+    assert len(wallet.rpc.listlockunspent()) == 3
     assert wallet.full_available_balance == wallet.fullbalance - selected_coins_amount_sum
 
     wallet.delete_pending_psbt(psbt['tx']['txid'])
     assert wallet.locked_amount == 0
-    assert len(wallet.cli.listlockunspent()) == 0
+    assert len(wallet.rpc.listlockunspent()) == 0
     assert wallet.full_available_balance == wallet.fullbalance
 
 def test_wallet_sortedmulti(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager)
     device = device_manager.get_by_alias('trezor')
     second_device = device_manager.get_by_alias('specter')
     for i in range(2):
@@ -130,27 +130,27 @@ def test_wallet_sortedmulti(bitcoin_regtest, devices_filled_data_folder, device_
             multisig_wallet = wm.create_wallet('a_multisig_test_wallet', 1, 'wsh', [second_device.keys[0], device.keys[7]], [second_device, device])
 
         address = multisig_wallet.address
-        address_info = multisig_wallet.cli.getaddressinfo(address)
+        address_info = multisig_wallet.rpc.getaddressinfo(address)
         assert address_info['pubkeys'][0] < address_info['pubkeys'][1]
         
         another_address = multisig_wallet.getnewaddress()
-        another_address_info = multisig_wallet.cli.getaddressinfo(another_address)
+        another_address_info = multisig_wallet.rpc.getaddressinfo(another_address)
         assert another_address_info['pubkeys'][0] < another_address_info['pubkeys'][1]
         
         third_address = multisig_wallet.get_address(30)
-        third_address_info = multisig_wallet.cli.getaddressinfo(third_address)
+        third_address_info = multisig_wallet.rpc.getaddressinfo(third_address)
         assert third_address_info['pubkeys'][0] < third_address_info['pubkeys'][1]
 
         change_address = multisig_wallet.change_address
-        change_address_info = multisig_wallet.cli.getaddressinfo(change_address)
+        change_address_info = multisig_wallet.rpc.getaddressinfo(change_address)
         assert change_address_info['pubkeys'][0] < change_address_info['pubkeys'][1]
 
         another_change_address = multisig_wallet.get_address(30, change=True)
-        another_change_address_info = multisig_wallet.cli.getaddressinfo(another_change_address)
+        another_change_address_info = multisig_wallet.rpc.getaddressinfo(another_change_address)
         assert another_change_address_info['pubkeys'][0] < another_change_address_info['pubkeys'][1]
 
 def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('specter')
     key = Key.from_json({
@@ -167,10 +167,10 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.setlabel(address, 'Random label')
     assert wallet.getlabel(address) == 'Random label'
 
-    wallet.cli.generatetoaddress(20, address)
+    wallet.rpc.generatetoaddress(20, address)
 
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
-    wallet.cli.generatetoaddress(100, random_address)
+    wallet.rpc.generatetoaddress(100, random_address)
     
     # update utxo
     wallet.getdata()
@@ -189,10 +189,10 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, '')
-    wallet.cli.generatetoaddress(20, new_address)
+    wallet.rpc.generatetoaddress(20, new_address)
 
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
-    wallet.cli.generatetoaddress(100, random_address)
+    wallet.rpc.generatetoaddress(100, random_address)
 
     wallet.getdata()
     wallet.get_balance()
@@ -222,7 +222,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     assert sorted(wallet.addresses_on_label('Random label')) == sorted([address, third_address])
 
 def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, device_manager):
-    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_cli(), "regtest", device_manager)
+    wm = WalletManager(devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias('specter')
     key = Key.from_json({
@@ -241,9 +241,9 @@ def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, de
     assert wallet.active_addresses == [address]
     assert wallet.labels == ['Address #0']
 
-    wallet.cli.generatetoaddress(20, change_address)
+    wallet.rpc.generatetoaddress(20, change_address)
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
-    wallet.cli.generatetoaddress(110, random_address)
+    wallet.rpc.generatetoaddress(110, random_address)
     wallet.getdata()
 
     # new change address should be genrated automatically after receiving
