@@ -6,10 +6,10 @@ If you are running a VPS it's easy - you just [issue a new certificate](./revers
 
 If you are only using the node at home and want to use it from your local network you need to issue a certificate yourself.
 
-On your node run this command:
+The easiest way is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's ip address as an argument:
 
 ```sh
-openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+gen-certificate.sh <your-node-local-ip-address>
 ```
 
 It will create two files - `cert.pem` and `key.pem`.
