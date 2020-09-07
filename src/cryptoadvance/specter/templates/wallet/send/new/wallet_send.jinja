@@ -310,12 +310,6 @@
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			let totalAmount = 0.0;
 
-			if (submitted) {
-				let fees = await calculateEstimatedFee();
-				if (fees != -1) {
-					totalAmount = fees;
-				}
-			}
 			if (document.getElementById('ui-radio-btn').checked) {
 				for(let i in amounts) {
 					let unit = units[i]
