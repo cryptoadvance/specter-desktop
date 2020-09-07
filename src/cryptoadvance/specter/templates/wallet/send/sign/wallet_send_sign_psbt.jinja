@@ -94,8 +94,8 @@
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
-					<b>Total fee:</b> {{ (psbt['fee'] * 1e8) |  btcamount }} sats<br>
-					<b>Fee rate:</b> {{ (psbt['fee'] * 1e8 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+					<b>Total fee:</b> {{ (psbt['fee'] * 100000000) |  btcamount }} sats<br>
+					<b>Fee rate:</b> {{ (psbt['fee'] * 100000000 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
 					<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
 					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
