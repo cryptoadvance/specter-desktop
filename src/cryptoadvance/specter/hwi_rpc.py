@@ -141,13 +141,13 @@ class HWIBridge(JSONRPC):
             raise Exception("Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices" % device_type)
 
     @locked(hwilock)
-    def extract_xpubs(self, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
+    def extract_xpubs(self, account=0, device_type=None, path=None, fingerprint=None, passphrase='', chain=''):
         with self._get_client(device_type=device_type,
                               fingerprint=fingerprint,
                               path=path,
                               passphrase=passphrase,
                               chain=chain) as client:
-            xpubs = self._extract_xpubs_from_client(client)
+            xpubs = self._extract_xpubs_from_client(client, account)
         return xpubs
 
     @locked(hwilock)
@@ -231,7 +231,7 @@ class HWIBridge(JSONRPC):
             else:
                 raise Exception('The device could not be found. Please check it is properly connected and try again')
 
-    def _extract_xpubs_from_client(self, client):
+    def _extract_xpubs_from_client(self, client, account=0):
         try:
             xpubs = ""
             # Client will be configured for testnet if our Specter instance is
@@ -247,47 +247,63 @@ class HWIBridge(JSONRPC):
             #   https://github.com/satoshilabs/slips/blob/master/slip-0132.md
 
             # Extract nested Segwit
-            xpub = client.get_pubkey_at_path('m/49h/0h/0h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/49h/0h/{}h'.format(account)
+            )['xpub']
             ypub = convert_xpub_prefix(xpub, b'\x04\x9d\x7c\xb2')
-            xpubs += "[%s/49'/0'/0']%s\n" % (master_fpr, ypub)
+            xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
 
             # native Segwit
-            xpub = client.get_pubkey_at_path('m/84h/0h/0h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/84h/0h/{}h'.format(account)
+            )['xpub']
             zpub = convert_xpub_prefix(xpub, b'\x04\xb2\x47\x46')
-            xpubs += "[%s/84'/0'/0']%s\n" % (master_fpr, zpub)
+            xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
 
             # Multisig nested Segwit
-            xpub = client.get_pubkey_at_path('m/48h/0h/0h/1h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/48h/0h/{}h/1h'.format(account)
+            )['xpub']
             Ypub = convert_xpub_prefix(xpub, b'\x02\x95\xb4\x3f')
-            xpubs += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, Ypub)
+            xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
 
             # Multisig native Segwit
-            xpub = client.get_pubkey_at_path('m/48h/0h/0h/2h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/48h/0h/{}h/2h'.format(account)
+            )['xpub']
             Zpub = convert_xpub_prefix(xpub, b'\x02\xaa\x7e\xd3')
-            xpubs += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, Zpub)
+            xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
 
             # And testnet
             client.is_testnet = True
 
             # Testnet nested Segwit
-            xpub = client.get_pubkey_at_path('m/49h/1h/0h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/49h/1h/{}h'.format(account)
+            )['xpub']
             upub = convert_xpub_prefix(xpub, b'\x04\x4a\x52\x62')
-            xpubs += "[%s/49'/1'/0']%s\n" % (master_fpr, upub)
+            xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
 
             # Testnet native Segwit
-            xpub = client.get_pubkey_at_path('m/84h/1h/0h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/84h/1h/{}h'.format(account)
+            )['xpub']
             vpub = convert_xpub_prefix(xpub, b'\x04\x5f\x1c\xf6')
-            xpubs += "[%s/84'/1'/0']%s\n" % (master_fpr, vpub)
+            xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
 
             # Testnet multisig nested Segwit
-            xpub = client.get_pubkey_at_path('m/48h/1h/0h/1h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/48h/1h/{}h/1h'.format(account)
+            )['xpub']
             Upub = convert_xpub_prefix(xpub, b'\x02\x42\x89\xef')
-            xpubs += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, Upub)
+            xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
 
             # Testnet multisig native Segwit
-            xpub = client.get_pubkey_at_path('m/48h/1h/0h/2h')['xpub']
+            xpub = client.get_pubkey_at_path(
+                'm/48h/1h/{}h/2h'.format(account)
+            )['xpub']
             Vpub = convert_xpub_prefix(xpub, b'\x02\x57\x54\x83')
-            xpubs += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, Vpub)
+            xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()

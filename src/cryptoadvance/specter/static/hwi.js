@@ -121,12 +121,13 @@ class HWIBridge {
         });
     }
 
-    async getXpubs(device, passphrase=""){
+    async getXpubs(device, account=0, passphrase=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
         return await this.fetch('extract_xpubs', {
             device_type: device.type,
+            account: account,
             path: device.path,
             passphrase: device.passphrase,
         });
