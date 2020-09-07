@@ -431,7 +431,7 @@
 				);
 				let psbt = await response.json();
 				console.log(psbt);
-				let fees = psbt.fee * 1e8
+				let fees = parseInt(psbt.fee * 1e8)
 				document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
 				return fees;
 			} catch {
