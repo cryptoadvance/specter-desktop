@@ -1040,15 +1040,13 @@ def wallet_sendnew(wallet_alias):
                         amounts.append(float(output.split(',')[1].strip()))
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1)) - 1
-            fee_unit = request.form.get('fee_unit')
             selected_coins = request.form.getlist('coinselect')
             app.logger.info("selected coins: {}".format(selected_coins))
             if 'dynamic' in request.form.get('fee_options'):
-                fee_rate = float(request.form.get('fee_rate_dynamic'))
+                fee_rate = float(request.form.get('fee_rate_dynamic')) * 1e5
             else:
                 if request.form.get('fee_rate'):
                     fee_rate = float(request.form.get('fee_rate'))
-
             try:
                 psbt = wallet.createpsbt(
                     addresses,
@@ -1056,7 +1054,6 @@ def wallet_sendnew(wallet_alias):
                     subtract=subtract,
                     subtract_from=subtract_from,
                     fee_rate=fee_rate,
-                    fee_unit=fee_unit,
                     selected_coins=selected_coins,
                     readonly='estimate_fee' in request.form
                 )
