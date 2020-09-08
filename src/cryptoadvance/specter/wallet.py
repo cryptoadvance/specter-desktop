@@ -889,10 +889,9 @@ class Wallet():
                 # P2SH scriptsig: 00 20 <32-byte-hash>
                 input_size += 34 * 4
             return input_size
-        else:
-            if self.recv_descriptor.startswith('wpkh'):
-                # pubkey, signature
-                return 75 + 34
-            else:
-                # pubkey, signature, 4* P2SH: 00 14 20-byte-hash
-                return 75 + 34 + 22 * 4
+        # else: single-sig
+        if self.recv_descriptor.startswith('wpkh'):
+            # pubkey, signature
+            return 75 + 34
+        # pubkey, signature, 4* P2SH: 00 14 20-byte-hash
+        return 75 + 34 + 22 * 4
