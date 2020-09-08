@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QCursor, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, \
     QDialog, QDialogButtonBox, QVBoxLayout, QRadioButton, QLineEdit, \
     QFileDialog, QLabel, QWidget, QMessageBox
-from PyQt5.QtCore import QRunnable, QThreadPool, QSettings, QUrl, \
+from PyQt5.QtCore import QRunnable, QThreadPool, QThread, QSettings, QUrl, \
     Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint, QEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
@@ -14,8 +14,11 @@ import json
 import platform
 import time
 import signal
+import requests
 from cryptoadvance.specter.config import DATA_FOLDER
 from cryptoadvance.specter.helpers import deep_update
+from cryptoadvance.specter.cli import server
+import threading
 
 running = True
 path = os.path.dirname(os.path.abspath(__file__))
@@ -123,9 +126,14 @@ class ProcessRunnable(QRunnable):
                     ) else ''
                 ))
         while running:
-            line = specterd_thread.stdout.readline()
-            if b'Serving Flask app' in line:
-                print("* Started Specter daemon...")
+            is_remote_mode = settings.value(
+                        "remote_mode", defaultValue=False, type=bool
+            )
+            try:
+                if is_remote_mode:
+                    requests.get("http://localhost:25441/hwi/settings", allow_redirects=False)
+                else:
+                    requests.get("http://localhost:25441/login", allow_redirects=False)
                 start_specterd_menu.setText('Specter{} daemon is running'.format(
                     ' HWIBridge' if settings.value(
                         "remote_mode", defaultValue=False, type=bool
@@ -134,56 +142,22 @@ class ProcessRunnable(QRunnable):
                 toggle_specterd_status(menu)
                 self.signals.result.emit()
                 return
-            elif b'Failed' in line or b'Error' in line:
-                start_specterd_menu.setText('Start Specter daemon'.format(
-                    ' HWIBridge' if settings.value(
-                        "remote_mode", defaultValue=False, type=bool
-                    ) else ''
-                ))
-                start_specterd_menu.setEnabled(True)
-                self.signals.error.emit()
-                return
+            except:
+                pass
+            time.sleep(0.1)
 
     def start(self):
         QThreadPool.globalInstance().start(self)
 
-def run_specterd(menu, view, first_time=False):
+def watch_specterd(menu, view, first_time=False):
     global specterd_thread, wait_for_specterd_process
     try:
-        extention = '.exe' if platform.system() == "Windows" else ''
-        specterd_command = [
-            os.path.join(
-                resource_path('specterd'),
-                f"specterd{extention}"
-            ),
-            "--no-debug",
-        ]
-        if settings.value("remote_mode", defaultValue=False, type=bool):
-            specterd_command.append("--hwibridge")
-        # add any parameters from command line:
-        specterd_command += sys.argv[1:]
-        # TODO: we should parse the command line args in QTapp as well
-        specterd_thread = subprocess.Popen(
-            specterd_command,
-            stdout=subprocess.PIPE
-        )
         wait_for_specterd_process = ProcessRunnable(menu)
         wait_for_specterd_process.signals.result.connect(lambda: open_webview(view, first_time))
         wait_for_specterd_process.signals.error.connect(lambda: print("error"))
         wait_for_specterd_process.start()
     except Exception as e:
         print("* Failed to start Specter daemon {}".format(e))
-
-
-def stop_specterd(menu, view):
-    try:
-        if specterd_thread:
-            specterd_thread.terminate()
-        view.close()
-    except Exception as e:
-        print(e)
-    print("* Stopped Specter daemon")
-    toggle_specterd_status(menu)
 
 
 def open_specter_window():
@@ -193,13 +167,11 @@ def open_specter_window():
 def toggle_specterd_status(menu):
     global is_specterd_running
     start_specterd_menu = menu.actions()[0]
-    stop_specterd_menu = menu.actions()[1]
-    open_webview_menu = menu.actions()[2]
-    open_browser_menu = menu.actions()[3]
+    open_webview_menu = menu.actions()[1]
+    open_browser_menu = menu.actions()[2]
 
     if is_specterd_running:
         start_specterd_menu.setEnabled(False)
-        stop_specterd_menu.setEnabled(True)
         open_webview_menu.setEnabled(True)
         open_browser_menu.setEnabled(True)
     else:
@@ -209,7 +181,6 @@ def toggle_specterd_status(menu):
                 ) else ''
             ))
         start_specterd_menu.setEnabled(True)
-        stop_specterd_menu.setEnabled(False)
         open_webview_menu.setEnabled(False)
         open_browser_menu.setEnabled(False)
     is_specterd_running = not is_specterd_running
@@ -218,10 +189,7 @@ def toggle_specterd_status(menu):
 def quit_specter(app):
     global running
     running = False
-    if specterd_thread:
-        specterd_thread.terminate()
     app.quit()
-
 
 def open_settings():
     dlg = SpecterPreferencesDialog()
@@ -419,8 +387,8 @@ def init_desktop_app():
 
     # Create the icon
     icon = QIcon(os.path.join(
-        resource_path('specterd'),
-        'static/img/icon.png'
+        resource_path('icons'),
+        'icon.png'
     ))
 
     # Create the tray
@@ -438,12 +406,8 @@ def init_desktop_app():
                     "remote_mode", defaultValue=False, type=bool
                 ) else ''
             ))
-    start_specterd_menu.triggered.connect(lambda: run_specterd(menu, view))
+    start_specterd_menu.triggered.connect(lambda: watch_specterd(menu, view))
     menu.addAction(start_specterd_menu)
-
-    stop_specterd_menu = QAction("Stop Specter daemon")
-    stop_specterd_menu.triggered.connect(lambda: stop_specterd(menu, view))
-    menu.addAction(stop_specterd_menu)
 
     open_webview_menu = QAction("Open Specter App")
     open_webview_menu.triggered.connect(lambda: open_webview(view))
@@ -484,7 +448,16 @@ def init_desktop_app():
                 'Please note:\n\nThere is a known issue with first launch of the app on macOS due to Apple\'s Gatekeeper feature.\n\nIf the app takes more than a few seconds to appear, please try to quit and reopen it.\n\nFor more information and troubleshooting please see this note:\nhttps://github.com/cryptoadvance/specter-desktop/issues/329#issuecomment-683330627'
             )
 
-    run_specterd(menu, view, first_time)
+    # start server
+    global specterd_thread
+    # add hwibridge to args
+    if settings.value("remote_mode", defaultValue=False, type=bool):
+        sys.argv.append("--hwibridge")
+    # start thread
+    specterd_thread = threading.Thread(target=server)
+    specterd_thread.daemon = True
+    specterd_thread.start()
+    watch_specterd(menu, view)
 
     sys.exit(app.exec_())
 
