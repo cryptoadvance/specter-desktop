@@ -20,7 +20,6 @@
         <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
     </div>
     <br>
-    <input type="hidden" id="fee_unit" name="fee_unit" value="BTC_KB">
     <div id = "fee_manual" style="display: none">
         Fee rate:<br>
         <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min="1" step="0.25" autocomplete="off"> sat/vbyte
@@ -42,16 +41,13 @@
     document.addEventListener("DOMContentLoaded", loadDynamicFees);
 
     function showFeeOption(myRadio) {
-        let feeUnit = document.getElementById('fee_unit');
 
         if (myRadio.value == 'dynamic') {
             setVisibility('fee_manual', 'none');
             setVisibility('fee_dynamic', 'block');
-            feeUnit.value = 'BTC_KB'
         } else {
             setVisibility('fee_manual', 'block');
             setVisibility('fee_dynamic', 'none');
-            feeUnit.value = 'SAT_B'
         }
     }
 
