@@ -99,10 +99,11 @@
 					<b>Fee rate:</b>
 					{% if 'tx_full_size' in psbt %}
 						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
+						<b>Estimated size:</b> {{ psbt['tx_full_size'] }} vbytes<br>
 					{% else %}
 						{{ (psbt['fee'] / psbt['tx']['weight']) | feerate }} sat/vbyte<br>
+						<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					{% endif %}
-					<b>Estimated size:</b> {{ psbt['tx_full_size'] }} vbytes<br>
 					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
 					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
 				</p>
