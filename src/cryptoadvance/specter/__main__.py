@@ -7,10 +7,10 @@ if __name__ == "__main__":
     # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
     # However the dictConfig doesn't work, so let's do something similiar programatically
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(logging.INFO)
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
     ch.setFormatter(formatter)
     logging.getLogger().addHandler(ch)
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     logging.getLogger(__name__).info("Logging configured")
     cli()
