@@ -1359,9 +1359,18 @@ def timedatetime(s):
 
 @app.template_filter('btcamount')
 def btcamount(value):
-    value = float(value)
+    value = round(float(value),8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
 
+@app.template_filter('btc2sat')
+def btc2sat(value):
+    value = int(round(float(value)*1e8))
+    return f"{value}"
+
+@app.template_filter('feerate')
+def feerate(value):
+    value = float(value)*1e8
+    return "{:,.1f}".format(value).rstrip("0").rstrip(".")
 
 @app.template_filter('btcunitamount')
 def btcunitamount(value):
