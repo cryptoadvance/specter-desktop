@@ -83,4 +83,4 @@ release_binary_windows:
     - cd pyinstaller 
     - .\build-win.bat $CI_COMMIT_TAG
     - docker run --rm -i -v ${pwd}:/work k9ert/innosetup iscc /work/specter-desktop.iss /DMyAppVersion="$Env:CI_COMMIT_TAG"
-    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop v1.2.3 ./release/specter_desktop_setup.exe
+    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specter_desktop_setup.exe
