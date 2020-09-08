@@ -687,16 +687,13 @@ class Wallet():
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[], readonly=False):
+    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=1.0, selected_coins=[], readonly=False):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
 
         if self.full_available_balance < sum(amounts):
             raise SpecterError('The wallet does not have sufficient funds to make the transaction.')
-
-        if fee_unit not in ["SAT_B", "BTC_KB"]:
-            raise ValueError('Invalid bitcoin unit')
 
         extra_inputs = []
         if self.available_balance["trusted"] < sum(amounts):
@@ -733,13 +730,8 @@ class Wallet():
 
         self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
-        if fee_rate > 0.0 and fee_unit == "SAT_B":
-            # bitcoin core needs us to convert sat/B to BTC/kB
-            options["feeRate"] = (fee_rate * 1000) / 1e8
-            print(options["feeRate"])
-        elif fee_rate > 0.0:
-            fee_rate = (fee_rate / 1000) * 1e8 # convert to sats for our inner calculations of fee corrrection
-            options["feeRate"] = fee_rate
+        # bitcoin core needs us to convert sat/B to BTC/kB
+        options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.rpc.walletcreatefundedpsbt(
