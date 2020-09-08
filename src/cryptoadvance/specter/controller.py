@@ -185,11 +185,6 @@ def index():
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
-@app.route("/ping")
-def ping():
-    """to check if it's running"""
-    return "pong"
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ''' login '''
