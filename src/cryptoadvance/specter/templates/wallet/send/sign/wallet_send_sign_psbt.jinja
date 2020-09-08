@@ -95,14 +95,15 @@
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
-					<b>Total fee:</b> {{ (psbt['fee'] * 1e8) |  btcamount }} sats<br>
+					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats<br>
 					<b>Fee rate:</b>
 					{% if 'tx_full_size' in psbt %}
-						{{ "%.1f"|format(psbt['fee'] * 1e8 / psbt['tx_full_size']) |  btcamount }} sats/vbyte<br>
+						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
+						<b>Estimated size:</b> {{ psbt['tx_full_size'] }} vbytes<br>
 					{% else %}
-						{{ (psbt['fee'] * 1e8 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+						{{ (psbt['fee'] / psbt['tx']['weight']) | feerate }} sat/vbyte<br>
+						<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					{% endif %}
-					<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
 					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
 				</p>
