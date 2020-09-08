@@ -12,6 +12,7 @@ from io import BytesIO
 from .specter_error import SpecterError
 import threading
 import requests
+from math import ceil
 
 logger = logging.getLogger()
 
@@ -756,11 +757,13 @@ class Wallet():
             tx_full_size = psbt['tx']['vsize']
             for _ in psbt['inputs']:
                 # size is weight / 4
-                tx_full_size += int(self.weight_per_input)//4
+                tx_full_size += self.weight_per_input/4
+            tx_full_size = ceil(tx_full_size)
             adjusted_fee_rate = fee_rate * (
                 fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
                 ) * (tx_full_size / psbt['tx']['vsize'])
-            options["feeRate"] = '%.8f' % round(adjusted_fee_rate * 1000 / 1e8, 8)
+            # add 0.5 to make sure we round up
+            options["feeRate"] = '%.8f' % round((adjusted_fee_rate * 1000 + 0.5) / 1e8, 8)
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,           # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output

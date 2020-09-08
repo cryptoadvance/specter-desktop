@@ -66,6 +66,8 @@ py_enumerate = enumerate # Need to use the enumerate built-in but there's anothe
 
 # Only handles up to 15 of 15
 def parse_multisig(script):
+    if len(script) == 0:
+        return (False, None)
     # Get m
     m = script[0] - 80
     if m < 1 or m > 15:
