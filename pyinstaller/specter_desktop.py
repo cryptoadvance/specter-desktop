@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QCursor, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, \
     QDialog, QDialogButtonBox, QVBoxLayout, QRadioButton, QLineEdit, \
     QFileDialog, QLabel, QWidget, QMessageBox
-from PyQt5.QtCore import QRunnable, QThreadPool, QThread, QSettings, QUrl, \
+from PyQt5.QtCore import QRunnable, QThreadPool, QSettings, QUrl, \
     Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint, QEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
