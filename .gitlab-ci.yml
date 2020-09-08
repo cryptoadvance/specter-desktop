@@ -59,7 +59,7 @@ release_binary_linux:
     - tags
   script:
     # Make sure the version-number is compatibe to the scheme
-    - if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
+    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
     - pip3 install github-binary-upload
     - cd pyinstaller && ./build-unix.sh $CI_COMMIT_TAG
     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
@@ -76,9 +76,8 @@ release_binary_windows:
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
   script:
-    # Make sure the version-number is compatibe to the scheme
-    # ToDo: make it work on windows
-    #- if ! [[ $CI_COMMIT_TAG =~ ^v[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then exit 1; fi
+    # This script won't execute if the script before that fails
+    # No need to check the version-scheme again
     - whoami
     - pip3 install github-binary-upload
     - cd pyinstaller 
