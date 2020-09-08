@@ -22,6 +22,7 @@
 		}
 		.signing-column-btn {
 			margin: 0.75em;
+			width: 200px !important;
 		}
 		.tx {
 			width: 100%;
@@ -44,7 +45,7 @@
 		}
 		.togglebtn {
 			margin: auto;
-			width: 180px;
+			display: inline-block;
 			text-align: center;
 			background: var(--cmap-border) !important;
 		}
@@ -87,7 +88,7 @@
 
 			<input type="checkbox" id="showdetails">
 			<label for="showdetails" class="btn togglebtn">
-				&nbsp;transaction details
+				transaction details
 			</label>
 			<div class="toggle" id="tx_details">
 				<br>
@@ -95,7 +96,12 @@
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
 					<b>Total fee:</b> {{ (psbt['fee'] * 1e8) |  btcamount }} sats<br>
-					<b>Fee rate:</b> {{ (psbt['fee'] * 1e8 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+					<b>Fee rate:</b>
+					{% if 'tx_full_size' in psbt %}
+						{{ "%.1f"|format(psbt['fee'] * 1e8 / psbt['tx_full_size']) |  btcamount }} sats/vbyte<br>
+					{% else %}
+						{{ (psbt['fee'] * 1e8 / psbt['tx']['weight']) |  btcamount }} sats/vbyte<br>
+					{% endif %}
 					<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
 					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
@@ -135,8 +141,8 @@
 			</div>
 		</div>
 
-		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}">
-			Sign transaction with your:<br/>
+		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
+			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
 			{% for device in wallet.devices %}
 				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
 					{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}

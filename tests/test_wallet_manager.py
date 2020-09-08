@@ -97,7 +97,7 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     ]
     selected_coins_amount_sum = unspents[5]['amount'] + unspents[9]['amount'] + unspents[12]['amount']
     number_of_coins_to_spend = selected_coins_amount_sum - 0.1 # Let's spend almost all of them 
-    psbt = wallet.createpsbt([random_address], [number_of_coins_to_spend], True, 10, selected_coins=selected_coins)
+    psbt = wallet.createpsbt([random_address], [number_of_coins_to_spend], True, 0, 10, selected_coins=selected_coins)
     assert len(psbt['tx']['vin']) == 3
     psbt_txs = [ tx['txid'] for tx in psbt['tx']['vin'] ]
     for coin in selected_coins:
@@ -105,7 +105,7 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
 
     # Now let's spend more coins than we have selected. This should result in an exception:
     try:
-        psbt = wallet.createpsbt([random_address], [number_of_coins_to_spend +1], True, 10, selected_coins=selected_coins)
+        psbt = wallet.createpsbt([random_address], [number_of_coins_to_spend +1], True, 0, 10, selected_coins=selected_coins)
         assert False, "should throw an exception!"
     except SpecterError as e:
         pass

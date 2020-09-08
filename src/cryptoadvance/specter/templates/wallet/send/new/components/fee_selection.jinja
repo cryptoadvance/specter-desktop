@@ -1,18 +1,29 @@
 <div class="fee_container">
     <div>
-        <label><input type="checkbox" class="inline" name="subtract" value="1"> Subtract fees from amount</label>
+        <label><input type="checkbox" class="inline" name="subtract" id="subtract" value="1" onchange="toggleSubtractFrom(this)"> Subtract fees from amount</label>
+        <div class="tool-tip" style="text-align: center;">
+            <i class="tool-tip__icon">i</i>
+            <p class="tool-tip__info">
+                <span class="info">
+                    <span class="info__title">Subtract fees from amount<br><br></span>
+                    If checked, the transaction fees will be payed off from the transaction amount.<br><br>
+                    Otherwise, the fees will be payed as an added cost in addition to the amount sent.
+                </span>
+            </p>
+        </div>
     </div>
+    <span id="subtract_from" class="hidden"><br>Subtract from recipient number: <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br></span>
     <br>
     <div>
         Fees: 
-        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic"  name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
-        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
     </div>
     <br>
     <input type="hidden" id="fee_unit" name="fee_unit" value="BTC_KB">
     <div id = "fee_manual" style="display: none">
         Fee rate:<br>
-        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min="0.5" step="0.5" autocomplete="off"> sat/B
+        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" max="100" min="1" step="0.5" autocomplete="off"> sat/B
         <div class="note">
             leave blank to set automatically
         </div>
@@ -74,5 +85,15 @@
         }
 
         document.getElementById('blocks').innerHTML = 'Confirmation time: '.concat(blocks);
+    }
+
+    function toggleSubtractFrom(checkbox) {
+        if (checkbox.checked && (amounts.length > 1 || !document.getElementById('ui-radio-btn').checked)) {
+            document.getElementById('subtract_from').style.display = 'block';
+            document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+        } else {
+            document.getElementById('subtract_from').style.display = 'none';
+            document.getElementById('coin-selection-row').style['margin-top'] = '30px';
+        }
     }
 </script>

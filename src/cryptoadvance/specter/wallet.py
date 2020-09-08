@@ -686,7 +686,7 @@ class Wallet():
     def labels(self):
         return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
-    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[]):
+    def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=0.0, fee_unit="SAT_B", selected_coins=[], readonly=False):
         """
             fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
         """
@@ -722,7 +722,7 @@ class Wallet():
         # subtract fee from amount of this output:
         # currently only one address is supported, so either
         # empty array (subtract from change) or [0]
-        subtract_arr = [0] if subtract else []
+        subtract_arr = [subtract_from] if subtract else []
 
         options = {
             "includeWatching": True, 
@@ -734,7 +734,11 @@ class Wallet():
 
         if fee_rate > 0.0 and fee_unit == "SAT_B":
             # bitcoin core needs us to convert sat/B to BTC/kB
-            options["feeRate"] = fee_rate / 10 ** 8 * 1024
+            options["feeRate"] = (fee_rate * 1000) / 1e8
+            print(options["feeRate"])
+        elif fee_rate > 0.0:
+            fee_rate = (fee_rate / 1000) * 1e8 # convert to sats for our inner calculations of fee corrrection
+            options["feeRate"] = fee_rate
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.rpc.walletcreatefundedpsbt(
@@ -742,17 +746,41 @@ class Wallet():
             [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
             0,                      # locktime
             options,                # options
-            True                    # replaceable
+            True                    # bip32-der
         )
 
         b64psbt = r["psbt"]
         psbt = self.rpc.decodepsbt(b64psbt)
+        if fee_rate > 0.0:
+            psbt_fees_sats = int(psbt['fee'] * 1e8)
+            tx_full_size = psbt['tx']['vsize']
+            for _ in psbt['inputs']:
+                # size is weight / 4
+                tx_full_size += int(self.weight_per_input)//4
+            adjusted_fee_rate = fee_rate * (
+                fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
+                ) * (tx_full_size / psbt['tx']['vsize'])
+            options["feeRate"] = '%.8f' % round(adjusted_fee_rate * 1000 / 1e8, 8)
+            r = self.rpc.walletcreatefundedpsbt(
+                extra_inputs,           # inputs
+                [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
+                0,                      # locktime
+                options,                # options
+                True                    # bip32-der
+            )
+
+            b64psbt = r["psbt"]
+            psbt = self.rpc.decodepsbt(b64psbt)
+            psbt["tx_full_size"] = tx_full_size
+            psbt["fee_rate"] = options["feeRate"]
+
         psbt['base64'] = b64psbt
         psbt["amount"] = amounts
         psbt["address"] = addresses
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
-        self.save_pending_psbt(psbt)
+        if not readonly:
+            self.save_pending_psbt(psbt)
 
         return psbt
 
@@ -845,3 +873,25 @@ class Wallet():
             psbt["raw"] = raw["hex"]
         self.save_pending_psbt(psbt)
         return psbt
+
+    @property
+    def weight_per_input(self):
+        """Calculates the weight of a signed input"""
+        if self.is_multisig:
+            input_size = 3 # OP_M OP_N ... OP_CHECKMULTISIG
+            for i in range(0, len(self.keys)):
+                # pubkey size
+                input_size += 34
+            for i in range(0, self.sigs_required):
+                input_size += 75 # max sig size
+
+            if not self.recv_descriptor.startswith('wsh'):
+                # P2SH scriptsig: 00 20 <32-byte-hash>
+                input_size += 34 * 4
+            return input_size
+        # else: single-sig
+        if self.recv_descriptor.startswith('wpkh'):
+            # pubkey, signature
+            return 75 + 34
+        # pubkey, signature, 4* P2SH: 00 14 20-byte-hash
+        return 75 + 34 + 22 * 4
