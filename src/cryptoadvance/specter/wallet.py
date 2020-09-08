@@ -731,7 +731,7 @@ class Wallet():
         self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
         # bitcoin core needs us to convert sat/B to BTC/kB
-        options["feeRate"] = (fee_rate * 1000) / 1e8
+        options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.rpc.walletcreatefundedpsbt(
