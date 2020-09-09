@@ -4,9 +4,7 @@
 
 pip install -e ..
 pip install -r requirements.txt
-rm -rf build/ dist/ specterd/ release/
-pyinstaller specterd_onedir.spec
-mv dist/specterd/ ./specterd
+rm -rf build/ dist/ release/
 pyinstaller specter_desktop.spec
 pyinstaller specterd.spec
 

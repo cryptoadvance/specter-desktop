@@ -24,7 +24,7 @@ a = Analysis(['specter_desktop.py'],
              binaries=binaries,
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
                     ('../src/cryptoadvance/specter/static', 'static'),
-                    ('./specterd', 'specterd'),
+                    ("./icons", "icons"),
                     (mnemonic_path, 'mnemonic/wordlist'),
              ],
              hiddenimports=[
@@ -67,7 +67,7 @@ if sys.platform == 'darwin':
           a.zipfiles,
           a.datas,
           name='Specter.app',
-          icon='../src/cryptoadvance/specter/static/img/icon.icns',
+          icon='icons/icon.icns',
           bundle_identifier=None,
           info_plist={
             'NSPrincipleClass': 'NSApplication',
@@ -90,7 +90,7 @@ if sys.platform == 'linux':
         upx=True,
         runtime_tmpdir=None,
         console=False,
-        icon='../src/cryptoadvance/specter/static/img/icon.ico'
+        icon='icons/icon.ico'
     )
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -104,7 +104,7 @@ if sys.platform == 'win32' or sys.platform == 'win64':
               strip=False,
               upx=True,
               console=False,
-              icon='../src/cryptoadvance/specter/static/img/icon.ico' )
+              icon='icons/icon.ico' )
 
     coll = COLLECT(exe,
                    a.binaries,
