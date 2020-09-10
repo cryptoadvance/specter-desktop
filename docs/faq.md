@@ -22,6 +22,7 @@
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
+  - [Devices? Wallets? Where ist the difference?](#devices-wallets-where-ist-the-difference)
   - [*What do I need to do in order to create a multisig wallet?*](#what-do-i-need-to-do-in-order-to-create-a-multisig-wallet)
   - [*Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*](#is-my-understanding-correct-that-specter-desktop-does-not-hold-any-keys-and-you-need-to-create-a-multisig-wallet-in-order-to-sign-transactions-and-send-funds)
   - [*How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*](#how-would-one-sign-with-electrum-do-i-need-to-create-multisig-wallet-in-electrum-first-or-can-i-create-it-with-specter-desktop)
