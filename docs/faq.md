@@ -184,6 +184,12 @@ Specter-desktop makes many requests to Bitcoin Core RPC, so it works better from
 
 If you use hardware wallets and they are usb-conneced to specter-desktop then you should take these precautions, but if they are airgapped (coldcard, specter-diy, cobo) - then you can use remote web interface.
 
+## Devices? Wallets? Where ist the difference?
+
+The logic is that devices store keys, and you can combine these keys in different wallets like multisig or singlesig. So the same device can be used for a nested segwit wallet, native segwit, and many multisig wallets.
+The only requirement is that all cosigners in multisig wallets should be different devices.
+For some devices it makes sense to import keys, for example for another passphrase. However it's also possible (and recommended) to create a new device if you want to use a different passphrase for the same device.
+
 ## *What do I need to do in order to create a multisig wallet?*
 
 XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, specter-DIY, etc.) in order to create a multistig setup, but don't worry it's in watch-only mode and it's your own full node! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
