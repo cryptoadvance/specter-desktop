@@ -60,19 +60,26 @@ def deep_update(d, u):
 
 
 def load_jsons(folder, key=None):
-    files = [f for f in os.listdir(folder) if f.endswith(".json")]
+    # get all json files (not hidden)
+    files = [f for f in os.listdir(folder)
+             if f.endswith(".json") and
+             not f.startswith(".")
+            ]
     files.sort(key=lambda x: os.path.getmtime(os.path.join(folder, x)))
     dd = OrderedDict()
     for fname in files:
-        with fslock:
-            with open(os.path.join(folder, fname)) as f:
-                d = json.load(f)
-        if key is None:
-            dd[fname[:-5]] = d
-        else:
-            d["fullpath"] = os.path.join(folder, fname)
-            d["alias"] = fname[:-5]
-            dd[d[key]] = d
+        try:
+            with fslock:
+                with open(os.path.join(folder, fname)) as f:
+                    d = json.load(f)
+            if key is None:
+                dd[fname[:-5]] = d
+            else:
+                d["fullpath"] = os.path.join(folder, fname)
+                d["alias"] = fname[:-5]
+                dd[d[key]] = d
+        except:
+            logger.error(f"Can't load json file {fname}")
     return dd
 
 
