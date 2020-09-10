@@ -181,7 +181,7 @@
 					<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
 					<div id="{{ device.alias }}_export_qr_code" style="display: none;">
 						<h1>Scan this with your {{ device.name }} device </h1>
-						<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
+						<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 					</div>
 				{% endif %}
 			{% endif %}

@@ -112,7 +112,7 @@
 	<br>
 	<script>
 		function verifyQRCode(address, idx) {
-			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256"></qr-code>`;
+			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
 			showPageOverlay('verify_address_qr_code');
 		}
 		function toggleAddressHistory(btn) {
