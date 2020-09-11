@@ -130,10 +130,10 @@ class WalletManager:
                                                 psbt
                                             ]["tx"]["vin"]]
                                         )
-                            except RpcError:
+                            except RpcError as e:
                                 logger.warn(
-                                    "Couldn't load wallet %s into core.\
-Silently ignored!" % wallet_alias)
+                                    f"Couldn't load wallet {wallet_alias} into core.\
+Silently ignored! RPC error: {e}")
                         else:
                             if wallet_name not in existing_names:
                                 # ok wallet is already there
@@ -151,8 +151,9 @@ Silently ignored!" % wallet_alias)
                         logger.warn(
                             "Couldn't find wallet %s in core's wallets.\
 Silently ignored!" % wallet_alias)
-        except Exception as e:
-            logger.warn("Failed updating wallet manager: %s" % e)
+        # only ignore rpc errors
+        except RpcError as e:
+            logger.error(f"Failed updating wallet manager. RPC error: {e}")
         # add new wallets
         for k in wallets:
             self.wallets[k] = wallets[k]
