@@ -811,7 +811,6 @@ table tr:hover .btn.hovering{
 .page_overlay_popup {
     margin: auto;
     display: none;
-    max-width: 500px;
     text-align: center;
     border-radius: 0.5em;
     border: 2px solid #313E50;

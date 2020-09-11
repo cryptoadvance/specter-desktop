@@ -46,11 +46,113 @@
     .copy img{
       width: 10px;
     }
+    .range {
+      opacity: 0.3;
+      display: none;
+      color: #000;
+      background: #fff;
+      height: 2rem;
+      width: 55%;
+      min-width: 250px;
+      border-radius: 5rem;
+      box-shadow: 1px 5px 5px rgba(0, 0, 0, 0.3);
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-holder:hover .range {
+      opacity: 0.9;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 80%;
+      height: 100%;
+      background: transparent;
+    }
+    input[type="range"]:focus {
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #fff;
+      margin-top: -5px;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 60%;
+      height: 9px;
+      background: #bdbdbd;
+      border-radius: 3rem;
+      transition: all 0.5s;
+      cursor: pointer;
+    }
+    input[type="range"]:hover::-webkit-slider-runnable-track {
+      background: var(--cmap-blue);
+    }
+    input[type="range"]::-ms-track {
+      width: 60%;
+      cursor: pointer;
+      height: 9px;
+      transition: all 0.5s;
+      /* Hides the slider so custom styles can be added */
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    input[type="range"]::-ms-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #fff;
+      margin-top: -5px;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+    input[type="range"]::-ms-fill-lower {
+      background: #bdbdbd;
+      border-radius: 3rem;
+    }
+    input[type="range"]:focus::-ms-fill-lower {
+      background: var(--cmap-blue);
+    }
+    input[type="range"]::-ms-fill-upper {
+      background: #bdbdbd;
+      border-radius: 3rem;
+    }
+    input[type="range"]:focus::-ms-fill-upper {
+      background: var(--cmap-blue);
+    }
+    input[type="range"]::-moz-range-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #fff;
+      margin-top: -5px;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track {
+      width: 60%;
+      height: 9px;
+      background: #bdbdbd;
+      border-radius: 3rem;
+      transition: all 0.5s;
+      cursor: pointer;
+    }
+    input[type="range"]:hover::-moz-range-track {
+      background: var(--cmap-blue);
+    }
   </style>
   <div class="qr-holder">
     <a class="copy"><img src="/static/img/content_copy-24px.svg"></a>
     <div class="qr-code"></div>
     <div class="note">Click to animate</div>
+    <div class="range" style="margin-top: 10px; margin-bottom: -5px;">
+      <span class="minus-size" style="cursor: pointer;">&nbsp;&nbsp;-&nbsp;&nbsp;</span><input type="range" class="size-slider"><span class="plus-size" style="cursor: pointer;">&nbsp;&nbsp;+&nbsp;&nbsp;</span>
+    </div>
   </div>
 </template>
 
@@ -77,6 +179,11 @@ class QRCodeElement extends HTMLElement {
 
     this.copybtn = clone.querySelector(".copy");
 
+    this.sizeDiv = clone.querySelector(".range");
+    this.sizeSlider = clone.querySelector(".size-slider");
+    this.minusSize = clone.querySelector(".minus-size");
+    this.plusSize = clone.querySelector(".plus-size");
+
     // Attach the created element to the shadow dom
     shadow.appendChild(clone);
 
@@ -96,6 +203,20 @@ class QRCodeElement extends HTMLElement {
       e.cancelBubble = true;
       var value = this.getAttribute('value');
       copyText(value, "QR code content is copied!");
+    });
+    this.sizeDiv.addEventListener('click', e=>{
+      e.cancelBubble = true;
+    });
+    this.sizeSlider.addEventListener('change', e => {
+      this.setAttribute('width', this.sizeSlider.value);
+    });
+    this.minusSize.addEventListener('click', e => {
+      this.sizeSlider.value = Number(this.sizeSlider.value) - 50;
+      this.setAttribute('width', this.sizeSlider.value);
+    });
+    this.plusSize.addEventListener('click', e => {
+      this.sizeSlider.value = Number(this.sizeSlider.value) + 50;
+      this.setAttribute('width', this.sizeSlider.value);
     });
     window.setInterval(()=>{
       if((this.qrcode==null) || this.chunks.length<=1){
@@ -162,6 +283,22 @@ class QRCodeElement extends HTMLElement {
       }else{
         this.chunks.push(text)
       }
+    }
+  }
+  connectedCallback() {
+    if (this.getAttribute('scalable') !== null) {
+      let defaultSize = parseInt(this.getAttribute('width').replace("px",""))
+      if(defaultSize == NaN){
+        defaultSize = 400;
+      }
+      this.sizeSlider.setAttribute('value', defaultSize);
+      this.sizeSlider.setAttribute('min', 100);
+      if (defaultSize < 400) {
+        this.sizeSlider.setAttribute('max', 450);
+      } else {
+        this.sizeSlider.setAttribute('max', 650);
+      }
+      this.sizeDiv.style.display = 'flex';
     }
   }
   attributeChangedCallback(attrName, oldValue, newValue) {
