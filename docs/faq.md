@@ -346,6 +346,10 @@ Specter only works with python3, so use pip3 to install it
 
 Run it with the
  command `python3 -m cryptoadvance.specter server` - then it will use python3
+ 
+## *I created an existing wallets but even after rescanning, specter couldn't find any funds?*
+
+Make sure you're using the right type of wallet. There are "Nested Segwit" and "Native segwit". Make sure to choose the right one. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.Also  if you're using a pruned might be difficult depending on much data your node holds. There are some ideas on how to circumvent that which probably involves privacy issues so it's definitely recommended to use a non-pruned-node if dealing with older wallets.
 
 ## *How to delete a wallet using a remote full node?*
 
