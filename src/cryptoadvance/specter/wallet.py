@@ -432,18 +432,26 @@ class Wallet():
             for tx in existing
         ])
         # handle missing transactions now
-        # TODO: do it over Tor
+        # if Tor is running, requests will be sent over Tor
         if explorer is not None:
+            try:
+                requests_session = requests.Session()
+                requests_session.proxies = {}
+                requests_session.proxies['http'] = 'socks5h://localhost:9050'
+                requests_session.proxies['https'] = 'socks5h://localhost:9050'
+                requests_session.get(explorer)
+            except Exception:
+                requests_session = requests.Session()
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
             try:
                 # get raw transactions
-                raws = [requests.get(
+                raws = [requests_session.get(
                             f"{explorer}/api/tx/{tx['txid']}/hex"
                             ).text
                         for tx in missing]
                 # get proofs
-                proofs = [requests.get(
+                proofs = [requests_session.get(
                             f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
                             ).text
                           for tx in missing]

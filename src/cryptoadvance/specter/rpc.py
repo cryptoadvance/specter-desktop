@@ -264,8 +264,29 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url+"/wallet/{}".format(kwargs["wallet"])
-        r = requests.post(
-            url, data=json.dumps(payload), headers=headers, timeout=timeout)
+        r = None
+        if 'localhost:' not in url and '127.0.0.1:' not in url:
+            try:
+                requests_session = requests.Session()
+                requests_session = requests.Session()
+                requests_session.proxies = {}
+                requests_session.proxies['http'] = 'socks5h://localhost:9050'
+                requests_session.proxies['https'] = 'socks5h://localhost:9050'
+                r = requests_session.post(
+                    url,
+                    data=json.dumps(payload),
+                    headers=headers,
+                    timeout=timeout
+                )
+            except Exception:
+                pass  # Tor call failed
+        if r is None:
+            r = requests.post(
+                url,
+                data=json.dumps(payload),
+                headers=headers,
+                timeout=timeout
+            )
         self.r = r
         if r.status_code != 200:
             raise RpcError(
