@@ -268,7 +268,6 @@ class BitcoinRPC:
         if '.onion' in url:
             try:
                 requests_session = requests.Session()
-                requests_session.proxies = {}
                 requests_session.proxies['http'] = 'socks5h://localhost:9050'
                 requests_session.proxies['https'] = 'socks5h://localhost:9050'
                 r = requests_session.post(
