@@ -9,7 +9,7 @@
 {# === wallet specific stuff ==== #}
 {% include 'includes/hwi/components/wallet.jinja' %}
 
-<div id="hwi_progress" class="hidden" style="width: 250px;">
+<div id="hwi_progress" class="hidden" style="width: 270px;">
     <h1 id="hwi_progress_title">Processing...</h1>
     <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
     <img src="/static/img/loader_boxes.svg">
@@ -120,6 +120,27 @@
         }
         return result;
     }
+
+    async function getXpubs(device, account=0, passphrase=""){
+        // detect device
+        showHWIProgress("Extracting public keys...", 
+            `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+        let result = [];
+        try {
+            result = await hwi.getXpubs(device, account, passphrase);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        if(!overlayIsActive()){
+            showNotification("HWI is ready again", 3000);
+            // no need to proceed at all
+            return null;
+        }
+        hidePageOverlay();
+        return result;
+    }
+
     // TODO: remove, legacy
     function onCancelOverlay(){
 
