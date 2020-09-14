@@ -265,7 +265,7 @@ class BitcoinRPC:
         if "wallet" in kwargs:
             url = url+"/wallet/{}".format(kwargs["wallet"])
         r = None
-        if 'localhost:' not in url and '127.0.0.1:' not in url:
+        if '.onion' in url:
             try:
                 requests_session = requests.Session()
                 requests_session = requests.Session()
