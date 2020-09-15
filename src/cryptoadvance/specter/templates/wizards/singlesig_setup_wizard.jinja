@@ -26,7 +26,7 @@
                 <div class="row overflow">
                     {% for cls in specter.device_manager.supported_devices if (not cls.hot_wallet and cls.device_type != 'other') %}
                         <label>
-                            <input onchange="setStepCompleted(1)" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
+                            <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
                             <div class="small-card radio" id="{{ cls.device_type }}_device_card">
                                 {% if cls.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo'] %}
                                     <img src="/static/img/{{ cls.device_type }}_icon.svg" width="18px">
@@ -128,10 +128,11 @@
                                         <div class="btn radio left">Segwit</div>
                                     </label>
                                     <label>
-                                        <input type="radio" name="type" value="sh-wpkh" class="hidden" onchange="checkStepCompleted(3)">
+                                        <input id="type-sh-wpkh" type="radio" name="type" value="sh-wpkh" class="hidden" onchange="checkStepCompleted(3)">
                                         <div class="btn radio right">Nested Segwit</div>
                                     </label>
                                 </nav>
+                                <p class="note" id="no-type-choice-note" style="text-align: center; margin-top: 7px;">Only a <b><span id="only-type-note"></span></b> key was found.</p>
                             </td>
                         </tr>
                         <tr style="background: none; border: none;">
@@ -179,6 +180,18 @@
 {% endblock %}
 
 {% block scripts %}
+    <script>
+    function setXpubs(xpubs) {
+        document.getElementById('xpubs').value = xpubs;
+        if ((xpubs.indexOf("/49'/") == -1 && xpubs.indexOf("/84'/") == -1) && (xpubs.toLowerCase().indexOf("/49h/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1)) {
+            showError('No matching key was found, please make sure to follow the instructions and try again.')
+            return
+        }
+        showNotification((xpubs.split('\n').filter(xpub => xpub != '').length) + ' keys were successfully retrieved from the device.');
+        setStepCompleted(2);
+        nextStep();
+    }
+    </script>
     <script>
         let currentStep = 1;
         let totalSteps = 4;
@@ -260,6 +273,23 @@
                         break;
                     default:
                         document.getElementById('hwi-only-instructions').classList.remove('hidden');
+                }
+            } else if (currentStep == 2) {
+                let xpubs = document.getElementById('xpubs').value;
+                if (xpubs.indexOf("/49'/") == -1 && xpubs.toLowerCase().indexOf("/49h/") == -1) {
+                    document.getElementById('type-wpkh').checked = true;
+                    document.getElementById('type-sh-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Segwit';
+                } else if (xpubs.indexOf("/84'/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1) {
+                    document.getElementById('type-sh-wpkh').checked = true;
+                    document.getElementById('type-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Nested Segwit';
+                } else {
+                    document.getElementById('type-wpkh').disabled = false;
+                    document.getElementById('type-sh-wpkh').disabled = false;
+                    document.getElementById('no-type-choice-note').classList.add('hidden');
                 }
             }
 
@@ -355,9 +385,7 @@
                 return;
             }
 
-            document.getElementById('xpubs').value = xpubs;
-            showNotification('Device data was retrived successfully');
-            setStepCompleted(2);
+            setXpubs(xpubs);
         });
     </script>
 
@@ -419,9 +447,7 @@
                             } else {
                                 data += str+"\n";
                             }
-                            document.getElementById('xpubs').value = data;
-                            showNotification('Device data was retrived successfully');
-                            setStepCompleted(2);
+                            setXpubs(data);
                         }
                         reader.readAsText(files[i]);
                     }
@@ -447,25 +473,19 @@
                         console.log(obj);
                         let path = obj.AccountKeyPath.replace(/'/g,'h');
                         let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
-                        document.getElementById('xpubs').value = str;
-                        showNotification('Device data was retrived successfully');
-                        setStepCompleted(2);
+                        setXpubs(str);
                     }else if( ("xfp" in obj) &&
                             ("xpub" in obj) &&
                             ("path" in obj)){
                         console.log(obj);
                         let path = obj.path.replace(/'/g,'h').replace("m/","");
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
-                        document.getElementById('xpubs').value = str;
-                        showNotification('Device data was retrived successfully');
-                        setStepCompleted(2);
+                        setXpubs(str);
                     }else{
                         showError("Unknown key format");
                     }
                 }else{
-                    document.getElementById('xpubs').value = result;
-                    showNotification('Device data was retrived successfully');
-                    setStepCompleted(2);
+                    setXpubs(result);
                 }
             });
         }

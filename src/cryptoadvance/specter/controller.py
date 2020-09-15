@@ -942,11 +942,21 @@ def singlesig_setup_wizard():
                 key.xpub.startswith("xpub") != (app.specter.chain != 'main')
             )
         ]
-        print(wallet_key)
+
         if len(wallet_key) != 1:
+            err = 'Device key was not imported properly. Please make\
+                sure your device is on the right network and try again.'
+
+        if err:
+            app.specter.device_manager.remove_device(
+                device,
+                app.specter.wallet_manager,
+                bitcoin_datadir=app.specter.bitcoin_datadir,
+                chain=app.specter.chain
+            )
             return render_template(
                 "wizards/singlesig_setup_wizard.jinja",
-                error='Device key was not imported properly. Please try again.',
+                error=err,
                 specter=app.specter,
                 rand=rand
             )
