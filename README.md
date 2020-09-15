@@ -41,6 +41,7 @@ At the moment Specter-Desktop is working with all major hardware wallets includi
 - Trezor
 - Ledger
 - KeepKey
+- BitBox2
 - ColdCard (optionally airgapped, using an SD card)
 - Electrum (optionally airgapped, if running Electrum on an airgapped computer/ phone)
 - Specter DIY (optionally airgapped, using QR codes)
