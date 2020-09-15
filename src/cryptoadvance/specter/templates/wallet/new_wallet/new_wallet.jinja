@@ -40,7 +40,8 @@
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
-			{% for device_name in specter.device_manager.devices_names %}
+			{# Disable BitBox2 multisig for now... #}
+			{% for device_name in specter.device_manager.devices_names if wallet_type != 'multisig' or specter.device_manager.devices[device_name].device_type != 'bitbox02' %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
 					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ device.alias }}" class="hidden" data-key-types='{{ device.key_types(specter.chain) | tojson }}' chain="{{specter.chain}}">
