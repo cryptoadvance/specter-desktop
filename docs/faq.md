@@ -52,6 +52,7 @@
   - [*How can I access the web interface if it's hosted on a headless computer?*](#how-can-i-access-the-web-interface-if-its-hosted-on-a-headless-computer)
   - [*Keep getting: No matching distribution found for cryptoadvance.specter*](#keep-getting-no-matching-distribution-found-for-cryptoadvancespecter)
   - [*Even after upgrading to python3 it's still looking at 2.7 version. I uninstalled 2.7, so not sure where to go next?*](#even-after-upgrading-to-python3-its-still-looking-at-27-version-i-uninstalled-27-so-not-sure-where-to-go-next)
+  - [*I created an existing wallets but even after rescanning, specter couldn't find any funds?*](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)
   - [*How to delete a wallet using a remote full node?*](#how-to-delete-a-wallet-using-a-remote-full-node)
   - [*Trying to connect specter-desktop to my remote node on my LAN few times but no success. `bitcoin.conf` has the `server=1` option, should there be something else since I get this error `Process finished with code -1Error message: Failed to connect` message?*](#trying-to-connect-specter-desktop-to-my-remote-node-on-my-lan-few-times-but-no-success-bitcoinconf-has-the-server1-option-should-there-be-something-else-since-i-get-this-error-process-finished-with-code--1error-message-failed-to-connect-message)
 - [DIY TROUBLESHOOT](#diy-troubleshoot)
@@ -346,6 +347,11 @@ Specter only works with python3, so use pip3 to install it
 
 Run it with the
  command `python3 -m cryptoadvance.specter server` - then it will use python3
+ 
+## *I created an existing wallets but even after rescanning, specter couldn't find any funds?*
+
+Make sure you're using the right type of wallet. There are "Nested Segwit" and "Native segwit". Make sure to choose the right one. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
+If you're running a pruned node, it's not possible to scan for the entire transaction history without doing a full re-download of the blockchain (IBD). Alternatively, we also support scanning for only the existing wallet balance (UTXO) which is very quick and supports both full and pruned nodes. However, for pruned nodes to support this feature, we must query some external data from an outside source (such as a block explorer, configurable by the user). This does not constitute a security risk, as the validity of the data can be verified against the hash existing on the pruned node itself, but can be a potential privacy risk, although it's possible to get the data over Tor to reduce the potential privacy leak. Yet, we still strongly recommend using a non-pruned-node (if possible) when dealing with older wallets.
 
 ## *How to delete a wallet using a remote full node?*
 
