@@ -957,14 +957,11 @@ a:focus + .tool-tip .tool-tip__info {
     position: absolute;
     left: 0px;
   }
-  #side-content.active > #side-expand{
-    transform: scaleX(-1);
-  }
   #side-content{
-    left: -250px;
+    left: -275px;
   }
-  #side-expand{
-    display: none;
+  #side-content:after{
+    content: none;
   }
 }
 @media (max-width: 690px){
