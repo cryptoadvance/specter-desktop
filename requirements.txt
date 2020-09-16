@@ -5,10 +5,11 @@ daemonize==2.5.0
 Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-Login==0.5.0
+hwi==1.1.2
+bitbox02==4.1.0
 pyserial==3.4
 python-dotenv==0.13.0
 requests==2.23.0
 pysocks==1.7.1
 six==1.12.0
 stem==1.8.0
-hwi @ git+git://github.com/bitcoin-core/hwi.git@5c4bdd681cf4b8c881ff8248370019b8af91cbd8
