@@ -941,6 +941,7 @@ a:focus + .tool-tip .tool-tip__info {
       left: 0;
     }
     #side-content:hover:after{
+      position: absolute;
       right: -20px;
     }
   }
