@@ -923,7 +923,7 @@ a:focus + .tool-tip .tool-tip__info {
     justify-content: center;
     font-size: 12px;
     cursor: pointer;
-    position: absolute;
+    position: sticky;
     top: 0;
     bottom: 0;
     right: 0;
