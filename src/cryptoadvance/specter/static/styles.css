@@ -174,12 +174,10 @@ nav.side{
     flex-direction: column;
     justify-content: flex-start;
     flex-grow: 1;
+    width: 250px;
 }
 #side-content{
     background: var(--cmap-bg-ligher);
-    width: 250px;
-    max-width: 250px;
-    min-width: 250px;
     border-right: 1px solid var(--cmap-bg-lightest);
     padding-top: 10px;
     display: flex;
@@ -211,6 +209,12 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
 }
+
+
+#devices_list{
+    margin-bottom: 10px;;
+}
+
 a.item{
     text-decoration: none;
     color: inherit;
@@ -229,7 +233,7 @@ a.item:hover{
 }
 .item > svg, .item > img{
     opacity: 0.7;
-    margin: 0px 10px 0px 30px;
+    margin: 0 10px 0 20px;
 }
 .item:hover > svg{
     opacity: 1;
@@ -286,15 +290,11 @@ small, .small{
 
 nav .separator{
     text-transform: uppercase;
-    /*text-align: center;*/
     font-size: 0.85em;
-    margin: 20px 0px 5px 26px;
-    /*font-weight: bold;*/
-    /*opacity: 0.8;*/
+    margin: 20px 20px 5px;
 }
-.item .btn{
-    margin: 5px 20px 5px 20px;
-    /*min-width: 170px;*/
+.optional .btn{
+    margin: 15px 20px;
 }
 .btn{
     background: var(--cmap-border);
@@ -367,7 +367,7 @@ h1, h2{
 }
 h1{
     font-size: 1.5em;
-    text-align: center; 
+    text-align: center;
     margin: 0 0 20px 0;
 }
 h2{
@@ -753,9 +753,9 @@ table tr:hover .btn.hovering{
     text-align: center;
     font-size: 14px;
     background: #ccc;
-    padding: 12px;
+    padding: 10px;
     color: #303030;
-    margin: 10px;
+    margin: 10px 20px;
     border-radius: 7px;
     line-height: 1.5;
 }
@@ -900,6 +900,7 @@ a:focus + .tool-tip .tool-tip__info {
 /************** Mobile styles ********************************/
 #side-expand{
     display: none;
+    padding: 5px;
 }
 #menubtn{
     display: none;
@@ -908,38 +909,47 @@ a:focus + .tool-tip .tool-tip__info {
 @media (max-width: 1100px){
   #side-content{
     position: absolute;
+    display: flex;
     height: 100%;
-    left: -235px;
+    left: -250px;
+    width: 270px;
     transition: left 0.3s;
     box-shadow: 3px 0px 10px rgba(0,0,0,0.3);
   }
-  #side-expand{
+  #side-content:after{
     display: flex;
+    content: "▶";
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    background: var(--cmap-bg-ligher);
   }
   td.xpub{
     max-width: 230px;
   }
   @media (hover: hover){
     main{
-      padding-left: 15px;
+      padding-left: 20px;
     }
     #side-content:hover{
-      position: absolute;
-      left: 0px;
+      left: 0;
     }
-    #side-content:hover > #side-expand{
-      transform: scaleX(-1);
+    #side-content:hover:after{
+      position: absolute;
+      right: -20px;
     }
   }
 }
 /* touch based devices need a menu button */
-@media (any-hover: none) and (max-width: 1100px), 
-       (any-pointer: coarse) and (max-width: 1100px), 
-       (pointer: none) and (max-width: 1100px), 
+@media (any-hover: none) and (max-width: 1100px),
+       (any-pointer: coarse) and (max-width: 1100px),
+       (pointer: none) and (max-width: 1100px),
        (max-width: 600){
   #menubtn{
     display: block;
@@ -948,14 +958,11 @@ a:focus + .tool-tip .tool-tip__info {
     position: absolute;
     left: 0px;
   }
-  #side-content.active > #side-expand{
-    transform: scaleX(-1);
-  }
   #side-content{
-    left: -250px;
+    left: -275px;
   }
-  #side-expand{
-    display: none;
+  #side-content:after{
+    content: none;
   }
 }
 @media (max-width: 690px){
@@ -969,10 +976,6 @@ a:focus + .tool-tip .tool-tip__info {
     }
     .optional{
         display:none;
-        width:0;
-        height:0;
-        opacity:0;
-        visibility: collapse;
     }
     .mobile-only {
         display: revert;
@@ -987,7 +990,7 @@ a:focus + .tool-tip .tool-tip__info {
         width: 200px !important;
     }
     .page_overlay_popup {
-     max-width: 95%;   
+     max-width: 95%;
     }
     .key {
         width: 25% !important;
