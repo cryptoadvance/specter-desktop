@@ -2,9 +2,9 @@ from .hwi_device import HWIDevice
 from .hwi.bitbox02 import enumerate as bitbox02_enumerate, Bitbox02Client
 
 
-class BitBox2(HWIDevice):
+class BitBox02(HWIDevice):
     device_type = "bitbox02"
-    name = "BitBox2"
+    name = "BitBox02"
 
     def __init__(self, name, alias, keys, fullpath, manager):
         HWIDevice.__init__(self, name, alias, keys, fullpath, manager)

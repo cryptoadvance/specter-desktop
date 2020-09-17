@@ -40,7 +40,7 @@
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
-			{# Disable BitBox2 multisig for now... #}
+			{# Disable BitBox02 multisig for now... #}
 			{% for device_name in specter.device_manager.devices_names if wallet_type != 'multisig' or specter.device_manager.devices[device_name].device_type != 'bitbox02' %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
