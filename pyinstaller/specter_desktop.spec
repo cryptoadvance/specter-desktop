@@ -15,6 +15,10 @@ elif platform.system() == 'Linux':
         binaries = [("/lib/aarch64-linux-gnu/libusb-1.0.so.0", ".")]
     else:
         binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
+    binaries.extend([("/usr/lib/x86_64-linux-gnu/dri/iris_dri.so","."),\
+                     ("/usr/lib/x86_64-linux-gnu/gio/modules/libgvfsdbus.so","."),\
+                     ("/usr/lib/x86_64-linux-gnu/gvfs/libgvfscommon.so","."),\
+                     ("/usr/lib/x86_64-linux-gnu/",".")])
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
     libusb_path = find_brew_libusb_proc.communicate()[0]
@@ -29,7 +33,8 @@ a = Analysis(['specter_desktop.py'],
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',
-                'cryptoadvance.specter.config'
+                'cryptoadvance.specter.config',
+                'psutil'
              ],
              hookspath=['hooks/'],
              runtime_hooks=[],
@@ -88,7 +93,7 @@ if sys.platform == 'linux':
         debug=False,
         strip=False,
         upx=True,
-        runtime_tmpdir=None,
+        #runtime_tmpdir=None,
         console=False,
         icon='icons/icon.ico'
     )
