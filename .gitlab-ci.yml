@@ -61,8 +61,10 @@ release_binary_linux:
   #  - tags
   before_script:
     - python -V
-  script:
+    - pip install virtualenv
+    - virtualenv --python=python3 .env
     - source .env/bin/activate
+  script:
     - pip3 install github-binary-upload
     - cd pyinstaller && ./build-unix.sh
     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries k9ert/specter-desktop v1.2.3-pre ./release/specterd--x86_64-linux-gnu.tar.gz ./release/specter_desktop--x86_64-linux-gnu.tar.gz
