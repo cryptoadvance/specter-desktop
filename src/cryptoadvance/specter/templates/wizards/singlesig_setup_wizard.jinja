@@ -1,0 +1,493 @@
+{% extends "base.jinja" %}
+{% block main %}
+    {% include "includes/hwi/hwi.jinja" %}
+    {% include "includes/qr-scanner.html" %}
+    <link rel="stylesheet" type="text/css" href="/static/progress-wizard.min.css">
+    <style>
+        .progress-indicator li {
+            padding: 5px;
+            color: #fff;
+        }
+        #device-confirm[src="/static/img/cobo_icon.svg"] {
+            margin: 20px;
+        }
+    </style>
+    <div id="singlesig_setup_wizard">
+        <h1 style="font-size: 2em;">Wallet Setup Wizard</h1><br>
+        <ul class="progress-indicator" style="width: 100%;">
+            <li> <span class="bubble"></span> 1. Select Device </li>
+            <li> <span class="bubble"></span> 2. Upload Keys </li>
+            <li> <span class="bubble"></span> 3. Setup Wallet </li>
+            <li> <span class="bubble"></span> 4. Confirm </li>
+        </ul><br>
+        <form action="./" method="POST" class="card center" style="width: auto; margin: 40px;">
+            <div id="step1">
+                <h1 style="font-size: 1.8em;">Select Device</h1>
+                <div class="row overflow">
+                    {% for cls in specter.device_manager.supported_devices if (not cls.hot_wallet and cls.device_type != 'other') %}
+                        <label>
+                            <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
+                            <div class="small-card radio" id="{{ cls.device_type }}_device_card">
+                                {% if cls.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo'] %}
+                                    <img src="/static/img/{{ cls.device_type }}_icon.svg" width="18px">
+                                {% else %}
+                                    <img src="/static/img/other_icon.svg" width="18px">
+                                {% endif %}
+                                {{ cls.name }}
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="step2" class="hidden">
+                <h1 style="font-size: 1.8em;">Upload Keys</h1>
+                <div id="coldcard-instructions">
+                    <p>
+                    Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.<br>
+                    </p>
+                    <span class="note">
+                    To export the wallet data file from the ColdCard, insert your micro SD card into the device, then go to:<br>
+                    Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, press 0 and confirm the export.
+                    </span>
+                </div>
+                <div id="specter-instructions">
+                    <p>
+                    Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.<br>
+                    </p>
+                    <span class="note">
+                    To get the master public key QR code to scan, click on:<br>
+                    Master public keys -> Single key and scan the displayed QR code into Specter.
+                    </span>
+                </div>
+                <div id="cobo-instructions">
+                    <p>
+                    Scan your Cobo Vault master public key or upload a wallet export file.<br>
+                    </p>
+                    <span class="note">
+                    To get the master public key QR code to scan, click on:<br>
+                    Setting -> Watch-Only Wallet -> Generic Wallet, click next then select the wallet address type you would like to use for your wallet.
+                    Cobo Vault will then display the QR code which you should scan into Specter.<br>
+                    To import with SD card, click on "touch here to export the file with microSD" on the same screen as the QR code.
+                    </span>
+                </div>
+                <div id="hwi-only-instructions">
+                    <p>Connect your hardware device to the computer via USB.</p>
+                </div>
+                <div class="row overflow">
+                    <div id="connect-hwi" class="small-card">
+                        <img src="/static/img/usb_tiny.svg" width="18px">
+                        Connect via USB
+                    </div>
+                    <label id="connect-sdcard">
+                        <input type="file" id="file" class="inputfile" multiple/>
+                        <div class="small-card">
+                            <img src="/static/img/sd_tiny.svg" width="18px">
+                            Upload from SD Card
+                        </div>
+                    </label>
+                    <qr-scanner id="xpub-scan">
+                        <a slot="button" href="#" class="small-card" >
+                            <img src="/static/img/qr_tiny.svg" width="18px">
+                            Scan QR code
+                        </a>
+                    </qr-scanner>
+                </div>
+                <input type="hidden" name="xpubs" id="xpubs">
+            </div>
+            <div id="step3" class="hidden" style="margin: auto;">
+                <br>
+                <h1 style="font-size: 1.8em;">Setup Wallet</h1>
+                <br>
+                <div class="center">
+                    <table style="border: none; max-width: 650px; margin: auto;">
+                        <tr style="background: none; border: none;">
+                            <td style="border: none; text-align: left;">
+                            <span style="font-size: 1.5em">Wallet name</span>
+                            </td>
+                            <td style="border: none; text-align: right;">
+                                <input id="wallet-name" type="text" name="wallet_name" class="inline" placeholder="Name your wallet" oninput="checkStepCompleted(3)" style="width: 340px;">
+                            </td>
+                        </tr>
+                        <tr style="background: none; border: none;">
+                            <td style="border: none; text-align: left;">
+                                <span style="font-size: 1.5em">Wallet type</span>
+                                <div class="tool-tip">
+                                    <i class="tool-tip__icon">i</i>
+                                    <p class="tool-tip__info">
+                                        <span class="info">
+                                            <span class="info__title" style="font-size: 1.3em;">Choosing a wallet type<br><br></span>
+                                            <b>Segwit</b> uses addresses starting with <code style="font-size: 1.4em;">bc1</code> and is generally more recommended to use.<br><br><b>Nested Segwit</b> uses addresses starting with <code style="font-size: 1.4em;">3</code> and is compatible with legacy software.
+                                        </span>
+                                    </p>
+                                </div>
+                            </td>
+                            <td style="border: none; text-align: right; float: right; padding-right: 0;">
+                                <nav class="row" style="text-align: right; padding-right: 10px;">
+                                    <label>
+                                        <input id="type-wpkh" type="radio" name="type" value="wpkh" checked class="hidden" onchange="checkStepCompleted(3)">
+                                        <div class="btn radio left">Segwit</div>
+                                    </label>
+                                    <label>
+                                        <input id="type-sh-wpkh" type="radio" name="type" value="sh-wpkh" class="hidden" onchange="checkStepCompleted(3)">
+                                        <div class="btn radio right">Nested Segwit</div>
+                                    </label>
+                                </nav>
+                                <p class="note" id="no-type-choice-note" style="text-align: center; margin-top: 7px;">Only a <b><span id="only-type-note"></span></b> key was found.</p>
+                            </td>
+                        </tr>
+                        <tr style="background: none; border: none;">
+                            <td style="border: none; text-align: left;">
+                                <span style="font-size: 1.5em">Scan for existing funds?</span>
+                                <span class="note">Select this if you're importing a wallet with existing balance.</span>
+                            </td>
+                            <td style="border: none; text-align: right; float: right; padding-right: 0;">
+                                <nav class="row" style="text-align: right; padding-right: 10px;">
+                                    <label>
+                                        <input id="rescan" type="radio" name="rescan" value="true" checked class="hidden" onchange="checkStepCompleted(3)">
+                                        <div class="btn radio left">Yes</div>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="rescan" value="false" class="hidden" onchange="checkStepCompleted(3)">
+                                        <div class="btn radio right">No</div>
+                                    </label>
+                                </nav>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="spacer"></div>
+            </div>
+            <div id="step4" class="hidden">
+                <h1 style="font-size: 1.8em;">Ready to create <span id="wallet-name-confirm"></span> wallet?</h1>
+                <h2>This will <span id="wallet-scan-confirm"></span> your <span id="wallet-type-confirm"></span> wallet.</h2>
+                <br>
+                <div style="margin: 50px;">
+                    <img id="device-confirm" src="/static/img/other_icon.svg" width="80px"/>
+                    <img src="/static/img/arrow_right.svg" width="130px"/>
+                    <img src="/static/img/icon.png" width="130px"/>
+                </div>
+                <br>
+                <p>After clicking submit, you will be redirected to your new wallet.</p>
+            </div>
+            <br>
+            <div class="row">
+                <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
+                <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
+                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman()">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    function setXpubs(xpubs) {
+        document.getElementById('xpubs').value = xpubs;
+        if ((xpubs.indexOf("/49'/") == -1 && xpubs.indexOf("/84'/") == -1) && (xpubs.toLowerCase().indexOf("/49h/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1)) {
+            showError('No matching key was found, please make sure to follow the instructions and try again.')
+            return
+        }
+        showNotification((xpubs.split('\n').filter(xpub => xpub != '').length) + ' keys were successfully retrieved from the device.');
+        setStepCompleted(2);
+        nextStep();
+    }
+    </script>
+    <script>
+        let currentStep = 1;
+        let totalSteps = 4;
+        let stepsCompleted = [];
+
+        function checkStepCompleted(step) {
+            switch(step) {
+                case 3:
+                    if (document.getElementById('wallet-name').value) {
+                        setStepCompleted(step);
+                    } else {
+                        setStepUncompleted(step);
+                    }
+                    break;
+            }
+        }
+
+        function setStepCompleted(step) {
+            document.getElementsByClassName('progress-indicator')[0].children[step - 1].classList.add('completed');
+            document.getElementById('wizard-next').removeAttribute('disabled');
+            stepsCompleted.push(step);
+        }
+
+        function setStepUncompleted(step) {
+            document.getElementById('wizard-next').setAttribute('disabled', true);
+            delete stepsCompleted[(stepsCompleted.indexOf(step))];
+        }
+
+        function nextStep() {
+            if (currentStep == totalSteps) {
+                return;
+            } else if (currentStep == 1) {
+                for (let i = 2; i <= totalSteps; i++) {
+                    document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
+                }
+
+                var devices = document.getElementsByName('devices');
+                let device;
+                for (var i = 0, length = devices.length; i < length; i++) {
+                    if (devices[i].checked) {
+                        device = devices[i];
+                        break;
+                    }
+                }
+
+                // Update connect methods for step 2
+                if (device.getAttribute('data-hwi') == 'True') {
+                    document.getElementById('connect-hwi').classList.remove('hidden');
+                } else {
+                    document.getElementById('connect-hwi').classList.add('hidden');
+                }
+
+                if (device.getAttribute('data-sdcard') == 'True') {
+                    document.getElementById('connect-sdcard').classList.remove('hidden');
+                } else {
+                    document.getElementById('connect-sdcard').classList.add('hidden');
+                }
+
+                if (device.getAttribute('data-qrcode') == 'True') {
+                    document.getElementById('xpub-scan').classList.remove('hidden');
+                } else {
+                    document.getElementById('xpub-scan').classList.add('hidden');
+                }
+                document.getElementById('specter-instructions').classList.add('hidden');
+                document.getElementById('coldcard-instructions').classList.add('hidden');
+                document.getElementById('cobo-instructions').classList.add('hidden');
+                document.getElementById('hwi-only-instructions').classList.add('hidden');
+                switch(device.value) {
+                    case 'specter':
+                        document.getElementById('specter-instructions').classList.remove('hidden');
+                        break;
+                    case 'coldcard':
+                        document.getElementById('coldcard-instructions').classList.remove('hidden');
+                        break;
+                    case 'cobo':
+                        document.getElementById('cobo-instructions').classList.remove('hidden');
+                        break;
+                    case 'electrum':
+                        break;
+                    default:
+                        document.getElementById('hwi-only-instructions').classList.remove('hidden');
+                }
+            } else if (currentStep == 2) {
+                let xpubs = document.getElementById('xpubs').value;
+                if (xpubs.indexOf("/49'/") == -1 && xpubs.toLowerCase().indexOf("/49h/") == -1) {
+                    document.getElementById('type-wpkh').checked = true;
+                    document.getElementById('type-sh-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Segwit';
+                } else if (xpubs.indexOf("/84'/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1) {
+                    document.getElementById('type-sh-wpkh').checked = true;
+                    document.getElementById('type-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Nested Segwit';
+                } else {
+                    document.getElementById('type-wpkh').disabled = false;
+                    document.getElementById('type-sh-wpkh').disabled = false;
+                    document.getElementById('no-type-choice-note').classList.add('hidden');
+                }
+            }
+
+            document.getElementById('wizard-previous').classList.remove('hidden');
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.getElementById(`step${currentStep + 1}`).classList.remove('hidden');
+            document.getElementById('wizard-next').setAttribute('disabled', 'true');
+
+            currentStep++;
+            if (currentStep in stepsCompleted) {
+                setStepCompleted(currentStep);
+            }
+
+            if (currentStep == totalSteps) {
+                document.getElementById('wizard-next').classList.add('hidden');
+                document.getElementById('wizard-submit').classList.remove('hidden');
+
+                let deviceName;
+                let deviceType;
+
+                var devices = document.getElementsByName('devices');
+
+                for (var i = 0, length = devices.length; i < length; i++) {
+                    if (devices[i].checked) {
+                        deviceName = devices[i].getAttribute('data-device-name');
+                        deviceType = devices[i].value;
+                        break;
+                    }
+                }
+                document.getElementById('wallet-name-confirm').innerHTML = document.getElementById('wallet-name').value;
+                document.getElementById('wallet-type-confirm').innerHTML = deviceName + (document.getElementById('type-wpkh').checked ? ' (Segwit)' : ' (Nested Segwit)');
+                document.getElementById('wallet-scan-confirm').innerHTML = document.getElementById('rescan').checked ? 'import' : 'create';
+                if (['specter', 'coldcard', 'trezor', 'ledger', 'cobo'].includes(deviceType)) {
+                    document.getElementById('device-confirm').setAttribute('src', `/static/img/${deviceType}_icon.svg`);
+                }
+            }
+        }
+
+        function prevStep() {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.getElementById(`step${currentStep - 1}`).classList.remove('hidden');
+            currentStep--;
+            if (currentStep == 1) {
+                document.getElementById('wizard-previous').classList.add('hidden');
+            }
+            setStepCompleted(currentStep);
+
+            
+            document.getElementById('wizard-next').classList.remove('hidden');
+            document.getElementById('wizard-submit').classList.add('hidden');
+        }
+    </script>
+
+    <script type="text/javascript">
+        document.getElementById('connect-hwi').addEventListener('click', async e => {
+            var devicesRadios = document.getElementsByName('devices');
+            let deviceType;
+            for (var i = 0, length = devicesRadios.length; i < length; i++) {
+                if (devicesRadios[i].checked) {
+                    deviceType = devicesRadios[i].value;
+                    break;
+                }
+            }
+            // detect devices
+            let devices = await enumerate(deviceType);
+            if(devices == null){
+                return
+            }
+            // this shouldn't happen actually
+            if(devices.length == 0){
+                showError("No devices found :(");
+                return;
+            }
+
+            let device;
+            if (devices.length == 1) {
+                device = devices[0];
+                await unlockDevice(device);
+            } else {
+                // first only for now
+                device = await selectDevice(devices);
+            }
+
+            // nothing to do if user cancelled
+            if(device == null){
+                return;
+            }
+            
+            let account = 0;
+            let xpubs = await getXpubs(device, account);
+            if(xpubs == null){
+                showError('Failed to retrive device data. Please try again.');
+                return;
+            }
+
+            setXpubs(xpubs);
+        });
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function(){
+            var el = document.getElementById("file");
+
+            if (el != null) {
+                el.addEventListener("change", (e) => {
+                    files = e.currentTarget.files;
+                    console.log(files);
+                    for(let i=0; i<files.length; i++){
+                        console.log(files[i].name);
+                        let reader = new FileReader();
+                        reader.onload = function(e) {
+                            let str = reader.result
+                            let data = "";
+                            if (str.indexOf("{") >= 0) {
+                                let json = JSON.parse(str);
+                                console.log(str);
+                                if ("keystore" in json) { // ColdCard electrum file
+                                    let prefix = "";
+                                    if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
+                                        prefix = "[";
+                                        let num = json.keystore.ckcc_xfp;
+                                        for (let i = 0; i < 4; i++) {
+                                            prefix += ('0' + (num % 256).toString(16)).slice(-2);
+                                            num = num >>> 8;
+                                        }
+                                        prefix += json.keystore.derivation.substring(1);
+                                        prefix += "]";
+                                    }
+                                    let s = prefix + json.keystore.xpub + "\n";
+                                    data += s;
+                                } else if (("bip84" in json) && ("xfp" in json)){
+                                // coldcard generic file
+                                    let s = "";
+                                    ["bip44","bip49","bip84"].forEach((bip)=>{
+                                        if(bip in json){
+                                            let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
+                                            let xpub = json[bip].xpub;
+                                            if("_pub" in json[bip]){
+                                                xpub = json[bip]["_pub"];
+                                            }
+                                            s += `[${json.xfp}${der}]${xpub}\n`;
+                                        }
+                                    });
+                                    data += s;
+                                } else if ("xfp" in json) {
+                                // probably ColdCard multisig file
+                                    let s = "";
+                                    for (let k in json) {
+                                        if (k+"_deriv" in json) {
+                                            s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+                                        }
+                                    }
+                                    data += s;
+                                }
+                            } else {
+                                data += str+"\n";
+                            }
+                            setXpubs(data);
+                        }
+                        reader.readAsText(files[i]);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script type="text/javascript">
+        let scanner = document.getElementById('xpub-scan');
+        if(scanner != null) {
+            scanner.addEventListener('scan', e=>{
+                let result = e.detail.result;
+                if(result==null){
+                    return;
+                }
+                // cobo uses json format
+                if(result.includes("{")){
+                    let obj = JSON.parse(result);
+                    if( ("ExtPubKey" in obj) && 
+                        ("AccountKeyPath" in obj) && 
+                        ("MasterFingerprint" in obj)){
+                        console.log(obj);
+                        let path = obj.AccountKeyPath.replace(/'/g,'h');
+                        let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+                        setXpubs(str);
+                    }else if( ("xfp" in obj) &&
+                            ("xpub" in obj) &&
+                            ("path" in obj)){
+                        console.log(obj);
+                        let path = obj.path.replace(/'/g,'h').replace("m/","");
+                        let str = `[${obj.xfp}/${path}]${obj.xpub}`;
+                        setXpubs(str);
+                    }else{
+                        showError("Unknown key format");
+                    }
+                }else{
+                    setXpubs(result);
+                }
+            });
+        }
+    </script>
+{% endblock %}
