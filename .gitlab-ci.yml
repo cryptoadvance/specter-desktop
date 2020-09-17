@@ -59,6 +59,8 @@ release_binary_linux:
   stage: testing
   #only: 
   #  - tags
+  before_script:
+    - python -V
   script:
     - source .env/bin/activate
     - pip3 install github-binary-upload
