@@ -17,8 +17,7 @@ elif platform.system() == 'Linux':
         binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
     binaries.extend([("/usr/lib/x86_64-linux-gnu/dri/iris_dri.so","."),\
                      ("/usr/lib/x86_64-linux-gnu/gio/modules/libgvfsdbus.so","."),\
-                     ("/usr/lib/x86_64-linux-gnu/gvfs/libgvfscommon.so","."),\
-                     ("/usr/lib/x86_64-linux-gnu/",".")])
+                     ("/usr/lib/x86_64-linux-gnu/gvfs/libgvfscommon.so",".")])
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
     libusb_path = find_brew_libusb_proc.communicate()[0]
