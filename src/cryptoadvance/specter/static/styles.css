@@ -810,6 +810,7 @@ table tr:hover .btn.hovering{
 }
 .page_overlay_popup {
     margin: auto;
+    max-width: 60%;
     display: none;
     text-align: center;
     border-radius: 0.5em;
@@ -895,6 +896,10 @@ a:focus + .tool-tip .tool-tip__info {
 }
 .key-qr-code {
     width: 400px;
+}
+
+img[src="/static/img/cobo_icon.svg"] {
+    transform: scale(1.30);
 }
 
 /************** Mobile styles ********************************/

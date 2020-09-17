@@ -229,26 +229,6 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 <script type="text/javascript">
 	{% include "device/components/add_keys.js" %}
 
-	async function getXpubs(device, account=0, passphrase=""){
-		// detect device
-        showHWIProgress("Extracting public keys...", 
-        	`It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
-		let result = [];
-		try {
-			result = await hwi.getXpubs(device, account, passphrase);
-		} catch (error) {
-			handleHWIError(error);
-			return null;
-		}
-		if(!overlayIsActive()){
-			showNotification("HWI is ready again");
-			// no need to proceed at all
-			return null;
-		}
-		hidePageOverlay();
-		return result;
-	}
-
 	document.getElementById('askhwi').addEventListener('click', async e=>{
 		// detect devices
 		let devices = await enumerate();

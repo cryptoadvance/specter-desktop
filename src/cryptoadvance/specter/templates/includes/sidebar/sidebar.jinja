@@ -73,7 +73,7 @@
             </div>
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}
         {% elif specter.chain %}
-            <p class="warning">&#9432;<br>Please create at least one device to enable wallets.</p>
+            {{ sidebar_btn('singlesig_setup_wizard', 'Add new wallet') }}
         {% else %}
             <p class="warning">&#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
         {% endif %}
