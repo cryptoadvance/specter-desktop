@@ -45,7 +45,7 @@
 				<label>
 					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ device.alias }}" class="hidden" data-key-types='{{ device.key_types(specter.chain) | tojson }}' chain="{{specter.chain}}">
 					<div class="small-card radio">
-						{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+						{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo'] %}
 							<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
 						{% else %}
 							<img src="/static/img/other_icon.svg" width="18px">

@@ -6,6 +6,7 @@ from .util.descriptor import AddChecksum, Descriptor
 from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
+from.device_manager import get_device_class
 
 from functools import wraps
 from flask import g, request, redirect, url_for
@@ -898,6 +899,89 @@ def wallets_overview():
         "wallet/wallets_overview.jinja",
         idx=idx,
         history=True,
+        specter=app.specter,
+        rand=rand
+    )
+
+
+@app.route('/singlesig_setup_wizard/', methods=['GET', 'POST'])
+@login_required
+def singlesig_setup_wizard():
+    app.specter.check()
+    err = None
+    if request.method == "POST":
+        xpubs = request.form['xpubs']
+        if not xpubs:
+            err = "xpubs name must not be empty"
+        keys, failed = Key.parse_xpubs(xpubs)
+        if len(failed) > 0:
+            err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+        device_type = request.form.get('devices')
+        device_name = get_device_class(device_type).name
+        i = 2
+        while device_name in [
+            device.name for device in app.specter.device_manager.devices.values()
+        ]:
+            device_name = "%s %d" % (
+                get_device_class(device_type).name,
+                i
+            )
+            i += 1
+        if err is None:
+            device = app.specter.device_manager.add_device(
+                name=device_name,
+                device_type=device_type,
+                keys=keys
+            )
+        wallet_name = request.form['wallet_name']
+        if wallet_name in app.specter.wallet_manager.wallets_names:
+            err = "Wallet already exists"
+        address_type = request.form['type']
+        wallet_key = [
+            key for key in device.keys if key.key_type == address_type and (
+                key.xpub.startswith("xpub") != (app.specter.chain != 'main')
+            )
+        ]
+
+        if len(wallet_key) != 1:
+            err = 'Device key was not imported properly. Please make\
+                sure your device is on the right network and try again.'
+
+        if err:
+            app.specter.device_manager.remove_device(
+                device,
+                app.specter.wallet_manager,
+                bitcoin_datadir=app.specter.bitcoin_datadir,
+                chain=app.specter.chain
+            )
+            return render_template(
+                "wizards/singlesig_setup_wizard.jinja",
+                error=err,
+                specter=app.specter,
+                rand=rand
+            )
+        wallet = app.specter.wallet_manager.create_wallet(
+            wallet_name,
+            1,
+            address_type,
+            wallet_key,
+            [device]
+        )
+        app.logger.info("Created Wallet %s" % wallet_name)
+        rescan_blockchain = request.form['rescan'] == 'true'
+        if rescan_blockchain:
+            # old wallet - import more addresses
+            wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
+            wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
+            explorer = None
+            if "use_explorer" in request.form:
+                explorer = app.specter.get_default_explorer()
+            wallet.rescanutxo(explorer)
+            app.specter._info["utxorescan"] = 1
+            app.specter.utxorescanwallet = wallet.alias
+        return redirect("/wallets/%s/" % wallet.alias)
+    return render_template(
+        "wizards/singlesig_setup_wizard.jinja",
         specter=app.specter,
         rand=rand
     )
