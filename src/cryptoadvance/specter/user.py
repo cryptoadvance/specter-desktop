@@ -6,6 +6,7 @@ import json
 from flask_login import UserMixin
 from .specter_error import SpecterError
 from .helpers import fslock
+from .persistence import read_json_file, write_json_file, delete_folder
 
 def hash_password(password):
     """Hash a password for storing."""
@@ -34,9 +35,7 @@ def get_users_json(specter):
 
     # if users.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        with fslock:
-            with open(os.path.join(specter.data_folder, "users.json"), "r") as f:
-                users = json.load(f)
+        users = read_json_file(os.path.join(specter.data_folder, "users.json"))
     # otherwise - create one and assign unique id
     else:
         save_users_json(specter, users)
@@ -44,10 +43,7 @@ def get_users_json(specter):
 
 
 def save_users_json(specter, users):
-    with fslock:
-        with open(os.path.join(specter.data_folder, 'users.json'), "w") as f:
-            json.dump(users, f, indent=4)
-
+    write_json_file(users, os.path.join(specter.data_folder, 'users.json'))
 
 class User(UserMixin):
     def __init__(self, id, username, password, config, is_admin=False):
@@ -136,8 +132,6 @@ class User(UserMixin):
     def delete(self, specter):
         devices_datadir_path = os.path.join(os.path.join(specter.data_folder, "devices_{}".format(self.id)))
         wallets_datadir_path = os.path.join(os.path.join(specter.data_folder, "wallets_{}".format(self.id)))
-        if os.path.exists(devices_datadir_path):
-            shutil.rmtree(devices_datadir_path)
-        if os.path.exists(wallets_datadir_path):
-            shutil.rmtree(wallets_datadir_path)
+        delete_folder(devices_datadir_path)
+        delete_folder(wallets_datadir_path)
         self.save_info(specter, delete=True)

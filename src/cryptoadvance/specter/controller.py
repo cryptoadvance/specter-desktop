@@ -23,6 +23,7 @@ from .helpers import (alias, get_devices_with_keys_by_type,
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
+from .persistence import write_devices, write_wallet
 from .rpc import RpcError
 from .user import User, hash_password, verify_password
 from datetime import datetime
@@ -345,16 +346,7 @@ def general_settings():
         elif action == "restore":
             restore_devices = json.loads(request.form['restoredevices'])
             restore_wallets = json.loads(request.form['restorewallets'])
-            for device in restore_devices:
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.device_manager.data_folder,
-                            "%s.json" % device['alias']
-                        ),
-                        "w"
-                    ) as file:
-                        file.write(json.dumps(device, indent=4))
+            write_devices(devices)
             app.specter.device_manager.update()
 
             rescanning = False
@@ -377,15 +369,7 @@ def general_settings():
                             'error'
                         )
                         continue
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.wallet_manager.working_folder,
-                            "%s.json" % wallet['alias']
-                        ),
-                        "w"
-                    ) as file:
-                        file.write(json.dumps(wallet, indent=4))
+                write_wallet(wallet['alias'],wallet)
                 app.specter.wallet_manager.update()
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(

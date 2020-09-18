@@ -12,8 +12,10 @@ import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
 from hwilib.serializations import PSBT, CTransaction
+from .persistence import read_json_file
 from .util.descriptor import AddChecksum
 from .util.bcur import bcur_decode
+#from .persistence import read_json_file, write_json_file
 import threading
 from io import BytesIO
 import re
@@ -69,9 +71,7 @@ def load_jsons(folder, key=None):
     dd = OrderedDict()
     for fname in files:
         try:
-            with fslock:
-                with open(os.path.join(folder, fname)) as f:
-                    d = json.load(f)
+            d = read_json_file(os.path.join(folder, fname))
             if key is None:
                 dd[fname[:-5]] = d
             else:
@@ -79,7 +79,7 @@ def load_jsons(folder, key=None):
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
         except:
-            logger.error(f"Can't load json file {fname}")
+            logger.error(f"Can't load json file {fname} at path {folder} because "+e)
     return dd
 
 

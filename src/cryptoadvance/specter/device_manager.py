@@ -6,6 +6,7 @@ from .rpc import get_default_datadir
 
 from .devices import __all__ as device_classes
 from .devices.generic import GenericDevice  # default device type
+from .persistence import write_device, delete_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -65,10 +66,7 @@ class DeviceManager:
                 non_dup_keys.append(key)
         keys = non_dup_keys
         device = get_device_class(device_type)(name, device_alias, keys, fullpath, self)
-        with fslock:
-            with open(fullpath, "w") as file:
-                file.write(json.dumps(device.json, indent=4))
-
+        write_device(device, fullpath)
         self.update()  # reload files
         return device
 
@@ -85,7 +83,7 @@ class DeviceManager:
         bitcoin_datadir=get_default_datadir(),
         chain='main'
     ):
-        os.remove(device.fullpath)
+        delete_json_file(device.fullpath)
         # if device can delete itself - call it
         if hasattr(device,'delete'):
             device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir, chain=chain)

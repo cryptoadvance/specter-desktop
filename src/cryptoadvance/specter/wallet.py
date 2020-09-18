@@ -7,6 +7,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
 from .util.base58 import decode_base58
 from .util.xpub import get_xpub_fingerprint
+from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -273,9 +274,7 @@ class Wallet():
         }
 
     def save_to_file(self):
-        with fslock:
-            with open(self.fullpath, "w+") as f:
-                json.dump(self.json, f, indent=4)
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     @property

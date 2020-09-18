@@ -1,6 +1,8 @@
 import json
 from .key import Key
 from .helpers import fslock
+from .persistence import read_json_file, write_json_file
+
 
 
 class Device:
@@ -59,11 +61,9 @@ class Device:
 
     def _update_keys(self):
         with fslock:
-            with open(self.fullpath, "r") as f:
-                content = json.load(f)
+            content = read_json_file(self.fullpath)
             content['keys'] = [key.json for key in self.keys]
-            with open(self.fullpath, "w") as f:
-                json.dump(content, f, indent=4)
+            write_json_file(content, self.fullpath)
         self.manager.update()
 
     def remove_key(self, key):
@@ -85,9 +85,8 @@ class Device:
 
     def set_type(self, device_type):
         self.device_type = device_type
-        with fslock:
-            with open(self.fullpath, "w") as f:
-                json.dump(self.json, f, indent=4)
+        
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     def key_types(self, network='main'):
