@@ -297,8 +297,8 @@ class HWIBridge(JSONRPC):
                     "Failed to import native Segwit multisig mainnet key."
                 )
 
-                # And testnet
-                client.is_testnet = True
+            # And testnet
+            client.is_testnet = True
 
             try:
                 # Testnet nested Segwit
