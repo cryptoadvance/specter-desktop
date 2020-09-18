@@ -11,10 +11,24 @@ binaries = []
 if platform.system() == 'Windows':
     binaries = [("./windll/libusb-1.0.dll", ".")]
 elif platform.system() == 'Linux':
-    if platform.processor() == 'aarch64': #ARM 64 bit
-        binaries = [("/lib/aarch64-linux-gnu/libusb-1.0.so.0", ".")]
-    else:
-        binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
+    arch = platform.processor()
+    binaries = [(f"/lib/{arch}-linux-gnu/libusb-1.0.so.0", "."),
+                (f"/usr/lib/{arch}-linux-gnu/dri/iris_dri.so","."),
+                (f"/usr/lib/{arch}-linux-gnu/gio/modules/libgvfsdbus.so","."),
+                (f"/usr/lib/{arch}-linux-gnu/gvfs/libgvfscommon.so","."),
+                (f"/usr/lib/{arch}-linux-gnu/gtk-3.0/modules/libcanberra-gtk3-module.so","."),
+                (f"/usr/lib/{arch}-linux-gnu/libcanberra-gtk3.so.0","."),
+                (f"/usr/lib/{arch}-linux-gnu/libcanberra.so.0","."),
+                (f"/usr/lib/{arch}-linux-gnu/libdrm_amdgpu.so.1","."),
+                (f"/usr/lib/{arch}-linux-gnu/libdrm_nouveau.so.2","."),
+                (f"/usr/lib/{arch}-linux-gnu/libdrm_radeon.so.1","."),
+                (f"/usr/lib/{arch}-linux-gnu/libedit.so.2","."),
+                (f"/usr/lib/{arch}-linux-gnu/libelf.so.1","."),
+                (f"/usr/lib/{arch}-linux-gnu/libLLVM-10.so.1","."),
+                (f"/usr/lib/{arch}-linux-gnu/libltdl.so.7","."),
+                (f"/usr/lib/{arch}-linux-gnu/libsensors.so.4","."),
+                (f"/usr/lib/{arch}-linux-gnu/libtdb.so.1","."),
+    ]
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
     libusb_path = find_brew_libusb_proc.communicate()[0]
