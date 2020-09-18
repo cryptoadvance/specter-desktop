@@ -1,7 +1,7 @@
 class HWIBridge {
     constructor(url, chain) {
         this.url = url;
-        this.deviceTypes = ['specter', 'coldcard', 'keepkey', 'ledger', 'trezor'];
+        this.deviceTypes = ['specter', 'coldcard', 'keepkey', 'ledger', 'bitbox02', 'trezor'];
         this.chain = chain;
         this.in_progress = false;
     }
