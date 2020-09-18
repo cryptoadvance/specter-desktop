@@ -385,12 +385,19 @@ def init_desktop_app():
     # fix termination ctrl+c
     signal.signal(signal.SIGINT, sigint_handler)
 
+    # This is the place to uncomment if we ever have issues like
+    # https://github.com/cryptoadvance/specter-desktop/issues/373 again
+    # So maybe let's keep it in here.
+    # import psutil
+    # print("-----------------------------------------------------------------------")
+    # print(psutil.Process().memory_maps())
+    # print("-----------------------------------------------------------------------")
+    
     # Create the icon
     icon = QIcon(os.path.join(
         resource_path('icons'),
         'icon.png'
     ))
-
     # Create the tray
     tray = QSystemTrayIcon()
     tray.setIcon(icon)
