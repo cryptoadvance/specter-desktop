@@ -5,6 +5,7 @@
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
   - [Why?](#why)
+  - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
