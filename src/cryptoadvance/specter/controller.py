@@ -1090,7 +1090,7 @@ def wallet_sendnew(wallet_alias):
     addresses = [""]
     labels = [""]
     amounts = [0]
-    fee_rate = 0.0
+    fee_rate = 1.0
     err = None
     ui_option = 'ui'
     recipients_txt = ''
@@ -1131,6 +1131,9 @@ def wallet_sendnew(wallet_alias):
             else:
                 if request.form.get('fee_rate'):
                     fee_rate = float(request.form.get('fee_rate'))
+            # min relay fee
+            if fee_rate < 1:
+                fee_rate = 1
             try:
                 psbt = wallet.createpsbt(
                     addresses,
