@@ -2,7 +2,6 @@
 import platform
 import subprocess
 import mnemonic, os, sys
-import psutil
 
 mnemonic_path = os.path.join(mnemonic.__path__[0], "wordlist")
 
@@ -44,8 +43,7 @@ a = Analysis(['specter_desktop.py'],
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',
-                'cryptoadvance.specter.config',
-                'psutil'
+                'cryptoadvance.specter.config'
              ],
              hookspath=['hooks/'],
              runtime_hooks=[],
@@ -104,7 +102,7 @@ if sys.platform == 'linux':
         debug=False,
         strip=False,
         upx=True,
-        #runtime_tmpdir=None,
+        runtime_tmpdir=None,
         console=False,
         icon='icons/icon.ico'
     )
