@@ -83,15 +83,16 @@ def load_jsons(folder, key=None):
     return dd
 
 def set_loglevel(app, loglevel_string):
-    logger.info("Setting Loglevel to %s" % loglevel_string)
+    logger.info("Setting Loglevel to %s (Check the next log-line(s) whether it's effective here)" % loglevel_string)
     loglevels = {
         "WARN": logging.WARN,
         "INFO": logging.INFO,
         "DEBUG" : logging.DEBUG
     }
-    app.logger.setLevel(loglevels[loglevel_string])
     logging.getLogger().setLevel(loglevels[loglevel_string])
-
+    logger.warn("Loglevel-Test: This is a warn-message!")
+    logger.info("Loglevel-Test: This is an info-message!")
+    logger.debug("Loglevel-Test: This is an debug-message!")
 
 def get_loglevel(app):
     loglevels = {

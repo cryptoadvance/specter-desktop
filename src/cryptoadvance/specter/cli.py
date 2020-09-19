@@ -8,6 +8,7 @@ from .util.tor import stop_hidden_services, start_hidden_service
 import click
 
 from .server import create_app, init_app
+from .helpers import set_loglevel
 
 from os import path
 import signal
@@ -136,6 +137,9 @@ def server(daemon, stop, restart, force,
             app.port = port
             app.tor_port = tor_port
             app.save_tor_address_to = toraddr_file
+            if debug:
+                set_loglevel(app,"DEBUG")
+                logging
             if debug and (tor or os.getenv('CONNECT_TOR') == 'True'):
                 print(" * Warning: Cannot use Tor in debug mode. \
                       Starting in production mode instead.")
