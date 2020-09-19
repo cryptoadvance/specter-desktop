@@ -2,6 +2,14 @@
 {% block main %}
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
+	<style>
+		#keys-table td {
+			padding: 5px 20px;
+		}
+		#keys-table th {
+			padding: 20px 20px;
+		}
+	</style>
 	<h1 id="title">{{ device.name }}</h1>
 	<form action="./" method="POST">
 		<div class="row" style="text-align: center; line-height: 2;">
@@ -11,7 +19,7 @@
 	</form>
 	<br>
 	<div class="table-holder">
-		<table>
+		<table id="keys-table">
 			<thead>
 				<tr>
 					<th>Network</th><th>Purpose</th><th class="optional">Derivation</th><th class="mobile-only">Export</th><th class="optional"></th><th class="optional">Key</th><th class="optional">Actions</th>
@@ -53,7 +61,6 @@
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
-		&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
 		{% endif %}
 		{% if device.hwi_support %}
 			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
@@ -66,11 +73,9 @@
 				</p>
 				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
 			</div>
-			<br>
 		{% endif %}
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
-			<br>
 		{% endif %}
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
