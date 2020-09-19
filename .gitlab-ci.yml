@@ -37,7 +37,7 @@ release_binary_windows:
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
-    - whoami
+    - whoami 
     - echo "test"
     - echo $CI_JOB_STAGE
     - echo $Env:CI_JOB_STAGE
