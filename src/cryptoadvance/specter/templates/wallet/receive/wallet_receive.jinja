@@ -37,7 +37,7 @@
 			{% from 'wallet/components/editable_label.jinja' import editable_label %}
 			{{ editable_label(address_label, -1) }}
 		</form>
-		<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
+		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
 		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
 		(click to copy)
 		<br><br>
