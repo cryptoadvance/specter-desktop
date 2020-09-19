@@ -17,9 +17,10 @@ from flask_login.config import EXEMPT_METHODS
 
 
 from .helpers import (alias, get_devices_with_keys_by_type, 
-                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+                      get_loglevel, get_version_info, set_loglevel, 
                       bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
+from .util.shell import run_shell
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes

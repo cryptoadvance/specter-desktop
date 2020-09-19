@@ -11,7 +11,7 @@ import time
 
 import docker
 
-from .helpers import which
+from .util.shell import which
 from .server import DATA_FOLDER
 from .rpc import RpcError
 from .rpc import BitcoinRPC

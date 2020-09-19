@@ -24,7 +24,7 @@ def test_load_jsons(caplog):
 def test_which(caplog):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG,logger="cryptoadvance.specter")
-    import cryptoadvance.specter.helpers as helpers
+    import cryptoadvance.specter.util.shell as helpers
     try:
         helpers.which("some_non_existing_binary")
         assert False, "Should raise an Exception"

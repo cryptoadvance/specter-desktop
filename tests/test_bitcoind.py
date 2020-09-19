@@ -1,6 +1,6 @@
 import logging
 import os
-from cryptoadvance.specter.helpers import which
+from cryptoadvance.specter.util.shell import which
 from cryptoadvance.specter.bitcoind import BitcoindPlainController
 from cryptoadvance.specter.bitcoind import BitcoindDockerController
 

@@ -6,7 +6,7 @@
 import os, json
 import threading
 import logging
-#from .helpers import run_shell
+from .util.shell import run_shell
 
 logger = logging.getLogger(__name__)
 
