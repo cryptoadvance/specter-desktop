@@ -22,6 +22,9 @@ class Wallet():
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do
     GAP_LIMIT = 20
+    # minimal fee rate is slightly above 1 sat/vbyte
+    # to avoid rounding errors
+    MIN_FEE_RATE = 1.01
     def __init__(
         self,
         name,
@@ -696,8 +699,10 @@ class Wallet():
 
     def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=1.0, selected_coins=[], readonly=False):
         """
-            fee_rate: in sat/B or BTC/kB. Default (None) bitcoin core sets feeRate automatically.
+            fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
         """
+        if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
+            fee_rate = self.MIN_FEE_RATE
 
         if self.full_available_balance < sum(amounts):
             raise SpecterError('The wallet does not have sufficient funds to make the transaction.')
@@ -737,8 +742,9 @@ class Wallet():
 
         self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
-        # bitcoin core needs us to convert sat/B to BTC/kB
-        options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
+        if fee_rate > 0:
+            # bitcoin core needs us to convert sat/B to BTC/kB
+            options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
         # don't reuse change addresses - use getrawchangeaddress instead
         r = self.rpc.walletcreatefundedpsbt(
@@ -753,16 +759,13 @@ class Wallet():
         psbt = self.rpc.decodepsbt(b64psbt)
         if fee_rate > 0.0:
             psbt_fees_sats = int(psbt['fee'] * 1e8)
-            tx_full_size = psbt['tx']['vsize']
-            for _ in psbt['inputs']:
-                # size is weight / 4
-                tx_full_size += self.weight_per_input/4
-            tx_full_size = ceil(tx_full_size)
+            # estimate final size: add weight of inputs
+            tx_full_size = ceil(psbt['tx']['vsize']
+                                + len(psbt["inputs"])*self.weight_per_input/4)
             adjusted_fee_rate = fee_rate * (
                 fee_rate / (psbt_fees_sats / psbt['tx']['vsize'])
                 ) * (tx_full_size / psbt['tx']['vsize'])
-            # add 0.5 to make sure we round up
-            options["feeRate"] = '%.8f' % round((adjusted_fee_rate * 1000 + 0.5) / 1e8, 8)
+            options["feeRate"] = '%.8f' % round((adjusted_fee_rate * 1000) / 1e8, 8)
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,           # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],    # output
@@ -773,8 +776,11 @@ class Wallet():
 
             b64psbt = r["psbt"]
             psbt = self.rpc.decodepsbt(b64psbt)
-            psbt["tx_full_size"] = tx_full_size
             psbt["fee_rate"] = options["feeRate"]
+        # estimate full size
+        tx_full_size = ceil(psbt['tx']['vsize']
+                            + len(psbt["inputs"])*self.weight_per_input/4)
+        psbt["tx_full_size"] = tx_full_size
 
         psbt['base64'] = b64psbt
         psbt["amount"] = amounts
