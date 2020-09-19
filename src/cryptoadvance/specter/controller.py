@@ -184,6 +184,14 @@ def index():
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
 
+    return redirect('/about')
+
+@app.route('/about')
+@login_required
+def about():
+    notify_upgrade()
+    app.specter.check()
+
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
 @app.route('/login', methods=['GET', 'POST'])

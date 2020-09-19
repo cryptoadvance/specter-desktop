@@ -184,6 +184,7 @@ nav.side{
     flex-direction: row;
     overflow-y: scroll;
     z-index: 100;
+    min-width: 250px;
 }
 main{
     flex-grow: 1;
@@ -212,7 +213,7 @@ nav.side > a.item.active, nav.side > div > a.item.active{
 
 
 #devices_list{
-    margin-bottom: 10px;;
+    margin-bottom: 10px;
 }
 
 a.item{
@@ -336,13 +337,15 @@ button.btn{
     text-align: center;
     cursor: pointer;
 }
-
+#help-wanted-text:hover {
+    text-decoration: underline;
+}
 .footer{
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    font-size: 0.7em;
+    font-size: 0.9em;
     flex-grow: 1;
     padding-bottom: 10px;
 }
@@ -754,7 +757,8 @@ table tr:hover .btn.hovering{
     font-size: 14px;
     background: #ccc;
     padding: 10px;
-    color: #303030;
+    color: #333;
+    font-weight: normal;
     margin: 10px 20px;
     border-radius: 7px;
     line-height: 1.5;
