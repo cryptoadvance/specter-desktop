@@ -1,5 +1,5 @@
 ''' Stuff to deal with executing things on the os-level '''
-import os, sys
+import os, sys, subprocess
 import logging
 
 logger = logging.getLogger(__name__)
@@ -53,5 +53,5 @@ def run_shell(cmd):
         )
         stdout, stderr = proc.communicate()
         return { "code": proc.returncode, "out": stdout, "err": stderr }
-    except:
-        return { "code": 0xf00dbabe, "out": b"", "err": b"Can't run subprocess" }
+    except Exception as e:
+        return { "code": 0xf00dbabe, "out": b"", "err": e }

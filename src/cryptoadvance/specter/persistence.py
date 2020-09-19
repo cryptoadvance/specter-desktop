@@ -19,7 +19,6 @@ def read_json_file(path):
     with fslock:
         with open(path, "r") as f:
             content = json.load(f)
-        print(f"content: {content} ")
         return content
 
 def write_json_file(content, path, lock=None):
@@ -90,5 +89,10 @@ def _delete_folder(path):
 def storage_callback():
     logger.info("Write process callback called")
     if os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
-        pass
-        #run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK"))
+        logger.info("Executing {}".format(os.getenv("SPECTER_PERSISTENCE_CALLBACK")))
+        result = run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK"))
+        if result["code"] != 0:
+            logger.error("callback failed stdout: {}".format(result["out"]))
+            logger.error("stderr {}".format(result["err"]))
+        else:
+            logger.debug("result: {}".format(result))
