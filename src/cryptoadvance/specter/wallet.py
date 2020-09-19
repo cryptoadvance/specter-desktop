@@ -894,12 +894,12 @@ class Wallet():
                 input_size += 75 # max sig size
 
             if not self.recv_descriptor.startswith('wsh'):
-                # P2SH scriptsig: 00 20 <32-byte-hash>
-                input_size += 34 * 4
+                # P2SH scriptsig: 22 00 20 <32-byte-hash>
+                input_size += 35 * 4
             return input_size
         # else: single-sig
         if self.recv_descriptor.startswith('wpkh'):
             # pubkey, signature
             return 75 + 34
-        # pubkey, signature, 4* P2SH: 00 14 20-byte-hash
-        return 75 + 34 + 22 * 4
+        # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
+        return 75 + 34 + 23 * 4
