@@ -15,7 +15,6 @@ cache:
 
 stages:
   - testing
-  - releasing
 
 before_script:
   - docker info # Print out docker version for debugging
@@ -49,23 +48,5 @@ release_binary_windows:
     #- docker run --rm -i -v ${pwd}:/work k9ert/innosetup iscc /work/specter-desktop.iss /DMyAppVersion="$Env:CI_COMMIT_TAG"
     #- echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specter_desktop_setup.exe
 
-
-
-release_binary_linux:
-  image: registry.gitlab.com/cryptoadvance/specter-desktop/bionic-build:latest
-  stage: releasing
-  only: 
-    - tags
-  before_script:
-    - python -V
-    - pip install virtualenv
-    - virtualenv --python=python3 .env
-    - source .env/bin/activate
-  script:
-    # Make sure the version-number is compatibe to the scheme
-    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
-    - pip3 install github-binary-upload
-    - cd pyinstaller && ./build-unix.sh $CI_COMMIT_TAG
-    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
 
 
