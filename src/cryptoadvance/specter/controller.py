@@ -1459,6 +1459,10 @@ def btc2sat(value):
 @app.template_filter('feerate')
 def feerate(value):
     value = float(value)*1e8
+    # workaround for minimal fee rate
+    # because 1.01 doesn't look nice
+    if value <= 1.02:
+        value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
 
 @app.template_filter('btcunitamount')
