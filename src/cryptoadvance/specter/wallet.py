@@ -12,7 +12,9 @@ from io import BytesIO
 from .specter_error import SpecterError
 import threading
 import requests
+import random
 from math import ceil
+from .util.tor import renew_tor_ip
 
 logger = logging.getLogger()
 
@@ -436,27 +438,45 @@ class Wallet():
         ])
         # handle missing transactions now
         # if Tor is running, requests will be sent over Tor
+        tor_explorers = [
+            'http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion',
+            'http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion'
+        ]
+        explorers = []
         if explorer is not None:
             try:
                 requests_session = requests.Session()
                 requests_session.proxies['http'] = 'socks5h://localhost:9050'
                 requests_session.proxies['https'] = 'socks5h://localhost:9050'
-                requests_session.get(explorer)
             except Exception:
                 requests_session = requests.Session()
+            for tor_explorer in tor_explorers:
+                try:
+                    requests_session.get(tor_explorer)
+                    explorers.append(tor_explorer)
+                except Exception:
+                    pass
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
             try:
                 # get raw transactions
-                raws = [requests_session.get(
-                            f"{explorer}/api/tx/{tx['txid']}/hex"
-                            ).text
-                        for tx in missing]
+                raws = []
+                proofs = []
                 # get proofs
-                proofs = [requests_session.get(
-                            f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                            ).text
-                          for tx in missing]
+                for tx in missing:
+                    if 'http' in requests_session.proxies and requests_session.proxies['http'] == 'socks5h://localhost:9050':
+                        try:
+                            renew_tor_ip()
+                        except Exception:
+                            pass # just continue
+                    if len(explorers) > 0:
+                        explorer = random.choice(explorers)
+                    raws.append(requests_session.get(
+                        f"{explorer}/api/tx/{tx['txid']}/hex"
+                    ).text)
+                    proofs.append(requests_session.get(
+                        f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                    ).text)
                 # import funds
                 self.rpc.multi([
                     ("importprunedfunds", raws[i], proofs[i])

@@ -1,4 +1,7 @@
 import os
+import secrets
+import time
+from stem import Signal
 from stem.control import Controller
 
 
@@ -59,3 +62,9 @@ def stop_hidden_services(app):
             app.tor_service_id = None
     except Exception:
         pass  # we tried...
+
+def renew_tor_ip():
+    with Controller.from_port(port=9051) as controller:
+        controller.authenticate(password='')
+        controller.signal(Signal.NEWNYM)
+        time.sleep(secrets.SystemRandom().randint(15, 30)) # Ensure new IP used
