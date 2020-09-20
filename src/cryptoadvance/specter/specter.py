@@ -128,8 +128,9 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config)  # override loaded config
 
-        # update rpc if something changed
-        self.rpc = get_rpc(self.config["rpc"], self.rpc)
+        # update rpc if something doesn't work
+        if self.rpc is None or not self.rpc.test_connection():
+            self.rpc = get_rpc(self.config["rpc"], self.rpc)
         self._is_configured = (self.rpc is not None)
         self._is_running = False
         if self._is_configured:
@@ -274,6 +275,7 @@ class Specter:
                 self.config["rpc"][k] = kwargs[k]
                 need_update = True
         if need_update:
+            self.rpc = get_rpc(self.config["rpc"], self.rpc)
             self._save()
             self.check()
 

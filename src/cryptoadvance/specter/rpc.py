@@ -162,10 +162,10 @@ def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
             try:
                 rpc.getmininginfo()
                 available_conf_arr.append(conf)
-            except requests.exceptions.RequestException:
-                pass
+            except requests.exceptions.RequestException as e:
+                logger.info(f"requests exception: {rpc.host}:{rpc.port} {e}")
             except Exception as e:
-                pass
+                logger.info(f"exception: {rpc.host}:{rpc.port} {e}")
     return available_conf_arr
 
 class RpcError(Exception):
