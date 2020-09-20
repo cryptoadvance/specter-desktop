@@ -13,3 +13,6 @@ key.pem
 *.dmg
 pyinstaller/specterd
 pyinstaller/release
+
+# Vim temp files
+*.sw[a-p]
