@@ -16,9 +16,15 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-def get_rpc(conf):
+def get_rpc(conf, old_rpc=None):
+    """
+    Checks if config have changed,
+    compares with old rpc
+    and returns new one if necessary
+    """
     if "autodetect" not in conf:
         conf["autodetect"] = True
+    rpc = None
     if conf["autodetect"]:
         if "port" in conf:
             rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
@@ -26,12 +32,23 @@ def get_rpc(conf):
             rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]))
         if len(rpc_conf_arr) > 0:
             rpc = BitcoinRPC(**rpc_conf_arr[0])
-        else:
-            return None
     else:
-        rpc = BitcoinRPC(conf["user"], conf["password"], 
-                          host=conf["host"], port=conf["port"], protocol=conf["protocol"])
-    return rpc
+        rpc = BitcoinRPC(**conf)
+    # check if we have something to compare with
+    if old_rpc is None:
+        logger.info("rpc config have changed.")
+        return rpc
+    # check if we have something detected
+    if rpc is None:
+        # check if old rpc is still valid
+        return old_rpc if old_rpc.test_connection() else None
+    # check if something have changed
+    # and return new rpc if so
+    if rpc.url == old_rpc.url:
+        return old_rpc
+    else:
+        logger.info("rpc config have changed.")
+        return rpc
 
 class Specter:
     ''' A central Object mostly holding app-settings '''
@@ -111,7 +128,8 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config)  # override loaded config
 
-        self.rpc = get_rpc(self.config["rpc"])
+        # update rpc if something changed
+        self.rpc = get_rpc(self.config["rpc"], self.rpc)
         self._is_configured = (self.rpc is not None)
         self._is_running = False
         if self._is_configured:

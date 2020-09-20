@@ -71,10 +71,10 @@ def get_rpcconfig(datadir=get_default_datadir()):
             try:
                 with open(fname, 'r') as f:
                     content = f.read()
-                    user, passwd = content.split(":")
+                    user, password = content.split(":")
                     obj = {
                         "user": user,
-                        "passwd": passwd,
+                        "password": password,
                         "port": RPC_PORTS[chain]
                     }
                     config["cookies"].append(obj)
@@ -92,12 +92,12 @@ def get_configs(config=None, datadir=get_default_datadir()):
         if "rpcuser" in config["bitcoin.conf"][network]:
             default["user"] = config["bitcoin.conf"][network]["rpcuser"]
         if "rpcpassword" in config["bitcoin.conf"][network]:
-            default["passwd"] = config["bitcoin.conf"][network]["rpcpassword"]
+            default["password"] = config["bitcoin.conf"][network]["rpcpassword"]
         if "rpcconnect" in config["bitcoin.conf"][network]:
             default["host"] = config["bitcoin.conf"][network]["rpcconnect"]
         if "rpcport" in config["bitcoin.conf"][network]:
             default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
-        if "user" in default and "passwd" in default:
+        if "user" in default and "password" in default:
             if "port" not in config["bitcoin.conf"]["default"]: # only one rpc makes sense in this case
                 if network == "default":
                     continue
@@ -124,7 +124,7 @@ def detect_rpc_confs(config=None, datadir=get_default_datadir()):
 def detect_rpc_confs_via_env():
     ''' returns an array which might contain one configmap derived from Env-Vars
         Env-Vars: BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT
-        configmap: {"user":"user","passwd":"password","host":"host","port":"port","protocol":"https"}
+        configmap: {"user":"user","password":"password","host":"host","port":"port","protocol":"https"}
     '''
     rpc_arr = []
     if os.getenv("BTC_RPC_USER") and os.getenv("BTC_RPC_PASSWORD") and \
@@ -132,7 +132,7 @@ def detect_rpc_confs_via_env():
         logger.info("Detected RPC-Config on Environment-Variables")
         env_conf = {
             "user"    : os.getenv("BTC_RPC_USER"),
-            "passwd"  : os.getenv("BTC_RPC_PASSWORD"),
+            "password": os.getenv("BTC_RPC_PASSWORD"),
             "host"    : os.getenv("BTC_RPC_HOST"),
             "port"    : os.getenv("BTC_RPC_PORT"),
             "protocol": os.getenv("BTC_RPC_PROTOCOL","https") # https by default
@@ -196,30 +196,49 @@ class RpcError(Exception):
 
 class BitcoinRPC:
     counter = 0
-    def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=None, **kwargs):
+    def __init__(self,
+                 user="bitcoin",
+                 password="secret",
+                 host="127.0.0.1",
+                 port=8332,
+                 protocol="http",
+                 path="",
+                 timeout=None,
+                 session=None,
+                 **kwargs):
         path = path.replace("//","/") # just in case
         self.user = user
-        self.passwd = passwd
+        self.password = password
         self.port = port
         self.protocol = protocol
         self.host = host
         self.path = path
         self.timeout = timeout
         self.r = None
+        # session reuse speeds up requests
+        if session is None:
+            session = requests.Session()
+            # check if we need to connect over Tor
+            if ".onion" in self.host:
+                # configure Tor proxies
+                session.proxies['http'] = 'socks5h://localhost:9050'
+                session.proxies['https'] = 'socks5h://localhost:9050'
+        self.session = session
 
     def wallet(self, name=""):
         return BitcoinRPC(user=self.user,
-                      passwd=self.passwd,
+                      password=self.password,
                       port=self.port,
                       protocol=self.protocol,
                       host=self.host,
                       path="{}/wallet/{}".format(self.path, name),
-                      timeout=self.timeout
+                      timeout=self.timeout,
+                      session=self.session,
         )
 
     @property
     def url(self):
-        return "{s.protocol}://{s.user}:{s.passwd}@{s.host}:{s.port}{s.path}".format(s=self)
+        return "{s.protocol}://{s.user}:{s.password}@{s.host}:{s.port}{s.path}".format(s=self)
 
     def test_connection(self):
         ''' returns a boolean depending on whether getblockchaininfo() succeeds '''
@@ -236,12 +255,13 @@ class BitcoinRPC:
         """
         return BitcoinRPC(
             self.user,
-            self.passwd,
+            self.password,
             self.host,
             self.port,
             self.protocol,
             self.path,
-            self.timeout
+            self.timeout,
+            self.session,
         )
 
     def multi(self, calls: list, **kwargs):
@@ -264,27 +284,12 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url+"/wallet/{}".format(kwargs["wallet"])
-        r = None
-        if '.onion' in url:
-            try:
-                requests_session = requests.Session()
-                requests_session.proxies['http'] = 'socks5h://localhost:9050'
-                requests_session.proxies['https'] = 'socks5h://localhost:9050'
-                r = requests_session.post(
-                    url,
-                    data=json.dumps(payload),
-                    headers=headers,
-                    timeout=timeout
-                )
-            except Exception:
-                pass  # Tor call failed
-        if r is None:
-            r = requests.post(
-                url,
-                data=json.dumps(payload),
-                headers=headers,
-                timeout=timeout
-            )
+        r = self.session.post(
+            url,
+            data=json.dumps(payload),
+            headers=headers,
+            timeout=timeout
+        )
         self.r = r
         if r.status_code != 200:
             raise RpcError(
