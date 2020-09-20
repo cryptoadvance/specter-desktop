@@ -1,0 +1,12 @@
+name: black
+
+on: [push,pull_request]
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.2
+      - uses: lgeiger/black-action@v1.0.1
+        with:
+          args: ' --verbose --check --force-exclude "\.yml\|\.md" . '
