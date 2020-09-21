@@ -11,8 +11,8 @@
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">Backing up Your Specter Data<br><br></span>
-						It is recommended to keep your backup files privately as sharing them with result in privacy leaks.<br><br>
-						Backups are recommended to ensure access to funds remains even in case a device from a multisig wallet is lost.
+						It is recommended that you keep your backup files private, as sharing them will result in privacy leaks.<br><br>
+						Backups are recommended to ensure that access to funds remain, even in the event that a multisig wallet is lost.
 					</span>
 				</p>
 			</div>
@@ -27,8 +27,8 @@
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">Restoring Specter from backup<br><br></span>
-						Here you can restore your wallets and devices from an existing Secter backup.<br>
-						Please make sure to unzip the backup file first, then to select the extracted folder for upload.<br>
+						Here you can restore your wallets and devices from an existing Specter backup.<br>
+						Please make sure to unzip the backup file first, then select the extracted folder for upload.<br>
 						Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
 					</span>
 				</p>
@@ -59,7 +59,7 @@
 				&#9432;<br>
 				Specter does not use the block explorer to get any data whatsoever.
 				This setting is only to allow opening transactions and addresses in a block explorer directly from Specter.
-				All data Specter uses still comes directly from the your own connected full node.
+				All data Specter uses comes directly from your own connected full node.
 			</div>
 			<br>
 			{% if current_user.is_admin %}
@@ -93,7 +93,7 @@
 {% endblock %}
 {% block scripts %}
 	<script type="text/javascript">
-		
+
 		document.addEventListener("DOMContentLoaded", function(){
 			var el = document.getElementById("file");
 
