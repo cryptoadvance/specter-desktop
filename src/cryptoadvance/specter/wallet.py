@@ -464,7 +464,7 @@ class Wallet():
                 proofs = []
                 # get proofs
                 for tx in missing:
-                    if 'http' in requests_session.proxies and requests_session.proxies['http'] == 'socks5h://localhost:9050':
+                    if requests_session.proxies.get('http', None) == 'socks5h://localhost:9050':
                         try:
                             renew_tor_ip()
                         except Exception:
