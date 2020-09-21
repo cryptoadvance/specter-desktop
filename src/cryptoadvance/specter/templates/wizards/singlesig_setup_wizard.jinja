@@ -367,7 +367,10 @@
             let device;
             if (devices.length == 1) {
                 device = devices[0];
-                await unlockDevice(device);
+                let passphrase = await unlockDevice(device);
+                if (passphrase != null){
+                    device.passphrase = passphrase;
+                }
             } else {
                 // first only for now
                 device = await selectDevice(devices);
