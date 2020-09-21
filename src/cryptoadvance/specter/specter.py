@@ -275,9 +275,10 @@ class Specter:
                 self.config["rpc"][k] = kwargs[k]
                 need_update = True
         if need_update:
-            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+            self.rpc = get_rpc(self.config["rpc"], None)
             self._save()
             self.check()
+        return self.rpc is not None
 
     def update_auth(self, auth):
         ''' simply persisting the current auth-choice '''

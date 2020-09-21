@@ -496,7 +496,7 @@ def bitcoin_core_settings():
                 err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
-                app.specter.update_rpc(
+                success = app.specter.update_rpc(
                     user=user,
                     password=password,
                     port=port,
@@ -505,6 +505,8 @@ def bitcoin_core_settings():
                     autodetect=autodetect,
                     datadir=datadir
                 )
+                if not success:
+                    flash("Failed connecting to the node","error")
             app.specter.check()
 
     return render_template(
