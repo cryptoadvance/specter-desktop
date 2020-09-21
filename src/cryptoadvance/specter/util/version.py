@@ -111,8 +111,11 @@ class VersionChecker:
 
         # check that both current and latest versions match the pattern
         if (re.search(r"v?([\d+]).([\d+]).([\d+]).*", current) and
-                re.search(r"v?([\d+]).([\d+]).([\d+]).*", latest)):
-            return (current,
-                    latest,
-                    latest != current)
+            re.search(r"v?([\d+]).([\d+]).([\d+]).*", latest)):
+            return (
+                current,
+                latest,
+                # check without leading v so v1.2.3 = 1.2.3
+                latest.replace("v","") != current.replace("v","")
+            )
         return current, latest, False
