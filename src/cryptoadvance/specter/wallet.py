@@ -442,6 +442,8 @@ class Wallet():
             'http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion',
             'http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion'
         ]
+        if self.rpc.getblockchaininfo()['chain'] != 'main':
+            tor_explorers = [tor_explorer + '/testnet' for tor_explorer in tor_explorers]
         explorers = []
         if explorer is not None:
             try:
