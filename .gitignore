@@ -14,3 +14,4 @@ key.pem
 pyinstaller/specterd
 pyinstaller/release
 pyinstaller/version.txt
+.DS_Store
