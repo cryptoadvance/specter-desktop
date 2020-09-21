@@ -557,6 +557,22 @@ class Wallet():
             return addr
         return self.rpc.deriveaddresses(desc, [index, index + 1])[0]
 
+    def get_descriptor(self, index=None, change=False, address=None):
+        """
+        Returns address descriptor from index, change
+        or from address belonging to the wallet.
+        """
+        if address is not None:
+            d = self.rpc.getaddressinfo(address)['desc']
+            path = d.split("[")[1].split("]")[0].split("/")
+            change = bool(int(path[-2]))
+            index = int(path[-1])
+        if index is None:
+            index = self.change_index if change else self.address_index
+        desc = self.change_descriptor if change else self.recv_descriptor
+        desc = desc.split("#")[0]
+        return AddChecksum(desc.replace("*",f"{index}"))
+
     def get_balance(self):
         try:
             self.balance = self.rpc.getbalances()["watchonly"]
