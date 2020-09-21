@@ -210,7 +210,7 @@ def login():
                 app.logger.info("AUDIT: Failed to check password")
                 return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
             rpc = app.specter.rpc.clone()
-            rpc.passwd = request.form['password']
+            rpc.password = request.form['password']
             if rpc.test_connection():
                 app.login('admin')
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
@@ -453,7 +453,7 @@ def bitcoin_core_settings():
         return redirect("/")
     rpc = app.specter.config['rpc']
     user = rpc['user']
-    passwd = rpc['password']
+    password = rpc['password']
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
@@ -471,7 +471,7 @@ def bitcoin_core_settings():
             if autodetect:
                 datadir = request.form['datadir']
             user = request.form['username']
-            passwd = request.form['password']
+            password = request.form['password']
             port = request.form['port']
             host = request.form['host']
 
@@ -485,7 +485,7 @@ def bitcoin_core_settings():
             try:
                 test = app.specter.test_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
@@ -496,15 +496,17 @@ def bitcoin_core_settings():
                 err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
-                app.specter.update_rpc(
+                success = app.specter.update_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
                     autodetect=autodetect,
                     datadir=datadir
                 )
+                if not success:
+                    flash("Failed connecting to the node","error")
             app.specter.check()
 
     return render_template(
@@ -513,7 +515,7 @@ def bitcoin_core_settings():
         autodetect=autodetect,
         datadir=datadir,
         username=user,
-        password=passwd,
+        password=password,
         port=port,
         host=host,
         protocol=protocol,
