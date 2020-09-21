@@ -4,6 +4,8 @@ import logging
 import re
 import threading
 import time
+import os
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -41,50 +43,76 @@ class VersionChecker:
             logger.info(f"version checked. upgrade: {self.upgrade}")
             time.sleep(dt)
 
+    def get_binary_version(self):
+        """
+        Get binary version: current, latest.
+        Fails if version.txt is not present.
+        Returns latest = "unknown" if fetch failed.
+        """
+        version_file = "version.txt"
+        if getattr(sys, 'frozen', False):
+            version_file = os.path.join(sys._MEIPASS, 'version.txt')
+        with open(version_file) as f:
+            current = f.read().strip()
+        try:
+            releases = requests.get("https://api.github.com/repos/cryptoadvance/specter-desktop/releases").json()
+            latest = releases[0]["name"]
+        except:
+            latest = "unknown"
+        return current, latest
+
+    def get_pip_version(self):
+        latest = str(subprocess.run([
+            sys.executable, '-m', 'pip',
+            'install', f'{self.name}==random'],
+            capture_output=True, text=True))
+        latest = latest[latest.find(
+            '(from versions:')+15:]
+        latest = latest[:latest.find(')')]
+        latest = latest.replace(' ', '').split(',')[-1]
+
+        current = str(subprocess.run([
+            sys.executable, '-m', 'pip',
+            'show', f'{self.name}'],
+            capture_output=True, text=True))
+        current = current[current.find(
+            'Version:')+8:]
+        current = current[:current.find(
+            '\\n')].replace(' ', '')
+        # master?
+        if current == 'vx.y.z-get-replaced-by-release-script':
+            current = 'custom'
+            # no need to check upgrades
+            self.running = False
+        return current, latest
+
     def get_version_info(self):
         '''
         Returns a triple of the current version
         of the pip-package cryptoadvance.specter and
         the latest version and whether you should upgrade.
         '''
+        # check if we have version.txt file
+        # this is the case for binaries
+        current = "unknown"
+        latest = "unknown"
+        # check binary version
         try:
-            # fail right away if it's a binary
-            if getattr(sys, 'frozen', False):
-                # no need to check upgrades
-                self.running = False
-                return "binary", "binary", False
-            latest_version = str(subprocess.run([
-                sys.executable, '-m', 'pip',
-                'install', f'{self.name}==random'],
-                capture_output=True, text=True))
-            latest_version = latest_version[latest_version.find(
-                '(from versions:')+15:]
-            latest_version = latest_version[:latest_version.find(')')]
-            latest_version = latest_version.replace(' ', '').split(',')[-1]
-
-            current_version = str(subprocess.run([
-                sys.executable, '-m', 'pip',
-                'show', f'{self.name}'],
-                capture_output=True, text=True))
-            current_version = current_version[current_version.find(
-                'Version:')+8:]
-            current_version = current_version[:current_version.find(
-                '\\n')].replace(' ', '')
-            # master?
-            if current_version == 'vx.y.z-get-replaced-by-release-script':
-                current_version = 'custom'
-                # no need to check upgrades
-                self.running = False
-
-            # check that both current and latest versions match the pattern
-            if (re.search(r"v?([\d+]).([\d+]).([\d+]).*", current_version) and
-                    re.search(r"v?([\d+]).([\d+]).([\d+]).*", latest_version)):
-                return (current_version,
-                        latest_version,
-                        latest_version != current_version)
-            return current_version, latest_version, False
+            current, latest = self.get_binary_version()
+        # if file not found
+        except FileNotFoundError as exc:
+            try:
+                current, latest = self.get_pip_version()
+            except Exception as exc:
+                logger.error(exc)
+        # other exceptions
         except Exception as exc:
-            # if pip is not installed or we are using python3.6 or below
-            # we just don't show the version
             logger.error(exc)
-            return "unknown", "unknown", False
+
+        # check that both current and latest versions match the pattern
+        if (re.search(r"v?([\d+]).([\d+]).([\d+]).*", current) and
+                re.search(r"v?([\d+]).([\d+]).([\d+]).*", latest)):
+            return (current,
+                    latest,
+                    latest != current)
+        return current, latest, False

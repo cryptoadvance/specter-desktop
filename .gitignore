@@ -13,3 +13,4 @@ key.pem
 *.dmg
 pyinstaller/specterd
 pyinstaller/release
+pyinstaller/version.txt
