@@ -25,6 +25,7 @@ a = Analysis(['specterd.py'],
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
                     ('../src/cryptoadvance/specter/static', 'static'),
                     (mnemonic_path, 'mnemonic/wordlist'),
+                    ("version.txt", "."),
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',

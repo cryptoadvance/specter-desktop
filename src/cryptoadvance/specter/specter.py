@@ -6,7 +6,7 @@ import random
 import time
 import zipfile
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, get_version_info
+from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
@@ -490,10 +490,4 @@ class Specter:
 
     def restore_from_backup(self):
         pass
-
-    @property
-    def specter_version(self):
-        if not self._current_version:
-            self._current_version = get_version_info()[0]
-        return self._current_version
 

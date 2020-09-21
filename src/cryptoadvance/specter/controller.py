@@ -16,8 +16,8 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import (alias, get_devices_with_keys_by_type, 
-                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+from .helpers import (alias, get_devices_with_keys_by_type,
+                      get_loglevel, run_shell, set_loglevel,
                       bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
 from .specter import Specter
@@ -1486,9 +1486,6 @@ def notify_upgrade():
         that there is an upgrade to specter.desktop
         :return the current version
     '''
-    version_info={}
-    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
-    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
-    if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
-    return version_info["current"]
+    if app.specter.version.upgrade:
+        flash(f"Upgrade notification: new version {app.specter.version.latest} is available.", "info")
+    return app.specter.version.current
