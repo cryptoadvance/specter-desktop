@@ -184,6 +184,14 @@ def index():
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
 
+    return redirect('/about')
+
+@app.route('/about')
+@login_required
+def about():
+    notify_upgrade()
+    app.specter.check()
+
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1451,6 +1459,10 @@ def btc2sat(value):
 @app.template_filter('feerate')
 def feerate(value):
     value = float(value)*1e8
+    # workaround for minimal fee rate
+    # because 1.01 doesn't look nice
+    if value <= 1.02:
+        value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
 
 @app.template_filter('btcunitamount')

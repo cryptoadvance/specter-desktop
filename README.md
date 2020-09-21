@@ -5,6 +5,7 @@
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
   - [Why?](#why)
+  - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
@@ -49,6 +50,12 @@ At the moment Specter-Desktop is working with all major hardware wallets includi
 
 We also support using the Bitcoin Core as a hot wallet, by importing or generating a random BIP39 mnemonic, but this feature is experimental and we do not recommend using it at this stage.
 We plan to add support for other hardware wallets as they come up. If you are interested in using Specter with a hardware wallet currently unsupported, let us know by opening an issue here or asking in our [Telegram group](https://t.me/spectersupport).
+
+## Help wanted: Do you like Specter?
+Please help us to push forward, fix bugs, refine FAQs and please help each other in the support channel.
+As a small team on a tiny budget we are working hard to make Specter better every day – for Bitcoin, for you and for us.
+We are quite overwhelmed with the response, the guides and shoutouts. Thank you!
+Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 
 ## How to run
 ### Using the Specter Desktop app
