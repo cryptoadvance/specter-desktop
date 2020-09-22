@@ -351,8 +351,14 @@ def general_settings():
                 as_attachment=True
             )
         elif action == "restore":
-            restore_devices = json.loads(request.form['restoredevices'])
-            restore_wallets = json.loads(request.form['restorewallets'])
+            if request.form['restoredevices']:
+                restore_devices = json.loads(request.form['restoredevices'])
+            else:
+                restore_devices = []
+            if request.form['restorewallets']:
+                restore_wallets = json.loads(request.form['restorewallets'])
+            else:
+                restore_wallets = []
             for device in restore_devices:
                 with fslock:
                     with open(
@@ -399,6 +405,7 @@ def general_settings():
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet['alias']
                     )
+                    wallet_obj.import_labels(wallet['labels'])
                     try:
                         wallet_obj.rpc.rescanblockchain(
                             wallet['blockheight']
