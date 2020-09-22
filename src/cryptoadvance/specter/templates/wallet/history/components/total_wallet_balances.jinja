@@ -9,7 +9,8 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            {{ wallet.fullbalance | btcunitamount }}
+            {% set totalbalance = wallet.fullbalance %}
+            {{ totalbalance | btcunitamount }}
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
@@ -18,6 +19,12 @@
         </span>
         {% if wallet.balance["untrusted_pending"] > 0 %}<br>
             <small>( {{ wallet.balance["trusted"] | btcunitamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcunitamount }} pending )</small>
+        {% endif %}
+        {% if totalbalance > 0 %}
+            {% set part_of_supply = 100 / (21000000 / totalbalance) %}
+            {% if part_of_supply >= 0.00000001 %}<br>
+                <small style="color: #ccc; font-size: 0.6em;">(estimated {{ ("%.8f"|format(part_of_supply)).rstrip("0") }}% of total supply)</small>
+            {% endif %}
         {% endif %}
     </h1>
     {% if wallet.rescan_progress or specter.utxorescanwallet == wallet.alias %}
