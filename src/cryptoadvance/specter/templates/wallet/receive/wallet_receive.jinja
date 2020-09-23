@@ -37,7 +37,7 @@
 			{% from 'wallet/components/editable_label.jinja' import editable_label %}
 			{{ editable_label(address_label, -1) }}
 		</form>
-		<div class="warning" style="background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
+		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
 		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', 'Copied Adress: {{ wallet.address }}');">{{ wallet.address }}</p>
 		(click to copy)
 		<br><br>
@@ -69,7 +69,7 @@
 				{% set supports_hwi = supports_hwi.append(device) %}
 			{% endfor %}
 			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-				<button type="button" onclick="displayAddressOnDevice(`{{ wallet.address }}`, `{{ (wallet.rpc.getaddressinfo(wallet.address)['desc']) }}`)" class="btn centered optional">Display address on device</button><br>
+				<button type="button" onclick="displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor() }}`)" class="btn centered optional">Display address on device</button><br>
 				{% if wallet.is_multisig %}
 					<p class="note center optional">Multsig address on-device display is only available for ColdCard, KeepKey, Specter, and Trezor devices.</p>
 				{% endif %}
@@ -96,7 +96,7 @@
 									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="width:170px; float: left; margin-right: 20px; margin-bottom: 2px; margin-top: 2px;">Verify address via QR code</button>
 								{% endif %}
 								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-									<button type="button" onclick="displayAddressOnDevice(`{{ address }}`, `{{ (wallet.rpc.getaddressinfo(address)['desc']) }}`)" class="btn" style="width:170px; margin-bottom: 2px; margin-top: 2px;">Display address on device</button>
+									<button type="button" onclick="displayAddressOnDevice(`{{ address }}`, `{{ wallet.get_descriptor(loop.revindex0) }}`)" class="btn" style="width:170px; margin-bottom: 2px; margin-top: 2px;">Display address on device</button>
 								{% endif %}
 							</td>
 						</tr>

@@ -16,8 +16,8 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import (alias, get_devices_with_keys_by_type, 
-                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+from .helpers import (alias, get_devices_with_keys_by_type,
+                      get_loglevel, run_shell, set_loglevel,
                       bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
 from .specter import Specter
@@ -184,6 +184,14 @@ def index():
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect("/wallets/%s" % app.specter.wallet_manager.wallets[app.specter.wallet_manager.wallets_names[0]].alias)
 
+    return redirect('/about')
+
+@app.route('/about')
+@login_required
+def about():
+    notify_upgrade()
+    app.specter.check()
+
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -202,7 +210,7 @@ def login():
                 app.logger.info("AUDIT: Failed to check password")
                 return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
             rpc = app.specter.rpc.clone()
-            rpc.passwd = request.form['password']
+            rpc.password = request.form['password']
             if rpc.test_connection():
                 app.login('admin')
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
@@ -445,7 +453,7 @@ def bitcoin_core_settings():
         return redirect("/")
     rpc = app.specter.config['rpc']
     user = rpc['user']
-    passwd = rpc['password']
+    password = rpc['password']
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
@@ -463,7 +471,7 @@ def bitcoin_core_settings():
             if autodetect:
                 datadir = request.form['datadir']
             user = request.form['username']
-            passwd = request.form['password']
+            password = request.form['password']
             port = request.form['port']
             host = request.form['host']
 
@@ -477,7 +485,7 @@ def bitcoin_core_settings():
             try:
                 test = app.specter.test_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
@@ -488,15 +496,17 @@ def bitcoin_core_settings():
                 err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
-                app.specter.update_rpc(
+                success = app.specter.update_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
                     autodetect=autodetect,
                     datadir=datadir
                 )
+                if not success:
+                    flash("Failed connecting to the node","error")
             app.specter.check()
 
     return render_template(
@@ -505,7 +515,7 @@ def bitcoin_core_settings():
         autodetect=autodetect,
         datadir=datadir,
         username=user,
-        password=passwd,
+        password=password,
         port=port,
         host=host,
         protocol=protocol,
@@ -1451,6 +1461,10 @@ def btc2sat(value):
 @app.template_filter('feerate')
 def feerate(value):
     value = float(value)*1e8
+    # workaround for minimal fee rate
+    # because 1.01 doesn't look nice
+    if value <= 1.02:
+        value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
 
 @app.template_filter('btcunitamount')
@@ -1472,9 +1486,6 @@ def notify_upgrade():
         that there is an upgrade to specter.desktop
         :return the current version
     '''
-    version_info={}
-    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
-    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
-    if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
-    return version_info["current"]
+    if app.specter.version.upgrade:
+        flash(f"Upgrade notification: new version {app.specter.version.latest} is available.", "info")
+    return app.specter.version.current

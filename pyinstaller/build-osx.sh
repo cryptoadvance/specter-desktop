@@ -2,6 +2,7 @@
 
 # pass version number as an argument 
 
+echo $1 > version.txt
 pip install -e ..
 pip install -r requirements.txt
 rm -rf build/ dist/ release/
