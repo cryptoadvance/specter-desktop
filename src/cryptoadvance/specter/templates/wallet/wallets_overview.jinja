@@ -24,8 +24,7 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            {% set totalbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
-            {{ totalbalance | btcunitamount }}
+            {{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') | btcunitamount }}
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
@@ -34,12 +33,6 @@
         </span>
         {% if specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') > 0 %}<br>
             <small>( {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.trusted') | btcunitamount }} confirmed, {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') | btcunitamount }} pending )</small>
-        {% endif %}
-		{% if totalbalance > 0 %}
-			{% set part_of_supply = 100 / (21000000 / totalbalance) %}
-			{% if part_of_supply >= 0.00000001 %}<br>
-				<small style="color: #ccc; font-size: 0.6em;">(estimated {{ ("%.8f"|format(part_of_supply)).rstrip("0") }}% of total supply)</small>
-			{% endif %}
         {% endif %}
     </h1>
     {% set validate_merkle_proofs=specter.config.validate_merkle_proofs %}
