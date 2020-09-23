@@ -42,6 +42,9 @@ release_binary_windows:
     - echo $CI_JOB_STAGE
     - echo $Env:CI_JOB_STAGE
     - echo "$Env:CI_JOB_STAGE"
+    - cd pyinstaller
+    - (Get-Content .\specter-desktop.iss).replace('#define MyAppVersion "x.y.z"',"#define MyAppVersion `"$env:COMPUTERNAME`"") | Set-Content .\specter-desktop.iss
+    - cat .\specter-desktop.iss
     #- pip3 install github-binary-upload
     #- cd pyinstaller 
     #- .\build-win.bat $CI_COMMIT_TAG
