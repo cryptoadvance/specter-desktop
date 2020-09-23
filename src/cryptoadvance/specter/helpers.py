@@ -78,7 +78,7 @@ def load_jsons(folder, key=None):
                 d["fullpath"] = os.path.join(folder, fname)
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
-        except:
+        except Exception as e:
             logger.error(f"Can't load json file {fname} at path {folder} because "+e)
     return dd
 
