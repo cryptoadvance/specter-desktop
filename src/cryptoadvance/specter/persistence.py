@@ -38,9 +38,8 @@ def _write_json_file(content, path, lock=None):
         with open(path, "w") as f:
             json.dump(content, f, indent=4)
 
-def write_devices(devices): # restore
-    # controller:349 (restore in settings)
-
+def write_devices(devices):
+    ''' write all the devices into the specter-folder '''
     with fslock:
         with open(
             os.path.join(
@@ -53,7 +52,6 @@ def write_devices(devices): # restore
     storage_callback()
 
 def write_wallet(wallet_alias, wallet): 
-    # controller:
     with fslock:
         with open(
             os.path.join(
@@ -66,7 +64,6 @@ def write_wallet(wallet_alias, wallet):
     storage_callback()
 
 def write_device(device, fullpath):
-    # device_manager:68
     with fslock:
         with open(fullpath, "w") as file:
             file.write(json.dumps(device.json, indent=4))
@@ -87,12 +84,11 @@ def _delete_folder(path):
 
 
 def storage_callback():
-    logger.info("Write process callback called")
     if os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
-        logger.info("Executing {}".format(os.getenv("SPECTER_PERSISTENCE_CALLBACK")))
         result = run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK"))
         if result["code"] != 0:
             logger.error("callback failed stdout: {}".format(result["out"]))
             logger.error("stderr {}".format(result["err"]))
         else:
+            logger.info("Successfully executed {}".format(os.getenv("SPECTER_PERSISTENCE_CALLBACK")))
             logger.debug("result: {}".format(result))
