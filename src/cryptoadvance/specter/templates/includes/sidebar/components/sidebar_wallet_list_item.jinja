@@ -12,13 +12,60 @@
             {{ wallet.name }}<br>
             <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% else %}Single Key{% endif %}</span>
             {% if wallet.rescan_progress %}
-                <br><span class="note" style="font-size: 0.7em;">Rescanning blockchain: {{ "%.2f"|format(wallet.rescan_progress * 100) }}%</span>
+                <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;">
+                <br>
+                <span class="note" style="font-size: 0.7em;">Rescanning blockchain: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span>
+                </span>
             {% endif %}
         </div>
     </a>
     {% if wallet.rescan_progress %}
         <div class="rescan_progress {{ chain }}">
-            <div style="width: {{ wallet.rescan_progress * 100 }}%"></div>
+            <div id="{{ wallet.alias }}_rescan_progress" style="width: {{ wallet.rescan_progress * 100 }}%"></div>
         </div>
+        <script>
+            let walletRescanProgress = '{{ wallet.rescan_progress * 100 }}';
+            let walletRescanActive = true;
+            async function fetchWalletRescanProgress() {
+                try {
+                    const response = await fetch(
+                        '/wallets/{{ wallet.alias }}/get_wallet_rescan_progress',
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    walletRescanActive = result.active;
+                    walletRescanProgress = (parseFloat(result.progress) * 100).toFixed(2);
+                    let walletRescanData = document.getElementById('wallet_rescan_data');
+                    let walletRescanPercentsSettings = document.getElementById('{{ wallet.alias }}_wallet_rescan_percents');
+                    let walletRescanPercents = document.getElementById('wallet_rescan_percents');
+                    if (walletRescanActive) {
+                        document.getElementById('{{ wallet.alias }}_rescan_progress').style.width = walletRescanProgress + '%';
+                        document.getElementById('{{ wallet.alias }}_sidebar_wallet_rescan_percents').innerHTML = walletRescanProgress;
+                        if (walletRescanPercents) {
+                            walletRescanPercents.innerHTML = walletRescanProgress;
+                        }
+                        if (walletRescanPercentsSettings) {
+                            walletRescanPercentsSettings.innerHTML = walletRescanProgress;
+                        }
+                    } else {
+                        document.getElementById('{{ wallet.alias }}_rescan_progress').style.display = 'none';
+                        document.getElementById('{{ wallet.alias }}_sidebar_rescan_progress_container').style.display = 'none';
+                        if (walletRescanData) {
+                            walletRescanData.style.display = 'none';
+                        }
+                        clearInterval(fetchWalletRescanInterval);
+                        if (walletRescanData || walletRescanPercents || walletRescanPercentsSettings) {
+                            location.reload();
+                        }
+                    }
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            let fetchWalletRescanInterval = setInterval(fetchWalletRescanProgress, 2000);
+        </script>
     {% endif %}
 {%- endmacro %}

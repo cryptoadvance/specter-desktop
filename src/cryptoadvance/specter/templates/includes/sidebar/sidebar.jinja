@@ -53,8 +53,46 @@
         {% endif %}
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
-            <div style='width: {{ specter.info["utxorescan"] }}%'></div>
+            <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
+        <script>
+            let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
+            let utxoRescanActive = true;
+            async function fetchUTXORescanProgress() {
+                try {
+                    const response = await fetch(
+                        '/get_scantxoutset_status',
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    utxoRescanActive = result.active;
+                    utxoRescanProgress = result.progress;
+                    let walletRescanData = document.getElementById('wallet_rescan_data');
+                    let walletRescanPercents = document.getElementById('wallet_rescan_percents');
+                    if (utxoRescanActive) {
+                        document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
+                        if (walletRescanPercents) {
+                            walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        }
+                    } else {
+                        document.getElementById('utxo_rescan_progress').style.display = 'none';
+                        if (walletRescanData) {
+                            walletRescanData.style.display = 'none';
+                        }
+                        clearInterval(fetchUTXORescanInterval);
+                        if (walletRescanData || walletRescanPercents) {
+                            location.reload();
+                        }
+                    }
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            let fetchUTXORescanInterval = setInterval(fetchUTXORescanProgress, 2000);
+        </script>
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
