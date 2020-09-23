@@ -347,7 +347,7 @@ def general_settings():
         elif action == "restore":
             restore_devices = json.loads(request.form['restoredevices'])
             restore_wallets = json.loads(request.form['restorewallets'])
-            write_devices(devices)
+            write_devices(restore_devices)
             app.specter.device_manager.update()
 
             rescanning = False
