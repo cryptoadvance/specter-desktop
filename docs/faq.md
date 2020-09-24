@@ -254,6 +254,10 @@ When using Specter and importing an old wallet you would need to rescan blockcha
 
 Having seeds is enough, but in case you lose one of the seeds it is also **highly recommended** that you also backup your XPUBs. You can go to the wallet settings and export it as json file, this file has all the information needed to find your funds. "Export to wallet" software should give you one json file with all information needed for the recovery of your watch only wallet later on. 
 
+## *Backup files not showing when trying to load backups
+
+insted of trying to look for the files you have to just select the folder, infact selecting the specter backup folder which contains the wallet and device folders will select all JSON files together
+
 # SPECTER-DIY
 
 ## *What does the Specter-DIY consist of?*
