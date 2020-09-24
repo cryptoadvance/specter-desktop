@@ -55,7 +55,7 @@
   - [*I created an existing wallets but even after rescanning, specter couldn't find any funds?*](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)
   - [*How to delete a wallet using a remote full node?*](#how-to-delete-a-wallet-using-a-remote-full-node)
   - [*Trying to connect specter-desktop to my remote node on my LAN few times but no success. `bitcoin.conf` has the `server=1` option, should there be something else since I get this error `Process finished with code -1Error message: Failed to connect` message?*](#trying-to-connect-specter-desktop-to-my-remote-node-on-my-lan-few-times-but-no-success-bitcoinconf-has-the-server1-option-should-there-be-something-else-since-i-get-this-error-process-finished-with-code--1error-message-failed-to-connect-message)
-  - [*Backup files not showing when trying to load backups*](#Backup files not showing when trying to load backups)
+  - [*Backup files not showing when trying to load backups*](#Backup-files-not-showing-when-trying-to-load-backups)
 - [DIY TROUBLESHOOT](#diy-troubleshoot)
   - [*Does anyone have any tips on mounting the power bank and QR code scanner to the STM32 board in a somewhat ergonomic manner?*](#does-anyone-have-any-tips-on-mounting-the-power-bank-and-qr-code-scanner-to-the-stm32-board-in-a-somewhat-ergonomic-manner)
 - [HWW TROUBLESHOOT](#hww-troubleshoot)
