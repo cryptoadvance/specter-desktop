@@ -101,7 +101,7 @@
 		{% for device in wallet.devices %}
 			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
 				<div class="small-card radio">
-					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
 						<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
 					{% else %}
 						<img src="/static/img/other_icon.svg" width="18px">

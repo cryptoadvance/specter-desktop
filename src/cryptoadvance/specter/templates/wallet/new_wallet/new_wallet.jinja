@@ -40,12 +40,13 @@
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
-			{% for device_name in specter.device_manager.devices_names %}
+			{# Disable BitBox02 multisig for now... #}
+			{% for device_name in specter.device_manager.devices_names if wallet_type != 'multisig' or specter.device_manager.devices[device_name].device_type != 'bitbox02' %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
 					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ device.alias }}" class="hidden" data-key-types='{{ device.key_types(specter.chain) | tojson }}' chain="{{specter.chain}}">
 					<div class="small-card radio">
-						{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+						{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
 							<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
 						{% else %}
 							<img src="/static/img/other_icon.svg" width="18px">

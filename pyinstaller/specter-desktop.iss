@@ -6,9 +6,10 @@
 ; Maybe we should remove the next 3 lines altogether
 ; See https://stackoverflow.com/questions/13423317/inno-setup-ide-and-iscc-ispp-passing-define
 ; for reasoning
-; So this can now be overridden via iscc ... /DMyAppVersion="v0.7.2",
+; So this can now be overridden via iscc ... /DMyAppVersion="v0.7.2"
+; as it didn't work, we're replacing it directly in the file
 #ifndef myarg
-#define MyAppVersion "0.7.2"
+#define MyAppVersion "x.y.z"
 #endif
 #define MyAppPublisher "CryptoAdvance GmbH"
 #define MyAppURL "https://github.com/cryptoadvance/specter-desktop/"
@@ -32,7 +33,7 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=Z:\work\release
 OutputBaseFilename=specter_desktop_setup
-SetupIconFile=Z:\work\specterd\static\img\icon.ico
+SetupIconFile=Z:\work\icons\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

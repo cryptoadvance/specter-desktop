@@ -1,6 +1,7 @@
 from .coldcard import ColdCard
 from .trezor import Trezor
 from .ledger import Ledger
+from .bitbox02 import BitBox02
 from .keepkey import Keepkey
 from .specter import Specter
 from .cobo import Cobo
@@ -12,6 +13,7 @@ from .bitcoin_core import BitcoinCore
 __all__ = [
     Trezor,
     Ledger,
+    BitBox02,
     Specter,
     ColdCard,
     Keepkey,

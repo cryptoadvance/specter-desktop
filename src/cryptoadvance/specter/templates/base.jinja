@@ -51,32 +51,46 @@
 					<br><br>Something went wrong :(<br><br>{{error}}
 				{% else %}
 					<br>
-					<img src="static/img/icon.png" width="130px"/>
 					<div style="max-width: 60%; text-align: center;">
-					<br>
-					<h1 style="font-size: 1.8em;">Welcome to Specter Desktop</h1>
-					<p style="font-size: 1.2em; font-weight: bolder;">Specter is meant to serve as a convenient and user-friendly GUI around Bitcoin Core, with a focus on multisignature setup with hardware wallets and airgapped (offline) devices.</p>
+					<h1 style="font-size: 1.8em;">
+					<img src="static/img/icon.png" width="40px" style="vertical-align: top; margin-right: 20px;"/> 
+					Welcome to Specter Desktop 
+					<img src="static/img/ghost.png" width="40px" style="vertical-align: top; margin-left: 20px;"/>
+					</h1>
+					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
 					<a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.2em; font-weight: bolder;">Read the FAQ</a>
 					<br><br><br>
-					<h2 style="font-size: 1.6em;">Getting Started:</h2><br>
+					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
+					Click on "Add new wallet" to try out the new <a href="/singlesig_setup_wizard/" style="color: #fff;">wallet setup wizard</a> or follow these instructions:<br><br>
 					<ul style="text-align: left; margin-left: 10%;">
 						<li class="list-item">
-							Click on "Add new device" on the left sidebar and follow the instructions to add a device to Specter.<br>
-							<span class="note">Follow the same process for each device you would like to use as a separate possible (co)signer in a wallet.<span>
+							Click on "Add new device" on the left sidebar and follow the instructions.<br>
+							Follow the same process for each device you would like to use as a separate possible (co)signer in a wallet.
 						</li>
 						<li class="list-item">
-							When adding a new device, you will have the option to add multiple <code>xpub</code> keys which belong to it.<br>
-							Each key has a separate purpose for which it can be used (i.e. P2SH-P2WPKH, P2SH-P2WSH, P2WPKH, P2WSH).<br>
-							<span class="note">Make sure to import all keys you want to make use of for creating wallets.</span>
+							When adding a new signing device, you can add multiple <code>xpub</code> keys. Each <code>xpub</code> key has a separate purpose for which it can be used (i.e. multisig wallets: P2SH-P2WPKH, P2SH-P2WSH, P2WPKH, P2WSH).<br>
+							Make sure to import all keys you need.
 						</li>
 						<li class="list-item">
-							After adding your device(s), you can start adding wallets by clicking on "Add new wallet" on the left sidebar.<br>
-							<span class="note"><span>
+							After adding your device(s), you can start creating wallets by clicking on "Add new wallet".<br>					
 						</li>
 						<li class="list-item">
 							For any questions or support, you can either open a <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff">GitHub issue</a> or ask it in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff">Specter Support Telegram group</a>.
 						</li>
 					</ul>
+					<div class="spacer"></div>
+					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">Help wanted: Do you like Specter?</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
+					<div class="spacer"></div>
+					<div class="footer">
+						Supported and maintained by:<br>
+						<a href="https://specter.solutions/" target="_blank" style="color: #fff;">
+							Specter.Solutions
+						</a>
+						<div class="row">
+							<a href="https://github.com/cryptoadvance/" target="_blank"><img src="/static/img/github.svg" style="width: 30px; margin: 10px;"></a>
+							<a href="https://twitter.com/specterwallet/" target="_blank"><img src="/static/img/twitter.svg" style="width: 30px; margin: 10px;"></a>
+						</div>
+					</div>
 				{% endif %}
 			{% endblock %}
 		</main>

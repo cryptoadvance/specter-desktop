@@ -7,6 +7,9 @@ from .util.json_rpc import JSONRPC
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
+import logging
+
+logger = logging.getLogger(__name__)
 
 hwi_classes = [ cls for cls in device_classes if cls.hwi_support ]
 
@@ -51,30 +54,35 @@ class HWIBridge(JSONRPC):
         devices = []
         # going through all device classes
         for devcls in hwi_classes:
-            # calling device-specific enumerate
-            if passphrase is not None:
-                devs = devcls.enumerate(passphrase)
-            # not sure if it will handle passphrase correctly
-            # so remove it if None
-            else:
-                devs = devcls.enumerate()
-            # extracting fingerprint info
-            for dev in devs:
-                # we can't get fingerprint if device is locked
-                if "needs_pin_sent" in dev and dev["needs_pin_sent"]:
-                    continue
-                # we can't get fingerprint if passphrase is not provided
-                if ("needs_passphrase_sent" in dev
-                    and dev["needs_passphrase_sent"]
-                    and passphrase is None
-                ):
-                    continue
-                client = devcls.get_client(dev["path"], passphrase)
-                try:
-                    dev['fingerprint'] = client.get_master_fingerprint_hex()
-                finally:
-                    client.close()
-            devices += devs
+            try:
+                # calling device-specific enumerate
+                if passphrase is not None:
+                    devs = devcls.enumerate(passphrase)
+                # not sure if it will handle passphrase correctly
+                # so remove it if None
+                else:
+                    devs = devcls.enumerate()
+                # extracting fingerprint info
+                for dev in devs:
+                    # we can't get fingerprint if device is locked
+                    if "needs_pin_sent" in dev and dev["needs_pin_sent"]:
+                        continue
+                    # we can't get fingerprint if passphrase is not provided
+                    if ("needs_passphrase_sent" in dev
+                        and dev["needs_passphrase_sent"]
+                        and passphrase is None
+                    ):
+                        continue
+                    client = None
+                    try:
+                        client = devcls.get_client(dev["path"], passphrase)
+                        dev['fingerprint'] = client.get_master_fingerprint_hex()
+                    finally:
+                        if client is not None:
+                            client.close()
+                devices += devs
+            except Exception as e:
+                logger.warn(f"enumerate failed: {e}")
 
         self.devices = devices
         return self.devices
@@ -247,63 +255,103 @@ class HWIBridge(JSONRPC):
             #   https://github.com/satoshilabs/slips/blob/master/slip-0132.md
 
             # Extract nested Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/49h/0h/{}h'.format(account)
-            )['xpub']
-            ypub = convert_xpub_prefix(xpub, b'\x04\x9d\x7c\xb2')
-            xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
+            try:
+                xpub = client.get_pubkey_at_path(
+                    'm/49h/0h/{}h'.format(account)
+                )['xpub']
+                ypub = convert_xpub_prefix(xpub, b'\x04\x9d\x7c\xb2')
+                xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
+            except Exception:
+                logger.warn(
+                    "Failed to import Nested Segwit singlesig mainnet key."
+                )
 
-            # native Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/84h/0h/{}h'.format(account)
-            )['xpub']
-            zpub = convert_xpub_prefix(xpub, b'\x04\xb2\x47\x46')
-            xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
+            try:
+                # native Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/84h/0h/{}h'.format(account)
+                )['xpub']
+                zpub = convert_xpub_prefix(xpub, b'\x04\xb2\x47\x46')
+                xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
+            except Exception:
+                logger.warn(
+                    "Failed to import native Segwit singlesig mainnet key."
+                )
 
-            # Multisig nested Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/48h/0h/{}h/1h'.format(account)
-            )['xpub']
-            Ypub = convert_xpub_prefix(xpub, b'\x02\x95\xb4\x3f')
-            xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
+            try:
+                # Multisig nested Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/48h/0h/{}h/1h'.format(account)
+                )['xpub']
+                Ypub = convert_xpub_prefix(xpub, b'\x02\x95\xb4\x3f')
+                xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
+            except Exception:
+                logger.warn(
+                    "Failed to import Nested Segwit multisig mainnet key."
+                )
 
-            # Multisig native Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/48h/0h/{}h/2h'.format(account)
-            )['xpub']
-            Zpub = convert_xpub_prefix(xpub, b'\x02\xaa\x7e\xd3')
-            xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
+            try:
+                # Multisig native Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/48h/0h/{}h/2h'.format(account)
+                )['xpub']
+                Zpub = convert_xpub_prefix(xpub, b'\x02\xaa\x7e\xd3')
+                xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
+            except Exception:
+                logger.warn(
+                    "Failed to import native Segwit multisig mainnet key."
+                )
 
             # And testnet
             client.is_testnet = True
 
-            # Testnet nested Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/49h/1h/{}h'.format(account)
-            )['xpub']
-            upub = convert_xpub_prefix(xpub, b'\x04\x4a\x52\x62')
-            xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
+            try:
+                # Testnet nested Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/49h/1h/{}h'.format(account)
+                )['xpub']
+                upub = convert_xpub_prefix(xpub, b'\x04\x4a\x52\x62')
+                xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
+            except Exception:
+                logger.warn(
+                    "Failed to import Nested Segwit singlesig testnet key."
+                )
 
-            # Testnet native Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/84h/1h/{}h'.format(account)
-            )['xpub']
-            vpub = convert_xpub_prefix(xpub, b'\x04\x5f\x1c\xf6')
-            xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
+            try:
+                # Testnet native Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/84h/1h/{}h'.format(account)
+                )['xpub']
+                vpub = convert_xpub_prefix(xpub, b'\x04\x5f\x1c\xf6')
+                xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
+            except Exception:
+                logger.warn(
+                    "Failed to import native Segwit singlesig testnet key."
+                )
 
-            # Testnet multisig nested Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/48h/1h/{}h/1h'.format(account)
-            )['xpub']
-            Upub = convert_xpub_prefix(xpub, b'\x02\x42\x89\xef')
-            xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
+            try:
+                # Testnet multisig nested Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/48h/1h/{}h/1h'.format(account)
+                )['xpub']
+                Upub = convert_xpub_prefix(xpub, b'\x02\x42\x89\xef')
+                xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
+            except Exception:
+                logger.warn(
+                    "Failed to import Nested Segwit multisigsig testnet key."
+                )
 
-            # Testnet multisig native Segwit
-            xpub = client.get_pubkey_at_path(
-                'm/48h/1h/{}h/2h'.format(account)
-            )['xpub']
-            Vpub = convert_xpub_prefix(xpub, b'\x02\x57\x54\x83')
-            xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
+            try:
+                # Testnet multisig native Segwit
+                xpub = client.get_pubkey_at_path(
+                    'm/48h/1h/{}h/2h'.format(account)
+                )['xpub']
+                Vpub = convert_xpub_prefix(xpub, b'\x02\x57\x54\x83')
+                xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
+            except Exception:
+                logger.warn(
+                    "Failed to import native Segwit multisig testnet key."
+                )
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()

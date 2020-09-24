@@ -48,6 +48,7 @@
 - [SPECTER-DEVKIT](#specter-devkit)
   - [*Can I buy the Specter-devkit pre-built?*](#can-i-buy-the-specter-devkit-pre-built)
 - [TROUBLESHOOT](#troubleshoot)
+  - [I have issues connecting my Hardware-Wallet via USB?!](#i-have-issues-connecting-my-hardware-wallet-via-usb)
   - [*How to upgrade?*](#how-to-upgrade)
   - [*How can I access the web interface if it's hosted on a headless computer?*](#how-can-i-access-the-web-interface-if-its-hosted-on-a-headless-computer)
   - [*Keep getting: No matching distribution found for cryptoadvance.specter*](#keep-getting-no-matching-distribution-found-for-cryptoadvancespecter)
@@ -128,7 +129,7 @@ Yes, a Bitcoin full node is needed to provide the Bitcoin Core data so you don't
 ## *Can I use pruned mode?*
 
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
-This is just temporary though as it is actively being worked on [here](https://github.com/cryptoadvance/specter-desktop/issues/224).
+This is just temporary though as it is actively being worked on [here](https://github.com/cryptoadvance/specter-desktop/issues/224). Make sure to also check this question in the [troubleshooting-section](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds).
 
 ## *I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*
 
@@ -322,6 +323,10 @@ With that being said, we are working on a kit (extension board) that includes a 
 No supply-chain risks as you buy the board and a smartcard from normal electronics stores. We will start selling ready to use wallets when we consider it secure enough and when we remove (WIP) from the repo description. Devkits will be available earlier than that.
 
 # TROUBLESHOOT
+
+## I have issues connecting my Hardware-Wallet via USB?!
+
+Make sure to not use the Safari-Browser. Chrome is the best option, firefox should work, too. Make sure that your USB-cable is working. Often enough they are not working anymore. Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. On Mac/Linux, there is also something called udev-rules which have to be installed. Check your Hardware-documentation on how to install them. For trezor, there is e.g. the trezor-bridge which does that.
 
 ## *How to upgrade?*
 
