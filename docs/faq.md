@@ -363,9 +363,9 @@ You can also just delete the wallet manually. It's a folder in `~/.bitcoin` dire
 
 `rpcallowip` and `rpcbind` parameters need to be set in `bitcoin.conf`
 
-## *Backup files not showing when trying to load backups
+## Backup files not showing when trying to load backups
 
-When trying to load backups you are required to select the backup folders for either devices or wallets, you are not trying to select the JSON files.  You can also select the specter-backup folder itself which will allow both devices and wallets to be loaded together.  If you have issues doing this on the Specter app then try in browser instead. 
+When trying to load backups you are required to select the backup folders for either devices or wallets, you are NOT trying to select the JSON files.  You can also select the specter-backup folder itself which will allow both devices and wallets to be loaded together.  If you have issues doing this on the Specter app then try in browser instead. 
 
 # DIY TROUBLESHOOT
 
