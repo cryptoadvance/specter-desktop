@@ -56,7 +56,12 @@ class VersionChecker:
             current = f.read().strip()
         try:
             releases = requests.get("https://api.github.com/repos/cryptoadvance/specter-desktop/releases").json()
-            latest = releases[0]["name"]
+            latest = "unknown"
+            for release in releases:
+                if release["prerelease"] or release["draft"]:
+                    continue
+                latest = release["name"]
+                break
         except:
             latest = "unknown"
         return current, latest
