@@ -40,6 +40,7 @@ a = Analysis(['specter_desktop.py'],
                     ('../src/cryptoadvance/specter/static', 'static'),
                     ("./icons", "icons"),
                     (mnemonic_path, 'mnemonic/wordlist'),
+                    ("version.txt", "."),
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',

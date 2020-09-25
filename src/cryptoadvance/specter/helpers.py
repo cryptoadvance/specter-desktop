@@ -103,37 +103,6 @@ def get_loglevel(app):
     return loglevels[app.logger.getEffectiveLevel()]
 
 
-def get_version_info():
-    ''' Returns a triple of the current version (of the pip-package cryptoadvance.specter and 
-        the latest version and whether you should upgrade 
-    '''
-    name="cryptoadvance.specter"
-    try:
-        # fail right away if it's a binary
-        if getattr(sys, 'frozen', False):
-            raise RuntimeError("Using frozen binary, verision unavailable")
-        latest_version = str(subprocess.run([sys.executable, '-m', 'pip', 'install', '{}==random'.format(name)], capture_output=True, text=True))
-        latest_version = latest_version[latest_version.find('(from versions:')+15:]
-        latest_version = latest_version[:latest_version.find(')')]
-        latest_version = latest_version.replace(' ','').split(',')[-1]
-
-        current_version = str(subprocess.run([sys.executable, '-m', 'pip', 'show', '{}'.format(name)], capture_output=True, text=True))
-        current_version = current_version[current_version.find('Version:')+8:]
-        current_version = current_version[:current_version.find('\\n')].replace(' ','')
-        # master?
-        if current_version == 'vx.y.z-get-replaced-by-release-script':
-            current_version = 'custom'
-
-        if re.search(r"v?([\d+]).([\d+]).([\d+]).*", current_version):
-            return current_version, latest_version, latest_version != current_version
-        return current_version, latest_version, False
-    except Exception as exc:
-        # if pip is not installed or we are using python3.6 or below
-        # we just don't show the version
-        logger.error(exc)
-        return "unknown", "unknown", False
-
-
 def hwi_get_config(specter):
     config = {
         'whitelisted_domains': 'http://127.0.0.1:25441/'

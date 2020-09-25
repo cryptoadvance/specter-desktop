@@ -139,11 +139,14 @@ Silently ignored! RPC error: {e}")
                             if wallet_name not in existing_names:
                                 # ok wallet is already there
                                 # we only need to update
-                                wallets[wallet_name] = Wallet.from_json(
-                                    wallets_files[wallet],
-                                    self.device_manager,
-                                    self
-                                )
+                                try:
+                                    wallets[wallet_name] = Wallet.from_json(
+                                        wallets_files[wallet],
+                                        self.device_manager,
+                                        self
+                                    )
+                                except Exception as e:
+                                    logger.warn(f"Failed to load wallet {wallet_name}: {e}")
                             else:
                                 # wallet is loaded and should stay
                                 keep_wallets.append(wallet_name)

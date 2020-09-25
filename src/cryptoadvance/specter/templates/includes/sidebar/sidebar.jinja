@@ -75,7 +75,14 @@
         {% elif specter.chain %}
             {{ sidebar_btn('singlesig_setup_wizard', 'Add new wallet') }}
         {% else %}
-            <p class="warning">&#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
+            <p class="warning">
+            &#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
+            {% if current_user.is_admin %}
+            <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="/settings/bitcoin_core">
+                <img src="/static/img/settings-status-bar.svg" style="width: 13px;"/>Configure Node
+            </a>
+            {% endif %}
+            </p>
         {% endif %}
 
         <div class="separator">
@@ -89,12 +96,13 @@
         </div>
         {{ sidebar_btn('new_device', 'Add new device') }}
         <p class="warning mobile-only">&#9432;<br><b>Specter "Watch Only" Mode.</b><br>You are using Specter from a small-screen device for which some functionalities, including sending funds and creating new wallets are not yet supported.</p>
+        <br>
         <div class="footer">
-            Brought to you by<br>
-            <a href="https://github.com/cryptoadvance/" target="_blank">
-                <img src="/static/img/ca.png">
+	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
+            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="/about">
+            About Specter<br>
+            <img src="/static/img/icon.png" style="width: 35px;"/>
             </a>
-	    <span>Specter Version: <strong>{{ specter.specter_version }}</strong></span>
         </div>
     </nav>
 </div>
