@@ -79,7 +79,7 @@ def load_jsons(folder, key=None):
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
         except Exception as e:
-            logger.error(f"Can't load json file {fname} at path {folder} because "+e)
+            logger.error(f"Can't load json file {fname} at path {folder} because {e}")
     return dd
 
 def set_loglevel(app, loglevel_string):
