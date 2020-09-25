@@ -92,7 +92,7 @@ def _delete_folder(path):
 
 def storage_callback():
     if os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
-        result = run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK"))
+        result = run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK").split(" "))
         if result["code"] != 0:
             logger.error("callback failed stdout: {}".format(result["out"]))
             logger.error("stderr {}".format(result["err"]))
