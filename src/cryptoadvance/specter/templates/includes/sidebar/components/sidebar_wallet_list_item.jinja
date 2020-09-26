@@ -24,48 +24,50 @@
             <div id="{{ wallet.alias }}_rescan_progress" style="width: {{ wallet.rescan_progress * 100 }}%"></div>
         </div>
         <script>
-            let walletRescanProgress = '{{ wallet.rescan_progress * 100 }}';
-            let walletRescanActive = true;
-            async function fetchWalletRescanProgress() {
-                try {
-                    const response = await fetch(
-                        '/wallets/{{ wallet.alias }}/get_wallet_rescan_progress',
-                        {
-                            method: 'GET'
+            (function(){
+                let walletRescanProgress = '{{ wallet.rescan_progress * 100 }}';
+                let walletRescanActive = true;
+                async function fetchWalletRescanProgress() {
+                    try {
+                        const response = await fetch(
+                            '/wallets/{{ wallet.alias }}/get_wallet_rescan_progress',
+                            {
+                                method: 'GET'
+                            }
+                        );
+                        let result = await response.json();
+                        walletRescanActive = result.active;
+                        walletRescanProgress = (parseFloat(result.progress) * 100).toFixed(2);
+                        let walletRescanData = document.getElementById('wallet_rescan_data');
+                        let walletRescanPercentsSettings = document.getElementById('{{ wallet.alias }}_wallet_rescan_percents');
+                        let walletRescanPercents = document.getElementById('{{ wallet.alias }}_balances_wallet_rescan_percents');
+                        if (walletRescanActive) {
+                            document.getElementById('{{ wallet.alias }}_rescan_progress').style.width = walletRescanProgress + '%';
+                            document.getElementById('{{ wallet.alias }}_sidebar_wallet_rescan_percents').innerHTML = walletRescanProgress;
+                            if (walletRescanPercents) {
+                                walletRescanPercents.innerHTML = walletRescanProgress;
+                            }
+                            if (walletRescanPercentsSettings) {
+                                walletRescanPercentsSettings.innerHTML = walletRescanProgress;
+                            }
+                            setTimeout(fetchWalletRescanProgress, 1000);
+                        } else {
+                            document.getElementById('{{ wallet.alias }}_rescan_progress').style.display = 'none';
+                            document.getElementById('{{ wallet.alias }}_sidebar_rescan_progress_container').style.display = 'none';
+                            if (walletRescanData) {
+                                walletRescanData.style.display = 'none';
+                            }
+                            if (walletRescanData || walletRescanPercents || walletRescanPercentsSettings) {
+                                location.reload();
+                            }
                         }
-                    );
-                    let result = await response.json();
-                    walletRescanActive = result.active;
-                    walletRescanProgress = (parseFloat(result.progress) * 100).toFixed(2);
-                    let walletRescanData = document.getElementById('wallet_rescan_data');
-                    let walletRescanPercentsSettings = document.getElementById('{{ wallet.alias }}_wallet_rescan_percents');
-                    let walletRescanPercents = document.getElementById('wallet_rescan_percents');
-                    if (walletRescanActive) {
-                        document.getElementById('{{ wallet.alias }}_rescan_progress').style.width = walletRescanProgress + '%';
-                        document.getElementById('{{ wallet.alias }}_sidebar_wallet_rescan_percents').innerHTML = walletRescanProgress;
-                        if (walletRescanPercents) {
-                            walletRescanPercents.innerHTML = walletRescanProgress;
-                        }
-                        if (walletRescanPercentsSettings) {
-                            walletRescanPercentsSettings.innerHTML = walletRescanProgress;
-                        }
-                    } else {
-                        document.getElementById('{{ wallet.alias }}_rescan_progress').style.display = 'none';
-                        document.getElementById('{{ wallet.alias }}_sidebar_rescan_progress_container').style.display = 'none';
-                        if (walletRescanData) {
-                            walletRescanData.style.display = 'none';
-                        }
-                        clearInterval(fetchWalletRescanInterval);
-                        if (walletRescanData || walletRescanPercents || walletRescanPercentsSettings) {
-                            location.reload();
-                        }
+                    } catch(e) {
+                        console.log('Caught error:', e);
+                        return { success: false, error: e };
                     }
-                } catch(e) {
-                    console.log('Caught error:', e);
-                    return { success: false, error: e };
                 }
-            }
-            let fetchWalletRescanInterval = setInterval(fetchWalletRescanProgress, 2000);
+                setTimeout(fetchWalletRescanProgress, 1000);
+            })();
         </script>
     {% endif %}
 {%- endmacro %}

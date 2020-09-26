@@ -70,19 +70,22 @@
                     utxoRescanActive = result.active;
                     utxoRescanProgress = result.progress;
                     let walletRescanData = document.getElementById('wallet_rescan_data');
-                    let walletRescanPercents = document.getElementById('wallet_rescan_percents');
+                    let walletRescanPercentsSettings = document.getElementById('wallet_rescan_percents');
+                    let walletRescanPercents = document.getElementById('{{ specter.utxorescanwallet }}_balances_wallet_rescan_percents');
                     if (utxoRescanActive) {
                         document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
                         if (walletRescanPercents) {
                             walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        } else if (walletRescanPercentsSettings) {
+                            walletRescanPercentsSettings.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
                         }
+                        setTimeout(fetchUTXORescanProgress, 1000);
                     } else {
                         document.getElementById('utxo_rescan_progress').style.display = 'none';
                         if (walletRescanData) {
                             walletRescanData.style.display = 'none';
                         }
-                        clearInterval(fetchUTXORescanInterval);
-                        if (walletRescanData || walletRescanPercents) {
+                        if (walletRescanData || walletRescanPercentsSettings) {
                             location.reload();
                         }
                     }
@@ -91,7 +94,7 @@
                     return { success: false, error: e };
                 }
             }
-            let fetchUTXORescanInterval = setInterval(fetchUTXORescanProgress, 2000);
+            setTimeout(fetchUTXORescanProgress, 1000);
         </script>
         {% endif %}
         <div class="separator">
