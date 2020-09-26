@@ -405,7 +405,7 @@ def general_settings():
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet['alias']
                     )
-                    wallet_obj.import_labels(wallet['labels'])
+                    wallet_obj.import_labels(wallet.get("labels", []))
                     try:
                         wallet_obj.rpc.rescanblockchain(
                             wallet['blockheight']

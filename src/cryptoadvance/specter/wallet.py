@@ -372,16 +372,18 @@ class Wallet():
             ("getaddressesbylabel", label)
             for label in labels
         ])
-        return [{ labels[i]: list(result['result'].keys()) } for i, result in enumerate(res)]
+        return { labels[i]: list(result['result'].keys()) for i, result in enumerate(res) }
     
     def import_labels(self, labels):
-        # format: [
-        #   {'label': ['address', 'address2']}
-        # ]
+        # format: 
+        #   {
+        #       'label1': ['address1', 'address2'],
+        #       'label2': ['address3', 'address4']
+        #   }
+        #
         rpc_calls = []
-        for label_row in labels:
-            label = list(label_row.keys())[0]
-            addresses = label_row[label]
+        for label in labels.keys():
+            addresses = labels[label]
             for address in addresses:
                 rpc_calls.append(("setlabel", address, label))
         self.rpc.multi(rpc_calls)
