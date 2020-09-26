@@ -469,6 +469,9 @@ class Wallet():
                     if requests_session.proxies.get('http', None) == 'socks5h://localhost:9050':
                         try:
                             renew_tor_ip()
+                            requests_session = requests.Session()
+                            requests_session.proxies['http'] = 'socks5h://localhost:9050'
+                            requests_session.proxies['https'] = 'socks5h://localhost:9050'
                         except Exception:
                             pass # just continue
                     if len(explorers) > 0:
