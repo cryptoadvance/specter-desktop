@@ -76,7 +76,7 @@ class Wallet():
             raise Exception(
                 'A device used by this wallet could not have been found!'
             )
-        self.sigs_required = sigs_required
+        self.sigs_required = int(sigs_required)
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
         self.manager = manager
@@ -928,11 +928,10 @@ class Wallet():
         """Calculates the weight of a signed input"""
         if self.is_multisig:
             input_size = 3 # OP_M OP_N ... OP_CHECKMULTISIG
-            for i in range(0, len(self.keys)):
-                # pubkey size
-                input_size += 34
-            for i in range(0, self.sigs_required):
-                input_size += 75 # max sig size
+            # pubkeys
+            input_size += 34 * len(self.keys)
+            # signatures
+            input_size += 75 * self.sigs_required
 
             if not self.recv_descriptor.startswith('wsh'):
                 # P2SH scriptsig: 22 00 20 <32-byte-hash>

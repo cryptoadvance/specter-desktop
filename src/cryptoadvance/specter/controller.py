@@ -16,8 +16,8 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import (alias, get_devices_with_keys_by_type, 
-                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+from .helpers import (alias, get_devices_with_keys_by_type,
+                      get_loglevel, run_shell, set_loglevel,
                       bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
 from .specter import Specter
@@ -210,7 +210,7 @@ def login():
                 app.logger.info("AUDIT: Failed to check password")
                 return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
             rpc = app.specter.rpc.clone()
-            rpc.passwd = request.form['password']
+            rpc.password = request.form['password']
             if rpc.test_connection():
                 app.login('admin')
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
@@ -453,7 +453,7 @@ def bitcoin_core_settings():
         return redirect("/")
     rpc = app.specter.config['rpc']
     user = rpc['user']
-    passwd = rpc['password']
+    password = rpc['password']
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
@@ -471,7 +471,7 @@ def bitcoin_core_settings():
             if autodetect:
                 datadir = request.form['datadir']
             user = request.form['username']
-            passwd = request.form['password']
+            password = request.form['password']
             port = request.form['port']
             host = request.form['host']
 
@@ -485,7 +485,7 @@ def bitcoin_core_settings():
             try:
                 test = app.specter.test_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
@@ -496,15 +496,17 @@ def bitcoin_core_settings():
                 err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
-                app.specter.update_rpc(
+                success = app.specter.update_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
                     autodetect=autodetect,
                     datadir=datadir
                 )
+                if not success:
+                    flash("Failed connecting to the node","error")
             app.specter.check()
 
     return render_template(
@@ -513,7 +515,7 @@ def bitcoin_core_settings():
         autodetect=autodetect,
         datadir=datadir,
         username=user,
-        password=passwd,
+        password=password,
         port=port,
         host=host,
         protocol=protocol,
@@ -1484,9 +1486,6 @@ def notify_upgrade():
         that there is an upgrade to specter.desktop
         :return the current version
     '''
-    version_info={}
-    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
-    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
-    if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
-    return version_info["current"]
+    if app.specter.version.upgrade:
+        flash(f"Upgrade notification: new version {app.specter.version.latest} is available.", "info")
+    return app.specter.version.current

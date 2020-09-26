@@ -1,4 +1,5 @@
 @ECHO OFF
+echo %1 > version.txt
 pip install -e ..
 pip install -r requirements.txt
 rmdir /s /q .\dist\
