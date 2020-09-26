@@ -35,30 +35,40 @@ def _write_json_file(content, path, lock=None):
     with open(path, "w") as f:
         json.dump(content, f, indent=4)
 
+
 def delete_json_file(path):
     if os.path.exists(path):
         os.remove(path)
     storage_callback()
 
+
 def write_devices(devices_json):
-    """ write all the devices into the specter-folder """
+    """ interpret a json as a list of devices and write them in the devices subfolder inside the specter-folder """
     with fslock:
         for device_json in devices_json:
-            _write_json_file(device_json, os.path.join(
-                    app.specter.device_manager.data_folder, "%s.json" % device_json["alias"]
-                ))
+            _write_json_file(
+                device_json,
+                os.path.join(
+                    app.specter.device_manager.data_folder,
+                    "%s.json" % device_json["alias"],
+                ),
+            )
     storage_callback()
 
 
-def write_wallet(wallet_alias, wallet):
+def write_wallet(wallet_json):
+    """interpret a json as wallet and writes it in the wallets subfolder inside the specter-folder.
+    overwrites it if existing.
+    """
     with fslock:
         with open(
             os.path.join(
-                app.specter.wallet_manager.working_folder, "%s.json" % wallet_alias
+                app.specter.wallet_manager.working_folder,
+                "%s.json" % wallet_json["alias"],
             ),
             "w",
         ) as file:
-            file.write(json.dumps(wallet, indent=4))
+            file.write(json.dumps(wallet_json, indent=4))
     storage_callback()
 
 
