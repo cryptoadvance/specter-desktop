@@ -351,14 +351,8 @@ def general_settings():
                 as_attachment=True
             )
         elif action == "restore":
-            if request.form['restoredevices']:
-                restore_devices = json.loads(request.form['restoredevices'])
-            else:
-                restore_devices = []
-            if request.form['restorewallets']:
-                restore_wallets = json.loads(request.form['restorewallets'])
-            else:
-                restore_wallets = []
+            restore_devices = json.loads(request.form.get("restoredevices", "[]"))
+            restore_wallets = json.loads(request.form.get("restorewallets", "[]"))
             for device in restore_devices:
                 with fslock:
                     with open(
