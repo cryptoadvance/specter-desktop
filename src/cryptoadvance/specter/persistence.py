@@ -6,7 +6,10 @@
 import os, json
 import threading
 import logging
+from contextlib import nullcontext
+from flask import current_app as app
 from .util.shell import run_shell
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,31 +30,23 @@ def write_json_file(content, path, lock=None):
     storage_callback()
 
 
+def _write_json_file(content, path, lock=None):
+    """ Internal method which won't trigger the callback """
+    with open(path, "w") as f:
+        json.dump(content, f, indent=4)
+
 def delete_json_file(path):
     if os.path.exists(path):
         os.remove(path)
     storage_callback()
 
-
-def _write_json_file(content, path, lock=None):
-    """ Internal method which won't trigger the callback """
-    if lock == None:
-        lock = fslock
-    with lock:
-        with open(path, "w") as f:
-            json.dump(content, f, indent=4)
-
-
-def write_devices(devices):
+def write_devices(devices_json):
     """ write all the devices into the specter-folder """
     with fslock:
-        with open(
-            os.path.join(
-                app.specter.device_manager.data_folder, "%s.json" % device["alias"]
-            ),
-            "w",
-        ) as file:
-            file.write(json.dumps(device, indent=4))
+        for device_json in devices_json:
+            _write_json_file(device_json, os.path.join(
+                    app.specter.device_manager.data_folder, "%s.json" % device_json["alias"]
+                ))
     storage_callback()
 
 
@@ -68,10 +63,13 @@ def write_wallet(wallet_alias, wallet):
 
 
 def write_device(device, fullpath):
-    with fslock:
-        with open(fullpath, "w") as file:
-            file.write(json.dumps(device.json, indent=4))
+    _write_device(device, fullpath)
     storage_callback()
+
+
+def _write_device(device, fullpath):
+    with open(fullpath, "w") as file:
+        file.write(json.dumps(device.json, indent=4))
 
 
 def delete_folder(path):
