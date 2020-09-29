@@ -488,6 +488,3 @@ class Specter:
         memory_file.seek(0)
         return memory_file
 
-    def restore_from_backup(self):
-        pass
-
