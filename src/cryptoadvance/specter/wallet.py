@@ -381,12 +381,8 @@ class Wallet():
         #       'label2': ['address3', 'address4']
         #   }
         #
-        rpc_calls = []
-        for label in labels.keys():
-            addresses = labels[label]
-            for address in addresses:
-                rpc_calls.append(("setlabel", address, label))
-        if len(rpc_calls)>0:
+        rpc_calls = [("setlabel", address, label) for label, addresses in labels.items() for address in addresses]
+        if rpc_calls:
             self.rpc.multi(rpc_calls)
 
     def _rescan_utxo_thread(self, explorer=None):
