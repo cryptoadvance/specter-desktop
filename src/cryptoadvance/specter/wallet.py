@@ -228,8 +228,10 @@ class Wallet():
     def getdata(self):
         try:
             self.utxo = parse_utxo(self, self.rpc.listunspent(0))
+            self.utxo_labels_list = self.getlabels(utxo["address"] for utxo in self.utxo)
         except Exception:
             self.utxo = []
+            self.utxo_labels_list = {}
         self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
@@ -624,11 +626,12 @@ class Wallet():
         return sum(balancelist)
 
     def utxo_on_label(self, label):
-        utxo = [tx for tx in self.utxo if self.getlabel(tx["address"]) == label]
+        utxo = [tx for tx in self.utxo if self.utxo_labels_list[tx["address"]] == label]
+
         return len(utxo)
 
     def balance_on_label(self, label):
-        balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
+        balancelist = [utxo["amount"] for utxo in self.utxo if self.utxo_labels_list[utxo["address"]] == label]
         return sum(balancelist)
 
     def addresses_on_label(self, label):
@@ -640,28 +643,49 @@ class Wallet():
     def is_current_address_used(self):
         return self.balance_on_address(self.address) > 0
 
-    @property
-    def utxo_addresses(self):
-        return list(dict.fromkeys([utxo["address"] for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
+    def utxo_addresses(self, idx=0, wallet_utxo_batch=100):
+        return list(
+            dict.fromkeys(
+                list(reversed([
+                    utxo["address"] for utxo in sorted(
+                        self.utxo, key = lambda utxo: utxo["time"]
+                    )
+                ]))[(wallet_utxo_batch * idx):(wallet_utxo_batch * (idx + 1))]
+            )
+        )
 
-    @property
-    def utxo_labels(self):
-        return list(dict.fromkeys([self.getlabel(utxo["address"]) for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
+    def utxo_labels(self, idx=0, wallet_utxo_batch=100):
+        return list(
+            dict.fromkeys(
+                list(reversed([
+                    self.utxo_labels_list[utxo["address"]] for utxo in sorted(
+                        self.utxo, key = lambda utxo: utxo["time"]
+                    )
+                ]))[(wallet_utxo_batch * idx):(wallet_utxo_batch * (idx + 1))]
+            )
+        )
 
     def setlabel(self, address, label):
         self.rpc.setlabel(address, label)
 
     def getlabel(self, address):
-        address_info = self.rpc.getaddressinfo(address)
-        # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
-        label = address_info["labels"][0] if (
-            "labels" in address_info 
-            and (isinstance(address_info["labels"], list) 
-                and len(address_info["labels"]) > 0) 
-            and "label" not in address_info) else address
-        if label == "":
-            label = address
-        return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
+        return self.getlabels([address])[address]
+
+    def getlabels(self, addresses):
+        labels = {}
+        addresses_infos = self.rpc.multi([('getaddressinfo', address) for address in addresses])
+        for address_info in addresses_infos:
+            address_info = address_info['result']
+            # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
+            label = address_info["labels"][0] if (
+                "labels" in address_info 
+                and (isinstance(address_info["labels"], list) 
+                    and len(address_info["labels"]) > 0) 
+                and "label" not in address_info) else address_info["address"]
+            if label == "":
+                label = address_info["address"]
+            labels[address_info["address"]] = address_info["label"] if "label" in address_info and address_info["label"] != "" else label
+        return labels
 
     def get_address_name(self, address, addr_idx):
         if self.getlabel(address) == address and addr_idx > -1:
@@ -698,20 +722,12 @@ class Wallet():
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
 
     @property
-    def active_addresses(self):
-        return list(dict.fromkeys(self.addresses + self.utxo_addresses))
-
-    @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0, self.change_index + 1)]
 
     @property
     def wallet_addresses(self):
         return self.addresses + self.change_addresses
-
-    @property
-    def labels(self):
-        return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
     def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=1.0, selected_coins=[], readonly=False):
         """

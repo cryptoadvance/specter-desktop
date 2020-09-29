@@ -183,9 +183,9 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     assert wallet.balance_on_address(address) == address_balance
     assert wallet.balance_on_label('Random label') == address_balance
     assert wallet.addresses_on_label('Random label') == [address]
-    assert wallet.utxo_addresses == [address]
-    assert wallet.utxo_labels == ['Random label']
-    assert wallet.utxo_addresses == [address]
+    assert wallet.utxo_addresses() == [address]
+    assert wallet.utxo_labels() == ['Random label']
+    assert wallet.utxo_addresses() == [address]
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, '')
@@ -201,9 +201,9 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     assert wallet.is_current_address_used
     assert wallet.utxo_on_address(address) == 20
     assert wallet.balance_on_address(new_address) == wallet.fullbalance - address_balance
-    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
-    assert sorted(wallet.utxo_labels) == sorted(['Random label', new_address])
-    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
+    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
+    assert sorted(wallet.utxo_labels()) == sorted(['Random label', new_address])
+    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
     assert wallet.get_address_name(new_address, -1) == new_address
     assert wallet.get_address_name(new_address, 5) == 'Address #5'
     assert wallet.get_address_name(address, 5) == 'Random label'
@@ -212,10 +212,9 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     third_address = wallet.getnewaddress()
 
     wallet.getdata()
-    assert sorted(wallet.labels) == sorted(['Random label', new_address, 'Address #2'])
-    assert sorted(wallet.utxo_labels) == sorted(['Random label', new_address])
+    assert sorted(wallet.utxo_labels()) == sorted(['Random label', new_address])
     assert sorted(wallet.addresses) == sorted([address, new_address, third_address])
-    assert sorted(wallet.utxo_addresses) == sorted([address, new_address])
+    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
 
     wallet.setlabel(third_address, 'Random label')
     wallet.getdata()
@@ -238,8 +237,6 @@ def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, de
     change_address = wallet.change_address
     assert wallet.addresses == [address]
     assert wallet.change_addresses == [change_address]
-    assert wallet.active_addresses == [address]
-    assert wallet.labels == ['Address #0']
 
     wallet.rpc.generatetoaddress(20, change_address)
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
@@ -251,8 +248,5 @@ def test_wallet_change_addresses(bitcoin_regtest, devices_filled_data_folder, de
     # This will not work here since Bitcoin Core doesn't count mining rewards in `getreceivedbyaddress`
     # See: https://github.com/bitcoin/bitcoin/issues/14654
 
-    assert wallet.active_addresses == [address, change_address]
-    # labels should return only active addresses
-    assert wallet.labels == ['Address #0', 'Change #0']
 
 # TODO: Add more tests of the Wallet object

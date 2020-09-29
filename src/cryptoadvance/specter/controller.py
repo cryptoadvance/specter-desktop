@@ -1026,6 +1026,7 @@ def wallet_tx_utxo(wallet_alias):
         app.logger.error("SpecterError while wallet_addresses: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     viewtype = 'address' if request.args.get('view') != 'label' else 'label'
+    idx = int(request.args.get('idx', default=0))
     if request.method == "POST":
         action = request.form['action']
         if action == "updatelabel":
@@ -1037,7 +1038,16 @@ def wallet_tx_utxo(wallet_alias):
                 for address in wallet.addresses_on_label(account):
                     wallet.setlabel(address, label)
                 wallet.getdata()
-    return render_template("wallet/history/utxo/wallet_utxo.jinja", wallet_alias=wallet_alias, wallet=wallet, history=False, viewtype=viewtype, specter=app.specter, rand=rand)
+    return render_template(
+        "wallet/history/utxo/wallet_utxo.jinja",
+        idx=idx,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        history=False,
+        viewtype=viewtype,
+        specter=app.specter,
+        rand=rand
+    )
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
