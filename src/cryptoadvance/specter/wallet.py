@@ -536,10 +536,11 @@ class Wallet():
             self.save_to_file()
         return address
 
-    def get_address(self, index, change=False):
-        pool = self.change_keypool if change else self.keypool
-        if pool < index + self.GAP_LIMIT:
-            self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
+    def get_address(self, index, change=False, check_keypool=True):
+        if check_keypool:
+            pool = self.change_keypool if change else self.keypool
+            if pool < index + self.GAP_LIMIT:
+                self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         if self.is_multisig:
             try:
@@ -634,6 +635,16 @@ class Wallet():
             self.change_keypool = end
         else:
             self.keypool = end
+        self.rpc.multi([
+            (
+                "setlabel",
+                self.get_address(i, change=change, check_keypool=False),
+                "{} #{}".format(
+                    "Change" if change else "Address", i
+                )
+            )
+            for i in range(start, end)
+        ])
         self.save_to_file()
         return end
 
