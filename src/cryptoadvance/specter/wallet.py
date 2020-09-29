@@ -272,7 +272,8 @@ class Wallet():
             "pending_psbts": self.pending_psbts,
             "fullpath": self.fullpath,
             "last_block": self.last_block,
-            "blockheight": self.blockheight
+            "blockheight": self.blockheight,
+            "labels": self.export_labels()
         }
 
     def save_to_file(self):
@@ -362,6 +363,27 @@ class Wallet():
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
+
+    def export_labels(self):
+        labels = self.rpc.listlabels()
+        if "" in labels:
+            labels.remove("")
+        res = self.rpc.multi([
+            ("getaddressesbylabel", label)
+            for label in labels
+        ])
+        return { labels[i]: list(result['result'].keys()) for i, result in enumerate(res) }
+    
+    def import_labels(self, labels):
+        # format: 
+        #   {
+        #       'label1': ['address1', 'address2'],
+        #       'label2': ['address3', 'address4']
+        #   }
+        #
+        rpc_calls = [("setlabel", address, label) for label, addresses in labels.items() for address in addresses]
+        if rpc_calls:
+            self.rpc.multi(rpc_calls)
 
     def _rescan_utxo_thread(self, explorer=None):
         # rescan utxo is pretty fast,

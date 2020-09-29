@@ -3,15 +3,18 @@ from typing import Dict, Optional, Union
 from hwilib.serializations import PSBT
 
 from hwilib.hwwclient import HardwareWalletClient
-from hwilib.errors import (ActionCanceledError, BadArgumentError, 
-                           DeviceBusyError, DeviceFailureError, 
+from hwilib.errors import (ActionCanceledError, BadArgumentError,
+                           DeviceBusyError, DeviceFailureError,
                            UnavailableActionError)
 from hwilib.base58 import xpub_main_2_test
 from hwilib import base58
+from binascii import b2a_base64
 
 import serial
 import serial.tools.list_ports
-import socket, time
+import socket
+import time
+
 
 class SpecterClient(HardwareWalletClient):
     """Create a client for a HID device that has already been opened.
@@ -21,7 +24,10 @@ class SpecterClient(HardwareWalletClient):
     """
     # timeout large enough to handle xpub derivations
     TIMEOUT = 3
-    def __init__(self, path: str, password:str="", expert:bool=False) -> None:
+
+    def __init__(
+        self, path: str, password: str = "", expert: bool = False
+    ) -> None:
         super().__init__(path, password, expert)
         self.simulator = (":" in path)
         if self.simulator:
@@ -29,7 +35,7 @@ class SpecterClient(HardwareWalletClient):
         else:
             self.dev = SpecterUSBDevice(path)
 
-    def query(self, data: str, timeout:Optional[float] = None) -> str:
+    def query(self, data: str, timeout: Optional[float] = None) -> str:
         """Send a text-based query to the device and get back the response"""
         res = self.dev.query(data, timeout)
         if res == "error: User cancelled":
@@ -51,7 +57,7 @@ class SpecterClient(HardwareWalletClient):
         """
         # this should be fast
         xpub = self.query("xpub %s" % bip32_path, timeout=self.TIMEOUT)
-        # Specter returns xpub with a prefix 
+        # Specter returns xpub with a prefix
         # for a network currently selected on the device
         if self.is_testnet:
             return {'xpub': xpub_main_2_test(xpub)}
@@ -67,16 +73,32 @@ class SpecterClient(HardwareWalletClient):
         signed_tx = self.query("sign %s" % psbt.serialize())
         return {'psbt': signed_tx}
 
-    def sign_message(self, message: str, bip32_path: str) -> Dict[str, str]:
+    def sign_message(
+        self, message: Union[str, bytes], bip32_path: str
+    ) -> Dict[str, str]:
         """Sign a message (bitcoin message signing).
-
         Sign the message according to the bitcoin message signing standard.
-
         Retrieve the signing key at the specified BIP32 derivation path.
-
         Return {"signature": <base64 signature string>}.
         """
-        sig = self.query('signmessage %s %s' % (bip32_path, message))
+        # convert message to bytes
+        msg = message
+        if not isinstance(message, bytes):
+            msg = message.encode()
+        # check if ascii - we only support ascii characters display
+        try:
+            msg.decode("ascii")
+            fmt = "ascii"
+        except:
+            fmt = "base64"
+        # check if there is \r or \n in the message
+        # in this case we need to encode to base64
+        if b"\r" in msg or b"\n" in msg:
+            fmt = "base64"
+        # convert to base64 if necessary
+        if fmt == "base64":
+            msg = b2a_base64(msg).strip()
+        sig = self.query(f"signmessage {bip32_path} {fmt}:{msg.decode()}")
         return {"signature": sig}
 
     def display_address(
@@ -204,13 +226,14 @@ class SpecterClient(HardwareWalletClient):
 
     ############ extra functions Specter supports ############
 
-    def get_random(self, num_bytes:int=32):
+    def get_random(self, num_bytes: int = 32):
         if num_bytes < 0 or num_bytes > 10000:
-            raise BadArgumentError("We can only get up to 10k bytes of random data")
+            raise BadArgumentError(
+                "We can only get up to 10k bytes of random data")
         res = self.query("getrandom %d" % num_bytes)
         return bytes.fromhex(res)
 
-    def import_wallet(self, name:str, descriptor:str):
+    def import_wallet(self, name: str, descriptor: str):
         # TODO: implement
         pass
 
@@ -222,9 +245,9 @@ def enumerate(password=''):
     """
     results = []
     # find ports with micropython's VID
-    ports = [port.device for port 
-                         in serial.tools.list_ports.comports()
-                         if is_micropython(port)]
+    ports = [port.device for port
+             in serial.tools.list_ports.comports()
+             if is_micropython(port)]
     try:
         # check if there is a simulator on port 8789
         # and we can connect to it
@@ -255,20 +278,24 @@ def enumerate(password=''):
 
 ############# Helper functions and base classes ##############
 
+
 def xpub_test_2_main(xpub: str) -> str:
     data = base58.decode(xpub)
     main_data = b'\x04\x88\xb2\x1e' + data[4:-4]
     checksum = base58.hash256(main_data)[0:4]
     return base58.encode(main_data + checksum)
 
+
 def is_micropython(port):
     return "VID:PID=F055:" in port.hwid.upper()
+
 
 class SpecterBase:
     """Class with common constants and command encoding"""
     EOL = b"\r\n"
     ACK = b"ACK"
     ACK_TIMOUT = 1
+
     def prepare_cmd(self, data):
         """
         Prepends command with 2*EOL and appends EOL at the end.
@@ -277,11 +304,13 @@ class SpecterBase:
         """
         return self.EOL*2 + data.encode('utf-8') + self.EOL
 
+
 class SpecterUSBDevice(SpecterBase):
     """
     Base class for USB device.
     Implements a simple query command over serial
     """
+
     def __init__(self, path):
         self.ser = serial.Serial(baudrate=115200, timeout=30)
         self.ser.port = path
@@ -315,11 +344,13 @@ class SpecterUSBDevice(SpecterBase):
         self.ser.close()
         return res.decode()
 
+
 class SpecterSimulator(SpecterBase):
     """
     Base class for the simulator.
     Implements a simple query command over tcp/ip socket
     """
+
     def __init__(self, path):
         arr = path.split(":")
         self.sock_settings = (arr[0], int(arr[1]))
