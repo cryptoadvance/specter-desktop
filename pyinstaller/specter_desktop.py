@@ -388,10 +388,12 @@ def init_desktop_app():
     # This is the place to uncomment if we ever have issues like
     # https://github.com/cryptoadvance/specter-desktop/issues/373 again
     # So maybe let's keep it in here.
-    # import psutil
-    # print("-----------------------------------------------------------------------")
-    # print(psutil.Process().memory_maps())
-    # print("-----------------------------------------------------------------------")
+    if os.environ.get("DEP_REPORTING"):
+        import psutil
+        print("---------------------------DEP_REPORTING--------------------------------------------")
+        for item in psutil.Process().memory_maps():
+            print(item.path)
+        print("-----------------------------DEP_REPORTING(end)-------------------------------------")
     
     # Create the icon
     icon = QIcon(os.path.join(
