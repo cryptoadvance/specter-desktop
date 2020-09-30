@@ -1731,6 +1731,7 @@ def device(device_alias):
 
 ############### filters ##################
 
+
 @app.template_filter("ascii20")
 def ascii20(name):
     return to_ascii20(name)
