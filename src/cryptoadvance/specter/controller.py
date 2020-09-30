@@ -1083,6 +1083,25 @@ def txout_set_info():
     res = app.specter.rpc.gettxoutsetinfo()
     return res
 
+@app.route('/get_scantxoutset_status')
+@login_required
+def get_scantxoutset_status():
+    status = app.specter.rpc.scantxoutset('status', [])
+    app.specter._info["utxorescan"] = status.get('progress', None) if status else None
+    if app.specter._info["utxorescan"] is None:
+        app.specter.utxorescanwallet = None
+    return { 'active': app.specter._info["utxorescan"] is not None, 'progress': app.specter._info["utxorescan"] }
+
+@app.route('/wallets/<wallet_alias>/get_wallet_rescan_progress', methods=['GET', 'POST'])
+@login_required
+def get_wallet_rescan_progress(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet.get_info()
+        return { 'active': wallet.rescan_progress is not None, 'progress': wallet.rescan_progress }
+    except SpecterError as se:
+        app.logger.error("SpecterError while get_wallet_rescan_progress: %s" % se)
+        return {}
 
 @app.route('/wallets/<wallet_alias>/send')
 @login_required
