@@ -33,6 +33,10 @@ def get_rpc(conf, old_rpc=None):
         if len(rpc_conf_arr) > 0:
             rpc = BitcoinRPC(**rpc_conf_arr[0])
     else:
+        # if autodetect is disabled and port is not defined
+        # we use default port 8332
+        if not conf.get("port", None):
+            conf["port"] = 8332
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
