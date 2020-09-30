@@ -1,9 +1,31 @@
 from PyQt5.QtGui import QIcon, QCursor, QDesktopServices
-from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, \
-    QDialog, QDialogButtonBox, QVBoxLayout, QRadioButton, QLineEdit, \
-    QFileDialog, QLabel, QWidget
-from PyQt5.QtCore import QRunnable, QThreadPool, QSettings, QUrl, \
-    Qt, pyqtSignal, pyqtSlot, QObject, QSize, QPoint, QEvent
+from PyQt5.QtWidgets import (
+    QApplication,
+    QSystemTrayIcon,
+    QMenu,
+    QAction,
+    QDialog,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QRadioButton,
+    QLineEdit,
+    QFileDialog,
+    QLabel,
+    QWidget,
+)
+from PyQt5.QtCore import (
+    QRunnable,
+    QThreadPool,
+    QSettings,
+    QUrl,
+    Qt,
+    pyqtSignal,
+    pyqtSlot,
+    QObject,
+    QSize,
+    QPoint,
+    QEvent,
+)
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import sys
@@ -24,8 +46,9 @@ running = True
 path = os.path.dirname(os.path.abspath(__file__))
 is_specterd_running = False
 specterd_thread = None
-settings = QSettings('cryptoadvance', 'specter')
+settings = QSettings("cryptoadvance", "specter")
 wait_for_specterd_process = None
+
 
 def resource_path(relative_path):
     try:
@@ -36,7 +59,6 @@ def resource_path(relative_path):
 
 
 class SpecterPreferencesDialog(QDialog):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -60,30 +82,23 @@ class SpecterPreferencesDialog(QDialog):
             placeholderText="Please enter the remote Specter URL"
         )
 
-        is_remote_mode = settings.value(
-            'remote_mode',
-            defaultValue=False,
-            type=bool
-        )
+        is_remote_mode = settings.value("remote_mode", defaultValue=False, type=bool)
         if is_remote_mode:
             self.mode_remote.setChecked(True)
         else:
             self.mode_local.setChecked(True)
             self.specter_url.hide()
 
-        settings.setValue('remote_mode_temp', is_remote_mode)
-        remote_specter_url = settings.value(
-            'specter_url',
-            defaultValue='',
-            type=str
-        ) if is_remote_mode else ''
-        settings.setValue('specter_url_temp', remote_specter_url)
+        settings.setValue("remote_mode_temp", is_remote_mode)
+        remote_specter_url = (
+            settings.value("specter_url", defaultValue="", type=str)
+            if is_remote_mode
+            else ""
+        )
+        settings.setValue("specter_url_temp", remote_specter_url)
         self.specter_url.setText(remote_specter_url)
         self.specter_url.textChanged.connect(
-            lambda: settings.setValue(
-                'specter_url_temp',
-                self.specter_url.text()
-            )
+            lambda: settings.setValue("specter_url_temp", self.specter_url.text())
         )
 
         self.layout.addWidget(self.mode_local)
@@ -96,18 +111,21 @@ class SpecterPreferencesDialog(QDialog):
 
     def toggle_mode(self):
         if self.mode_local.isChecked():
-            settings.setValue('remote_mode_temp', False)
+            settings.setValue("remote_mode_temp", False)
             self.specter_url.hide()
         else:
-            settings.setValue('remote_mode_temp', True)
+            settings.setValue("remote_mode_temp", True)
             self.specter_url.show()
+
 
 # Cross communication between threads via signals
 # https://www.learnpyqt.com/courses/concurrent-execution/multithreading-pyqt-applications-qthreadpool/
 
+
 class ProcessSignals(QObject):
     error = pyqtSignal()
     result = pyqtSignal()
+
 
 class ProcessRunnable(QRunnable):
     def __init__(self, menu):
@@ -120,25 +138,31 @@ class ProcessRunnable(QRunnable):
         menu = self.menu
         start_specterd_menu = menu.actions()[0]
         start_specterd_menu.setEnabled(False)
-        start_specterd_menu.setText('Starting up Specter{} daemon...'.format(
-                    ' HWIBridge' if settings.value(
-                        "remote_mode", defaultValue=False, type=bool
-                    ) else ''
-                ))
+        start_specterd_menu.setText(
+            "Starting up Specter{} daemon...".format(
+                " HWIBridge"
+                if settings.value("remote_mode", defaultValue=False, type=bool)
+                else ""
+            )
+        )
         while running:
             is_remote_mode = settings.value(
-                        "remote_mode", defaultValue=False, type=bool
+                "remote_mode", defaultValue=False, type=bool
             )
             try:
                 if is_remote_mode:
-                    requests.get("http://localhost:25441/hwi/settings", allow_redirects=False)
+                    requests.get(
+                        "http://localhost:25441/hwi/settings", allow_redirects=False
+                    )
                 else:
                     requests.get("http://localhost:25441/login", allow_redirects=False)
-                start_specterd_menu.setText('Specter{} daemon is running'.format(
-                    ' HWIBridge' if settings.value(
-                        "remote_mode", defaultValue=False, type=bool
-                    ) else ''
-                ))
+                start_specterd_menu.setText(
+                    "Specter{} daemon is running".format(
+                        " HWIBridge"
+                        if settings.value("remote_mode", defaultValue=False, type=bool)
+                        else ""
+                    )
+                )
                 toggle_specterd_status(menu)
                 self.signals.result.emit()
                 return
@@ -149,11 +173,14 @@ class ProcessRunnable(QRunnable):
     def start(self):
         QThreadPool.globalInstance().start(self)
 
+
 def watch_specterd(menu, view, first_time=False):
     global specterd_thread, wait_for_specterd_process
     try:
         wait_for_specterd_process = ProcessRunnable(menu)
-        wait_for_specterd_process.signals.result.connect(lambda: open_webview(view, first_time))
+        wait_for_specterd_process.signals.result.connect(
+            lambda: open_webview(view, first_time)
+        )
         wait_for_specterd_process.signals.error.connect(lambda: print("error"))
         wait_for_specterd_process.start()
     except Exception as e:
@@ -175,11 +202,13 @@ def toggle_specterd_status(menu):
         open_webview_menu.setEnabled(True)
         open_browser_menu.setEnabled(True)
     else:
-        start_specterd_menu.setText('Start Specter{} daemon'.format(
-                ' HWIBridge' if settings.value(
-                    "remote_mode", defaultValue=False, type=bool
-                ) else ''
-            ))
+        start_specterd_menu.setText(
+            "Start Specter{} daemon".format(
+                " HWIBridge"
+                if settings.value("remote_mode", defaultValue=False, type=bool)
+                else ""
+            )
+        )
         start_specterd_menu.setEnabled(True)
         open_webview_menu.setEnabled(False)
         open_browser_menu.setEnabled(False)
@@ -191,71 +220,61 @@ def quit_specter(app):
     running = False
     app.quit()
 
+
 def open_settings():
     dlg = SpecterPreferencesDialog()
     if dlg.exec_():
         is_remote_mode = settings.value(
-            'remote_mode_temp',
-            defaultValue=False,
-            type=bool
+            "remote_mode_temp", defaultValue=False, type=bool
         )
-        settings.setValue(
-            'remote_mode',
-            is_remote_mode
-        )
+        settings.setValue("remote_mode", is_remote_mode)
 
         specter_url_temp = settings.value(
-            'specter_url_temp',
-            defaultValue='http://localhost:25441/',
-            type=str
+            "specter_url_temp", defaultValue="http://localhost:25441/", type=str
         )
         if not specter_url_temp.endswith("/"):
             specter_url_temp += "/"
         # missing schema?
         if "://" not in specter_url_temp:
-            specter_url_temp = "http://"+specter_url_temp
+            specter_url_temp = "http://" + specter_url_temp
 
         settings.setValue(
-            'specter_url',
-            specter_url_temp if is_remote_mode else 'http://localhost:25441/'
+            "specter_url",
+            specter_url_temp if is_remote_mode else "http://localhost:25441/",
         )
 
         hwibridge_settings_path = os.path.join(
-            os.path.expanduser(DATA_FOLDER),
-            "hwi_bridge_config.json"
+            os.path.expanduser(DATA_FOLDER), "hwi_bridge_config.json"
         )
 
         if is_remote_mode:
-            config = {
-                'whitelisted_domains': 'http://127.0.0.1:25441/'
-            }
+            config = {"whitelisted_domains": "http://127.0.0.1:25441/"}
             if os.path.isfile(hwibridge_settings_path):
                 with open(hwibridge_settings_path, "r") as f:
                     file_config = json.loads(f.read())
                     deep_update(config, file_config)
             with open(hwibridge_settings_path, "w") as f:
-                if 'whitelisted_domains' in config:
-                    whitelisted_domains = ''
-                    if specter_url_temp not in config[
-                        'whitelisted_domains'
-                    ].split():
-                        config['whitelisted_domains'] += ' ' + specter_url_temp
-                    for url in config['whitelisted_domains'].split():
-                        if not url.endswith("/") and url != '*':
+                if "whitelisted_domains" in config:
+                    whitelisted_domains = ""
+                    if specter_url_temp not in config["whitelisted_domains"].split():
+                        config["whitelisted_domains"] += " " + specter_url_temp
+                    for url in config["whitelisted_domains"].split():
+                        if not url.endswith("/") and url != "*":
                             # make sure the url end with a "/"
                             url += "/"
-                        whitelisted_domains += url.strip() + '\n'
-                    config['whitelisted_domains'] = whitelisted_domains
+                        whitelisted_domains += url.strip() + "\n"
+                    config["whitelisted_domains"] = whitelisted_domains
                 f.write(json.dumps(config, indent=4))
         # TODO: Add PORT setting
 
+
 def open_webview(view, first_time=False):
     url = settings.value("specter_url", type=str).strip("/")
-    if first_time and settings.value('remote_mode', defaultValue=False, type=bool):
+    if first_time and settings.value("remote_mode", defaultValue=False, type=bool):
         url += "/settings/hwi"
     # missing schema?
     if "://" not in url:
-        url = "http://"+url
+        url = "http://" + url
     # if https:// or .onion - use browser
     if "https://" in url or ".onion" in url:
         webbrowser.open(settings.value("specter_url", type=str), new=1)
@@ -270,8 +289,10 @@ def open_webview(view, first_time=False):
         getattr(view, "raise")()
         view.activateWindow()
 
+
 class WebEnginePage(QWebEnginePage):
     """Web page"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.featurePermissionRequested.connect(self.onFeaturePermissionRequested)
@@ -285,10 +306,9 @@ class WebEnginePage(QWebEnginePage):
     def onDownloadRequest(self, item):
         """Catch dowload files requests"""
         options = QFileDialog.Options()
-        path = QFileDialog.getSaveFileName(None,
-                        "Where to save?",
-                        item.path(),
-                        options=options)[0]
+        path = QFileDialog.getSaveFileName(
+            None, "Where to save?", item.path(), options=options
+        )[0]
         if path:
             item.setPath(path)
             item.accept()
@@ -307,8 +327,10 @@ class WebEnginePage(QWebEnginePage):
         QDesktopServices.openUrl(url)
         page.deleteLater()
 
+
 class WebView(QWidget):
     """Window with the web browser"""
+
     def __init__(self, tray, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setStyleSheet("background-color:#263044;")
@@ -324,7 +346,7 @@ class WebView(QWidget):
         vbox.addWidget(self.progress, stretch=0)
         vbox.addWidget(self.browser)
         vbox.setSpacing(0)
-        vbox.setContentsMargins(0,0,0,0)
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
         self.resize(settings.value("size", QSize(1200, 900)))
         self.move(settings.value("pos", QPoint(50, 50)))
@@ -343,7 +365,7 @@ class WebView(QWidget):
 
     def loadProgressHandler(self, progress):
         # just changes opacity over time for now
-        alpha = int(time.time()*100)%100
+        alpha = int(time.time() * 100) % 100
         self.progress.setStyleSheet(f"background-color:rgba(75,140,26,{alpha});")
 
     def loadFinishedHandler(self, *args, **kwargs):
@@ -360,12 +382,15 @@ class WebView(QWidget):
         settings.setValue("size", self.size())
         settings.setValue("pos", self.pos())
 
-        if settings.value('first_time_close', defaultValue=True, type=bool):
-            settings.setValue('first_time_close', False)
-            self.tray.showMessage("Specter is still running!",
-                                  "Use tray icon to quit or reopen",
-                                  self.tray.icon())
+        if settings.value("first_time_close", defaultValue=True, type=bool):
+            settings.setValue("first_time_close", False)
+            self.tray.showMessage(
+                "Specter is still running!",
+                "Use tray icon to quit or reopen",
+                self.tray.icon(),
+            )
         super().closeEvent(*args, **kwargs)
+
 
 class Application(QApplication):
     def event(self, event):
@@ -373,6 +398,7 @@ class Application(QApplication):
         if event and event.type() in [QEvent.Close, 20]:
             quit_specter(self)
         return False
+
 
 def init_desktop_app():
     app = Application([])
@@ -390,16 +416,18 @@ def init_desktop_app():
     # So maybe let's keep it in here.
     if os.environ.get("DEP_REPORTING"):
         import psutil
-        print("---------------------------DEP_REPORTING--------------------------------------------")
+
+        print(
+            "---------------------------DEP_REPORTING--------------------------------------------"
+        )
         for item in psutil.Process().memory_maps():
             print(item.path)
-        print("-----------------------------DEP_REPORTING(end)-------------------------------------")
-    
+        print(
+            "-----------------------------DEP_REPORTING(end)-------------------------------------"
+        )
+
     # Create the icon
-    icon = QIcon(os.path.join(
-        resource_path('icons'),
-        'icon.png'
-    ))
+    icon = QIcon(os.path.join(resource_path("icons"), "icon.png"))
     # Create the tray
     tray = QSystemTrayIcon()
     tray.setIcon(icon)
@@ -410,11 +438,13 @@ def init_desktop_app():
 
     # Create the menu
     menu = QMenu()
-    start_specterd_menu = QAction("Start Specter{} daemon".format(
-                ' HWIBridge' if settings.value(
-                    "remote_mode", defaultValue=False, type=bool
-                ) else ''
-            ))
+    start_specterd_menu = QAction(
+        "Start Specter{} daemon".format(
+            " HWIBridge"
+            if settings.value("remote_mode", defaultValue=False, type=bool)
+            else ""
+        )
+    )
     start_specterd_menu.triggered.connect(lambda: watch_specterd(menu, view))
     menu.addAction(start_specterd_menu)
 
@@ -443,11 +473,11 @@ def init_desktop_app():
     app.setWindowIcon(icon)
 
     # Setup settings
-    first_time = settings.value('first_time', defaultValue=True, type=bool)
+    first_time = settings.value("first_time", defaultValue=True, type=bool)
     if first_time:
-        settings.setValue('first_time', False)
-        settings.setValue('remote_mode', False)
-        settings.setValue('specter_url', "http://localhost:25441/")
+        settings.setValue("first_time", False)
+        settings.setValue("remote_mode", False)
+        settings.setValue("specter_url", "http://localhost:25441/")
         open_settings()
 
     # start server

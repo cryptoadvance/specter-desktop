@@ -1,6 +1,6 @@
 import hashlib
 
-BASE58_ALPHABET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+BASE58_ALPHABET = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def double_sha256(s):
@@ -15,9 +15,9 @@ def encode_base58(s):
             count += 1
         else:
             break
-    prefix = b'1' * count
+    prefix = b"1" * count
     # convert from binary to hex, then hex to integer
-    num = int.from_bytes(s, 'big')
+    num = int.from_bytes(s, "big")
     result = bytearray()
     while num > 0:
         num, mod = divmod(num, 58)
@@ -27,20 +27,21 @@ def encode_base58(s):
 
 
 def encode_base58_checksum(s):
-    return encode_base58(s + double_sha256(s)[:4]).decode('ascii')
+    return encode_base58(s + double_sha256(s)[:4]).decode("ascii")
 
 
 def decode_base58(s, num_bytes=82, strip_leading_zeros=False):
     num = 0
-    for c in s.encode('ascii'):
+    for c in s.encode("ascii"):
         num *= 58
         num += BASE58_ALPHABET.index(c)
-    combined = num.to_bytes(num_bytes, byteorder='big')
+    combined = num.to_bytes(num_bytes, byteorder="big")
     if strip_leading_zeros:
         while combined[0] == 0:
             combined = combined[1:]
     checksum = combined[-4:]
     if double_sha256(combined[:-4])[:4] != checksum:
-        raise ValueError('bad address: {} {}'.format(
-            checksum, double_sha256(combined)[:4]))
+        raise ValueError(
+            "bad address: {} {}".format(checksum, double_sha256(combined)[:4])
+        )
     return combined[:-4]
