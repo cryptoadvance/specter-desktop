@@ -380,7 +380,7 @@ def general_settings():
                             'error'
                         )
                         continue
-                write_wallet(wallet['alias'],wallet)
+                write_wallet(wallet)
                 app.specter.wallet_manager.update()
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
@@ -400,7 +400,7 @@ def general_settings():
                         pass
                     except Exception as e:
                         app.logger.error(
-                            "Exception while rescanning blockchain: {}".format(e)
+                            "Exception while rescanning blockchain for wallet {}: {}".format(wallet['alias'],e)
                         )
                         flash(
                             "Failed to perform rescan for wallet: {}".format(e),
