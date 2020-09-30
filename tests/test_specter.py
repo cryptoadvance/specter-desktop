@@ -9,6 +9,7 @@ def test_alias():
     assert alias("wurst_1") == "wurst_1"
     assert alias("Wurst$ 1") == "wurst_1"
 
+
 @pytest.mark.skip(reason="no idea why this does not pass on gitlab exclusively")
 def test_get_rpc(specter_regtest_configured):
     specter_regtest_configured.check()
@@ -16,24 +17,25 @@ def test_get_rpc(specter_regtest_configured):
         "autodetect": False,
         "user": "bitcoin",
         "password": "secret",
-        "port": specter_regtest_configured.config['rpc']['port'],
+        "port": specter_regtest_configured.config["rpc"]["port"],
         "host": "localhost",
-        "protocol": "http"
+        "protocol": "http",
     }
     print("rpc_config_data: {}".format(rpc_config_data))
     rpc = get_rpc(rpc_config_data)
-    assert rpc.getblockchaininfo() 
+    assert rpc.getblockchaininfo()
     assert isinstance(rpc, BitcoinRPC)
     # ToDo test autodetection-features
 
-def test_specter(specter_regtest_configured,caplog): 
+
+def test_specter(specter_regtest_configured, caplog):
     caplog.set_level(logging.DEBUG)
     specter_regtest_configured.check()
     assert specter_regtest_configured.wallet_manager is not None
     assert specter_regtest_configured.device_manager is not None
-    assert specter_regtest_configured.config['rpc']['host'] != "None"
-    logging.debug("out {}".format(specter_regtest_configured.test_rpc() ))
-    json_return = json.loads(specter_regtest_configured.test_rpc()["out"] )
+    assert specter_regtest_configured.config["rpc"]["host"] != "None"
+    logging.debug("out {}".format(specter_regtest_configured.test_rpc()))
+    json_return = json.loads(specter_regtest_configured.test_rpc()["out"])
     # that might only work if your chain is fresh
     # assert json_return['blocks'] == 100
-    assert json_return['chain'] == 'regtest'
+    assert json_return["chain"] == "regtest"

@@ -4,43 +4,46 @@ from .util.base58 import decode_base58, encode_base58_checksum
 from .util.xpub import get_xpub_fingerprint
 
 
-purposes = OrderedDict({
-    '': "General",
-    "wpkh": "Single (Segwit)",
-    "sh-wpkh": "Single (Nested)",
-    "pkh": "Single (Legacy)",
-    "wsh": "Multisig (Segwit)",
-    "sh-wsh": "Multisig (Nested)",
-    "sh": "Multisig (Legacy)",
-})
+purposes = OrderedDict(
+    {
+        "": "General",
+        "wpkh": "Single (Segwit)",
+        "sh-wpkh": "Single (Nested)",
+        "pkh": "Single (Legacy)",
+        "wsh": "Multisig (Segwit)",
+        "sh-wsh": "Multisig (Nested)",
+        "sh": "Multisig (Legacy)",
+    }
+)
 
 VALID_PREFIXES = {
-    b"\x04\x35\x87\xcf": {   # testnet
-        b"\x04\x35\x87\xcf": '', # unknown, maybe pkh
+    b"\x04\x35\x87\xcf": {  # testnet
+        b"\x04\x35\x87\xcf": "",  # unknown, maybe pkh
         b"\x04\x4a\x52\x62": "sh-wpkh",
         b"\x04\x5f\x1c\xf6": "wpkh",
         b"\x02\x42\x89\xef": "sh-wsh",
         b"\x02\x57\x54\x83": "wsh",
     },
-    b"\x04\x88\xb2\x1e": {   # mainnet
-        b"\x04\x88\xb2\x1e": '', # unknown, maybe pkh
+    b"\x04\x88\xb2\x1e": {  # mainnet
+        b"\x04\x88\xb2\x1e": "",  # unknown, maybe pkh
         b"\x04\x9d\x7c\xb2": "sh-wpkh",
         b"\x04\xb2\x47\x46": "wpkh",
         b"\x02\x95\xb4\x3f": "sh-wsh",
         b"\x02\xaa\x7e\xd3": "wsh",
-    }
+    },
 }
+
 
 class Key:
     def __init__(self, original, fingerprint, derivation, key_type, xpub):
         if key_type is None:
             key_type = ""
-        if fingerprint is None or fingerprint == '':
+        if fingerprint is None or fingerprint == "":
             fingerprint = get_xpub_fingerprint(original).hex()
         if derivation is None:
-            derivation = ''
+            derivation = ""
         if key_type not in purposes:
-            raise Exception('Invalid key type specified: {}.')
+            raise Exception("Invalid key type specified: {}.")
         self.original = original
         self.fingerprint = fingerprint
         self.derivation = derivation
@@ -49,24 +52,24 @@ class Key:
 
     @classmethod
     def from_json(cls, key_dict):
-        original = key_dict['original'] if 'original' in key_dict else ''
-        fingerprint = key_dict['fingerprint'] if 'fingerprint' in key_dict else ''
-        derivation = key_dict['derivation'] if 'derivation' in key_dict else ''
-        key_type = key_dict['type'] if 'type' in key_dict else ''
-        xpub = key_dict['xpub'] if 'xpub' in key_dict else ''
+        original = key_dict["original"] if "original" in key_dict else ""
+        fingerprint = key_dict["fingerprint"] if "fingerprint" in key_dict else ""
+        derivation = key_dict["derivation"] if "derivation" in key_dict else ""
+        key_type = key_dict["type"] if "type" in key_dict else ""
+        xpub = key_dict["xpub"] if "xpub" in key_dict else ""
         return cls(original, fingerprint, derivation, key_type, xpub)
 
     @classmethod
     def parse_xpub(cls, xpub):
-        derivation = ''
+        derivation = ""
         arr = xpub.strip().split("]")
         original = arr[-1]
         if len(arr) > 1:
-            derivation = arr[0].replace("'","h").lower()
+            derivation = arr[0].replace("'", "h").lower()
             xpub = arr[1]
 
-        fingerprint = ''
-        if derivation != '':
+        fingerprint = ""
+        if derivation != "":
             if derivation[0] != "[":
                 raise Exception("Missing leading [")
             derivation_path = derivation[1:].split("/")
@@ -90,13 +93,13 @@ class Key:
                     derivation_path[0] = "m"
                     derivation = "/".join(derivation_path)
             else:
-                derivation = ''
+                derivation = ""
 
         # checking xpub prefix and defining key type
         xpub_bytes = decode_base58(xpub, num_bytes=82)
         prefix = xpub_bytes[:4]
         is_valid = False
-        key_type = ''
+        key_type = ""
         for k in VALID_PREFIXES:
             if prefix in VALID_PREFIXES[k].keys():
                 key_type = VALID_PREFIXES[k][prefix]
@@ -110,7 +113,7 @@ class Key:
         xpub = encode_base58_checksum(xpub_bytes)
 
         # defining key type from derivation
-        if derivation != '' and key_type == '':
+        if derivation != "" and key_type == "":
             derivation_path = derivation.split("/")
             purpose = derivation_path[1]
             if purpose == "44h":
@@ -138,7 +141,7 @@ class Key:
             fingerprint = hexlify(xpub_bytes[5:9]).decode()
             index = int.from_bytes(xpub_bytes[9:13], "big")
             is_hardened = bool(index & 0x8000_0000)
-            derivation = "m/%d%s" % (index & 0x7fff_ffff, "h" if is_hardened else "")
+            derivation = "m/%d%s" % (index & 0x7FFF_FFFF, "h" if is_hardened else "")
 
         return cls(original, fingerprint, derivation, key_type, xpub)
 
@@ -155,14 +158,17 @@ class Key:
                 failed.append(line + "\n" + str(e))
         return keys, failed
 
-
     @property
     def metadata(self):
         metadata = {}
         metadata["chain"] = "Mainnet" if self.xpub.startswith("xpub") else "Testnet"
         metadata["purpose"] = self.purpose
         if self.derivation is not None:
-            metadata["combined"] = "[%s%s]%s" % (self.fingerprint, self.derivation[1:], self.xpub)
+            metadata["combined"] = "[%s%s]%s" % (
+                self.fingerprint,
+                self.derivation[1:],
+                self.xpub,
+            )
         else:
             metadata["combined"] = self.xpub
         return metadata
@@ -174,11 +180,11 @@ class Key:
     @property
     def json(self):
         return {
-            'original': self.original,
-            'fingerprint': self.fingerprint,
-            'derivation': self.derivation,
-            'type': self.key_type,
-            'xpub': self.xpub
+            "original": self.original,
+            "fingerprint": self.fingerprint,
+            "derivation": self.derivation,
+            "type": self.key_type,
+            "xpub": self.xpub,
         }
 
     @property
@@ -187,8 +193,7 @@ class Key:
 
     def to_string(self, slip132=True):
         if self.derivation and self.fingerprint:
-            path_str = \
-                f"/{self.derivation[2:]}" if self.derivation != "m" else ""
+            path_str = f"/{self.derivation[2:]}" if self.derivation != "m" else ""
             return f"[{self.fingerprint}{path_str}]{self.original if slip132 else self.xpub}"
         else:
             return self.original if slip132 else self.xpub

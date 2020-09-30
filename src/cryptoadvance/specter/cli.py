@@ -31,12 +31,10 @@ def cli():
 # for https:
 @click.option("--cert")
 @click.option("--key")
-@click.option('--debug/--no-debug', default=None)
-@click.option('--tor', is_flag=True)
+@click.option("--debug/--no-debug", default=None)
+@click.option("--tor", is_flag=True)
 @click.option("--hwibridge", is_flag=True)
-def server(daemon, stop, restart, force,
-           port, host, cert, key,
-           debug, tor, hwibridge):
+def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwibridge):
     # create an app to get Specter instance
     # and it's data folder
     app = create_app()
@@ -61,8 +59,10 @@ def server(daemon, stop, restart, force,
                 pass
         elif daemon:
             if not force:
-                print(f"PID file \"{pid_file}\" already exists. \
-                        Use --force to overwrite")
+                print(
+                    f'PID file "{pid_file}" already exists. \
+                        Use --force to overwrite'
+                )
                 return
             else:
                 os.remove(pid_file)
@@ -70,12 +70,12 @@ def server(daemon, stop, restart, force,
             return
     else:
         if stop or restart:
-            print(f"Can't find PID file \"{pid_file}\"")
+            print(f'Can\'t find PID file "{pid_file}"')
             if stop:
                 return
 
     # watch templates folder to reload when something changes
-    extra_dirs = ['templates']
+    extra_dirs = ["templates"]
     extra_files = extra_dirs[:]
     for extra_dir in extra_dirs:
         for dirname, dirs, files in os.walk(extra_dir):
@@ -86,15 +86,15 @@ def server(daemon, stop, restart, force,
 
     # if port is not defined - get it from environment
     if port is None:
-        port = int(os.getenv('PORT', 25441))
+        port = int(os.getenv("PORT", 25441))
     else:
         port = int(port)
 
     # certificates
     if cert is None:
-        cert = os.getenv('CERT', None)
+        cert = os.getenv("CERT", None)
     if key is None:
-        key = os.getenv('KEY', None)
+        key = os.getenv("KEY", None)
 
     protocol = "http"
     kwargs = {
@@ -112,8 +112,7 @@ def server(daemon, stop, restart, force,
         print(
             " * Running HWI Bridge mode.\n"
             " * You can configure access to the API "
-            "at: %s://%s:%d/hwi/settings"
-            % (protocol, host, port)
+            "at: %s://%s:%d/hwi/settings" % (protocol, host, port)
         )
 
     # debug is false by default
@@ -124,10 +123,10 @@ def server(daemon, stop, restart, force,
             app.controller = None
         try:
             port = 5000  # default flask port
-            if 'port' in kwargs:
-                port = kwargs['port']
+            if "port" in kwargs:
+                port = kwargs["port"]
             else:
-                kwargs['port'] = port
+                kwargs["port"] = port
             # if we have certificates
             if "ssl_context" in kwargs:
                 tor_port = 443
@@ -136,17 +135,19 @@ def server(daemon, stop, restart, force,
             app.port = port
             app.tor_port = tor_port
             app.save_tor_address_to = toraddr_file
-            if debug and (tor or os.getenv('CONNECT_TOR') == 'True'):
-                print(" * Warning: Cannot use Tor in debug mode. \
-                      Starting in production mode instead.")
+            if debug and (tor or os.getenv("CONNECT_TOR") == "True"):
+                print(
+                    " * Warning: Cannot use Tor in debug mode. \
+                      Starting in production mode instead."
+                )
                 debug = False
-            if tor or os.getenv('CONNECT_TOR') == 'True':
+            if tor or os.getenv("CONNECT_TOR") == "True":
                 try:
                     app.tor_enabled = True
                     start_hidden_service(app)
                 except Exception as e:
-                    print(f' * Failed to start Tor hidden service: {e}')
-                    print(' * Continuing process with Tor disabled')
+                    print(f" * Failed to start Tor hidden service: {e}")
+                    print(" * Continuing process with Tor disabled")
                     app.tor_service_id = None
                     app.tor_enabled = False
             else:
@@ -163,30 +164,33 @@ def server(daemon, stop, restart, force,
         print("Starting server in background...")
         print(" * Hopefully running on %s://%s:%d/" % (protocol, host, port))
         # macOS + python3.7 is buggy
-        if sys.platform == "darwin" and \
-                (sys.version_info.major == 3 and sys.version_info.minor < 8):
-            print(" * WARNING: --daemon mode might not \
+        if sys.platform == "darwin" and (
+            sys.version_info.major == 3 and sys.version_info.minor < 8
+        ):
+            print(
+                " * WARNING: --daemon mode might not \
                    work properly in python 3.7 and lower \
-                   on MacOS. Upgrade to python 3.8+")
+                   on MacOS. Upgrade to python 3.8+"
+            )
         from daemonize import Daemonize
+
         d = Daemonize(app="specter", pid=pid_file, action=run)
         d.start()
     else:
         # if not a daemon we can use DEBUG
         if debug is None:
-            debug = app.config['DEBUG']
+            debug = app.config["DEBUG"]
         run(debug=debug)
 
 
 @cli.command()
-@click.option('--debug/--no-debug', default=False)
-@click.option('--mining/--no-mining', default=True)
-@click.option('--docker-tag', "docker_tag", default="latest")
+@click.option("--debug/--no-debug", default=False)
+@click.option("--mining/--no-mining", default=True)
+@click.option("--docker-tag", "docker_tag", default="latest")
 def bitcoind(debug, mining, docker_tag):
     import docker
 
-    from .bitcoind import (BitcoindDockerController,
-                           fetch_wallet_addresses_for_mining)
+    from .bitcoind import BitcoindDockerController, fetch_wallet_addresses_for_mining
 
     logging.getLogger().setLevel(logging.INFO)
     mining_every_x_seconds = 15
@@ -198,22 +202,27 @@ def bitcoind(debug, mining, docker_tag):
         my_bitcoind.start_bitcoind()
     except docker.errors.ImageNotFound:
         click.echo(f"    --> Image with tag {docker_tag} does not exist!")
-        click.echo(f"    --> Try to download first with docker pull \
-                     registry.gitlab.com/cryptoadvance/specter-desktop\
-                     /python-bitcoind:{docker_tag}")
-        sys.exit(1)
-    tags_of_image = [image.split(":")[-1]
-                     for image in my_bitcoind.btcd_container.image.tags]
-    if docker_tag not in tags_of_image:
-        click.echo("    --> The running docker container is not \
-                            the tag you requested!")
         click.echo(
-            "    --> please stop first with docker stop {}"
-            .format(my_bitcoind.btcd_container.id)
+            f"    --> Try to download first with docker pull \
+                     registry.gitlab.com/cryptoadvance/specter-desktop\
+                     /python-bitcoind:{docker_tag}"
         )
         sys.exit(1)
-    click.echo("    --> containerImage: %s" %
-               my_bitcoind.btcd_container.image.tags)
+    tags_of_image = [
+        image.split(":")[-1] for image in my_bitcoind.btcd_container.image.tags
+    ]
+    if docker_tag not in tags_of_image:
+        click.echo(
+            "    --> The running docker container is not \
+                            the tag you requested!"
+        )
+        click.echo(
+            "    --> please stop first with docker stop {}".format(
+                my_bitcoind.btcd_container.id
+            )
+        )
+        sys.exit(1)
+    click.echo("    --> containerImage: %s" % my_bitcoind.btcd_container.image.tags)
     click.echo("    -->            url: %s" % my_bitcoind.rpcconn.render_url())
     click.echo("    --> user, password: bitcoin, secret")
     click.echo("    -->     host, port: localhost, 18443")
@@ -224,8 +233,8 @@ def bitcoind(debug, mining, docker_tag):
     if mining:
         click.echo(
             "    --> Now, mining a block every %i seconds. \
-            Avoid it via --no-mining" %
-            mining_every_x_seconds
+            Avoid it via --no-mining"
+            % mining_every_x_seconds
         )
         # Get each address some coins
         try:
@@ -255,19 +264,22 @@ def bitcoind(debug, mining, docker_tag):
 if __name__ == "__main__":
     # central and early configuring of logging see
     # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
-    dictConfig({
-        'version': 1,
-        'formatters': {'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        }},
-        'handlers': {'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://flask.logging.wsgi_errors_stream',
-            'formatter': 'default'
-        }},
-        'root': {
-            'level': 'INFO',
-            'handlers': ['wsgi']
+    dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+                }
+            },
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://flask.logging.wsgi_errors_stream",
+                    "formatter": "default",
+                }
+            },
+            "root": {"level": "INFO", "handlers": ["wsgi"]},
         }
-    })
+    )
     cli()

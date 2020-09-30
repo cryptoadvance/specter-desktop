@@ -8,7 +8,9 @@ if __name__ == "__main__":
     # However the dictConfig doesn't work, so let's do something similiar programatically
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+    formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
     ch.setFormatter(formatter)
     logging.getLogger().addHandler(ch)
     logging.getLogger().setLevel(logging.INFO)
