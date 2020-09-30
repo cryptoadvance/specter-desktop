@@ -169,7 +169,7 @@
 			{% if device.exportable_to_wallet %}
 				{% if device.wallet_export_type == 'file' %}
 					<a 
-					download="{{ wallet.name }}"
+					download="{{ wallet.name | ascii20 }}.txt"
 					href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
 					{% if device.device_type == 'coldcard' %}
 						onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"

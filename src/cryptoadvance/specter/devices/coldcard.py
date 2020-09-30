@@ -1,7 +1,7 @@
 import urllib
 from .sd_card_device import SDCardDevice
 from ..util.xpub import get_xpub_fingerprint
-
+from ..helpers import to_ascii20
 
 CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
 
@@ -40,7 +40,7 @@ Policy: {} of {}
 Derivation: {}
 Format: {}
 """.format(
-            wallet.name,
+            to_ascii20(wallet.name),
             wallet.sigs_required,
             len(wallet.keys),
             derivation,
