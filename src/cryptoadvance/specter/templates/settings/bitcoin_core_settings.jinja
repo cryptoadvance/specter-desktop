@@ -51,12 +51,12 @@
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
 			{% if test %}
-				<br><div class="log">Test results:<br>
-				<div style="display: grid;grid-template-columns: auto auto auto;">
+				<br><div class="log"><b>Test results:</b><br><br>
+				<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
 					{% macro tick_or_cross(my_boolean) %}
-					<button disabled> 
+					<button style="background: #fff; border: none;" disabled> 
 						{% if my_boolean %}
-							<div  style="color:green;">&#x2714;</div> 
+							<div style="color: green; font-size: 1.5em;">&#x2714;</div> 
 						{% else %} 
 							&#x274C; 
 						{% endif %}

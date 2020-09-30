@@ -16,8 +16,8 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
 
 
-from .helpers import (alias, get_devices_with_keys_by_type, 
-                      get_loglevel, get_version_info, run_shell, set_loglevel, 
+from .helpers import (alias, get_devices_with_keys_by_type,
+                      get_loglevel, run_shell, set_loglevel,
                       bcur2base64, get_txid, generate_mnemonic,
                       get_startblock_by_chain, fslock)
 from .specter import Specter
@@ -210,7 +210,7 @@ def login():
                 app.logger.info("AUDIT: Failed to check password")
                 return render_template('login.jinja', specter=app.specter, data={'controller':'controller.login'}), 401
             rpc = app.specter.rpc.clone()
-            rpc.passwd = request.form['password']
+            rpc.password = request.form['password']
             if rpc.test_connection():
                 app.login('admin')
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
@@ -351,8 +351,12 @@ def general_settings():
                 as_attachment=True
             )
         elif action == "restore":
-            restore_devices = json.loads(request.form['restoredevices'])
-            restore_wallets = json.loads(request.form['restorewallets'])
+            restore_devices = []
+            restore_wallets = []
+            if request.form.get("restoredevices", ""):
+                restore_devices = json.loads(request.form.get("restoredevices", "[]"))
+            if request.form.get("restorewallets", ""):
+                restore_wallets = json.loads(request.form.get("restorewallets", "[]"))
             for device in restore_devices:
                 with fslock:
                     with open(
@@ -399,6 +403,7 @@ def general_settings():
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet['alias']
                     )
+                    wallet_obj.import_labels(wallet.get("labels", []))
                     try:
                         wallet_obj.rpc.rescanblockchain(
                             wallet['blockheight']
@@ -453,7 +458,7 @@ def bitcoin_core_settings():
         return redirect("/")
     rpc = app.specter.config['rpc']
     user = rpc['user']
-    passwd = rpc['password']
+    password = rpc['password']
     port = rpc['port']
     host = rpc['host']
     protocol = 'http'
@@ -471,7 +476,7 @@ def bitcoin_core_settings():
             if autodetect:
                 datadir = request.form['datadir']
             user = request.form['username']
-            passwd = request.form['password']
+            password = request.form['password']
             port = request.form['port']
             host = request.form['host']
 
@@ -485,7 +490,7 @@ def bitcoin_core_settings():
             try:
                 test = app.specter.test_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
@@ -496,15 +501,17 @@ def bitcoin_core_settings():
                 err = 'Fail to connect to the node configured: {}'.format(e)
         elif action == "save":
             if current_user.is_admin:
-                app.specter.update_rpc(
+                success = app.specter.update_rpc(
                     user=user,
-                    password=passwd,
+                    password=password,
                     port=port,
                     host=host,
                     protocol=protocol,
                     autodetect=autodetect,
                     datadir=datadir
                 )
+                if not success:
+                    flash("Failed connecting to the node","error")
             app.specter.check()
 
     return render_template(
@@ -513,7 +520,7 @@ def bitcoin_core_settings():
         autodetect=autodetect,
         datadir=datadir,
         username=user,
-        password=passwd,
+        password=password,
         port=port,
         host=host,
         protocol=protocol,
@@ -626,6 +633,12 @@ def new_wallet_type():
     err = None
     if app.specter.chain is None:
         err = "Configure Bitcoin Core to create wallets"
+        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+    try:
+        # Make sure wallet is enabled on Bitcoin Core
+        app.specter.rpc.listwallets()
+    except Exception:
+        err = '<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
         return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
     return render_template("wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand)
 
@@ -1024,6 +1037,7 @@ def wallet_tx_utxo(wallet_alias):
         app.logger.error("SpecterError while wallet_addresses: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     viewtype = 'address' if request.args.get('view') != 'label' else 'label'
+    idx = int(request.args.get('idx', default=0))
     if request.method == "POST":
         action = request.form['action']
         if action == "updatelabel":
@@ -1035,7 +1049,16 @@ def wallet_tx_utxo(wallet_alias):
                 for address in wallet.addresses_on_label(account):
                     wallet.setlabel(address, label)
                 wallet.getdata()
-    return render_template("wallet/history/utxo/wallet_utxo.jinja", wallet_alias=wallet_alias, wallet=wallet, history=False, viewtype=viewtype, specter=app.specter, rand=rand)
+    return render_template(
+        "wallet/history/utxo/wallet_utxo.jinja",
+        idx=idx,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        history=False,
+        viewtype=viewtype,
+        specter=app.specter,
+        rand=rand
+    )
 
 @app.route('/wallets/<wallet_alias>/receive/', methods=['GET', 'POST'])
 @login_required
@@ -1070,6 +1093,25 @@ def txout_set_info():
     res = app.specter.rpc.gettxoutsetinfo()
     return res
 
+@app.route('/get_scantxoutset_status')
+@login_required
+def get_scantxoutset_status():
+    status = app.specter.rpc.scantxoutset('status', [])
+    app.specter._info["utxorescan"] = status.get('progress', None) if status else None
+    if app.specter._info["utxorescan"] is None:
+        app.specter.utxorescanwallet = None
+    return { 'active': app.specter._info["utxorescan"] is not None, 'progress': app.specter._info["utxorescan"] }
+
+@app.route('/wallets/<wallet_alias>/get_wallet_rescan_progress', methods=['GET', 'POST'])
+@login_required
+def get_wallet_rescan_progress(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet.get_info()
+        return { 'active': wallet.rescan_progress is not None, 'progress': wallet.rescan_progress }
+    except SpecterError as se:
+        app.logger.error("SpecterError while get_wallet_rescan_progress: %s" % se)
+        return {}
 
 @app.route('/wallets/<wallet_alias>/send')
 @login_required
@@ -1484,9 +1526,6 @@ def notify_upgrade():
         that there is an upgrade to specter.desktop
         :return the current version
     '''
-    version_info={}
-    version_info["current"], version_info["latest"], version_info["upgrade"] = get_version_info()
-    app.logger.info("Upgrade? {}".format(version_info["upgrade"]))
-    if version_info["upgrade"]:
-        flash("There is a new version available. Consider strongly to upgrade to the new version {} with \"pip3 install cryptoadvance.specter --upgrade\"".format(version_info["latest"]), "info")
-    return version_info["current"]
+    if app.specter.version.upgrade:
+        flash(f"Upgrade notification: new version {app.specter.version.latest} is available.", "info")
+    return app.specter.version.current

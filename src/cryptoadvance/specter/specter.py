@@ -6,7 +6,7 @@ import random
 import time
 import zipfile
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, get_version_info
+from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
@@ -16,9 +16,15 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-def get_rpc(conf):
+def get_rpc(conf, old_rpc=None):
+    """
+    Checks if config have changed,
+    compares with old rpc
+    and returns new one if necessary
+    """
     if "autodetect" not in conf:
         conf["autodetect"] = True
+    rpc = None
     if conf["autodetect"]:
         if "port" in conf:
             rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
@@ -26,12 +32,27 @@ def get_rpc(conf):
             rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]))
         if len(rpc_conf_arr) > 0:
             rpc = BitcoinRPC(**rpc_conf_arr[0])
-        else:
-            return None
     else:
-        rpc = BitcoinRPC(conf["user"], conf["password"], 
-                          host=conf["host"], port=conf["port"], protocol=conf["protocol"])
-    return rpc
+        # if autodetect is disabled and port is not defined
+        # we use default port 8332
+        if not conf.get("port", None):
+            conf["port"] = 8332
+        rpc = BitcoinRPC(**conf)
+    # check if we have something to compare with
+    if old_rpc is None:
+        logger.info("rpc config have changed.")
+        return rpc
+    # check if we have something detected
+    if rpc is None:
+        # check if old rpc is still valid
+        return old_rpc if old_rpc.test_connection() else None
+    # check if something have changed
+    # and return new rpc if so
+    if rpc.url == old_rpc.url:
+        return old_rpc
+    else:
+        logger.info("rpc config have changed.")
+        return rpc
 
 class Specter:
     ''' A central Object mostly holding app-settings '''
@@ -111,7 +132,9 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config)  # override loaded config
 
-        self.rpc = get_rpc(self.config["rpc"])
+        # update rpc if something doesn't work
+        if self.rpc is None or not self.rpc.test_connection():
+            self.rpc = get_rpc(self.config["rpc"], self.rpc)
         self._is_configured = (self.rpc is not None)
         self._is_running = False
         if self._is_configured:
@@ -215,10 +238,8 @@ class Specter:
                 r['tests']['wallets'] = True
             except RpcError as rpce:
                 logger.error(rpce)
-                if rpce.status_code ==  404:
-                    r['tests']['wallets'] = False
-                else:
-                    raise rpce
+                r['tests']['wallets'] = False
+
             r["out"] = json.dumps(rpc.getblockchaininfo(),indent=4)
             r["err"] = ""
             r["code"] = 0
@@ -256,8 +277,10 @@ class Specter:
                 self.config["rpc"][k] = kwargs[k]
                 need_update = True
         if need_update:
+            self.rpc = get_rpc(self.config["rpc"], None)
             self._save()
             self.check()
+        return self.rpc is not None
 
     def update_auth(self, auth):
         ''' simply persisting the current auth-choice '''
@@ -466,13 +489,4 @@ class Specter:
                     )
         memory_file.seek(0)
         return memory_file
-
-    def restore_from_backup(self):
-        pass
-
-    @property
-    def specter_version(self):
-        if not self._current_version:
-            self._current_version = get_version_info()[0]
-        return self._current_version
 

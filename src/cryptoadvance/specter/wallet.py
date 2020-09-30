@@ -74,7 +74,7 @@ class Wallet():
             raise Exception(
                 'A device used by this wallet could not have been found!'
             )
-        self.sigs_required = sigs_required
+        self.sigs_required = int(sigs_required)
         self.pending_psbts = pending_psbts
         self.fullpath = fullpath
         self.manager = manager
@@ -228,8 +228,10 @@ class Wallet():
     def getdata(self):
         try:
             self.utxo = parse_utxo(self, self.rpc.listunspent(0))
+            self.utxo_labels_list = self.getlabels(utxo["address"] for utxo in self.utxo)
         except Exception:
             self.utxo = []
+            self.utxo_labels_list = {}
         self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
@@ -272,7 +274,8 @@ class Wallet():
             "pending_psbts": self.pending_psbts,
             "fullpath": self.fullpath,
             "last_block": self.last_block,
-            "blockheight": self.blockheight
+            "blockheight": self.blockheight,
+            "labels": self.export_labels()
         }
 
     def save_to_file(self):
@@ -362,6 +365,27 @@ class Wallet():
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
+
+    def export_labels(self):
+        labels = self.rpc.listlabels()
+        if "" in labels:
+            labels.remove("")
+        res = self.rpc.multi([
+            ("getaddressesbylabel", label)
+            for label in labels
+        ])
+        return { labels[i]: list(result['result'].keys()) for i, result in enumerate(res) }
+    
+    def import_labels(self, labels):
+        # format: 
+        #   {
+        #       'label1': ['address1', 'address2'],
+        #       'label2': ['address3', 'address4']
+        #   }
+        #
+        rpc_calls = [("setlabel", address, label) for label, addresses in labels.items() for address in addresses]
+        if rpc_calls:
+            self.rpc.multi(rpc_calls)
 
     def _rescan_utxo_thread(self, explorer=None):
         # rescan utxo is pretty fast,
@@ -514,10 +538,11 @@ class Wallet():
             self.save_to_file()
         return address
 
-    def get_address(self, index, change=False):
-        pool = self.change_keypool if change else self.keypool
-        if pool < index + self.GAP_LIMIT:
-            self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
+    def get_address(self, index, change=False, check_keypool=True):
+        if check_keypool:
+            pool = self.change_keypool if change else self.keypool
+            if pool < index + self.GAP_LIMIT:
+                self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         if self.is_multisig:
             try:
@@ -534,6 +559,22 @@ class Wallet():
                 addr = self.rpc.deriveaddresses(desc)[0]
             return addr
         return self.rpc.deriveaddresses(desc, [index, index + 1])[0]
+
+    def get_descriptor(self, index=None, change=False, address=None):
+        """
+        Returns address descriptor from index, change
+        or from address belonging to the wallet.
+        """
+        if address is not None:
+            d = self.rpc.getaddressinfo(address)['desc']
+            path = d.split("[")[1].split("]")[0].split("/")
+            change = bool(int(path[-2]))
+            index = int(path[-1])
+        if index is None:
+            index = self.change_index if change else self.address_index
+        desc = self.change_descriptor if change else self.recv_descriptor
+        desc = desc.split("#")[0]
+        return AddChecksum(desc.replace("*",f"{index}"))
 
     def get_balance(self):
         try:
@@ -596,6 +637,16 @@ class Wallet():
             self.change_keypool = end
         else:
             self.keypool = end
+        self.rpc.multi([
+            (
+                "setlabel",
+                self.get_address(i, change=change, check_keypool=False),
+                "{} #{}".format(
+                    "Change" if change else "Address", i
+                )
+            )
+            for i in range(start, end)
+        ])
         self.save_to_file()
         return end
 
@@ -608,12 +659,10 @@ class Wallet():
         return sum(balancelist)
 
     def utxo_on_label(self, label):
-        utxo = [tx for tx in self.utxo if self.getlabel(tx["address"]) == label]
-        return len(utxo)
+        return len([tx for tx in self.utxo if self.utxo_labels_list[tx["address"]] == label])
 
     def balance_on_label(self, label):
-        balancelist = [utxo["amount"] for utxo in self.utxo if self.getlabel(utxo["address"]) == label]
-        return sum(balancelist)
+        return sum(utxo["amount"] for utxo in self.utxo if self.utxo_labels_list[utxo["address"]] == label)
 
     def addresses_on_label(self, label):
         return list(dict.fromkeys(
@@ -624,28 +673,49 @@ class Wallet():
     def is_current_address_used(self):
         return self.balance_on_address(self.address) > 0
 
-    @property
-    def utxo_addresses(self):
-        return list(dict.fromkeys([utxo["address"] for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
+    def utxo_addresses(self, idx=0, wallet_utxo_batch=100):
+        return list(
+            dict.fromkeys(
+                list(reversed([
+                    utxo["address"] for utxo in sorted(
+                        self.utxo, key = lambda utxo: utxo["time"]
+                    )
+                ]))[(wallet_utxo_batch * idx):(wallet_utxo_batch * (idx + 1))]
+            )
+        )
 
-    @property
-    def utxo_labels(self):
-        return list(dict.fromkeys([self.getlabel(utxo["address"]) for utxo in sorted(self.utxo, key = lambda utxo: utxo["time"])]))
+    def utxo_labels(self, idx=0, wallet_utxo_batch=100):
+        return list(
+            dict.fromkeys(
+                list(reversed([
+                    self.utxo_labels_list[utxo["address"]] for utxo in sorted(
+                        self.utxo, key = lambda utxo: utxo["time"]
+                    )
+                ]))[(wallet_utxo_batch * idx):(wallet_utxo_batch * (idx + 1))]
+            )
+        )
 
     def setlabel(self, address, label):
         self.rpc.setlabel(address, label)
 
     def getlabel(self, address):
-        address_info = self.rpc.getaddressinfo(address)
-        # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
-        label = address_info["labels"][0] if (
-            "labels" in address_info 
-            and (isinstance(address_info["labels"], list) 
-                and len(address_info["labels"]) > 0) 
-            and "label" not in address_info) else address
-        if label == "":
-            label = address
-        return address_info["label"] if "label" in address_info and address_info["label"] != "" else label
+        return self.getlabels([address])[address]
+
+    def getlabels(self, addresses):
+        labels = {}
+        addresses_infos = self.rpc.multi([('getaddressinfo', address) for address in addresses])
+        for address_info in addresses_infos:
+            address_info = address_info['result']
+            # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
+            label = address_info["labels"][0] if (
+                "labels" in address_info 
+                and (isinstance(address_info["labels"], list) 
+                    and len(address_info["labels"]) > 0) 
+                and "label" not in address_info) else address_info["address"]
+            if label == "":
+                label = address_info["address"]
+            labels[address_info["address"]] = address_info["label"] if "label" in address_info and address_info["label"] != "" else label
+        return labels
 
     def get_address_name(self, address, addr_idx):
         if self.getlabel(address) == address and addr_idx > -1:
@@ -682,20 +752,12 @@ class Wallet():
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
 
     @property
-    def active_addresses(self):
-        return list(dict.fromkeys(self.addresses + self.utxo_addresses))
-
-    @property
     def change_addresses(self):
         return [self.get_address(idx, change=True) for idx in range(0, self.change_index + 1)]
 
     @property
     def wallet_addresses(self):
         return self.addresses + self.change_addresses
-
-    @property
-    def labels(self):
-        return list(dict.fromkeys([self.getlabel(addr) for addr in self.active_addresses]))
 
     def createpsbt(self, addresses:[str], amounts:[float], subtract:bool=False, subtract_from:int=0, fee_rate:float=1.0, selected_coins=[], readonly=False):
         """
@@ -887,11 +949,10 @@ class Wallet():
         """Calculates the weight of a signed input"""
         if self.is_multisig:
             input_size = 3 # OP_M OP_N ... OP_CHECKMULTISIG
-            for i in range(0, len(self.keys)):
-                # pubkey size
-                input_size += 34
-            for i in range(0, self.sigs_required):
-                input_size += 75 # max sig size
+            # pubkeys
+            input_size += 34 * len(self.keys)
+            # signatures
+            input_size += 75 * self.sigs_required
 
             if not self.recv_descriptor.startswith('wsh'):
                 # P2SH scriptsig: 22 00 20 <32-byte-hash>

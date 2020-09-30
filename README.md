@@ -9,6 +9,7 @@
   - [How to run](#how-to-run)
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
+    - [Connect Specter to Bitcoin Core](#connect-specter-to-bitcoin-core)
   - [Detailed instructions](#detailed-instructions)
   - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
   - [A few screenshots](#a-few-screenshots)
@@ -94,7 +95,11 @@ An example how to run specter server in the background (`--daemon`) with ssl cer
 python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem --daemon
 ```
 
-If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file or set in directly in the specter-app settings.
+### Connect Specter to Bitcoin Core
+
+If your Bitcoin Core is using a default data folder the app should detect it automatically. If not, consider setting `rpcuser` and `rpcpassword` in the `bitcoin.conf` file or set in directly in the specter-app settings. 
+
+If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This setting allows other programs to talk to the rpc server of Bitcoin Core. It's automatically enabled when you are using bitcoind, but disabled in bitcoin-qt.
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
