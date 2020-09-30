@@ -9,6 +9,7 @@
   - [How to run](#how-to-run)
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
+    - [Connect Specter to Bitcoin Core](#connect-specter-to-bitcoin-core)
   - [Detailed instructions](#detailed-instructions)
   - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
   - [A few screenshots](#a-few-screenshots)
