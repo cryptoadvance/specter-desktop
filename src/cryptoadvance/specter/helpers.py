@@ -42,6 +42,13 @@ def locked(customlock=fslock):
     return wrapper
 
 
+def to_ascii20(name: str) -> str:
+    """
+    Converts the name to max 20 ascii-only characters.
+    """
+    return "".join([c for c in name if c.isascii()])[:20]
+
+
 def alias(name):
     """
     Create a filesystem-friendly alias from a string.

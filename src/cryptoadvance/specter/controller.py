@@ -37,6 +37,7 @@ from .helpers import (
     generate_mnemonic,
     get_startblock_by_chain,
     fslock,
+    to_ascii20,
 )
 from .specter import Specter
 from .specter_error import SpecterError
@@ -1729,6 +1730,11 @@ def device(device_alias):
 
 
 ############### filters ##################
+
+
+@app.template_filter("ascii20")
+def ascii20(name):
+    return to_ascii20(name)
 
 
 @app.template_filter("datetime")
