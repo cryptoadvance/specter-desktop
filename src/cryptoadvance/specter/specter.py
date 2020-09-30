@@ -234,10 +234,8 @@ class Specter:
                 r['tests']['wallets'] = True
             except RpcError as rpce:
                 logger.error(rpce)
-                if rpce.status_code ==  404:
-                    r['tests']['wallets'] = False
-                else:
-                    raise rpce
+                r['tests']['wallets'] = False
+
             r["out"] = json.dumps(rpc.getblockchaininfo(),indent=4)
             r["err"] = ""
             r["code"] = 0
