@@ -49,6 +49,7 @@ rand = random.randint(0, 1e32) # to force style refresh
 def server_error(e):
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
+    app.logger.error(trace)
     return render_template('500.jinja', error=e, traceback=trace), 500
 
 ########## on every request ###############
@@ -353,6 +354,7 @@ def general_settings():
                 as_attachment=True
             )
         elif action == "restore":
+            print(request.form['restoredevices'])
             restore_devices = json.loads(request.form['restoredevices'])
             restore_wallets = json.loads(request.form['restorewallets'])
             write_devices(restore_devices)
