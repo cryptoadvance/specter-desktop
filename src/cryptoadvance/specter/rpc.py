@@ -145,10 +145,10 @@ def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
         got autodetected.
         autodetection checks env-vars and bitcoin-data-dirs
     '''
-    if port == "":
-        port = None
-    if port is not None:
+    if port:
         port = int(port)
+    else:
+        port = 8332
     conf_arr = []
     conf_arr.extend(detect_rpc_confs_via_env())
     conf_arr.extend(detect_rpc_confs(datadir=datadir))
@@ -209,7 +209,10 @@ class BitcoinRPC:
         path = path.replace("//","/") # just in case
         self.user = user
         self.password = password
-        self.port = port
+        if port:
+            self.port = port
+        else:
+            self.port = 8332
         self.protocol = protocol
         self.host = host
         self.path = path
