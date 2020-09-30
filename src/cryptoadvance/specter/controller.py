@@ -68,7 +68,8 @@ def server_error(e):
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    return render_template('500.jinja', error=e, traceback=trace), 500
+    return render_template("500.jinja", error=e, traceback=trace), 500
+
 
 ########## on every request ###############
 @app.before_request
@@ -473,7 +474,9 @@ def general_settings():
                         pass
                     except Exception as e:
                         app.logger.error(
-                            "Exception while rescanning blockchain for wallet {}: {}".format(wallet['alias'],e)
+                            "Exception while rescanning blockchain for wallet {}: {}".format(
+                                wallet["alias"], e
+                            )
                         )
                         flash(
                             "Failed to perform rescan for wallet: {}".format(e), "error"

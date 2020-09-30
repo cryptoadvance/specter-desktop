@@ -53,7 +53,8 @@ def get_users_json(specter):
 
 
 def save_users_json(specter, users):
-    write_json_file(users, os.path.join(specter.data_folder, 'users.json'))
+    write_json_file(users, os.path.join(specter.data_folder, "users.json"))
+
 
 class User(UserMixin):
     def __init__(self, id, username, password, config, is_admin=False):
@@ -151,8 +152,12 @@ class User(UserMixin):
         self.save_info(specter)
 
     def delete(self, specter):
-        devices_datadir_path = os.path.join(os.path.join(specter.data_folder, "devices_{}".format(self.id)))
-        wallets_datadir_path = os.path.join(os.path.join(specter.data_folder, "wallets_{}".format(self.id)))
+        devices_datadir_path = os.path.join(
+            os.path.join(specter.data_folder, "devices_{}".format(self.id))
+        )
+        wallets_datadir_path = os.path.join(
+            os.path.join(specter.data_folder, "wallets_{}".format(self.id))
+        )
         delete_folder(devices_datadir_path)
         delete_folder(wallets_datadir_path)
         self.save_info(specter, delete=True)

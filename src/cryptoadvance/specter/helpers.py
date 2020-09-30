@@ -15,7 +15,6 @@ from hwilib.serializations import PSBT, CTransaction
 from .persistence import read_json_file
 from .util.descriptor import AddChecksum
 from .util.bcur import bcur_decode
-#from .persistence import read_json_file, write_json_file
 import threading
 from io import BytesIO
 import re
@@ -85,17 +84,18 @@ def load_jsons(folder, key=None):
             logger.error(f"Can't load json file {fname} at path {folder} because {e}")
     return dd
 
+
 def set_loglevel(app, loglevel_string):
-    logger.info("Setting Loglevel to %s (Check the next log-line(s) whether it's effective here)" % loglevel_string)
-    loglevels = {
-        "WARN": logging.WARN,
-        "INFO": logging.INFO,
-        "DEBUG" : logging.DEBUG
-    }
+    logger.info(
+        "Setting Loglevel to %s (Check the next log-line(s) whether it's effective here)"
+        % loglevel_string
+    )
+    loglevels = {"WARN": logging.WARN, "INFO": logging.INFO, "DEBUG": logging.DEBUG}
     logging.getLogger().setLevel(loglevels[loglevel_string])
     logger.warn("Loglevel-Test: This is a warn-message!")
     logger.info("Loglevel-Test: This is an info-message!")
     logger.debug("Loglevel-Test: This is an debug-message!")
+
 
 def get_loglevel(app):
     loglevels = {logging.WARN: "WARN", logging.INFO: "INFO", logging.DEBUG: "DEBUG"}

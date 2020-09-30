@@ -22,4 +22,3 @@ def test_load_jsons(caplog):
     assert mydict["ID123"]["fullpath"] == "./tests/helpers_testdata/some_jsonfile.json"
     # Quite handy if you want to get rid of it which is as easy as:
     # os.remove(mydict["ID123"]['fullpath'])
-

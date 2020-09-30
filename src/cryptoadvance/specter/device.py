@@ -4,7 +4,6 @@ from .helpers import fslock
 from .persistence import read_json_file, write_json_file
 
 
-
 class Device:
     device_type = None  # this is saved to json
     name = "Unknown device"  # this is how device appears in UI
@@ -59,7 +58,7 @@ class Device:
     def _update_keys(self):
         with fslock:
             content = read_json_file(self.fullpath)
-            content['keys'] = [key.json for key in self.keys]
+            content["keys"] = [key.json for key in self.keys]
             write_json_file(content, self.fullpath)
         self.manager.update()
 
@@ -82,7 +81,7 @@ class Device:
 
     def set_type(self, device_type):
         self.device_type = device_type
-        
+
         write_json_file(self.json, self.fullpath)
         self.manager.update()
 
