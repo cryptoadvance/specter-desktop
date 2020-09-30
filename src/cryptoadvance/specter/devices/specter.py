@@ -2,7 +2,7 @@ import hashlib
 from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
-
+from ..helpers import to_ascii20
 
 class Specter(HWIDevice):
     device_type = "specter"
@@ -40,7 +40,7 @@ class Specter(HWIDevice):
         return psbts
 
     def export_wallet(self, wallet):
-        return wallet.name + "&" + get_wallet_qr_descriptor(wallet)
+        return to_ascii20(wallet.name.replace(" ","_")) + "&" + get_wallet_qr_descriptor(wallet)
 
     @classmethod
     def enumerate(cls, *args, **kwargs):
