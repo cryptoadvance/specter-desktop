@@ -8,28 +8,38 @@ from .specter_error import SpecterError
 from .helpers import fslock
 from .persistence import read_json_file, write_json_file, delete_folder
 
+
 def hash_password(password):
     """Hash a password for storing."""
     salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
-    pwdhash = binascii.b2a_base64(hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000)).strip().decode()
-    return { 'salt': salt.decode(), 'pwdhash': pwdhash }
+    pwdhash = (
+        binascii.b2a_base64(
+            hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)
+        )
+        .strip()
+        .decode()
+    )
+    return {"salt": salt.decode(), "pwdhash": pwdhash}
 
 
 def verify_password(stored_password, provided_password):
     """Verify a stored password against one provided by user"""
-    pwdhash = hashlib.pbkdf2_hmac('sha256', 
-                                  provided_password.encode('utf-8'), 
-                                  stored_password['salt'].encode(), 
-                                  10000)
-    return pwdhash == binascii.a2b_base64(stored_password['pwdhash'])
+    pwdhash = hashlib.pbkdf2_hmac(
+        "sha256",
+        provided_password.encode("utf-8"),
+        stored_password["salt"].encode(),
+        10000,
+    )
+    return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
+
 
 def get_users_json(specter):
     users = [
         {
-            'id': 'admin',
-            'username': 'admin',
-            'password': hash_password('admin'),
-            'is_admin': True
+            "id": "admin",
+            "username": "admin",
+            "password": hash_password("admin"),
+            "is_admin": True,
         }
     ]
 
@@ -57,12 +67,23 @@ class User(UserMixin):
     def from_json(cls, user_dict):
         # TODO: Unify admin in backwards compatible way
         try:
-            if not user_dict['is_admin']:
-                return cls(user_dict['id'], user_dict['username'], user_dict['password'], user_dict['config'])
+            if not user_dict["is_admin"]:
+                return cls(
+                    user_dict["id"],
+                    user_dict["username"],
+                    user_dict["password"],
+                    user_dict["config"],
+                )
             else:
-                return cls(user_dict['id'], user_dict['username'], user_dict['password'], {}, is_admin=True)
+                return cls(
+                    user_dict["id"],
+                    user_dict["username"],
+                    user_dict["password"],
+                    {},
+                    is_admin=True,
+                )
         except:
-            raise SpecterError('Unable to parse user JSON.')
+            raise SpecterError("Unable to parse user JSON.")
 
     @classmethod
     def get_user(cls, specter, id):
@@ -92,20 +113,20 @@ class User(UserMixin):
     @property
     def json(self):
         user_dict = {
-            'id': self.id,
-            'username': self.username,
-            'password': self.password,
-            'is_admin': self.is_admin
+            "id": self.id,
+            "username": self.username,
+            "password": self.password,
+            "is_admin": self.is_admin,
         }
         if not self.is_admin:
-            user_dict['config'] = self.config
+            user_dict["config"] = self.config
         return user_dict
 
     def save_info(self, specter, delete=False):
         users = get_users_json(specter)
         existing = False
         for i in range(len(users)):
-            if users[i]['id'] == self.id:
+            if users[i]["id"] == self.id:
                 if not delete:
                     users[i] = self.json
                     existing = True
@@ -118,15 +139,15 @@ class User(UserMixin):
         save_users_json(specter, users)
 
     def set_explorer(self, specter, explorer):
-        self.config['explorers'][specter.chain] = explorer
+        self.config["explorers"][specter.chain] = explorer
         self.save_info(specter)
 
     def set_hwi_bridge_url(self, specter, url):
-        self.config['hwi_bridge_url'] = url
+        self.config["hwi_bridge_url"] = url
         self.save_info(specter)
 
     def set_unit(self, specter, unit):
-        self.config['unit'] = unit
+        self.config["unit"] = unit
         self.save_info(specter)
 
     def delete(self, specter):

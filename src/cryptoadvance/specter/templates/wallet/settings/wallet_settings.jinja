@@ -13,7 +13,7 @@
 	<form action="." method="POST" class="padded" style="width: 500px">
 		{% if wallet.rescan_progress %}
 			<div class="row aligned">
-				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
+				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
 				<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
 			</div>
 		{% else %}
@@ -36,7 +36,7 @@
 	<form action="." method="POST" class="padded" style="width: 500px">
 		{% if specter.info["utxorescan"] %}
 		<div class="row aligned padded">
-			<div style="flex-grow: 1">UTXO rescan in process: {{specter.info["utxorescan"]}}%.</div>
+			<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
 			<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
 		</div>
 		{% else %}

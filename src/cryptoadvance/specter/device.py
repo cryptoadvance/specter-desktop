@@ -37,16 +37,13 @@ class Device:
         return {}
 
     @classmethod
-    def from_json(cls, device_dict, manager,
-                  default_alias='', default_fullpath=''):
-        name = device_dict['name'] if 'name' in device_dict else ''
-        alias = (device_dict['alias']
-                 if 'alias' in device_dict
-                 else default_alias)
-        keys = [Key.from_json(key_dict) for key_dict in device_dict['keys']]
-        fullpath = (device_dict['fullpath']
-                    if 'fullpath' in device_dict
-                    else default_fullpath)
+    def from_json(cls, device_dict, manager, default_alias="", default_fullpath=""):
+        name = device_dict["name"] if "name" in device_dict else ""
+        alias = device_dict["alias"] if "alias" in device_dict else default_alias
+        keys = [Key.from_json(key_dict) for key_dict in device_dict["keys"]]
+        fullpath = (
+            device_dict["fullpath"] if "fullpath" in device_dict else default_fullpath
+        )
         return cls(name, alias, keys, fullpath, manager)
 
     @property
@@ -89,8 +86,8 @@ class Device:
         write_json_file(self.json, self.fullpath)
         self.manager.update()
 
-    def key_types(self, network='main'):
-        test = network != 'main'
+    def key_types(self, network="main"):
+        test = network != "main"
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
     def __eq__(self, other):

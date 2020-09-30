@@ -3,6 +3,7 @@ from .hwi_device import HWIDevice
 from hwilib.serializations import PSBT
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 
+
 class Specter(HWIDevice):
     device_type = "specter"
     name = "Specter-DIY"
@@ -10,7 +11,7 @@ class Specter(HWIDevice):
     exportable_to_wallet = True
     sd_card_support = False
     qr_code_support = True
-    wallet_export_type = 'qr'
+    wallet_export_type = "qr"
     supports_hwi_multisig_display_address = True
 
     def __init__(self, name, alias, keys, fullpath, manager):
@@ -32,9 +33,10 @@ class Specter(HWIDevice):
                 # only contains two last derivation indexes - change and index
                 wallet_key = b"\xfc\xca\x01" + get_wallet_fingerprint(wallet)
                 inp.unknown[wallet_key] = b"".join(
-                    [i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]])
+                    [i.to_bytes(4, "little") for i in inp.hd_keypaths[k][-2:]]
+                )
                 inp.hd_keypaths = {}
-        psbts['qrcode'] = qr_psbt.serialize()
+        psbts["qrcode"] = qr_psbt.serialize()
         return psbts
 
     def export_wallet(self, wallet):
@@ -48,15 +50,16 @@ class Specter(HWIDevice):
     def get_client(cls, *args, **kwargs):
         return SpecterClient(*args, **kwargs)
 
+
 def get_wallet_qr_descriptor(wallet):
     return wallet.recv_descriptor.split("#")[0].replace("/0/*", "")
 
 
 def get_wallet_fingerprint(wallet):
     """
-    Unique fingerprint of the wallet - 
+    Unique fingerprint of the wallet -
     first 4 bytes of hash160 of its descriptor
     """
     h256 = hashlib.sha256(get_wallet_qr_descriptor(wallet).encode()).digest()
-    h160 = hashlib.new('ripemd160', h256).digest()
+    h160 = hashlib.new("ripemd160", h256).digest()
     return h160[:4]

@@ -1,4 +1,5 @@
 from .hwi_device import HWIDevice
+
 # a hack that verifies multisig
 from .hwi import keepkey
 
