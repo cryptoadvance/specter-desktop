@@ -86,7 +86,7 @@
                             walletRescanData.style.display = 'none';
                         }
                         if (walletRescanData || walletRescanPercentsSettings) {
-                            location.reload();
+                            window.location = window.location.href;
                         }
                     }
                 } catch(e) {
