@@ -630,6 +630,12 @@ def new_wallet_type():
     if app.specter.chain is None:
         err = "Configure Bitcoin Core to create wallets"
         return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+    try:
+        # Make sure wallet is enabled on Bitcoin Core
+        app.specter.rpc.listwallets()
+    except Exception:
+        err = '<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
+        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
     return render_template("wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand)
 
 
