@@ -7,6 +7,7 @@ from binascii import a2b_base64
 from ..util import bcur
 from ..util.base43 import b43_encode
 from ..util.xpub import get_xpub_fingerprint
+from ..helpers import to_ascii20
 
 
 class Cobo(SDCardDevice):
@@ -51,7 +52,7 @@ Policy: {} of {}
 Derivation: {}
 Format: {}
 """.format(
-            wallet.name,
+            to_ascii20(wallet.name),
             wallet.sigs_required,
             len(wallet.keys),
             derivation,
