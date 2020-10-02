@@ -79,6 +79,7 @@ def init_app(app, hwibridge=False, specter=None):
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter import controller
+
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for ech test
