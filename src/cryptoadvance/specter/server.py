@@ -41,14 +41,17 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     return app
 
 
-def init_app(app, hwibridge=False, specter=None):
+def init_app(app, hwibridge=False, specter=None, bitcoin_rpc_host=None):
     """  see blogpost 19nd Feb 2020 """
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
-        specter = Specter(DATA_FOLDER)
+        conf = {}
+        if bitcoin_rpc_host:
+            conf = {"rpc": {"host": bitcoin_rpc_host}}
+        specter = Specter(DATA_FOLDER, config=conf)
 
     # version checker
     # checks for new versions once per hour

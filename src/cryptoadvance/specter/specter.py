@@ -27,14 +27,11 @@ def get_rpc(conf, old_rpc=None):
         conf["autodetect"] = True
     rpc = None
     if conf["autodetect"]:
-        if "port" in conf:
-            rpc_conf_arr = autodetect_rpc_confs(
-                datadir=os.path.expanduser(conf["datadir"]), port=conf["port"]
-            )
-        else:
-            rpc_conf_arr = autodetect_rpc_confs(
-                datadir=os.path.expanduser(conf["datadir"])
-            )
+        rpc_conf_arr = autodetect_rpc_confs(
+            datadir=os.path.expanduser(conf["datadir"]),
+            port=conf.get("port"),
+            host=conf.get("host"),
+        )
         if len(rpc_conf_arr) > 0:
             rpc = BitcoinRPC(**rpc_conf_arr[0])
     else:

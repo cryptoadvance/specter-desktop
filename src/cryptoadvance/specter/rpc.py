@@ -142,7 +142,7 @@ def detect_rpc_confs_via_env():
     return rpc_arr
 
 
-def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
+def autodetect_rpc_confs(datadir=get_default_datadir(), port=None, host=None):
     """Returns an array of valid and working configurations which
     got autodetected.
     autodetection checks env-vars and bitcoin-data-dirs
@@ -157,6 +157,8 @@ def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
+            if host is not None and "host" not in conf:
+                conf["host"] = host
             rpc = BitcoinRPC(**conf)
             if port is not None:
                 if int(rpc.port) != port:

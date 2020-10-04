@@ -34,12 +34,26 @@ def cli():
 @click.option("--debug/--no-debug", default=None)
 @click.option("--tor", is_flag=True)
 @click.option("--hwibridge", is_flag=True)
-def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwibridge):
+@click.option("--bitcoin-rpc-host")
+def server(
+    daemon,
+    stop,
+    restart,
+    force,
+    port,
+    host,
+    cert,
+    key,
+    debug,
+    tor,
+    hwibridge,
+    bitcoin_rpc_host,
+):
     # create an app to get Specter instance
     # and it's data folder
     app = create_app()
     app.app_context().push()
-    init_app(app, hwibridge=hwibridge)
+    init_app(app, hwibridge=hwibridge, bitcoin_rpc_host=bitcoin_rpc_host)
 
     # we will store our daemon PID here
     pid_file = path.join(app.specter.data_folder, "daemon.pid")
