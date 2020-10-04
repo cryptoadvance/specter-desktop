@@ -1,0 +1,39 @@
+version: "3.0"
+services:
+  bitcoind:
+    image: bitcoind
+    build:
+      context: .
+      dockerfile: python-bitcoind/Dockerfile
+    volumes:
+      - type: volume
+        source: bitcoind
+        target: /root/.bitcoin
+      - type: bind
+        source: ./bitcoin.conf
+        target: /root/.bitcoin/bitcoin.conf
+    command: bitcoind
+    networks:
+      bitcoin:
+    ports:
+      - "8332"
+  specter:
+    image: specter
+    build:
+      context: .
+      dockerfile: specter-desktop/Dockerfile
+    ports:
+      - "25441:25441"
+    networks:
+      bitcoin:
+    command: "python3 -m cryptoadvance.specter server --host=0.0.0.0 --debug"
+    env_file:
+      - ./.auth.env
+    environment:
+      BTC_RPC_PROTOCOL: http
+      BTC_RPC_PORT: 8332
+      BTC_RPC_HOST: bitcoind
+volumes:
+  bitcoind:
+networks:
+  bitcoin:
