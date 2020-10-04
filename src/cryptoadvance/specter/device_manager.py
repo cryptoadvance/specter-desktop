@@ -19,9 +19,10 @@ def get_device_class(device_type):
 
 
 class DeviceManager:
-    ''' A DeviceManager mainly manages the persistence of a device-json-structures
-        compliant to helper.load_jsons
-    '''
+    """A DeviceManager mainly manages the persistence of a device-json-structures
+    compliant to helper.load_jsons
+    """
+
     # of them via json-files in an empty data folder
     def __init__(self, data_folder):
         self.update(data_folder=data_folder)
@@ -38,11 +39,13 @@ class DeviceManager:
         devices_files = load_jsons(self.data_folder, key="name")
         for device_alias in devices_files:
             fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
-            devices[devices_files[device_alias]["name"]] = get_device_class(devices_files[device_alias]["type"]).from_json(
+            devices[devices_files[device_alias]["name"]] = get_device_class(
+                devices_files[device_alias]["type"]
+            ).from_json(
                 devices_files[device_alias],
                 self,
                 default_alias=device_alias,
-                default_fullpath=fullpath
+                default_fullpath=fullpath,
             )
         self.devices = devices
 
@@ -83,11 +86,11 @@ class DeviceManager:
         device,
         wallet_manager=None,
         bitcoin_datadir=get_default_datadir(),
-        chain='main'
+        chain="main",
     ):
         os.remove(device.fullpath)
         # if device can delete itself - call it
-        if hasattr(device,'delete'):
+        if hasattr(device, "delete"):
             device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir, chain=chain)
         self.update()
 

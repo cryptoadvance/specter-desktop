@@ -53,8 +53,49 @@
         {% endif %}
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
-            <div style='width: {{ specter.info["utxorescan"] }}%'></div>
+            <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
+        <script>
+            let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
+            let utxoRescanActive = true;
+            async function fetchUTXORescanProgress() {
+                try {
+                    const response = await fetch(
+                        '/get_scantxoutset_status',
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    utxoRescanActive = result.active;
+                    utxoRescanProgress = result.progress;
+                    let walletRescanData = document.getElementById('wallet_rescan_data');
+                    let walletRescanPercentsSettings = document.getElementById('wallet_rescan_percents');
+                    let walletRescanPercents = document.getElementById('{{ specter.utxorescanwallet }}_balances_wallet_rescan_percents');
+                    if (utxoRescanActive) {
+                        document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
+                        if (walletRescanPercents) {
+                            walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        } else if (walletRescanPercentsSettings) {
+                            walletRescanPercentsSettings.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        }
+                        setTimeout(fetchUTXORescanProgress, 1000);
+                    } else {
+                        document.getElementById('utxo_rescan_progress').style.display = 'none';
+                        if (walletRescanData) {
+                            walletRescanData.style.display = 'none';
+                        }
+                        if (walletRescanData || walletRescanPercentsSettings) {
+                            window.location = window.location.href;
+                        }
+                    }
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            setTimeout(fetchUTXORescanProgress, 1000);
+        </script>
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
@@ -98,7 +139,7 @@
         <p class="warning mobile-only">&#9432;<br><b>Specter "Watch Only" Mode.</b><br>You are using Specter from a small-screen device for which some functionalities, including sending funds and creating new wallets are not yet supported.</p>
         <br>
         <div class="footer">
-	        <span>Specter Version: <strong>{{ specter.specter_version }}</strong></span>
+	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
             <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="/about">
             About Specter<br>
             <img src="/static/img/icon.png" style="width: 35px;"/>
