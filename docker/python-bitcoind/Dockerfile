@@ -12,7 +12,7 @@ RUN wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8+
 	wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8++_4.8.30-artful3_amd64.deb
 RUN dpkg -i *.deb && rm *.deb
 
-RUN apt update && apt install git build-essential autoconf libboost-all-dev libssl-dev libprotobuf-dev protobuf-compiler libqt4-dev libqrencode-dev libtool libevent-dev pkg-config bsdmainutils -y 
+RUN apt update && apt install git build-essential autoconf libboost-all-dev libssl-dev libprotobuf-dev protobuf-compiler libqt4-dev libqrencode-dev libtool libevent-dev pkg-config bsdmainutils -y
 
 RUN git clone https://github.com/bitcoin/bitcoin.git
 RUN cd bitcoin && git checkout v0.19.1
@@ -39,4 +39,4 @@ COPY --from=0 /usr/local/bin/bitcoin-cli /usr/local/bin
 
 COPY --from=docker:latest /usr/local/bin/docker /usr/local/bin
 
-
+EXPOSE 8332
