@@ -1,7 +1,7 @@
 class HWIBridge {
     constructor(url, chain) {
         this.url = url;
-        this.deviceTypes = ['specter', 'coldcard', 'keepkey', 'ledger', 'trezor'];
+        this.deviceTypes = ['specter', 'coldcard', 'keepkey', 'ledger', 'bitbox02', 'trezor'];
         this.chain = chain;
         this.in_progress = false;
     }
@@ -104,12 +104,30 @@ class HWIBridge {
             psbt: psbt
         });
     }
-    async getXpubs(device, passphrase=""){
+
+    async signMessage(device, message, derivationPath, passphrase="") {
+        /**
+            Sends the message and derivation path to sign with to the server to relay to the HWI wallet.
+        **/
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.fetch('sign_message', {
+            device_type: device.type,
+            path: device.path,
+            passphrase: device.passphrase,
+            message: message,
+            derivation_path: derivationPath
+        });
+    }
+
+    async getXpubs(device, account=0, passphrase=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
         return await this.fetch('extract_xpubs', {
             device_type: device.type,
+            account: account,
             path: device.path,
             passphrase: device.passphrase,
         });

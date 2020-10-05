@@ -2,6 +2,7 @@ from ..device import Device
 import hwilib.commands as hwi_commands
 import importlib
 
+
 class HWIDevice(Device):
 
     hwi_support = True
@@ -11,7 +12,7 @@ class HWIDevice(Device):
         Device.__init__(self, name, alias, keys, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
-        return {'hwi': wallet.fill_psbt(base64_psbt)}
+        return {"hwi": wallet.fill_psbt(base64_psbt)}
 
     @classmethod
     def enumerate(cls, *args, **kwargs):

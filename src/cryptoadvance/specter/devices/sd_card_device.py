@@ -11,6 +11,5 @@ class SDCardDevice(HWIDevice):
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
-        psbts['sdcard'] = wallet.fill_psbt(
-            base64_psbt, non_witness=False, xpubs=True)
+        psbts["sdcard"] = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=True)
         return psbts

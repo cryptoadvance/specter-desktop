@@ -30,7 +30,7 @@
                 newtitle.style.display = 'none';
             } else {
                 newtitle.style.fontSize = '1.5em';
-                newtitle.value = '{{ title }}';
+                newtitle.value = '{{ title.replace("'","\\'") }}';
                 newtitle.style.display = 'block';
                 edit.style.display = 'none';
                 cancel.style.display = 'inline-block';

@@ -10,8 +10,8 @@
  #}
 {% macro account_utxo_table(account, group_by, wallet, specter) -%}
         {% for tx in wallet.utxo if
-            tx["address"] == account or (wallet.getlabel(tx["address"]) == account and not group_by == 'address')
+            tx["address"] == account or (not group_by == 'address' and wallet.utxo_labels_list[tx["address"]] == account)
         %}
-            {{ tx_item(tx, wallet, specter) }}
+            {{ tx_item(tx=tx, wallet=wallet, specter=specter, includeValidatedBlockhash=False) }}
         {% endfor %}
 {%- endmacro %}

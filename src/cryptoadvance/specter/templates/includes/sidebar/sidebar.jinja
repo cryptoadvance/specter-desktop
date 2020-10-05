@@ -21,9 +21,9 @@
             <p class="warning">&#9432;<br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
         {% endif %}
         {% if specter.chain %}
-            <div onclick="showPageOverlay('bitcoin_core_info')" class="item core" style="cursor: pointer;">
+            <div onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
             {% else %}
-            <a href="/settings/" class="item core">
+            <a href="/settings/" class="item core" style="color: #fff; text-decoration: none;">
         {% endif %}
             {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
             {{ bitcoin_svg(specter.info.chain, 40) }}
@@ -52,9 +52,50 @@
             </a>
         {% endif %}
         {% if specter.info["utxorescan"] %}
-        <div class="rescan_progress {{ chain }}">
-            <div style='width: {{ specter.info["utxorescan"] }}%'></div>
+        <div class="rescan_progress {{ specter.info.chain }}">
+            <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
+        <script>
+            let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
+            let utxoRescanActive = true;
+            async function fetchUTXORescanProgress() {
+                try {
+                    const response = await fetch(
+                        '/get_scantxoutset_status',
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    utxoRescanActive = result.active;
+                    utxoRescanProgress = result.progress;
+                    let walletRescanData = document.getElementById('wallet_rescan_data');
+                    let walletRescanPercentsSettings = document.getElementById('wallet_rescan_percents');
+                    let walletRescanPercents = document.getElementById('{{ specter.utxorescanwallet }}_balances_wallet_rescan_percents');
+                    if (utxoRescanActive) {
+                        document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
+                        if (walletRescanPercents) {
+                            walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        } else if (walletRescanPercentsSettings) {
+                            walletRescanPercentsSettings.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                        }
+                        setTimeout(fetchUTXORescanProgress, 1000);
+                    } else {
+                        document.getElementById('utxo_rescan_progress').style.display = 'none';
+                        if (walletRescanData) {
+                            walletRescanData.style.display = 'none';
+                        }
+                        if (walletRescanData || walletRescanPercentsSettings) {
+                            window.location = window.location.href;
+                        }
+                    }
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            setTimeout(fetchUTXORescanProgress, 1000);
+        </script>
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
@@ -73,9 +114,16 @@
             </div>
             {{ sidebar_btn('new_wallet', 'Add new wallet') }}
         {% elif specter.chain %}
-            <p class="warning">&#9432;<br>Please create at least one device to enable wallets.</p>
+            {{ sidebar_btn('singlesig_setup_wizard', 'Add new wallet') }}
         {% else %}
-            <p class="warning">&#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!</p>
+            <p class="warning">
+            &#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
+            {% if current_user.is_admin %}
+            <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="/settings/bitcoin_core">
+                <img src="/static/img/settings-status-bar.svg" style="width: 13px;"/>Configure Node
+            </a>
+            {% endif %}
+            </p>
         {% endif %}
 
         <div class="separator">
@@ -88,16 +136,16 @@
             {% endfor %}
         </div>
         {{ sidebar_btn('new_device', 'Add new device') }}
+        <p class="warning mobile-only">&#9432;<br><b>Specter "Watch Only" Mode.</b><br>You are using Specter from a small-screen device for which some functionalities, including sending funds and creating new wallets are not yet supported.</p>
+        <br>
         <div class="footer">
-            Brought to you by<br>
-            <a href="https://cryptoadvance.io" target="_blank">
-                <img src="/static/img/ca.png">
+	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
+            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="/about">
+            About Specter<br>
+            <img src="/static/img/icon.png" style="width: 35px;"/>
             </a>
         </div>
     </nav>
-    <div id="side-expand">
-        <div>▶</div>
-    </div>
 </div>
 <script>
     function toggleList(type) {

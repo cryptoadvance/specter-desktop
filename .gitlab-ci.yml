@@ -31,11 +31,12 @@ test:
   script:
     - pip3 install -r requirements.txt
     - pip3 install -e .
+    - pip3 install -r test_requirements.txt
     # pytest --docker not working? Uncomment this for better debugging:
     # - python3 tests/conftest.py 
     - pytest --docker
 
-release:
+release_pip:
   stage: releasing
   only: 
     - tags
@@ -51,5 +52,47 @@ release:
     # twine ready the password from the env-var TWINE_PASSWORD
     # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
     - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
+
+release_binary_linux:
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/bionic-build:latest
+  stage: releasing
+  only: 
+    - tags
+  before_script:
+    - python -V
+    - pip install virtualenv
+    - virtualenv --python=python3 .env
+    - source .env/bin/activate
+  script:
+    # Make sure the version-number is compatibe to the scheme
+    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
+    - pip3 install github-binary-upload
+    - cd pyinstaller && ./build-unix.sh $CI_COMMIT_TAG
+    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
+
+
+release_binary_windows:
+  stage: releasing
+  only: 
+    - tags
+  tags:
+    - windows
+  before_script:
+    - python -V
+    - pip install virtualenv
+    - virtualenv --python=python3 .env
+    - .\.env\Scripts\activate
+  script:
+    # This script won't execute if the script before that fails
+    # No need to check the version-scheme again
+    - whoami
+    - pip3 install github-binary-upload
+    - cd pyinstaller 
+    - .\build-win.bat $CI_COMMIT_TAG
+    - (Get-Content .\specter-desktop.iss).replace('#define MyAppVersion "x.y.z"',"#define MyAppVersion `"$Env:CI_COMMIT_TAG`"") | Set-Content .\specter-desktop.iss
+    - docker run --rm -i -v ${pwd}:/work k9ert/innosetup iscc /work/specter-desktop.iss
+    - Get-FileHash .\release\specter_desktop_setup.exe -Algorithm SHA256 > .\release\specter_desktop_setup.exe.SHA256
+    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specter_desktop_setup.exe ./release/specter_desktop_setup.exe.SHA256
+
 
 

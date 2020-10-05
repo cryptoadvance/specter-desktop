@@ -4,11 +4,12 @@
     - tx: The transaction to display
     - wallet: Wallet object
     - specter: Specter object.
+    - includeValidatedBlockhash: boolean
  #}
-{% macro tx_item(tx, wallet, specter) -%}
+{% macro tx_item(tx, wallet, specter, includeValidatedBlockhash=False) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     {% set txid = tx['txid'] %}
-    <tr class="{%if tx['confirmations'] == 0 %}unconfirmed{%endif%}">
+    <tr class="{%if tx['confirmations'] == 0 %}unconfirmed{%endif%}" onclick="if(window.innerWidth<=600){showPageOverlay(`{{tx['txid']}}_tx_info_popup`)}">
         <td>
             {# coinbase txs are 'immature' until 100 confs #}
             {% if tx['category'] == 'immature' %}
@@ -17,17 +18,17 @@
                 <img src="/static/img/{% if tx['confirmations'] == 0 %}unconfirmed_{% endif %}{{tx['category']}}_icon.svg"/>
             {% endif %}
         </td>
-        <td class="tx scroll">
+        <td class="tx scroll optional">
             {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
         </td>
-        <td class="tx scroll">
+        <td class="tx scroll optional">
             {% if wallet == none %}
                 {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
             {% endif %}
             {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </td>
         <td>
-            {{ tx['amount'] | btcamount }}
+            {{ tx['amount'] | btcunitamount }}
         </td>
         <td>
             {%if tx['confirmations'] == 0 %}
@@ -37,5 +38,52 @@
             {% endif %}
             ({{ tx['time'] | datetime }})
         </td>
+	{% if includeValidatedBlockhash %}
+	  <td class="tx scroll optional">
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </td>
+	{% endif %}
     </tr>
+    <div id="{{tx['txid']}}_tx_info_popup" class="hidden" style="text-align:left;">
+        <h1>Transaction details</h1>
+        <p>Category: {{ tx['category'] | title }}&nbsp; {% if tx['category'] == 'immature' %}
+            <img src="/static/img/unconfirmed_receive_icon.svg"/>
+        {% else %}
+            <img src="/static/img/{% if tx['confirmations'] == 0 %}unconfirmed_{% endif %}{{tx['category']}}_icon.svg"/>
+        {% endif %}
+        </p>
+        <p>Transaction ID:</p>
+        <p class="tx scroll" style="max-width: 100%; background-color: #0f161f; border-radius: 5px;">
+            {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
+        </p>
+        <p>Address:</p>
+        <p class="tx scroll" style="max-width: 100%; background-color: #0f161f; border-radius: 5px;">
+            {% if wallet == none %}
+                {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
+            {% endif %}
+            {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
+        </p>
+        <p>Amount: {{ tx['amount'] | btcunitamount }}</p>
+        <p>Status:
+        {%if tx['confirmations'] == 0 %}
+            Pending.
+        {% else %}
+            {{ tx['confirmations'] }} conf.
+        {% endif %}
+        ({{ tx['time'] | datetime }})
+        </p>
+	{% if includeValidatedBlockhash %}
+	  <p>
+	      {% if tx['blockhash'] == tx['validated_blockhash'] %}
+		  {{ explorer_link('block', tx['blockhash'], tx['blockhash'], specter.explorer) }}
+	      {% else %}
+		  Unconfirmed
+	      {% endif %}
+	  </p>
+	{% endif %}
+    </div>
 {%- endmacro %}

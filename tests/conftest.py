@@ -9,61 +9,83 @@ import time
 
 import pytest
 import docker
-from cryptoadvance.specter.bitcoind import BitcoindDockerController, BitcoindPlainController
+from cryptoadvance.specter.bitcoind import (
+    BitcoindDockerController,
+    BitcoindPlainController,
+)
 from cryptoadvance.specter.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
 
 
 def pytest_addoption(parser):
-    ''' Internally called to add options to pytest 
-        see pytest_generate_tests(metafunc) on how to check that
-    '''
+    """Internally called to add options to pytest
+    see pytest_generate_tests(metafunc) on how to check that
+    """
     parser.addoption("--docker", action="store_true", help="run bitcoind in docker")
-    parser.addoption('--bitcoind-version', action='store', default='v0.19.1', help='setup environment: development')
+    parser.addoption(
+        "--bitcoind-version",
+        action="store",
+        default="v0.19.1",
+        help="setup environment: development",
+    )
+
 
 def pytest_generate_tests(metafunc):
-    #ToDo: use custom compiled version of bitcoind
+    # ToDo: use custom compiled version of bitcoind
     # E.g. test again bitcoind version [currentRelease] + master-branch
     if "docker" in metafunc.fixturenames:
         if metafunc.config.getoption("docker"):
             # That's a list because we could do both (see above) but currently that doesn't make sense in that context
-            metafunc.parametrize("docker", [True],scope="module")
+            metafunc.parametrize("docker", [True], scope="module")
         else:
             metafunc.parametrize("docker", [False], scope="module")
 
+
 @pytest.fixture(scope="module")
 def bitcoin_regtest(docker, request):
-    #logging.getLogger().setLevel(logging.DEBUG)
+    # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
-        bitcoind_controller = BitcoindDockerController(rpcport=18543, docker_tag=requested_version)
+        bitcoind_controller = BitcoindDockerController(
+            rpcport=18543, docker_tag=requested_version
+        )
     else:
-        if os.path.isfile('tests/bitcoin/src/bitcoind'):
-            bitcoind_controller = BitcoindPlainController(bitcoind_path='tests/bitcoin/src/bitcoind') # always prefer the self-compiled bitcoind if existing
+        if os.path.isfile("tests/bitcoin/src/bitcoind"):
+            bitcoind_controller = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/src/bitcoind"
+            )  # always prefer the self-compiled bitcoind if existing
         else:
-            bitcoind_controller = BitcoindPlainController() # Alternatively take the one on the path for now
+            bitcoind_controller = (
+                BitcoindPlainController()
+            )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
-    assert(running_version != requested_version, "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"%(running_version,requested_version))
+    assert (
+        running_version != requested_version,
+        "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"
+        % (running_version, requested_version),
+    )
     return bitcoind_controller
 
 
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = './test_specter_data_2789334'
+    data_folder = "./test_specter_data_2789334"
     shutil.rmtree(data_folder, ignore_errors=True)
     os.mkdir(data_folder)
     yield data_folder
     shutil.rmtree(data_folder, ignore_errors=True)
 
+
 @pytest.fixture
 def devices_filled_data_folder(empty_data_folder):
-    os.makedirs(empty_data_folder+"/devices")
-    with open(empty_data_folder+"/devices/trezor.json", "w") as text_file:
-        text_file.write('''
+    os.makedirs(empty_data_folder + "/devices")
+    with open(empty_data_folder + "/devices/trezor.json", "w") as text_file:
+        text_file.write(
+            """
 {
     "name": "Trezor",
     "type": "trezor",
@@ -126,9 +148,11 @@ def devices_filled_data_folder(empty_data_folder):
         }
     ]
 }
-''')
-    with open(empty_data_folder+"/devices/specter.json", "w") as text_file:
-        text_file.write('''
+"""
+        )
+    with open(empty_data_folder + "/devices/specter.json", "w") as text_file:
+        text_file.write(
+            """
 {
     "name": "Specter",
     "type": "specter",
@@ -170,15 +194,20 @@ def devices_filled_data_folder(empty_data_folder):
         }
     ]
 }
-''')        
-    return empty_data_folder # no longer empty, though
-    
+"""
+        )
+    return empty_data_folder  # no longer empty, though
+
 
 @pytest.fixture
 def wallets_filled_data_folder(devices_filled_data_folder):
-    os.makedirs(os.path.join(devices_filled_data_folder,"wallets","regtest"))
-    with open(os.path.join(devices_filled_data_folder,"wallets","regtest","simple.json"), "w") as json_file:
-        json_file.write('''
+    os.makedirs(os.path.join(devices_filled_data_folder, "wallets", "regtest"))
+    with open(
+        os.path.join(devices_filled_data_folder, "wallets", "regtest", "simple.json"),
+        "w",
+    ) as json_file:
+        json_file.write(
+            """
 {
     "alias": "simple",
     "fullpath": "/home/kim/.specter/wallets/regtest/simple.json",
@@ -205,17 +234,20 @@ def wallets_filled_data_folder(devices_filled_data_folder):
     "address_type": "bech32"
 }
 
-''')
-    return devices_filled_data_folder # and with wallets obviously
+"""
+        )
+    return devices_filled_data_folder  # and with wallets obviously
+
 
 @pytest.fixture
 def device_manager(devices_filled_data_folder):
-    return DeviceManager(os.path.join(devices_filled_data_folder,"devices"))
+    return DeviceManager(os.path.join(devices_filled_data_folder, "devices"))
+
 
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = './test_specter_data_3456778'
+    data_folder = "./test_specter_data_3456778"
     shutil.rmtree(data_folder, ignore_errors=True)
     config = {
         "rpc": {
@@ -224,9 +256,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
             "password": bitcoin_regtest.rpcconn.rpcpassword,
             "port": bitcoin_regtest.rpcconn.rpcport,
             "host": bitcoin_regtest.rpcconn.ipaddress,
-            "protocol": "http"
+            "protocol": "http",
         },
-        "auth": "rpcpasswordaspin"
+        "auth": "rpcpasswordaspin",
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     specter.check()
@@ -236,17 +268,18 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 
 @pytest.fixture
 def app(specter_regtest_configured):
-    ''' the Flask-App, but uninitialized '''
+    """ the Flask-App, but uninitialized """
     app = create_app()
     app.app_context().push()
-    app.config["TESTING"]=True
+    app.config["TESTING"] = True
     app.testing = True
     app.tor_service_id = None
     app.tor_enabled = False
     init_app(app, specter=specter_regtest_configured)
     return app
 
+
 @pytest.fixture
 def client(app):
-    ''' a test_client from an initialized Flask-App '''
+    """ a test_client from an initialized Flask-App """
     return app.test_client()

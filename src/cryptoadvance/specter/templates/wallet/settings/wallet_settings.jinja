@@ -13,7 +13,7 @@
 	<form action="." method="POST" class="padded" style="width: 500px">
 		{% if wallet.rescan_progress %}
 			<div class="row aligned">
-				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: {{"%.2f" % (wallet.rescan_progress*100)}}%</div>
+				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
 				<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
 			</div>
 		{% else %}
@@ -36,7 +36,7 @@
 	<form action="." method="POST" class="padded" style="width: 500px">
 		{% if specter.info["utxorescan"] %}
 		<div class="row aligned padded">
-			<div style="flex-grow: 1">UTXO rescan in process: {{specter.info["utxorescan"]}}%.</div>
+			<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
 			<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
 		</div>
 		{% else %}
@@ -57,15 +57,51 @@
 				</div>
 			</button>
 		</div>
+		{% if specter.info['pruned']  %}
+			<div class="row" style="margin-top: 10px">
+				<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+					<div class="tool-tip">
+						<i class="tool-tip__icon">i</i>
+						<p class="tool-tip__info">
+							<span class="info">
+								<span class="info__title">Fetch missing data</span><br><br>
+								You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+								Check this checkbox if you want to fetch missing information from block explorer.
+							</span>
+						</p>
+					</div>
+
+				</label>
+			</div>
+			<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+				&#9432;<br>Careful with block explorers!<br>
+				This may have privacy implication!<br>
+				Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
+				"They" will know what transactions you are interested in.
+			</span>
+			<script type="text/javascript">
+				let utxocheckbox = document.getElementById("use_explorer");
+				utxocheckbox.addEventListener('change', e=>{
+					let el = document.getElementById("utxo-warning")
+					if(utxocheckbox.checked){
+						el.style.display = "inline-block";
+					}else{
+						el.style.display = "none";
+					}
+				});
+			</script>
+		{% endif %}
+
 		{% endif %}
 	</form>
 	<br>
 	<h1>Wallet Devices</h1>
+	{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% endif %}
 	<div class="row overflow">
 		{% for device in wallet.devices %}
 			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
 				<div class="small-card radio">
-					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
 						<img src="/static/img/{{ device.device_type }}_icon.svg" width="18px">
 					{% else %}
 						<img src="/static/img/other_icon.svg" width="18px">
@@ -75,7 +111,50 @@
 			</a>
 		{% endfor %}
 	</div>
+	<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">Show keys details</button>
 	<br>
+	<div id="keys_list" class="center" style="display: none; width: 85%;">
+		<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
+		<label class="switch">
+			<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+			<span class="slider"></span>
+		</label><br>
+		<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
+		<br>
+		{% for i in range(wallet.devices | length) %}
+			{% set device = wallet.devices[i] %}
+			{% set key = wallet.keys[i] %}
+			<h1>Signer {% if wallet.is_multisig %}{{ loop.index }} {% endif %}- {{ device.name }}</h1>
+			<div class="table-holder">
+				<table>
+					<thead>
+						<tr>
+							<th>Network</th>
+							<th>Purpose</th>
+							<th class="optional">Derivation</th>
+							<th class="optional">Key</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+								{% if key.xpub.startswith("xpub") %}
+									{{ bitcoin_svg('main', 16) }} Main
+								{% else %}
+									{{ bitcoin_svg('test', 16) }} Test
+								{% endif %}
+							</td>
+							<td>{{ purposes[key.key_type] }}</td>
+							<td class="optional">{{ key.derivation }}</td>
+							<td class="scroll xpub optional"><span class="normal_xpub">{{ key.original }}</span><span class="slip132_xpub hidden">{{ key.xpub }}</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>	
+			<div class="spacer"></div>
+		{% endfor %}
+	</div>
 	{% set supports_export_to_device = [] %}
 	{% for device in wallet.devices if device.exportable_to_wallet %}
 		{% set supports_export_to_device = supports_export_to_device.append(device) %}
@@ -90,7 +169,7 @@
 			{% if device.exportable_to_wallet %}
 				{% if device.wallet_export_type == 'file' %}
 					<a 
-					download="{{ wallet.name }}"
+					download="{{ wallet.name | ascii20 }}.txt"
 					href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
 					{% if device.device_type == 'coldcard' %}
 						onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
@@ -102,7 +181,7 @@
 					<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
 					<div id="{{ device.alias }}_export_qr_code" style="display: none;">
 						<h1>Scan this with your {{ device.name }} device </h1>
-						<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
+						<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 					</div>
 				{% endif %}
 			{% endif %}
@@ -120,4 +199,41 @@
 		<h1>Delete Wallet</h1>
 		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
 	</form>
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		function toggleKeysList() {
+			let titleButton = document.getElementById('toggle_keys_list');
+			let keysList = document.getElementById('keys_list');
+			if (keysList.style.display !== 'none') {
+				keysList.style.display = 'none';
+				titleButton.innerHTML = 'Show keys details';
+			} else {
+				keysList.style.display = 'block';
+				titleButton.innerHTML = 'Hide keys details';
+			}
+		}
+
+		function toggleKeyDisplay() {
+			let slip132Checkbox = document.getElementById('use_slip_132');
+			let xpubs = document.getElementsByClassName('slip132_xpub');
+			let zpubs = document.getElementsByClassName('normal_xpub');
+			if (slip132Checkbox.checked) {
+				for (xpub of xpubs) {
+					xpub.style.display = 'none';
+				}
+				for (zpub of zpubs) {
+					zpub.style.display = 'block';
+				}
+			} else {
+				for (xpub of xpubs) {
+					xpub.style.display = 'block';
+				}
+				for (zpub of zpubs) {
+					zpub.style.display = 'none';
+				}
+			}
+		}
+	</script>
 {% endblock %}

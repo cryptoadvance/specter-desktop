@@ -2,6 +2,17 @@
 {% set tab = 'wallet_send' %}
 {% block content %}
 
+	<style>
+		.max-btn:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		}
+		#calculated_tx_fee_label:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	</style>
+
 	{% include "includes/qr-scanner.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
@@ -12,9 +23,15 @@
 		</ul>
 	</message-box>
 
-	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST">
+	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" id="send-form" method="POST">
 		<h1 class="padded">Create Transaction</h1>
-		<p class="center">Available Funds: {{wallet.full_available_balance | btcamount}}</p>
+		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
+			{% if specter.unit == 'sat' %}
+				sats
+			{% else %}
+				{% if specter.chain !='main' %}t{%endif%}BTC
+			{% endif %}
+		</p>
 		{% if wallet.locked_amount > 0 %}
 			<div class="tool-tip" style="text-align: center;">
 				<i class="tool-tip__icon">i</i>
@@ -25,28 +42,44 @@
 					</span>
 				</p>
 			</div>
-			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcamount}} BTC still in usigned transactions.</p>
+			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in usigned transactions.</p>
 			<br><br>
 		{% endif %}
 		<div class="card">
-			<div id="recipients"></div>
-			<button style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()" id="remove_recipient"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
-			<br>
+			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
+			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
+			Unit: 
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleUnit(this, 'text')" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			<textarea id="recipients-txt" name="recipients" placeholder="Enter recipient address, amount" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
+				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
+					Enter each recipient address, amount as a new line:<br>
+					&lt;ADDRESS1&gt;, &lt;AMOUNT1&gt;<br>
+					&lt;ADDRESS2&gt;, &lt;AMOUNT2&gt;<br>
+					&lt;ADDRESS3&gt;, &lt;AMOUNT3&gt;<br>
+				</p>
+			</div>
+			<button id="remove-recipient" style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()"><b>&#8722;</b>&nbsp; &nbsp;Remove recipient</button>
+			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">Calculate estimated fee</span><span class="note" id="calculated_tx_fee"></span><p>
 			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
 			<br><br>
 			<div id="advanced_settings" class="hidden">
+				<div>Transaction editor: 
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
+				</div><br>
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
-				{% set unspents = wallet.cli.listunspent(0) %}
-				<div class="row" style="margin-top: 30px;">
-					<button style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
+				{% set unspents = wallet.rpc.listunspent(0) %}
+				<div class="row" id="coin-selection-row" style="margin-top: 30px;">
+					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
 				{% if unspents | length > 0 %}
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
 				{% endif %}
 				</div><br>
 				{% include "wallet/send/new/components/coin_selection.jinja" %}
 			</div>
-			<button type="submit" disabled name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
-		</div>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+		</div>		
 	</form>
 {% endblock %}
 
@@ -56,11 +89,12 @@
 		// Amounts and units
 		var units = [];
 		var amounts = [];
+		var textUnit = '{{ specter.unit }}'
 
 		function addRecipient() {
 			let i = amounts.length;
 			amounts.push(0.0);
-			units.push('sat');
+			units.push('{% if specter.unit == "sat" %}sat{% else %}btc{% endif %}');
 
 			let recipientForm = `
 			<div id="recipient_${i}" style="border-bottom: 1px solid var(--cmap-border); padding-bottom: 10px; margin-bottom: 10px;">
@@ -76,12 +110,13 @@
 				<input type="text" id="label" name="label_${i}">
 				<br><br>
 				Amount:<br>
-				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="1e-8" autocomplete="off">
+				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="1{% if specter.unit != 'sat' %}e-8{% endif %}" autocomplete="off">
 				<input type="hidden" name="btc_amount_${i}" id="btc_amount_${i}">
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" checked>sat</label>
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})">BTC</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
+				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
 				<div>
-					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">BTC</span>
+					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">{% if specter.unit == "sat" %}BTC{% else %}sat{% endif %}</span>
 				</div>
 			<div>
 			`
@@ -124,9 +159,15 @@
 				}
 			});
 			if (amounts.length == 1) {
-				document.getElementById('remove_recipient').style.display = 'none';
+				document.getElementById('remove-recipient').style.display = 'none';
+				document.getElementById('subtract_from').style.display = 'none';
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
-				document.getElementById('remove_recipient').style.display = 'block';
+				document.getElementById('remove-recipient').style.display = 'block';
+				if (document.getElementById('subtract').checked) {
+					document.getElementById('subtract_from').style.display = 'block';
+				}
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		} 
 
@@ -137,54 +178,108 @@
 			amounts.splice(i, 1);
 			units.splice(i, 1);
 			if (amounts.length == 1) {
-				document.getElementById('remove_recipient').style.display = 'none';
+				document.getElementById('remove-recipient').style.display = 'none';
+				document.getElementById('subtract_from').style.display = 'none';
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
-				document.getElementById('remove_recipient').style.display = 'block';
+				document.getElementById('remove-recipient').style.display = 'block';
+				if (document.getElementById('subtract').checked) {
+					document.getElementById('subtract_from').style.display = 'block';
+				}
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		}
 
 		function toggleUnit(unitSelected, i) {
-			units[i] = unitSelected.value;
-			document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'BTC' : 'sat');
-			calculateConvertedUnit(i);
+			if (i == 'text') {
+				textUnit = unitSelected.value
+			} else {
+				units[i] = unitSelected.value;
+				document.getElementById('converted_unit_label_' + i).innerHTML = (units[i] == 'sat' ? 'btc' : 'sat');
+				document.getElementById('amount_' + i).setAttribute('step', units[i] == 'sat' ? '1' : '1e-8');
+				calculateConvertedUnit(i);
+			}
 		}
 
 		function calculateConvertedUnit(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			amounts[i] = parseFloat(amountInput.value);
-			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 100000000 : 0.000000001)).toFixed((units[i] == 'sat' ? 8 : 0));
+			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 1e8 : 1e-8)).toFixed((units[i] == 'sat' ? 8 : 0));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
 			document.getElementById('converted_unit_amount_' + i).innerHTML = convertedAmount;
 
-			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 100000000);
+			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
 
 			validateForm();
 		}
 
 		function isAboveWalletBalance(unit, amount) {
-			return (unit == 'sat' ? amount / 100000000 : amount) > parseFloat('{{ wallet.full_available_balance }}');
+			return (unit == 'sat' ? amount / 1e8 : amount.toFixed(8)) > parseFloat('{{ wallet.full_available_balance }}').toFixed(8);
 		}
 
 		function isInvalidValue(unit, amount){
 			if (!amount) {
 			    return false;
 			}
-			return (unit == 'sat' ? amount / 100000000 : amount) < 1e-8;
+			return (unit == 'sat' ? amount / 1e8 : amount) < 1e-8;
+		}
+
+		async function setMaxAmount(i) {
+			let amountInput = document.getElementById('amount_' + i);
+			if (!validateAddress(i)) {
+				showError('Please first enter a valid address');
+				return;
+			}
+			let subtract = document.getElementById('subtract');
+			subtract.checked = true;
+			if (amounts.length > 1) {
+				document.getElementById('subtract_from').style.display = 'block';
+				document.getElementById('subtract_from_input').value = i + 1;
+			}
+			let othersAmount = 0;
+			for(let j in amounts) {
+				if (j != i) {
+					let unit = units[j];
+					let amount = amounts[j];
+					othersAmount += (unit == 'sat' ? amount / 1e8 : amount);
+				}
+			}
+			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
+			if (units[i] == 'sat') {
+				maxAmount = Math.round(maxAmount);
+			} else {
+				maxAmount = maxAmount.toFixed(8);
+			}
+			if (maxAmount < 0) {
+				maxAmount = 0;
+			}
+			amountInput.value = maxAmount;
+			
+			calculateConvertedUnit(i);
 		}
 
 		// Form validation
 		function validateAmount(unit, amount, i) {
+			if (isNaN(amount)) {
+				setVisibility('amount_errors_container', 'block');
+				document.getElementById('amount_errors_container')
+					.innerHTML = "Amount entered is invalid!";
+				return false;
+			}
+
 			if (i) {
 				let amountInput = document.getElementById('amount_' + i);
 				amountInput.max = getSpendableAmount(unit);
 			}
 			
-			if (isAboveWalletBalance(unit, amount)) {
+			if (!amount) {
+				return false;
+			} else if (isAboveWalletBalance(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
-					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcamount }} BTC!";
+					.innerHTML = "You cannot send more than {{ wallet.full_available_balance | btcunitamount }} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %}!";
 				return false;
 			} else if (shouldSelectMoreCoins(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
@@ -211,32 +306,54 @@
 			return false;
 		}
 
-		function validateForm() {
+		async function validateForm(submitted=false) {
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			let totalAmount = 0.0;
-			for(let i in amounts) {
-				let unit = units[i]
-				let amount = amounts[i]
-				totalAmount += (unit == 'sat' ? amount / 100000000 : amount);
-				if (!validateAmount(unit, amount, i)) {
-					createPSBTButton.disabled = true;
-					return;
+
+			if (document.getElementById('ui-radio-btn').checked) {
+				for(let i in amounts) {
+					let unit = units[i]
+					let amount = amounts[i]
+					totalAmount += (unit == 'sat' ? amount / 1e8 : amount);
+					if (submitted && !amount) {
+						showError('Please enter the amount that you wish to send', 5000);
+					}
+					if (document.getElementById("amount_" + i).value == '') {
+						amount = 0;
+					}
+					if (!validateAmount(unit, amount, i)) {
+						createPSBTButton.setAttribute('type', 'button');
+						return;
+					}
+				}
+				
+				for(let i in amounts) {
+					if (!validateAddress(i)) {
+						if (submitted) {
+							showError('Please enter a valid recipient address', 5000);
+						}
+						createPSBTButton.setAttribute('type', 'button');
+						return;
+					}
+				}
+			} else {
+				let outputs = document.getElementById('recipients-txt').value.split('\n');
+				for (let output of outputs) {
+					if (textUnit == 'sat') {
+						totalAmount += parseInt(output.split(',')[1].trim()) / 1e8;
+					} else {
+						totalAmount += parseFloat(output.split(',')[1].trim());
+					}
 				}
 			}
 
-			if (!validateAmount('BTC', totalAmount)) {
-				createPSBTButton.disabled = true;
+			if (!validateAmount('btc', totalAmount)) {
+				createPSBTButton.setAttribute('type', 'button');
 				return;
 			}
-			
-			for(let i in amounts) {
-				if (!validateAddress(i)) {
-					createPSBTButton.disabled = true;
-					return;
-				}
-			}
 
-			createPSBTButton.disabled = false;
+			createPSBTButton.setAttribute('type', 'submit');
+			return true;
 		}
 
 		// Utils
@@ -257,6 +374,74 @@
 				advancedSettigns.style.display = 'block';
 				advancedButton.innerHTML = 'Advanced &#9660;';
 			}
+		}
+
+		function toggleSendUIType(radioBtn) {
+			if (radioBtn.value == 'ui') {
+				setVisibility('recipients', 'block');
+				setVisibility('add-recipient', 'flex');
+				if (amounts.length > 1 && document.getElementById('subtract').checked) {
+					setVisibility('remove-recipient', 'block');
+					setVisibility('subtract_from', 'block');
+					document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+				} else {
+					setVisibility('remove-recipient', 'none');
+					setVisibility('subtract_from', 'none');
+					document.getElementById('coin-selection-row').style['margin-top'] = '30px';
+				}
+				setVisibility('recipients-txt-container', 'none');
+			} else {
+				setVisibility('recipients', 'none');
+				setVisibility('add-recipient', 'none');
+				setVisibility('remove-recipient', 'none');
+				if (document.getElementById('subtract').checked) {
+					setVisibility('subtract_from', 'block');
+					document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+				}
+				setVisibility('recipients-txt-container', 'block');
+			}
+		}
+
+		async function calculateEstimatedFee() {
+			if (document.getElementById('ui-radio-btn').checked) {
+				for(let i in amounts) {
+					if (!validateAddress(i)) {
+						showError('Please first enter a valid address');
+						return;
+					}
+				}
+			}
+			try {
+				let feeOptionManual = document.getElementById('fee_option_manual')
+				if (!feeOptionManual.checked) {
+					feeOptionManual.checked = true;
+					showFeeOption(feeOptionManual);
+					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value / 1000 * 2 * 1e8) / 2;
+					if (manualRate < 1) {
+						manualRate = 1;
+					}
+					document.getElementById('fee_rate').value = manualRate;
+				}
+				var formData = new FormData(document.getElementById('send-form'));
+				formData.append("estimate_fee", true);
+				formData.append("action", "createpsbt");
+
+				const response = await fetch(
+					'/wallets/{{ wallet.alias }}/send/new',
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+				let psbt = await response.json();
+				console.log(psbt);
+				let fees = parseInt(psbt.fee * 1e8)
+				document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
+				return fees;
+			} catch {
+				document.getElementById('calculated_tx_fee').innerText = `: failed to calculate transaction fees`;
+			}
+			return -1;
 		}
 
 		document.addEventListener("DOMContentLoaded", function(){

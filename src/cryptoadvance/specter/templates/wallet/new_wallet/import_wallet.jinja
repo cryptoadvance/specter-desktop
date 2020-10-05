@@ -20,7 +20,7 @@
 					<input type="hidden" name="cosigner_{{ loop.index0 }}" value="{{ cosigner.alias }}">
 					<a href="{{ url_for('device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
 						<div class="small-card radio">
-							{% if cosigner.device_type in ['specter', 'coldcard', 'trezor', 'ledger'] %}
+							{% if cosigner.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
 								<img src="/static/img/{{ cosigner.device_type }}_icon.svg" width="18px">
 							{% else %}
 								<img src="/static/img/other_icon.svg" width="18px">

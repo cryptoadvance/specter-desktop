@@ -31,6 +31,7 @@ body{
     flex-direction: column;
     max-width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 *{
     box-sizing: border-box;
@@ -173,18 +174,17 @@ nav.side{
     flex-direction: column;
     justify-content: flex-start;
     flex-grow: 1;
+    width: 250px;
 }
 #side-content{
     background: var(--cmap-bg-ligher);
-    width: 250px;
-    max-width: 250px;
-    min-width: 250px;
     border-right: 1px solid var(--cmap-bg-lightest);
     padding-top: 10px;
     display: flex;
     flex-direction: row;
     overflow-y: scroll;
     z-index: 100;
+    min-width: 250px;
 }
 main{
     flex-grow: 1;
@@ -210,6 +210,12 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
 }
+
+
+#devices_list{
+    margin-bottom: 10px;
+}
+
 a.item{
     text-decoration: none;
     color: inherit;
@@ -228,7 +234,7 @@ a.item:hover{
 }
 .item > svg, .item > img{
     opacity: 0.7;
-    margin: 0px 10px 0px 30px;
+    margin: 0 10px 0 20px;
 }
 .item:hover > svg{
     opacity: 1;
@@ -285,15 +291,11 @@ small, .small{
 
 nav .separator{
     text-transform: uppercase;
-    /*text-align: center;*/
     font-size: 0.85em;
-    margin: 20px 0px 5px 26px;
-    /*font-weight: bold;*/
-    /*opacity: 0.8;*/
+    margin: 20px 20px 5px;
 }
-.item .btn{
-    margin: 5px 20px 5px 20px;
-    /*min-width: 170px;*/
+.optional .btn{
+    margin: 15px 20px;
 }
 .btn{
     background: var(--cmap-border);
@@ -335,14 +337,17 @@ button.btn{
     text-align: center;
     cursor: pointer;
 }
-
+#help-wanted-text:hover {
+    text-decoration: underline;
+}
 .footer{
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    font-size: 0.7em;
+    font-size: 0.9em;
     flex-grow: 1;
+    padding-bottom: 10px;
 }
 .footer img{
     width: 85px;
@@ -365,7 +370,7 @@ h1, h2{
 }
 h1{
     font-size: 1.5em;
-    text-align: center; 
+    text-align: center;
     margin: 0 0 20px 0;
 }
 h2{
@@ -381,6 +386,10 @@ input, textarea, .input, select{
     font-size: inherit;
     font-weight: inherit;
     min-width: 170px;
+    color: #fff;
+}
+select option{
+    background: var(--cmap-bg);
     color: #fff;
 }
 .input{
@@ -652,23 +661,23 @@ tbody tr:hover{
     background: rgba(255,255,255,0.03);
     color: #fff;
 }
-td.xpub{
+.xpub{
     max-width: 300px;
 }
-td.tx{
+.tx{
     max-width: 200px;
 }
-td.scroll{
+.scroll{
     padding: 0 10px;
 }
-td.scroll > *{
+.scroll > *{
     /* ugly fix for firefox - scrolling child element */
     display: block;
     overflow-x: scroll;
     width: 100%;
     padding: 20px 0;
 }
-td.scroll > *::-webkit-scrollbar,
+.scroll > *::-webkit-scrollbar,
 #side-content::-webkit-scrollbar,
 main::-webkit-scrollbar,
 pre::-webkit-scrollbar{
@@ -747,15 +756,39 @@ table tr:hover .btn.hovering{
     text-align: center;
     font-size: 14px;
     background: #ccc;
-    padding: 12px;
-    color: #303030;
-    margin: 10px;
+    padding: 10px;
+    color: #333;
+    font-weight: normal;
+    margin: 10px 20px;
     border-radius: 7px;
     line-height: 1.5;
 }
+.explorer-link {
+    color: inherit;
+    text-decoration: none;
+}
 .explorer-link:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
+    cursor: pointer;
+}
+
+.pagination-arrow :hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.pagination-arrow {
+    text-decoration: none;
+    display: inline-block;
+    margin: 0px 16px 16px;
+    border-radius: 50%;
     color: #fff;
-    text-decoration: underline;
+    font-size: 1.5em;
+}
+
+.pagination-disabled {
+    visibility: hidden;
 }
 
 /************** Send Tab ********************************/
@@ -794,18 +827,18 @@ table tr:hover .btn.hovering{
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0, 0.75);
-    z-index: 2;
+    z-index: 4;
     padding: 20px;
 }
 .page_overlay_popup {
     margin: auto;
+    max-width: 60%;
     display: none;
-    max-width: 500px;
     text-align: center;
     border-radius: 0.5em;
     border: 2px solid #313E50;
     background-color: #192432;
-    z-index: 3;
+    z-index: 5;
     padding: 1.5em;
 }
 .page_overlay_popup_cancel {
@@ -870,9 +903,35 @@ table tr:hover .btn.hovering{
 a:focus + .tool-tip .tool-tip__info {
     display: inline-block;
 }
+.switch-label {
+    height: 25px;
+    vertical-align: sub;
+    font-size: 1.3em;
+    font-weight: bolder;
+}
+.settings-title {
+    width: 80%;
+    margin: auto;
+}
+.mobile-only {
+    display: none;
+}
+.key-qr-code {
+    width: 400px;
+}
+
+img[src="/static/img/cobo_icon.svg"] {
+    transform: scale(1.30);
+}
+
+img[src="/static/img/bitbox02_icon.svg"] {
+    transform: scale(2);
+}
+
 /************** Mobile styles ********************************/
 #side-expand{
     display: none;
+    padding: 5px;
 }
 #menubtn{
     display: none;
@@ -881,38 +940,47 @@ a:focus + .tool-tip .tool-tip__info {
 @media (max-width: 1100px){
   #side-content{
     position: absolute;
+    display: flex;
     height: 100%;
-    left: -235px;
+    left: -250px;
+    width: 270px;
     transition: left 0.3s;
     box-shadow: 3px 0px 10px rgba(0,0,0,0.3);
   }
-  #side-expand{
+  #side-content:after{
     display: flex;
+    content: "▶";
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    background: var(--cmap-bg-ligher);
   }
   td.xpub{
     max-width: 230px;
   }
   @media (hover: hover){
     main{
-      padding-left: 15px;
+      padding-left: 20px;
     }
     #side-content:hover{
-      position: absolute;
-      left: 0px;
+      left: 0;
     }
-    #side-content:hover > #side-expand{
-      transform: scaleX(-1);
+    #side-content:hover:after{
+      position: absolute;
+      right: -20px;
     }
   }
 }
 /* touch based devices need a menu button */
-@media (any-hover: none) and (max-width: 1100px), 
-       (any-pointer: coarse) and (max-width: 1100px), 
-       (pointer: none) and (max-width: 1100px), 
+@media (any-hover: none) and (max-width: 1100px),
+       (any-pointer: coarse) and (max-width: 1100px),
+       (pointer: none) and (max-width: 1100px),
        (max-width: 600){
   #menubtn{
     display: block;
@@ -921,25 +989,76 @@ a:focus + .tool-tip .tool-tip__info {
     position: absolute;
     left: 0px;
   }
-  #side-content.active > #side-expand{
-    transform: scaleX(-1);
-  }
   #side-content{
-    left: -250px;
+    left: -275px;
   }
-  #side-expand{
-    display: none;
+  #side-content:after{
+    content: none;
   }
 }
-@media (max-width: 600px){
-  .card{
-    border-width: 0px;
-    width: 100%;
-  }
-  nav.row{
-    padding-left: 0;
-    padding-right: 0;
-  }
+@media (max-width: 690px){
+    .card{
+        border-width: 0px;
+        width: 90%;
+    }
+    nav.row{
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .optional{
+        display:none;
+    }
+    .mobile-only {
+        display: revert;
+    }
+    .mobile-right {
+        border-radius: 0 10px 10px 0 !important;
+    }
+    .mobile-right.left {
+        border-radius: 10px 10px 10px 10px !important;
+    }
+    .key-qr-code {
+        width: 200px !important;
+    }
+    .page_overlay_popup {
+     max-width: 95%;
+    }
+    .key {
+        width: 25% !important;
+    }
+    .switch-label {
+        font-size: 1em;
+        font-weight: normal;
+    }
+    .btn.radio {
+        max-width: 130px;
+    }
+    .btn.centered {
+        max-width: 200px;
+    }
+    .tool-tip {
+        display: none;
+    }
+    .log {
+        max-width: 100% !important;
+        width: 200px !important;
+        margin: auto !important;
+    }
+    .cancel, .update, .edit {
+        max-width: 45%;
+    }
+    .label {
+        margin-bottom: 10px;
+    }
+    .edit {
+        float: left !important;
+    }
+    body {
+        padding-bottom: 10px;
+    }
+    #title {
+        margin-top: 20px;
+    }
 }
 
 /************** Switch checkbox styles ********************************/

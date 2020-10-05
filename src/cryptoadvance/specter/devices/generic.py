@@ -13,7 +13,7 @@ class GenericDevice(Device):
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = {
-            'qrcode': base64_psbt,
-            'sdcard': base64_psbt,
+            "qrcode": base64_psbt,
+            "sdcard": base64_psbt,
         }
         return psbts

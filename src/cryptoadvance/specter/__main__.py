@@ -1,22 +1,18 @@
 from logging.config import dictConfig
 from .cli import cli
+import logging
 
 if __name__ == "__main__":
     # central and early configuring of logging see
     # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
-    dictConfig({
-        'version': 1,
-        'formatters': {'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        }},
-        'handlers': {'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://flask.logging.wsgi_errors_stream',
-            'formatter': 'default'
-        }},
-        'root': {
-            'level': 'INFO',
-            'handlers': ['wsgi']
-        }
-    })
+    # However the dictConfig doesn't work, so let's do something similiar programatically
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
+    ch.setFormatter(formatter)
+    logging.getLogger().addHandler(ch)
+    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger(__name__).info("Logging configured")
     cli()

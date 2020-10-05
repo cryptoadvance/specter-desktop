@@ -11,11 +11,11 @@
     </nav>
 
     <div class="row" style="min-height: 400px;">
-        <span id="compressed_psbt">
-            <qr-code class='center' value="{{ device_psbts['qrcode'] }}" width="400"></qr-code>
+        <span id="compressed_psbt" style="margin: auto;">
+            <qr-code class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
         </span>
-        <span id="full_psbt" style="display: none">
-            <qr-code class='center' value="{{ psbt['base64'] }}" width="400"></qr-code>
+        <span id="full_psbt" style="display: none; margin: auto;">
+            <qr-code class='center' value="{{ psbt['base64'] }}" width="400" scalable></qr-code>
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">

@@ -35,16 +35,13 @@ class Device:
         return {}
 
     @classmethod
-    def from_json(cls, device_dict, manager,
-                  default_alias='', default_fullpath=''):
-        name = device_dict['name'] if 'name' in device_dict else ''
-        alias = (device_dict['alias']
-                 if 'alias' in device_dict
-                 else default_alias)
-        keys = [Key.from_json(key_dict) for key_dict in device_dict['keys']]
-        fullpath = (device_dict['fullpath']
-                    if 'fullpath' in device_dict
-                    else default_fullpath)
+    def from_json(cls, device_dict, manager, default_alias="", default_fullpath=""):
+        name = device_dict["name"] if "name" in device_dict else ""
+        alias = device_dict["alias"] if "alias" in device_dict else default_alias
+        keys = [Key.from_json(key_dict) for key_dict in device_dict["keys"]]
+        fullpath = (
+            device_dict["fullpath"] if "fullpath" in device_dict else default_fullpath
+        )
         return cls(name, alias, keys, fullpath, manager)
 
     @property
@@ -60,10 +57,10 @@ class Device:
     def _update_keys(self):
         with fslock:
             with open(self.fullpath, "r") as f:
-                content = json.loads(f.read())
-            content['keys'] = [key.json for key in self.keys]
+                content = json.load(f)
+            content["keys"] = [key.json for key in self.keys]
             with open(self.fullpath, "w") as f:
-                f.write(json.dumps(content, indent=4))
+                json.dump(content, f, indent=4)
         self.manager.update()
 
     def remove_key(self, key):
@@ -87,11 +84,11 @@ class Device:
         self.device_type = device_type
         with fslock:
             with open(self.fullpath, "w") as f:
-                f.write(json.dumps(self.json, indent=4))
+                json.dump(self.json, f, indent=4)
         self.manager.update()
 
-    def key_types(self, network='main'):
-        test = network != 'main'
+    def key_types(self, network="main"):
+        test = network != "main"
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
     def __eq__(self, other):

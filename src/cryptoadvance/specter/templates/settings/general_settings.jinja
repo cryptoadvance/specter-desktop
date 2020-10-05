@@ -1,34 +1,18 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST">
-		<h1>General settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
 		<div class="card" style="margin: 20px auto;">
-			<h1> HWI Bridge </h1>
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
-						If you connect the USB directly to the machine you are running Specter on, leave the default value here (/hwi/api/).<br><br>
-						If you are using Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.<br><br>
-						Then update this setting here to the URL you are running Specter on (default: http://127.0.0.1:25441/hwi/api/).
-					</span>
-				</p>
-			</div>
-			HWI Bridge URL:
-			<br>
-			<input type="text" name="hwi_bridge_url" value="{{ hwi_bridge_url }}">
-			<br><br><br>
 			<h1> Backup and Restore </h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">Backing up Your Specter Data<br><br></span>
-						It is recommended to keep your backup files privately as sharing them with result in privacy leaks.<br><br>
-						Backups are recommended to ensure access to funds remains even in case a device from a multisig wallet is lost.
+						It is recommended that you keep your backup files private, as sharing them will result in privacy leaks.<br><br>
+						Backups are recommended to ensure that access to funds remain, even in the event that a multisig wallet is lost.
 					</span>
 				</p>
 			</div>
@@ -43,7 +27,8 @@
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">Restoring Specter from backup<br><br></span>
-						Here you can restore your wallets and devices from an existing Secter backup.<br>
+						Here you can restore your wallets and devices from an existing Specter backup.<br>
+						Please make sure to unzip the backup file first, then select the extracted folder for upload.<br>
 						Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
 					</span>
 				</p>
@@ -62,13 +47,19 @@
 				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
 			<h1> Miscellaneous </h1>
+			Bitcoin unit to use (BTC/sats):
+			<select name="unit">
+				<option value="btc" {% if unit!="sat" %} selected="selected"{% endif %}>BTC</option>
+				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
+			</select>
+			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
 				&#9432;<br>
 				Specter does not use the block explorer to get any data whatsoever.
 				This setting is only to allow opening transactions and addresses in a block explorer directly from Specter.
-				All data Specter uses still comes directly from the your own connected full node.
+				All data Specter uses comes directly from your own connected full node.
 			</div>
 			<br>
 			{% if current_user.is_admin %}
@@ -80,6 +71,20 @@
 			</select>
 			<br><br>
 			{% endif %}
+
+			Validate Merkle Proofs:
+			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
+			    {% include "includes/merkletooltip.html" %}
+			</div>
+			<div class="note">
+			    Cannot enable when using a pruned bitcoin node
+			</div>
+			<div class="row">
+			    <label class="switch">
+				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
+				<span class="slider"></span>
+			    </label>
+			</div><br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
@@ -88,7 +93,7 @@
 {% endblock %}
 {% block scripts %}
 	<script type="text/javascript">
-		
+
 		document.addEventListener("DOMContentLoaded", function(){
 			var el = document.getElementById("file");
 
@@ -96,7 +101,11 @@
 				el.addEventListener("change", (e) => {
 					let wallets = []
 					let devices = []
-					files = el.files;
+					files = e.currentTarget.files;
+					if (e.currentTarget.files.length == 1 && e.currentTarget.files[0].type == 'application/zip') {
+						showError("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder", 10000);
+						return;
+					}
 					console.log(files);
 					for(let i=0; i<files.length; i++){
 						if (files[i].type == 'application/json'){

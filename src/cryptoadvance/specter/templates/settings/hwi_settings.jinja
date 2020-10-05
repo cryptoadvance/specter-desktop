@@ -1,7 +1,51 @@
 {% extends "base.jinja" %}
 {% block main %}
-		<h1>HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('hwi_settings', current_user) }}
-		<iframe src="/hwi/settings" style="min-height: 475px; width: 100%; margin: 0px;" frameBorder="0"></iframe>
+
+		<div class="card" style="margin: 20px auto;">
+			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
+						If you connect the USB directly to the machine on which you are running Specter, leave the default value here (/hwi/api/).<br><br>
+						If you are using Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.<br><br>
+						Then update this setting here to the URL you are running HWIBridge on (default: http://127.0.0.1:25441/hwi/api/).
+					</span>
+				</p>
+			</div>
+			HWI Bridge URL:
+			<br>
+			<form action="?" method="POST">
+				<div class="row">
+					<input type="text" name="hwi_bridge_url" value="{{ specter.hwi_bridge_url }}">
+					&nbsp;<input type="submit" class="btn" style="width: 200px" value="Save"/>
+				</div>
+			</form>
+		</div>
+		<h1 style="margin-bottom: 0">Whitelist settings
+		<div class="tool-tip" style="font-size: 0.7em">
+			<i class="tool-tip__icon">i</i>
+			<p class="tool-tip__info">
+				<span class="info">
+					<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
+					This page is loaded from the HWI bridge server you defined above.<br><br>
+					To communicate with hardware wallets on your computer you need to make sure Specter domain is whitelisted.<br><br>
+					Add whitelist Specter domain to this whitelist.<br><br>
+					If the page is not loading - something is wrong with your configuration. Maybe wrong url?
+				</span>
+			</p>
+		</div>
+		</h1>
+		<span class="note" style="margin: 0; padding: 0; margin-bottom: 20px; line-height: 1;">
+			<br>Whitelist Specter domain name ( <code alt="Click to copy" id="url" style="text-decoration: underline; display:inline-block; margin: 0; height: auto;" onclick="copyText(this.innerHTML, 'Copied URL: '+this.innerHTML);"></code> ) here:
+		</span>
+		<script type="text/javascript">
+			let url = window.location.href;
+			let arr = url.split("/");
+			document.getElementById("url").innerHTML = arr[0] + "//" + arr[2]+"/";
+		</script>
+		<iframe src='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' style="min-height: 550px; width: 100%; margin: 0px;" frameBorder="0"></iframe>
 {% endblock %}

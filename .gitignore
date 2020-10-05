@@ -10,3 +10,8 @@ dist
 .vscode
 cert.pem
 key.pem
+*.dmg
+pyinstaller/specterd
+pyinstaller/release
+pyinstaller/version.txt
+.DS_Store
