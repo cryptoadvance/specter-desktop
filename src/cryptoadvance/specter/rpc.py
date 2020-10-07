@@ -187,9 +187,10 @@ class RpcError(Exception):
         try:
             self.status_code = response.status_code
             error = response.json()
-        except:
+        except Exception as e:
             # ok already a dict
-            self.status_code = 500
+            if self.status_code == None:
+                self.status_code = 500 
             error = response
         try:
             self.error_code = error["error"]["code"]

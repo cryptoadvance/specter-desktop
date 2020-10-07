@@ -559,18 +559,18 @@ def bitcoin_core_settings():
             host = arr[1]
 
         if action == "test":
-            try:
-                test = app.specter.test_rpc(
-                    user=user,
-                    password=password,
-                    port=port,
-                    host=host,
-                    protocol=protocol,
-                    autodetect=autodetect,
-                    datadir=datadir,
-                )
-            except Exception as e:
-                err = "Fail to connect to the node configured: {}".format(e)
+            # If this is failing, the test_rpc-method needs improvement
+            # Don't wrap this into a try/except otherwise the feedback
+            # of what's wron to the user gets broken
+            test = app.specter.test_rpc(
+                user=user,
+                password=password,
+                port=port,
+                host=host,
+                protocol=protocol,
+                autodetect=autodetect,
+                datadir=datadir,
+            )
         elif action == "save":
             if current_user.is_admin:
                 success = app.specter.update_rpc(

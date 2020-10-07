@@ -8,6 +8,8 @@ import zipfile
 from io import BytesIO
 from .helpers import deep_update, clean_psbt
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
@@ -261,18 +263,22 @@ class Specter:
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
-            logger.error(e)
+            logger.error("Caught an ConnectionError while test_rpc: ",e)
+
             r["tests"]["connectable"] = False
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
-            logger.error(rpce)
+            logger.error("Caught an RpcError while test_rpc: "+ str(rpce))
+            logger.error(rpce.status_code)
+            r["tests"]["connectable"] = True
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
             else:
-                raise rpce
+                r["code"] = rpc.r.status_code
+                r["err"] = str(rpce.status_code)
         except Exception as e:
-            logger.error(e)
+            logger.error("Caught an exception of type {} while test_rpc: {}".format(type(e), str( e)))
             r["out"] = ""
             if rpc.r is not None and "error" in rpc.r:
                 r["err"] = rpc.r["error"]
