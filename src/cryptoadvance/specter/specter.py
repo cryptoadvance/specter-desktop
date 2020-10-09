@@ -263,13 +263,13 @@ class Specter:
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: ",e)
+            logger.error("Caught an ConnectionError while test_rpc: ", e)
 
             r["tests"]["connectable"] = False
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: "+ str(rpce))
+            logger.error("Caught an RpcError while test_rpc: " + str(rpce))
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
             if rpce.status_code == 401:
@@ -278,7 +278,11 @@ class Specter:
                 r["code"] = rpc.r.status_code
                 r["err"] = str(rpce.status_code)
         except Exception as e:
-            logger.error("Caught an exception of type {} while test_rpc: {}".format(type(e), str( e)))
+            logger.error(
+                "Caught an exception of type {} while test_rpc: {}".format(
+                    type(e), str(e)
+                )
+            )
             r["out"] = ""
             if rpc.r is not None and "error" in rpc.r:
                 r["err"] = rpc.r["error"]
