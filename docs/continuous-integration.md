@@ -57,7 +57,7 @@ virtualenv --python=python3 .env
 source .env/bin/activate
 # Workaround because dependencies are not availabe on test.pypi.org
 wget https://raw.githubusercontent.com/cryptoadvance/specter-desktop/master/requirements.txt
-python3 -m pip install -r requirements.txt  
+python3 -m pip install -r requirements.txt  --require-hashes
 # Install the package
 python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps cryptoadvance.specter
 # AND Ready to go! e.g.:
