@@ -95,7 +95,7 @@ def init_app(app, hwibridge=False, specter=None):
 
         @app.route("/", methods=["GET"])
         def index():
-            return redirect("hwi/settings")
+            return redirect("/hwi/settings")
 
     return app
 
