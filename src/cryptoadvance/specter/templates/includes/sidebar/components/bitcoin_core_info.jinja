@@ -26,7 +26,7 @@
         </table>
         <p id="total_supply" style="line-height: 2.5;"></p>
         <div class="row">
-            <button type="button" onclick="fetchTotalSupply()" class="btn centered" href="/settings/bitcoin_core">
+            <button type="button" onclick="fetchTotalSupply()" class="btn centered" href="{{ url_for('bitcoin_core_settings') }}">
                 Run the numbers!
                 <div class="tool-tip">
                     <i class="tool-tip__icon">i</i>
@@ -47,7 +47,7 @@
                 document.getElementById('total_supply').innerHTML = 'Running the numbers... (this might take a few minutes)';
                 try {
                     const response = await fetch(
-                        '/get_txout_set_info',
+                        "{{ url_for('txout_set_info') }}",
                         {
                             method: 'GET'
                         }
@@ -68,8 +68,8 @@
         </script>
         {% if current_user.is_admin %}
             <div class="row">
-                <a class="btn centered" href="/settings/bitcoin_core">
-                    <img src="/static/img/settings-status-bar.svg" style="width: 18px;"/>
+                <a class="btn centered" href="{{ url_for('bitcoin_core_settings') }}">
+                    <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 18px;"/>
                     Configure Bitcoin Core RPC Connection
                 </a>
             </div>

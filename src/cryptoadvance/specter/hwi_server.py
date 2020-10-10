@@ -14,13 +14,16 @@ hwi = HWIBridge()
 
 @hwi_server.route("/", methods=["GET"])
 def index():
-    return redirect("/hwi/settings")
+    return redirect("hwi/settings")
 
 
 @hwi_server.route("/api/", methods=["POST"])
 def api():
     """JSON-RPC for HWI Bridge"""
     # if cross-origin
+    print("request.environ=%s" % request.environ)
+    print("request.data=%s" % request.data)
+    print("request=%s" % request)
     if (
         "HTTP_HOST" in request.environ
         and "HTTP_ORIGIN" in request.environ
@@ -28,6 +31,7 @@ def api():
         != request.environ["HTTP_ORIGIN"].split("://")[1]
     ):
         whitelisted_domains = hwi_get_config(app.specter)["whitelisted_domains"].split()
+        print("whitelisted_domains=%s" % whitelisted_domains)
         for i, url in enumerate(whitelisted_domains):
             # might be https as well
             whitelisted_domains[i] = url.replace("://localhost:", "://127.0.0.1:")
@@ -38,6 +42,7 @@ def api():
             if not origin_url.endswith("/"):
                 # make sure the url end with a "/"
                 origin_url += "/"
+            print("origin_url=%s" % origin_url)
             if not (origin_url in whitelisted_domains):
                 return (
                     jsonify(
@@ -54,6 +59,7 @@ def api():
                 )
     try:
         data = json.loads(request.data)
+        print("data=%s" % data)
     except:
         return (
             jsonify(
@@ -65,6 +71,7 @@ def api():
             ),
             500,
         )
+    print("app.specter.hwi_bridge_url=%s" % app.specter.hwi_bridge_url)
     if ("forwarded_request" not in data or not data["forwarded_request"]) and (
         app.specter.hwi_bridge_url.startswith("http://")
         or app.specter.hwi_bridge_url.startswith("https://")

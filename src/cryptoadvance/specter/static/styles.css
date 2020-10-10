@@ -920,11 +920,11 @@ a:focus + .tool-tip .tool-tip__info {
     width: 400px;
 }
 
-img[src="/static/img/cobo_icon.svg"] {
+img[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
     transform: scale(1.30);
 }
 
-img[src="/static/img/bitbox02_icon.svg"] {
+img[src="{{ url_for('static', filename='img/bitbox02_icon.svg') }}"] {
     transform: scale(2);
 }
 
