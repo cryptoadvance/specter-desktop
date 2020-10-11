@@ -184,7 +184,7 @@ class RpcError(Exception):
 
     def __init__(self, message, response):
         super(Exception, self).__init__(message)
-        self.status_code = 500 #default
+        self.status_code = 500  # default
         try:
             self.status_code = response.status_code
             error = response.json()
