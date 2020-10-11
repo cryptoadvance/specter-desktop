@@ -3,8 +3,8 @@
 # pass version number as an argument 
 
 echo $1 > version.txt
+pip install -r requirements.txt --require-hashes
 pip install -e ..
-pip install -r requirements.txt
 rm -rf build/ dist/ release/
 rm *.dmg
 pyinstaller specter_desktop.spec
