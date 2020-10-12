@@ -74,7 +74,7 @@ if sys.platform == 'darwin':
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False )
+          console=True )
 
     app = BUNDLE(
           exe,
@@ -89,6 +89,7 @@ if sys.platform == 'darwin':
             'NSAppleScriptEnabled': False,
             'NSHighResolutionCapable': 'True',
             'NSRequiresAquaSystemAppearance': 'True',
+            'LSUIElement': 1,
             'CFBundleIdentifier': 'solutions.specter.desktop',
             'CFBundleName': 'Specter',
             'CFBundlePackageType': 'APPL'
