@@ -7,6 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.2
-      - uses: lgeiger/black-action@v1.0.1
+      - uses: mflaxman/black-action@v1.0.2
         with:
           args: " --check . "

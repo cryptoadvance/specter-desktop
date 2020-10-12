@@ -6,7 +6,12 @@ with open("requirements.txt") as f:
     install_reqs = f.read().strip().split("\n")
 
 
-reqs = [str(ir) for ir in install_reqs if not ir.startswith("#")]
+# Filter out comments/hashes
+reqs = []
+for req in install_reqs:
+    if req.startswith("#") or req.startswith("    --hash="):
+        continue
+    reqs.append(str(req).rstrip(" \\"))
 
 
 with open("README.md", "r") as fh:

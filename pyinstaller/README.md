@@ -11,7 +11,7 @@ On Windows `release` folder is empty, but `dist` folder contains a `specter_desk
 `cd` into this directory (`specter-desktop/pyinstaller`) and install requirements:
 
 ```bash
-$ pip3 install -r requirements.txt
+$ pip3 install -r requirements.txt --require-hashes
 ```
 
 Now run:
