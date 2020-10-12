@@ -1,3 +1,9 @@
+## v0.8.2 October 12, 2020 WORKINPROGRESS
+ - Bugfix: Update HWI to 1.2.0 closes #500 #476 (#506)
+ - Bugfix: Blackify (#497) (@mflaxman)
+ - Feature add pip-compile and hash support for security/reproducibility (#496) (@mflaxman)
+ - Feture: All code now blackified (#497) (@mflaxman)
+
 ## v0.8.1 October 1, 2020
 - Bugfix: Fix displaying address on BitBox02 (#416) (@stepansnigirev)
 - Bugfix: Fix Specter not starting up if Ledger is connected and asleep (#416) (@stepansnigirev)
