@@ -642,15 +642,22 @@ class Wallet:
         or from address belonging to the wallet.
         """
         if address is not None:
-            d = self.rpc.getaddressinfo(address)["desc"]
-            path = d.split("[")[1].split("]")[0].split("/")
-            change = bool(int(path[-2]))
-            index = int(path[-1])
+            return self.rpc.getaddressinfo(address).get("desc", "")
         if index is None:
             index = self.change_index if change else self.address_index
-        desc = self.change_descriptor if change else self.recv_descriptor
-        desc = desc.split("#")[0]
-        return AddChecksum(desc.replace("*", f"{index}"))
+        desc = self.rpc.getaddressinfo(self.get_address(index, change)).get("desc", "")
+        result = { 'descriptor': desc, 'xpubs_descriptor': None }
+        if self.is_multisig:
+            if address is not None:
+                d = self.rpc.getaddressinfo(address)["desc"]
+                path = d.split("[")[1].split("]")[0].split("/")
+                change = bool(int(path[-2]))
+                index = int(path[-1])
+            if index is None:
+                index = self.change_index if change else self.address_index
+            desc = self.change_descriptor if change else self.recv_descriptor
+            result['xpubs_descriptor'] = sort_descriptor(self.rpc, desc, index=index, change=change)
+        return result
 
     def get_balance(self):
         try:
