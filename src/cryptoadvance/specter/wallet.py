@@ -646,7 +646,7 @@ class Wallet:
         if index is None:
             index = self.change_index if change else self.address_index
         desc = self.rpc.getaddressinfo(self.get_address(index, change)).get("desc", "")
-        result = { 'descriptor': desc, 'xpubs_descriptor': None }
+        result = {"descriptor": desc, "xpubs_descriptor": None}
         if self.is_multisig:
             if address is not None:
                 d = self.rpc.getaddressinfo(address)["desc"]
@@ -656,7 +656,9 @@ class Wallet:
             if index is None:
                 index = self.change_index if change else self.address_index
             desc = self.change_descriptor if change else self.recv_descriptor
-            result['xpubs_descriptor'] = sort_descriptor(self.rpc, desc, index=index, change=change)
+            result["xpubs_descriptor"] = sort_descriptor(
+                self.rpc, desc, index=index, change=change
+            )
         return result
 
     def get_balance(self):
