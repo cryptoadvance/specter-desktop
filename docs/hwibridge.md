@@ -9,7 +9,7 @@ This is because Specter uses HWI for hardware wallets integration, which can onl
 If you have physical access to the machine Specter is running on, like with RaspiBlitz or myNode, the easiest solution is to connect your hardware wallet by USB directly to that machine's USB port.
 This will allow Specter to detect the device and continue normally.
 
-However, if you don't have physical access to the machine Specter is running on, you will need to set up a `Specter HWIBridge`.
+However, if you don't have physical access to the machine Specter is running on, you will need to set up a `Specter HWIBridge`. This procedure is also explained in this [video](https://www.youtube.com/watch?v=rUOxjyOGOGw).
 The following steps will help you set up a local `Specter HWIBridge`, which you could connect to the remote server and will allow it to detect devices connected to your local machine:
 
 1. On the local machine you are accessing Specter from, [install Specter](../README.md#how-to-run) and run it with the `--hwibridge` flag.
