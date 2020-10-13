@@ -513,11 +513,36 @@ class TrezorClient(HardwareWalletClient):
 
     # Display address of specified type on the device.
     @trezor_exception
-    def display_address(self, keypath, p2sh_p2wpkh, bech32, redeem_script=None):
+    def display_address(
+        self, keypath, p2sh_p2wpkh, bech32, redeem_script=None, descriptor=None
+    ):
         self._check_unlocked()
 
-        # redeem_script means p2sh/multisig
-        if redeem_script:
+        # descriptor means multisig with xpubs
+        if descriptor:
+            pubkeys = []
+            xpub = ExtendedKey()
+            for i in range(0, descriptor.multisig_N):
+                xpub.deserialize(descriptor.base_key[i])
+                hd_node = proto.HDNodeType(
+                    depth=xpub.depth,
+                    fingerprint=int.from_bytes(xpub.parent_fingerprint, "big"),
+                    child_num=xpub.child_num,
+                    chain_code=xpub.chaincode,
+                    public_key=xpub.pubkey,
+                )
+                pubkeys.append(
+                    proto.HDNodePathType(
+                        node=hd_node,
+                        address_n=tools.parse_path("m" + descriptor.path_suffix[i]),
+                    )
+                )
+            multisig = proto.MultisigRedeemScriptType(
+                m=int(descriptor.multisig_M),
+                signatures=[b""] * int(descriptor.multisig_N),
+                pubkeys=pubkeys,
+            )  # redeem_script means p2sh/multisig
+        elif redeem_script:
             # Get multisig object required by Trezor's get_address
             multisig = parse_multisig(bytes.fromhex(redeem_script))
             if not multisig[0]:

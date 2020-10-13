@@ -141,7 +141,7 @@ class HWIBridge {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
-            descriptor: descriptor,
+            descriptor: JSON.parse(descriptor),
         });
     }
 }
