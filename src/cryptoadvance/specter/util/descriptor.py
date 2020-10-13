@@ -2,20 +2,22 @@ import re
 
 # From: https://github.com/bitcoin/bitcoin/blob/master/src/script/descriptor.cpp
 
+
 def PolyMod(c, val):
     c0 = c >> 35
-    c = ((c & 0x7ffffffff) << 5) ^ val
-    if (c0 & 1):
-        c ^= 0xf5dee51989
-    if (c0 & 2):
-        c ^= 0xa9fdca3312
-    if (c0 & 4):
-        c ^= 0x1bab10e32d
-    if (c0 & 8):
-        c ^= 0x3706b1677a
-    if (c0 & 16):
-        c ^= 0x644d626ffd
+    c = ((c & 0x7FFFFFFFF) << 5) ^ val
+    if c0 & 1:
+        c ^= 0xF5DEE51989
+    if c0 & 2:
+        c ^= 0xA9FDCA3312
+    if c0 & 4:
+        c ^= 0x1BAB10E32D
+    if c0 & 8:
+        c ^= 0x3706B1677A
+    if c0 & 16:
+        c ^= 0x644D626FFD
     return c
+
 
 def DescriptorChecksum(desc):
     INPUT_CHARSET = "0123456789()[],'/*abcdefgh@:$%{}IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~ijklmnopqrstuvwxyzABCDEFGH`#\"\\ "
@@ -44,10 +46,12 @@ def DescriptorChecksum(desc):
     ret = [None] * 8
     for j in range(0, 8):
         ret[j] = CHECKSUM_CHARSET[(c >> (5 * (7 - j))) & 31]
-    return ''.join(ret)
+    return "".join(ret)
+
 
 def AddChecksum(desc):
     return desc + "#" + DescriptorChecksum(desc)
+
 
 class Descriptor:
     def __init__(
@@ -63,7 +67,7 @@ class Descriptor:
         sh_wsh=None,
         wsh=None,
         multisig_M=None,
-        multisig_N=None
+        multisig_N=None,
     ):
         self.origin_fingerprint = origin_fingerprint
         self.origin_path = origin_path
@@ -99,7 +103,7 @@ class Descriptor:
         multisig_N = None
 
         # Check the checksum
-        check_split = desc.split('#')
+        check_split = desc.split("#")
         if len(check_split) > 2:
             return None
         if len(check_split) == 2:
@@ -124,17 +128,17 @@ class Descriptor:
             sh = True
 
         if sh or sh_wsh or wsh:
-            if 'multi(' not in desc:
+            if "multi(" not in desc:
                 # only multisig scripts are supported
                 return None
             # get the list of keys only
-            keys = desc.split(',', 1)[1].split(')', 1)[0].split(',')
-            if 'sortedmulti' in desc:
-                keys.sort(key=lambda x: x if ']' not in x else x.split(']')[1])
-            multisig_M = desc.split(',')[0].split('(')[-1]
+            keys = desc.split(",", 1)[1].split(")", 1)[0].split(",")
+            if "sortedmulti" in desc:
+                keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
+            multisig_M = desc.split(",")[0].split("(")[-1]
             multisig_N = len(keys)
         else:
-            keys = [desc.split('(')[-1].split(')', 1)[0]]
+            keys = [desc.split("(")[-1].split(")", 1)[0]]
 
         descriptors = []
         for key in keys:
@@ -146,10 +150,10 @@ class Descriptor:
                     origin_fingerprint = match.group(1)
                     origin_path = match.group(2)
                     # Replace h with '
-                    origin_path = origin_path.replace('h', '\'')
+                    origin_path = origin_path.replace("h", "'")
                 else:
                     origin_fingerprint = origin
-                    origin_path = ''
+                    origin_path = ""
 
                 base_key_and_path_match = re.search(r"\[.*\](\w+)([\d'\/\*]*)", key)
             else:
@@ -158,13 +162,26 @@ class Descriptor:
             if base_key_and_path_match:
                 base_key = base_key_and_path_match.group(1)
                 path_suffix = base_key_and_path_match.group(2)
-                if path_suffix == '':
+                if path_suffix == "":
                     path_suffix = None
             else:
                 if origin_match is None:
                     return None
 
-            descriptors.append(cls(origin_fingerprint, origin_path, base_key, path_suffix, testnet, sh_wpkh, wpkh, sh, sh_wsh, wsh))
+            descriptors.append(
+                cls(
+                    origin_fingerprint,
+                    origin_path,
+                    base_key,
+                    path_suffix,
+                    testnet,
+                    sh_wpkh,
+                    wpkh,
+                    sh,
+                    sh_wsh,
+                    wsh,
+                )
+            )
         if len(descriptors) == 1:
             return descriptors[0]
         else:
@@ -181,28 +198,30 @@ class Descriptor:
                 sh_wsh,
                 wsh,
                 multisig_M,
-                multisig_N
+                multisig_N,
             )
 
     def serialize(self):
-        descriptor_open = 'pkh('
-        descriptor_close = ')'
-        origin = ''
-        path_suffix = ''
+        descriptor_open = "pkh("
+        descriptor_close = ")"
+        origin = ""
+        path_suffix = ""
 
         if self.wpkh:
-            descriptor_open = 'wpkh('
+            descriptor_open = "wpkh("
         elif self.sh_wpkh:
-            descriptor_open = 'sh(wpkh('
-            descriptor_close = '))'
+            descriptor_open = "sh(wpkh("
+            descriptor_close = "))"
         elif self.sh or self.sh_wsh or self.wsh:
             # serialize multisig descriptor is not supported yet.
             return None
 
         if self.origin_fingerprint and self.origin_path:
-            origin = '[' + self.origin_fingerprint + self.origin_path + ']'
+            origin = "[" + self.origin_fingerprint + self.origin_path + "]"
 
         if self.path_suffix:
             path_suffix = self.path_suffix
 
-        return AddChecksum(descriptor_open + origin + self.base_key + path_suffix + descriptor_close)
+        return AddChecksum(
+            descriptor_open + origin + self.base_key + path_suffix + descriptor_close
+        )

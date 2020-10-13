@@ -2,11 +2,16 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-with open('requirements.txt') as f:
-    install_reqs = f.read().strip().split('\n')
+with open("requirements.txt") as f:
+    install_reqs = f.read().strip().split("\n")
 
 
-reqs = [str(ir) for ir in install_reqs if not ir.startswith("#") ]
+# Filter out comments/hashes
+reqs = []
+for req in install_reqs:
+    if req.startswith("#") or req.startswith("    --hash="):
+        continue
+    reqs.append(str(req).rstrip(" \\"))
 
 
 with open("README.md", "r") as fh:
@@ -21,8 +26,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/cryptoadvance/specter-desktop",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    packages=find_packages("src"),
+    package_dir={"": "src"},
     # take METADATA.in into account, include that stuff as well (static/templates)
     include_package_data=True,
     install_requires=reqs,
@@ -32,5 +37,5 @@ setup(
         "Operating System :: OS Independent",
         "Framework :: Flask",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )

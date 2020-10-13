@@ -1,6 +1,8 @@
 from .hwi_device import HWIDevice
+
 # a hack that verifies multisig
 from .hwi import trezor
+
 
 class Trezor(HWIDevice):
     device_type = "trezor"

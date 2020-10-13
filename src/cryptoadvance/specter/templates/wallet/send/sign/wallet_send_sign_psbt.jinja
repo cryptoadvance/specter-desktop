@@ -138,7 +138,14 @@
 					</p>
 				{% endfor %}
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
-				<button type="button" id="copy-raw-psbt-btn" class="btn" style="margin: auto;">Copy Raw PSBT</button>
+				<div class="row" style="margin:auto">
+					<a id="download-psbt-btn" class="btn"
+					download="base64.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
+					Download file</a>&nbsp;
+					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
+					<a id="show-qr-psbt-btn" class="btn">
+					Show QR code</a>
+				</div>
 			</div>
 		</div>
 
@@ -170,6 +177,14 @@
 			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
 		</div>
 	</form>
+
+<form id="raw-psbt-qr-container" class="flex-center flex-column hidden">
+    <div class="row" style="min-height: 400px;">
+        <span style="margin: auto;" id="raw-psbt-qr-holder">
+            <qr-code id="raw-psbt-qr" class='center' value="{{ psbt['base64'] }}" width="400" scalable></qr-code>
+        </span>
+    </div>
+</form>
 {% endblock %}
 
 
@@ -185,6 +200,11 @@
 		copyrawPSBTbtn.addEventListener("click", function() {
 			var raw_psbt = document.getElementById("raw-psbt");
 			copyText(raw_psbt.value, "Copied PSBT")
+		});
+		document.getElementById("show-qr-psbt-btn").addEventListener("click", 
+			(e)=>{
+                e.preventDefault();
+                showPageOverlay('raw-psbt-qr-container');
 		});
 		document.addEventListener("DOMContentLoaded", function(){
 			var sendTxBtn = document.getElementById("send_tx_btn");
@@ -273,7 +293,11 @@
 					}
 					// add signatures to raw-psbt textarea for export
 					document.getElementById("raw-psbt").value = psbt0;
-
+					// download file
+					document.getElementById("download-psbt-btn").href = "data:text/plain;content-disposition=attachment,"+psbt0;
+					// qr code
+					document.getElementById("raw-psbt-qr-holder").innerHTML = `            <qr-code id="raw-psbt-qr" class='center' value="${psbt0}" width="400" scalable></qr-code>`;
+					document.getElementById("raw-psbt-qr").setAttribute("value",psbt0);
 				}
 				console.log(jsonResponse);
 				if (jsonResponse.complete) {
