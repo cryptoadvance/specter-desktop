@@ -699,7 +699,11 @@ class Wallet():
         self.rpc.setlabel(address, label)
 
     def getlabel(self, address):
-        return self.getlabels([address])[address]
+        labels = self.getlabels([address])
+        if address in labels:
+            return labels[address]
+        else:
+            return ""
 
     def getlabels(self, addresses):
         labels = {}
