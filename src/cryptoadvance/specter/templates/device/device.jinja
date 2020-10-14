@@ -57,11 +57,9 @@
 		</table>
 	</div>
 	<div class="optional" style="line-height: 1; margin-top: 30px;">
-		{% if device.device_type != 'bitcoincore' %}
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
-		{% endif %}
 		{% if device.hwi_support %}
 			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">

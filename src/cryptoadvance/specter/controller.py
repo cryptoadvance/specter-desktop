@@ -1627,13 +1627,25 @@ def new_device():
                 err = "Invalid mnemonic entered."
             if err is None:
                 mnemonic = request.form["mnemonic"]
+                paths = [
+                    l.strip()
+                    for l in request.form["derivation_paths"].split("\n")
+                    if len(l) > 0
+                ]
                 passphrase = request.form["passphrase"]
+                file_password = request.form["file_password"]
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
                 device.setup_device(
+                    file_password,
+                    app.specter.wallet_manager
+                )
+                device.add_hot_wallet_keys(
                     mnemonic,
                     passphrase,
+                    paths,
+                    file_password,
                     app.specter.wallet_manager,
                     app.specter.chain != "main",
                 )
@@ -1685,31 +1697,59 @@ def device(device_alias):
             key = request.form["key"]
             device.remove_key(Key.from_json({"original": key}))
         elif action == "add_keys":
+            strength = 128
+            mnemonic = generate_mnemonic(strength=strength)
             return render_template(
                 "device/new_device.jinja",
+                mnemonic=mnemonic, 
+                strength=strength,
                 device=device,
                 device_alias=device_alias,
                 specter=app.specter,
                 rand=rand,
             )
         elif action == "morekeys":
-            # refactor to fn
-            xpubs = request.form["xpubs"]
-            keys, failed = Key.parse_xpubs(xpubs)
-            err = None
-            if len(failed) > 0:
-                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template(
-                    "device/new_device.jinja",
-                    device=device,
-                    device_alias=device_alias,
-                    xpubs=xpubs,
-                    error=err,
-                    specter=app.specter,
-                    rand=rand,
-                )
-            if err is None:
-                device.add_keys(keys)
+            if device.hot_wallet:
+                if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
+                    err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+                mnemo = Mnemonic("english")
+                if not mnemo.check(request.form["mnemonic"]):
+                    err = "Invalid mnemonic entered."
+                if err is None:
+                    mnemonic = request.form["mnemonic"]
+                    paths = [
+                        l.strip()
+                        for l in request.form["derivation_paths"].split("\n")
+                        if len(l) > 0
+                    ]
+                    passphrase = request.form["passphrase"]
+                    file_password = request.form["file_password"]
+                    device.add_hot_wallet_keys(
+                        mnemonic,
+                        passphrase,
+                        paths,
+                        file_password,
+                        app.specter.wallet_manager,
+                        app.specter.chain != "main",
+                    )
+            else:
+                # refactor to fn
+                xpubs = request.form["xpubs"]
+                keys, failed = Key.parse_xpubs(xpubs)
+                err = None
+                if len(failed) > 0:
+                    err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+                    return render_template(
+                        "device/new_device.jinja",
+                        device=device,
+                        device_alias=device_alias,
+                        xpubs=xpubs,
+                        error=err,
+                        specter=app.specter,
+                        rand=rand,
+                    )
+                if err is None:
+                    device.add_keys(keys)
         elif action == "settype":
             device_type = request.form["device_type"]
             device.set_type(device_type)

@@ -21,122 +21,87 @@ class BitcoinCore(Device):
     def __init__(self, name, alias, keys, fullpath, manager):
         Device.__init__(self, name, alias, keys, fullpath, manager)
 
-    def setup_device(self, mnemonic, passphrase, wallet_manager, testnet):
-        seed = Mnemonic.to_seed(mnemonic)
-        xprv = seed_to_hd_master_key(seed, testnet=testnet)
+    def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
         wallet_manager.rpc.createwallet(wallet_name, False, True)
         rpc = wallet_manager.rpc.wallet(wallet_name)
+        if file_password:
+            rpc.encryptwallet(file_password)
+
+    def add_hot_wallet_keys(self, mnemonic, passphrase, paths, file_password, wallet_manager, testnet, keypool_size=1000):
+        seed = Mnemonic.to_seed(mnemonic, passphrase)
+        xprv = seed_to_hd_master_key(seed, testnet=testnet)
+        # Load the wallet if not loaded
+        self._load_wallet(wallet_manager)
+        rpc = wallet_manager.rpc.wallet(
+            os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
+        )
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
         # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
         # NOTE: This will work only on the network the device was added,
         #       so hot devices should be filtered out by network.
-        coin = int(testnet)
         rpc.importmulti(
             [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}/49h/{}h/0h/0/*))".format(xprv, coin)
+                        "sh(wpkh({}{}/0/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": 1000,
+                    "range": keypool_size,
                     "timestamp": "now",
-                },
+                }
+                for path in paths
+            ]
+            + [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}/49h/{}h/0h/1/*))".format(xprv, coin)
+                        "sh(wpkh({}{}/1/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": 1000,
+                    "range": keypool_size,
                     "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum("wpkh({}/84h/{}h/0h/0/*)".format(xprv, coin)),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum("wpkh({}/84h/{}h/0h/1/*)".format(xprv, coin)),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}/48h/{}h/0h/1h/0/*))".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}/48h/{}h/0h/1h/1/*))".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "wpkh({}/48h/{}h/0h/2h/0/*)".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "wpkh({}/48h/{}h/0h/2h/1/*)".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
+                }
+                for path in paths
             ],
             {"rescan": False},
         )
-        if passphrase:
-            rpc.encryptwallet(passphrase)
 
         xpubs_str = ""
-        paths = [
-            "m",  # to get fingerprint
-            f"m/49h/{coin}h/0h",  # nested
-            f"m/84h/{coin}h/0h",  # native
-            f"m/48h/{coin}h/0h/1h",  # nested multisig
-            f"m/48h/{coin}h/0h/2h",  # native multisig
-        ]
+        paths = ["m"] + paths
         xpubs = derive_xpubs_from_xprv(xprv, paths, wallet_manager.rpc)
         # it's not parent fingerprint, it's self fingerprint
         master_fpr = get_xpub_fingerprint(xpubs[0]).hex()
 
-        if not testnet:
-            # Nested Segwit
-            xpub = xpubs[1]
-            ypub = convert_xpub_prefix(xpub, b"\x04\x9d\x7c\xb2")
-            xpubs_str += "[%s/49'/0'/0']%s\n" % (master_fpr, ypub)
-            # native Segwit
-            xpub = xpubs[2]
-            zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
-            xpubs_str += "[%s/84'/0'/0']%s\n" % (master_fpr, zpub)
-            # Multisig nested Segwit
-            xpub = xpubs[3]
-            Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
-            xpubs_str += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, Ypub)
-            # Multisig native Segwit
-            xpub = xpubs[4]
-            Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
-            xpubs_str += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, Zpub)
-        else:
-            # Testnet nested Segwit
-            xpub = xpubs[1]
-            upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
-            xpubs_str += "[%s/49'/1'/0']%s\n" % (master_fpr, upub)
-            # Testnet native Segwit
-            xpub = xpubs[2]
-            vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
-            xpubs_str += "[%s/84'/1'/0']%s\n" % (master_fpr, vpub)
-            # Testnet multisig nested Segwit
-            xpub = xpubs[3]
-            Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
-            xpubs_str += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, Upub)
-            # Testnet multisig native Segwit
-            xpub = xpubs[4]
-            Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
-            xpubs_str += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, Vpub)
+        slip132_paths = [
+            "m/49'/0'/0'",
+            "m/84'/0'/0'",
+            "m/48'/0'/0'/1'",
+            "m/48'/0'/0'/2'",
+            "m/49'/1'/0'",
+            "m/84'/1'/0'",
+            "m/48'/1'/0'/1'",
+            "m/48'/1'/0'/2'",
+        ]
+        slip132_prefixes = [
+            b"\x04\x9d\x7c\xb2",
+            b"\x04\xb2\x47\x46",
+            b"\x02\x95\xb4\x3f",
+            b"\x02\xaa\x7e\xd3",
+            b"\x04\x4a\x52\x62",
+            b"\x04\x5f\x1c\xf6",
+            b"\x02\x42\x89\xef",
+            b"\x02\x57\x54\x83",
+        ]
+        for i in range(1, len(paths)):
+            path = paths[i]
+            xpub = xpubs[i]
+            slip132_prefix = None
+            for j, slip132_path in enumerate(slip132_paths):
+                if path.replace("h", "'").startswith(slip132_path):
+                    slip132_prefix = slip132_prefixes[j]
+                    break
+            if slip132_prefix:
+                xpub = convert_xpub_prefix(xpub, slip132_prefix)
+            xpubs_str += "[{}{}]{}\n".format(master_fpr, path.replace("m", ""), xpub)
 
         keys, failed = Key.parse_xpubs(xpubs_str)
         if len(failed) > 0:
@@ -167,18 +132,18 @@ class BitcoinCore(Device):
     def create_psbts(self, base64_psbt, wallet):
         return {"core": base64_psbt}
 
-    def sign_psbt(self, base64_psbt, wallet, passphrase):
+    def sign_psbt(self, base64_psbt, wallet, file_password):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
         rpc = wallet.manager.rpc.wallet(
             os.path.join(wallet.manager.rpc_path + "_hotstorage", self.alias)
         )
-        if passphrase:
-            rpc.walletpassphrase(passphrase, 60)
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
         signed_psbt = rpc.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt["psbt"]:
-            raise Exception("Make sure you have entered the passphrase correctly.")
-        if passphrase:
+            raise Exception("Make sure you have entered the wallet file password correctly. (If your wallet is not encrypted submit empty password)")
+        if file_password:
             rpc.walletlock()
         return signed_psbt
 
