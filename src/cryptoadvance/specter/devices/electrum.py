@@ -18,8 +18,7 @@ class Electrum(Device):
         # remove non_witness utxo for QR code
         updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
         psbts = {
-            'qrcode': b43_encode(a2b_base64(updated_psbt)),
-            'sdcard': base64_psbt,
+            "qrcode": b43_encode(a2b_base64(updated_psbt)),
+            "sdcard": base64_psbt,
         }
         return psbts
-

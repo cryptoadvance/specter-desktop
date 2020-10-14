@@ -16,6 +16,7 @@ import threading
 
 logger = logging.getLogger(__name__)
 
+
 def get_rpc(conf, old_rpc=None):
     """
     Checks if config have changed,
@@ -27,12 +28,20 @@ def get_rpc(conf, old_rpc=None):
     rpc = None
     if conf["autodetect"]:
         if "port" in conf:
-            rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]), port=conf["port"])
+            rpc_conf_arr = autodetect_rpc_confs(
+                datadir=os.path.expanduser(conf["datadir"]), port=conf["port"]
+            )
         else:
-            rpc_conf_arr = autodetect_rpc_confs(datadir=os.path.expanduser(conf["datadir"]))
+            rpc_conf_arr = autodetect_rpc_confs(
+                datadir=os.path.expanduser(conf["datadir"])
+            )
         if len(rpc_conf_arr) > 0:
             rpc = BitcoinRPC(**rpc_conf_arr[0])
     else:
+        # if autodetect is disabled and port is not defined
+        # we use default port 8332
+        if not conf.get("port", None):
+            conf["port"] = 8332
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
@@ -50,8 +59,10 @@ def get_rpc(conf, old_rpc=None):
         logger.info("rpc config have changed.")
         return rpc
 
+
 class Specter:
-    ''' A central Object mostly holding app-settings '''
+    """ A central Object mostly holding app-settings """
+
     CONFIG_FILE_NAME = "config.json"
     # use this lock for all fs operations
     lock = threading.Lock()
@@ -78,16 +89,11 @@ class Specter:
                 "user": "",
                 "password": "",
                 "port": "",
-                "host": "localhost",        # localhost
-                "protocol": "http"          # https for the future
+                "host": "localhost",  # localhost
+                "protocol": "http",  # https for the future
             },
             "auth": "none",
-            "explorers": {
-                "main": "",
-                "test": "",
-                "regtest": "",
-                "signet": ""
-            },
+            "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -106,8 +112,8 @@ class Specter:
 
     @property
     def bitcoin_datadir(self):
-        if 'datadir' in self.config['rpc']:
-            return os.path.expanduser(self.config['rpc']['datadir'])
+        if "datadir" in self.config["rpc"]:
+            return os.path.expanduser(self.config["rpc"]["datadir"])
         return get_default_datadir()
 
     def check(self, user=current_user):
@@ -120,9 +126,9 @@ class Specter:
             # otherwise - create one and assign unique id
         else:
             if self.config["uid"] == "":
-                self.config["uid"] = random.randint(
-                    0, 256 ** 8
-                ).to_bytes(8, 'big').hex()
+                self.config["uid"] = (
+                    random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
+                )
             self._save()
 
         # init arguments
@@ -131,12 +137,13 @@ class Specter:
         # update rpc if something doesn't work
         if self.rpc is None or not self.rpc.test_connection():
             self.rpc = get_rpc(self.config["rpc"], self.rpc)
-        self._is_configured = (self.rpc is not None)
+        self._is_configured = self.rpc is not None
         self._is_running = False
         if self._is_configured:
             try:
                 res = [
-                    r["result"] for r in self.rpc.multi(
+                    r["result"]
+                    for r in self.rpc.multi(
                         [
                             ("getblockchaininfo", None),
                             ("getnetworkinfo", None),
@@ -149,61 +156,73 @@ class Specter:
                 ]
                 self._info = res[0]
                 self._network_info = res[1]
-                self._info['mempool_info'] = res[2]
-                self._info['uptime'] = res[3]
+                self._info["mempool_info"] = res[2]
+                self._info["uptime"] = res[3]
                 try:
                     self.rpc.getblockfilter(res[4])
-                    self._info['blockfilterindex'] = True
+                    self._info["blockfilterindex"] = True
                 except:
-                    self._info['blockfilterindex'] = False
-                self._info["utxorescan"] = (res[5]["progress"]
-                                            if res[5] is not None and "progress" in res[5]
-                                            else None)
+                    self._info["blockfilterindex"] = False
+                self._info["utxorescan"] = (
+                    res[5]["progress"]
+                    if res[5] is not None and "progress" in res[5]
+                    else None
+                )
                 if self._info["utxorescan"] is None:
                     self.utxorescanwallet = None
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
-                self._network_info = {"subversion": '', "version": 999999}
+                self._network_info = {"subversion": "", "version": 999999}
                 logger.error("Exception %s while specter.check()" % e)
                 pass
         else:
             self._info = {"chain": None}
-            self._network_info = {"subversion": '', "version": 999999}
+            self._network_info = {"subversion": "", "version": 999999}
 
         if not self._is_running:
             self._info["chain"] = None
 
         chain = self._info["chain"]
-        if hasattr(user, 'is_admin'):
-            user_folder_id = '_' + user.id if user and not user.is_admin else ''
+        if hasattr(user, "is_admin"):
+            user_folder_id = "_" + user.id if user and not user.is_admin else ""
         else:
-            user_folder_id = ''
+            user_folder_id = ""
 
-        if self.config['auth'] != 'usernamepassword' or (user and not user.is_anonymous):
+        if self.config["auth"] != "usernamepassword" or (
+            user and not user.is_anonymous
+        ):
             if self.device_manager is None:
-                self.device_manager = DeviceManager(os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
+                self.device_manager = DeviceManager(
+                    os.path.join(self.data_folder, "devices{}".format(user_folder_id))
+                )
             else:
-                self.device_manager.update(data_folder=os.path.join(self.data_folder, "devices{}".format(user_folder_id)))
+                self.device_manager.update(
+                    data_folder=os.path.join(
+                        self.data_folder, "devices{}".format(user_folder_id)
+                    )
+                )
 
             wallets_path = "specter%s" % self.config["uid"]
             # if chain, user or data folder changed
-            if (self.wallet_manager is None
+            if (
+                self.wallet_manager is None
                 or self.wallet_manager.data_folder != self.data_folder
                 or self.wallet_manager.rpc_path != wallets_path
-                or self.wallet_manager.chain != chain):
+                or self.wallet_manager.chain != chain
+            ):
                 self.wallet_manager = WalletManager(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                    self.rpc, 
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
+                    self.rpc,
                     chain,
                     self.device_manager,
-                    path=wallets_path
+                    path=wallets_path,
                 )
             else:
                 self.wallet_manager.update(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)), 
-                    self.rpc, 
-                    chain=chain
+                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
+                    self.rpc,
+                    chain=chain,
                 )
 
     def abortrescanutxo(self):
@@ -224,30 +243,32 @@ class Specter:
         if rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
-        r['tests'] = {}
+        r["tests"] = {}
         try:
-            r['tests']['recent_version'] = int(rpc.getnetworkinfo()['version']) >= 170000
-            r['tests']['connectable'] = True
-            r['tests']['credentials'] = True
+            r["tests"]["recent_version"] = (
+                int(rpc.getnetworkinfo()["version"]) >= 170000
+            )
+            r["tests"]["connectable"] = True
+            r["tests"]["credentials"] = True
             try:
                 rpc.listwallets()
-                r['tests']['wallets'] = True
+                r["tests"]["wallets"] = True
             except RpcError as rpce:
                 logger.error(rpce)
-                r['tests']['wallets'] = False
+                r["tests"]["wallets"] = False
 
-            r["out"] = json.dumps(rpc.getblockchaininfo(),indent=4)
+            r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
             logger.error(e)
-            r['tests']['connectable'] = False
+            r["tests"]["connectable"] = False
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
             logger.error(rpce)
-            if rpce.status_code ==  401:
-                r['tests']['credentials'] = False
+            if rpce.status_code == 401:
+                r["tests"]["credentials"] = False
             else:
                 raise rpce
         except Exception as e:
@@ -279,13 +300,13 @@ class Specter:
         return self.rpc is not None
 
     def update_auth(self, auth):
-        ''' simply persisting the current auth-choice '''
+        """ simply persisting the current auth-choice """
         if self.config["auth"] != auth:
             self.config["auth"] = auth
         self._save()
 
     def update_explorer(self, explorer, user):
-        ''' update the block explorers urls '''
+        """ update the block explorers urls """
         # we don't know what chain to change
         if not self.chain:
             return
@@ -293,7 +314,7 @@ class Specter:
             # make sure the urls end with a "/"
             explorer += "/"
         # update the urls in the app config
-        if user.id == 'admin':
+        if user.id == "admin":
             if self.config["explorers"][self.chain] != explorer:
                 self.config["explorers"][self.chain] = explorer
             self._save()
@@ -301,14 +322,14 @@ class Specter:
             user.set_explorer(self, explorer)
 
     def update_hwi_bridge_url(self, url, user):
-        ''' update the hwi bridge url to use '''
+        """ update the hwi bridge url to use """
         if url and not url.endswith("/"):
             # make sure the urls end with a "/"
             url += "/"
         # a few dummy checks:
         # no schema and not local
         if "://" not in url and not url.startswith("/"):
-            url = "http://"+url
+            url = "http://" + url
         # wrong ending:
         if url.endswith("/hwi/settings/"):
             url = url.replace("/hwi/settings/", "/hwi/api/")
@@ -316,42 +337,42 @@ class Specter:
         if not url.endswith("/hwi/api/"):
             url += "hwi/api/"
 
-        if user.id == 'admin':
+        if user.id == "admin":
             self.config["hwi_bridge_url"] = url
             self._save()
         else:
             user.set_hwi_bridge_url(self, url)
 
     def update_unit(self, unit, user):
-        if user.id == 'admin':
+        if user.id == "admin":
             self.config["unit"] = unit
             self._save()
         else:
             user.set_unit(self, unit)
 
     def update_merkleproof_settings(self, validate_bool):
-        if validate_bool is True and self._info.get('pruned') is True:
+        if validate_bool is True and self._info.get("pruned") is True:
             validate_bool = False
             logger.warning("Cannot enable merkleproof setting on pruned node.")
 
-        self.config['validate_merkle_proofs'] = validate_bool
+        self.config["validate_merkle_proofs"] = validate_bool
         self._save()
 
     def add_new_user_otp(self, otp_dict):
-        ''' adds an OTP for user registration '''
-        if 'new_user_otps' not in self.config:
-                self.config['new_user_otps'] = []
-        self.config['new_user_otps'].append(otp_dict)
+        """ adds an OTP for user registration """
+        if "new_user_otps" not in self.config:
+            self.config["new_user_otps"] = []
+        self.config["new_user_otps"].append(otp_dict)
         self._save()
 
     def burn_new_user_otp(self, otp):
-        ''' validates an OTP for user registration and removes it if valid'''
-        if 'new_user_otps' not in self.config:
-                return False
-        for i, otp_dict in enumerate(self.config['new_user_otps']):
+        """ validates an OTP for user registration and removes it if valid"""
+        if "new_user_otps" not in self.config:
+            return False
+        for i, otp_dict in enumerate(self.config["new_user_otps"]):
             # TODO: Validate OTP did not expire based on created_at
-            if otp_dict['otp'] == int(otp):
-                del self.config['new_user_otps'][i]
+            if otp_dict["otp"] == int(otp):
+                del self.config["new_user_otps"][i]
                 self._save()
                 return True
         return False
@@ -408,13 +429,7 @@ class Specter:
 
     @property
     def bitcoin_core_version(self):
-        return self.network_info['subversion'].replace(
-            '/',
-            ''
-        ).replace(
-            'Satoshi:',
-            ''
-        )
+        return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
 
     @property
     def chain(self):
@@ -429,7 +444,10 @@ class Specter:
             else:
                 return ""
         else:
-            if "explorers" in current_user.config and self.chain in current_user.config["explorers"]:
+            if (
+                "explorers" in current_user.config
+                and self.chain in current_user.config["explorers"]
+            ):
                 return current_user.config["explorers"][self.chain]
             else:
                 return ""
@@ -464,25 +482,22 @@ class Specter:
 
     def specter_backup_file(self):
         memory_file = BytesIO()
-        with zipfile.ZipFile(memory_file, 'w') as zf:
+        with zipfile.ZipFile(memory_file, "w") as zf:
             if self.wallet_manager:
                 for wallet in self.wallet_manager.wallets.values():
-                    data = zipfile.ZipInfo('{}.json'.format(wallet.alias))
+                    data = zipfile.ZipInfo("{}.json".format(wallet.alias))
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
                     zf.writestr(
-                        'wallets/{}.json'.format(wallet.alias),
-                        json.dumps(wallet.json)
+                        "wallets/{}.json".format(wallet.alias), json.dumps(wallet.json)
                     )
             if self.device_manager:
                 for device in self.device_manager.devices.values():
-                    data = zipfile.ZipInfo('{}.json'.format(device.alias))
+                    data = zipfile.ZipInfo("{}.json".format(device.alias))
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
                     zf.writestr(
-                        'devices/{}.json'.format(device.alias),
-                        json.dumps(device.json)
+                        "devices/{}.json".format(device.alias), json.dumps(device.json)
                     )
         memory_file.seek(0)
         return memory_file
-
