@@ -1641,10 +1641,7 @@ def new_device():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
-                device.setup_device(
-                    file_password,
-                    app.specter.wallet_manager
-                )
+                device.setup_device(file_password, app.specter.wallet_manager)
                 device.add_hot_wallet_keys(
                     mnemonic,
                     passphrase,
@@ -1652,7 +1649,7 @@ def new_device():
                     file_password,
                     app.specter.wallet_manager,
                     app.specter.chain != "main",
-                    keys_range=[range_start, range_end]
+                    keys_range=[range_start, range_end],
                 )
                 return redirect("/devices/%s/" % device.alias)
         elif action == "generatemnemonic":
@@ -1706,7 +1703,7 @@ def device(device_alias):
             mnemonic = generate_mnemonic(strength=strength)
             return render_template(
                 "device/new_device.jinja",
-                mnemonic=mnemonic, 
+                mnemonic=mnemonic,
                 strength=strength,
                 device=device,
                 device_alias=device_alias,
@@ -1740,7 +1737,7 @@ def device(device_alias):
                         file_password,
                         app.specter.wallet_manager,
                         app.specter.chain != "main",
-                        keys_range=[range_start, range_end]
+                        keys_range=[range_start, range_end],
                     )
             else:
                 # refactor to fn

@@ -28,7 +28,16 @@ class BitcoinCore(Device):
         if file_password:
             rpc.encryptwallet(file_password)
 
-    def add_hot_wallet_keys(self, mnemonic, passphrase, paths, file_password, wallet_manager, testnet, keys_range=[0, 1000]):
+    def add_hot_wallet_keys(
+        self,
+        mnemonic,
+        passphrase,
+        paths,
+        file_password,
+        wallet_manager,
+        testnet,
+        keys_range=[0, 1000],
+    ):
         seed = Mnemonic.to_seed(mnemonic, passphrase)
         xprv = seed_to_hd_master_key(seed, testnet=testnet)
         # Load the wallet if not loaded
@@ -139,7 +148,9 @@ class BitcoinCore(Device):
             rpc.walletpassphrase(file_password, 60)
         signed_psbt = rpc.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt["psbt"]:
-            raise Exception("Make sure you have entered the wallet file password correctly. (If your wallet is not encrypted submit empty password)")
+            raise Exception(
+                "Make sure you have entered the wallet file password correctly. (If your wallet is not encrypted submit empty password)"
+            )
         if file_password:
             rpc.walletlock()
         return signed_psbt
