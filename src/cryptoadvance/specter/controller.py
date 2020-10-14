@@ -1625,6 +1625,10 @@ def new_device():
             mnemo = Mnemonic("english")
             if not mnemo.check(request.form["mnemonic"]):
                 err = "Invalid mnemonic entered."
+            range_start = int(request.form["range_start"])
+            range_end = int(request.form["range_end"])
+            if range_start > range_end:
+                err = "Invalid address range selected."
             if err is None:
                 mnemonic = request.form["mnemonic"]
                 paths = [
@@ -1648,6 +1652,7 @@ def new_device():
                     file_password,
                     app.specter.wallet_manager,
                     app.specter.chain != "main",
+                    keys_range=[range_start, range_end]
                 )
                 return redirect("/devices/%s/" % device.alias)
         elif action == "generatemnemonic":
@@ -1715,6 +1720,10 @@ def device(device_alias):
                 mnemo = Mnemonic("english")
                 if not mnemo.check(request.form["mnemonic"]):
                     err = "Invalid mnemonic entered."
+                range_start = int(request.form["range_start"])
+                range_end = int(request.form["range_end"])
+                if range_start > range_end:
+                    err = "Invalid address range selected."
                 if err is None:
                     mnemonic = request.form["mnemonic"]
                     paths = [
@@ -1731,6 +1740,7 @@ def device(device_alias):
                         file_password,
                         app.specter.wallet_manager,
                         app.specter.chain != "main",
+                        keys_range=[range_start, range_end]
                     )
             else:
                 # refactor to fn

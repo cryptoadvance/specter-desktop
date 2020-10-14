@@ -28,7 +28,7 @@ class BitcoinCore(Device):
         if file_password:
             rpc.encryptwallet(file_password)
 
-    def add_hot_wallet_keys(self, mnemonic, passphrase, paths, file_password, wallet_manager, testnet, keypool_size=1000):
+    def add_hot_wallet_keys(self, mnemonic, passphrase, paths, file_password, wallet_manager, testnet, keys_range=[0, 1000]):
         seed = Mnemonic.to_seed(mnemonic, passphrase)
         xprv = seed_to_hd_master_key(seed, testnet=testnet)
         # Load the wallet if not loaded
@@ -38,16 +38,13 @@ class BitcoinCore(Device):
         )
         if file_password:
             rpc.walletpassphrase(file_password, 60)
-        # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
-        # NOTE: This will work only on the network the device was added,
-        #       so hot devices should be filtered out by network.
         rpc.importmulti(
             [
                 {
                     "desc": AddChecksum(
                         "sh(wpkh({}{}/0/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": keypool_size,
+                    "range": keys_range,
                     "timestamp": "now",
                 }
                 for path in paths
@@ -57,7 +54,7 @@ class BitcoinCore(Device):
                     "desc": AddChecksum(
                         "sh(wpkh({}{}/1/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": keypool_size,
+                    "range": keys_range,
                     "timestamp": "now",
                 }
                 for path in paths

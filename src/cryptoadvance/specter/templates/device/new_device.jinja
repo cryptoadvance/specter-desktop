@@ -158,12 +158,12 @@ m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
 m/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
 m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/1h
 m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
+				<br>
+				<p style="margin-bottom: 10px;">Addresses range to import: </p>
+				From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+				to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+				<br>
 				</div>
-				<br>
-				<label>Addresses range to import: </label>
-				<input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
-				<input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
-				<br>
 				<br><br>
 				{% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
