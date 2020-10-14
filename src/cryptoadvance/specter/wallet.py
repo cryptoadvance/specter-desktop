@@ -703,7 +703,7 @@ class Wallet():
         if address in labels:
             return labels[address]
         else:
-            return ""
+            return address
 
     def getlabels(self, addresses):
         labels = {}

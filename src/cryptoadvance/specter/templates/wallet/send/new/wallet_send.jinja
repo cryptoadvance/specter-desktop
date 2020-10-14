@@ -136,8 +136,6 @@
 				}
 				let arr = addr.split("?");
 				addr = arr[0]
-				// Samourai encodes addresses in upperCase which might cause trouble #479 !
-				addr = addr.toLowerCase()
 				document.getElementById("address_" + i).value = addr;
 				let evt = new Event('input');
 				document.getElementById("address_" + i).dispatchEvent(evt);
