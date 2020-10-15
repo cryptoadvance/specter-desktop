@@ -252,7 +252,7 @@
 		}
 
 		async function combine(psbt1) {
-			let url = "/wallets/{{ wallet.alias }}/combine/";
+			let url = "{{ url_for('combine', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("psbt0", psbt0);
@@ -319,7 +319,7 @@
 
 		async function broadcastLocal(tx) {
 			showNotification("Sending transaction...");
-			let url="/wallets/{{wallet.alias}}/broadcast/";
+			let url="{{ url_for('broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("tx", tx);

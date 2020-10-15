@@ -1,4 +1,4 @@
-<script type="text/javascript" src="/static/hwi.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='hwi.js') }}"></script>
 
 {# === pin screen ==== #}
 {% include 'includes/hwi/components/pin.jinja' %}
@@ -12,7 +12,7 @@
 <div id="hwi_progress" class="hidden" style="width: 270px;">
     <h1 id="hwi_progress_title">Processing...</h1>
     <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
-    <img src="/static/img/loader_boxes.svg">
+    <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
         Running Specter on a remote machine? &#9654
     </div>

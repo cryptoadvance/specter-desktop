@@ -2,13 +2,13 @@
 {% block main %}
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
-    <link rel="stylesheet" type="text/css" href="/static/progress-wizard.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='progress-wizard.min.css') }}">
     <style>
         .progress-indicator li {
             padding: 5px;
             color: #fff;
         }
-        #device-confirm[src="/static/img/cobo_icon.svg"] {
+        #device-confirm[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
             margin: 20px;
         }
     </style>
@@ -29,9 +29,9 @@
                             <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
                             <div class="small-card radio" id="{{ cls.device_type }}_device_card">
                                 {% if cls.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
-                                    <img src="/static/img/{{ cls.device_type }}_icon.svg" width="18px">
+                                    <img src="{{ url_for('static', filename='img/' ~ cls.device_type ~ '_icon.svg') }}" width="18px">
                                 {% else %}
-                                    <img src="/static/img/other_icon.svg" width="18px">
+                                    <img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
                                 {% endif %}
                                 {{ cls.name }}
                             </div>
@@ -75,19 +75,19 @@
                 </div>
                 <div class="row overflow">
                     <div id="connect-hwi" class="small-card">
-                        <img src="/static/img/usb_tiny.svg" width="18px">
+                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" width="18px">
                         Connect via USB
                     </div>
                     <label id="connect-sdcard">
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="small-card">
-                            <img src="/static/img/sd_tiny.svg" width="18px">
+                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" width="18px">
                             Upload from SD Card
                         </div>
                     </label>
                     <qr-scanner id="xpub-scan">
                         <a slot="button" href="#" class="small-card" >
-                            <img src="/static/img/qr_tiny.svg" width="18px">
+                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" width="18px">
                             Scan QR code
                         </a>
                     </qr-scanner>
@@ -162,9 +162,9 @@
                 <h2>This will <span id="wallet-scan-confirm"></span> your <span id="wallet-type-confirm"></span> wallet.</h2>
                 <br>
                 <div style="margin: 50px;">
-                    <img id="device-confirm" src="/static/img/other_icon.svg" width="80px"/>
-                    <img src="/static/img/arrow_right.svg" width="130px"/>
-                    <img src="/static/img/icon.png" width="130px"/>
+                    <img id="device-confirm" src="{{ url_for('static', filename='img/other_icon.svg') }}" width="80px"/>
+                    <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" width="130px"/>
+                    <img src="{{ url_for('static', filename='img/icon.png') }}" width="130px"/>
                 </div>
                 <br>
                 <p>After clicking submit, you will be redirected to your new wallet.</p>
@@ -323,7 +323,7 @@
                 document.getElementById('wallet-type-confirm').innerHTML = deviceName + (document.getElementById('type-wpkh').checked ? ' (Segwit)' : ' (Nested Segwit)');
                 document.getElementById('wallet-scan-confirm').innerHTML = document.getElementById('rescan').checked ? 'import' : 'create';
                 if (['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'].includes(deviceType)) {
-                    document.getElementById('device-confirm').setAttribute('src', `/static/img/${deviceType}_icon.svg`);
+                    document.getElementById('device-confirm').setAttribute('src', '{{ url_for('static', filename='img') }}/' + deviceType + '_icon.svg');
                 }
             }
         }
