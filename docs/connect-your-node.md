@@ -1,5 +1,5 @@
 # Connect your node
-Specter is a very flexible tool and can be used in a lot of different setups. There are some more populat setups which are we want to address here, first. If you want to use Specter with MyNode or Raspiblitz, that might be easy but you might still want to have some guidance. So for some obcious setups, here are some awesome material to watch and study:
+Specter is a very flexible tool and can be used in a lot of different setups. There are some more popular setups which are we want to address here, first. If you want to use Specter with MyNode or Raspiblitz, that might be easy but you might still want to have some guidance. So for some obcious setups, here are some awesome material to watch and study:
 * BTC Sessions [showing](https://www.youtube.com/watch?v=ZQvCncdFMPo) how to start with Specter on Mynode
 * Bitcoin-Magazine showing also [some things](https://www.youtube.com/watch?v=ZQvCncdFMPo) MyNode and Specter
 * Ministry of Nodes [explains](https://www.youtube.com/watch?v=4koKF2MDXtk) how to run Bitcoin Core and Specter on the same windows-machine
