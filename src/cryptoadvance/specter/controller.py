@@ -228,12 +228,14 @@ def index():
     notify_upgrade()
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
-        return redirect(url_for(
-            "wallet", wallet_alias=
-            app.specter.wallet_manager.wallets[
-                app.specter.wallet_manager.wallets_names[0]
-            ].alias
-        ))
+        return redirect(
+            url_for(
+                "wallet",
+                wallet_alias=app.specter.wallet_manager.wallets[
+                    app.specter.wallet_manager.wallets_names[0]
+                ].alias,
+            )
+        )
 
     return redirect("about")
 

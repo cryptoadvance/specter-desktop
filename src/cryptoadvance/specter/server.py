@@ -40,7 +40,9 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(config)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
+    )
     return app
 
 
