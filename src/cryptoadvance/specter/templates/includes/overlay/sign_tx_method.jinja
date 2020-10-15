@@ -15,7 +15,7 @@
         </div>
         {% if device.hwi_support %}
             <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="/static/img/usb_tiny.svg" height="12px">Sign via USB (HWI)
+                <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" height="12px">Sign via USB (HWI)
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {

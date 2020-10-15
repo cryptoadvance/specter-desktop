@@ -229,13 +229,15 @@ def index():
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect(
-            "/wallets/%s"
-            % app.specter.wallet_manager.wallets[
-                app.specter.wallet_manager.wallets_names[0]
-            ].alias
+            url_for(
+                "wallet",
+                wallet_alias=app.specter.wallet_manager.wallets[
+                    app.specter.wallet_manager.wallets_names[0]
+                ].alias,
+            )
         )
 
-    return redirect("/about")
+    return redirect("about")
 
 
 @app.route("/about")
@@ -301,7 +303,7 @@ def login():
     else:
         if app.config.get("LOGIN_DISABLED"):
             app.login("admin")
-            return redirect("/")
+            return redirect("")
         return render_template(
             "login.jinja", specter=app.specter, data={"next": request.args.get("next")}
         )
@@ -329,7 +331,7 @@ def register():
             app.specter, username
         ):
             flash("Username is already taken, please choose another one", "error")
-            return redirect("/register?otp={}".format(otp))
+            return redirect("register?otp={}".format(otp))
         if app.specter.burn_new_user_otp(otp):
             config = {
                 "explorers": {
@@ -346,14 +348,14 @@ def register():
                 "You have registered successfully, \
 please login with your new account to start using Specter"
             )
-            return redirect("/login")
+            return redirect("login")
         else:
             flash(
                 "Invalid registration link, \
 please request a new link from the node operator.",
                 "error",
             )
-            return redirect("/register?otp={}".format(otp))
+            return redirect("register?otp={}".format(otp))
     return render_template("register.jinja", specter=app.specter)
 
 
@@ -362,16 +364,16 @@ def logout():
     logout_user()
     flash("You were logged out", "info")
     app.specter.clear_user_session()
-    return redirect("/login")
+    return redirect("login")
 
 
 @app.route("/settings/", methods=["GET"])
 @login_required
 def settings():
     if current_user.is_admin:
-        return redirect("/settings/bitcoin_core")
+        return redirect(url_for("bitcoin_core_settings"))
     else:
-        return redirect("/settings/general")
+        return redirect(url_for("general_settings"))
 
 
 @app.route("/settings/hwi", methods=["GET", "POST"])
@@ -527,7 +529,7 @@ def bitcoin_core_settings():
     app.specter.check()
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
-        return redirect("/")
+        return redirect("")
     rpc = app.specter.config["rpc"]
     user = rpc["user"]
     password = rpc["password"]
@@ -879,7 +881,7 @@ def new_wallet(wallet_type):
                                 "Failed to perform rescan for wallet: %r" % e, "error"
                             )
                         wallet.getdata()
-                        return redirect("/wallets/%s/" % wallet.alias)
+                        return redirect(url_for("wallet", wallet_alias=wallet.alias))
                     else:
                         return render_template(
                             "wallet/new_wallet/import_wallet.jinja",
@@ -1015,7 +1017,7 @@ def new_wallet(wallet_type):
                         )
                         err = "%r" % e
                     wallet.getdata()
-            return redirect("/wallets/%s/" % wallet.alias)
+            return redirect(url_for("wallet", wallet_alias=wallet.alias))
 
     return render_template(
         "wallet/new_wallet/new_wallet.jinja",
@@ -1039,9 +1041,9 @@ def wallet(wallet_alias):
         app.logger.error("SpecterError while wallet: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
-        return redirect("/wallets/%s/receive/" % wallet_alias)
+        return redirect(url_for("wallet_receive", wallet_alias=wallet_alias))
     else:
-        return redirect("/wallets/%s/tx/" % wallet_alias)
+        return redirect(url_for("wallet_tx", wallet_alias=wallet_alias))
 
 
 @app.route("/wallets_overview/")
@@ -1125,7 +1127,7 @@ def singlesig_setup_wizard():
             wallet.rescanutxo(explorer)
             app.specter._info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
-        return redirect("/wallets/%s/" % wallet.alias)
+        return redirect(url_for("wallet", wallet_alias=wallet.alias))
     return render_template(
         "wizards/singlesig_setup_wizard.jinja", specter=app.specter, rand=rand
     )
@@ -1134,7 +1136,7 @@ def singlesig_setup_wizard():
 @app.route("/wallets/<wallet_alias>/tx/")
 @login_required
 def wallet_tx(wallet_alias):
-    return redirect("/wallets/%s/tx/history" % wallet_alias)
+    return redirect(url_for("wallet_tx_history", wallet_alias=wallet_alias))
 
 
 @app.route("/wallets/<wallet_alias>/tx/history/")
@@ -1614,7 +1616,7 @@ def new_device():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
                 )
-                return redirect("/devices/%s/" % device.alias)
+                return redirect(url_for("device", device_alias=device.alias))
         elif action == "newhotdevice":
             if not device_name:
                 err = "Device name must not be empty"
@@ -1651,7 +1653,7 @@ def new_device():
                     app.specter.chain != "main",
                     keys_range=[range_start, range_end],
                 )
-                return redirect("/devices/%s/" % device.alias)
+                return redirect(url_for("device", device_alias=device.alias))
         elif action == "generatemnemonic":
             strength = int(request.form["strength"])
             mnemonic = generate_mnemonic(strength=strength)
@@ -1694,7 +1696,7 @@ def device(device_alias):
                     bitcoin_datadir=app.specter.bitcoin_datadir,
                     chain=app.specter.chain,
                 )
-                return redirect("/")
+                return redirect("")
         elif action == "delete_key":
             key = request.form["key"]
             device.remove_key(Key.from_json({"original": key}))
