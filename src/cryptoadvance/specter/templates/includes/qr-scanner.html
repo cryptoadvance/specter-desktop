@@ -58,8 +58,8 @@
 </template>
 
 <script type="module">
-import QrScanner from "/static/qr/qr-scanner.min.js";
-QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+import QrScanner from "{{ url_for('static', filename='qr/qr-scanner.min.js') }}";
+QrScanner.WORKER_PATH = "{{ url_for('static', filename='qr/qr-scanner-worker.min.js') }}";
 
 class QRScannerElement extends HTMLElement {
   constructor() {
