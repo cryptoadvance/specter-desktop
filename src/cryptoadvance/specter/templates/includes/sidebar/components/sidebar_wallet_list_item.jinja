@@ -6,7 +6,7 @@
     - chain: Chain name specter is connected to. Options: 'main', 'test', 'regtest', 'signet'.
  #}
 {% macro sidebar_wallet_list_item(wallet, wallet_alias, chain) -%}
-    <a href="/wallets/{{wallet.alias}}/" class="item {% if wallet_alias == wallet.alias %}active{% endif %}">
+    <a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}">
         {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
         <div class="grow">
             {{ wallet.name }}<br>
@@ -29,8 +29,9 @@
                 let walletRescanActive = true;
                 async function fetchWalletRescanProgress() {
                     try {
+                        let url="{{ url_for('get_wallet_rescan_progress', wallet_alias=wallet.alias) }}"
                         const response = await fetch(
-                            '/wallets/{{ wallet.alias }}/get_wallet_rescan_progress',
+                            url,
                             {
                                 method: 'GET'
                             }

@@ -110,6 +110,7 @@ class SpecterClient(HardwareWalletClient):
         p2sh_p2wpkh: bool,
         bech32: bool,
         redeem_script: Optional[str] = None,
+        descriptor: Optional[str] = None,
     ) -> Dict[str, str]:
         """Display and return the address of specified type.
 

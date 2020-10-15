@@ -102,7 +102,7 @@
 				<div class="row">
 					<input type="text" id="address_${i}" name="address_${i}" oninput="validateForm()"> &nbsp;
 					<qr-scanner id="address-scan-${i}">
-						<a slot="button" class="btn" style="height: 35px;"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+						<a slot="button" class="btn" style="height: 35px;"><img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/> Scan</a>
 					</qr-scanner>
 				</div>
 				<br>
@@ -426,8 +426,9 @@
 				formData.append("estimate_fee", true);
 				formData.append("action", "createpsbt");
 
+				let url="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}"
 				const response = await fetch(
-					'/wallets/{{ wallet.alias }}/send/new',
+					url,
 					{
 						method: 'POST',
 						body: formData

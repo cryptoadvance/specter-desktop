@@ -40,7 +40,7 @@
 						<td>{{ key.purpose }}</td>
 						<td class="optional">{{ key.derivation }}</td>
 						<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
-							<img style="margin-top: 5px;" width="15" src="/static/img/qr_tiny.svg"/>
+							<img style="margin-top: 5px;" width="15" src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/>
 						</td>
 						<td class="xpub scroll optional">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
@@ -89,9 +89,9 @@
 				<a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						{% if wallet.is_multisig %}
-							<img src="/static/img/multisig_icon.svg" width="18px">
+							<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
 						{% else %}
-							<img src="/static/img/simple_icon.svg" width="18px">
+							<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
 						{% endif %}
 						{{ wallet.name }}
 					</div>

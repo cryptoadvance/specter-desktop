@@ -656,9 +656,12 @@ class Wallet:
             if index is None:
                 index = self.change_index if change else self.address_index
             desc = self.change_descriptor if change else self.recv_descriptor
-            result["xpubs_descriptor"] = sort_descriptor(
-                self.rpc, desc, index=index, change=change
-            )
+            try:
+                result["xpubs_descriptor"] = sort_descriptor(
+                    self.rpc, desc, index=index, change=change
+                )
+            except Exception:
+                pass
         return result
 
     def get_balance(self):
