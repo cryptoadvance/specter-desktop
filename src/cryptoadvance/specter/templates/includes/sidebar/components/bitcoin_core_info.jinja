@@ -42,7 +42,7 @@
             </button>
         </div><br>
         <script>
-            let totalUserBalance = parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8);
+            let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
             async function fetchTotalSupply() {
                 document.getElementById('total_supply').innerHTML = 'Running the numbers... (this might take a few minutes)';
                 try {
@@ -54,7 +54,7 @@
                     );
                     let result = await response.json();
                     console.log(result)
-                    let userBalanceFromTotal = (100 / (result.total_amount / totalUserBalance)).toFixed(8);
+                    let userBalanceFromTotal = parseFloat((100 / (result.total_amount / totalUserBalance)).toFixed(8));
                     document.getElementById('total_supply').innerHTML = `Bitcoin Total Supply: ${result.total_amount} BTC<br>` +
                     ( userBalanceFromTotal > 1e-8 ?
                     `<span class="note" style="margin: 7px auto;">Your wallets hold ${totalUserBalance} BTC (~${userBalanceFromTotal}% from the total supply)</span>` :
