@@ -1681,6 +1681,8 @@ def device(device_alias):
         return render_template(
             "base.jinja", error="Device not found", specter=app.specter, rand=rand
         )
+    if not device:
+        return redirect(url_for("index"))
     wallets = device.wallets(app.specter.wallet_manager)
     if request.method == "POST":
         action = request.form["action"]
