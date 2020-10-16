@@ -285,7 +285,7 @@ def get_child(xprv, index, rpc=None):
     chain_code = stream.read(32)
     stream.read(1)
     secret = stream.read(32)
-    key = b"\x00"+secret
+    key = b"\x00" + secret
 
     if index < 0x80000000:
         if rpc is None:
