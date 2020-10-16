@@ -38,7 +38,7 @@
                         );
                         let result = await response.json();
                         walletRescanActive = result.active;
-                        walletRescanProgress = (parseFloat(result.progress) * 100).toFixed(2);
+                        walletRescanProgress = parseFloat((parseFloat(result.progress) * 100).toFixed(2));
                         let walletRescanData = document.getElementById('wallet_rescan_data');
                         let walletRescanPercentsSettings = document.getElementById('{{ wallet.alias }}_wallet_rescan_percents');
                         let walletRescanPercents = document.getElementById('{{ wallet.alias }}_balances_wallet_rescan_percents');
