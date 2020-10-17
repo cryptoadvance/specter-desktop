@@ -184,12 +184,12 @@ class RpcError(Exception):
 
     def __init__(self, message, response):
         super(Exception, self).__init__(message)
+        self.status_code = 500  # default
         try:
             self.status_code = response.status_code
             error = response.json()
-        except:
-            # ok already a dict
-            self.status_code = 500
+        except Exception as e:
+            # it's a dict already
             error = response
         try:
             self.error_code = error["error"]["code"]

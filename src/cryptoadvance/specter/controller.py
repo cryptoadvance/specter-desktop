@@ -24,13 +24,10 @@ from flask import (
 )
 from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
-
-
 from .helpers import (
     alias,
     get_devices_with_keys_by_type,
     get_loglevel,
-    run_shell,
     set_loglevel,
     bcur2base64,
     get_txid,
@@ -39,9 +36,11 @@ from .helpers import (
     fslock,
     to_ascii20,
 )
+from .util.shell import run_shell
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
+from .persistence import write_devices, write_wallet
 from .rpc import RpcError
 from .user import User, hash_password, verify_password
 from datetime import datetime
@@ -69,6 +68,7 @@ rand = random.randint(0, 1e32)  # to force style refresh
 def server_error(e):
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
+    app.logger.error(trace)
     return render_template("500.jinja", error=e, traceback=trace), 500
 
 
@@ -433,16 +433,7 @@ def general_settings():
                 restore_devices = json.loads(request.form.get("restoredevices", "[]"))
             if request.form.get("restorewallets", ""):
                 restore_wallets = json.loads(request.form.get("restorewallets", "[]"))
-            for device in restore_devices:
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.device_manager.data_folder,
-                            "%s.json" % device["alias"],
-                        ),
-                        "w",
-                    ) as file:
-                        file.write(json.dumps(device, indent=4))
+            write_devices(restore_devices)
             app.specter.device_manager.update()
 
             rescanning = False
@@ -465,15 +456,7 @@ def general_settings():
                             "error",
                         )
                         continue
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.wallet_manager.working_folder,
-                            "%s.json" % wallet["alias"],
-                        ),
-                        "w",
-                    ) as file:
-                        file.write(json.dumps(wallet, indent=4))
+                write_wallet(wallet)
                 app.specter.wallet_manager.update()
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
@@ -494,7 +477,9 @@ def general_settings():
                         pass
                     except Exception as e:
                         app.logger.error(
-                            "Exception while rescanning blockchain: {}".format(e)
+                            "Exception while rescanning blockchain for wallet {}: {}".format(
+                                wallet["alias"], e
+                            )
                         )
                         flash(
                             "Failed to perform rescan for wallet: {}".format(e), "error"
@@ -561,18 +546,18 @@ def bitcoin_core_settings():
             host = arr[1]
 
         if action == "test":
-            try:
-                test = app.specter.test_rpc(
-                    user=user,
-                    password=password,
-                    port=port,
-                    host=host,
-                    protocol=protocol,
-                    autodetect=autodetect,
-                    datadir=datadir,
-                )
-            except Exception as e:
-                err = "Fail to connect to the node configured: {}".format(e)
+            # If this is failing, the test_rpc-method needs improvement
+            # Don't wrap this into a try/except otherwise the feedback
+            # of what's wron to the user gets broken
+            test = app.specter.test_rpc(
+                user=user,
+                password=password,
+                port=port,
+                host=host,
+                protocol=protocol,
+                autodetect=autodetect,
+                datadir=datadir,
+            )
         elif action == "save":
             if current_user.is_admin:
                 success = app.specter.update_rpc(
