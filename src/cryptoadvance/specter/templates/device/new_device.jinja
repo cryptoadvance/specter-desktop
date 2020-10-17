@@ -25,6 +25,7 @@
 					</div>
 				</div>
 			{% endif %}
+		{% if not device or not device.hot_wallet %}
 			<div id="cold_device">
 				<br>
 				<h2>Scan, paste or load xpubs:</h2>
@@ -91,12 +92,13 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</pre>
 				</div><br>
 {% if not device %}
-				<button type="submit" class="btn centered" name="action" value="newcolddevice">Continue</button>
+				<button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">Continue</button>
 {% else %}
-				<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+				<button type="submit" class="btn centered" name="action" value="morekeys" onsubmit="showPacman()">Continue</button>
 {% endif %}
 			</div>
-{% if not device %}
+{% endif %}
+{% if not device or device.hot_wallet %}
 			<div id="hot_device" class="hidden">
 				<br>
 				<p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
@@ -136,10 +138,38 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					</table>
 				</div>
 				<br>
-				<label>Encryption password: </label>
-				<input type="password" name="passphrase" class="inline" placeholder="Wallet encryption password">
+				<label>Encrypt Wallet File: </label>
+				<input type="password" name="file_password" class="inline" placeholder="password">
 				<br><br>
+				<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
+				<br><br>
+				<div id="advanced_settings" class="hidden">
+					<label>BIP39 passphrase (optional): </label>
+					<input type="password" name="passphrase" class="inline" placeholder="passphrase">
+					<br>
+					<p>Derivation paths:<br>
+					<span class="note">
+					Enter each derivation path as a separate line.
+					Start each path with an <code>m</code>.
+					No trailing slash.</span>
+					</p>
+					<textarea name="derivation_paths" placeholder="Specify derivation paths to import for the wallet">
+m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
+m/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
+m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/1h
+m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
+				<br>
+				<p style="margin-bottom: 10px;">Addresses range to import: </p>
+				From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+				to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+				<br>
+				</div>
+				<br><br>
+				{% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
+{% else %}
+				<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+{% endif %}
 			</div>
 {% endif %}
 		</form>
@@ -148,6 +178,21 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
+	function toggleAdvanced() {
+		let advancedButton = document.getElementById('toggle_advanced');
+		let advancedSettigns = document.getElementById('advanced_settings');
+		if (advancedSettigns.style.display === 'block') {
+			advancedSettigns.style.display = 'none';
+			advancedButton.innerHTML = 'Advanced &#9654;';
+			if (isCoinSelectionActive()) {
+				toggleExpand();
+			}
+		} else {
+			advancedSettigns.style.display = 'block';
+			advancedButton.innerHTML = 'Advanced &#9660;';
+		}
+	}
+
 	function setMnemonicView(view) {
 		var generatedMnemonic = document.getElementById("generated_mnemonic");
 		var importMnemonic = document.getElementById("import_mnemonic");
@@ -223,9 +268,18 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 		if(strength!=null){
 			strength.value = '{{ strength }}';
 		}
+		document.getElementById('toggle_advanced').addEventListener('click', (event) => {
+			toggleAdvanced();
+		});
+		if ('{{ device and device.hot_wallet }}' == 'True') {
+			setMnemonicView('import');
+			var hotDevice = document.getElementById("hot_device");
+			hotDevice.style.display = 'block';
+		}
 	});
 </script>
 
+{% if not device or not device.hot_wallet %}
 <script type="text/javascript">
 	{% include "device/components/add_keys.js" %}
 
@@ -259,7 +313,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 	});
 
 </script>
-
+{% endif %}
 <script type="text/javascript">
 
 	document.addEventListener("DOMContentLoaded", function(){
