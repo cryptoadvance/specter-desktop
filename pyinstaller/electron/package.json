@@ -1,0 +1,40 @@
+{
+  "name": "specter-desktop",
+  "version": "0.8.2-pre1",
+  "description": "Specter Desktop Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "repository": "https://github.com/cryptoadvance/specter-desktop",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "Specter",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^10.1.3",
+    "electron-builder": "^22.9.1"
+  },
+  "build": {
+    "productName": "Specter",
+    "appId": "solutions.specter.desktop",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "identity": null
+    },
+    "extraFiles": [
+      {
+        "from": "specterd-binaries",
+        "to": "specterd-binaries"
+      }
+    ]
+  }
+}
