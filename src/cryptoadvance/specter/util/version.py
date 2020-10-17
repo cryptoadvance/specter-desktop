@@ -27,6 +27,7 @@ class VersionChecker:
             self.thread.start()
 
     def stop(self):
+        logger.info("version checker stopped.")
         self.running = False
 
     @property
@@ -82,6 +83,9 @@ class VersionChecker:
             latest = "unknown"
 
         current = importlib_metadata.version("cryptoadvance.specter")
+        # check if it's installed from master
+        if current == "vx.y.z-get-replaced-by-release-script":
+            current = "custom"
 
         return current, latest
 
@@ -109,13 +113,17 @@ class VersionChecker:
             logger.error(exc)
 
         # check that both current and latest versions match the pattern
-        if re.search(r"v?([\d+]).([\d+]).([\d+]).*", current) and re.search(
-            r"v?([\d+]).([\d+]).([\d+]).*", latest
-        ):
-            return (
-                current,
-                latest,
-                # check without leading v so v1.2.3 = 1.2.3
-                latest.replace("v", "") != current.replace("v", ""),
-            )
+        # vA.B.C or just A.B.C
+        # For vA.B.C-preX or something like that we don't show notification
+        if re.search(r"v?([\d+]).([\d+]).([\d+])$", current):
+            if re.search(r"v?([\d+]).([\d+]).([\d+])$", latest):
+                return (
+                    current,
+                    latest,
+                    # check without leading v so v1.2.3 = 1.2.3
+                    latest.replace("v", "") != current.replace("v", ""),
+                )
+        # if current version is not A.B.C - stop periodic checks
+        else:
+            self.stop()
         return current, latest, False
