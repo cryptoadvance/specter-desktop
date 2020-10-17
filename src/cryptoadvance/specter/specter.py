@@ -11,6 +11,7 @@ from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
+from .persistence import write_json_file, read_json_file
 from flask_login import current_user
 import threading
 
@@ -120,9 +121,10 @@ class Specter:
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with self.lock:
-                with open(os.path.join(self.data_folder, "config.json"), "r") as f:
-                    self.file_config = json.load(f)
-                    deep_update(self.config, self.file_config)
+                self.file_config = read_json_file(
+                    os.path.join(self.data_folder, "config.json")
+                )
+                deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
             if self.config["uid"] == "":
@@ -283,9 +285,11 @@ class Specter:
         return r
 
     def _save(self):
-        with self.lock:
-            with open(os.path.join(self.data_folder, self.CONFIG_FILE_NAME), "w") as f:
-                json.dump(self.config, f, indent=4)
+        write_json_file(
+            self.config,
+            os.path.join(self.data_folder, self.CONFIG_FILE_NAME),
+            lock=self.lock,
+        )
 
     def update_rpc(self, **kwargs):
         need_update = False
