@@ -53,8 +53,9 @@
 
     async function fetchDynamicFees() {
         try {
+            let url="{{ url_for('fees', blocks='numberofblocksplaceholder')}}".replace('numberofblocksplaceholder', document.getElementById('slider_confTime').value)
             const response = await fetch(
-                '/get_fee/'.concat(document.getElementById('slider_confTime').value),
+                url,
                 {
                     method: 'GET'
                 }

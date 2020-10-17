@@ -23,7 +23,7 @@
         {% if specter.chain %}
             <div onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
             {% else %}
-            <a href="/settings/" class="item core" style="color: #fff; text-decoration: none;">
+            <a href="{{ url_for('settings') }}" class="item core" style="color: #fff; text-decoration: none;">
         {% endif %}
             {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
             {{ bitcoin_svg(specter.info.chain, 40) }}
@@ -61,7 +61,7 @@
             async function fetchUTXORescanProgress() {
                 try {
                     const response = await fetch(
-                        '/get_scantxoutset_status',
+                        "{{ url_for('get_scantxoutset_status') }}",
                         {
                             method: 'GET'
                         }
@@ -100,7 +100,7 @@
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
-                <a class="note" id="wallets_overview_link" href="/wallets_overview/" style="cursor: pointer;">
+                <a class="note" id="wallets_overview_link" href="{{ url_for('wallets_overview') }}" style="cursor: pointer;">
                     Wallets overview
                 </a>
             {% endif %}
@@ -112,15 +112,15 @@
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
             </div>
-            {{ sidebar_btn('new_wallet', 'Add new wallet') }}
+            {{ sidebar_btn(url_for('new_wallet_type'), 'Add new wallet') }}
         {% elif specter.chain %}
-            {{ sidebar_btn('singlesig_setup_wizard', 'Add new wallet') }}
+            {{ sidebar_btn(url_for('singlesig_setup_wizard'), 'Add new wallet') }}
         {% else %}
             <p class="warning">
             &#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
             {% if current_user.is_admin %}
-            <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="/settings/bitcoin_core">
-                <img src="/static/img/settings-status-bar.svg" style="width: 13px;"/>Configure Node
+            <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('bitcoin_core_settings') }}">
+                <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 13px;"/>Configure Node
             </a>
             {% endif %}
             </p>
@@ -135,14 +135,14 @@
                     {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
             {% endfor %}
         </div>
-        {{ sidebar_btn('new_device', 'Add new device') }}
+        {{ sidebar_btn(url_for('new_device'), 'Add new device') }}
         <p class="warning mobile-only">&#9432;<br><b>Specter "Watch Only" Mode.</b><br>You are using Specter from a small-screen device for which some functionalities, including sending funds and creating new wallets are not yet supported.</p>
         <br>
         <div class="footer">
 	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
-            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="/about">
+            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('about') }}">
             About Specter<br>
-            <img src="/static/img/icon.png" style="width: 35px;"/>
+            <img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 35px;"/>
             </a>
         </div>
     </nav>

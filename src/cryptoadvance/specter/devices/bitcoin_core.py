@@ -245,8 +245,8 @@ def derive_xpubs_from_xprv(xprv, paths: list, rpc):
             # we need parent for fingerprint
             parent = xprv
             for idx in derivation[:-1]:
-                parent = get_child(parent, idx)
-            child = get_child(parent, derivation[-1])
+                parent = get_child(parent, idx, rpc)
+            child = get_child(parent, derivation[-1], rpc)
             derived_xprvs.append((parent, child))
     xpubs = []
     for parent, child in derived_xprvs:
@@ -272,12 +272,10 @@ def swap_fingerprint(xpub, fingerprint):
 N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
 
-def get_child(xprv, index):
+def get_child(xprv, index, rpc=None):
     """Derives a child from xprv but without fingerprint information"""
     if index > 0xFFFFFFFF or index < 0:
         raise ValueError("Index should be between 0 and 2^32")
-    if index < 0x80000000:
-        raise ValueError("Can't do non-hardened")
 
     stream = BytesIO(decode_base58(xprv))
     version = stream.read(4)
@@ -287,8 +285,20 @@ def get_child(xprv, index):
     chain_code = stream.read(32)
     stream.read(1)
     secret = stream.read(32)
+    key = b"\x00" + secret
 
-    data = b"\x00" + secret + index.to_bytes(4, "big")
+    if index < 0x80000000:
+        if rpc is None:
+            raise ValueError("Can't do non-hardened without rpc")
+        # non hardened - we need pubkey
+        else:
+            # convert to public
+            res = rpc.getdescriptorinfo(f"wpkh({xprv})")
+            xpub = res["descriptor"].split("(")[1].split(")")[0]
+            # decode pubkey
+            key = decode_base58(xpub)[-33:]
+
+    data = key + index.to_bytes(4, "big")
     raw = hmac.new(chain_code, data, digestmod="sha512").digest()
     tweak = raw[:32]
     chain_code = raw[32:]

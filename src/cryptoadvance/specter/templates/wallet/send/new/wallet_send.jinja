@@ -102,7 +102,7 @@
 				<div class="row">
 					<input type="text" id="address_${i}" name="address_${i}" oninput="validateForm()"> &nbsp;
 					<qr-scanner id="address-scan-${i}">
-						<a slot="button" class="btn" style="height: 35px;"><img src="/static/img/qr_tiny.svg"/> Scan</a>
+						<a slot="button" class="btn" style="height: 35px;"><img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/> Scan</a>
 					</qr-scanner>
 				</div>
 				<br>
@@ -204,11 +204,11 @@
 		function calculateConvertedUnit(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			amounts[i] = parseFloat(amountInput.value);
-			let convertedAmount = Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 1e8 : 1e-8)).toFixed((units[i] == 'sat' ? 8 : 0));
+			let convertedAmount = parseFloat(Number.parseFloat(amounts[i] / (units[i] == 'sat' ? 1e8 : 1e-8)).toFixed((units[i] == 'sat' ? 8 : 0)));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			document.getElementById('converted_unit_amount_' + i).innerHTML = convertedAmount;
+			document.getElementById('converted_unit_amount_' + i).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount);
 
 			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
 
@@ -216,7 +216,7 @@
 		}
 
 		function isAboveWalletBalance(unit, amount) {
-			return (unit == 'sat' ? amount / 1e8 : amount.toFixed(8)) > parseFloat('{{ wallet.full_available_balance }}').toFixed(8);
+			return (unit == 'sat' ? amount / 1e8 : parseFloat(amount.toFixed(8))) > parseFloat(parseFloat('{{ wallet.full_available_balance }}').toFixed(8));
 		}
 
 		function isInvalidValue(unit, amount){
@@ -250,7 +250,7 @@
 			if (units[i] == 'sat') {
 				maxAmount = Math.round(maxAmount);
 			} else {
-				maxAmount = maxAmount.toFixed(8);
+				maxAmount = parseFloat(maxAmount.toFixed(8));
 			}
 			if (maxAmount < 0) {
 				maxAmount = 0;
@@ -426,8 +426,9 @@
 				formData.append("estimate_fee", true);
 				formData.append("action", "createpsbt");
 
+				let url="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}"
 				const response = await fetch(
-					'/wallets/{{ wallet.alias }}/send/new',
+					url,
 					{
 						method: 'POST',
 						body: formData
