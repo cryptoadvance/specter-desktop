@@ -51,8 +51,8 @@ release_pip:
     - python3 setup.py sdist bdist_wheel
     # twine ready the password from the env-var TWINE_PASSWORD
     # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
-    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
     - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS.txt
+    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./dist/SHA256SUMS.txt ./dist/cryptoadvance.specter-*.tar.gz
 
 
