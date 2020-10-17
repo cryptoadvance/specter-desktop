@@ -10,6 +10,7 @@ git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
 virtualenv --python=python3 .env
 source .env/bin/activate
+pip3 install -r requirements.txt --require-hashes
 pip3 install -e .
 ```
 
@@ -24,8 +25,8 @@ python3 -m cryptoadvance.specter server
 Run the tests (still very limited):
 
 ```sh
-pip3 install -e .
 pip3 install -r test_requirements.txt
+pip3 install -e .
 
 # needs a bitcoind on your path
 pytest 
@@ -140,6 +141,13 @@ If you see this to need some improvements, please make it in small steps and exp
 
 ## Some words about dependencies
 As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. This is especially true for javascript. We prefer plain javascript over any kind of frameworks.
+
+If you update `requirements.in` you will need to run the following to update `requirements.txt`:
+```sh
+$ pip-compile --generate-hashes requirements.in
+```
+
+This is good for both security and reproducibility.
 
 ## Some words specific to the frontend
 We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that. High level consultancy help on that would be appreciated even so (or especially when) you take the above security/dependency requirements into account.

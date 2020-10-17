@@ -208,7 +208,19 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
-            status = hwi_commands.displayaddress(client, desc=descriptor)
+            if descriptor.get("xpubs_descriptor", None):
+                try:
+                    status = hwi_commands.displayaddress(
+                        client, desc=descriptor["xpubs_descriptor"]
+                    )
+                except Exception:
+                    status = hwi_commands.displayaddress(
+                        client, desc=descriptor.get("descriptor", "")
+                    )
+            else:
+                status = hwi_commands.displayaddress(
+                    client, desc=descriptor.get("descriptor", "")
+                )
             client.close()
             if "error" in status:
                 raise Exception(status["error"])

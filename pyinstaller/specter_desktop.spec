@@ -89,7 +89,8 @@ if sys.platform == 'darwin':
             'NSAppleScriptEnabled': False,
             'NSHighResolutionCapable': 'True',
             'NSRequiresAquaSystemAppearance': 'True',
-            'LSUIElement': 1
+            'LSUIElement': 'False',
+            'LSBackgroundOnly': 'False'
         }
     )
 if sys.platform == 'linux':

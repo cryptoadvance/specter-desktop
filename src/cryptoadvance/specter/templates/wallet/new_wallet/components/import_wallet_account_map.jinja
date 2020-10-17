@@ -5,7 +5,7 @@
         <textarea id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
         <div class="row">
             <a href="#" class="btn" id="scanme" style="margin: 2px;">
-                <img src="/static/img/qr_icon.svg" height="12px"> Scan
+                <img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Scan
             </a>
             <input type="file" id="file" class="inputfile" multiple/>
             <label for="file" class="btn" style="margin: 2px;">
@@ -19,9 +19,9 @@
 	<video muted playsinline id="qr-video" class="video"></video>
 </div>
 <script type="module">
-	import QrScanner from "/static/qr/qr-scanner.min.js";
+	import QrScanner from "{{ url_for('static', filename='qr/qr-scanner.min.js') }}";
     document.addEventListener("DOMContentLoaded", function(){
-        QrScanner.WORKER_PATH = '/static/qr/qr-scanner-worker.min.js';
+        QrScanner.WORKER_PATH = '{{ url_for('static', filename='qr/qr-scanner-worker.min.js') }}';
 
         const video = document.getElementById('qr-video');
 
