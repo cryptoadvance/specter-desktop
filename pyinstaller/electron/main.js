@@ -1,18 +1,23 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
-let specterdProcess;
+const fs = require('fs')
+const request = require('request')
+const extract = require('extract-zip')
+
+const download = (uri, filename, callback) => {
+    request.head(uri, (err, res, body) => {
+        console.log('content-type:', res.headers['content-type'])
+        console.log('content-length:', res.headers['content-length'])
+        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
+    })
+}
+
+let specterdProcess
+let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
-    }
-  })
-
   mainWindow.loadURL('http://localhost:25441')
 
   // Open the DevTools.
@@ -23,12 +28,55 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  const specterdPath =
-  (!app.isPackaged
-    ? './specterd-binaries/specterd-'
-    : path.join(process.resourcesPath, '../specterd-binaries/specterd-')) +
-    process.platform
+  // create a new `splash`-Window 
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
+  
+  mainWindow.loadURL(`file://${__dirname}/splash.html`);
+  mainWindow.webContents.openDevTools()
+  const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
+  if (!fs.existsSync(specterdDirPath)){
+      fs.mkdirSync(specterdDirPath, { recursive: true });
+  }
+  const specterdPath = specterdDirPath + '/specterd-' + process.platform
+  if (fs.existsSync(specterdPath)) {
+    startSpecterd(specterdPath)
+    return
+  }
+  
+  updatingLoaderMsg('Fetching the Specter binary...')
+  download("https://github.com/cryptoadvance/specter-desktop/releases/download/v0.8.1/specterd-v0.8.1-osx.zip", specterdPath + '.zip', function() {
+    updatingLoaderMsg('Unpacking files...')
+
+    extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
+      var oldPath = specterdPath + '-dir/dist/specterd'
+      var newPath = specterdPath
+
+      fs.renameSync(oldPath, newPath)
+      updatingLoaderMsg('Cleaning up...')
+      fs.unlinkSync(specterdPath + '.zip')
+      fs.rmdirSync(specterdPath + '-dir', { recursive: true });
+      startSpecterd(specterdPath)
+    })
+  })
+})
+
+function updatingLoaderMsg(msg) {
+  let code = `
+  var launchText = document.getElementById('launch-text');
+  launchText.innerHTML = '${msg}';
+  `;
+  mainWindow.webContents.executeJavaScript(code);
+}
+
+function startSpecterd(specterdPath) {
   const { spawn } = require('child_process');
+  updatingLoaderMsg('Launching Specter Desktop...')
   specterdProcess = spawn(specterdPath, );
   specterdProcess.stdout.on('data', (_) => {
     createWindow()
@@ -44,7 +92,7 @@ app.whenReady().then(() => {
   specterdProcess.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
   });
-})
+}
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -58,7 +106,3 @@ app.on('before-quit', () => {
     specterdProcess.kill('SIGINT')
   }
 });
-
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

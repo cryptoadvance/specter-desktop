@@ -36,5 +36,9 @@
         "to": "specterd-binaries"
       }
     ]
+  },
+  "dependencies": {
+    "extract-zip": "^2.0.1",
+    "request": "^2.88.2"
   }
 }
