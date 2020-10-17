@@ -8,6 +8,7 @@ from .util.tor import stop_hidden_services, start_hidden_service
 import click
 
 from .server import create_app, init_app
+from .helpers import set_loglevel
 
 from os import path
 import signal

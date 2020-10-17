@@ -13,6 +13,7 @@ if __name__ == "__main__":
     )
     ch.setFormatter(formatter)
     logging.getLogger().addHandler(ch)
+    # However initially, we'll set the root-logger to INFO:
     logging.getLogger().setLevel(logging.INFO)
     logging.getLogger(__name__).info("Logging configured")
     cli()
