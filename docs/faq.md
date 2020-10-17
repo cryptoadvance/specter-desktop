@@ -326,7 +326,11 @@ No supply-chain risks as you buy the board and a smartcard from normal electroni
 
 ## I have issues connecting my Hardware-Wallet via USB?!
 
-Make sure to not use the Safari-Browser. Chrome is the best option, firefox should work, too. Make sure that your USB-cable is working. Often enough they are not working anymore. Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. On Mac/Linux, there is also something called udev-rules which have to be installed. Check your Hardware-documentation on how to install them. For trezor, there is e.g. the trezor-bridge which does that.
+* Make sure to not use the Safari-Browser. Chrome is the best option, firefox should work, too. 
+* Make sure that your USB-cable is working. Often enough they are not working anymore. 
+* Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. 
+* On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
+* Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardwarewallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
 
 ## *How to upgrade?*
 
