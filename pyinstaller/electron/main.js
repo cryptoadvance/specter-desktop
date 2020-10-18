@@ -17,6 +17,15 @@ let specterdProcess
 let mainWindow
 
 function createWindow () {
+  if (!mainWindow) {
+    mainWindow = new BrowserWindow({
+      width: 1200,
+      height: 800,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js')
+      }
+    })
+  }
   // Create the browser window.
   mainWindow.loadURL('http://localhost:25441')
 
@@ -97,6 +106,7 @@ function startSpecterd(specterdPath) {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', function () {
+  mainWindow = null
   if (process.platform !== 'darwin') app.quit()
 })
 
