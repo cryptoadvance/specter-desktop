@@ -4,6 +4,8 @@ const path = require('path')
 const fs = require('fs')
 const request = require('request')
 const extract = require('extract-zip')
+const electron = require('electron');
+let dimensions = { width: 1500, height: 1000 };
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
@@ -19,8 +21,8 @@ let mainWindow
 function createWindow () {
   if (!mainWindow) {
     mainWindow = new BrowserWindow({
-      width: 1200,
-      height: 800,
+      width: parseInt(dimensions.width * 0.8),
+      height: parseInt(dimensions.height * 0.8),
       webPreferences: {
         preload: path.join(__dirname, 'preload.js')
       }
@@ -37,10 +39,12 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  dimensions = electron.screen.getPrimaryDisplay().size;
+  console.log(dimensions.width)
   // create a new `splash`-Window 
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: parseInt(dimensions.width * 0.8),
+    height: parseInt(dimensions.height * 0.8),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
