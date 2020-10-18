@@ -30,7 +30,7 @@ function createWindow () {
   }
   // Create the browser window.
   mainWindow.loadURL('http://localhost:25441')
-
+  
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 }
@@ -40,7 +40,7 @@ function createWindow () {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   dimensions = electron.screen.getPrimaryDisplay().size;
-  console.log(dimensions.width)
+
   // create a new `splash`-Window 
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
@@ -91,7 +91,9 @@ function startSpecterd(specterdPath) {
   updatingLoaderMsg('Launching Specter Desktop...')
   specterdProcess = spawn(specterdPath, );
   specterdProcess.stdout.on('data', (_) => {
-    createWindow()
+    if (mainWindow) {
+      createWindow()
+    }
   
     app.on('activate', function () {
       // On macOS it's common to re-create a window in the app when the
@@ -115,6 +117,7 @@ app.on('window-all-closed', function () {
 })
 
 app.on('before-quit', () => {
+  mainWindow = null;
   if (specterdProcess) {
     specterdProcess.kill('SIGINT')
   }
