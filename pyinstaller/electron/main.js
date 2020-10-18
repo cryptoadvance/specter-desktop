@@ -5,7 +5,12 @@ const fs = require('fs')
 const request = require('request')
 const extract = require('extract-zip')
 const electron = require('electron');
+let crypto = require('crypto')
 let dimensions = { width: 1500, height: 1000 };
+
+const SPECTERD_HASH = {
+  darwin: '4a1c59d90d174114d6c9405eb23b12acd2521bc138c18f7e392dec99e04e9dde'
+}
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
@@ -57,8 +62,14 @@ app.whenReady().then(() => {
   }
   const specterdPath = specterdDirPath + '/specterd-' + process.platform
   if (fs.existsSync(specterdPath)) {
-    startSpecterd(specterdPath)
-    return
+    getFileHash(specterdPath, function (specterdHash) {
+      if (SPECTERD_HASH[process.platform] === specterdHash) {
+        startSpecterd(specterdPath)
+        return
+      } else {
+        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...')
+      }
+    })
   }
   
   updatingLoaderMsg('Fetching the Specter binary...')
@@ -73,11 +84,33 @@ app.whenReady().then(() => {
       updatingLoaderMsg('Cleaning up...')
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
-      startSpecterd(specterdPath)
+      getFileHash(specterdPath, function(specterdHash) {
+        if (SPECTERD_HASH[process.platform] === specterdHash) {
+          startSpecterd(specterdPath)
+        } else {
+          updatingLoaderMsg('Specterd version could not be validated.')
+          // app.quit()
+          // TODO: This should never happen unless the specterd file was swapped on GitHub.
+          // Think of what would be the appropriate way to handle this...
+        }
+      })
     })
   })
 })
 
+function getFileHash(filename, callback) {
+  let shasum = crypto.createHash('sha256')
+  // Updating shasum with file content
+  , s = fs.ReadStream(filename)
+  s.on('data', function(data) {
+    shasum.update(data)
+  })
+  // making digest
+  s.on('end', function() {
+  var hash = shasum.digest('hex')
+    callback(hash)
+  })
+}
 function updatingLoaderMsg(msg) {
   let code = `
   var launchText = document.getElementById('launch-text');
