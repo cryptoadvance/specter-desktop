@@ -103,10 +103,11 @@ After having these set up, you can use the automated script to sign by passing i
 
 With these two, you can run the command like so:
 ```bash
-./build-osx.sh <version_number> "<certificate_name>" "<apple_id>"
+./build-osx.sh <version_number> "<certificate_name>" "<apple_id>" "make-hash"
 ```
+*Note: "make-hash" is optional and will automatically calculate hash of specterd generated for the macOS app. Should be used only for real release.*
 
-This could take about an hour, during which you should receive an email from Apple notifying whatever the notarization was successful.
+This should take 10 minutes, during which you should receive an email from Apple notifying whatever the notarization was successful.
 If for some reason the notarization failed, you'll be able to get the reason by copying the `Request Identifier` (you should be able to find this in the email and in the logs).
 Then run the following command:
 ```bash

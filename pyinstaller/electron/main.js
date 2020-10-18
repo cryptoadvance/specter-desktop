@@ -5,12 +5,10 @@ const fs = require('fs')
 const request = require('request')
 const extract = require('extract-zip')
 const electron = require('electron');
-let crypto = require('crypto')
-let dimensions = { width: 1500, height: 1000 };
+const crypto = require('crypto')
+let dimensions = { widIth: 1500, height: 1000 };
 
-const SPECTERD_HASH = {
-  darwin: '4a1c59d90d174114d6c9405eb23b12acd2521bc138c18f7e392dec99e04e9dde'
-}
+const versionData = require('./version-data.json')
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
@@ -63,7 +61,7 @@ app.whenReady().then(() => {
   const specterdPath = specterdDirPath + '/specterd-' + process.platform
   if (fs.existsSync(specterdPath)) {
     getFileHash(specterdPath, function (specterdHash) {
-      if (SPECTERD_HASH[process.platform] === specterdHash) {
+      if (versionData.sha256 === specterdHash) {
         startSpecterd(specterdPath)
         return
       } else {
@@ -73,7 +71,7 @@ app.whenReady().then(() => {
   }
   
   updatingLoaderMsg('Fetching the Specter binary...')
-  download("https://github.com/cryptoadvance/specter-desktop/releases/download/v0.8.1/specterd-v0.8.1-osx.zip", specterdPath + '.zip', function() {
+  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/v${versionData.version}/specterd-v${versionData.version}-osx.zip`, specterdPath + '.zip', function() {
     updatingLoaderMsg('Unpacking files...')
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -85,7 +83,7 @@ app.whenReady().then(() => {
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath, function(specterdHash) {
-        if (SPECTERD_HASH[process.platform] === specterdHash) {
+        if (versionData.sha256 === specterdHash) {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
