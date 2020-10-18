@@ -10,6 +10,9 @@ from ..key import Key
 from ..rpc import get_default_datadir
 from io import BytesIO
 import hmac
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
@@ -128,12 +131,24 @@ class BitcoinCore(Device):
         loaded_wallets = wallet_manager.rpc.listwallets()
 
         hotstorage_path = wallet_manager.rpc_path + "_hotstorage"
-        if (
-            existing_wallets is None
-            or os.path.join(hotstorage_path, self.alias) in existing_wallets
-        ):
-            if os.path.join(hotstorage_path, self.alias) not in loaded_wallets:
-                wallet_manager.rpc.loadwallet(os.path.join(hotstorage_path, self.alias))
+        wallet_path = os.path.join(hotstorage_path, self.alias)
+        if existing_wallets is None or wallet_path in existing_wallets:
+            if wallet_path not in loaded_wallets:
+                wallet_manager.rpc.loadwallet(wallet_path)
+
+    def is_encrypted(self, wallet_manager):
+        """Check if the wallet is encrypted"""
+        self._load_wallet(wallet_manager)
+        hotstorage_path = wallet_manager.rpc_path + "_hotstorage"
+        wallet_path = os.path.join(hotstorage_path, self.alias)
+        try:
+            # check if password is enabled
+            info = wallet_manager.rpc.getwalletinfo(wallet=wallet_path)
+            return "unlocked_until" in info
+        except Exception as e:
+            logger.warning("Cannot fetch hot wallet info")
+        # Assuming encrypted by default
+        return True
 
     def create_psbts(self, base64_psbt, wallet):
         return {"core": base64_psbt}
