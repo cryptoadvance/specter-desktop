@@ -1,0 +1,53 @@
+[
+  {
+    "name": "myNiceDevice",
+    "alias": "mynicedevice",
+    "type": "specter",
+    "keys": [
+      {
+        "original": "vpub5Z8h5qLg5f2vEKbwDtoyqsiFwbFUiu7kD47LceVRS6Um4m94rfuxjRxghaYYywPh3dqhyd6rZ4TQ9bBCzfWRZgwpdydgbmmGLkx9s6MGKaU",
+        "fingerprint": "1831e62e",
+        "derivation": "m/84h/1h/0h",
+        "type": "wpkh",
+        "xpub": "tpubDDArDQWC6J5LCiB2LoNKTyEdcee2bXboauk5XzLLY1zQvFSESD6B7zwnz2YWWFemepcE69or1UzYcLtwpvBh3bmKSFmqT84UUAfrQCcaTMY"
+      }
+    ],
+    "fullpath": "/home/kim/.specter/devices/mynicedevice.json"
+  },
+  {
+    "name": "btchot",
+    "alias": "btchot",
+    "type": "bitcoincore",
+    "keys": [
+      {
+        "original": "upub5EmTFhjqMF8gZxNQVrKm6r17kQXxVKSLD35qzQTGTLk8oiWfVLJ7DS7A5vfS35xh8L2PYJc52s2ipd9etbH35RBR5y8RMvcZ4SgdAxAkea6",
+        "fingerprint": "0c28f912",
+        "derivation": "m/49h/1h/0h",
+        "type": "sh-wpkh",
+        "xpub": "tpubDDdsgwaGWZiaPe8cT7fiw2czbS4xJZutW1Eoh9C4wGdfiJd4KXdtE4kQPacyZJsh99uiQJucwwvRAfUxSYNKMZgWkaxzoBjFTaTy6eW23vo"
+      },
+      {
+        "original": "vpub5ZnVM9YwHPoDGsp7mqzxLXh1LcNfiUanF472658YeKiU4SgUSzrozSXtrSiuLC5j9G8XZzL7yrNXEcv2dVqE1zMY5zCwAN6zQWcs2mkJiME",
+        "fingerprint": "0c28f912",
+        "derivation": "m/84h/1h/0h",
+        "type": "wpkh",
+        "xpub": "tpubDDpeUiiTJ2qdFGPCtkZHxdDP1fmDb74qcujm1QyTkFE7uvye2Y32P1X18tirrWLokSu3gX37SGufhNdmTkWVVuB2tGM61iQCXvLZZvCvChu"
+      },
+      {
+        "original": "Upub5S9TthRDjzLbvxPSdzKTgn5gt6ySD3VggUhXvzGHrFRWTeYbNpMWv393Kt51vfSpSXfNzxgYR4ngVrz9DAgQiNupMWsuJUfdnBMpzwvzGET",
+        "fingerprint": "0c28f912",
+        "derivation": "m/48h/1h/0h/1h",
+        "type": "sh-wsh",
+        "xpub": "tpubDE7oChXDLMN8L4zGebCSgtMm1LUAowHefBCpiTjYxQUdk465ScK1qYvMpq55tT8vDtUizNyySwHsijhgTtcjr3JFBfc5LLKLHasJLgkZBZ9"
+      },
+      {
+        "original": "Vpub5kyjCN68tft5q456dEsqHrQexej4wuh2S9Sdy4dvGTvvh85KMCt7PsninSvYV71jnWHrM8MF43FD5mviiChvJWVx96VJaj866zBRZM8KdhA",
+        "fingerprint": "0c28f912",
+        "derivation": "m/48h/1h/0h/2h",
+        "type": "wsh",
+        "xpub": "tpubDE7oChXDLMN8NsUooUyC5sbDuv5McBVVVjRhy9DHzccAvRoaALg3hKuuGBy2Sz3vADzPb547dFPrRN2hFEEEdwCn6uX42fxJLfdFWbUw1fT"
+      }
+    ],
+    "fullpath": "/home/kim/.specter/devices/btchot.json"
+  }
+]

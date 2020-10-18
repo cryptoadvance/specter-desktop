@@ -14,7 +14,7 @@ hwi = HWIBridge()
 
 @hwi_server.route("/", methods=["GET"])
 def index():
-    return redirect("/hwi/settings")
+    return redirect("hwi/settings")
 
 
 @hwi_server.route("/api/", methods=["POST"])

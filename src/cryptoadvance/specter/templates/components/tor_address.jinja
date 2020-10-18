@@ -123,7 +123,7 @@
     {% endif %}
 </div>
 <div class="settings-bar-btn" id='tor-toggle-btn'>
-    <img id="tor-btn" src="/static/img/tor.svg"/>
+    <img id="tor-btn" src="{{ url_for('static', filename='img/tor.svg') }}"/>
     <span class="dot {% if tor_service_id %}dot-on{% else %}dot-off{% endif %}" id="tor-symbol-status-dot"></span>
 </div>
 <script>

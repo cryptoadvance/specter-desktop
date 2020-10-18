@@ -7,6 +7,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
 from .util.base58 import decode_base58
 from .util.xpub import get_xpub_fingerprint
+from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -311,9 +312,7 @@ class Wallet:
         }
 
     def save_to_file(self):
-        with fslock:
-            with open(self.fullpath, "w+") as f:
-                json.dump(self.json, f, indent=4)
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     @property
@@ -656,9 +655,12 @@ class Wallet:
             if index is None:
                 index = self.change_index if change else self.address_index
             desc = self.change_descriptor if change else self.recv_descriptor
-            result["xpubs_descriptor"] = sort_descriptor(
-                self.rpc, desc, index=index, change=change
-            )
+            try:
+                result["xpubs_descriptor"] = sort_descriptor(
+                    self.rpc, desc, index=index, change=change
+                )
+            except Exception:
+                pass
         return result
 
     def get_balance(self):
@@ -801,7 +803,11 @@ class Wallet:
         self.rpc.setlabel(address, label)
 
     def getlabel(self, address):
-        return self.getlabels([address])[address]
+        labels = self.getlabels([address])
+        if address in labels:
+            return labels[address]
+        else:
+            return address
 
     def getlabels(self, addresses):
         labels = {}

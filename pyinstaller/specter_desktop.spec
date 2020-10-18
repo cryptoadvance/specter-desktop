@@ -89,10 +89,11 @@ if sys.platform == 'darwin':
             'NSAppleScriptEnabled': False,
             'NSHighResolutionCapable': 'True',
             'NSRequiresAquaSystemAppearance': 'True',
-            'LSUIElement': 1,
             'CFBundleIdentifier': 'solutions.specter.desktop',
             'CFBundleName': 'Specter',
             'CFBundlePackageType': 'APPL'
+            'LSUIElement': 'False',
+            'LSBackgroundOnly': 'False'
         }
     )
 if sys.platform == 'linux':

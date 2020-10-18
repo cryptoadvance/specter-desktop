@@ -22,18 +22,3 @@ def test_load_jsons(caplog):
     assert mydict["ID123"]["fullpath"] == "./tests/helpers_testdata/some_jsonfile.json"
     # Quite handy if you want to get rid of it which is as easy as:
     # os.remove(mydict["ID123"]['fullpath'])
-
-
-def test_which(caplog):
-    caplog.set_level(logging.INFO)
-    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
-    import cryptoadvance.specter.helpers as helpers
-
-    try:
-        helpers.which("some_non_existing_binary")
-        assert False, "Should raise an Exception"
-    except:
-        pass
-    assert (
-        helpers.which("date") == "/bin/date" or helpers.which("date") == "/usr/bin/date"
-    )  # travis-CI has it on /bin/date

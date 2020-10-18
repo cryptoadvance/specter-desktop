@@ -147,7 +147,7 @@
     }
   </style>
   <div class="qr-holder">
-    <a class="copy"><img src="/static/img/content_copy-24px.svg"></a>
+    <a class="copy"><img src="{{ url_for('static', filename='img/content_copy-24px.svg') }}"></a>
     <div class="qr-code"></div>
     <div class="note">Click to animate</div>
     <div class="range" style="margin-top: 10px; margin-bottom: -5px;">
@@ -156,7 +156,7 @@
   </div>
 </template>
 
-<script type="text/javascript" src="/static/qr/qrcode.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='qr/qrcode.min.js') }}"></script>
 <script type="text/javascript">
 class QRCodeElement extends HTMLElement {
   constructor() {
