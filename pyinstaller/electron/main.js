@@ -38,7 +38,6 @@ app.whenReady().then(() => {
   })
   
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
-  mainWindow.webContents.openDevTools()
   const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
   if (!fs.existsSync(specterdDirPath)){
       fs.mkdirSync(specterdDirPath, { recursive: true });
