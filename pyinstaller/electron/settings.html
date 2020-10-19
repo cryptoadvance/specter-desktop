@@ -1,0 +1,60 @@
+<html>
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+    <body style="margin: 5px 20px;">
+        <h1 style="margin-top: 20px;">Preferences</h1>
+        <div class="card container" style="text-align: left;">
+            <form action="">
+                <div>
+                    Run Specter:<br>
+                    <label><input type="radio" class="inline" name="mode" value="specterd" onclick="toggleHWIBridgeView(false)" checked>Run local Specter server</label><br>
+                    <label><input type="radio" class="inline" id="hwibridge-mode-active" name="mode" value="hwibridge" onclick="toggleHWIBridgeView(true);">Use a remote Specter server</label><br>
+                    <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="Please enter the remote Specter URL" />
+                </div><br>
+                <div class="row flex-center">
+                    <button type="button" save-btn" class="btn" onclick="savePreferences()" style="margin: 5px;">Save</button>
+                    <button type="button" id="cancel-btn" class="btn" onclick="window.close()" style="margin: 5px;">Cancel</button>
+                </div>
+            </form>
+        </div>
+        <script>
+            const fs = require('fs')
+            const path = require('path')
+            const { dialog } = require('electron').remote
+
+            let appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
+
+            function toggleHWIBridgeView(isActive) {
+                document.getElementById('hwibridge-mode-active').checked = isActive
+                document.getElementById('specter-url').style.display = isActive ? 'block' : 'none'
+            }
+
+            function savePreferences() {
+                let hwiBridgeMode = document.getElementById('hwibridge-mode-active').checked
+                let remoteSpecterURL = document.getElementById('specter-url').value
+                if (hwiBridgeMode) {
+                    let hwiBridgeSettingsPath = path.resolve(require('os').homedir(), '.specter/hwi_bridge_config.json')
+                    let hwiBridgeSettings = require(hwiBridgeSettingsPath)
+                    if (hwiBridgeSettings) {
+                        hwiBridgeSettings.whitelisted_domains += `\n${remoteSpecterURL}`
+                    }
+                    fs.writeFileSync(hwiBridgeSettingsPath, JSON.stringify(hwiBridgeSettings));
+                }
+                let appSettings = require(appSettingsPath)
+                appSettings.mode = hwiBridgeMode ? 'hwibridge' : 'specterd'
+                appSettings.specterURL = hwiBridgeMode ? remoteSpecterURL : 'http://localhost:25441'
+                fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+                dialog.showMessageBox({message: 'Specter settings were saved successfully!\nPlease restart the app to activate the changes.', buttons: ['Continue'] });
+                window.close()
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                let appSettings = require(appSettingsPath)
+                let hwiBridgeMode = appSettings.mode == 'hwibridge'
+                if (hwiBridgeMode) {
+                    document.getElementById('specter-url').value = appSettings.specterURL
+                }
+                toggleHWIBridgeView(hwiBridgeMode)
+            });
+        </script>
+    </body>
+</html>

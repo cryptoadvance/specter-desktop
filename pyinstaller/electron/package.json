@@ -28,7 +28,7 @@
     "appId": "solutions.specter.desktop",
     "mac": {
       "category": "public.app-category.utilities",
-      "identity": null,
+      "identity": "Ben Kaufman (6RPRX6WRJ5)",
       "entitlements": "./build/entitlements.mac.plist",
       "entitlementsInherit": "./build/entitlements.mac.plist",
       "hardenedRuntime": true
@@ -41,6 +41,7 @@
     ]
   },
   "dependencies": {
+    "electron-default-menu": "^1.0.2",
     "extract-zip": "^2.0.1",
     "request": "^2.88.2"
   }
