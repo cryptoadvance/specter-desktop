@@ -33,6 +33,14 @@
                 let remoteSpecterURL = document.getElementById('specter-url').value
                 if (hwiBridgeMode) {
                     let hwiBridgeSettingsPath = path.resolve(require('os').homedir(), '.specter/hwi_bridge_config.json')
+                    let defaultHWIBridgeSettings = {
+                        whitelisted_domains: "http://127.0.0.1:25441/"
+                    }
+                    try {
+                        fs.writeFileSync(hwiBridgeSettingsPath, JSON.stringify(defaultHWIBridgeSettings), { flag: 'wx' });
+                    } catch {
+                        // settings file already exists
+                    }
                     let hwiBridgeSettings = require(hwiBridgeSettingsPath)
                     if (hwiBridgeSettings) {
                         hwiBridgeSettings.whitelisted_domains += `\n${remoteSpecterURL}`

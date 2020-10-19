@@ -138,14 +138,17 @@ function startSpecterd(specterdPath) {
     if (mainWindow) {
       createWindow(appSettings.specterURL)
     }
-  
-    app.on('activate', function () {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (BrowserWindow.getAllWindows().length === 0) createWindow(appSettings.specterURL)
-    })
-    // data from the standard output is here as buffers
   });
+  specterdProcess.stderr.on('data', function(_) {
+    // https://stackoverflow.com/questions/20792427/why-is-my-node-child-process-that-i-created-via-spawn-hanging
+    // needed so specterd won't get stuck
+  });
+
+  app.on('activate', function () {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow(appSettings.specterURL)
+  })
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
