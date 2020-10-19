@@ -22,17 +22,28 @@ const download = (uri, filename, callback) => {
 
 let specterdProcess
 let mainWindow
+let webPreferences = {
+  worldSafeExecuteJavaScript: true,
+  contextIsolation: true,
+  preload: path.join(__dirname, 'preload.js')
+}
+
+app.commandLine.appendSwitch('ignore-certificate-errors');
 
 function createWindow (specterURL) {
   if (!mainWindow) {
     mainWindow = new BrowserWindow({
       width: parseInt(dimensions.width * 0.8),
       height: parseInt(dimensions.height * 0.8),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js')
-      }
+      webPreferences
     })
   }
+  
+  mainWindow.webContents.on("did-fail-load", function() {
+      mainWindow.loadURL(`file://${__dirname}/splash.html`);
+      updatingLoaderMsg(`Failed to load: ${specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
+  });
+
   // Create the browser window.
   mainWindow.loadURL(specterURL)
   // Open the DevTools.
@@ -49,9 +60,7 @@ app.whenReady().then(() => {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
-    }
+    webPreferences
   })
   setMainMenu();
   
