@@ -689,7 +689,7 @@ class Wallet:
             "wallet_type": "{}of{}".format(self.sigs_required, len(self.keys)),
         }
         for cnt, slip132_key in enumerate(slip132_keys):
-            to_return["x{}/".format(cnt+1)] = {
+            to_return["x{}/".format(cnt + 1)] = {
                 "derivation": slip132_key.derivation.replace("h", "'"),
                 "root_fingerprint": slip132_key.fingerprint,
                 "type": "bip32",
