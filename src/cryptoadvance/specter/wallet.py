@@ -665,25 +665,36 @@ class Wallet:
         return result
 
     def get_electrum_watchonly(self):
-        if not self.is_multisig:
-            # TODO: single sig would require a library to encode xpubs with slip132 version bytes
-            # (multisig wallets already expose/store this)
-            return {}
+        if len(self.keys) == 1:
+            # Single-sig case:
+            key = self.keys[0]
+            return {
+                "keystore": {
+                    "derivation": key.derivation.replace("h", "'"),
+                    "root_fingerprint": key.fingerprint,
+                    "type": "bip32",
+                    "xprv": None,
+                    "xpub": key.original,
+                },
+                "wallet_type": "standard",
+            }
 
-        # build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
+        # Multisig case
+
+        # Build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
         LOOKUP_TABLE = {}
-        for device in self.devices:
-            for device_key in device.keys:
-                LOOKUP_TABLE[device_key.xpub] = device_key
+        for key in self.keys:
+            LOOKUP_TABLE[key.xpub] = key
 
         desc = Descriptor.parse(
             desc=self.recv_descriptor,
-            testnet=device.keys[0].is_testnet,
+            # assume testnet status is the same across all keys
+            testnet=key.is_testnet,
         )
         slip132_keys = []
-        for key in desc.base_key:
+        for desc_key in desc.base_key:
             # Find corresponding wallet key
-            slip132_keys.append(LOOKUP_TABLE[key])
+            slip132_keys.append(LOOKUP_TABLE[desc_key])
 
         to_return = {
             "wallet_type": "{}of{}".format(self.sigs_required, len(self.keys)),

@@ -10,19 +10,16 @@
 {{ wallet.account_map }}
 </pre>
     <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>
-    {% if wallet.is_multisig %}
-	<br />
-	<hr />
-	<h4>Create Electrum Watch-Only Wallet</h4>
-	<a
-	    id="electrum_watchonly_export"
-	    download="{{ wallet.alias | ascii20 }}_electrum_watchonly.backup"
-	    onclick="showNotification('Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum_watchonly.backup', 0)"
-	    class="btn centered padded">
-		Download Electrum Watch-Only File
-	</a>
-    {% endif %}
-
+    <br />
+    <hr />
+    <h4>Create Electrum Watch-Only Wallet</h4>
+    <a
+	id="electrum_watchonly_export"
+	download="{{ wallet.alias | ascii20 }}_electrum_watchonly.backup"
+	onclick="showNotification('Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum_watchonly.backup', 0)"
+	class="btn centered padded">
+	    Download Electrum Watch-Only File
+    </a>
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
