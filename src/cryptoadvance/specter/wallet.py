@@ -6,6 +6,7 @@ from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
 from .util.base58 import decode_base58
+from .util.descriptor import Descriptor
 from .util.xpub import get_xpub_fingerprint
 from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
@@ -662,6 +663,41 @@ class Wallet:
             except Exception:
                 pass
         return result
+
+    def get_electrum_watchonly(self):
+        if not self.is_multisig:
+            # TODO: single sig would require a library to encode xpubs with slip132 version bytes
+            # (multisig wallets already expose/store this)
+            return {}
+
+        # build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
+        LOOKUP_TABLE = {}
+        for device in self.devices:
+            for device_key in device.keys:
+                LOOKUP_TABLE[device_key.xpub] = device_key
+
+        desc = Descriptor.parse(
+            desc=self.recv_descriptor,
+            testnet=device.keys[0].is_testnet,
+        )
+        slip132_keys = []
+        for key in desc.base_key:
+            # Find corresponding wallet key
+            slip132_keys.append(LOOKUP_TABLE[key])
+
+        to_return = {
+            "wallet_type": "{}of{}".format(self.sigs_required, len(self.keys)),
+        }
+        for cnt, slip132_key in enumerate(slip132_keys):
+            to_return["x{}/".format(cnt+1)] = {
+                "derivation": slip132_key.derivation.replace("h", "'"),
+                "root_fingerprint": slip132_key.fingerprint,
+                "type": "bip32",
+                "xprv": None,
+                "xpub": slip132_key.original,
+            }
+
+        return to_return
 
     def get_balance(self):
         try:
