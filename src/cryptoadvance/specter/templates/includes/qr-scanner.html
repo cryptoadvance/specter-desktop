@@ -182,6 +182,10 @@ class QRScannerElement extends HTMLElement {
     if(newValue !== oldValue){
       let isopen = this.hasAttribute('open');
       if(isopen){
+        if(navigator.mediaDevices === undefined && location.protocol == "http:"){
+          this.triggerError("Can't get access to the camera. Specter should run on localhost or over https to enable QR code scanning.");
+          return;
+        }
         try{
           this.popup.style.display = 'flex';
           this.scanner.start();
