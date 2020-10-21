@@ -1543,8 +1543,12 @@ def wallet_settings(wallet_alias):
             return response
         elif action == "rename":
             wallet_name = request.form["newtitle"]
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                error = "Wallet already exists"
+            if not wallet_name:
+                flash("Wallet name cannot be empty", "error")
+            elif wallet_name == wallet.name:
+                pass
+            elif wallet_name in app.specter.wallet_manager.wallets_names:
+                flash("Wallet already exists", "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
@@ -1687,6 +1691,16 @@ def device(device_alias):
         elif action == "delete_key":
             key = request.form["key"]
             device.remove_key(Key.from_json({"original": key}))
+        elif action == "rename":
+            device_name = request.form["newtitle"]
+            if not device_name:
+                flash("Device name must not be empty", "error")
+            elif device_name == device.name:
+                pass
+            elif device_name in app.specter.device_manager.devices_names:
+                flash("Device already exists", "error")
+            else:
+                device.rename(device_name)
         elif action == "add_keys":
             strength = 128
             mnemonic = generate_mnemonic(strength=strength)
