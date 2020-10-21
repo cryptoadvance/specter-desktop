@@ -1,14 +1,24 @@
 <html>
     <link rel="stylesheet" type="text/css" href="./styles.css">
     <body style="margin: 5px 20px;">
-        <h1 style="margin-top: 20px;">Preferences</h1>
-        <div class="card container" style="text-align: left;">
-            <form action="">
+        <div class="container" style="text-align: left;">
+            <h1 style="margin-top: 20px;">Preferences</h1>
+            <form action="" class="card">
                 <div>
                     Run Specter:<br>
                     <label><input type="radio" class="inline" name="mode" value="specterd" onclick="toggleHWIBridgeView(false)" checked>Run local Specter server</label><br>
                     <label><input type="radio" class="inline" id="hwibridge-mode-active" name="mode" value="hwibridge" onclick="toggleHWIBridgeView(true);">Use a remote Specter server</label><br>
-                    <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="Please enter the remote Specter URL" />
+                    <div id="hwibridge-mode-settings"><br>
+                        <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="Please enter the remote Specter URL" />
+                        <br>
+                        <p style="margin-top: 20px;">
+                            <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="./tor.svg"/><span style="vertical-align: bottom; margin-right: 10px;">Connect over Tor: </span><label class="switch">
+                                <input type="checkbox" id="tor-checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </p>
+                        <input id="proxy-url" type="url" placeholder="Proxy URL" />
+                    </div>
                 </div><br>
                 <div class="row flex-center">
                     <button type="button" save-btn" class="btn" onclick="savePreferences()" style="margin: 5px;">Save</button>
@@ -25,7 +35,7 @@
 
             function toggleHWIBridgeView(isActive) {
                 document.getElementById('hwibridge-mode-active').checked = isActive
-                document.getElementById('specter-url').style.display = isActive ? 'block' : 'none'
+                document.getElementById('hwibridge-mode-settings').style.display = isActive ? 'block' : 'none'
             }
 
             function savePreferences() {
@@ -50,6 +60,8 @@
                 let appSettings = require(appSettingsPath)
                 appSettings.mode = hwiBridgeMode ? 'hwibridge' : 'specterd'
                 appSettings.specterURL = hwiBridgeMode ? remoteSpecterURL : 'http://localhost:25441'
+                appSettings.tor = document.getElementById('tor-checkbox').checked
+                appSettings.proxyURL = document.getElementById('proxy-url').value
                 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
                 dialog.showMessageBox({message: 'Specter settings were saved successfully!\nPlease restart the app to activate the changes.', buttons: ['Continue'] });
                 window.close()
@@ -61,6 +73,8 @@
                 if (hwiBridgeMode) {
                     document.getElementById('specter-url').value = appSettings.specterURL
                 }
+                document.getElementById('proxy-url').value = appSettings.proxyURL
+                document.getElementById('tor-checkbox').checked = appSettings.tor
                 toggleHWIBridgeView(hwiBridgeMode)
             });
         </script>

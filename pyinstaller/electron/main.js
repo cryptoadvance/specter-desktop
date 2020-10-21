@@ -56,6 +56,11 @@ function createWindow (specterURL) {
   });
 
   // Create the browser window.
+  let appSettings = getAppSettings()
+  if (appSettings.tor) {
+    mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL });
+  }
+
   mainWindow.loadURL(specterURL)
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -253,7 +258,9 @@ function getAppSettings() {
 
   let defaultSettings = {
     mode: 'specterd',
-    specterURL: 'http://localhost:25441'
+    specterURL: 'http://localhost:25441',
+    tor: false,
+    proxyURL: "socks5://127.0.0.1:9050"
   }
   try {
     fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings), { flag: 'wx' });
