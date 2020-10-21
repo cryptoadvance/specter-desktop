@@ -140,11 +140,14 @@
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
+					download="binary.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
+					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download binary</a>&nbsp;
+					<a id="download-psbt-btn" class="btn"
 					download="base64.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
-					Download file</a>&nbsp;
+					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download base64</a>&nbsp;
 					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
-					Show QR code</a>
+					<img src="{{url_for('static', filename='img/qr_tiny.svg')}}"/> Show QR code</a>
 				</div>
 			</div>
 		</div>
