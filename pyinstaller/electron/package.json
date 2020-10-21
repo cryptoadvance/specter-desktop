@@ -33,6 +33,9 @@
       "entitlementsInherit": "./build/entitlements.mac.plist",
       "hardenedRuntime": true
     },
+    "win": {
+      "icon": "../icons/icon.ico"
+    },
     "extraFiles": [
       {
         "from": "specterd-binaries",

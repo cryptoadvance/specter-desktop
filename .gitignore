@@ -15,4 +15,6 @@ pyinstaller/specterd
 pyinstaller/release
 pyinstaller/version.txt
 pyinstaller/electron/version-data.json
+pyinstaller/electron/node_modules
+pyinstaller/electron/dist
 .DS_Store

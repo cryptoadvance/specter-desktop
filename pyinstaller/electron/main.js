@@ -6,6 +6,7 @@ const request = require('request')
 const extract = require('extract-zip')
 const crypto = require('crypto')
 const defaultMenu = require('electron-default-menu');
+const { spawn, exec } = require('child_process');
 
 let dimensions = { widIth: 1500, height: 1000 };
 
@@ -29,6 +30,16 @@ let webPreferences = {
 }
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
+
+let platformName = ''
+switch (process.platform) {
+  case 'darwin':
+    platformName = 'osx'
+    break
+  case 'win32':
+    platformName = 'win64'
+    break
+}
 
 function createWindow (specterURL) {
   if (!mainWindow) {
@@ -65,19 +76,15 @@ app.whenReady().then(() => {
   setMainMenu();
   
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
-  if (process.platform != 'darwin') {
-    const specterdPath = './specterd-binaries/specterd'
-    startSpecterd(specterdPath)
-    return
-  }
+
   const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
   if (!fs.existsSync(specterdDirPath)){
       fs.mkdirSync(specterdDirPath, { recursive: true });
   }
-  const specterdPath = specterdDirPath + '/specterd-' + process.platform
-  if (fs.existsSync(specterdPath)) {
-    getFileHash(specterdPath, function (specterdHash) {
-      if (versionData.sha256 === specterdHash) {
+  const specterdPath = specterdDirPath + '/specterd'
+  if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
+    getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
+      if (versionData.sha256.toLowerCase() === specterdHash) {
         startSpecterd(specterdPath)
       } else {
         updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...')
@@ -91,19 +98,30 @@ app.whenReady().then(() => {
 
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
-  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/v${versionData.version}/specterd-v${versionData.version}-osx.zip`, specterdPath + '.zip', function() {
+  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/v${versionData.version}/specterd-v${versionData.version}-${platformName}.zip`, specterdPath + '.zip', function() {
     updatingLoaderMsg('Unpacking files...')
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
-      var oldPath = specterdPath + '-dir/dist/specterd'
-      var newPath = specterdPath
+      let extraPath = ''
+      switch (process.platform) {
+        case 'darwin':
+          extraPath = 'dist/specterd'
+          break
+        case 'win32':
+          extraPath = 'specterd.exe'
+          break
+        case 'linux':
+          // TODO: Linux has a .tar format... handle that properly
+      }
+      var oldPath = specterdPath + `-dir/${extraPath}`
+      var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')
 
       fs.renameSync(oldPath, newPath)
       updatingLoaderMsg('Cleaning up...')
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
-      getFileHash(specterdPath, function(specterdHash) {
-        if (versionData.sha256 === specterdHash) {
+      getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
+        if (versionData.sha256.toLowerCase() === specterdHash) {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
@@ -138,9 +156,11 @@ function updatingLoaderMsg(msg) {
 }
 
 function startSpecterd(specterdPath) {
+  if (platformName == 'win64') {
+    specterdPath += '.exe'
+  }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  const { spawn } = require('child_process');
   updatingLoaderMsg('Launching Specter Desktop...')
   specterdProcess = spawn(specterdPath, hwiBridgeMode ? ['--hwibridge'] : null);
   specterdProcess.stdout.on('data', (_) => {
@@ -174,6 +194,12 @@ app.on('window-all-closed', function () {
 
 app.on('before-quit', () => {
   mainWindow = null;
+  if (platformName == 'win64') {
+    exec('taskkill -F -T -PID ' + specterdProcess.pid);
+    process.kill(-specterdProcess.pid)
+  }
+
+
   if (specterdProcess) {
     specterdProcess.kill('SIGINT')
   }
@@ -183,13 +209,26 @@ function setMainMenu() {
   const menu = defaultMenu(app, shell);
 
   // Add custom menu
-  menu[0].submenu.splice(1, 0,
+  if (platformName == 'osx') {
+    menu[0].submenu.splice(1, 0,
       {
         label: 'Preferences',
         click: openPreferences,
         accelerator: "CmdOrCtrl+,"
       }
-  );
+    );
+  } else {
+    menu.unshift({
+        label: 'Specter',
+        submenu: [{
+          label: 'Preferences',
+          click: openPreferences,
+          accelerator: "CmdOrCtrl+,"
+        }]
+      } 
+    );
+  }
+  
 
   // Set application menu
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
