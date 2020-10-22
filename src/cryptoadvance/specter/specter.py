@@ -74,14 +74,22 @@ class Specter:
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
+
+        # creating folders if they don't exist
+        if not os.path.isdir(data_folder):
+            os.makedirs(data_folder)
+
         self.data_folder = data_folder
+
         self.rpc = None
         self.device_manager = None
         self.wallet_manager = None
-        self._current_version = None
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
+
+        # wallet that is currently rescnning with utxorescan
+        # can be only one at a time
         self.utxorescanwallet = None
 
         # default config
@@ -105,10 +113,6 @@ class Specter:
             "validate_merkle_proofs": False,
         }
 
-        # creating folders if they don't exist
-        if not os.path.isdir(data_folder):
-            os.makedirs(data_folder)
-
         self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
@@ -119,7 +123,7 @@ class Specter:
             return os.path.expanduser(self.config["rpc"]["datadir"])
         return get_default_datadir()
 
-    def update_nodeinfo(self):
+    def update_node_info(self):
         self._is_configured = self.rpc is not None
         self._is_running = False
         if self._is_configured:
@@ -166,7 +170,41 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
-    def check(self, user=current_user):
+    def get_user_folder_id(self, user=current_user):
+        if user and hasattr(user, "is_admin") and not user.is_admin:
+            return "_" + user.id
+        return ""
+
+    def update_wallet_manager(self, user=current_user):
+        user_folder_id = self.get_user_folder_id(user)
+        wallets_rpcpath = "specter%s" % self.config["uid"]
+        wallets_folder = os.path.join(self.data_folder, f"wallets{user_folder_id}")
+        # if chain, user or data folder changed
+        if (
+            self.wallet_manager is None
+            or self.wallet_manager.data_folder != self.data_folder
+            or self.wallet_manager.rpc_path != wallets_rpcpath
+            or self.wallet_manager.chain != self.chain
+        ):
+            self.wallet_manager = WalletManager(
+                wallets_folder,
+                self.rpc,
+                self.chain,
+                self.device_manager,
+                path=wallets_rpcpath,
+            )
+        else:
+            self.wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
+
+    def update_device_manager(self, user=current_user):
+        user_folder_id = self.get_user_folder_id(user)
+        devices_folder = os.path.join(self.data_folder, f"devices{user_folder_id}")
+        if self.device_manager is None:
+            self.device_manager = DeviceManager(devices_folder)
+        else:
+            self.device_manager.update(data_folder=devices_folder)
+
+    def update_config(self, user=current_user):
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with self.lock:
@@ -176,6 +214,7 @@ class Specter:
                 deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
+            # unique id of specter
             if self.config["uid"] == "":
                 self.config["uid"] = (
                     random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
@@ -185,52 +224,26 @@ class Specter:
         # init arguments
         deep_update(self.config, self.arg_config)  # override loaded config
 
+    def check(self, user=current_user):
+        # check if config file have changed
+        self.update_config(user)
+
         # update rpc if something doesn't work
         if self.rpc is None or not self.rpc.test_connection():
             self.rpc = get_rpc(self.config["rpc"], self.rpc)
 
-        self.update_nodeinfo()
+        self.update_node_info()
 
-        if hasattr(user, "is_admin"):
-            user_folder_id = "_" + user.id if user and not user.is_admin else ""
-        else:
-            user_folder_id = ""
+        user_folder_id = self.get_user_folder_id(user)
 
-        if self.config["auth"] != "usernamepassword" or (
+        if self.is_user_valid(user):
+            self.update_device_manager(user)
+            self.update_wallet_manager(user)
+
+    def is_user_valid(self, user):
+        return self.config["auth"] != "usernamepassword" or (
             user and not user.is_anonymous
-        ):
-            if self.device_manager is None:
-                self.device_manager = DeviceManager(
-                    os.path.join(self.data_folder, "devices{}".format(user_folder_id))
-                )
-            else:
-                self.device_manager.update(
-                    data_folder=os.path.join(
-                        self.data_folder, "devices{}".format(user_folder_id)
-                    )
-                )
-
-            wallets_path = "specter%s" % self.config["uid"]
-            # if chain, user or data folder changed
-            if (
-                self.wallet_manager is None
-                or self.wallet_manager.data_folder != self.data_folder
-                or self.wallet_manager.rpc_path != wallets_path
-                or self.wallet_manager.chain != self.chain
-            ):
-                self.wallet_manager = WalletManager(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
-                    self.rpc,
-                    self.chain,
-                    self.device_manager,
-                    path=wallets_path,
-                )
-            else:
-                self.wallet_manager.update(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
-                    self.rpc,
-                    chain=self.chain,
-                )
+        )
 
     def abortrescanutxo(self):
         self.rpc.scantxoutset("abort", [])
