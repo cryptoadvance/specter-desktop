@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, screen, shell } = require('electron')
+const { app, BrowserWindow, Menu, screen, shell, dialog } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
@@ -267,3 +267,16 @@ function getAppSettings() {
   }
   return require(appSettingsPath)
 }
+
+function showError(error) {
+  dialog.showErrorBox('Specter Desktop encounter an error', error.toString())
+  updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
+}
+
+process.on('unhandledRejection', error => {
+  showError(error)
+})
+
+process.on("uncaughtException", error => {
+  showError(error)
+})
