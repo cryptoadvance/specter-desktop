@@ -32,11 +32,7 @@ class VersionChecker:
 
     @property
     def info(self):
-        return {
-            "current": self.current,
-            "latest": self.latest,
-            "upgrade": self.upgrade,
-        }
+        return {"current": self.current, "latest": self.latest, "upgrade": self.upgrade}
 
     def loop(self, dt=3600):
         """Checks for updates once per hour"""

@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from .helpers import alias, load_jsons, fslock
+from .helpers import alias, load_jsons
 from .rpc import get_default_datadir
 
 from .devices import __all__ as device_classes
