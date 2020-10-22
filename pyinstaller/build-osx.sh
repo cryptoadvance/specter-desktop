@@ -38,4 +38,7 @@ mkdir release
 
 create-dmg 'electron/dist/mac/Specter.app' --identity="Developer ID Application: $2"
 mv "Specter $1.dmg" release/SpecterDesktop-$1.dmg
-zip release/specterd-$1-osx.zip dist/specterd
+
+cd dist
+zip ../release/specterd-$1-osx.zip specterd
+cd ..

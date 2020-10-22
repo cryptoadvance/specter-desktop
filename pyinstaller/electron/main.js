@@ -39,6 +39,9 @@ switch (process.platform) {
   case 'win32':
     platformName = 'win64'
     break
+  case 'linux':
+    platformName = 'x86_64-linux-gnu'
+    break
 }
 
 function createWindow (specterURL) {
@@ -103,20 +106,22 @@ app.whenReady().then(() => {
 
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
-  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/v${versionData.version}/specterd-v${versionData.version}-${platformName}.zip`, specterdPath + '.zip', function() {
+  console.log("Using version ", versionData.version);
+  console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${versionData.version}/specterd-${versionData.version}-${platformName}.zip`);
+  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${versionData.version}/specterd-${versionData.version}-${platformName}.zip`, specterdPath + '.zip', function() {
     updatingLoaderMsg('Unpacking files...')
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
       let extraPath = ''
       switch (process.platform) {
         case 'darwin':
-          extraPath = 'dist/specterd'
+          extraPath = 'specterd'
           break
         case 'win32':
           extraPath = 'specterd.exe'
           break
         case 'linux':
-          // TODO: Linux has a .tar format... handle that properly
+          extraPath = 'specterd'
       }
       var oldPath = specterdPath + `-dir/${extraPath}`
       var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')

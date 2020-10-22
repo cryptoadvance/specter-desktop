@@ -5,18 +5,32 @@
 echo $1 > version.txt
 pip install -r requirements.txt --require-hashes
 pip install -e ..
-rm -rf build/ dist/ release/
-pyinstaller specter_desktop.spec
+rm -rf build/ dist/ release/ electron/release/ electron/dist
 pyinstaller specterd.spec
+cd electron
+npm ci
 
+# calculate the hash of the binary for download
+if [[ "$2" == 'make-hash' ]]
+then
+    node ./set-version $1 ../dist/specterd
+else
+    node ./set-version $1
+fi
+
+# build electron app
+npm i
+npm run dist
+cd ..
+
+# copy everything to release folder
 mkdir release
+cd dist
+cp -r ../../udev ./udev
+echo "Don't forget to set up udev rules! Check out udev folder for instructions." > README.md
+zip -r ../release/specterd-$1-`arch`-linux-gnu.zip specterd udev README.md
 
-mkdir release/specter_desktop-$1-`arch`-linux-gnu
-cp dist/Specter release/specter_desktop-$1-`arch`-linux-gnu/
-cp -r ../udev release/specter_desktop-$1-`arch`-linux-gnu/udev
-tar -czvf release/specter_desktop-$1-`arch`-linux-gnu.tar.gz release/specter_desktop-$1-`arch`-linux-gnu
+cp ../electron/dist/Specter-* ./
+tar -czvf ../release/specter_desktop-$1-`arch`-linux-gnu.tar.gz Specter-* udev README.md
 
-mkdir release/specterd-$1-`arch`-linux-gnu
-cp dist/specterd release/specterd-$1-`arch`-linux-gnu/
-cp -r ../udev release/specterd-$1-`arch`-linux-gnu/udev
-tar -czvf release/specterd-$1-`arch`-linux-gnu.tar.gz release/specterd-$1-`arch`-linux-gnu
+cd ..
