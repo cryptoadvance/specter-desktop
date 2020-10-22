@@ -234,8 +234,6 @@ function setMainMenu() {
     );
   }
   
-
-  // Set application menu
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }
 
