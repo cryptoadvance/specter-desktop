@@ -166,6 +166,45 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
+    def get_user_folder_id(self, user=current_user):
+        if user and hasattr(user, "is_admin") and not user.is_admin:
+            return "_" + user.id
+        return ""
+
+    def update_wallet_manager(self, user=current_user):
+        user_folder_id = self.get_user_folder_id(user)
+        wallets_rpcpath = "specter%s" % self.config["uid"]
+        wallets_folder = os.path.join(self.data_folder,
+                                      f"wallets{user_folder_id}")
+        # if chain, user or data folder changed
+        if (
+            self.wallet_manager is None
+            or self.wallet_manager.data_folder != self.data_folder
+            or self.wallet_manager.rpc_path != wallets_rpcpath
+            or self.wallet_manager.chain != self.chain
+        ):
+            self.wallet_manager = WalletManager(
+                wallets_folder,
+                self.rpc,
+                self.chain,
+                self.device_manager,
+                path=wallets_rpcpath,
+            )
+        else:
+            self.wallet_manager.update(
+                wallets_folder,
+                self.rpc,
+                chain=self.chain,
+            )
+
+    def update_device_manager(self, user=current_user):
+        user_folder_id = self.get_user_folder_id(user)
+        devices_folder = os.path.join(self.data_folder, f"devices{user_folder_id}")
+        if self.device_manager is None:
+            self.device_manager = DeviceManager(devices_folder)
+        else:
+            self.device_manager.update(data_folder=devices_folder)
+
     def check(self, user=current_user):
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
@@ -176,6 +215,7 @@ class Specter:
                 deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
+            # unique id of specter
             if self.config["uid"] == "":
                 self.config["uid"] = (
                     random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
@@ -191,46 +231,15 @@ class Specter:
 
         self.update_nodeinfo()
 
-        if hasattr(user, "is_admin"):
-            user_folder_id = "_" + user.id if user and not user.is_admin else ""
-        else:
-            user_folder_id = ""
+        user_folder_id = self.get_user_folder_id(user)
 
-        if self.config["auth"] != "usernamepassword" or (
-            user and not user.is_anonymous
-        ):
-            if self.device_manager is None:
-                self.device_manager = DeviceManager(
-                    os.path.join(self.data_folder, "devices{}".format(user_folder_id))
-                )
-            else:
-                self.device_manager.update(
-                    data_folder=os.path.join(
-                        self.data_folder, "devices{}".format(user_folder_id)
-                    )
-                )
+        if self.is_user_valid(user):
+            self.update_device_manager(user)
+            self.update_wallet_manager(user)
 
-            wallets_path = "specter%s" % self.config["uid"]
-            # if chain, user or data folder changed
-            if (
-                self.wallet_manager is None
-                or self.wallet_manager.data_folder != self.data_folder
-                or self.wallet_manager.rpc_path != wallets_path
-                or self.wallet_manager.chain != self.chain
-            ):
-                self.wallet_manager = WalletManager(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
-                    self.rpc,
-                    self.chain,
-                    self.device_manager,
-                    path=wallets_path,
-                )
-            else:
-                self.wallet_manager.update(
-                    os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
-                    self.rpc,
-                    chain=self.chain,
-                )
+    def is_user_valid(self, user):
+        return (self.config["auth"] != "usernamepassword"
+                or (user and not user.is_anonymous))
 
     def abortrescanutxo(self):
         self.rpc.scantxoutset("abort", [])
