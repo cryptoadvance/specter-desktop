@@ -186,14 +186,7 @@ def combine(wallet_alias):
                 return "Unknown error: %r" % e, 500
         psbt = wallet.update_pending_psbt(combined, txid, raw)
         devices = []
-        # we get names, but need aliases
-        if "devices_signed" in psbt:
-            devices = [
-                dev.alias
-                for dev in wallet.devices
-                if dev.name in psbt["devices_signed"]
-            ]
-        raw["devices"] = devices
+        raw["devices"] = psbt["devices_signed"]
         return json.dumps(raw)
     return "meh"
 
@@ -1389,16 +1382,14 @@ def wallet_sendnew(wallet_alias):
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
+                    # get device and sign with it
                     signed_psbt = app.specter.device_manager.get_by_alias(
                         device
                     ).sign_psbt(b64psbt, wallet, passphrase)
                     if signed_psbt["complete"]:
                         if "devices_signed" not in psbt:
                             psbt["devices_signed"] = []
-                        # TODO: This uses device name, but should use device alias...
-                        psbt["devices_signed"].append(
-                            app.specter.device_manager.get_by_alias(device).name
-                        )
+                        psbt["devices_signed"].append(device)
                         psbt["sigs_count"] = len(psbt["devices_signed"])
                         raw = wallet.rpc.finalizepsbt(b64psbt)
                         if "hex" in raw:
