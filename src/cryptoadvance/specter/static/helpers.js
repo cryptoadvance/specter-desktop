@@ -65,10 +65,10 @@ function capitalize(str){
 	return str.charAt(0).toUpperCase()+str.substring(1);
 }
 
-console.log('ok');
-// Enable navigation prompt
+// Enable navigation loader
 window.addEventListener('beforeunload', function (e) {
-	// window.setTimeout(()=>{
+	// half a second delay before we show it
+	window.setTimeout(()=>{
 		document.getElementById("pageloader").style.display = 'block';
-	// }, 50);
+	}, 200);
 });
