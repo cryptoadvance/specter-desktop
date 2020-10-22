@@ -119,28 +119,7 @@ class Specter:
             return os.path.expanduser(self.config["rpc"]["datadir"])
         return get_default_datadir()
 
-    def check(self, user=current_user):
-        # if config.json file exists - load from it
-        if os.path.isfile(os.path.join(self.data_folder, "config.json")):
-            with self.lock:
-                self.file_config = read_json_file(
-                    os.path.join(self.data_folder, "config.json")
-                )
-                deep_update(self.config, self.file_config)
-            # otherwise - create one and assign unique id
-        else:
-            if self.config["uid"] == "":
-                self.config["uid"] = (
-                    random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
-                )
-            self._save()
-
-        # init arguments
-        deep_update(self.config, self.arg_config)  # override loaded config
-
-        # update rpc if something doesn't work
-        if self.rpc is None or not self.rpc.test_connection():
-            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+    def update_nodeinfo(self):
         self._is_configured = self.rpc is not None
         self._is_running = False
         if self._is_configured:
@@ -187,7 +166,31 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
-        chain = self._info["chain"]
+    def check(self, user=current_user):
+        # if config.json file exists - load from it
+        if os.path.isfile(os.path.join(self.data_folder, "config.json")):
+            with self.lock:
+                self.file_config = read_json_file(
+                    os.path.join(self.data_folder, "config.json")
+                )
+                deep_update(self.config, self.file_config)
+            # otherwise - create one and assign unique id
+        else:
+            if self.config["uid"] == "":
+                self.config["uid"] = (
+                    random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
+                )
+            self._save()
+
+        # init arguments
+        deep_update(self.config, self.arg_config)  # override loaded config
+
+        # update rpc if something doesn't work
+        if self.rpc is None or not self.rpc.test_connection():
+            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+
+        self.update_nodeinfo()
+
         if hasattr(user, "is_admin"):
             user_folder_id = "_" + user.id if user and not user.is_admin else ""
         else:
@@ -213,12 +216,12 @@ class Specter:
                 self.wallet_manager is None
                 or self.wallet_manager.data_folder != self.data_folder
                 or self.wallet_manager.rpc_path != wallets_path
-                or self.wallet_manager.chain != chain
+                or self.wallet_manager.chain != self.chain
             ):
                 self.wallet_manager = WalletManager(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
                     self.rpc,
-                    chain,
+                    self.chain,
                     self.device_manager,
                     path=wallets_path,
                 )
@@ -226,7 +229,7 @@ class Specter:
                 self.wallet_manager.update(
                     os.path.join(self.data_folder, "wallets{}".format(user_folder_id)),
                     self.rpc,
-                    chain=chain,
+                    chain=self.chain,
                 )
 
     def abortrescanutxo(self):
@@ -365,7 +368,7 @@ class Specter:
             user.set_unit(self, unit)
 
     def update_merkleproof_settings(self, validate_bool):
-        if validate_bool is True and self._info.get("pruned") is True:
+        if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False
             logger.warning("Cannot enable merkleproof setting on pruned node.")
 

@@ -979,7 +979,7 @@ def new_wallet(wallet_type):
                     if "use_explorer" in request.form:
                         explorer = app.specter.get_default_explorer()
                     wallet.rescanutxo(explorer)
-                    app.specter._info["utxorescan"] = 1
+                    app.specter.info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
                     app.logger.info("Rescanning Blockchain ...")
@@ -1103,7 +1103,7 @@ def singlesig_setup_wizard():
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         return redirect(url_for("wallet", wallet_alias=wallet.alias))
     return render_template(
@@ -1218,12 +1218,12 @@ def txout_set_info():
 @login_required
 def get_scantxoutset_status():
     status = app.specter.rpc.scantxoutset("status", [])
-    app.specter._info["utxorescan"] = status.get("progress", None) if status else None
-    if app.specter._info["utxorescan"] is None:
+    app.specter.info["utxorescan"] = status.get("progress", None) if status else None
+    if app.specter.info["utxorescan"] is None:
         app.specter.utxorescanwallet = None
     return {
-        "active": app.specter._info["utxorescan"] is not None,
-        "progress": app.specter._info["utxorescan"],
+        "active": app.specter.info["utxorescan"] is not None,
+        "progress": app.specter.info["utxorescan"],
     }
 
 
@@ -1513,11 +1513,11 @@ def wallet_settings(wallet_alias):
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
-            app.specter._info["utxorescan"] = None
+            app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
