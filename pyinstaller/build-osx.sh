@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 
-# pass version number as an argument 
-get_sha256sum() {
-    cat $1 | sha256sum | head -c 64
-}
-
 echo $1 > version.txt
 pip install -r requirements.txt --require-hashes
 pip install -e ..
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg
 pyinstaller specterd.spec
-brew install jq
-if [[ "$4" == 'make-hash' ]]
-then
-    echo "`jq '.sha256="'"$(get_sha256sum './dist/specterd')"'"' electron/version-data.json`" > electron/version-data.json
-    echo "`jq '.version="'"$1"'"' electron/version-data.json`" > electron/version-data.json
-fi
 cd electron
 npm ci
-echo "`jq '.version="'"$1"'"' package.json`" > package.json
+if [[ "$4" == 'make-hash' ]]
+then
+    node ./set-version $1 ../dist/specterd
+else
+    node ./set-version $1
+fi
 npm i
 if [[ "$2" == '' ]]
 then
