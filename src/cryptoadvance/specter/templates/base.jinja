@@ -8,6 +8,7 @@
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}?{{rand}}">
 	</head>
 	<body>
+	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth == "none" or current_user.is_authenticated %}
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
