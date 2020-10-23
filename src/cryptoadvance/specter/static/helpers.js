@@ -64,3 +64,11 @@ async function wait(ms){
 function capitalize(str){
 	return str.charAt(0).toUpperCase()+str.substring(1);
 }
+
+// Enable navigation loader
+window.addEventListener('beforeunload', function (e) {
+	// half a second delay before we show it
+	window.setTimeout(()=>{
+		document.getElementById("pageloader").style.display = 'block';
+	}, 200);
+});
