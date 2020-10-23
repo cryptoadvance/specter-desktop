@@ -356,7 +356,6 @@ please request a new link from the node operator.",
 def logout():
     logout_user()
     flash("You were logged out", "info")
-    app.specter.clear_user_session()
     return redirect("login")
 
 

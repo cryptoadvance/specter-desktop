@@ -139,6 +139,12 @@ class User(UserMixin):
 
         save_users_json(specter, users)
 
+        # update specter users
+        if not existing and not delete:
+            specter.add_user(self)
+        if delete:
+            specter.delete_user(self)
+
     def set_explorer(self, specter, explorer):
         self.config["explorers"][specter.chain] = explorer
         self.save_info(specter)
@@ -152,12 +158,21 @@ class User(UserMixin):
         self.save_info(specter)
 
     def delete(self, specter):
-        devices_datadir_path = os.path.join(
-            os.path.join(specter.data_folder, "devices_{}".format(self.id))
-        )
-        wallets_datadir_path = os.path.join(
-            os.path.join(specter.data_folder, "wallets_{}".format(self.id))
-        )
-        delete_folder(devices_datadir_path)
-        delete_folder(wallets_datadir_path)
+        # we delete wallet manager and device manager in save_info
         self.save_info(specter, delete=True)
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        # to make lookups in dicts by user id
+        return hash(self.id)
+
+    def __str__(self):
+        return self.id
+
+    def __repr__(self):
+        return f"User({self.id})"

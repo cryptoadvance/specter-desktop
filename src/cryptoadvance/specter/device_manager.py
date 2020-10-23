@@ -6,7 +6,7 @@ from .rpc import get_default_datadir
 
 from .devices import __all__ as device_classes
 from .devices.generic import GenericDevice  # default device type
-from .persistence import write_device, delete_json_file
+from .persistence import write_device, delete_json_file, delete_folder
 
 logger = logging.getLogger(__name__)
 
@@ -95,3 +95,10 @@ class DeviceManager:
     @property
     def supported_devices(self):
         return device_classes
+
+    def delete(self, specter):
+        """Deletes all the wallets"""
+        for d in self.devices:
+            device = self.devices[d]
+            self.remove_device(device)
+        delete_folder(self.data_folder)

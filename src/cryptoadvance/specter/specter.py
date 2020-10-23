@@ -14,7 +14,7 @@ from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from .persistence import write_json_file, read_json_file
-from .user import get_users_json
+from .user import get_users_json, User
 from flask_login import current_user
 import threading
 
@@ -83,8 +83,10 @@ class Specter:
         self.data_folder = data_folder
 
         self.rpc = None
-        self.device_manager = None
-        self.wallet_manager = None
+        users = dict.fromkeys({User.from_json(u) for u in get_users_json(self)})
+        for u in users:
+            users[u] = {"wallet_manager": None, "device_manager": None}
+        self.users = users
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
@@ -114,11 +116,10 @@ class Specter:
             "validate_merkle_proofs": False,
         }
 
-        self.is_checking = False
         # health check: loads config and tests rpc
         self.check()
 
-    def check(self, user=current_user):
+    def check(self, user=current_user, check_all=True):
         """
         Checks and updates everything for a particular user:
         - config if changed
@@ -135,7 +136,11 @@ class Specter:
             self.rpc = get_rpc(self.config["rpc"], self.rpc)
 
         self.check_node_info()
-        self.check_for_user(user)
+        if not check_all:
+            self.check_for_user(user)
+        else:
+            for u in self.users:
+                self.check_for_user(u)
 
     def check_node_info(self):
         self._is_configured = self.rpc is not None
@@ -199,34 +204,40 @@ class Specter:
 
     def check_wallet_manager(self, user=current_user):
         """Updates wallet manager for a particular user"""
+        user = self.get_user(user)
         user_folder_id = self.get_user_folder_id(user)
         wallets_rpcpath = "specter%s" % self.config["uid"]
         wallets_folder = os.path.join(self.data_folder, f"wallets{user_folder_id}")
         # if chain, user or data folder changed
+        wallet_manager = self.users[user]["wallet_manager"]
         if (
-            self.wallet_manager is None
-            or self.wallet_manager.data_folder != self.data_folder
-            or self.wallet_manager.rpc_path != wallets_rpcpath
-            or self.wallet_manager.chain != self.chain
+            wallet_manager is None
+            or wallet_manager.data_folder != self.data_folder
+            or wallet_manager.rpc_path != wallets_rpcpath
+            or wallet_manager.chain != self.chain
         ):
-            self.wallet_manager = WalletManager(
+            wallet_manager = WalletManager(
                 wallets_folder,
                 self.rpc,
                 self.chain,
                 self.device_manager,
                 path=wallets_rpcpath,
             )
+            self.users[user]["wallet_manager"] = wallet_manager
         else:
-            self.wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
+            wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
 
     def check_device_manager(self, user=current_user):
         """Updates device manager for a particular user"""
+        user = self.get_user(user)
         user_folder_id = self.get_user_folder_id(user)
         devices_folder = os.path.join(self.data_folder, f"devices{user_folder_id}")
-        if self.device_manager is None:
-            self.device_manager = DeviceManager(devices_folder)
+        device_manager = self.users[user]["device_manager"]
+        if device_manager is None:
+            device_manager = DeviceManager(devices_folder)
+            self.users[user]["device_manager"] = device_manager
         else:
-            self.device_manager.update(data_folder=devices_folder)
+            device_manager.update(data_folder=devices_folder)
 
     def check_config(self):
         """
@@ -257,14 +268,36 @@ class Specter:
         deep_update(self.config, self.arg_config)
 
     def check_for_user(self, user=current_user):
-        if self.is_user_valid(user):
-            self.check_device_manager(user)
-            self.check_wallet_manager(user)
+        """
+        Performs device and wallet manager check for particular user
+        """
+        user = self.get_user(user)
+        self.check_device_manager(user)
+        self.check_wallet_manager(user)
 
-    def is_user_valid(self, user):
-        return self.config["auth"] != "usernamepassword" or (
-            user and not user.is_anonymous
-        )
+    def get_user(self, user=current_user):
+        """
+        Converts from flask_login user to a User in the system.
+        None if not found. Admin by default.
+        """
+        if user and not user.is_anonymous:
+            if user in self.users:
+                return user
+        return self.admin
+
+    def add_user(self, user):
+        if user in self.users:
+            return
+        self.users[user] = {"wallet_manager": None, "device_manager": None}
+        self.check_for_user(user)
+
+    def delete_user(self, user):
+        # TODO: delete wallets and files as well
+        if user not in self.users:
+            return
+        self.users[user]["wallet_manager"].delete(self)
+        self.users[user]["device_manager"].delete(self)
+        del self.users[user]
 
     @property
     def bitcoin_datadir(self):
@@ -278,10 +311,6 @@ class Specter:
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None
         self.utxorescanwallet = None
-
-    def clear_user_session(self):
-        self.device_manager = None
-        self.wallet_manager = None
 
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
@@ -493,49 +522,38 @@ class Specter:
         return self._info["chain"]
 
     @property
+    def user_config(self):
+        return self.config if self.current_user.is_admin else self.current_user.config
+
+    @property
     def explorer(self):
-        # TODO: Unify for user and admin
-        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
-            if "explorers" in self.config and self.chain in self.config["explorers"]:
-                return self.config["explorers"][self.chain]
-            else:
-                return ""
-        else:
-            if (
-                "explorers" in current_user.config
-                and self.chain in current_user.config["explorers"]
-            ):
-                return current_user.config["explorers"][self.chain]
-            else:
-                return ""
+        return self.user_config.get("explorers", {}).get(self.chain, "")
 
     @property
     def hwi_bridge_url(self):
-        # TODO: Unify for user and admin
-        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
-            if "hwi_bridge_url" in self.config:
-                return self.config["hwi_bridge_url"]
-            else:
-                return ""
-        else:
-            if "hwi_bridge_url" in current_user.config:
-                return current_user.config["hwi_bridge_url"]
-            else:
-                return ""
+        return self.user_config.get("hwi_bridge_url", "")
 
     @property
     def unit(self):
-        # TODO: Unify for user and admin
-        if (not current_user or current_user.is_anonymous) or current_user.is_admin:
-            if "unit" in self.config:
-                return self.config["unit"]
-            else:
-                return "btc"
-        else:
-            if "unit" in current_user.config:
-                return current_user.config["unit"]
-            else:
-                return "btc"
+        return self.user_config.get("unit", "btc")
+
+    @property
+    def admin(self):
+        for u in self.users:
+            if u.is_admin:
+                return u
+
+    @property
+    def current_user(self):
+        return self.get_user(current_user)
+
+    @property
+    def device_manager(self):
+        return self.users[self.current_user]["device_manager"]
+
+    @property
+    def wallet_manager(self):
+        return self.users[self.current_user]["wallet_manager"]
 
     def specter_backup_file(self):
         memory_file = BytesIO()
