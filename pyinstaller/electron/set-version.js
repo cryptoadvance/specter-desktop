@@ -4,7 +4,6 @@ const version = process.argv[2]
 
 async function setVersion() {
     let package = require('./package.json')
-    const { async } = require('globalthis/implementation')
     package.version = version
     fs.writeFileSync('./package.json', JSON.stringify(package, undefined, 2))
     

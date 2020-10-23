@@ -16,6 +16,7 @@
 			padding-left: 0;
 			float: left;
 			width: auto;
+			flex-grow: 1;
 		}
 		.update {
 			float: left;
@@ -29,6 +30,13 @@
 		.edit {
 			float: right;
 			margin-top: 8px;
+		}
+		.label-row {
+			display: flex;
+			flex-direction: row;
+		}
+		.label-row > .btn {
+			flex-grow: 0;
 		}
 	</style>
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
@@ -67,7 +75,7 @@
 			{% set account_label = wallet.get_address_name(account, -1) if is_address_view else account %}
 			<div class="table-holder">
 				<br>
-				<form action="./?view={{ viewtype }}&idx={{ idx }}" method="POST">
+				<form action="./?view={{ viewtype }}&idx={{ idx }}" method="POST" class="label-row">
 					<br>
 					<input type="hidden" name="account" value="{{ account }}"/>
 					{{ editable_label(account_label, loop.index0) }}

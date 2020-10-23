@@ -152,8 +152,8 @@
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
 			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
 			{% for device in wallet.devices %}
-				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
-					{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.alias in psbt["devices_signed"] else '' }}>
+					{{ device.name }} {% if device.alias in psbt['devices_signed'] %} (&#10004;) {% endif %}
 				</button>
 			{% endfor %}
 		</div>
