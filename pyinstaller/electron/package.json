@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "dist": "electron-builder --publish=never",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": "https://github.com/cryptoadvance/specter-desktop",
@@ -36,12 +36,6 @@
     "win": {
       "icon": "../icons/icon.ico"
     },
-    "extraFiles": [
-      {
-        "from": "specterd-binaries",
-        "to": "specterd-binaries"
-      }
-    ],
     "linux": {
       "target": [
         "AppImage"
