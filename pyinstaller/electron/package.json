@@ -42,8 +42,10 @@
         "to": "specterd-binaries"
       }
     ],
-    "snap": {
-      "publish": ["never"]
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
     }
   },
   "dependencies": {
