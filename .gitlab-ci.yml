@@ -26,6 +26,11 @@ before_script:
   - virtualenv --python=python3 .env
   - source .env/bin/activate
 
+test:
+  stage: testing
+  script:
+    - echo hello
+
 #test:
 #  stage: testing
 #  script:
