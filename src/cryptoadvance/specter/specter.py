@@ -14,6 +14,7 @@ from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from .persistence import write_json_file, read_json_file
+from .user import get_users_json
 from flask_login import current_user
 import threading
 
@@ -117,13 +118,26 @@ class Specter:
         # health check: loads config and tests rpc
         self.check()
 
-    @property
-    def bitcoin_datadir(self):
-        if "datadir" in self.config["rpc"]:
-            return os.path.expanduser(self.config["rpc"]["datadir"])
-        return get_default_datadir()
+    def check(self, user=current_user):
+        """
+        Checks and updates everything for a particular user:
+        - config if changed
+        - rpc including check if it's connected
+        - node info
+        - wallet manager
+        - device manager
+        """
+        # check if config file have changed
+        self.check_config()
 
-    def update_node_info(self):
+        # update rpc if something doesn't work
+        if self.rpc is None or not self.rpc.test_connection():
+            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+
+        self.check_node_info()
+        self.check_for_user(user)
+
+    def check_node_info(self):
         self._is_configured = self.rpc is not None
         self._is_running = False
         if self._is_configured:
@@ -171,11 +185,20 @@ class Specter:
             self._info["chain"] = None
 
     def get_user_folder_id(self, user=current_user):
+        """
+        Returns the suffix for the user wallets and devices.
+        User can be either a flask_login user or a string.
+        """
+        # string case
+        if isinstance(user, str):
+            return "" if user in ["", "admin"] else f"_{user}"
+        # flask_login case
         if user and hasattr(user, "is_admin") and not user.is_admin:
             return "_" + user.id
         return ""
 
-    def update_wallet_manager(self, user=current_user):
+    def check_wallet_manager(self, user=current_user):
+        """Updates wallet manager for a particular user"""
         user_folder_id = self.get_user_folder_id(user)
         wallets_rpcpath = "specter%s" % self.config["uid"]
         wallets_folder = os.path.join(self.data_folder, f"wallets{user_folder_id}")
@@ -196,7 +219,8 @@ class Specter:
         else:
             self.wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
 
-    def update_device_manager(self, user=current_user):
+    def check_device_manager(self, user=current_user):
+        """Updates device manager for a particular user"""
         user_folder_id = self.get_user_folder_id(user)
         devices_folder = os.path.join(self.data_folder, f"devices{user_folder_id}")
         if self.device_manager is None:
@@ -204,7 +228,15 @@ class Specter:
         else:
             self.device_manager.update(data_folder=devices_folder)
 
-    def update_config(self, user=current_user):
+    def check_config(self):
+        """
+        Updates config if file config have changed.
+        Priority (low to high):
+        - existing / default config
+        - file config from config.json
+        - arg_config passed in constructor
+        """
+
         # if config.json file exists - load from it
         if os.path.isfile(os.path.join(self.data_folder, "config.json")):
             with self.lock:
@@ -221,29 +253,24 @@ class Specter:
                 )
             self._save()
 
-        # init arguments
-        deep_update(self.config, self.arg_config)  # override loaded config
+        # config from constructor overrides file config
+        deep_update(self.config, self.arg_config)
 
-    def check(self, user=current_user):
-        # check if config file have changed
-        self.update_config(user)
-
-        # update rpc if something doesn't work
-        if self.rpc is None or not self.rpc.test_connection():
-            self.rpc = get_rpc(self.config["rpc"], self.rpc)
-
-        self.update_node_info()
-
-        user_folder_id = self.get_user_folder_id(user)
-
+    def check_for_user(self, user=current_user):
         if self.is_user_valid(user):
-            self.update_device_manager(user)
-            self.update_wallet_manager(user)
+            self.check_device_manager(user)
+            self.check_wallet_manager(user)
 
     def is_user_valid(self, user):
         return self.config["auth"] != "usernamepassword" or (
             user and not user.is_anonymous
         )
+
+    @property
+    def bitcoin_datadir(self):
+        if "datadir" in self.config["rpc"]:
+            return os.path.expanduser(self.config["rpc"]["datadir"])
+        return get_default_datadir()
 
     def abortrescanutxo(self):
         self.rpc.scantxoutset("abort", [])
