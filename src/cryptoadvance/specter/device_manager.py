@@ -97,7 +97,7 @@ class DeviceManager:
         return device_classes
 
     def delete(self, specter):
-        """Deletes all the wallets"""
+        """Deletes all the devices"""
         for d in self.devices:
             device = self.devices[d]
             self.remove_device(device)
