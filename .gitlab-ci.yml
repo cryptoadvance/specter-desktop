@@ -77,7 +77,7 @@ release_binary_linux:
 
 release_electron_linux:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
-  stage: test
+  stage: testing
   only: 
     - tags
   before_script:
