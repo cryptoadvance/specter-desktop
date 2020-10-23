@@ -22,7 +22,7 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-  - pip install virtualenv
+  - pip3 install virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
 
@@ -68,7 +68,7 @@ release_binary_linux:
     - tags
   before_script:
     - python -V
-    - pip install virtualenv
+    - pip3 install virtualenv
     - virtualenv --python=python3 .env
     - source .env/bin/activate
   script:
@@ -89,7 +89,7 @@ release_electron_linux:
     - python -V  # Print out python version for debugging
     - apt update
     - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-    - pip install virtualenv
+    - pip3 install virtualenv
     # Only difference to default befor_script: (ToDo fix this)
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
@@ -109,7 +109,7 @@ release_binary_windows:
     - windows
   before_script:
     - python -V
-    - pip install virtualenv
+    - pip3 install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
   script:
