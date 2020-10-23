@@ -86,7 +86,6 @@ release_electron_linux:
   only: 
     - tags
   before_script:
-    - docker info # Print out docker version for debugging
     - python -V  # Print out python version for debugging
     - apt update
     - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
