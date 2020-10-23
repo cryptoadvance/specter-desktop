@@ -186,14 +186,7 @@ def combine(wallet_alias):
                 return "Unknown error: %r" % e, 500
         psbt = wallet.update_pending_psbt(combined, txid, raw)
         devices = []
-        # we get names, but need aliases
-        if "devices_signed" in psbt:
-            devices = [
-                dev.alias
-                for dev in wallet.devices
-                if dev.name in psbt["devices_signed"]
-            ]
-        raw["devices"] = devices
+        raw["devices"] = psbt["devices_signed"]
         return json.dumps(raw)
     return "meh"
 
@@ -1389,16 +1382,14 @@ def wallet_sendnew(wallet_alias):
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
+                    # get device and sign with it
                     signed_psbt = app.specter.device_manager.get_by_alias(
                         device
                     ).sign_psbt(b64psbt, wallet, passphrase)
                     if signed_psbt["complete"]:
                         if "devices_signed" not in psbt:
                             psbt["devices_signed"] = []
-                        # TODO: This uses device name, but should use device alias...
-                        psbt["devices_signed"].append(
-                            app.specter.device_manager.get_by_alias(device).name
-                        )
+                        psbt["devices_signed"].append(device)
                         psbt["sigs_count"] = len(psbt["devices_signed"])
                         raw = wallet.rpc.finalizepsbt(b64psbt)
                         if "hex" in raw:
@@ -1543,8 +1534,12 @@ def wallet_settings(wallet_alias):
             return response
         elif action == "rename":
             wallet_name = request.form["newtitle"]
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                error = "Wallet already exists"
+            if not wallet_name:
+                flash("Wallet name cannot be empty", "error")
+            elif wallet_name == wallet.name:
+                pass
+            elif wallet_name in app.specter.wallet_manager.wallets_names:
+                flash("Wallet already exists", "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
@@ -1687,6 +1682,16 @@ def device(device_alias):
         elif action == "delete_key":
             key = request.form["key"]
             device.remove_key(Key.from_json({"original": key}))
+        elif action == "rename":
+            device_name = request.form["newtitle"]
+            if not device_name:
+                flash("Device name must not be empty", "error")
+            elif device_name == device.name:
+                pass
+            elif device_name in app.specter.device_manager.devices_names:
+                flash("Device already exists", "error")
+            else:
+                device.rename(device_name)
         elif action == "add_keys":
             strength = 128
             mnemonic = generate_mnemonic(strength=strength)

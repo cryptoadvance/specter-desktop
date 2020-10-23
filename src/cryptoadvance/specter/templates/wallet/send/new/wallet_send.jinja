@@ -37,12 +37,12 @@
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
-						<span class="info__title">Funds waiting in usigned transactions<br><br></span>
+						<span class="info__title">Funds waiting in unsigned transactions<br><br></span>
 						To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transaction you have no need for.
 					</span>
 				</p>
 			</div>
-			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in usigned transactions.</p>
+			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in unsigned transactions.</p>
 			<br><br>
 		{% endif %}
 		<div class="card">
