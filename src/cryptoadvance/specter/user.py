@@ -49,7 +49,6 @@ class User(UserMixin):
         if self.is_admin:
             return ""
         return f"_{self.id}"
-    
 
     @classmethod
     def from_json(cls, user_dict):

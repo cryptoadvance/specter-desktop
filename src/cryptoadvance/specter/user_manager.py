@@ -2,7 +2,12 @@ import os
 import json
 import logging
 from .helpers import alias, load_jsons, fslock
-from .persistence import read_json_file, write_json_file, delete_json_file, delete_folder
+from .persistence import (
+    read_json_file,
+    write_json_file,
+    delete_json_file,
+    delete_folder,
+)
 from .user import User
 from flask_login import current_user
 
@@ -62,7 +67,7 @@ class UserManager:
         """There is always one admin"""
         for u in self.users:
             if u.is_admin:
-                return u    
+                return u
 
     def get_user(self, user=None):
         """
@@ -98,4 +103,3 @@ class UserManager:
     def delete_user(self, user):
         self.users.remove(user)
         self.save()
-        
