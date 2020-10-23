@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 echo $1 > version.txt
-pip install -r requirements.txt --require-hashes
-pip install -e ..
+pip3 install -r requirements.txt --require-hashes
+pip3 install -e ..
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg
 pyinstaller specterd.spec

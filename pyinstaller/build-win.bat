@@ -1,7 +1,7 @@
 @ECHO OFF
 echo %1% > version.txt
-pip install -r requirements.txt  --require-hashes
-pip install -e ..
+pip3 install -r requirements.txt  --require-hashes
+pip3 install -e ..
 rmdir /s /q .\dist\
 rmdir /s /q .\build\
 rmdir /s /q .\release\
