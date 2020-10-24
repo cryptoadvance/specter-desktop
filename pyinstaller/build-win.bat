@@ -24,4 +24,4 @@ SET EXE_PATH="electron\dist\Specter Setup *.exe"
 SET EXE_RELEASE_PATH="release\Specter Setup %1%.exe"
 echo f | xcopy /s/y %EXE_PATH%  %EXE_RELEASE_PATH%
 
-powershell Compress-Archive -Path dist\specterd.exe release\specterd-%1-win64.zip
+powershell Compress-Archive -Path dist\specterd.exe release\specterd-%1%-win64.zip
