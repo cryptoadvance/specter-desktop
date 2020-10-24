@@ -7,11 +7,11 @@ const extract = require('extract-zip')
 const crypto = require('crypto')
 const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
+const console = require('console')
+const getAppSettings = require('./helpers').getAppSettings
+let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
-
-const versionData = require('./version-data.json')
-const console = require('console')
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
@@ -59,7 +59,6 @@ function createWindow (specterURL) {
   });
 
   // Create the browser window.
-  let appSettings = getAppSettings()
   if (appSettings.tor) {
     mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL });
   }
@@ -92,23 +91,29 @@ app.whenReady().then(() => {
   const specterdPath = specterdDirPath + '/specterd'
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
-      if (versionData.sha256.toLowerCase() === specterdHash) {
+      if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
         startSpecterd(specterdPath)
-      } else {
+      } else if (appSettings.specterdVersion != "") {
         updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...')
         downloadSpecterd(specterdPath)
+      } else {
+        updatingLoaderMsg('Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
       }
     })
   } else {
-    downloadSpecterd(specterdPath)
+    if (appSettings.specterdVersion) {
+      downloadSpecterd(specterdPath)
+    } else {
+      updatingLoaderMsg('Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
+    }
   }
 })
 
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
-  console.log("Using version ", versionData.version);
-  console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${versionData.version}/specterd-${versionData.version}-${platformName}.zip`);
-  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${versionData.version}/specterd-${versionData.version}-${platformName}.zip`, specterdPath + '.zip', function() {
+  console.log("Using version ", appSettings.specterdVersion);
+  console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
+  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function() {
     updatingLoaderMsg('Unpacking files...')
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -131,7 +136,7 @@ function downloadSpecterd(specterdPath) {
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
-        if (versionData.sha256.toLowerCase() === specterdHash) {
+        if (appSettings.specterdVersion.toLowerCase() === specterdHash || appSettings.specterdVersion == "") {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
@@ -172,7 +177,18 @@ function startSpecterd(specterdPath) {
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
   updatingLoaderMsg('Launching Specter Desktop...')
-  specterdProcess = spawn(specterdPath, hwiBridgeMode ? ['--hwibridge'] : null);
+  let specterdArgs = hwiBridgeMode ? ['--hwibridge'] : null
+  if (appSettings.specterdCLIArgs != '') {
+    if (specterdArgs == null) {
+      specterdArgs = []
+    }
+    let specterdExtraArgs = appSettings.specterdCLIArgs.split('--')
+    specterdExtraArgs = specterdExtraArgs.filter(Boolean)
+    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = '--' + arg.trim())
+    
+    specterdArgs = specterdArgs.concat(specterdExtraArgs)
+  }
+  specterdProcess = spawn(specterdPath, specterdArgs);
   specterdProcess.stdout.on('data', (_) => {
     if (mainWindow) {
       createWindow(appSettings.specterURL)
@@ -245,7 +261,7 @@ function setMainMenu() {
 function openPreferences() {
   let prefWindow = new BrowserWindow({
     width: 700,
-    height: 500,
+    height: 750,
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: true,
@@ -254,23 +270,6 @@ function openPreferences() {
   })
   prefWindow.loadURL(`file://${__dirname}/settings.html`)
   prefWindow.show()
-}
-
-function getAppSettings() {
-  let appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
-
-  let defaultSettings = {
-    mode: 'specterd',
-    specterURL: 'http://localhost:25441',
-    tor: false,
-    proxyURL: "socks5://127.0.0.1:9050"
-  }
-  try {
-    fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings), { flag: 'wx' });
-  } catch {
-      // settings file already exists
-  }
-  return require(appSettingsPath)
 }
 
 function showError(error) {
