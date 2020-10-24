@@ -8,7 +8,7 @@ from .persistence import (
     delete_json_file,
     delete_folder,
 )
-from .user import User
+from .user import User, hash_password
 from flask_login import current_user
 
 logger = logging.getLogger(__name__)
