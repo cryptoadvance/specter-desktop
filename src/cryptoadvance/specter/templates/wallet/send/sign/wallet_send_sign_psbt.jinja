@@ -140,7 +140,7 @@
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
-					download="base64.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
+					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
 					Download file</a>&nbsp;
 					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
