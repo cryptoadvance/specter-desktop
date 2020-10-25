@@ -13,6 +13,8 @@ key.pem
 *.dmg
 pyinstaller/specterd
 pyinstaller/release
+pyinstaller/release-linux
+pyinstaller/release-win
 pyinstaller/version.txt
 pyinstaller/electron/version-data.json
 pyinstaller/electron/node_modules

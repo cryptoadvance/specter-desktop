@@ -41,45 +41,24 @@ test:
 #    # - python3 tests/conftest.py 
 #    - pytest --docker
 
-# release_pip:
-#   stage: releasing
-#   only: 
-#     - tags
-#   script:
-#     - pip3 install setuptools wheel twine
-#     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
-#     - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
-#     # set version number in setup.py
-#     - echo Releasing $CI_COMMIT_TAG
-#     - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
-#     - cat setup.py
-#     - python3 setup.py sdist bdist_wheel
-#     # twine ready the password from the env-var TWINE_PASSWORD
-#     # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
-#     - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
-#     - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS.txt
-#     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./dist/SHA256SUMS.txt ./dist/cryptoadvance.specter-*.tar.gz
-
-# release_electron_linux:
-#   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
-#   stage: testing
-#   only: 
-#     - tags
-#   before_script:
-#     - python -V  # Print out python version for debugging
-#     - apt update
-#     - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-#     - pip3 install virtualenv
-#     # Only difference to default befor_script: (ToDo fix this)
-#     - python3 -m virtualenv --python=python3 .env
-#     - source .env/bin/activate
-#   script:
-#     # Make sure the version-number is compatibe to the scheme
-#     - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
-#     - pip3 install github-binary-upload
-#     - cd pyinstaller && ./build-unix.sh $CI_COMMIT_TAG "make-hash"
-#     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
-
+release_pip:
+  stage: releasing
+  only: 
+    - tags
+  script:
+    - pip3 install setuptools wheel twine
+    # verifying the version number follows vx.y.z (e.g. "v1.2.3")
+    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
+    # set version number in setup.py
+    - echo Releasing $CI_COMMIT_TAG
+    - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
+    - cat setup.py
+    - python3 setup.py sdist bdist_wheel
+    # twine ready the password from the env-var TWINE_PASSWORD
+    # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
+    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
+    - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS.txt
+    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./dist/SHA256SUMS.txt ./dist/cryptoadvance.specter-*.tar.gz
 
 release_binary_windows:
   stage: releasing
@@ -98,9 +77,26 @@ release_binary_windows:
     - whoami
     - pip3 install github-binary-upload
     - cd pyinstaller 
-    - .\build-win.bat $CI_COMMIT_TAG "make-hash"
-    - Get-FileHash .\release\Specter Setup $CI_COMMIT_TAG.exe -Algorithm SHA256 > .\release\Specter Setup $CI_COMMIT_TAG.exe.SHA256
-    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specterd-$CI_COMMIT_TAG-win64.zip ./release/Specter Setup $CI_COMMIT_TAG.exe ./release/Specter Setup $CI_COMMIT_TAG.exe.SHA256
+    - .\build-win.bat $CI_COMMIT_TAG
+    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specterd-$CI_COMMIT_TAG-win64.zip
+
+release_electron_linux_windows:
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
+  stage: releasing
+  only: 
+    - tags
+  before_script:
+    - python -V  # Print out python version for debugging
+    - apt update
+    - apt install -y unzip libusb-1.0-0-dev libudev-dev # usb-support in hidapi
+    - pip3 install virtualenv
+    # Only difference to default befor_script: (ToDo fix this)
+    - python3 -m virtualenv --python=python3 .env
+    - source .env/bin/activate
+  script:
+    - pip3 install github-binary-upload
+    - cd pyinstaller && ./build-ci.sh $CI_COMMIT_TAG
+    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
 
 
 
