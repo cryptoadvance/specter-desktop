@@ -5,7 +5,6 @@ import binascii
 import json
 from flask_login import UserMixin
 from .specter_error import SpecterError
-from .helpers import fslock
 from .persistence import read_json_file, write_json_file, delete_folder
 
 

@@ -12,7 +12,7 @@ import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
 from hwilib.serializations import PSBT, CTransaction
-from .persistence import read_json_file
+from .persistence import read_json_file, write_json_file
 from .util.descriptor import AddChecksum
 from .util.bcur import bcur_decode
 import threading
@@ -21,11 +21,11 @@ import re
 
 logger = logging.getLogger(__name__)
 
-# use this for all fs operations
-fslock = threading.Lock()
+# default lock for @locked()
+defaultlock = threading.Lock()
 
 
-def locked(customlock=fslock):
+def locked(customlock=defaultlock):
     """
     @locked(lock) decorator.
     Make sure you are not calling
@@ -113,12 +113,9 @@ def hwi_get_config(specter):
     config = {"whitelisted_domains": "http://127.0.0.1:25441/"}
     # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
-        with fslock:
-            with open(
-                os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r"
-            ) as f:
-                file_config = json.load(f)
-                deep_update(config, file_config)
+        fname = os.path.join(specter.data_folder, "hwi_bridge_config.json")
+        file_config = read_json_file(fname)
+        deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
         save_hwi_bridge_config(specter, config)
@@ -134,11 +131,8 @@ def save_hwi_bridge_config(specter, config):
                 url += "/"
             whitelisted_domains += url.strip() + "\n"
         config["whitelisted_domains"] = whitelisted_domains
-    with fslock:
-        with open(
-            os.path.join(specter.data_folder, "hwi_bridge_config.json"), "w"
-        ) as f:
-            json.dump(config, f, indent=4)
+    fname = os.path.join(specter.data_folder, "hwi_bridge_config.json")
+    write_json_file(config, fname)
 
 
 def der_to_bytes(derivation):

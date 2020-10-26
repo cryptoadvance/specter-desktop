@@ -1,6 +1,5 @@
 import json
 from .key import Key
-from .helpers import fslock
 from .persistence import read_json_file, write_json_file
 import logging
 
@@ -60,8 +59,7 @@ class Device:
         }
 
     def _update_keys(self):
-        with fslock:
-            write_json_file(self.json, self.fullpath)
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     def remove_key(self, key):
@@ -77,8 +75,7 @@ class Device:
     def rename(self, new_name):
         logger.info("Renaming {}".format(self.alias))
         self.name = new_name
-        with fslock:
-            write_json_file(self.json, self.fullpath)
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     def wallets(self, wallet_manager):

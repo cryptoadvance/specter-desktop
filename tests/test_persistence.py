@@ -4,8 +4,14 @@ from cryptoadvance.specter.key import Key
 import json
 
 # count files
-def count_files_in(path):
-    return len([f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+def count_files_in(path, extension=".json"):
+    return len(
+        [
+            f
+            for f in os.listdir(path)
+            if f.endswith(extension) and os.path.isfile(os.path.join(path, f))
+        ]
+    )
 
 
 def test_write_devices(app, monkeypatch, caplog):

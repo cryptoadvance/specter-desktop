@@ -33,7 +33,6 @@ from .helpers import (
     get_txid,
     generate_mnemonic,
     get_startblock_by_chain,
-    fslock,
     to_ascii20,
 )
 from .util.shell import run_shell
@@ -325,12 +324,7 @@ def register():
             return redirect("register?otp={}".format(otp))
         if app.specter.burn_new_user_otp(otp):
             config = {
-                "explorers": {
-                    "main": "",
-                    "test": "",
-                    "regtest": "",
-                    "signet": "",
-                },
+                "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
             user = User(user_id, username, password, config)
