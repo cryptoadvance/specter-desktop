@@ -66,7 +66,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     @login_manager.user_loader
     def user_loader(id):
-        return User.get_user(specter, id)
+        return specter.user_manager.get_user(id)
 
     def login(id):
         login_user(user_loader(id))
