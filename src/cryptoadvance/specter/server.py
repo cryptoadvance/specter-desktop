@@ -66,7 +66,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     @login_manager.user_loader
     def user_loader(id):
-        return User.get_user(specter, id)
+        return specter.user_manager.get_user(id)
 
     def login(id):
         login_user(user_loader(id))
@@ -99,6 +99,12 @@ def init_app(app, hwibridge=False, specter=None):
         @app.route("/", methods=["GET"])
         def index():
             return redirect("/hwi/settings")
+
+    @app.context_processor
+    def inject_tor():
+        if app.config["DEBUG"]:
+            return dict(tor_service_id="", tor_enabled=False)
+        return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
     return app
 

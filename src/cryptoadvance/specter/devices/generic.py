@@ -12,8 +12,5 @@ class GenericDevice(Device):
         super().__init__(name, alias, keys, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
-        psbts = {
-            "qrcode": base64_psbt,
-            "sdcard": base64_psbt,
-        }
+        psbts = {"qrcode": base64_psbt, "sdcard": base64_psbt}
         return psbts
