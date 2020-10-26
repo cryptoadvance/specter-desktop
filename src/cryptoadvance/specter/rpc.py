@@ -57,12 +57,7 @@ def get_rpcconfig(datadir=get_default_datadir()):
                         current[k.strip()] = v.strip()
         except Exception:
             print("Can't open %s file" % bitcoin_conf_file)
-    folders = {
-        "main": "",
-        "test": "testnet3",
-        "regtest": "regtest",
-        "signet": "signet",
-    }
+    folders = {"main": "", "test": "testnet3", "regtest": "regtest", "signet": "signet"}
     for chain in folders:
         fname = os.path.join(datadir, folders[chain], ".cookie")
         if os.path.exists(fname):
@@ -184,12 +179,12 @@ class RpcError(Exception):
 
     def __init__(self, message, response):
         super(Exception, self).__init__(message)
+        self.status_code = 500  # default
         try:
             self.status_code = response.status_code
             error = response.json()
-        except:
-            # ok already a dict
-            self.status_code = 500
+        except Exception as e:
+            # it's a dict already
             error = response
         try:
             self.error_code = error["error"]["code"]

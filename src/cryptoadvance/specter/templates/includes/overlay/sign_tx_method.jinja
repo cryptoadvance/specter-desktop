@@ -15,7 +15,7 @@
         </div>
         {% if device.hwi_support %}
             <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="/static/img/usb_tiny.svg" height="12px">Sign via USB (HWI)
+                <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" height="12px">Sign via USB (HWI)
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
@@ -73,17 +73,27 @@
                 });
             </script>
             <div id="hot_enter_passphrase" class="hidden">
-                <h2>Enter Passphrase</h2>
+                {% set is_encrypted = device.is_encrypted(wallet.manager) %}
+                {% if is_encrypted %}
+                <h2>Enter decryption password</h2>
+                {% else %}
+                <h2>Proceed with signing</h2>
+                {% endif %}
                 <form action="?" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
                     <br/>
                     <div>
+                        {% if is_encrypted %}
                         <input name="passphrase" type="password" id="hwi_enter_passphrase__passphrase" />
+                        {% else %}
+                        Wallet is not encrypted, just click the button.
+                        <input name="passphrase" type="hidden" id="hwi_enter_passphrase__passphrase" value="" />
+                        {% endif %}
                         <input name="device" type="hidden" value="{{ device.alias }}" />
                         <input name="psbt" type="hidden" value='{{ psbt|tojson|safe }}' />
                     </div>
                     <br/>
                     <br/>
-                    <button id="hot_enter_passphrase__submit" class="btn" type="submit" name="action" value="signhotwallet">Submit</button>
+                    <button id="hot_enter_passphrase__submit" class="btn" type="submit" name="action" value="signhotwallet">Sign transaction</button>
                 </form>
             </div>
         {% endif %}

@@ -4,9 +4,11 @@ from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
+from .helpers import der_to_bytes, sort_descriptor, parse_utxo
 from .util.base58 import decode_base58
+from .util.descriptor import Descriptor
 from .util.xpub import get_xpub_fingerprint
+from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
@@ -311,9 +313,7 @@ class Wallet:
         }
 
     def save_to_file(self):
-        with fslock:
-            with open(self.fullpath, "w+") as f:
-                json.dump(self.json, f, indent=4)
+        write_json_file(self.json, self.fullpath)
         self.manager.update()
 
     @property
@@ -348,7 +348,7 @@ class Wallet:
             decodedpsbt = self.rpc.decodepsbt(psbt)
             signed_devices = self.get_signed_devices(decodedpsbt)
             self.pending_psbts[txid]["devices_signed"] = [
-                dev.name for dev in signed_devices
+                dev.alias for dev in signed_devices
             ]
             if "hex" in raw:
                 self.pending_psbts[txid]["sigs_count"] = self.sigs_required
@@ -656,10 +656,57 @@ class Wallet:
             if index is None:
                 index = self.change_index if change else self.address_index
             desc = self.change_descriptor if change else self.recv_descriptor
-            result["xpubs_descriptor"] = sort_descriptor(
-                self.rpc, desc, index=index, change=change
-            )
+            try:
+                result["xpubs_descriptor"] = sort_descriptor(
+                    self.rpc, desc, index=index, change=change
+                )
+            except Exception:
+                pass
         return result
+
+    def get_electrum_watchonly(self):
+        if len(self.keys) == 1:
+            # Single-sig case:
+            key = self.keys[0]
+            return {
+                "keystore": {
+                    "derivation": key.derivation.replace("h", "'"),
+                    "root_fingerprint": key.fingerprint,
+                    "type": "bip32",
+                    "xprv": None,
+                    "xpub": key.original,
+                },
+                "wallet_type": "standard",
+            }
+
+        # Multisig case
+
+        # Build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
+        LOOKUP_TABLE = {}
+        for key in self.keys:
+            LOOKUP_TABLE[key.xpub] = key
+
+        desc = Descriptor.parse(
+            desc=self.recv_descriptor,
+            # assume testnet status is the same across all keys
+            testnet=key.is_testnet,
+        )
+        slip132_keys = []
+        for desc_key in desc.base_key:
+            # Find corresponding wallet key
+            slip132_keys.append(LOOKUP_TABLE[desc_key])
+
+        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
+        for cnt, slip132_key in enumerate(slip132_keys):
+            to_return["x{}/".format(cnt + 1)] = {
+                "derivation": slip132_key.derivation.replace("h", "'"),
+                "root_fingerprint": slip132_key.fingerprint,
+                "type": "bip32",
+                "xprv": None,
+                "xpub": slip132_key.original,
+            }
+
+        return to_return
 
     def get_balance(self):
         try:
@@ -801,7 +848,11 @@ class Wallet:
         self.rpc.setlabel(address, label)
 
     def getlabel(self, address):
-        return self.getlabels([address])[address]
+        labels = self.getlabels([address])
+        if address in labels:
+            return labels[address]
+        else:
+            return address
 
     def getlabels(self, addresses):
         labels = {}
@@ -1071,7 +1122,7 @@ class Wallet:
             amount.append(out["value"])
         # detect signatures
         signed_devices = self.get_signed_devices(psbt)
-        psbt["devices_signed"] = [dev.name for dev in signed_devices]
+        psbt["devices_signed"] = [dev.alias for dev in signed_devices]
         psbt["amount"] = amount
         psbt["address"] = address
         psbt["time"] = time.time()

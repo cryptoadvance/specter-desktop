@@ -21,9 +21,9 @@
 					<a href="{{ url_for('device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
 						<div class="small-card radio">
 							{% if cosigner.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
-								<img src="/static/img/{{ cosigner.device_type }}_icon.svg" width="18px">
+								<img src="{{ url_for('static', filename='img/' ~ cosigner.device_type ~ '_icon.svg') }}" width="18px">
 							{% else %}
-								<img src="/static/img/other_icon.svg" width="18px">
+								<img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
 							{% endif %}
 							{{ cosigner.name }}
 						</div>
@@ -34,11 +34,11 @@
 		{% if unknown_cosigners|length > 0 %}
 			<br>
 			<h1>Unknown cosigners devices:</h1>
-			<p>These deivces will be added automatically to your list of devices. Click on a device to add information about it.</p>
+			<p>These devices will be added automatically to your list of devices. Click on a device to add information about it.</p>
 			<div class="row overflow">
 				{% for unknown_cosigner in unknown_cosigners %}
 					<div class="small-card radio" onclick="showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')">
-						<img src="/static/img/other_icon.svg" width="18px">
+						<img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
 						<input id="unknown_cosigner_{{ loop.index0 }}_name_input" type="hidden" name="unknown_cosigner_{{ loop.index0 }}_name" value="{{ wallet_name }} Cosigner {{ loop.index }}">
 						<span id="unknown_cosigner_{{ loop.index0 }}_name">{{ wallet_name }} Cosigner {{ loop.index }}</span>
 					</div>

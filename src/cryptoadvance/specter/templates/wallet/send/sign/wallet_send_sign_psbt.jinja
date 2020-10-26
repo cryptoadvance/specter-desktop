@@ -140,11 +140,14 @@
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
+					download="binary.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
+					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download binary</a>&nbsp;
+					<a id="download-psbt-btn" class="btn"
 					download="base64.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
-					Download file</a>&nbsp;
+					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download base64</a>&nbsp;
 					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
-					Show QR code</a>
+					<img src="{{url_for('static', filename='img/qr_tiny.svg')}}"/> Show QR code</a>
 				</div>
 			</div>
 		</div>
@@ -152,8 +155,8 @@
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
 			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
 			{% for device in wallet.devices %}
-				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.name in psbt["devices_signed"] else '' }}>
-					{{ device.name }} {% if device.name in psbt['devices_signed'] %} (&#10004;) {% endif %}
+				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.alias in psbt["devices_signed"] else '' }}>
+					{{ device.name }} {% if device.alias in psbt['devices_signed'] %} (&#10004;) {% endif %}
 				</button>
 			{% endfor %}
 		</div>
@@ -252,7 +255,7 @@
 		}
 
 		async function combine(psbt1) {
-			let url = "/wallets/{{ wallet.alias }}/combine/";
+			let url = "{{ url_for('combine', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("psbt0", psbt0);
@@ -319,7 +322,7 @@
 
 		async function broadcastLocal(tx) {
 			showNotification("Sending transaction...");
-			let url="/wallets/{{wallet.alias}}/broadcast/";
+			let url="{{ url_for('broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("tx", tx);

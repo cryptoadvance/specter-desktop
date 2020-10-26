@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="shortcut icon" type="image/png" href="/static/img/icon.png"/>
+		<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
 		<title>Specter Desktop</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="format-detection" content="telephone=no">
-		<link rel="stylesheet" type="text/css" href="/static/styles.css?{{rand}}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}?{{rand}}">
 	</head>
 	<body>
+	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth == "none" or current_user.is_authenticated %}
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
@@ -22,15 +23,15 @@
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/tor_address.jinja" %}
 					<a class="settings-bar-btn" href="{{ url_for('settings') }}">
-						<img src="/static/img/settings-status-bar.svg" style="width: 22px;"/>
+						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth != "none" %}
 						<a class="settings-bar-btn" href="{{ url_for('logout') }}">
-							<img src="/static/img/logout-status-bar.svg" style="width: 22px;"/>
+							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
 						</a>
 					{% endif %}
 				</div>
-			<img id="menubtn" src="/static/img/menu.svg"/>
+			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}"/>
 			{% endif %}
 
 			<div id="messages">
@@ -53,15 +54,15 @@
 					<br>
 					<div style="max-width: 60%; text-align: center;">
 					<h1 style="font-size: 1.8em;">
-					<img src="static/img/icon.png" width="40px" style="vertical-align: top; margin-right: 20px;"/> 
+					<img src="{{ url_for('static', filename='img/icon.png') }}" width="40px" style="vertical-align: top; margin-right: 20px;"/>
 					Welcome to Specter Desktop 
-					<img src="static/img/ghost.png" width="40px" style="vertical-align: top; margin-left: 20px;"/>
+					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
 					<a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.2em; font-weight: bolder;">Read the FAQ</a>
 					<br><br><br>
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
-					Click on "Add new wallet" to try out the new <a href="/singlesig_setup_wizard/" style="color: #fff;">wallet setup wizard</a> or follow these instructions:<br><br>
+					Click on "Add new wallet" to try out the new <a href="{{ url_for('singlesig_setup_wizard') }}" style="color: #fff;">wallet setup wizard</a> or follow these instructions:<br><br>
 					<ul style="text-align: left; margin-left: 10%;">
 						<li class="list-item">
 							Click on "Add new device" on the left sidebar and follow the instructions.<br>
@@ -87,8 +88,8 @@
 							Specter.Solutions
 						</a>
 						<div class="row">
-							<a href="https://github.com/cryptoadvance/" target="_blank"><img src="/static/img/github.svg" style="width: 30px; margin: 10px;"></a>
-							<a href="https://twitter.com/specterwallet/" target="_blank"><img src="/static/img/twitter.svg" style="width: 30px; margin: 10px;"></a>
+							<a href="https://github.com/cryptoadvance/" target="_blank"><img src="{{ url_for('static', filename='img/github.svg') }}" style="width: 30px; margin: 10px;"></a>
+							<a href="https://twitter.com/specterwallet/" target="_blank"><img src="{{ url_for('static', filename='img/twitter.svg') }}" style="width: 30px; margin: 10px;"></a>
 						</div>
 					</div>
 				{% endif %}
@@ -96,7 +97,7 @@
 		</main>
 	</div>
 
-	<script type="text/javascript" src="/static/helpers.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 
 	{% block scripts %}
 	{% endblock %}

@@ -11,6 +11,8 @@
 		}
 	</style>
 	<h1 id="title">{{ device.name }}</h1>
+	{% from 'components/editable_title.jinja' import editable_title %}
+	{{ editable_title(device.name) }}
 	<form action="./" method="POST">
 		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
@@ -40,7 +42,7 @@
 						<td>{{ key.purpose }}</td>
 						<td class="optional">{{ key.derivation }}</td>
 						<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
-							<img style="margin-top: 5px;" width="15" src="/static/img/qr_tiny.svg"/>
+							<img style="margin-top: 5px;" width="15" src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/>
 						</td>
 						<td class="xpub scroll optional">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
@@ -57,11 +59,9 @@
 		</table>
 	</div>
 	<div class="optional" style="line-height: 1; margin-top: 30px;">
-		{% if device.device_type != 'bitcoincore' %}
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
-		{% endif %}
 		{% if device.hwi_support %}
 			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">
@@ -89,9 +89,9 @@
 				<a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						{% if wallet.is_multisig %}
-							<img src="/static/img/multisig_icon.svg" width="18px">
+							<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
 						{% else %}
-							<img src="/static/img/simple_icon.svg" width="18px">
+							<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
 						{% endif %}
 						{{ wallet.name }}
 					</div>

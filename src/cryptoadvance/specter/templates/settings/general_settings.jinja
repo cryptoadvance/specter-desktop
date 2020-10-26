@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<form action="?" method="POST">
+	<form action="?" method="POST" onsubmit="showPacman()">
 		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general_settings', current_user) }}
@@ -44,7 +44,7 @@
 			</div>
 			<span id="filesloaded"></span>
 			<div class="row" style="margin-top: 5px;">
-				<button type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
+				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
 			<h1> Miscellaneous </h1>
 			Bitcoin unit to use (BTC/sats):

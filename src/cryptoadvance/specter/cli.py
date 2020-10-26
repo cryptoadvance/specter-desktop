@@ -8,6 +8,7 @@ from .util.tor import stop_hidden_services, start_hidden_service
 import click
 
 from .server import create_app, init_app
+from .helpers import set_loglevel
 
 from os import path
 import signal
@@ -97,11 +98,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
         key = os.getenv("KEY", None)
 
     protocol = "http"
-    kwargs = {
-        "host": host,
-        "port": port,
-        "extra_files": extra_files,
-    }
+    kwargs = {"host": host, "port": port, "extra_files": extra_files}
     if cert is not None and key is not None:
         cert = os.path.abspath(cert)
         key = os.path.abspath(key)
@@ -269,7 +266,7 @@ if __name__ == "__main__":
             "version": 1,
             "formatters": {
                 "default": {
-                    "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+                    "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
                 }
             },
             "handlers": {

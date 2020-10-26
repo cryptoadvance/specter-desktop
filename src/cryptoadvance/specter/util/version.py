@@ -6,6 +6,7 @@ import threading
 import time
 import os
 import requests
+import importlib_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -26,15 +27,12 @@ class VersionChecker:
             self.thread.start()
 
     def stop(self):
+        logger.info("version checker stopped.")
         self.running = False
 
     @property
     def info(self):
-        return {
-            "current": self.current,
-            "latest": self.latest,
-            "upgrade": self.upgrade,
-        }
+        return {"current": self.current, "latest": self.latest, "upgrade": self.upgrade}
 
     def loop(self, dt=3600):
         """Checks for updates once per hour"""
@@ -69,31 +67,22 @@ class VersionChecker:
         return current, latest
 
     def get_pip_version(self):
-        latest = str(
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", f"{self.name}==random"],
-                capture_output=True,
-                text=True,
+        try:
+            releases = (
+                requests.get("https://pypi.org/pypi/cryptoadvance.specter/json")
+                .json()["releases"]
+                .keys()
             )
-        )
-        latest = latest[latest.find("(from versions:") + 15 :]
-        latest = latest[: latest.find(")")]
-        latest = latest.replace(" ", "").split(",")[-1]
 
-        current = str(
-            subprocess.run(
-                [sys.executable, "-m", "pip", "show", f"{self.name}"],
-                capture_output=True,
-                text=True,
-            )
-        )
-        current = current[current.find("Version:") + 8 :]
-        current = current[: current.find("\\n")].replace(" ", "")
-        # master?
+            latest = list(releases)[-1]
+        except:
+            latest = "unknown"
+
+        current = importlib_metadata.version("cryptoadvance.specter")
+        # check if it's installed from master
         if current == "vx.y.z-get-replaced-by-release-script":
             current = "custom"
-            # no need to check upgrades
-            self.running = False
+
         return current, latest
 
     def get_version_info(self):
@@ -120,13 +109,17 @@ class VersionChecker:
             logger.error(exc)
 
         # check that both current and latest versions match the pattern
-        if re.search(r"v?([\d+]).([\d+]).([\d+]).*", current) and re.search(
-            r"v?([\d+]).([\d+]).([\d+]).*", latest
-        ):
-            return (
-                current,
-                latest,
-                # check without leading v so v1.2.3 = 1.2.3
-                latest.replace("v", "") != current.replace("v", ""),
-            )
+        # vA.B.C or just A.B.C
+        # For vA.B.C-preX or something like that we don't show notification
+        if re.search(r"v?([\d+]).([\d+]).([\d+])$", current):
+            if re.search(r"v?([\d+]).([\d+]).([\d+])$", latest):
+                return (
+                    current,
+                    latest,
+                    # check without leading v so v1.2.3 = 1.2.3
+                    latest.replace("v", "") != current.replace("v", ""),
+                )
+        # if current version is not A.B.C - stop periodic checks
+        else:
+            self.stop()
         return current, latest, False

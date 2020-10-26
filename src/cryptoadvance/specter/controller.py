@@ -24,24 +24,22 @@ from flask import (
 )
 from flask_login import login_required, login_user, logout_user, current_user
 from flask_login.config import EXEMPT_METHODS
-
-
 from .helpers import (
     alias,
     get_devices_with_keys_by_type,
     get_loglevel,
-    run_shell,
     set_loglevel,
     bcur2base64,
     get_txid,
     generate_mnemonic,
     get_startblock_by_chain,
-    fslock,
     to_ascii20,
 )
+from .util.shell import run_shell
 from .specter import Specter
 from .specter_error import SpecterError
 from .wallet_manager import purposes
+from .persistence import write_devices, write_wallet
 from .rpc import RpcError
 from .user import User, hash_password, verify_password
 from datetime import datetime
@@ -69,6 +67,7 @@ rand = random.randint(0, 1e32)  # to force style refresh
 def server_error(e):
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
+    app.logger.error(trace)
     return render_template("500.jinja", error=e, traceback=trace), 500
 
 
@@ -180,20 +179,13 @@ def combine(wallet_alias):
                 raw = app.specter.finalize(combined)
                 if "psbt" not in raw:
                     raw["psbt"] = combined
+                psbt = wallet.update_pending_psbt(combined, txid, raw)
             except RpcError as e:
                 return e.error_msg, e.status_code
             except Exception as e:
                 return "Unknown error: %r" % e, 500
-        psbt = wallet.update_pending_psbt(combined, txid, raw)
         devices = []
-        # we get names, but need aliases
-        if "devices_signed" in psbt:
-            devices = [
-                dev.alias
-                for dev in wallet.devices
-                if dev.name in psbt["devices_signed"]
-            ]
-        raw["devices"] = devices
+        raw["devices"] = psbt["devices_signed"]
         return json.dumps(raw)
     return "meh"
 
@@ -229,13 +221,15 @@ def index():
     app.specter.check()
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect(
-            "/wallets/%s"
-            % app.specter.wallet_manager.wallets[
-                app.specter.wallet_manager.wallets_names[0]
-            ].alias
+            url_for(
+                "wallet",
+                wallet_alias=app.specter.wallet_manager.wallets[
+                    app.specter.wallet_manager.wallets_names[0]
+                ].alias,
+            )
         )
 
-    return redirect("/about")
+    return redirect("about")
 
 
 @app.route("/about")
@@ -282,7 +276,7 @@ def login():
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]
             password = request.form["password"]
-            user = User.get_user_by_name(app.specter, username)
+            user = app.specter.user_manager.get_user_by_username(username)
             if user:
                 if verify_password(user.password, password):
                     app.login(user.id)
@@ -301,7 +295,7 @@ def login():
     else:
         if app.config.get("LOGIN_DISABLED"):
             app.login("admin")
-            return redirect("/")
+            return redirect("")
         return render_template(
             "login.jinja", specter=app.specter, data={"next": request.args.get("next")}
         )
@@ -325,35 +319,28 @@ def register():
         password = hash_password(request.form["password"])
         otp = request.form["otp"]
         user_id = alias(username)
-        if User.get_user(app.specter, user_id) or User.get_user_by_name(
-            app.specter, username
-        ):
+        if app.specter.user_manager.get_user(user_id):
             flash("Username is already taken, please choose another one", "error")
-            return redirect("/register?otp={}".format(otp))
+            return redirect("register?otp={}".format(otp))
         if app.specter.burn_new_user_otp(otp):
             config = {
-                "explorers": {
-                    "main": "",
-                    "test": "",
-                    "regtest": "",
-                    "signet": "",
-                },
+                "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
             user = User(user_id, username, password, config)
-            user.save_info(app.specter)
+            app.specter.add_user(user)
             flash(
                 "You have registered successfully, \
 please login with your new account to start using Specter"
             )
-            return redirect("/login")
+            return redirect("login")
         else:
             flash(
                 "Invalid registration link, \
 please request a new link from the node operator.",
                 "error",
             )
-            return redirect("/register?otp={}".format(otp))
+            return redirect("register?otp={}".format(otp))
     return render_template("register.jinja", specter=app.specter)
 
 
@@ -361,17 +348,16 @@ please request a new link from the node operator.",
 def logout():
     logout_user()
     flash("You were logged out", "info")
-    app.specter.clear_user_session()
-    return redirect("/login")
+    return redirect("login")
 
 
 @app.route("/settings/", methods=["GET"])
 @login_required
 def settings():
     if current_user.is_admin:
-        return redirect("/settings/bitcoin_core")
+        return redirect(url_for("bitcoin_core_settings"))
     else:
-        return redirect("/settings/general")
+        return redirect(url_for("general_settings"))
 
 
 @app.route("/settings/hwi", methods=["GET", "POST"])
@@ -431,16 +417,7 @@ def general_settings():
                 restore_devices = json.loads(request.form.get("restoredevices", "[]"))
             if request.form.get("restorewallets", ""):
                 restore_wallets = json.loads(request.form.get("restorewallets", "[]"))
-            for device in restore_devices:
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.device_manager.data_folder,
-                            "%s.json" % device["alias"],
-                        ),
-                        "w",
-                    ) as file:
-                        file.write(json.dumps(device, indent=4))
+            write_devices(restore_devices)
             app.specter.device_manager.update()
 
             rescanning = False
@@ -463,15 +440,7 @@ def general_settings():
                             "error",
                         )
                         continue
-                with fslock:
-                    with open(
-                        os.path.join(
-                            app.specter.wallet_manager.working_folder,
-                            "%s.json" % wallet["alias"],
-                        ),
-                        "w",
-                    ) as file:
-                        file.write(json.dumps(wallet, indent=4))
+                write_wallet(wallet)
                 app.specter.wallet_manager.update()
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
@@ -492,7 +461,9 @@ def general_settings():
                         pass
                     except Exception as e:
                         app.logger.error(
-                            "Exception while rescanning blockchain: {}".format(e)
+                            "Exception while rescanning blockchain for wallet {}: {}".format(
+                                wallet["alias"], e
+                            )
                         )
                         flash(
                             "Failed to perform rescan for wallet: {}".format(e), "error"
@@ -527,7 +498,7 @@ def bitcoin_core_settings():
     app.specter.check()
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
-        return redirect("/")
+        return redirect("")
     rpc = app.specter.config["rpc"]
     user = rpc["user"]
     password = rpc["password"]
@@ -559,18 +530,18 @@ def bitcoin_core_settings():
             host = arr[1]
 
         if action == "test":
-            try:
-                test = app.specter.test_rpc(
-                    user=user,
-                    password=password,
-                    port=port,
-                    host=host,
-                    protocol=protocol,
-                    autodetect=autodetect,
-                    datadir=datadir,
-                )
-            except Exception as e:
-                err = "Fail to connect to the node configured: {}".format(e)
+            # If this is failing, the test_rpc-method needs improvement
+            # Don't wrap this into a try/except otherwise the feedback
+            # of what's wron to the user gets broken
+            test = app.specter.test_rpc(
+                user=user,
+                password=password,
+                port=port,
+                host=host,
+                protocol=protocol,
+                autodetect=autodetect,
+                datadir=datadir,
+            )
         elif action == "save":
             if current_user.is_admin:
                 success = app.specter.update_rpc(
@@ -612,7 +583,7 @@ def auth_settings():
     new_otp = -1
     users = None
     if current_user.is_admin and auth == "usernamepassword":
-        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+        users = [user for user in app.specter.user_manager.users if not user.is_admin]
     if request.method == "POST":
         action = request.form["action"]
 
@@ -627,7 +598,7 @@ def auth_settings():
                 auth = request.form["auth"]
             if specter_username:
                 if current_user.username != specter_username:
-                    if User.get_user_by_name(app.specter, specter_username):
+                    if app.specter.user_manager.get_user(specter_username):
                         flash(
                             "Username is already taken, please choose another one",
                             "error",
@@ -651,7 +622,7 @@ def auth_settings():
                     if auth == "usernamepassword":
                         users = [
                             user
-                            for user in User.get_all_users(app.specter)
+                            for user in app.specter.user_manager.users
                             if not user.is_admin
                         ]
                     else:
@@ -681,23 +652,11 @@ def auth_settings():
                 )
         elif action == "deleteuser":
             delete_user = request.form["deleteuser"]
+            user = app.specter.user_manager.get_user(delete_user)
             if current_user.is_admin:
-                user = User.get_user(app.specter, delete_user)
-                if user:
-                    user.delete(app.specter)
-                    users = [
-                        user
-                        for user in User.get_all_users(app.specter)
-                        if not user.is_admin
-                    ]
-                    flash(
-                        "User {} was deleted successfully".format(user.username), "info"
-                    )
-                else:
-                    flash(
-                        "Error: failed to delete user, invalid user ID was given",
-                        "error",
-                    )
+                app.specter.delete_user(user)
+                users.remove(user)
+                flash("User {} was deleted successfully".format(user.username), "info")
             else:
                 flash("Error: Only the admin account can delete users", "error")
     return render_template(
@@ -879,7 +838,7 @@ def new_wallet(wallet_type):
                                 "Failed to perform rescan for wallet: %r" % e, "error"
                             )
                         wallet.getdata()
-                        return redirect("/wallets/%s/" % wallet.alias)
+                        return redirect(url_for("wallet", wallet_alias=wallet.alias))
                     else:
                         return render_template(
                             "wallet/new_wallet/import_wallet.jinja",
@@ -999,7 +958,7 @@ def new_wallet(wallet_type):
                     if "use_explorer" in request.form:
                         explorer = app.specter.get_default_explorer()
                     wallet.rescanutxo(explorer)
-                    app.specter._info["utxorescan"] = 1
+                    app.specter.info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
                     app.logger.info("Rescanning Blockchain ...")
@@ -1015,7 +974,7 @@ def new_wallet(wallet_type):
                         )
                         err = "%r" % e
                     wallet.getdata()
-            return redirect("/wallets/%s/" % wallet.alias)
+            return redirect(url_for("wallet", wallet_alias=wallet.alias))
 
     return render_template(
         "wallet/new_wallet/new_wallet.jinja",
@@ -1039,9 +998,9 @@ def wallet(wallet_alias):
         app.logger.error("SpecterError while wallet: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if wallet.balance["untrusted_pending"] + wallet.balance["trusted"] == 0:
-        return redirect("/wallets/%s/receive/" % wallet_alias)
+        return redirect(url_for("wallet_receive", wallet_alias=wallet_alias))
     else:
-        return redirect("/wallets/%s/tx/" % wallet_alias)
+        return redirect(url_for("wallet_tx", wallet_alias=wallet_alias))
 
 
 @app.route("/wallets_overview/")
@@ -1123,9 +1082,9 @@ def singlesig_setup_wizard():
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
-        return redirect("/wallets/%s/" % wallet.alias)
+        return redirect(url_for("wallet", wallet_alias=wallet.alias))
     return render_template(
         "wizards/singlesig_setup_wizard.jinja", specter=app.specter, rand=rand
     )
@@ -1134,7 +1093,7 @@ def singlesig_setup_wizard():
 @app.route("/wallets/<wallet_alias>/tx/")
 @login_required
 def wallet_tx(wallet_alias):
-    return redirect("/wallets/%s/tx/history" % wallet_alias)
+    return redirect(url_for("wallet_tx_history", wallet_alias=wallet_alias))
 
 
 @app.route("/wallets/<wallet_alias>/tx/history/")
@@ -1238,12 +1197,12 @@ def txout_set_info():
 @login_required
 def get_scantxoutset_status():
     status = app.specter.rpc.scantxoutset("status", [])
-    app.specter._info["utxorescan"] = status.get("progress", None) if status else None
-    if app.specter._info["utxorescan"] is None:
+    app.specter.info["utxorescan"] = status.get("progress", None) if status else None
+    if app.specter.info["utxorescan"] is None:
         app.specter.utxorescanwallet = None
     return {
-        "active": app.specter._info["utxorescan"] is not None,
-        "progress": app.specter._info["utxorescan"],
+        "active": app.specter.info["utxorescan"] is not None,
+        "progress": app.specter.info["utxorescan"],
     }
 
 
@@ -1402,16 +1361,14 @@ def wallet_sendnew(wallet_alias):
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
+                    # get device and sign with it
                     signed_psbt = app.specter.device_manager.get_by_alias(
                         device
                     ).sign_psbt(b64psbt, wallet, passphrase)
                     if signed_psbt["complete"]:
                         if "devices_signed" not in psbt:
                             psbt["devices_signed"] = []
-                        # TODO: This uses device name, but should use device alias...
-                        psbt["devices_signed"].append(
-                            app.specter.device_manager.get_by_alias(device).name
-                        )
+                        psbt["devices_signed"].append(device)
                         psbt["sigs_count"] = len(psbt["devices_signed"])
                         raw = wallet.rpc.finalizepsbt(b64psbt)
                         if "hex" in raw:
@@ -1535,11 +1492,11 @@ def wallet_settings(wallet_alias):
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
-            app.specter._info["utxorescan"] = None
+            app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
@@ -1556,8 +1513,12 @@ def wallet_settings(wallet_alias):
             return response
         elif action == "rename":
             wallet_name = request.form["newtitle"]
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                error = "Wallet already exists"
+            if not wallet_name:
+                flash("Wallet name cannot be empty", "error")
+            elif wallet_name == wallet.name:
+                pass
+            elif wallet_name in app.specter.wallet_manager.wallets_names:
+                flash("Wallet already exists", "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
@@ -1614,7 +1575,7 @@ def new_device():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
                 )
-                return redirect("/devices/%s/" % device.alias)
+                return redirect(url_for("device", device_alias=device.alias))
         elif action == "newhotdevice":
             if not device_name:
                 err = "Device name must not be empty"
@@ -1625,19 +1586,33 @@ def new_device():
             mnemo = Mnemonic("english")
             if not mnemo.check(request.form["mnemonic"]):
                 err = "Invalid mnemonic entered."
+            range_start = int(request.form["range_start"])
+            range_end = int(request.form["range_end"])
+            if range_start > range_end:
+                err = "Invalid address range selected."
             if err is None:
                 mnemonic = request.form["mnemonic"]
+                paths = [
+                    l.strip()
+                    for l in request.form["derivation_paths"].split("\n")
+                    if len(l) > 0
+                ]
                 passphrase = request.form["passphrase"]
+                file_password = request.form["file_password"]
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
-                device.setup_device(
+                device.setup_device(file_password, app.specter.wallet_manager)
+                device.add_hot_wallet_keys(
                     mnemonic,
                     passphrase,
+                    paths,
+                    file_password,
                     app.specter.wallet_manager,
                     app.specter.chain != "main",
+                    keys_range=[range_start, range_end],
                 )
-                return redirect("/devices/%s/" % device.alias)
+                return redirect(url_for("device", device_alias=device.alias))
         elif action == "generatemnemonic":
             strength = int(request.form["strength"])
             mnemonic = generate_mnemonic(strength=strength)
@@ -1665,6 +1640,8 @@ def device(device_alias):
         return render_template(
             "base.jinja", error="Device not found", specter=app.specter, rand=rand
         )
+    if not device:
+        return redirect(url_for("index"))
     wallets = device.wallets(app.specter.wallet_manager)
     if request.method == "POST":
         action = request.form["action"]
@@ -1680,36 +1657,79 @@ def device(device_alias):
                     bitcoin_datadir=app.specter.bitcoin_datadir,
                     chain=app.specter.chain,
                 )
-                return redirect("/")
+                return redirect("")
         elif action == "delete_key":
             key = request.form["key"]
             device.remove_key(Key.from_json({"original": key}))
+        elif action == "rename":
+            device_name = request.form["newtitle"]
+            if not device_name:
+                flash("Device name must not be empty", "error")
+            elif device_name == device.name:
+                pass
+            elif device_name in app.specter.device_manager.devices_names:
+                flash("Device already exists", "error")
+            else:
+                device.rename(device_name)
         elif action == "add_keys":
+            strength = 128
+            mnemonic = generate_mnemonic(strength=strength)
             return render_template(
                 "device/new_device.jinja",
+                mnemonic=mnemonic,
+                strength=strength,
                 device=device,
                 device_alias=device_alias,
                 specter=app.specter,
                 rand=rand,
             )
         elif action == "morekeys":
-            # refactor to fn
-            xpubs = request.form["xpubs"]
-            keys, failed = Key.parse_xpubs(xpubs)
-            err = None
-            if len(failed) > 0:
-                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-                return render_template(
-                    "device/new_device.jinja",
-                    device=device,
-                    device_alias=device_alias,
-                    xpubs=xpubs,
-                    error=err,
-                    specter=app.specter,
-                    rand=rand,
-                )
-            if err is None:
-                device.add_keys(keys)
+            if device.hot_wallet:
+                if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
+                    err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+                mnemo = Mnemonic("english")
+                if not mnemo.check(request.form["mnemonic"]):
+                    err = "Invalid mnemonic entered."
+                range_start = int(request.form["range_start"])
+                range_end = int(request.form["range_end"])
+                if range_start > range_end:
+                    err = "Invalid address range selected."
+                if err is None:
+                    mnemonic = request.form["mnemonic"]
+                    paths = [
+                        l.strip()
+                        for l in request.form["derivation_paths"].split("\n")
+                        if len(l) > 0
+                    ]
+                    passphrase = request.form["passphrase"]
+                    file_password = request.form["file_password"]
+                    device.add_hot_wallet_keys(
+                        mnemonic,
+                        passphrase,
+                        paths,
+                        file_password,
+                        app.specter.wallet_manager,
+                        app.specter.chain != "main",
+                        keys_range=[range_start, range_end],
+                    )
+            else:
+                # refactor to fn
+                xpubs = request.form["xpubs"]
+                keys, failed = Key.parse_xpubs(xpubs)
+                err = None
+                if len(failed) > 0:
+                    err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+                    return render_template(
+                        "device/new_device.jinja",
+                        device=device,
+                        device_alias=device_alias,
+                        xpubs=xpubs,
+                        error=err,
+                        specter=app.specter,
+                        rand=rand,
+                    )
+                if err is None:
+                    device.add_keys(keys)
         elif action == "settype":
             device_type = request.form["device_type"]
             device.set_type(device_type)

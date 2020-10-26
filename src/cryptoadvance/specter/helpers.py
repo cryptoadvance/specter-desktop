@@ -12,6 +12,7 @@ import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
 from hwilib.serializations import PSBT, CTransaction
+from .persistence import read_json_file, write_json_file
 from .util.descriptor import AddChecksum
 from .util.bcur import bcur_decode
 import threading
@@ -20,11 +21,11 @@ import re
 
 logger = logging.getLogger(__name__)
 
-# use this for all fs operations
-fslock = threading.Lock()
+# default lock for @locked()
+defaultlock = threading.Lock()
 
 
-def locked(customlock=fslock):
+def locked(customlock=defaultlock):
     """
     @locked(lock) decorator.
     Make sure you are not calling
@@ -79,79 +80,28 @@ def load_jsons(folder, key=None):
     dd = OrderedDict()
     for fname in files:
         try:
-            with fslock:
-                with open(os.path.join(folder, fname)) as f:
-                    d = json.load(f)
+            d = read_json_file(os.path.join(folder, fname))
             if key is None:
                 dd[fname[:-5]] = d
             else:
                 d["fullpath"] = os.path.join(folder, fname)
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
-        except:
-            logger.error(f"Can't load json file {fname}")
+        except Exception as e:
+            logger.error(f"Can't load json file {fname} at path {folder} because {e}")
     return dd
 
 
-def which(program):
-    """mimics the "which" command in bash but even for stuff not on the path.
-    Also has implicit pyinstaller support
-    Place your executables like --add-binary '.env/bin/hwi:.'
-    ... and they will be found.
-    returns a full path of the executable and if a full path is passed,
-    it will simply return it if found and executable
-    will raise an Exception if not found
-    """
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    if getattr(sys, "frozen", False):
-        # Best understood with the snippet below this section:
-        # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
-        exec_location = os.path.join(sys._MEIPASS, program)
-        if is_exe(exec_location):
-            logger.debug("Found %s executable in %s" % (program, exec_location))
-            return exec_location
-
-    fpath, program_name = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            logger.debug("Found %s executable in %s" % (program, program))
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                logger.debug("Found %s executable in %s" % (program, path))
-                return exe_file
-    raise Exception("Couldn't find executable %s" % program)
-
-
-# should work in all python versions
-def run_shell(cmd):
-    """
-    Runs a shell command.
-    Example: run(["ls", "-a"])
-    Returns: dict({"code": returncode, "out": stdout, "err": stderr})
-    """
-    try:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = proc.communicate()
-        return {"code": proc.returncode, "out": stdout, "err": stderr}
-    except:
-        return {"code": 0xF00DBABE, "out": b"", "err": b"Can't run subprocess"}
-
-
 def set_loglevel(app, loglevel_string):
-    logger.info("Setting Loglevel to %s" % loglevel_string)
+    logger.info(
+        "Setting Loglevel to %s (Check the next log-line(s) whether it's effective here)"
+        % loglevel_string
+    )
     loglevels = {"WARN": logging.WARN, "INFO": logging.INFO, "DEBUG": logging.DEBUG}
-    app.logger.setLevel(loglevels[loglevel_string])
     logging.getLogger().setLevel(loglevels[loglevel_string])
+    logger.warn("Loglevel-Test: This is a warn-message!")
+    logger.info("Loglevel-Test: This is an info-message!")
+    logger.debug("Loglevel-Test: This is an debug-message!")
 
 
 def get_loglevel(app):
@@ -163,12 +113,9 @@ def hwi_get_config(specter):
     config = {"whitelisted_domains": "http://127.0.0.1:25441/"}
     # if hwi_bridge_config.json file exists - load from it
     if os.path.isfile(os.path.join(specter.data_folder, "hwi_bridge_config.json")):
-        with fslock:
-            with open(
-                os.path.join(specter.data_folder, "hwi_bridge_config.json"), "r"
-            ) as f:
-                file_config = json.load(f)
-                deep_update(config, file_config)
+        fname = os.path.join(specter.data_folder, "hwi_bridge_config.json")
+        file_config = read_json_file(fname)
+        deep_update(config, file_config)
     # otherwise - create one and assign unique id
     else:
         save_hwi_bridge_config(specter, config)
@@ -184,11 +131,8 @@ def save_hwi_bridge_config(specter, config):
                 url += "/"
             whitelisted_domains += url.strip() + "\n"
         config["whitelisted_domains"] = whitelisted_domains
-    with fslock:
-        with open(
-            os.path.join(specter.data_folder, "hwi_bridge_config.json"), "w"
-        ) as f:
-            json.dump(config, f, indent=4)
+    fname = os.path.join(specter.data_folder, "hwi_bridge_config.json")
+    write_json_file(config, fname)
 
 
 def der_to_bytes(derivation):

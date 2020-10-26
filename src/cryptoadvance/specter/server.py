@@ -14,6 +14,8 @@ from .user import User
 from .config import DATA_FOLDER
 from .util.version import VersionChecker
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 logger = logging.getLogger()
 
 env_path = Path(".") / ".flaskenv"
@@ -38,6 +40,9 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(config)
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
+    )
     return app
 
 
@@ -61,7 +66,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     @login_manager.user_loader
     def user_loader(id):
-        return User.get_user(specter, id)
+        return specter.user_manager.get_user(id)
 
     def login(id):
         login_user(user_loader(id))
@@ -80,11 +85,12 @@ def init_app(app, hwibridge=False, specter=None):
         with app.app_context():
             from cryptoadvance.specter import controller
 
-            if app.config.get("TESTING") and len(app.view_functions) <= 3:
+            if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for ech test
                 # But we shouldn't do that if not necessary as this would result in
                 # --> View function mapping is overwriting an existing endpoint function
+                # see archblog for more about this nasty workaround
                 import importlib
 
                 importlib.reload(controller)
@@ -93,6 +99,12 @@ def init_app(app, hwibridge=False, specter=None):
         @app.route("/", methods=["GET"])
         def index():
             return redirect("/hwi/settings")
+
+    @app.context_processor
+    def inject_tor():
+        if app.config["DEBUG"]:
+            return dict(tor_service_id="", tor_enabled=False)
+        return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
     return app
 

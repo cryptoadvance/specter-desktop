@@ -10,6 +10,9 @@ from ..key import Key
 from ..rpc import get_default_datadir
 from io import BytesIO
 import hmac
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
@@ -21,122 +24,93 @@ class BitcoinCore(Device):
     def __init__(self, name, alias, keys, fullpath, manager):
         Device.__init__(self, name, alias, keys, fullpath, manager)
 
-    def setup_device(self, mnemonic, passphrase, wallet_manager, testnet):
-        seed = Mnemonic.to_seed(mnemonic)
-        xprv = seed_to_hd_master_key(seed, testnet=testnet)
+    def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
         wallet_manager.rpc.createwallet(wallet_name, False, True)
         rpc = wallet_manager.rpc.wallet(wallet_name)
-        # TODO: Maybe more than 1000? Maybe add mechanism to add more later.
-        # NOTE: This will work only on the network the device was added,
-        #       so hot devices should be filtered out by network.
-        coin = int(testnet)
+        if file_password:
+            rpc.encryptwallet(file_password)
+
+    def add_hot_wallet_keys(
+        self,
+        mnemonic,
+        passphrase,
+        paths,
+        file_password,
+        wallet_manager,
+        testnet,
+        keys_range=[0, 1000],
+    ):
+        seed = Mnemonic.to_seed(mnemonic, passphrase)
+        xprv = seed_to_hd_master_key(seed, testnet=testnet)
+        # Load the wallet if not loaded
+        self._load_wallet(wallet_manager)
+        rpc = wallet_manager.rpc.wallet(
+            os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
+        )
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
         rpc.importmulti(
             [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}/49h/{}h/0h/0/*))".format(xprv, coin)
+                        "sh(wpkh({}{}/0/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": 1000,
+                    "range": keys_range,
                     "timestamp": "now",
-                },
+                }
+                for path in paths
+            ]
+            + [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}/49h/{}h/0h/1/*))".format(xprv, coin)
+                        "sh(wpkh({}{}/1/*))".format(xprv, path.replace("m", ""))
                     ),
-                    "range": 1000,
+                    "range": keys_range,
                     "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum("wpkh({}/84h/{}h/0h/0/*)".format(xprv, coin)),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum("wpkh({}/84h/{}h/0h/1/*)".format(xprv, coin)),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}/48h/{}h/0h/1h/0/*))".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}/48h/{}h/0h/1h/1/*))".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "wpkh({}/48h/{}h/0h/2h/0/*)".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
-                {
-                    "desc": AddChecksum(
-                        "wpkh({}/48h/{}h/0h/2h/1/*)".format(xprv, coin)
-                    ),
-                    "range": 1000,
-                    "timestamp": "now",
-                },
+                }
+                for path in paths
             ],
             {"rescan": False},
         )
-        if passphrase:
-            rpc.encryptwallet(passphrase)
 
         xpubs_str = ""
-        paths = [
-            "m",  # to get fingerprint
-            f"m/49h/{coin}h/0h",  # nested
-            f"m/84h/{coin}h/0h",  # native
-            f"m/48h/{coin}h/0h/1h",  # nested multisig
-            f"m/48h/{coin}h/0h/2h",  # native multisig
-        ]
+        paths = ["m"] + paths
         xpubs = derive_xpubs_from_xprv(xprv, paths, wallet_manager.rpc)
         # it's not parent fingerprint, it's self fingerprint
         master_fpr = get_xpub_fingerprint(xpubs[0]).hex()
 
-        if not testnet:
-            # Nested Segwit
-            xpub = xpubs[1]
-            ypub = convert_xpub_prefix(xpub, b"\x04\x9d\x7c\xb2")
-            xpubs_str += "[%s/49'/0'/0']%s\n" % (master_fpr, ypub)
-            # native Segwit
-            xpub = xpubs[2]
-            zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
-            xpubs_str += "[%s/84'/0'/0']%s\n" % (master_fpr, zpub)
-            # Multisig nested Segwit
-            xpub = xpubs[3]
-            Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
-            xpubs_str += "[%s/48'/0'/0'/1']%s\n" % (master_fpr, Ypub)
-            # Multisig native Segwit
-            xpub = xpubs[4]
-            Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
-            xpubs_str += "[%s/48'/0'/0'/2']%s\n" % (master_fpr, Zpub)
-        else:
-            # Testnet nested Segwit
-            xpub = xpubs[1]
-            upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
-            xpubs_str += "[%s/49'/1'/0']%s\n" % (master_fpr, upub)
-            # Testnet native Segwit
-            xpub = xpubs[2]
-            vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
-            xpubs_str += "[%s/84'/1'/0']%s\n" % (master_fpr, vpub)
-            # Testnet multisig nested Segwit
-            xpub = xpubs[3]
-            Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
-            xpubs_str += "[%s/48'/1'/0'/1']%s\n" % (master_fpr, Upub)
-            # Testnet multisig native Segwit
-            xpub = xpubs[4]
-            Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
-            xpubs_str += "[%s/48'/1'/0'/2']%s\n" % (master_fpr, Vpub)
+        slip132_paths = [
+            "m/49'/0'/0'",
+            "m/84'/0'/0'",
+            "m/48'/0'/0'/1'",
+            "m/48'/0'/0'/2'",
+            "m/49'/1'/0'",
+            "m/84'/1'/0'",
+            "m/48'/1'/0'/1'",
+            "m/48'/1'/0'/2'",
+        ]
+        slip132_prefixes = [
+            b"\x04\x9d\x7c\xb2",
+            b"\x04\xb2\x47\x46",
+            b"\x02\x95\xb4\x3f",
+            b"\x02\xaa\x7e\xd3",
+            b"\x04\x4a\x52\x62",
+            b"\x04\x5f\x1c\xf6",
+            b"\x02\x42\x89\xef",
+            b"\x02\x57\x54\x83",
+        ]
+        for i in range(1, len(paths)):
+            path = paths[i]
+            xpub = xpubs[i]
+            slip132_prefix = None
+            for j, slip132_path in enumerate(slip132_paths):
+                if path.replace("h", "'").startswith(slip132_path):
+                    slip132_prefix = slip132_prefixes[j]
+                    break
+            if slip132_prefix:
+                xpub = convert_xpub_prefix(xpub, slip132_prefix)
+            xpubs_str += "[{}{}]{}\n".format(master_fpr, path.replace("m", ""), xpub)
 
         keys, failed = Key.parse_xpubs(xpubs_str)
         if len(failed) > 0:
@@ -157,28 +131,42 @@ class BitcoinCore(Device):
         loaded_wallets = wallet_manager.rpc.listwallets()
 
         hotstorage_path = wallet_manager.rpc_path + "_hotstorage"
-        if (
-            existing_wallets is None
-            or os.path.join(hotstorage_path, self.alias) in existing_wallets
-        ):
-            if os.path.join(hotstorage_path, self.alias) not in loaded_wallets:
-                wallet_manager.rpc.loadwallet(os.path.join(hotstorage_path, self.alias))
+        wallet_path = os.path.join(hotstorage_path, self.alias)
+        if existing_wallets is None or wallet_path in existing_wallets:
+            if wallet_path not in loaded_wallets:
+                wallet_manager.rpc.loadwallet(wallet_path)
+
+    def is_encrypted(self, wallet_manager):
+        """Check if the wallet is encrypted"""
+        self._load_wallet(wallet_manager)
+        hotstorage_path = wallet_manager.rpc_path + "_hotstorage"
+        wallet_path = os.path.join(hotstorage_path, self.alias)
+        try:
+            # check if password is enabled
+            info = wallet_manager.rpc.getwalletinfo(wallet=wallet_path)
+            return "unlocked_until" in info
+        except Exception as e:
+            logger.warning("Cannot fetch hot wallet info")
+        # Assuming encrypted by default
+        return True
 
     def create_psbts(self, base64_psbt, wallet):
         return {"core": base64_psbt}
 
-    def sign_psbt(self, base64_psbt, wallet, passphrase):
+    def sign_psbt(self, base64_psbt, wallet, file_password):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
         rpc = wallet.manager.rpc.wallet(
             os.path.join(wallet.manager.rpc_path + "_hotstorage", self.alias)
         )
-        if passphrase:
-            rpc.walletpassphrase(passphrase, 60)
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
         signed_psbt = rpc.walletprocesspsbt(base64_psbt)
         if base64_psbt == signed_psbt["psbt"]:
-            raise Exception("Make sure you have entered the passphrase correctly.")
-        if passphrase:
+            raise Exception(
+                "Make sure you have entered the wallet file password correctly. (If your wallet is not encrypted submit empty password)"
+            )
+        if file_password:
             rpc.walletlock()
         return signed_psbt
 
@@ -245,8 +233,8 @@ def derive_xpubs_from_xprv(xprv, paths: list, rpc):
             # we need parent for fingerprint
             parent = xprv
             for idx in derivation[:-1]:
-                parent = get_child(parent, idx)
-            child = get_child(parent, derivation[-1])
+                parent = get_child(parent, idx, rpc)
+            child = get_child(parent, derivation[-1], rpc)
             derived_xprvs.append((parent, child))
     xpubs = []
     for parent, child in derived_xprvs:
@@ -272,12 +260,10 @@ def swap_fingerprint(xpub, fingerprint):
 N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
 
-def get_child(xprv, index):
+def get_child(xprv, index, rpc=None):
     """Derives a child from xprv but without fingerprint information"""
     if index > 0xFFFFFFFF or index < 0:
         raise ValueError("Index should be between 0 and 2^32")
-    if index < 0x80000000:
-        raise ValueError("Can't do non-hardened")
 
     stream = BytesIO(decode_base58(xprv))
     version = stream.read(4)
@@ -287,8 +273,20 @@ def get_child(xprv, index):
     chain_code = stream.read(32)
     stream.read(1)
     secret = stream.read(32)
+    key = b"\x00" + secret
 
-    data = b"\x00" + secret + index.to_bytes(4, "big")
+    if index < 0x80000000:
+        if rpc is None:
+            raise ValueError("Can't do non-hardened without rpc")
+        # non hardened - we need pubkey
+        else:
+            # convert to public
+            res = rpc.getdescriptorinfo(f"wpkh({xprv})")
+            xpub = res["descriptor"].split("(")[1].split(")")[0]
+            # decode pubkey
+            key = decode_base58(xpub)[-33:]
+
+    data = key + index.to_bytes(4, "big")
     raw = hmac.new(chain_code, data, digestmod="sha512").digest()
     tweak = raw[:32]
     chain_code = raw[32:]

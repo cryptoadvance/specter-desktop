@@ -6,6 +6,7 @@ from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
 from .wallet import Wallet
+from .persistence import delete_json_file, delete_folder
 
 
 logger = logging.getLogger()
@@ -258,8 +259,7 @@ Silently ignored!"
                     shutil.rmtree(path)
                     break
         # Delete JSON
-        if os.path.exists(wallet.fullpath):
-            os.remove(wallet.fullpath)
+        delete_json_file(wallet.fullpath)
         del self.wallets[wallet.name]
         self.update()
 
@@ -287,3 +287,10 @@ Silently ignored!"
             for tx in txlist:
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
+
+    def delete(self, specter):
+        """Deletes all the wallets"""
+        for w in self.wallets:
+            wallet = self.wallets[w]
+            self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
+        delete_folder(self.data_folder)
