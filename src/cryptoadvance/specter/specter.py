@@ -112,10 +112,11 @@ class Specter:
             "validate_merkle_proofs": False,
         }
 
-        # health check: loads config and tests rpc
-        self.check()
+        # health check: loads config, tests rpc
+        # also loads and checks wallets for all users
+        self.check(check_all=True)
 
-    def check(self, user=None, check_all=True):
+    def check(self, user=None, check_all=False):
         """
         Checks and updates everything for a particular user:
         - config if changed
@@ -369,7 +370,7 @@ class Specter:
         if need_update:
             self.rpc = get_rpc(self.config["rpc"], None)
             self._save()
-            self.check()
+            self.check(check_all=True)
         return self.rpc is not None
 
     def update_auth(self, auth):
