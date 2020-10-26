@@ -31,11 +31,7 @@ from hwilib.devices.trezorlib.ui import (
     PIN_MATRIX_DESCRIPTION,
     prompt,
 )
-from hwilib.devices.trezorlib import (
-    tools,
-    btc,
-    device,
-)
+from hwilib.devices.trezorlib import tools, btc, device
 from hwilib.devices.trezorlib import messages as proto
 from hwilib.base58 import (
     encode as base58_encode,
@@ -62,7 +58,9 @@ import logging
 import sys
 import struct
 
-py_enumerate = enumerate  # Need to use the enumerate built-in but there's another function already named that
+# Need to use the enumerate built-in
+# but there's another function already named that
+py_enumerate = enumerate
 
 # Only handles up to 15 of 15
 def parse_multisig(script):
@@ -748,9 +746,9 @@ def enumerate(password=""):
                 )
             if client.client.features.initialized:
                 d_data["fingerprint"] = client.get_master_fingerprint_hex()
-                d_data[
-                    "needs_passphrase_sent"
-                ] = False  # Passphrase is always needed for the above to have worked, so it's already sent
+                # Passphrase is always needed for the above to have worked,
+                # so it's already sent
+                d_data["needs_passphrase_sent"] = False
             else:
                 d_data["error"] = "Not initialized"
                 d_data["code"] = DEVICE_NOT_INITIALIZED

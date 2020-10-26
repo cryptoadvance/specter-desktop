@@ -4,7 +4,7 @@ from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, sort_descriptor, fslock, parse_utxo
+from .helpers import der_to_bytes, sort_descriptor, parse_utxo
 from .util.base58 import decode_base58
 from .util.descriptor import Descriptor
 from .util.xpub import get_xpub_fingerprint
@@ -696,9 +696,7 @@ class Wallet:
             # Find corresponding wallet key
             slip132_keys.append(LOOKUP_TABLE[desc_key])
 
-        to_return = {
-            "wallet_type": "{}of{}".format(self.sigs_required, len(self.keys)),
-        }
+        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
         for cnt, slip132_key in enumerate(slip132_keys):
             to_return["x{}/".format(cnt + 1)] = {
                 "derivation": slip132_key.derivation.replace("h", "'"),

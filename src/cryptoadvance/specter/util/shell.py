@@ -48,11 +48,7 @@ def run_shell(cmd):
     Returns: dict({"code": returncode, "out": stdout, "err": stderr})
     """
     try:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
         return {"code": proc.returncode, "out": stdout, "err": stderr}
     except Exception as e:
