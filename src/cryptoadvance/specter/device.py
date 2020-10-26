@@ -18,6 +18,7 @@ class Device:
     hwi_support = False
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
+    hot_wallet = False
 
     def __init__(self, name, alias, keys, fullpath, manager):
         """

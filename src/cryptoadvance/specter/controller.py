@@ -277,7 +277,7 @@ def login():
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]
             password = request.form["password"]
-            user = User.get_user_by_name(app.specter, username)
+            user = app.specter.user_manager.get_user_by_username(username)
             if user:
                 if verify_password(user.password, password):
                     app.login(user.id)
@@ -320,9 +320,7 @@ def register():
         password = hash_password(request.form["password"])
         otp = request.form["otp"]
         user_id = alias(username)
-        if User.get_user(app.specter, user_id) or User.get_user_by_name(
-            app.specter, username
-        ):
+        if app.specter.user_manager.get_user(user_id):
             flash("Username is already taken, please choose another one", "error")
             return redirect("register?otp={}".format(otp))
         if app.specter.burn_new_user_otp(otp):
@@ -336,7 +334,7 @@ def register():
                 "hwi_bridge_url": "/hwi/api/",
             }
             user = User(user_id, username, password, config)
-            user.save_info(app.specter)
+            app.specter.add_user(user)
             flash(
                 "You have registered successfully, \
 please login with your new account to start using Specter"
@@ -356,7 +354,6 @@ please request a new link from the node operator.",
 def logout():
     logout_user()
     flash("You were logged out", "info")
-    app.specter.clear_user_session()
     return redirect("login")
 
 
@@ -592,7 +589,7 @@ def auth_settings():
     new_otp = -1
     users = None
     if current_user.is_admin and auth == "usernamepassword":
-        users = [user for user in User.get_all_users(app.specter) if not user.is_admin]
+        users = [user for user in app.specter.user_manager.users if not user.is_admin]
     if request.method == "POST":
         action = request.form["action"]
 
@@ -607,7 +604,7 @@ def auth_settings():
                 auth = request.form["auth"]
             if specter_username:
                 if current_user.username != specter_username:
-                    if User.get_user_by_name(app.specter, specter_username):
+                    if app.specter.user_manager.get_user(specter_username):
                         flash(
                             "Username is already taken, please choose another one",
                             "error",
@@ -631,7 +628,7 @@ def auth_settings():
                     if auth == "usernamepassword":
                         users = [
                             user
-                            for user in User.get_all_users(app.specter)
+                            for user in app.specter.user_manager.users
                             if not user.is_admin
                         ]
                     else:
@@ -661,23 +658,11 @@ def auth_settings():
                 )
         elif action == "deleteuser":
             delete_user = request.form["deleteuser"]
+            user = app.specter.user_manager.get_user(delete_user)
             if current_user.is_admin:
-                user = User.get_user(app.specter, delete_user)
-                if user:
-                    user.delete(app.specter)
-                    users = [
-                        user
-                        for user in User.get_all_users(app.specter)
-                        if not user.is_admin
-                    ]
-                    flash(
-                        "User {} was deleted successfully".format(user.username), "info"
-                    )
-                else:
-                    flash(
-                        "Error: failed to delete user, invalid user ID was given",
-                        "error",
-                    )
+                app.specter.delete_user(user)
+                users.remove(user)
+                flash("User {} was deleted successfully".format(user.username), "info")
             else:
                 flash("Error: Only the admin account can delete users", "error")
     return render_template(
@@ -979,7 +964,7 @@ def new_wallet(wallet_type):
                     if "use_explorer" in request.form:
                         explorer = app.specter.get_default_explorer()
                     wallet.rescanutxo(explorer)
-                    app.specter._info["utxorescan"] = 1
+                    app.specter.info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
                     app.logger.info("Rescanning Blockchain ...")
@@ -1103,7 +1088,7 @@ def singlesig_setup_wizard():
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         return redirect(url_for("wallet", wallet_alias=wallet.alias))
     return render_template(
@@ -1218,12 +1203,12 @@ def txout_set_info():
 @login_required
 def get_scantxoutset_status():
     status = app.specter.rpc.scantxoutset("status", [])
-    app.specter._info["utxorescan"] = status.get("progress", None) if status else None
-    if app.specter._info["utxorescan"] is None:
+    app.specter.info["utxorescan"] = status.get("progress", None) if status else None
+    if app.specter.info["utxorescan"] is None:
         app.specter.utxorescanwallet = None
     return {
-        "active": app.specter._info["utxorescan"] is not None,
-        "progress": app.specter._info["utxorescan"],
+        "active": app.specter.info["utxorescan"] is not None,
+        "progress": app.specter.info["utxorescan"],
     }
 
 
@@ -1513,11 +1498,11 @@ def wallet_settings(wallet_alias):
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
             wallet.rescanutxo(explorer)
-            app.specter._info["utxorescan"] = 1
+            app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
-            app.specter._info["utxorescan"] = None
+            app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])

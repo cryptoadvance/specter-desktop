@@ -33,29 +33,6 @@ def verify_password(stored_password, provided_password):
     return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
 
 
-def get_users_json(specter):
-    users = [
-        {
-            "id": "admin",
-            "username": "admin",
-            "password": hash_password("admin"),
-            "is_admin": True,
-        }
-    ]
-
-    # if users.json file exists - load from it
-    if os.path.isfile(os.path.join(specter.data_folder, "users.json")):
-        users = read_json_file(os.path.join(specter.data_folder, "users.json"))
-    # otherwise - create one and assign unique id
-    else:
-        save_users_json(specter, users)
-    return users
-
-
-def save_users_json(specter, users):
-    write_json_file(users, os.path.join(specter.data_folder, "users.json"))
-
-
 class User(UserMixin):
     def __init__(self, id, username, password, config, is_admin=False):
         self.id = id
@@ -63,6 +40,15 @@ class User(UserMixin):
         self.password = password
         self.config = config
         self.is_admin = is_admin
+        self.wallet_manager = None
+        self.device_manager = None
+        self.manager = None
+
+    @property
+    def folder_id(self):
+        if self.is_admin:
+            return ""
+        return f"_{self.id}"
 
     @classmethod
     def from_json(cls, user_dict):
@@ -86,31 +72,6 @@ class User(UserMixin):
         except:
             raise SpecterError("Unable to parse user JSON.")
 
-    @classmethod
-    def get_user(cls, specter, id):
-        users = get_users_json(specter)
-        for user_dict in users:
-            user = User.from_json(user_dict)
-            if user.id == id:
-                return user
-
-    @classmethod
-    def get_user_by_name(cls, specter, username):
-        users = get_users_json(specter)
-        for user_dict in users:
-            user = User.from_json(user_dict)
-            if user.username == username:
-                return user
-
-    @classmethod
-    def get_all_users(cls, specter):
-        users_dicts = get_users_json(specter)
-        users = []
-        for user_dict in users_dicts:
-            user = User.from_json(user_dict)
-            users.append(user)
-        return users
-
     @property
     def json(self):
         user_dict = {
@@ -124,20 +85,17 @@ class User(UserMixin):
         return user_dict
 
     def save_info(self, specter, delete=False):
-        users = get_users_json(specter)
-        existing = False
-        for i in range(len(users)):
-            if users[i]["id"] == self.id:
-                if not delete:
-                    users[i] = self.json
-                    existing = True
-                else:
-                    del users[i]
-                break
-        if not existing and not delete:
-            users.append(self.json)
+        if self.manager is None:
+            self.manager = specter.user_manager
+        users = self.manager.users
+        existing = self in users
 
-        save_users_json(specter, users)
+        # update specter users
+        if not existing and not delete:
+            specter.add_user(self)
+        if existing and delete:
+            specter.delete_user(self)
+        self.manager.save()
 
     def set_explorer(self, specter, explorer):
         self.config["explorers"][specter.chain] = explorer
@@ -152,12 +110,23 @@ class User(UserMixin):
         self.save_info(specter)
 
     def delete(self, specter):
-        devices_datadir_path = os.path.join(
-            os.path.join(specter.data_folder, "devices_{}".format(self.id))
-        )
-        wallets_datadir_path = os.path.join(
-            os.path.join(specter.data_folder, "wallets_{}".format(self.id))
-        )
-        delete_folder(devices_datadir_path)
-        delete_folder(wallets_datadir_path)
+        # we delete wallet manager and device manager in save_info
         self.save_info(specter, delete=True)
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.id == other
+        return self.id == other.id
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        # to make lookups in dicts by user id
+        return hash(self.id)
+
+    def __str__(self):
+        return self.id
+
+    def __repr__(self):
+        return f"User({self.id})"

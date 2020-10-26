@@ -9,6 +9,7 @@ import logging
 from contextlib import nullcontext
 from flask import current_app as app
 from .util.shell import run_shell
+import shutil
 
 
 logger = logging.getLogger(__name__)
