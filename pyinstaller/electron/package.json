@@ -1,0 +1,50 @@
+{
+  "name": "specter-desktop",
+  "version": "v0.8.2-pre1",
+  "description": "Specter Desktop Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --publish=never",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "repository": "https://github.com/cryptoadvance/specter-desktop",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "Specter",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^10.1.3",
+    "electron-builder": "^22.9.1"
+  },
+  "build": {
+    "productName": "Specter",
+    "appId": "solutions.specter.desktop",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "identity": "Ben Kaufman (6RPRX6WRJ5)",
+      "entitlements": "./build/entitlements.mac.plist",
+      "entitlementsInherit": "./build/entitlements.mac.plist",
+      "hardenedRuntime": true
+    },
+    "win": {
+      "icon": "../icons/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  },
+  "dependencies": {
+    "electron-default-menu": "^1.0.2",
+    "extract-zip": "^2.0.1",
+    "request": "^2.88.2"
+  }
+}

@@ -348,7 +348,7 @@ class Wallet:
             decodedpsbt = self.rpc.decodepsbt(psbt)
             signed_devices = self.get_signed_devices(decodedpsbt)
             self.pending_psbts[txid]["devices_signed"] = [
-                dev.name for dev in signed_devices
+                dev.alias for dev in signed_devices
             ]
             if "hex" in raw:
                 self.pending_psbts[txid]["sigs_count"] = self.sigs_required
@@ -1124,7 +1124,7 @@ class Wallet:
             amount.append(out["value"])
         # detect signatures
         signed_devices = self.get_signed_devices(psbt)
-        psbt["devices_signed"] = [dev.name for dev in signed_devices]
+        psbt["devices_signed"] = [dev.alias for dev in signed_devices]
         psbt["amount"] = amount
         psbt["address"] = address
         psbt["time"] = time.time()
