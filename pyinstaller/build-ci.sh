@@ -40,4 +40,4 @@ npm run dist -- --win
 cd ..
 
 mkdir release-win
-cp electron/dist/Specter\ Setup\ *.exe release-win/Specter\ Setup\ $1.exe
+cp electron/dist/Specter\ Setup\ *.exe release-win/Specter-Setup-$1.exe
