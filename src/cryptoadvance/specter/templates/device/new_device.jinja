@@ -129,10 +129,10 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					<table>
 						{% for i in range(wordslist|length // 4) %}
 							<tr>
-								<td>{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}.</td>
-								<td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
-								<td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
-								<td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
+								<td>{{ 4 * i + 1 }} {{ wordslist[4 * i] }}</td>
+								<td>{{ 4 * i + 2 }} {{ wordslist[4 * i + 1] }}</td>
+								<td>{{ 4 * i + 3 }} {{ wordslist[4 * i + 2] }}</td>
+								<td>{{ 4 * i + 4 }} {{ wordslist[4 * i + 3] }}</td>
 							</tr>
 						{% endfor %}
 					</table>

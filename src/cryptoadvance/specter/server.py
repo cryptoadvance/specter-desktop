@@ -100,6 +100,12 @@ def init_app(app, hwibridge=False, specter=None):
         def index():
             return redirect("/hwi/settings")
 
+    @app.context_processor
+    def inject_tor():
+        if app.config["DEBUG"]:
+            return dict(tor_service_id="", tor_enabled=False)
+        return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
+
     return app
 
 

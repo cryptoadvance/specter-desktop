@@ -5,9 +5,18 @@
 {% endblock %}
 
 {% block main %}
-    <div class="card">
+    <div class="card" style="width: 600px;">
         <form action="." method="POST" role="form">
             <h1>HWI Bridge Settings</h1>
+            {% if tor_service_id %}
+                <img style="width: 28px; padding:3px;float: left;margin-right: 5px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>
+                <span style="float: left;">
+                    HWIBridge is also accessible ove Tor:<br>
+                    <span title="Copy Tor address" class="explorer-link" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+                        {{ tor_service_id }}.onion
+                    </span>
+                </span><br><br><br>
+            {% endif %}
             <label>Whitelisted domains</label>
             <textarea class="form-control" placeholder="e.i. http://127.0.0.1:25441" name="whitelisted_domains">{{ whitelisted_domains }}</textarea>
             <div class="note">
