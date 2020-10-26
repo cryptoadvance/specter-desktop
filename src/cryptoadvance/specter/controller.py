@@ -179,11 +179,11 @@ def combine(wallet_alias):
                 raw = app.specter.finalize(combined)
                 if "psbt" not in raw:
                     raw["psbt"] = combined
+                psbt = wallet.update_pending_psbt(combined, txid, raw)
             except RpcError as e:
                 return e.error_msg, e.status_code
             except Exception as e:
                 return "Unknown error: %r" % e, 500
-        psbt = wallet.update_pending_psbt(combined, txid, raw)
         devices = []
         raw["devices"] = psbt["devices_signed"]
         return json.dumps(raw)
