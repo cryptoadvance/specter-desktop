@@ -2,12 +2,12 @@ import os
 import json
 import logging
 from .helpers import alias, load_jsons
-from .persistence import fslock
 from .persistence import (
     read_json_file,
     write_json_file,
     delete_json_file,
     delete_folder,
+    fslock
 )
 from .user import User, hash_password
 from flask_login import current_user
