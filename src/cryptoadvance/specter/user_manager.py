@@ -1,7 +1,8 @@
 import os
 import json
 import logging
-from .helpers import alias, load_jsons, fslock
+from .helpers import alias, load_jsons
+from .persistence import fslock
 from .persistence import (
     read_json_file,
     write_json_file,
