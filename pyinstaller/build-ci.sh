@@ -6,6 +6,12 @@ set -e
 
 echo "    --> This build got triggered for version $1"
 
+echo "    --> Assumed gitlab-project: ${CI_PROJECT_ROOT_NAMESPACE:+x}"
+
+[ -z "${CI_PROJECT_ROOT_NAMESPACE:+x}" ]    && \
+    echo "Redefinig CI_PROJECT_ROOT_NAMESPACE=cryptoadvance " && \
+    export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
+
 echo $1 > version.txt
 
 echo "    --> Installing (build)-requirements"
