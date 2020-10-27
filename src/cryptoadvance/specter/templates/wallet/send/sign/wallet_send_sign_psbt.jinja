@@ -114,7 +114,7 @@
 						<b>Transaction id:</b><br>
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
-						{% set tx = wallet.rpc.gettransaction(input['txid']) %}
+						{% set tx = wallet.gettransaction(input['txid']) %}
 						<b>Address:</b>
 						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
 						<br>
