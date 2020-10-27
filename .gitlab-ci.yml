@@ -111,7 +111,7 @@ release_electron_linux_windows:
     - pip3 install github-binary-upload
     - export ${CI_PROJECT_ROOT_NAMESPACE} # needed in the build-script to download the right windows-binary
     - cd pyinstaller && ./build-ci.sh $CI_COMMIT_TAG
-    - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe >> ./release/SHA256SUMS.txt
+    - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./release/SHA256SUMS.txt
     - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries ${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop $CI_COMMIT_TAG ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe ./release/SHA256SUMS.txt
 
 

@@ -38,33 +38,16 @@ Travis-CI setup is very straightforward. As we're using the build-cache, the bit
 
 # Releasing
 
-## pip-based release to pypi
+## What gets releases
 
-We're about to release (semi-) automatically. The relevant release-artifact is a pip-package which will get released to pypi.org. A manual description of how to create this kind of releases can be found [here](https://packaging.python.org/tutorials/packaging-projects/). 
-In a nutshell and also for testing purposes:
-```
-# Modify the version in setup.py
-# create package:
-python3 setup.py sdist bdist_wheel
-# install dependencies for uploading
-python3 -m pip install --upgrade twine
-# uploading
-python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-# enter username and password (maybe register at https://test.pypi.org)
-# Let's test the package in a new virtualenv:
-cd /tmp && mkdir specter-release-test && cd specter-release-test
-virtualenv --python=python3 .env
-source .env/bin/activate
-# Workaround because dependencies are not availabe on test.pypi.org
-wget https://raw.githubusercontent.com/cryptoadvance/specter-desktop/master/requirements.txt
-python3 -m pip install -r requirements.txt  --require-hashes
-# Install the package
-python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps cryptoadvance.specter
-# AND Ready to go! e.g.:
-python3 -m cryptoadvance.specter server
+We're mostly releasing automatically. Currently the following artifacts are releases:
+* specterd (aemon) is a binary for kicking off the specter-desktop service on the commandline. We have binaries for windows, linux and macos
+* We have an Electron-App which we're also releasing for windows, linux and macos. Unfortunately the macOS build is not yet automated
+* We release a pip-package
+* We release docker-images, these are also not yet automated
 
-```
-
+# How we release
+As we have a strict build-only-on-private-hardware build-policy, we're using gitlab private runners in order to build our releases. In order to test and develop the releasing automation, people can setup gitlab-projects which are syncing from their github-forks. With such a setup it's possible to create test-releases and therefore test the whole procedure end-to-end.
 
 The automation of that kicks in if someone creates a tag which is named like "vX.Y.Z". This is specified in the gitlab-ci.yml. The release-job will only be triggered in cases of tags. One step will also check that the tag follows the convention above.
 The package upload will need a token. How to obtain the token is described in the packaging-tutorial. It's injected via gitlab-variables. ToDo: put the token on a trusted build-node.
@@ -72,13 +55,13 @@ The package upload will need a token. How to obtain the token is described in th
 The alternative would have been to use travis-ci for releasing. In that case we would encrypt the token with a private-key from travis and commit to the repo. This looks more safe to me then the above scenario but less safe then the todo, where we're storing the token on the build-node.
 
 ## pyinstaller system-dependent binaries
-The [pyinstaller directory](../pyinstaller) contains scripts to create the platform-specific binaries to use specter-desktop as a desktop-software. Some of them are created and uploaded to [github-releases](https://github.com/cryptoadvance/specter-desktop/releases) via more or less special build-agents.
+The [pyinstaller directory](../pyinstaller) contains scripts to create the platform-specific binaries (plus electron) to use specter-desktop as a desktop-software. Some of them are created and uploaded to [github-releases](https://github.com/cryptoadvance/specter-desktop/releases) via more or less special build-agents.
 The [windows-build-agent](https://docs.gitlab.com/runner/install/windows.html) needs manual installation 
 of git, python and docker. Docker is used to build the innosetup-file.
 As docker is available in windows only as a "desktop-edition", one need to also
 log into the windows-machine to get docker started.
 Clearly there is an opportunity to move all of the creation of the windows-binary to wine on docker,
-similiar to the way the innosetup is running withon docker.
+similiar to the way the innosetup is running within docker.
 
 #  Summary
 
