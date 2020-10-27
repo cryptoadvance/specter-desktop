@@ -63,7 +63,14 @@ log into the windows-machine to get docker started.
 Clearly there is an opportunity to move all of the creation of the windows-binary to wine on docker,
 similiar to the way the innosetup is running within docker.
 
-#  Summary
+# CI/CD-dev-env setup
 
-It's great to use both systems but it would be better to have the fixed version (as in the dockerimages of gitlab) in the PRs and the updated tests against the newest version (as in install_bitcoind.sh used by travis-CI) for daily/monthly builds. 
-Anyway, good enough for now. 
+Here is a brief description on how to create a setup where the release-procedures can be tested:
+* We assume you have a fork of cryptoadvance/specter-desktop
+* Create a gitlab-account and then a mirroring project ([here](https://gitlab.com/projects/new#cicd_for_external_repo))
+* Activate the private runners and deactivate the public runners. Contact @k9ert for that.
+* Create an account and an [API token](https://test.pypi.org/manage/account/) on there
+* Create a token for github in order to release to your github-fork
+* Configure both tokens on the gitlab-variables (GH_BIN_UPLOAD_PW and TWINE_PASSWORD)
+* create a tag on your github-fork
+* watch the test-release unfolding, ready to hack

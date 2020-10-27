@@ -27,27 +27,20 @@ before_script:
   - source .env/bin/activate
 
 test:
-  stage: testing
-  # We assume here that people who want to get code into the master-branch are
-  # relying on PRs and people who are working on gitlab-forks are working
-  # on CI which probably want fast feedback on the releasing-jobs 
-  # and therefore skip the test-job
-  only:
+ stage: testing
+ # We assume here that people who want to get code into the master-branch are
+ # relying on PRs and people who are working on gitlab-forks are working
+ # on CI which probably want fast feedback on the releasing-jobs 
+ # and therefore skip the test-job
+ only:
     - $CI_PROJECT_NAMESPACE =~ "cryptoadvance" 
-  script:
-    - echo hello, this will be ommitted in pre-releases where we want fast feedback
-    - echo CI_PROJECT_ROOT_NAMESPACE ${CI_PROJECT_ROOT_NAMESPACE}
-    - echo CI_PROJECT_NAMESPACE ${CI_PROJECT_NAMESPACE}
-
-#test:
-#  stage: testing
-#  script:
-#    - pip3 install -r requirements.txt
-#    - pip3 install -e .
-#    - pip3 install -r test_requirements.txt
-#    # pytest --docker not working? Uncomment this for better debugging:
-#    # - python3 tests/conftest.py 
-#    - pytest --docker
+ script:
+   - pip3 install -r requirements.txt
+   - pip3 install -e .
+   - pip3 install -r test_requirements.txt
+   # pytest --docker not working? Uncomment this for better debugging:
+   # - python3 tests/conftest.py 
+   - pytest --docker
 
 release_pip:
   stage: releasing
