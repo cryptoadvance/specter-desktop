@@ -29,7 +29,7 @@ before_script:
 test:
   stage: testing
   except:
-    - /.+-pre.$/
+    - /.+-pre..?$/
   script:
     - echo hello, this will be ommitted in pre-releases where we want fast feedback
 
