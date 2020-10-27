@@ -136,7 +136,7 @@ function downloadSpecterd(specterdPath) {
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
-        if (appSettings.specterdVersion.toLowerCase() === specterdHash || appSettings.specterdVersion == "") {
+        if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == "") {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
