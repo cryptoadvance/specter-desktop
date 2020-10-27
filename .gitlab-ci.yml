@@ -28,11 +28,12 @@ before_script:
 
 test:
   stage: testing
-#  only:
-#    refs:
-#      - /.+-pre..?$/
-#    variables:
-#    - $CI_PROJECT_NAMESPACE !~ "cryptoadvance" /
+  # We assume here that people who want to get code into the master-branch are
+  # relying on PRs and people who are working on gitlab-forks are working
+  # on CI which probably want fast feedback on the releasing-jobs 
+  # and therefore skip the test-job
+  only:
+    - $CI_PROJECT_NAMESPACE =~ "cryptoadvance" 
   script:
     - echo hello, this will be ommitted in pre-releases where we want fast feedback
     - echo CI_PROJECT_ROOT_NAMESPACE ${CI_PROJECT_ROOT_NAMESPACE}
