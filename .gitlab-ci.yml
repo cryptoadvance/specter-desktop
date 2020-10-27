@@ -35,6 +35,8 @@ test:
       - $CI_PROJECT_ROOT_NAMESPACE !~ "cryptoadvance" /
   script:
     - echo hello, this will be ommitted in pre-releases where we want fast feedback
+    - echo CI_PROJECT_ROOT_NAMESPACE ${CI_PROJECT_ROOT_NAMESPACE}
+    - echo CI_PROJECT_NAMESPACE ${CI_PROJECT_NAMESPACE}
 
 #test:
 #  stage: testing
