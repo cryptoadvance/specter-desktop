@@ -6,7 +6,6 @@
 import os, json
 import threading
 import logging
-from contextlib import nullcontext
 from flask import current_app as app
 from .util.shell import run_shell
 import shutil
