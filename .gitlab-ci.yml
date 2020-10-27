@@ -28,11 +28,11 @@ before_script:
 
 test:
   stage: testing
-  only:
+#  only:
 #    refs:
 #      - /.+-pre..?$/
 #    variables:
-    - $CI_PROJECT_NAMESPACE !~ "cryptoadvance" /
+#    - $CI_PROJECT_NAMESPACE !~ "cryptoadvance" /
   script:
     - echo hello, this will be ommitted in pre-releases where we want fast feedback
     - echo CI_PROJECT_ROOT_NAMESPACE ${CI_PROJECT_ROOT_NAMESPACE}
