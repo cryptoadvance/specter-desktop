@@ -51,7 +51,7 @@ rm -rf dist
 mkdir dist
 cd dist
 echo "    --> Downloading the windows-version of specterd for version $1"
-wget https://github.com/cryptoadvance/specter-desktop/releases/download/$1/specterd-$1-win64.zip -O ./specterd.zip
+wget https://github.com/${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop/releases/download/$1/specterd-$1-win64.zip -O ./specterd.zip
 unzip specterd.zip
 cd ../electron
 rm -rf dist/
