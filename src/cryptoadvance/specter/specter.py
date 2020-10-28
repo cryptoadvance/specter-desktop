@@ -63,6 +63,45 @@ def get_rpc(conf, old_rpc=None):
         logger.info("rpc config have changed.")
         return rpc
 
+class Checker:
+    """
+    Checker class that calls the periodic callback.
+    If you want to force-check within the next second
+    set checker.last_check to 0.
+    """
+    def __init__(self, callback, period=600):
+        self.callback = callback
+        self.last_check = 0
+        self.period = period
+        self.running = False
+
+    def start(self):
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self.loop)
+            self.thread.daemon = True
+            self.thread.start()
+
+    def stop(self):
+        logger.info("Checker stopped.")
+        self.running = False
+
+    def loop(self):
+        while self.running:
+            # check if it's time to update
+            if time.time()-self.last_check >= self.period:
+                try:
+                    t0 = time.time()
+                    self.callback()
+                    dt = time.time() - t0
+                    logger.info("Checker checked in %.3f seconds" % dt)
+                except Exception as e:
+                    logger.error(e)
+                finally:
+                    self.last_check = time.time()
+            # wait 1 second
+            time.sleep(1)
+
 
 class Specter:
     """ A central Object mostly holding app-settings """
@@ -115,6 +154,8 @@ class Specter:
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         self.check(check_all=True)
+        self.checker = Checker(lambda: self.check(check_all=True))
+        self.checker.start()
 
     def check(self, user=None, check_all=False):
         """
@@ -125,8 +166,6 @@ class Specter:
         - wallet manager
         - device manager
         """
-        # find proper user
-        user = self.user_manager.get_user(user)
         # check if config file have changed
         self.check_config()
 
@@ -136,6 +175,8 @@ class Specter:
 
         self.check_node_info()
         if not check_all:
+            # find proper user
+            user = self.user_manager.get_user(user)
             self.check_for_user(user)
         else:
             for u in self.user_manager.users:
