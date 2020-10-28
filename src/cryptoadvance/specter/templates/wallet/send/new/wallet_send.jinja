@@ -69,10 +69,9 @@
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
 				</div><br>
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
-				{% set unspents = wallet.rpc.listunspent(0) %}
 				<div class="row" id="coin-selection-row" style="margin-top: 30px;">
 					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
-				{% if unspents | length > 0 %}
+				{% if wallet.utxo | length > 0 %}
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
 				{% endif %}
 				</div><br>
