@@ -4,12 +4,14 @@ const path = require('path')
 const fs = require('fs')
 const request = require('request')
 const extract = require('extract-zip')
-const crypto = require('crypto')
 const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
 const console = require('console')
-const getAppSettings = require('./helpers').getAppSettings
-const appSettingsPath = require('./helpers').appSettingsPath
+const helpers = require('./helpers')
+const getFileHash = helpers.getFileHash
+const getAppSettings = helpers.getAppSettings
+const appSettingsPath = helpers.appSettingsPath
+const specterdDirPath = helpers.specterdDirPath
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
@@ -82,10 +84,13 @@ app.whenReady().then(() => {
     webPreferences
   })
   setMainMenu();
+  mainWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    shell.openExternal(url);
+  });
   
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
 
-  const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
   if (!fs.existsSync(specterdDirPath)){
       fs.mkdirSync(specterdDirPath, { recursive: true });
   }
@@ -158,19 +163,6 @@ function downloadSpecterd(specterdPath) {
   })
 }
 
-function getFileHash(filename, callback) {
-  let shasum = crypto.createHash('sha256')
-  // Updating shasum with file content
-  , s = fs.ReadStream(filename)
-  s.on('data', function(data) {
-    shasum.update(data)
-  })
-  // making digest
-  s.on('end', function() {
-  var hash = shasum.digest('hex')
-    callback(hash)
-  })
-}
 function updatingLoaderMsg(msg) {
   let code = `
   var launchText = document.getElementById('launch-text');
@@ -277,6 +269,10 @@ function openPreferences() {
       enableRemoteModule: true
     }
   })
+  prefWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    shell.openExternal(url);
+  });
   prefWindow.loadURL(`file://${__dirname}/settings.html`)
   prefWindow.show()
 }

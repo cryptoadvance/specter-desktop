@@ -28,6 +28,10 @@
                         <p>Specterd Version: <input id="specterd-version" style="margin-top: 10px;" type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
                         <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
                         <p>Specterd CLI args: <input id="specterd-cli-args" style="margin-top: 10px;" type="text" placeholder="example: --tor --port=25441" /></p>
+                        <p>Use a custom specterd file: <input type="file" id="specterd-file" class="inputfile"/>
+					    <label for="specterd-file" class="btn" style="display: inline-block; margin-left: 15px; width: 180px;">Choose file</label></p>
+                        <span class="note">You can download the specterd file from the github releases page:
+                            <a style="color: white;" target="_blank" href="https://github.com/cryptoadvance/specter-desktop/releases">https://github.com/cryptoadvance/specter-desktop/releases</a></span>
                     </div>
                 </div><br>
                 <div class="row flex-center">
@@ -41,9 +45,10 @@
             const path = require('path')
             const { dialog } = require('electron').remote
             const helpers = require('./helpers')
+            const getFileHash = helpers.getFileHash
             const getAppSettings = helpers.getAppSettings
-
-            let appSettingsPath = helpers.appSettingsPath
+            const appSettingsPath = helpers.appSettingsPath
+            const specterdDirPath = helpers.specterdDirPath
 
             function toggleHWIBridgeView(isActive) {
                 document.getElementById('hwibridge-mode-active').checked = isActive
@@ -51,6 +56,11 @@
             }
 
             function savePreferences() {
+                let specterdFile = document.getElementById("specterd-file").files[0]
+                if (specterdFile) {
+                    let specterdPath = path.resolve(specterdDirPath, 'specterd' + (specterdFile.path.endsWith('.exe') ? '.exe' : ''))
+                    fs.copyFileSync(specterdFile.path, specterdPath);
+                }
                 let hwiBridgeMode = document.getElementById('hwibridge-mode-active').checked
                 let remoteSpecterURL = document.getElementById('specter-url').value
                 if (hwiBridgeMode) {
@@ -95,6 +105,14 @@
                 document.getElementById('specterd-cli-args').value = appSettings.specterdCLIArgs
 
                 toggleHWIBridgeView(hwiBridgeMode)
+                document.getElementById('specterd-file').addEventListener("change", (e) => {
+                    let specterdFile = document.getElementById("specterd-file").files[0]
+                    if (specterdFile) {
+                        getFileHash(specterdFile.path, function (specterdHash) {
+                            document.getElementById('specterd-hash').value = specterdHash
+                        })
+                    }
+                })
             });
         </script>
     </body>
