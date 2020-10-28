@@ -9,6 +9,7 @@ const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
 const console = require('console')
 const getAppSettings = require('./helpers').getAppSettings
+const appSettingsPath = require('./helpers').appSettingsPath
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
@@ -113,6 +114,14 @@ function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
   console.log("Using version ", appSettings.specterdVersion);
   console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
+  let versionData = require('./version-data.json')
+  if (!('versionInitialized' in versionData) || !versionData.versionInitialized) {
+    appSettings.specterdVersion = versionData.version
+    appSettings.specterdHash = versionData.sha256
+    versionData.versionInitialized = true
+    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
+    fs.writeFileSync('./version-data.json', JSON.stringify(versionData));
+  }
   download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function() {
     updatingLoaderMsg('Unpacking files...')
 
@@ -136,7 +145,7 @@ function downloadSpecterd(specterdPath) {
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
-        if (appSettings.specterdVersion.toLowerCase() === specterdHash || appSettings.specterdVersion == "") {
+        if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == "") {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')

@@ -114,7 +114,7 @@
 						<b>Transaction id:</b><br>
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
-						{% set tx = wallet.rpc.gettransaction(input['txid']) %}
+						{% set tx = wallet.gettransaction(input['txid']) %}
 						<b>Address:</b>
 						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
 						<br>
@@ -140,10 +140,10 @@
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
-					download="binary.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
+					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
 					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download binary</a>&nbsp;
 					<a id="download-psbt-btn" class="btn"
-					download="base64.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
+					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
 					<img src="{{url_for('static', filename='img/download.svg')}}"/> Download base64</a>&nbsp;
 					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
