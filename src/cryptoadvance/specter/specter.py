@@ -63,12 +63,14 @@ def get_rpc(conf, old_rpc=None):
         logger.info("rpc config have changed.")
         return rpc
 
+
 class Checker:
     """
     Checker class that calls the periodic callback.
     If you want to force-check within the next second
     set checker.last_check to 0.
     """
+
     def __init__(self, callback, period=600):
         self.callback = callback
         self.last_check = 0
@@ -89,7 +91,7 @@ class Checker:
     def loop(self):
         while self.running:
             # check if it's time to update
-            if time.time()-self.last_check >= self.period:
+            if time.time() - self.last_check >= self.period:
                 try:
                     t0 = time.time()
                     self.callback()
