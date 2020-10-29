@@ -4,9 +4,9 @@
     coin_selection_table - List of the wallet UTXO for coin selection
     Parameters:
     - unspents: List of wallet UTXOs
-    - specter: Specter object
+    - explorer: explorer link
  #}
-{% macro coin_selection_table(unspents, specter) -%}
+{% macro coin_selection_table(unspents, explorer) -%}
     <table style="table-layout: fixed; display: none;" id="coin_selection_table">
         <thead>
         <tr>
@@ -16,7 +16,7 @@
         <tbody>
             {% for tx in unspents %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], specter) }}
+                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer) }}
             {% endfor %}
         </tbody>
     </table>
