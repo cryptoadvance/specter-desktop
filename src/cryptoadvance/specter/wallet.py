@@ -730,10 +730,11 @@ class Wallet:
             for tx in locked_utxo:
                 tx_data = self.rpc.gettransaction(tx["txid"])
                 raw_tx = self.rpc.decoderawtransaction(tx_data["hex"])
+                delta = raw_tx["vout"][tx["vout"]]["value"]
                 if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                    available["untrusted_pending"] -= raw_tx["vout"][tx["vout"]]["value"]
+                    available["untrusted_pending"] -= delta
                 else:
-                    available["trusted"] -= raw_tx["vout"][tx["vout"]]["value"]
+                    available["trusted"] -= delta
             balance["available"] = available
         except:
             balance = {

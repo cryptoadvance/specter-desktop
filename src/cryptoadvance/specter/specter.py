@@ -394,11 +394,7 @@ class Specter:
         return r
 
     def _save(self):
-        write_json_file(
-            self.config,
-            self.config_fname,
-            lock=self.lock,
-        )
+        write_json_file(self.config, self.config_fname, lock=self.lock)
 
     @property
     def config_fname(self):
