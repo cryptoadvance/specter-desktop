@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, screen, shell, dialog } = require('electron')
+const { app, BrowserWindow, Menu, screen, shell, dialog, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
@@ -221,6 +221,23 @@ app.on('window-all-closed', function () {
 
 app.on('before-quit', () => {
   mainWindow = null;
+  quitSpecterd()
+})
+
+ipcMain.on('request-mainprocess-action', (event, arg) => {
+  console.log('arg')
+  console.log(arg)
+  switch (arg.message) {
+    case 'quit-specterd':
+      quitSpecterd()
+      break
+    case 'quit-app':
+      app.quit()
+      break
+  }
+});
+
+function quitSpecterd() {
   if (platformName == 'win64') {
     exec('taskkill -F -T -PID ' + specterdProcess.pid);
     process.kill(-specterdProcess.pid)
@@ -230,7 +247,7 @@ app.on('before-quit', () => {
   if (specterdProcess) {
     specterdProcess.kill('SIGINT')
   }
-})
+}
 
 function setMainMenu() {
   const menu = defaultMenu(app, shell);

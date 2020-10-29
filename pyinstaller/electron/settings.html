@@ -44,6 +44,7 @@
             const fs = require('fs')
             const path = require('path')
             const { dialog } = require('electron').remote
+            const { ipcRenderer } = require('electron')
             const helpers = require('./helpers')
             const getFileHash = helpers.getFileHash
             const getAppSettings = helpers.getAppSettings
@@ -59,6 +60,9 @@
                 let specterdFile = document.getElementById("specterd-file").files[0]
                 if (specterdFile) {
                     let specterdPath = path.resolve(specterdDirPath, 'specterd' + (specterdFile.path.endsWith('.exe') ? '.exe' : ''))
+                    ipcRenderer.send('request-mainprocess-action', {
+                        message: 'quit-specterd'
+                    });
                     fs.copyFileSync(specterdFile.path, specterdPath);
                 }
                 let hwiBridgeMode = document.getElementById('hwibridge-mode-active').checked
@@ -89,7 +93,9 @@
                 appSettings.specterdCLIArgs = document.getElementById('specterd-cli-args').value
                 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
                 dialog.showMessageBox({message: 'Specter settings were saved successfully!\nPlease restart the app to activate the changes.', buttons: ['Continue'] });
-                window.close()
+                ipcRenderer.send('request-mainprocess-action', {
+                    message: 'quit-app'
+                });
             }
 
             document.addEventListener("DOMContentLoaded", function() {
