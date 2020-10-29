@@ -99,6 +99,12 @@ class Wallet:
         self.check_addresses()
         self.get_info()
 
+    def check_unused(self):
+        """Check current receive address is unused and get new if needed"""
+        addr = self.address
+        while self.rpc.getreceivedbyaddress(addr, 0) != 0:
+            addr = self.getnewaddress()
+
     def check_addresses(self):
         """Checking the gap limit is still ok"""
         if self.last_block is None:
@@ -258,7 +264,7 @@ class Wallet:
             self.info = {}
         return self.info
 
-    def getdata(self):
+    def check_utxo(self):
         try:
             self.utxo = parse_utxo(self, self.rpc.listunspent(0))
             self.utxo_labels_list = self.getlabels(
@@ -267,6 +273,9 @@ class Wallet:
         except Exception:
             self.utxo = []
             self.utxo_labels_list = {}
+
+    def getdata(self):
+        self.check_utxo()
         self.get_info()
         # TODO: Should do the same for the non change address (?)
         # check if address was used already
@@ -713,9 +722,26 @@ class Wallet:
 
     def get_balance(self):
         try:
-            self.balance = self.rpc.getbalances()["watchonly"]
+            balance = self.rpc.getbalances()["watchonly"]
+            # calculate available balance
+            locked_utxo = self.rpc.listlockunspent()
+            available = {}
+            available.update(balance)
+            for tx in locked_utxo:
+                tx_data = self.rpc.gettransaction(tx["txid"])
+                raw_tx = self.rpc.decoderawtransaction(tx_data["hex"])
+                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
+                    available["untrusted_pending"] -= raw_tx["vout"][tx["vout"]]["value"]
+                else:
+                    available["trusted"] -= raw_tx["vout"][tx["vout"]]["value"]
+            balance["available"] = available
         except:
-            self.balance = {"trusted": 0, "untrusted_pending": 0}
+            balance = {
+                "trusted": 0,
+                "untrusted_pending": 0,
+                "available": {"trusted": 0, "untrusted_pending": 0},
+            }
+        self.balance = balance
         return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
@@ -815,10 +841,6 @@ class Wallet:
             )
         )
 
-    @property
-    def is_current_address_used(self):
-        return self.balance_on_address(self.address) > 0
-
     def utxo_addresses(self, idx=0, wallet_utxo_batch=100):
         return list(
             dict.fromkeys(
@@ -898,18 +920,7 @@ class Wallet:
 
     @property
     def available_balance(self):
-        locked_utxo = self.rpc.listlockunspent()
-        # copy
-        balance = {}
-        balance.update(self.balance)
-        for tx in locked_utxo:
-            tx_data = self.rpc.gettransaction(tx["txid"])
-            raw_tx = self.rpc.decoderawtransaction(tx_data["hex"])
-            if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                balance["untrusted_pending"] -= raw_tx["vout"][tx["vout"]]["value"]
-            else:
-                balance["trusted"] -= raw_tx["vout"][tx["vout"]]["value"]
-        return balance
+        return self.balance["available"]
 
     @property
     def full_available_balance(self):
@@ -953,7 +964,7 @@ class Wallet:
             )
 
         extra_inputs = []
-        if self.available_balance["trusted"] < sum(amounts):
+        if self.available_balance["trusted"] <= sum(amounts):
             txlist = self.rpc.listunspent(0, 0)
             b = sum(amounts) - self.available_balance["trusted"]
             for tx in txlist:

@@ -50,6 +50,9 @@ from binascii import b2a_base64
 from .util.base43 import b43_decode
 from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
+import logging
+
+logger = logging.getLogger(__name__)
 
 from pathlib import Path
 
@@ -1109,6 +1112,8 @@ def wallet_tx_utxo(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_addresses: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    # check utxo list
+    wallet.check_utxo()
     viewtype = "address" if request.args.get("view") != "label" else "label"
     idx = int(request.args.get("idx", default=0))
     if request.method == "POST":
@@ -1149,8 +1154,9 @@ def wallet_receive(wallet_alias):
         elif action == "updatelabel":
             label = request.form["label"]
             wallet.setlabel(wallet.address, label)
-    if wallet.is_current_address_used:
-        wallet.getnewaddress()
+    # check that current address is unused
+    # and generate new one if it is
+    wallet.check_unused()
     return render_template(
         "wallet/receive/wallet_receive.jinja",
         wallet_alias=wallet_alias,
@@ -1226,6 +1232,10 @@ def wallet_sendnew(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_send: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    # update balances in the wallet
+    wallet.get_balance()
+    # update utxo list for coin selection
+    wallet.check_utxo()
     psbt = None
     addresses = [""]
     labels = [""]
@@ -1287,6 +1297,7 @@ def wallet_sendnew(wallet_alias):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
+                logger.error(e)
             if err is None:
                 if "estimate_fee" in request.form:
                     return psbt
