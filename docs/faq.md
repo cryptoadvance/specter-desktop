@@ -19,7 +19,7 @@
   - [*If the Bitcoin Core instance we are connecting to already has a wallet, is it possible to load it via the UI if we know the name, and could we import a .dat file?*](#if-the-bitcoin-core-instance-we-are-connecting-to-already-has-a-wallet-is-it-possible-to-load-it-via-the-ui-if-we-know-the-name-and-could-we-import-a-dat-file)
   - [*How are Bitcoin Core mnemonic seeds created? With Core there's only the option to backup the wallet.dat file, so how does specter-desktop transform the wallet.dat file into a mnemonic seed?*](#how-are-bitcoin-core-mnemonic-seeds-created-with-core-theres-only-the-option-to-backup-the-walletdat-file-so-how-does-specter-desktop-transform-the-walletdat-file-into-a-mnemonic-seed)
   - [*Why when I export a multisig wallet from specter-desktop (settings > export > copy wallet data) created from devices with only segwit ZPUBs, do I get a data structure with expected segwit derivation paths but XPUBs instead?*](#why-when-i-export-a-multisig-wallet-from-specter-desktop-settings--export--copy-wallet-data-created-from-devices-with-only-segwit-zpubs-do-i-get-a-data-structure-with-expected-segwit-derivation-paths-but-xpubs-instead)
-  - [*Does Specter have Coin Control?*](#Does-Specter-have-Coin-Control) 
+  - [*Does Specter have Coin Control?*](#does-specter-have-coin-control)
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
