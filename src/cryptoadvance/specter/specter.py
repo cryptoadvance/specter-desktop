@@ -172,8 +172,20 @@ class Specter:
         self.check_config()
 
         # update rpc if something doesn't work
-        if self.rpc is None or not self.rpc.test_connection():
-            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+        rpc = self.rpc
+        if rpc is None or not rpc.test_connection():
+            rpc = get_rpc(self.config["rpc"], self.rpc)
+
+        # if rpc is not available
+        # do checks more often, once in 3 seconds
+        if rpc is None:
+            period = 3
+        else:
+            period = 600
+        if hasattr(self, "checker") and self.checker.period != period:
+            logger.info("Checking every %d seconds now" % period)
+            self.checker.period = period
+        self.rpc = rpc
 
         self.check_node_info()
         if not check_all:

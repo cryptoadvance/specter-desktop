@@ -50,9 +50,6 @@ from binascii import b2a_base64
 from .util.base43 import b43_decode
 from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
-import logging
-
-logger = logging.getLogger(__name__)
 
 from pathlib import Path
 
@@ -68,6 +65,10 @@ rand = random.randint(0, 1e32)  # to force style refresh
 ########## exception handler ##############
 @app.errorhandler(Exception)
 def server_error(e):
+    # if rpc is not available
+    if app.specter.rpc is None or not app.specter.rpc.test_connection():
+        # make sure specter knows that rpc is not there
+        app.specter.check()
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
@@ -1091,6 +1092,8 @@ def wallet_tx_history(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_tx: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    # update balances in the wallet
+    wallet.get_balance()
     idx = int(request.args.get("idx", default=0))
 
     return render_template(
@@ -1112,6 +1115,8 @@ def wallet_tx_utxo(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_addresses: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    # update balances in the wallet
+    wallet.get_balance()
     # check utxo list
     wallet.check_utxo()
     viewtype = "address" if request.args.get("view") != "label" else "label"
@@ -1297,7 +1302,7 @@ def wallet_sendnew(wallet_alias):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
-                logger.error(e)
+                app.logger.error(e)
             if err is None:
                 if "estimate_fee" in request.form:
                     return psbt
