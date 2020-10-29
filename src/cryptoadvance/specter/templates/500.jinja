@@ -17,6 +17,9 @@
         <div class="card" style="width:90%; max-width: 800px;">
             <h1>Server error!</h1>
             Exception: <b>{{ error }}</b><br><br>
+            <div><br>
+                <a class="btn" href="{{ url_for('index') }}">Back to the main page</a>
+            <br></div>
             Details:
             <pre><code>{{ traceback }}</code></pre>
             <br>
