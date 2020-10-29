@@ -64,6 +64,47 @@ def get_rpc(conf, old_rpc=None):
         return rpc
 
 
+class Checker:
+    """
+    Checker class that calls the periodic callback.
+    If you want to force-check within the next second
+    set checker.last_check to 0.
+    """
+
+    def __init__(self, callback, period=600):
+        self.callback = callback
+        self.last_check = 0
+        self.period = period
+        self.running = False
+
+    def start(self):
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self.loop)
+            self.thread.daemon = True
+            self.thread.start()
+
+    def stop(self):
+        logger.info("Checker stopped.")
+        self.running = False
+
+    def loop(self):
+        while self.running:
+            # check if it's time to update
+            if time.time() - self.last_check >= self.period:
+                try:
+                    t0 = time.time()
+                    self.callback()
+                    dt = time.time() - t0
+                    logger.info("Checker checked in %.3f seconds" % dt)
+                except Exception as e:
+                    logger.error(e)
+                finally:
+                    self.last_check = time.time()
+            # wait 1 second
+            time.sleep(1)
+
+
 class Specter:
     """ A central Object mostly holding app-settings """
 
@@ -115,6 +156,8 @@ class Specter:
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         self.check(check_all=True)
+        self.checker = Checker(lambda: self.check(check_all=True))
+        self.checker.start()
 
     def check(self, user=None, check_all=False):
         """
@@ -125,17 +168,29 @@ class Specter:
         - wallet manager
         - device manager
         """
-        # find proper user
-        user = self.user_manager.get_user(user)
         # check if config file have changed
         self.check_config()
 
         # update rpc if something doesn't work
-        if self.rpc is None or not self.rpc.test_connection():
-            self.rpc = get_rpc(self.config["rpc"], self.rpc)
+        rpc = self.rpc
+        if rpc is None or not rpc.test_connection():
+            rpc = get_rpc(self.config["rpc"], self.rpc)
+
+        # if rpc is not available
+        # do checks more often, once in 3 seconds
+        if rpc is None:
+            period = 3
+        else:
+            period = 600
+        if hasattr(self, "checker") and self.checker.period != period:
+            logger.info("Checking every %d seconds now" % period)
+            self.checker.period = period
+        self.rpc = rpc
 
         self.check_node_info()
         if not check_all:
+            # find proper user
+            user = self.user_manager.get_user(user)
             self.check_for_user(user)
         else:
             for u in self.user_manager.users:
@@ -351,11 +406,7 @@ class Specter:
         return r
 
     def _save(self):
-        write_json_file(
-            self.config,
-            self.config_fname,
-            lock=self.lock,
-        )
+        write_json_file(self.config, self.config_fname, lock=self.lock)
 
     @property
     def config_fname(self):
