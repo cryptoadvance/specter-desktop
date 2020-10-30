@@ -102,7 +102,7 @@ release_electron_linux_windows:
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - pip3 install github-binary-upload
-    - export ${CI_PROJECT_ROOT_NAMESPACE} # needed in the build-script to download the right windows-binary
+    - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
     - cd pyinstaller && ./build-ci.sh $CI_COMMIT_TAG
     - ls -l release-linux
     - ls -l release-win
