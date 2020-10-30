@@ -50,7 +50,9 @@ def _delete_folder(path):
 
 def _write_json_file(content, path, lock=None):
     """ Internal method which won't trigger the callback """
-    with fslock:
+    if lock is None:
+        lock = fslock
+    with lock:
         # backup file
         bkp = path + ".bkp"
         # check if file exists
