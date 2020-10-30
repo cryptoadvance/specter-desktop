@@ -26,6 +26,8 @@ const download = (uri, filename, callback) => {
 
 let specterdProcess
 let mainWindow
+let prefWindow
+
 let webPreferences = {
   worldSafeExecuteJavaScript: true,
   contextIsolation: true,
@@ -225,11 +227,14 @@ app.on('before-quit', () => {
 })
 
 ipcMain.on('request-mainprocess-action', (event, arg) => {
-  console.log('arg')
   console.log(arg)
   switch (arg.message) {
-    case 'quit-specterd':
+    case 'save-preferences':
       quitSpecterd()
+      specterdProcess.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+        prefWindow.webContents.executeJavaScript(`savePreferences()`);
+      });
       break
     case 'quit-app':
       app.quit()
@@ -277,7 +282,7 @@ function setMainMenu() {
 }
 
 function openPreferences() {
-  let prefWindow = new BrowserWindow({
+  prefWindow = new BrowserWindow({
     width: 700,
     height: 750,
     parent: mainWindow,

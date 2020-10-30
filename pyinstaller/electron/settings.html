@@ -35,7 +35,7 @@
                     </div>
                 </div><br>
                 <div class="row flex-center">
-                    <button type="button" save-btn" class="btn" onclick="savePreferences()" style="margin: 5px;">Save</button>
+                    <button type="button" save-btn" class="btn" onclick="signalSavePreferences()" style="margin: 5px;">Save</button>
                     <button type="button" id="cancel-btn" class="btn" onclick="window.close()" style="margin: 5px;">Cancel</button>
                 </div>
             </form>
@@ -56,13 +56,16 @@
                 document.getElementById('hwibridge-mode-settings').style.display = isActive ? 'block' : 'none'
             }
 
+            function signalSavePreferences() {
+                ipcRenderer.send('request-mainprocess-action', {
+                    message: 'save-preferences'
+                });
+            }
+
             function savePreferences() {
                 let specterdFile = document.getElementById("specterd-file").files[0]
                 if (specterdFile) {
                     let specterdPath = path.resolve(specterdDirPath, 'specterd' + (specterdFile.path.endsWith('.exe') ? '.exe' : ''))
-                    ipcRenderer.send('request-mainprocess-action', {
-                        message: 'quit-specterd'
-                    });
                     fs.copyFileSync(specterdFile.path, specterdPath);
                 }
                 let hwiBridgeMode = document.getElementById('hwibridge-mode-active').checked
@@ -92,7 +95,7 @@
                 appSettings.specterdHash = document.getElementById('specterd-hash').value
                 appSettings.specterdCLIArgs = document.getElementById('specterd-cli-args').value
                 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
-                dialog.showMessageBox({message: 'Specter settings were saved successfully!\nPlease restart the app to activate the changes.', buttons: ['Continue'] });
+                dialog.showMessageBox({message: 'Specter settings were saved successfully!\nPlease reopen the app to activate the changes.', buttons: ['Continue'] });
                 ipcRenderer.send('request-mainprocess-action', {
                     message: 'quit-app'
                 });
