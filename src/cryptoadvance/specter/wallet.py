@@ -423,6 +423,9 @@ class Wallet:
 
         return result
 
+    def gettransaction(self, txid):
+        return self.rpc.gettransaction(txid)
+
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
