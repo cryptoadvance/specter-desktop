@@ -258,7 +258,7 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
   switch (arg.message) {
     case 'save-preferences':
       // Child process already closed
-      if (specterdProcess.exitCode != null) {
+      if (specterdProcess && specterdProcess.exitCode != null) {
         prefWindow.webContents.executeJavaScript(`savePreferences()`);
       } else {
         quitSpecterd()
