@@ -20,7 +20,11 @@ const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
         console.log('content-type:', res.headers['content-type'])
         console.log('content-length:', res.headers['content-length'])
-        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
+        if (res.statusCode == 200) {
+          request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
+        } else {
+          callback(true)
+        }
     })
 }
 
@@ -155,7 +159,13 @@ function downloadSpecterd(specterdPath) {
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
     fs.writeFileSync('./version-data.json', JSON.stringify(versionData));
   }
-  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function() {
+  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
+    if (errored == true) {
+      updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
+      updateSpecterdStatus('Fetching specterd failed...')
+      return
+    }
+
     updatingLoaderMsg('Unpacking files...')
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -258,14 +268,14 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
   switch (arg.message) {
     case 'save-preferences':
       // Child process already closed
-      if (specterdProcess && specterdProcess.exitCode != null) {
+      if (!specterdProcess || specterdProcess.exitCode != null) {
         prefWindow.webContents.executeJavaScript(`savePreferences()`);
       } else {
-        quitSpecterd()
         specterdProcess.on('close', (code) => {
           console.log(`child process exited with code ${code}`);
           prefWindow.webContents.executeJavaScript(`savePreferences()`);
-        }); 
+        });
+        quitSpecterd()
       }
       break
     case 'quit-app':
