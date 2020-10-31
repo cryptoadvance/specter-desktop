@@ -735,6 +735,7 @@ class Wallet:
                     available["untrusted_pending"] -= delta
                 else:
                     available["trusted"] -= delta
+                    available["trusted"] = round(available["trusted"], 8)
             balance["available"] = available
         except:
             balance = {
@@ -742,6 +743,7 @@ class Wallet:
                 "untrusted_pending": 0,
                 "available": {"trusted": 0, "untrusted_pending": 0},
             }
+            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
         self.balance = balance
         return self.balance
 

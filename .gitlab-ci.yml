@@ -27,19 +27,20 @@ before_script:
   - source .env/bin/activate
 
 test:
-  stage: testing
-  script:
-    - echo hello
-
-#test:
-#  stage: testing
-#  script:
-#    - pip3 install -r requirements.txt
-#    - pip3 install -e .
-#    - pip3 install -r test_requirements.txt
-#    # pytest --docker not working? Uncomment this for better debugging:
-#    # - python3 tests/conftest.py 
-#    - pytest --docker
+ stage: testing
+ # We assume here that people who want to get code into the master-branch are
+ # relying on PRs and people who are working on gitlab-forks are working
+ # on CI which probably want fast feedback on the releasing-jobs 
+ # and therefore skip the test-job
+ only:
+    - $CI_PROJECT_NAMESPACE =~ "cryptoadvance" 
+ script:
+   - pip3 install -r requirements.txt
+   - pip3 install -e .
+   - pip3 install -r test_requirements.txt
+   # pytest --docker not working? Uncomment this for better debugging:
+   # - python3 tests/conftest.py 
+   - py.test --cov-report term --cov cryptoadvance --docker
 
 release_pip:
   stage: releasing
@@ -53,12 +54,16 @@ release_pip:
     - echo Releasing $CI_COMMIT_TAG
     - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
     - cat setup.py
+    - pip3 install github-binary-upload
     - python3 setup.py sdist bdist_wheel
-    # twine ready the password from the env-var TWINE_PASSWORD
-    # Add --repository-url https://test.pypi.org/legacy/ for testing the release procedure
-    - ls -l dist && python3 -m twine upload --verbose --user __token__ dist/*
-    - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS.txt
-    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./dist/SHA256SUMS.txt ./dist/cryptoadvance.specter-*.tar.gz
+    - ls -l dist
+    # twine reads the password from the env-var TWINE_PASSWORD
+    # Either testing it or doing the real thing depending on which gitlab-project we're running:
+    - if ! [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* --repository-url https://test.pypi.org/legacy/ ; fi
+    - if [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* ; fi
+    - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS-pip.txt
+    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries ${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop $CI_COMMIT_TAG ./dist/SHA256SUMS-pip.txt ./dist/cryptoadvance.specter-*.tar.gz
+
 
 release_binary_windows:
   stage: releasing
@@ -75,10 +80,11 @@ release_binary_windows:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
     - whoami
+    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - pip3 install github-binary-upload
     - cd pyinstaller 
     - .\build-win-ci.bat $CI_COMMIT_TAG
-    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $Env:CI_COMMIT_TAG ./release/specterd-$CI_COMMIT_TAG-win64.zip
+    - echo $Env:GH_BIN_UPLOAD_PW | docker run -i -v ${pwd}:/work k9ert/github-binary-upload:latest -u gitlab_upload_release_binaries $Env:CI_PROJECT_ROOT_NAMESPACE/specter-desktop $Env:CI_COMMIT_TAG ./release/specterd-$CI_COMMIT_TAG-win64.zip
 
 release_electron_linux_windows:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
@@ -94,9 +100,17 @@ release_electron_linux_windows:
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
   script:
+    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - pip3 install github-binary-upload
+    - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
     - cd pyinstaller && ./build-ci.sh $CI_COMMIT_TAG
-    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries cryptoadvance/specter-desktop $CI_COMMIT_TAG ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
+    - ls -l release-linux
+    - ls -l release-win
+    - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS.txt
+    - cat ./SHA256SUMS.txt
+    - if [[ -f /credentials/private.key ]]; then gpg --import /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt; fi
+    - echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries ${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop $CI_COMMIT_TAG ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe ./SHA256SUMS.txt 
+    - if [[ -f /credentials/private.key ]]; then echo $GH_BIN_UPLOAD_PW | github-binary-upload -u gitlab_upload_release_binaries ${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop $CI_COMMIT_TAG ./SHA256SUMS.txt.sig ; fi
 
 
 
