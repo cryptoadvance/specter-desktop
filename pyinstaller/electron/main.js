@@ -119,7 +119,7 @@ app.whenReady().then(() => {
   }
 })
 
-function initMainWindow() {
+function initMainWindow(specterURL) {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
@@ -138,7 +138,7 @@ function initMainWindow() {
 
   mainWindow.webContents.on("did-fail-load", function() {
     mainWindow.loadURL(`file://${__dirname}/splash.html`);
-    updatingLoaderMsg(`Failed to load: ${specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
+    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
   });
 }
 
@@ -257,11 +257,16 @@ app.on('before-quit', () => {
 ipcMain.on('request-mainprocess-action', (event, arg) => {
   switch (arg.message) {
     case 'save-preferences':
-      quitSpecterd()
-      specterdProcess.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
+      // Child process already closed
+      if (specterdProcess.exitCode != null) {
         prefWindow.webContents.executeJavaScript(`savePreferences()`);
-      });
+      } else {
+        quitSpecterd()
+        specterdProcess.on('close', (code) => {
+          console.log(`child process exited with code ${code}`);
+          prefWindow.webContents.executeJavaScript(`savePreferences()`);
+        }); 
+      }
       break
     case 'quit-app':
       app.quit()
