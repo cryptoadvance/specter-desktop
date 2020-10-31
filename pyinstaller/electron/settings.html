@@ -1,4 +1,9 @@
 <html>
+    <style>
+        input[type="text"]:disabled {
+            border: none;
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="./styles.css">
     <body style="overflow: auto; height: 100%;">
         <div style="margin: auto; text-align: left;">
@@ -14,7 +19,7 @@
                             <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="Please enter the remote Specter URL" />
                             <br>
                             <p style="margin-top: 20px;">
-                                <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="./tor.svg"/><span style="vertical-align: bottom; margin-right: 10px;">Connect over Tor: </span><label class="switch">
+                                <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="assets/tor.svg"/><span style="vertical-align: bottom; margin-right: 10px;">Connect over Tor: </span><label class="switch">
                                     <input type="checkbox" id="tor-checkbox">
                                     <span class="slider"></span>
                                 </label>
@@ -23,10 +28,17 @@
                         </div>
                     </div>
                     <br>
-                    <h2>Specter daemon configurations</h2>
+                    <hr>
+                    <br>
+                    <h2 style="float: left;">Specter daemon configurations</h2>
+                    <br>
                     <div style="margin: 10px;">
-                        <p>Specterd Version: <input id="specterd-version" style="margin-top: 10px;" type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
-                        <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
+                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false"
+                        style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit version" src="assets/edit_icon.svg"/>
+                        <p>Specterd Version:<input id="specterd-version" style="margin-top: 10px;" disabled type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
+                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false"
+                        style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit specterd hash" src="assets/edit_icon.svg"/>
+                        <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" disabled type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
                         <p>Specterd CLI args: <input id="specterd-cli-args" style="margin-top: 10px;" type="text" placeholder="example: --tor --port=25441" /></p>
                         <p>Use a custom specterd file: <input type="file" id="specterd-file" class="inputfile"/>
 					    <label for="specterd-file" class="btn" style="display: inline-block; margin-left: 15px; width: 180px;">Choose file</label></p>
