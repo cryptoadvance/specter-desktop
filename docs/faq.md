@@ -33,7 +33,7 @@
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
   - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
-- [BACKING UP FUNDS](#backing-up-funds)
+- [BACKING UP FUNDS ](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** acccess to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-acccess-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
   - [*To recover a multisig that was built on specter (eg: 2 of 3 with Coldcard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
 - [SPECTER-DIY](#specter-diy)
