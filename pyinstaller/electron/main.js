@@ -52,10 +52,9 @@ switch (process.platform) {
 }
 
 function createWindow (specterURL) {  
-  mainWindow.webContents.on("did-fail-load", function() {
-      mainWindow.loadURL(`file://${__dirname}/splash.html`);
-      updatingLoaderMsg(`Failed to load: ${specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
-  });
+  if (!mainWindow) {
+    initMainWindow()
+  }
 
   // Create the browser window.
   if (appSettings.tor) {
@@ -87,21 +86,9 @@ app.whenReady().then(() => {
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
-  mainWindow = new BrowserWindow({
-    width: parseInt(dimensions.width * 0.8),
-    height: parseInt(dimensions.height * 0.8),
-    webPreferences
-  })
-  setMainMenu();
-  mainWindow.webContents.on('new-window', function(e, url) {
-    e.preventDefault();
-    shell.openExternal(url);
-  });
+  initMainWindow()
 
-  mainWindow.on('close', function (event) {
-      event.preventDefault();
-      mainWindow.hide();
-  });
+  setMainMenu();
   
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
 
@@ -131,6 +118,29 @@ app.whenReady().then(() => {
     }
   }
 })
+
+function initMainWindow() {
+  mainWindow = new BrowserWindow({
+    width: parseInt(dimensions.width * 0.8),
+    height: parseInt(dimensions.height * 0.8),
+    webPreferences
+  })
+  
+  mainWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    shell.openExternal(url);
+  });
+
+  mainWindow.on('close', function (event) {
+      event.preventDefault();
+      mainWindow.hide();
+  });
+
+  mainWindow.webContents.on("did-fail-load", function() {
+    mainWindow.loadURL(`file://${__dirname}/splash.html`);
+    updatingLoaderMsg(`Failed to load: ${specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
+  });
+}
 
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
@@ -188,11 +198,13 @@ function updateSpecterdStatus(status) {
 }
 
 function updatingLoaderMsg(msg) {
-  let code = `
-  var launchText = document.getElementById('launch-text');
-  launchText.innerHTML = '${msg}';
-  `;
-  mainWindow.webContents.executeJavaScript(code);
+  if (mainWindow) {
+    let code = `
+    var launchText = document.getElementById('launch-text');
+    launchText.innerHTML = '${msg}';
+    `;
+    mainWindow.webContents.executeJavaScript(code);
+  } 
 }
 
 function startSpecterd(specterdPath) {
@@ -237,16 +249,8 @@ function startSpecterd(specterdPath) {
   });
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
-  mainWindow = null
-  if (process.platform !== 'darwin') app.quit()
-})
-
 app.on('before-quit', () => {
-  mainWindow = null;
+  mainWindow.destroy()
   quitSpecterd()
 })
 
