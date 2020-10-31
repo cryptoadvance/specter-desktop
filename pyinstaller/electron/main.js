@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, screen, shell, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
@@ -27,6 +27,8 @@ const download = (uri, filename, callback) => {
 let specterdProcess
 let mainWindow
 let prefWindow
+let tray
+let trayMenu
 
 let webPreferences = {
   worldSafeExecuteJavaScript: true,
@@ -49,15 +51,7 @@ switch (process.platform) {
     break
 }
 
-function createWindow (specterURL) {
-  if (!mainWindow) {
-    mainWindow = new BrowserWindow({
-      width: parseInt(dimensions.width * 0.8),
-      height: parseInt(dimensions.height * 0.8),
-      webPreferences
-    })
-  }
-  
+function createWindow (specterURL) {  
   mainWindow.webContents.on("did-fail-load", function() {
       mainWindow.loadURL(`file://${__dirname}/splash.html`);
       updatingLoaderMsg(`Failed to load: ${specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
@@ -68,6 +62,8 @@ function createWindow (specterURL) {
     mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL });
   }
 
+  updateSpecterdStatus('Specter is running...')
+
   mainWindow.loadURL(specterURL)
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -77,6 +73,17 @@ function createWindow (specterURL) {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Start the tray icon
+  tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  trayMenu = [
+    { label: 'Launching Specter...', enabled: false },
+    { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
+    { label: 'Preferences',  click() { openPreferences() }},
+    { label: 'Quit',  role: 'quit' },
+  ]
+  tray.setToolTip('This is my application.')
+  tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
+
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
@@ -89,6 +96,11 @@ app.whenReady().then(() => {
   mainWindow.webContents.on('new-window', function(e, url) {
     e.preventDefault();
     shell.openExternal(url);
+  });
+
+  mainWindow.on('close', function (event) {
+      event.preventDefault();
+      mainWindow.hide();
   });
   
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
@@ -103,9 +115,11 @@ app.whenReady().then(() => {
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
         updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...')
+        updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {
         updatingLoaderMsg('Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
+        updateSpecterdStatus('Failed to locate specterd...')
       }
     })
   } else {
@@ -113,12 +127,14 @@ app.whenReady().then(() => {
       downloadSpecterd(specterdPath)
     } else {
       updatingLoaderMsg('Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
+      updateSpecterdStatus('Failed to locate specterd...')
     }
   }
 })
 
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...')
+  updateSpecterdStatus('Fetching Specter binary...')
   console.log("Using version ", appSettings.specterdVersion);
   console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
   let versionData = require('./version-data.json')
@@ -156,6 +172,7 @@ function downloadSpecterd(specterdPath) {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
+          updateSpecterdStatus('Failed to launch specterd...')
           // app.quit()
           // TODO: This should never happen unless the specterd file was swapped on GitHub.
           // Think of what would be the appropriate way to handle this...
@@ -163,6 +180,11 @@ function downloadSpecterd(specterdPath) {
       })
     })
   })
+}
+
+function updateSpecterdStatus(status) {
+  trayMenu[0] = { label: status, enabled: false };
+  tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 }
 
 function updatingLoaderMsg(msg) {
@@ -180,6 +202,7 @@ function startSpecterd(specterdPath) {
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
   updatingLoaderMsg('Launching Specter Desktop...')
+  updateSpecterdStatus('Launching Specter...')
   let specterdArgs = hwiBridgeMode ? ['--hwibridge'] : null
   if (appSettings.specterdCLIArgs != '') {
     if (specterdArgs == null) {
@@ -209,6 +232,7 @@ function startSpecterd(specterdPath) {
   })
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
+    updateSpecterdStatus('Specter stopped...')
     console.log(`child process exited with code ${code}`);
   });
 }
@@ -227,7 +251,6 @@ app.on('before-quit', () => {
 })
 
 ipcMain.on('request-mainprocess-action', (event, arg) => {
-  console.log(arg)
   switch (arg.message) {
     case 'save-preferences':
       quitSpecterd()
