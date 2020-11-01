@@ -1,5 +1,7 @@
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
+
 let versionData
 try {
     versionData = require('./version-data.json')
@@ -11,6 +13,21 @@ try {
     }
 }
 const appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
+const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
+
+function getFileHash(filename, callback) {
+  let shasum = crypto.createHash('sha256')
+  // Updating shasum with file content
+  , s = fs.ReadStream(filename)
+  s.on('data', function(data) {
+    shasum.update(data)
+  })
+  // making digest
+  s.on('end', function() {
+  var hash = shasum.digest('hex')
+    callback(hash)
+  })
+}
 
 function getAppSettings() {  
     let defaultSettings = {
@@ -24,6 +41,9 @@ function getAppSettings() {
     }
   
     try {
+      if (!fs.existsSync(appSettingsPath)){
+          fs.mkdirSync(path.resolve(appSettingsPath, '..'), { recursive: true });
+      }
       fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings), { flag: 'wx' });
     } catch {
         // settings file already exists
@@ -41,6 +61,8 @@ function getAppSettings() {
   }
 
 module.exports = {
+    getFileHash: getFileHash,
     appSettingsPath: appSettingsPath,
-    getAppSettings: getAppSettings
+    getAppSettings: getAppSettings,
+    specterdDirPath: specterdDirPath
 }
