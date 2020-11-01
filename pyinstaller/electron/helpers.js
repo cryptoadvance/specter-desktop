@@ -41,6 +41,9 @@ function getAppSettings() {
     }
   
     try {
+      if (!fs.existsSync(appSettingsPath)){
+          fs.mkdirSync(path.resolve(appSettingsPath, '..'), { recursive: true });
+      }
       fs.writeFileSync(appSettingsPath, JSON.stringify(defaultSettings), { flag: 'wx' });
     } catch {
         // settings file already exists
