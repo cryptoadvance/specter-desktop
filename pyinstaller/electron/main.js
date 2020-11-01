@@ -289,11 +289,15 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
 
 function quitSpecterd() {
   if (specterdProcess) {
-    if (platformName == 'win64') {
-      exec('taskkill -F -T -PID ' + specterdProcess.pid);
-      process.kill(-specterdProcess.pid)
+    try {
+      if (platformName == 'win64') {
+        exec('taskkill -F -T -PID ' + specterdProcess.pid);
+        process.kill(-specterdProcess.pid)
+      }
+      specterdProcess.kill('SIGINT')
+    } catch (e) {
+      console.log('Specterd quit warning: ' + e)
     }
-    specterdProcess.kill('SIGINT')
   }
 }
 
