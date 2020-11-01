@@ -33,9 +33,12 @@
                     <h2 style="float: left;">Specter daemon configurations</h2>
                     <br>
                     <div style="margin: 10px;">
-                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false"
+                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false; document.getElementById('download-github-version').style.display='block'"
                         style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit version" src="assets/edit_icon.svg"/>
                         <p>Specterd Version:<input id="specterd-version" style="margin-top: 10px;" disabled type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
+                        <span id="download-github-version" class="hidden">
+                            Re-download from GitHub: <input style="vertical-align: sub;" class="checkbox" type="checkbox" id="download-github-version-checkbox">
+                        </span>
                         <img onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false"
                         style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit specterd hash" src="assets/edit_icon.svg"/>
                         <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" disabled type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
@@ -79,6 +82,12 @@
                 if (specterdFile) {
                     let specterdPath = path.resolve(specterdDirPath, 'specterd' + (specterdFile.path.endsWith('.exe') ? '.exe' : ''))
                     fs.copyFileSync(specterdFile.path, specterdPath);
+                } else if (document.getElementById('download-github-version-checkbox').checked) {
+                    let specterdPath = path.resolve(specterdDirPath, 'specterd' + (process.platform == 'win32' ? '.exe' : ''))
+                    if (fs.existsSync(specterdPath)){
+                        fs.unlinkSync(specterdPath);
+                    }
+                    document.getElementById('specterd-hash').value = ''
                 }
                 let hwiBridgeMode = document.getElementById('hwibridge-mode-active').checked
                 let remoteSpecterURL = document.getElementById('specter-url').value
