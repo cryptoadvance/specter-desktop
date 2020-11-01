@@ -1,4 +1,4 @@
-## v0.9.0 November 1, 2020
+## v0.9.0 November 2, 2020
 
 - Bugfix: Fix hash verification #554 (@ben-kaufman)
 - Bugfix: Fix CI related fixes #551 #552 #553 (@ben-kaufman)
