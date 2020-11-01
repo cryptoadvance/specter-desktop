@@ -82,7 +82,7 @@ app.whenReady().then(() => {
     { label: 'Launching Specter...', enabled: false },
     { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
     { label: 'Preferences',  click() { openPreferences() }},
-    { label: 'Quit',  role: 'quit' },
+    { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
   tray.setToolTip('This is my application.')
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
@@ -281,6 +281,7 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
       }
       break
     case 'quit-app':
+      quitSpecterd()
       app.quit()
       break
   }
