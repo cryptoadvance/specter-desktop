@@ -125,6 +125,11 @@ class WalletManager:
                                     f"Couldn't load wallet {wallet_alias} into core.\
 Silently ignored! RPC error: {e}"
                                 )
+                            except Exception as e:
+                                logger.warn(
+                                    f"Couldn't load wallet {wallet_alias}.\
+Silently ignored! Wallet error: {e}"
+                                )
                         else:
                             if wallet_name not in existing_names:
                                 # ok wallet is already there
