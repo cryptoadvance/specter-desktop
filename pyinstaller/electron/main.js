@@ -260,7 +260,9 @@ function startSpecterd(specterdPath) {
 }
 
 app.on('before-quit', () => {
-  mainWindow.destroy()
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.destroy()
+  }
   quitSpecterd()
 })
 
@@ -327,7 +329,6 @@ function openPreferences() {
   prefWindow = new BrowserWindow({
     width: 700,
     height: 750,
-    parent: mainWindow,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true
