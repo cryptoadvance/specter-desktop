@@ -288,13 +288,11 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
 });
 
 function quitSpecterd() {
-  if (platformName == 'win64') {
-    exec('taskkill -F -T -PID ' + specterdProcess.pid);
-    process.kill(-specterdProcess.pid)
-  }
-
-
   if (specterdProcess) {
+    if (platformName == 'win64') {
+      exec('taskkill -F -T -PID ' + specterdProcess.pid);
+      process.kill(-specterdProcess.pid)
+    }
     specterdProcess.kill('SIGINT')
   }
 }
