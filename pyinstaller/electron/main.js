@@ -34,6 +34,9 @@ let prefWindow
 let tray
 let trayMenu
 
+// Flag the app was quitted
+let quitted = false
+
 let webPreferences = {
   worldSafeExecuteJavaScript: true,
   contextIsolation: true,
@@ -259,10 +262,16 @@ function startSpecterd(specterdPath) {
 }
 
 app.on('before-quit', () => {
-  quitSpecterd()
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.destroy()
+  if (!quitted) {
+    quitted = true
+    quitSpecterd()
+  
+    if (mainWindow && !mainWindow.isDestroyed()) {
+       mainWindow.destroy()
+       mainWindow = null
+       prefWindow = null
+       tray = null
+    } 
   }
 })
 
