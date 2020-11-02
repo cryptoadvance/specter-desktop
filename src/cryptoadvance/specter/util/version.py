@@ -60,7 +60,6 @@ class VersionChecker:
                 pass
         return current
 
-
     def get_binary_version(self):
         """
         Get binary version: current, latest.
