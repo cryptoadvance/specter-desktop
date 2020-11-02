@@ -14,7 +14,17 @@ elif platform.system() == 'Linux':
     if platform.processor() == 'aarch64': #ARM 64 bit
         binaries = [("/lib/aarch64-linux-gnu/libusb-1.0.so.0", ".")]
     else:
-        binaries = [("/lib/x86_64-linux-gnu/libusb-1.0.so.0", ".")]
+        candidates = [
+                "/usr/lib/libusb-1.0.so.0",
+                "/lib/x86_64-linux-gnu/libusb-1.0.so.0",
+                "/lib/aarch64-linux-gnu/libusb-1.0.so.0",
+                "/lib/arm-linux-gnueabihf/libusb-1.0.so.0",
+        ]
+        binaries = []
+        for p in candidates:
+            if os.path.isfile(p):
+                binaries = [(p, ".")]
+                break
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
     libusb_path = find_brew_libusb_proc.communicate()[0]
