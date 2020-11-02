@@ -102,6 +102,14 @@ app.whenReady().then(() => {
   if (!fs.existsSync(specterdDirPath)){
       fs.mkdirSync(specterdDirPath, { recursive: true });
   }
+
+  let versionData = require('./version-data.json')
+  if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
+    appSettings.specterdVersion = versionData.version
+    appSettings.specterdHash = versionData.sha256
+    appSettings.versionInitialized = versionData.version
+    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
+  }
   const specterdPath = specterdDirPath + '/specterd'
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
@@ -154,13 +162,6 @@ function downloadSpecterd(specterdPath) {
   updateSpecterdStatus('Fetching Specter binary...')
   console.log("Using version ", appSettings.specterdVersion);
   console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
-  let versionData = require('./version-data.json')
-  if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
-    appSettings.specterdVersion = versionData.version
-    appSettings.specterdHash = versionData.sha256
-    appSettings.versionInitialized = versionData.version
-    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
-  }
   download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
     if (errored == true) {
       updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
@@ -299,11 +300,11 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
 function quitSpecterd() {
   if (specterdProcess) {
     try {
-      specterdProcess.kill('SIGINT')
       if (platformName == 'win64') {
         exec('taskkill -F -T -PID ' + specterdProcess.pid);
         process.kill(-specterdProcess.pid)
       }
+      specterdProcess.kill('SIGINT')
     } catch (e) {
       console.log('Specterd quit warning: ' + e)
     }
