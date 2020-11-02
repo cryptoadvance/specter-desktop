@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class VersionChecker:
     def __init__(self, name="cryptoadvance.specter"):
         self.name = name
-        self.current = "unknown"
+        self.current = self.get_current_version()
         self.latest = "unknown"
         self.upgrade = False
         self.running = False
@@ -40,6 +40,25 @@ class VersionChecker:
             self.current, self.latest, self.upgrade = self.get_version_info()
             logger.info(f"version checked. upgrade: {self.upgrade}")
             time.sleep(dt)
+
+    def get_current_version(self):
+        current = "unknown"
+        try:
+            # try binary file
+            version_file = "version.txt"
+            if getattr(sys, "frozen", False):
+                version_file = os.path.join(sys._MEIPASS, "version.txt")
+            with open(version_file) as f:
+                current = f.read().strip()
+        except:
+            try:
+                current = importlib_metadata.version("cryptoadvance.specter")
+                # check if it's installed from master
+                if current == "vx.y.z-get-replaced-by-release-script":
+                    current = "custom"
+            except:
+                pass
+        return current
 
     def get_binary_version(self):
         """
