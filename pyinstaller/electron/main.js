@@ -152,12 +152,11 @@ function downloadSpecterd(specterdPath) {
   console.log("Using version ", appSettings.specterdVersion);
   console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
   let versionData = require('./version-data.json')
-  if (!('versionInitialized' in versionData) || !versionData.versionInitialized) {
+  if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
     appSettings.specterdVersion = versionData.version
     appSettings.specterdHash = versionData.sha256
-    versionData.versionInitialized = true
+    appSettings.versionInitialized = versionData.version
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
-    fs.writeFileSync('./version-data.json', JSON.stringify(versionData));
   }
   download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
     if (errored == true) {

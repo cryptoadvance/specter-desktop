@@ -37,7 +37,8 @@ function getAppSettings() {
       proxyURL: "socks5://127.0.0.1:9050",
       specterdVersion: versionData.version,
       specterdHash: versionData.sha256,
-      specterdCLIArgs: ""
+      specterdCLIArgs: "",
+      versionInitialized: false
     }
   
     try {

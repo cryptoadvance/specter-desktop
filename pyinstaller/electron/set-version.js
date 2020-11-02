@@ -10,8 +10,7 @@ async function setVersion() {
     if (process.argv[3]) {
         let versionData = {
             version,
-            sha256: (await createHashFromFile(process.argv[3])),
-            versionInitialized: false
+            sha256: (await createHashFromFile(process.argv[3]))
         }
     
         fs.writeFileSync('./version-data.json', JSON.stringify(versionData, undefined, 2))
