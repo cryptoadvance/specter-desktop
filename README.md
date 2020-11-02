@@ -26,6 +26,7 @@
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
  
 [![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
+[![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
 
 ## DISCLAIMER
 
