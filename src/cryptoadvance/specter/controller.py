@@ -375,6 +375,7 @@ def hwi_settings():
         rand=rand,
     )
 
+
 @app.route("/specter_backup.zip")
 @login_required
 def backup_file():
@@ -383,6 +384,7 @@ def backup_file():
         attachment_filename="specter-backup.zip",
         as_attachment=True,
     )
+
 
 @app.route("/settings/general", methods=["GET", "POST"])
 @login_required
