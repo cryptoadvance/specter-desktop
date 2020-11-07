@@ -719,15 +719,17 @@ def new_wallet(wallet_type):
         if action == "importwallet":
             wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
 
-            backup_type = "specter_format" if "recv_descriptor" in wallet_data else "account_map"
-            
+            backup_type = (
+                "specter_format" if "recv_descriptor" in wallet_data else "account_map"
+            )
+
             if backup_type == "specter_format":
                 name_key = "name"
                 descriptor_key = "recv_descriptor"
             elif backup_type == "account_map":
                 name_key = "label"
                 descriptor_key = "descriptor"
-            
+
             wallet_name = (
                 wallet_data[name_key] if name_key in wallet_data else "Imported Wallet"
             )
@@ -827,7 +829,7 @@ def new_wallet(wallet_type):
                         wallet = app.specter.wallet_manager.create_wallet(
                             wallet_name, sigs_required, address_type, keys, cosigners
                         )
-                        wallet.import_labels(wallet_data.get("labels", []))  
+                        wallet.import_labels(wallet_data.get("labels", []))
                         flash("Wallet imported successfully", "info")
                         try:
                             wallet.rpc.rescanblockchain(startblock, timeout=1)
