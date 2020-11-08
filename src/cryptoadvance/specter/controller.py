@@ -1291,7 +1291,7 @@ def wallet_sendnew(wallet_alias):
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
             if "dynamic" in request.form.get("fee_options"):
-                fee_rate = float(request.form.get("fee_rate_dynamic")) * 1e5
+                fee_rate = float(request.form.get("fee_rate_dynamic"))
             else:
                 if request.form.get("fee_rate"):
                     fee_rate = float(request.form.get("fee_rate"))
