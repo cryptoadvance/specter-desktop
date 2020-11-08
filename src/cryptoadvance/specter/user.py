@@ -108,6 +108,14 @@ class User(UserMixin):
         self.config["unit"] = unit
         self.save_info(specter)
 
+    def set_alt_rate(self, specter, alt_rate):
+        self.config["alt_rate"] = alt_rate
+        self.save_info(specter)
+
+    def set_alt_symbol(self, specter, alt_symbol):
+        self.config["alt_symbol"] = alt_symbol
+        self.save_info(specter)
+
     def delete(self, specter):
         # we delete wallet manager and device manager in save_info
         self.save_info(specter, delete=True)

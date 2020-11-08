@@ -383,10 +383,14 @@ def general_settings():
     explorer = app.specter.explorer
     loglevel = get_loglevel(app)
     unit = app.specter.unit
+    alt_rate = app.specter.alt_rate
+    alt_symbol = app.specter.alt_symbol
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
+        alt_rate = request.form["alt_rate"]
+        alt_symbol = request.form["alt_symbol"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
@@ -398,6 +402,8 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_unit(unit, current_user)
+            app.specter.update_alt_rate(alt_rate, current_user)
+            app.specter.update_alt_symbol(alt_symbol, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
@@ -483,6 +489,8 @@ This may take a few hours to complete.",
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
+        alt_rate=alt_rate,
+        alt_symbol=alt_symbol,
         specter=app.specter,
         current_version=current_version,
         rand=rand,
@@ -1780,6 +1788,18 @@ def btcunitamount(value):
         return btcamount(value)
     value = float(value)
     return "{:,.0f}".format(round(value * 1e8))
+
+
+@app.template_filter("altunit")
+def altunit(value):
+    if app.specter.alt_rate and app.specter.alt_symbol:
+        return (
+            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
+            .rstrip("0")
+            .rstrip(".")
+            + app.specter.alt_symbol
+        )
+    return ""
 
 
 @app.template_filter("bytessize")

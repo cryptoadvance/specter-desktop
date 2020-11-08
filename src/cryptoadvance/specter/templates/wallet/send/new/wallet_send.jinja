@@ -30,6 +30,9 @@
 				sats
 			{% else %}
 				{% if specter.chain !='main' %}t{%endif%}BTC
+			{% endif %}<br>
+			{% if specter.alt_rate and specter.alt_symbol %}
+				<span class="note">{{ wallet.full_available_balance | altunit }}</span>
 			{% endif %}
 		</p>
 		{% if wallet.locked_amount > 0 %}
@@ -115,7 +118,7 @@
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
 				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
 				<div>
-					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">{% if specter.unit == "sat" %}BTC{% else %}sat{% endif %}</span>
+					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">{% if specter.unit == "sat" %}BTC{% else %}sat{% endif %}</span> <span class="note" id="converted_unit_alt_${i}"></span>
 				</div>
 			<div>
 			`
@@ -208,8 +211,16 @@
 				convertedAmount = '-'
 			}
 			document.getElementById('converted_unit_amount_' + i).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount);
-
 			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
+
+			let altRate = parseFloat('{{ specter.alt_rate }}');
+			let altSymbol = '{{ specter.alt_symbol }}';
+			let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + i).value)).toFixed(2))
+			if (!isNaN(altAmount) && (altSymbol && altRate)) {
+				document.getElementById('converted_unit_alt_' + i).innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+			} else {
+				document.getElementById('converted_unit_alt_' + i).innerHTML = '';
+			}
 
 			validateForm();
 		}

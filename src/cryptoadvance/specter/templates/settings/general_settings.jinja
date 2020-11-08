@@ -53,6 +53,12 @@
 				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
 			</select>
 			<br><br>
+			<span>Alternative currency rate (per BTC):</span>
+			<input type="number" min="0" step="0.01" name="alt_rate" value="{{ alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
+			<br><br>
+			Alternative currency symbol:
+			<input type="text" name="alt_symbol" value="{{ alt_symbol }}" placeholder="eg. $/€/£">
+			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
