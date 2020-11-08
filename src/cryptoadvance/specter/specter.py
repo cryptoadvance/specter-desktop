@@ -110,6 +110,8 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
+            "alt_rate": 0,
+            "alt_symbol": "",
             "validate_merkle_proofs": False,
         }
 
@@ -440,6 +442,20 @@ class Specter:
         else:
             user.set_unit(self, unit)
 
+    def update_alt_rate(self, alt_rate, user):
+        if user.is_admin:
+            self.config["alt_rate"] = alt_rate
+            self._save()
+        else:
+            user.set_alt_rate(self, alt_rate)
+
+    def update_alt_symbol(self, alt_symbol, user):
+        if user.is_admin:
+            self.config["alt_symbol"] = alt_symbol
+            self._save()
+        else:
+            user.set_alt_symbol(self, alt_symbol)
+
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False
@@ -540,6 +556,14 @@ class Specter:
     @property
     def unit(self):
         return self.user_config.get("unit", "btc")
+
+    @property
+    def alt_rate(self):
+        return self.user_config.get("alt_rate", 0)
+
+    @property
+    def alt_symbol(self):
+        return self.user_config.get("alt_symbol", "")
 
     @property
     def admin(self):

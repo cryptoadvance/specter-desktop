@@ -74,6 +74,9 @@
 					{% else %}
 						{% if specter.chain !='main' %}t{%endif%}BTC
 					{% endif %}
+					{% if specter.alt_rate and specter.alt_symbol %}
+						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
+					{% endif %}
 					to<b>
 					{{ explorer_link('address', psbt['address'][i], wallet.get_address_name(psbt["address"][i], -1), specter.explorer) }}
 					</b><br><br>

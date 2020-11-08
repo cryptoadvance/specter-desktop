@@ -95,6 +95,9 @@
 					{% else %}
 						{% if specter.chain !='main' %}t{%endif%}BTC
 					{% endif %}
+					{% if specter.alt_rate and specter.alt_symbol %}
+						<span class="note">&nbsp;({{ balance | altunit }})</span>
+					{% endif %}
 				</p>
 				<br><br>
 				{{ 

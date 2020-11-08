@@ -15,7 +15,8 @@
 			{% else %}
 				{% if specter.chain !='main' %}t{%endif%}BTC
 			{% endif %}
-        </span>
+        </span><br>
+        <span class="note">{{ wallet.fullbalance | altunit }}</span>
         {% if wallet.balance["untrusted_pending"] > 0 %}<br>
             <small>( {{ wallet.balance["trusted"] | btcunitamount }} confirmed, {{ wallet.balance["untrusted_pending"] | btcunitamount }} pending )</small>
         {% endif %}
