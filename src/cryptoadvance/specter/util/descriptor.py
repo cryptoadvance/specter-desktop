@@ -88,6 +88,16 @@ class Descriptor:
         if origin_path and not isinstance(origin_path, list):
             self.m_path_base = "m" + origin_path
             self.m_path = "m" + origin_path + (path_suffix or "")
+        elif isinstance(origin_path, list):
+            self.m_path_base = []
+            self.m_path = []
+            for i in range(0, len(origin_path)):
+                if origin_path[i]:
+                    self.m_path_base.append("m" + origin_path[i])
+                    self.m_path.append("m" + origin_path[i] + (path_suffix[i] or ""))
+                else:
+                    self.m_path_base.append(None)
+                    self.m_path.append(None)
 
     @classmethod
     def parse(cls, desc, testnet=False):
