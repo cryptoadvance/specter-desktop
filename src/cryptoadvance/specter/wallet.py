@@ -637,16 +637,7 @@ class Wallet:
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        if self.is_multisig:
-            try:
-                # first try with sortedmulti
-                addr = self.rpc.deriveaddresses(desc, [index, index + 1])[0]
-            except Exception:
-                # if sortedmulti is not supported
-                desc = sort_descriptor(self.rpc, desc, index=index, change=change)
-                addr = self.rpc.deriveaddresses(desc)[0]
-            return addr
-        return self.rpc.deriveaddresses(desc, [index, index + 1])[0]
+        return Descriptor.parse(desc).address(index, self.manager.chain)
 
     def get_descriptor(self, index=None, change=False, address=None):
         """
