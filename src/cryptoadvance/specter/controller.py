@@ -376,6 +376,16 @@ def hwi_settings():
     )
 
 
+@app.route("/specter_backup.zip")
+@login_required
+def backup_file():
+    return send_file(
+        app.specter.specter_backup_file(),
+        attachment_filename="specter-backup.zip",
+        as_attachment=True,
+    )
+
+
 @app.route("/settings/general", methods=["GET", "POST"])
 @login_required
 def general_settings():
@@ -402,12 +412,6 @@ def general_settings():
                 validate_bool=validate_merkleproof_bool
             )
             app.specter.check()
-        elif action == "backup":
-            return send_file(
-                app.specter.specter_backup_file(),
-                attachment_filename="specter-backup.zip",
-                as_attachment=True,
-            )
         elif action == "restore":
             restore_devices = []
             restore_wallets = []
