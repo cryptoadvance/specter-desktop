@@ -1,4 +1,5 @@
 import re
+from embit import bip32, ec, networks, script
 
 # From: https://github.com/bitcoin/bitcoin/blob/master/src/script/descriptor.cpp
 
@@ -220,6 +221,54 @@ class Descriptor:
     @property
     def is_multisig(self):
         return bool(self.multisig_N)
+
+    def scriptpubkey(self, idx=None):
+        if idx is None and "*" in self.serialize():
+            raise RuntimeError("Index is required")
+        if self.is_multisig:
+            keys = []
+            for i, key in enumerate(self.base_key):
+                # if SEC pubkey
+                if key[:2] in ["02", "03", "04"]:
+                    keys.append(ec.PublicKey(key))
+                else:
+                    hd = bip32.HDKey.from_base58(key)
+                    if hd.is_private:
+                        hd = hd.to_public()
+                    path = "m" + self.path_suffix[i].replace("*", str(idx))
+                    keys.append(hd.derive(path).key)
+            if self.sort_keys:
+                keys = sorted(keys)
+            sc = script.multisig(int(self.multisig_M), keys)
+            if self.sh:
+                return script.p2sh(sc)
+            elif self.sh_wsh:
+                return script.p2sh(script.p2wsh(sc))
+            elif self.wsh:
+                return script.p2wsh(sc)
+        else:
+            # if SEC pubkey
+            if self.base_key[:2] in ["02", "03", "04"]:
+                key = ec.PublicKey(key)
+            else:
+                hd = bip32.HDKey.from_base58(self.base_key)
+                if hd.is_private:
+                    hd = hd.to_public()
+                path = "m" + self.path_suffix.replace("*", str(idx))
+                key = hd.derive(path).key
+            if self.wpkh:
+                return script.p2wpkh(sc)
+            elif self.sh_wpkh:
+                return script.p2sh(script.p2wpkh(sc))
+            else:
+                return script.p2pkh(key)
+
+    def address(self, idx=None, network=None):
+        if network is None:
+            net = networks.NETWORKS['test' if self.testnet else 'main']
+        else:
+            net = networks.NETWORKS[network]
+        return self.scriptpubkey(idx).address(net)
 
     def serialize(self):
         descriptor_open = "pkh("
