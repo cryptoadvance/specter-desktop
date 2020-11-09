@@ -34,7 +34,7 @@
             {%if tx['confirmations'] == 0 %}
                 Pending.
                 {% if tx['category'] == 'send' and ('bip125-replaceable' in tx and tx['bip125-replaceable'] == 'yes') %}
-                    <button style="float: right; padding: 10px 25px;" onclick='showPageOverlay(`{{ tx["txid"] }}_rbf_popup`)' type="button" class="btn">Speed up</button>
+                    <button style="float: right; padding: 10px 25px;" onclick='showPageOverlay(`{{ tx["txid"] }}_rbf_popup`)' type="button" class="btn optional">Speed up</button>
                     <div id='{{ tx["txid"] }}_rbf_popup' class="hidden">
                         <form action="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}" method="POST">
                             <h1>Speed up the Transaction</h1>
