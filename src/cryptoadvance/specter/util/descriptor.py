@@ -54,6 +54,21 @@ def AddChecksum(desc):
     return desc + "#" + DescriptorChecksum(desc)
 
 
+def derive_pubkey(key, path_suffix=None, idx=None):
+    # if SEC pubkey - just return it
+    if key[:2] in ["02", "03", "04"]:
+        return ec.PublicKey.parse(bytes.fromhex(key))
+    # otherwise - xpub or xprv
+    hd = bip32.HDKey.from_base58(key)
+    if hd.is_private:
+        hd = hd.to_public()
+    # if we have path suffix
+    path = "m" + (path_suffix or "")
+    if idx is not None:
+        path = path.replace("*", str(idx))
+    return hd.derive(path).key
+
+
 class Descriptor:
     def __init__(
         self,
@@ -228,15 +243,7 @@ class Descriptor:
         if self.is_multisig:
             keys = []
             for i, key in enumerate(self.base_key):
-                # if SEC pubkey
-                if key[:2] in ["02", "03", "04"]:
-                    keys.append(ec.PublicKey(key))
-                else:
-                    hd = bip32.HDKey.from_base58(key)
-                    if hd.is_private:
-                        hd = hd.to_public()
-                    path = "m" + self.path_suffix[i].replace("*", str(idx))
-                    keys.append(hd.derive(path).key)
+                keys.append(derive_pubkey(key, self.path_suffix[i], idx))
             if self.sort_keys:
                 keys = sorted(keys)
             sc = script.multisig(int(self.multisig_M), keys)
@@ -247,19 +254,11 @@ class Descriptor:
             elif self.wsh:
                 return script.p2wsh(sc)
         else:
-            # if SEC pubkey
-            if self.base_key[:2] in ["02", "03", "04"]:
-                key = ec.PublicKey(key)
-            else:
-                hd = bip32.HDKey.from_base58(self.base_key)
-                if hd.is_private:
-                    hd = hd.to_public()
-                path = "m" + self.path_suffix.replace("*", str(idx))
-                key = hd.derive(path).key
+            key = derive_pubkey(self.base_key, self.path_suffix, idx)
             if self.wpkh:
-                return script.p2wpkh(sc)
+                return script.p2wpkh(key)
             elif self.sh_wpkh:
-                return script.p2sh(script.p2wpkh(sc))
+                return script.p2sh(script.p2wpkh(key))
             else:
                 return script.p2pkh(key)
 
