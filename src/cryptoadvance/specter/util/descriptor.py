@@ -265,7 +265,7 @@ class Descriptor:
 
     def address(self, idx=None, network=None):
         if network is None:
-            net = networks.NETWORKS['test' if self.testnet else 'main']
+            net = networks.NETWORKS["test" if self.testnet else "main"]
         else:
             net = networks.NETWORKS[network]
         return self.scriptpubkey(idx).address(net)
