@@ -390,7 +390,12 @@ class Wallet:
                 for tx in rpc_txs
                 if (
                     not tx["walletconflicts"]
-                    or max([self.rpc.gettransaction(conflicting_tx)["timereceived"] for conflicting_tx in tx["walletconflicts"]])
+                    or max(
+                        [
+                            self.rpc.gettransaction(conflicting_tx)["timereceived"]
+                            for conflicting_tx in tx["walletconflicts"]
+                        ]
+                    )
                     < tx["timereceived"]
                 )
             ]

@@ -40,7 +40,7 @@
                             <h1>Speed up the Transaction</h1>
                             <p>You can speedup the transaction by increasing its fee rate:</p>
                             <input type="hidden" name="rbf_tx_id" value='{{ tx["txid"] }}' />
-                            <input type="number" min="{{ ((tx['fee'] * -1) / tx['vsize']) | feerate }}" value="{{ 1 + (((tx['fee'] * -1) / tx['vsize']) | feerate | int) }}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+                            <input type="number" min="{{ 2 + (((tx['fee'] * -1) / tx['vsize']) | feerate | int) }}" value="{{ 2 + (((tx['fee'] * -1) / tx['vsize']) | feerate | int) }}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
                             <br>
                             <br>
                             <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>
