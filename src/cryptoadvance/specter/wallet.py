@@ -412,6 +412,10 @@ class Wallet:
                 > 1
             ):
                 continue  # means the tx is duplicated (change), continue
+            
+            if tx["confirmations"] == 0 and (tx["category"] == "send" and tx["bip125-replaceable"] == "yes"):
+                raw_tx = self.rpc.decoderawtransaction(self.rpc.gettransaction(tx["txid"])["hex"])
+                tx["vsize"] = raw_tx["vsize"]
 
             tx["validated_blockhash"] = ""  # default is assume unvalidated
             if (
