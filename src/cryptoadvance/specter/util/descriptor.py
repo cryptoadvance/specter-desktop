@@ -68,6 +68,7 @@ class Descriptor:
         wsh=None,
         multisig_M=None,
         multisig_N=None,
+        sort_keys=True,
     ):
         self.origin_fingerprint = origin_fingerprint
         self.origin_path = origin_path
@@ -82,6 +83,7 @@ class Descriptor:
         self.multisig_M = multisig_M
         self.multisig_N = multisig_N
         self.m_path = None
+        self.sort_keys = sort_keys
 
         if origin_path and not isinstance(origin_path, list):
             self.m_path_base = "m" + origin_path
@@ -101,6 +103,7 @@ class Descriptor:
         path_suffix = None
         multisig_M = None
         multisig_N = None
+        sort_keys = True
 
         # Check the checksum
         check_split = desc.split("#")
@@ -133,6 +136,7 @@ class Descriptor:
                 return None
             # get the list of keys only
             keys = desc.split(",", 1)[1].split(")", 1)[0].split(",")
+            sort_keys = "sortedmulti" in desc
             if "sortedmulti" in desc:
                 keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
             multisig_M = desc.split(",")[0].split("(")[-1]
@@ -180,6 +184,7 @@ class Descriptor:
                     sh,
                     sh_wsh,
                     wsh,
+                    sort_keys,
                 )
             )
         if len(descriptors) == 1:
@@ -199,29 +204,60 @@ class Descriptor:
                 wsh,
                 multisig_M,
                 multisig_N,
+                sort_keys,
             )
+
+    @property
+    def is_multisig(self):
+        return bool(self.multisig_N)
 
     def serialize(self):
         descriptor_open = "pkh("
         descriptor_close = ")"
-        origin = ""
-        path_suffix = ""
 
         if self.wpkh:
             descriptor_open = "wpkh("
         elif self.sh_wpkh:
             descriptor_open = "sh(wpkh("
             descriptor_close = "))"
-        elif self.sh or self.sh_wsh or self.wsh:
-            # serialize multisig descriptor is not supported yet.
-            return None
+        elif self.sh:
+            descriptor_open = "sh("
+            descriptor_close = ")"
+        elif self.sh_wsh:
+            descriptor_open = "sh(wsh("
+            descriptor_close = "))"
+        elif self.wsh:
+            descriptor_open = "wsh("
+            descriptor_close = ")"
 
-        if self.origin_fingerprint and self.origin_path:
-            origin = "[" + self.origin_fingerprint + self.origin_path + "]"
+        if self.is_multisig:
+            multi = "sortedmulti" if self.sort_keys else "multi"
+            base_open = f"{multi}({self.multisig_M},"
+            base_close = ")"
+            origins = []
+            for i in range(self.multisig_N):
+                path_suffix = ""
+                origin = ""
+                if self.origin_fingerprint[i] and self.origin_path[i]:
+                    origin = "[" + self.origin_fingerprint[i] + self.origin_path[i] + "]"
 
-        if self.path_suffix:
-            path_suffix = self.path_suffix
+                if self.path_suffix[i]:
+                    path_suffix = self.path_suffix[i]
+
+                origins.append(origin + self.base_key[i] + path_suffix)
+
+            base = base_open + ",".join(origins) + base_close
+        else:
+            origin = ""
+            path_suffix = ""
+            if self.origin_fingerprint and self.origin_path:
+                origin = "[" + self.origin_fingerprint + self.origin_path + "]"
+
+            if self.path_suffix:
+                path_suffix = self.path_suffix
+
+            base = origin + self.base_key + path_suffix
 
         return AddChecksum(
-            descriptor_open + origin + self.base_key + path_suffix + descriptor_close
+            descriptor_open + base + descriptor_close
         )
