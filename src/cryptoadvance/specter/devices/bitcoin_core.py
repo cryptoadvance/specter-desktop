@@ -43,8 +43,8 @@ class BitcoinCore(Device):
     ):
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
-        network = networks.NETWORKS['test' if testnet else 'main']
-        root.version = network['xprv']
+        network = networks.NETWORKS["test" if testnet else "main"]
+        root.version = network["xprv"]
         xprv = root.to_base58()
         # Load the wallet if not loaded
         self._load_wallet(wallet_manager)
@@ -57,7 +57,9 @@ class BitcoinCore(Device):
             [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}{}/0/*))".format(xprv, path.rstrip("/").replace("m", ""))
+                        "sh(wpkh({}{}/0/*))".format(
+                            xprv, path.rstrip("/").replace("m", "")
+                        )
                     ),
                     "range": keys_range,
                     "timestamp": "now",
@@ -67,7 +69,9 @@ class BitcoinCore(Device):
             + [
                 {
                     "desc": AddChecksum(
-                        "sh(wpkh({}{}/1/*))".format(xprv, path.rstrip("/").replace("m", ""))
+                        "sh(wpkh({}{}/1/*))".format(
+                            xprv, path.rstrip("/").replace("m", "")
+                        )
                     ),
                     "range": keys_range,
                     "timestamp": "now",
@@ -86,9 +90,7 @@ class BitcoinCore(Device):
             path = paths[i]
             xpub = xpubs[i]
             # detect slip132 version for xpubs
-            slip132_prefix = bip32.detect_version(path,
-                                                  default="xpub",
-                                                  network=network)
+            slip132_prefix = bip32.detect_version(path, default="xpub", network=network)
             xpub = convert_xpub_prefix(xpub, slip132_prefix)
             xpubs_str += "[{}{}]{}\n".format(master_fpr, path.replace("m", ""), xpub)
 
@@ -172,5 +174,3 @@ class BitcoinCore(Device):
                         break
         except:
             pass  # We tried...
-
-
