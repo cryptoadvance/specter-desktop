@@ -371,7 +371,12 @@ class Wallet:
 
     def save_pending_psbt(self, psbt):
         self.pending_psbts[psbt["tx"]["txid"]] = psbt
-        self.rpc.lockunspent(False, psbt["tx"]["vin"])
+        try:
+            self.rpc.lockunspent(False, psbt["tx"]["vin"])
+        except:
+            logger.debug(
+                "Failed to lock UTXO for transaction, might be fine if the transaction is an RBF."
+            )
         self.save_to_file()
 
     def txlist(self, idx, wallet_tx_batch=100, validate_merkle_proofs=False):
@@ -379,6 +384,21 @@ class Wallet:
             rpc_txs = self.rpc.listtransactions(
                 "*", wallet_tx_batch + 2, wallet_tx_batch * idx, True
             )  # get batch + 2 to make sure you have information about send
+            rpc_txs = [tx for tx in rpc_txs if tx.get("confirmations", 0) >= 0]
+            rpc_txs = [
+                tx
+                for tx in rpc_txs
+                if (
+                    not tx["walletconflicts"]
+                    or max(
+                        [
+                            self.rpc.gettransaction(conflicting_tx)["timereceived"]
+                            for conflicting_tx in tx["walletconflicts"]
+                        ]
+                    )
+                    < tx["timereceived"]
+                )
+            ]
             rpc_txs.reverse()
             transactions = rpc_txs[:wallet_tx_batch]
         except:
@@ -402,6 +422,14 @@ class Wallet:
                 > 1
             ):
                 continue  # means the tx is duplicated (change), continue
+
+            if tx["confirmations"] == 0 and (
+                tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
+            ):
+                raw_tx = self.rpc.decoderawtransaction(
+                    self.rpc.gettransaction(tx["txid"])["hex"]
+                )
+                tx["vsize"] = raw_tx["vsize"]
 
             tx["validated_blockhash"] = ""  # default is assume unvalidated
             if (
@@ -945,6 +973,8 @@ class Wallet:
         fee_rate: float = 1.0,
         selected_coins=[],
         readonly=False,
+        rbf=True,
+        existing_psbt=None,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -952,75 +982,93 @@ class Wallet:
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
-        if self.full_available_balance < sum(amounts):
-            raise SpecterError(
-                "The wallet does not have sufficient funds to make the transaction."
-            )
-
-        extra_inputs = []
-        if self.available_balance["trusted"] <= sum(amounts):
-            txlist = self.rpc.listunspent(0, 0)
-            b = sum(amounts) - self.available_balance["trusted"]
-            for tx in txlist:
-                extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                b -= tx["amount"]
-                if b < 0:
-                    break
-        elif selected_coins != []:
-            still_needed = sum(amounts)
-            for coin in selected_coins:
-                coin_txid = coin.split(",")[0]
-                coin_vout = int(coin.split(",")[1])
-                coin_amount = float(coin.split(",")[2])
-                extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
-                still_needed -= coin_amount
-                if still_needed < 0:
-                    break
-            if still_needed > 0:
-                raise SpecterError(
-                    "Selected coins does not cover Full amount! Please select more coins!"
-                )
-
-        # subtract fee from amount of this output:
-        # currently only one address is supported, so either
-        # empty array (subtract from change) or [0]
-        subtract_arr = [subtract_from] if subtract else []
-
         options = {
             "includeWatching": True,
-            "changeAddress": self.change_address,
-            "subtractFeeFromOutputs": subtract_arr,
+            "replaceable": rbf,
         }
+        extra_inputs = []
 
-        self.setlabel(self.change_address, "Change #{}".format(self.change_index))
+        if not existing_psbt:
+            if self.full_available_balance < sum(amounts):
+                raise SpecterError(
+                    "The wallet does not have sufficient funds to make the transaction."
+                )
 
-        if fee_rate > 0:
-            # bitcoin core needs us to convert sat/B to BTC/kB
-            options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
+            if self.available_balance["trusted"] <= sum(amounts):
+                txlist = self.rpc.listunspent(0, 0)
+                b = sum(amounts) - self.available_balance["trusted"]
+                for tx in txlist:
+                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    b -= tx["amount"]
+                    if b < 0:
+                        break
+            elif selected_coins != []:
+                still_needed = sum(amounts)
+                for coin in selected_coins:
+                    coin_txid = coin.split(",")[0]
+                    coin_vout = int(coin.split(",")[1])
+                    coin_amount = float(coin.split(",")[2])
+                    extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
+                    still_needed -= coin_amount
+                    if still_needed < 0:
+                        break
+                if still_needed > 0:
+                    raise SpecterError(
+                        "Selected coins does not cover Full amount! Please select more coins!"
+                    )
 
-        # don't reuse change addresses - use getrawchangeaddress instead
-        r = self.rpc.walletcreatefundedpsbt(
-            extra_inputs,  # inputs
-            [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
-            0,  # locktime
-            options,  # options
-            True,  # bip32-der
-        )
+            # subtract fee from amount of this output:
+            # currently only one address is supported, so either
+            # empty array (subtract from change) or [0]
+            subtract_arr = [subtract_from] if subtract else []
 
-        b64psbt = r["psbt"]
-        psbt = self.rpc.decodepsbt(b64psbt)
+            options = {
+                "includeWatching": True,
+                "changeAddress": self.change_address,
+                "subtractFeeFromOutputs": subtract_arr,
+                "replaceable": rbf,
+            }
+
+            self.setlabel(self.change_address, "Change #{}".format(self.change_index))
+
+            if fee_rate > 0:
+                # bitcoin core needs us to convert sat/B to BTC/kB
+                options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
+
+            # don't reuse change addresses - use getrawchangeaddress instead
+            r = self.rpc.walletcreatefundedpsbt(
+                extra_inputs,  # inputs
+                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
+                0,  # locktime
+                options,  # options
+                True,  # bip32-der
+            )
+
+            b64psbt = r["psbt"]
+            psbt = self.rpc.decodepsbt(b64psbt)
+        else:
+            psbt = existing_psbt
+            extra_inputs = [
+                {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
+            ]
+            options["changeAddress"] = psbt["changeAddress"]
+
         if fee_rate > 0.0:
-            psbt_fees_sats = int(psbt["fee"] * 1e8)
-            # estimate final size: add weight of inputs
-            tx_full_size = ceil(
-                psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-            )
-            adjusted_fee_rate = (
-                fee_rate
-                * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-                * (tx_full_size / psbt["tx"]["vsize"])
-            )
-            options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
+            if not existing_psbt:
+                psbt_fees_sats = int(psbt["fee"] * 1e8)
+                # estimate final size: add weight of inputs
+                tx_full_size = ceil(
+                    psbt["tx"]["vsize"]
+                    + len(psbt["inputs"]) * self.weight_per_input / 4
+                )
+                adjusted_fee_rate = (
+                    fee_rate
+                    * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
+                    * (tx_full_size / psbt["tx"]["vsize"])
+                )
+                options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
+            else:
+                options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
@@ -1047,6 +1095,36 @@ class Wallet:
             self.save_pending_psbt(psbt)
 
         return psbt
+
+    def send_rbf_tx(self, txid, fee_rate):
+        raw_tx = self.rpc.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        psbt["changeAddress"] = [
+            vout["scriptPubKey"]["addresses"][0]
+            for i, vout in enumerate(psbt["tx"]["vout"])
+            if "bip32_derivs" in psbt["outputs"][i]
+        ][0]
+        return self.createpsbt(
+            addresses=[
+                vout["scriptPubKey"]["addresses"][0]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if "bip32_derivs" not in psbt["outputs"][i]
+            ],
+            amounts=[
+                vout["value"]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if "bip32_derivs" not in psbt["outputs"][i]
+            ],
+            fee_rate=fee_rate,
+            readonly=False,
+            rbf=True,
+            existing_psbt=psbt,
+        )
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSBT()
