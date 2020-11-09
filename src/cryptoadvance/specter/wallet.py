@@ -385,10 +385,15 @@ class Wallet:
                 "*", wallet_tx_batch + 2, wallet_tx_batch * idx, True
             )  # get batch + 2 to make sure you have information about send
             rpc_txs = [tx for tx in rpc_txs if tx.get("confirmations", 0) >= 0]
-            rpc_txs = [tx for tx in rpc_txs if (
-                not tx['walletconflicts'] or
-                self.rpc.gettransaction(tx['walletconflicts'][0])['timereceived'] < tx['timereceived']
-            )]
+            rpc_txs = [
+                tx
+                for tx in rpc_txs
+                if (
+                    not tx["walletconflicts"]
+                    or self.rpc.gettransaction(tx["walletconflicts"][0])["timereceived"]
+                    < tx["timereceived"]
+                )
+            ]
             rpc_txs.reverse()
             transactions = rpc_txs[:wallet_tx_batch]
         except:
@@ -412,9 +417,13 @@ class Wallet:
                 > 1
             ):
                 continue  # means the tx is duplicated (change), continue
-            
-            if tx["confirmations"] == 0 and (tx["category"] == "send" and tx["bip125-replaceable"] == "yes"):
-                raw_tx = self.rpc.decoderawtransaction(self.rpc.gettransaction(tx["txid"])["hex"])
+
+            if tx["confirmations"] == 0 and (
+                tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
+            ):
+                raw_tx = self.rpc.decoderawtransaction(
+                    self.rpc.gettransaction(tx["txid"])["hex"]
+                )
                 tx["vsize"] = raw_tx["vsize"]
 
             tx["validated_blockhash"] = ""  # default is assume unvalidated
