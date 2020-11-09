@@ -33,6 +33,20 @@
         <td>
             {%if tx['confirmations'] == 0 %}
                 Pending.
+                {% if tx['category'] == 'send' and ('bip125-replaceable' in tx and tx['bip125-replaceable'] == 'yes') %}
+                    <button style="float: right; padding: 10px 25px;" onclick='showPageOverlay(`{{ tx["txid"] }}_rbf_popup`)' type="button" class="btn optional">Speed up</button>
+                    <div id='{{ tx["txid"] }}_rbf_popup' class="hidden">
+                        <form action="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}" method="POST">
+                            <h1>Speed up the Transaction</h1>
+                            <p>You can speedup the transaction by increasing its fee rate:</p>
+                            <input type="hidden" name="rbf_tx_id" value='{{ tx["txid"] }}' />
+                            <input type="number" min="{{ 2 + (((tx['fee'] * -1) / tx['vsize']) | feerate | int) }}" value="{{ 2 + (((tx['fee'] * -1) / tx['vsize']) | feerate | int) }}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+                            <br>
+                            <br>
+                            <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>
+                        </form>
+                    </div>
+                {% endif %}
             {% else %}
                 {{ tx['confirmations'] }} conf.
             {% endif %}
