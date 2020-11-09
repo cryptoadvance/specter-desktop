@@ -389,8 +389,8 @@ def general_settings():
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
-        alt_rate = request.form["alt_rate"]
-        alt_symbol = request.form["alt_symbol"]
+        alt_rate = request.form.get("alt_rate", 0)
+        alt_symbol = request.form.get("alt_symbol", "")
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
