@@ -249,7 +249,9 @@ class Descriptor:
                 path_suffix = ""
                 origin = ""
                 if self.origin_fingerprint[i] and self.origin_path[i]:
-                    origin = "[" + self.origin_fingerprint[i] + self.origin_path[i] + "]"
+                    origin = (
+                        "[" + self.origin_fingerprint[i] + self.origin_path[i] + "]"
+                    )
 
                 if self.path_suffix[i]:
                     path_suffix = self.path_suffix[i]
@@ -268,6 +270,4 @@ class Descriptor:
 
             base = origin + self.base_key + path_suffix
 
-        return AddChecksum(
-            descriptor_open + base + descriptor_close
-        )
+        return AddChecksum(descriptor_open + base + descriptor_close)
