@@ -1,0 +1,566 @@
+{% extends "base.jinja" %}
+{% block main %}
+    {% include "includes/hwi/hwi.jinja" %}
+    {% include "includes/qr-scanner.html" %}
+    <style>
+        #device-confirm[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
+            margin: 20px;
+        }
+        img[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
+            transform: scale(1.30);
+        }
+
+        img[src="{{ url_for('static', filename='img/bitbox02_icon.svg') }}"] {
+            transform: scale(1.9);
+        }
+        td {
+            text-align: left;
+        }
+        .xpubs_edit {
+            visibility: hidden;
+        }
+    </style>
+    <div id="device_setup_wizard" style="width: 100%;">
+        <h1 style="font-size: 2em;">Add Device</h1><br>
+        <form action="./" method="POST" class="card center" style="width: auto; margin: 40px;">
+            <div id="step1">
+                <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
+                <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
+                <div id="devices_list" class="row overflow">
+                    {% for cls in specter.device_manager.supported_devices %}
+                        <label id="label_device_type_{{ cls.name }}">
+                            <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
+                            <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
+                                {% if cls.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
+                                    <img src="{{ url_for('static', filename='img/' ~ cls.device_type ~ '_icon.svg') }}" width="18px">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
+                                {% endif %}
+                                {{ cls.name }}
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="step2" class="hidden">
+                <h1 style="font-size: 1.8em;">Upload Keys</h1>
+                <div id="coldcard-instructions">
+                    <p>
+                    Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.<br>
+                    </p>
+                    <span class="note">
+                    To export the wallet data file from the ColdCard, insert your micro SD card into the device, then go to:<br>
+                    Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, press 0 and confirm the export.
+                    </span>
+                </div>
+                <div id="specter-instructions">
+                    <p>
+                    Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.<br>
+                    </p>
+                    <span class="note">
+                    To get the master public key QR code to scan, click on:<br>
+                    Master public keys -> Single key and scan the displayed QR code into Specter.
+                    </span>
+                </div>
+                <div id="cobo-instructions">
+                    <p>
+                    Scan your Cobo Vault master public key or upload a wallet export file.<br>
+                    </p>
+                    <span class="note">
+                    To get the master public key QR code to scan, click on:<br>
+                    Setting -> Watch-Only Wallet -> Generic Wallet, click next then select the wallet address type you would like to use for your wallet.
+                    Cobo Vault will then display the QR code which you should scan into Specter.<br>
+                    To import with SD card, click on "touch here to export the file with microSD" on the same screen as the QR code.
+                    </span>
+                </div>
+                <div id="hwi-only-instructions">
+                    <p>Connect your hardware device to the computer via USB.</p>
+                </div>
+                <br>
+                <table>
+                    <thead>
+                    <tr>
+                        <th></th><th>Purpose</th><th>Derivation</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" onclick="editXpubsTable(this)">Edit</button></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td></td>
+                            <td>Single Sig (Nested)</td>
+                            <td>m/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h</td>
+                            <td>-</td>
+                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Single Sig (Segwit)</td>
+                            <td>m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h</td>
+                            <td>-</td>
+                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Multisig (Nested)</td>
+                            <td>m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/1h</td>
+                            <td>-</td>
+                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Multisig (Segwit)</td>
+                            <td>m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</td>
+                            <td>-</td>
+                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
+                        </tr>
+                        <tr id="edit_select_add_method" class="xpubs_edit">
+                            <td></td>
+                            <td></td>
+                            <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_select_add_method').style.display='none';document.getElementById('edit_add_account').style.display='table-row';">Add account</button></td>
+                            <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_select_add_method').style.display='none';document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivaion</button></td>
+                            <td></td>                            
+                        </tr>
+                        <tr id="edit_add_account" style="display: none;">
+                            <td></td>
+                            <td><button type="button" class="btn" style="width: 150px;">Add accouffnt</button></td>
+                            <td><button type="button" class="btn" style="width: 150px;">Add custffom derivaion</button></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr id="edit_custom_der" style="display: none;">
+                            <td></td>
+                            <td><input id="new_xpub_purpose" type="text" placeholder="XPUB puropse"></td>
+                            <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
+                            <td></td>
+                            <td><button type="button" class="btn" style="width: 60px;">Add</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <div class="row overflow">
+                    <div id="connect-hwi" class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
+                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" width="18px">
+                        Get via USB
+                    </div>
+                    <label id="connect-sdcard">
+                        <input type="file" id="file" class="inputfile" multiple/>
+                        <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
+                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" width="18px">
+                            Upload from SD Card
+                        </div>
+                    </label>
+                    <qr-scanner id="xpub-scan">
+                        <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
+                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" width="18px">
+                            Scan QR code
+                        </a>
+                    </qr-scanner>
+                </div>
+                <br><br>
+				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
+				<br>
+                <div id="advanced_settings_xpubs" class="hidden">
+                <br>
+                ADVANCED!
+				</div>
+                <input type="hidden" name="xpubs" id="xpubs">
+            </div>
+            <div id="step3" class="hidden" style="margin: auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th></th><th>Purpose</th><th>Derivation</th><th>pub</th><th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+            <div id="step4" class="hidden">
+                <h1 style="font-size: 1.8em;">Ready to create <span id="wallet-name-confirm"></span> wallet?</h1>
+                <h2>This will <span id="wallet-scan-confirm"></span> your <span id="wallet-type-confirm"></span> wallet.</h2>
+                <br>
+                <div style="margin: 50px;">
+                    <img id="device-confirm" src="{{ url_for('static', filename='img/other_icon.svg') }}" width="80px"/>
+                    <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" width="130px"/>
+                    <img src="{{ url_for('static', filename='img/icon.png') }}" width="130px"/>
+                </div>
+                <br>
+                <p>After clicking submit, you will be redirected to your new wallet.</p>
+            </div>
+            <br>
+            <div class="row">
+                <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
+                <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
+                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman()">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    function setXpubs(xpubs) {
+        document.getElementById('xpubs').value = xpubs;
+        if ((xpubs.indexOf("/49'/") == -1 && xpubs.indexOf("/84'/") == -1) && (xpubs.toLowerCase().indexOf("/49h/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1)) {
+            showError('No matching key was found, please make sure to follow the instructions and try again.')
+            return
+        }
+        showNotification((xpubs.split('\n').filter(xpub => xpub != '').length) + ' keys were successfully retrieved from the device.');
+        setStepCompleted(2);
+        nextStep();
+    }
+    </script>
+    <script>
+        let currentStep = 1;
+        let totalSteps = 4;
+        let stepsCompleted = [];
+
+        function checkStepCompleted(step) {
+            switch(step) {
+                case 3:
+                    if (document.getElementById('wallet-name').value) {
+                        setStepCompleted(step);
+                    } else {
+                        setStepUncompleted(step);
+                    }
+                    break;
+            }
+        }
+
+        function setStepCompleted(step) {
+            document.getElementById('wizard-next').removeAttribute('disabled');
+            stepsCompleted.push(step);
+        }
+
+        function setStepUncompleted(step) {
+            document.getElementById('wizard-next').setAttribute('disabled', true);
+            delete stepsCompleted[(stepsCompleted.indexOf(step))];
+        }
+
+        function nextStep() {
+            if (currentStep == totalSteps) {
+                return;
+            } else if (currentStep == 1) {
+                for (let i = 2; i <= totalSteps; i++) {
+                    document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
+                }
+
+                var devices = document.getElementsByName('devices');
+                let device;
+                for (var i = 0, length = devices.length; i < length; i++) {
+                    if (devices[i].checked) {
+                        device = devices[i];
+                        break;
+                    }
+                }
+
+                // Update connect methods for step 2
+                if (device.getAttribute('data-hwi') == 'True') {
+                    document.getElementById('connect-hwi').classList.remove('hidden');
+                } else {
+                    document.getElementById('connect-hwi').classList.add('hidden');
+                }
+
+                if (device.getAttribute('data-sdcard') == 'True') {
+                    document.getElementById('connect-sdcard').classList.remove('hidden');
+                } else {
+                    document.getElementById('connect-sdcard').classList.add('hidden');
+                }
+
+                if (device.getAttribute('data-qrcode') == 'True') {
+                    document.getElementById('xpub-scan').classList.remove('hidden');
+                } else {
+                    document.getElementById('xpub-scan').classList.add('hidden');
+                }
+                document.getElementById('specter-instructions').classList.add('hidden');
+                document.getElementById('coldcard-instructions').classList.add('hidden');
+                document.getElementById('cobo-instructions').classList.add('hidden');
+                document.getElementById('hwi-only-instructions').classList.add('hidden');
+                switch(device.value) {
+                    case 'specter':
+                        document.getElementById('specter-instructions').classList.remove('hidden');
+                        break;
+                    case 'coldcard':
+                        document.getElementById('coldcard-instructions').classList.remove('hidden');
+                        break;
+                    case 'cobo':
+                        document.getElementById('cobo-instructions').classList.remove('hidden');
+                        break;
+                    case 'electrum':
+                        break;
+                    default:
+                        document.getElementById('hwi-only-instructions').classList.remove('hidden');
+                }
+            } else if (currentStep == 2) {
+                let xpubs = document.getElementById('xpubs').value;
+                if (xpubs.indexOf("/49'/") == -1 && xpubs.toLowerCase().indexOf("/49h/") == -1) {
+                    document.getElementById('type-wpkh').checked = true;
+                    document.getElementById('type-sh-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Segwit';
+                } else if (xpubs.indexOf("/84'/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1) {
+                    document.getElementById('type-sh-wpkh').checked = true;
+                    document.getElementById('type-wpkh').disabled = true;
+                    document.getElementById('no-type-choice-note').classList.remove('hidden');
+                    document.getElementById('only-type-note').innerText = 'Nested Segwit';
+                } else {
+                    document.getElementById('type-wpkh').disabled = false;
+                    document.getElementById('type-sh-wpkh').disabled = false;
+                    document.getElementById('no-type-choice-note').classList.add('hidden');
+                }
+            }
+
+            document.getElementById('wizard-previous').classList.remove('hidden');
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.getElementById(`step${currentStep + 1}`).classList.remove('hidden');
+            document.getElementById('wizard-next').setAttribute('disabled', 'true');
+
+            currentStep++;
+            if (currentStep in stepsCompleted) {
+                setStepCompleted(currentStep);
+            }
+
+            if (currentStep == totalSteps) {
+                document.getElementById('wizard-next').classList.add('hidden');
+                document.getElementById('wizard-submit').classList.remove('hidden');
+
+                let deviceName;
+                let deviceType;
+
+                var devices = document.getElementsByName('devices');
+
+                for (var i = 0, length = devices.length; i < length; i++) {
+                    if (devices[i].checked) {
+                        deviceName = devices[i].getAttribute('data-device-name');
+                        deviceType = devices[i].value;
+                        break;
+                    }
+                }
+                document.getElementById('wallet-name-confirm').innerHTML = document.getElementById('wallet-name').value;
+                document.getElementById('wallet-type-confirm').innerHTML = deviceName + (document.getElementById('type-wpkh').checked ? ' (Segwit)' : ' (Nested Segwit)');
+                document.getElementById('wallet-scan-confirm').innerHTML = document.getElementById('rescan').checked ? 'import' : 'create';
+                if (['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'].includes(deviceType)) {
+                    document.getElementById('device-confirm').setAttribute('src', '{{ url_for('static', filename='img') }}/' + deviceType + '_icon.svg');
+                }
+            }
+        }
+
+        function prevStep() {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.getElementById(`step${currentStep - 1}`).classList.remove('hidden');
+            currentStep--;
+            if (currentStep == 1) {
+                document.getElementById('wizard-previous').classList.add('hidden');
+            }
+            setStepCompleted(currentStep);
+
+            
+            document.getElementById('wizard-next').classList.remove('hidden');
+            document.getElementById('wizard-submit').classList.add('hidden');
+        }
+
+        function filterDeviceTypes(text) {
+            let devicesLabels = []
+            {% for cls in specter.device_manager.supported_devices %}
+                devicesLabels.push('label_device_type_{{ cls.name }}')
+            {% endfor %}
+            if (text) {
+                for (let deviceLabel of devicesLabels) {
+                    if (deviceLabel.split('label_device_type_')[1].toLowerCase().includes(text.toLowerCase())) {                                        
+                        document.getElementById(deviceLabel).style.display = 'flex';
+                    } else {
+                        document.getElementById(deviceLabel).style.display = 'none';
+                    }
+                }
+            } else {
+                for (let deviceLabel of devicesLabels) {
+                    document.getElementById(deviceLabel).style.display = 'flex';
+                }
+            }
+        }
+
+        function editXpubsTable(editBtn) {
+            let visibility = '';
+            if (editBtn.innerHTML == 'Edit') {
+                editBtn.innerHTML = 'Save';
+                visibility = 'visible';
+            } else {
+                editBtn.innerHTML = 'Edit';
+                visibility = 'hidden';
+            }
+            document.getElementById('edit_select_add_method').style.display = 'table-row';
+            document.getElementById('edit_add_account').style.display = 'none';
+            document.getElementById('edit_custom_der').style.display = 'none';
+            for (let el of document.getElementsByClassName('xpubs_edit')) {
+                el.style.visibility = visibility;
+            }
+        }
+
+        function toggleAdvancedXpubs() {
+            let advancedButton = document.getElementById('toggle_advanced_xpubs');
+            let advancedSettigns = document.getElementById('advanced_settings_xpubs');
+            if (advancedSettigns.style.display === 'block') {
+                advancedSettigns.style.display = 'none';
+                advancedButton.innerHTML = 'Advanced &#9654;';
+                if (isCoinSelectionActive()) {
+                    toggleExpand();
+                }
+            } else {
+                advancedSettigns.style.display = 'block';
+                advancedButton.innerHTML = 'Advanced &#9660;';
+            }
+        }
+    </script>
+
+    <script type="text/javascript">
+        document.getElementById('connect-hwi').addEventListener('click', async e => {
+            var devicesRadios = document.getElementsByName('devices');
+            let deviceType;
+            for (var i = 0, length = devicesRadios.length; i < length; i++) {
+                if (devicesRadios[i].checked) {
+                    deviceType = devicesRadios[i].value;
+                    break;
+                }
+            }
+            // detect devices
+            let devices = await enumerate(deviceType);
+            if(devices == null){
+                return
+            }
+            // this shouldn't happen actually
+            if(devices.length == 0){
+                showError("No devices found :(");
+                return;
+            }
+
+            let device;
+            if (devices.length == 1) {
+                device = devices[0];
+                let passphrase = await unlockDevice(device);
+                if (passphrase != null){
+                    device.passphrase = passphrase;
+                }
+            } else {
+                // first only for now
+                device = await selectDevice(devices);
+            }
+
+            // nothing to do if user cancelled
+            if(device == null){
+                return;
+            }
+            
+            let account = 0;
+            let xpubs = await getXpubs(device, account);
+            if(xpubs == null){
+                showError('Failed to retrive device data. Please try again.');
+                return;
+            }
+
+            setXpubs(xpubs);
+        });
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function(){
+            var el = document.getElementById("file");
+
+            if (el != null) {
+                el.addEventListener("change", (e) => {
+                    files = e.currentTarget.files;
+                    console.log(files);
+                    for(let i=0; i<files.length; i++){
+                        console.log(files[i].name);
+                        let reader = new FileReader();
+                        reader.onload = function(e) {
+                            let str = reader.result
+                            let data = "";
+                            if (str.indexOf("{") >= 0) {
+                                let json = JSON.parse(str);
+                                console.log(str);
+                                if ("keystore" in json) { // ColdCard electrum file
+                                    let prefix = "";
+                                    if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
+                                        prefix = "[";
+                                        let num = json.keystore.ckcc_xfp;
+                                        for (let i = 0; i < 4; i++) {
+                                            prefix += ('0' + (num % 256).toString(16)).slice(-2);
+                                            num = num >>> 8;
+                                        }
+                                        prefix += json.keystore.derivation.substring(1);
+                                        prefix += "]";
+                                    }
+                                    let s = prefix + json.keystore.xpub + "\n";
+                                    data += s;
+                                } else if (("bip84" in json) && ("xfp" in json)){
+                                // coldcard generic file
+                                    let s = "";
+                                    ["bip44","bip49","bip84"].forEach((bip)=>{
+                                        if(bip in json){
+                                            let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
+                                            let xpub = json[bip].xpub;
+                                            if("_pub" in json[bip]){
+                                                xpub = json[bip]["_pub"];
+                                            }
+                                            s += `[${json.xfp}${der}]${xpub}\n`;
+                                        }
+                                    });
+                                    data += s;
+                                } else if ("xfp" in json) {
+                                // probably ColdCard multisig file
+                                    let s = "";
+                                    for (let k in json) {
+                                        if (k+"_deriv" in json) {
+                                            s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+                                        }
+                                    }
+                                    data += s;
+                                }
+                            } else {
+                                data += str+"\n";
+                            }
+                            setXpubs(data);
+                        }
+                        reader.readAsText(files[i]);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script type="text/javascript">
+        let scanner = document.getElementById('xpub-scan');
+        if(scanner != null) {
+            scanner.addEventListener('scan', e=>{
+                let result = e.detail.result;
+                if(result==null){
+                    return;
+                }
+                // cobo uses json format
+                if(result.includes("{")){
+                    let obj = JSON.parse(result);
+                    if( ("ExtPubKey" in obj) && 
+                        ("AccountKeyPath" in obj) && 
+                        ("MasterFingerprint" in obj)){
+                        console.log(obj);
+                        let path = obj.AccountKeyPath.replace(/'/g,'h');
+                        let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+                        setXpubs(str);
+                    }else if( ("xfp" in obj) &&
+                            ("xpub" in obj) &&
+                            ("path" in obj)){
+                        console.log(obj);
+                        let path = obj.path.replace(/'/g,'h').replace("m/","");
+                        let str = `[${obj.xfp}/${path}]${obj.xpub}`;
+                        setXpubs(str);
+                    }else{
+                        showError("Unknown key format");
+                    }
+                }else{
+                    setXpubs(result);
+                }
+            });
+        }
+    </script>
+{% endblock %}
