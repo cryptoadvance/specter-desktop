@@ -90,7 +90,8 @@ if [ -n $PR_MODE ]; then
     echo "Now go ahead and make your PR:"
     echo "https://github.com/cryptoadvance/specter-desktop/compare"
 else
-    echo "Should i now create the tag $new_version ?"
+    echo "    --> Should i now create the tag and push the version $new_version ?"
+    echo "    --> THIS WILL PUSH TO UPSTREAM!!!"
     if ! ask_yn ; then
         echo "break"
         exit 2
