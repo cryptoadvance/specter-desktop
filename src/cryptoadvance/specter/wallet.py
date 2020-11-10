@@ -676,24 +676,12 @@ class Wallet:
             return self.rpc.getaddressinfo(address).get("desc", "")
         if index is None:
             index = self.change_index if change else self.address_index
-        desc = self.rpc.getaddressinfo(self.get_address(index, change)).get("desc", "")
-        result = {"descriptor": desc, "xpubs_descriptor": None}
-        if self.is_multisig:
-            if address is not None:
-                d = self.rpc.getaddressinfo(address)["desc"]
-                path = d.split("[")[1].split("]")[0].split("/")
-                change = bool(int(path[-2]))
-                index = int(path[-1])
-            if index is None:
-                index = self.change_index if change else self.address_index
-            desc = self.change_descriptor if change else self.recv_descriptor
-            try:
-                result["xpubs_descriptor"] = sort_descriptor(
-                    self.rpc, desc, index=index, change=change
-                )
-            except Exception:
-                pass
-        return result
+        desc = self.change_descriptor if change else self.recv_descriptor
+        derived_desc = Descriptor.parse(desc).derive(index).serialize()
+        derived_desc_xpubs = (
+            Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
+        )
+        return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
 
     def get_electrum_watchonly(self):
         if len(self.keys) == 1:

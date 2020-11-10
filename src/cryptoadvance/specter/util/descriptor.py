@@ -237,6 +237,71 @@ class Descriptor:
     def is_multisig(self):
         return bool(self.multisig_N)
 
+    def derive(self, idx, keep_xpubs=False):
+        """
+        Derives a descriptor with index idx up to the pubkeys.
+        If keep_xpubs is False all xpubs will be replaces by pubkeys
+        so [fgp/path]xpub/suffix changes to [fgp/path/suffix]pubkey
+        Otherwise xpubs will be sorted according to pubkeys
+        but remain in the descriptor
+        """
+        if self.is_multisig:
+            keys = []
+            for i, key in enumerate(self.base_key):
+                keys.append(
+                    (
+                        derive_pubkey(key, self.path_suffix[i], idx),
+                        key,
+                        self.origin_fingerprint[i],
+                        self.origin_path[i],
+                        self.path_suffix[i],
+                    )
+                )
+            if self.sort_keys:
+                keys = sorted(keys, key=lambda k: k[0])
+            origin_fingerprint = [k[2] for k in keys]
+            if keep_xpubs:
+                base_key = [k[1] for k in keys]
+                origin_path = [k[3] for k in keys]
+                path_suffix = [(k[4] or "") for k in keys]
+                path_suffix = [(p.replace("*", str(idx)) or None) for p in path_suffix]
+            else:
+                base_key = [k[0].sec().hex() for k in keys]
+                origin_path = [(k[3] or "") + (k[4] or "") for k in keys]
+                origin_path = [(p.replace("*", str(idx)) or None) for p in origin_path]
+                path_suffix = [None for k in keys]
+        else:
+            origin_fingerprint = self.origin_fingerprint
+            if keep_xpubs:
+                base_key = self.base_key
+                origin_path = self.origin_path
+                path_suffix = self.path_suffix
+                path_suffix = (
+                    path_suffix.replace("*", str(idx)) if path_suffix else None
+                )
+            else:
+                base_key = (
+                    derive_pubkey(self.base_key, self.path_suffix, idx).sec().hex()
+                )
+                origin_path = (self.origin_path or "") + (self.path_suffix or "")
+                origin_path = origin_path.replace("*", str(idx)) or None
+                path_suffix = None
+        return Descriptor(
+            origin_fingerprint,
+            origin_path,
+            base_key,
+            path_suffix,
+            self.testnet,
+            self.sh_wpkh,
+            self.wpkh,
+            self.sh,
+            self.sh_wsh,
+            self.wsh,
+            self.multisig_M,
+            self.multisig_N,
+            self.sort_keys,
+        )
+
     def scriptpubkey(self, idx=None):
         if idx is None and "*" in self.serialize():
             raise RuntimeError("Index is required")
