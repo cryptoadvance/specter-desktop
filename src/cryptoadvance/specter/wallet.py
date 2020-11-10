@@ -1,12 +1,11 @@
 import copy, hashlib, json, logging, os
 import time
-from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, sort_descriptor, parse_utxo
+from .helpers import der_to_bytes, parse_utxo
 from .util.base58 import decode_base58
-from .util.descriptor import Descriptor
+from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
 from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
@@ -792,9 +791,7 @@ class Wallet:
                 arg.pop("range")
                 batch = []
                 for i in range(start, end):
-                    sorted_desc = sort_descriptor(
-                        self.rpc, desc, index=i, change=change
-                    )
+                    sorted_desc = sort_descriptor(desc, index=i)
                     # create fresh object
                     obj = {}
                     obj.update(arg)

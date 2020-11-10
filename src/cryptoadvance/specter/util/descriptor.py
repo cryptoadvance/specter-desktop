@@ -164,7 +164,11 @@ class Descriptor:
             keys = desc.split(",", 1)[1].split(")", 1)[0].split(",")
             sort_keys = "sortedmulti" in desc
             if "sortedmulti" in desc:
-                keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
+                # sorting makes sense only if individual pubkeys are provided
+                base_keys = [x if "]" not in x else x.split("]")[1]]
+                bare_pubkeys = [k for k in base_keys if k[:2] in ["02", "03", "04"]]
+                if len(bare_pubkeys) == len(keys):
+                    keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
             multisig_M = desc.split(",")[0].split("(")[-1]
             multisig_N = len(keys)
         else:
@@ -384,3 +388,16 @@ class Descriptor:
             base = origin + self.base_key + path_suffix
 
         return AddChecksum(descriptor_open + base + descriptor_close)
+
+
+def sort_descriptor(descriptor, index=None):
+    """
+    Sorts descriptor to maintain compatibility with Core 19
+    as it doesn't support sortedmulti.
+    Returns a derived multi() descriptor with sorted xpubs inside.
+    """
+    desc = Descriptor.parse(descriptor)
+    desc.sort_keys = True
+    sorted_desc = desc.derive(index, keep_xpubs=True)
+    sorted_desc.sort_keys = False
+    return sorted_desc.serialize()
