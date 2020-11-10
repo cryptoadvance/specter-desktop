@@ -779,9 +779,7 @@ def new_wallet(wallet_type):
                         if descriptor.origin_fingerprint[i] is None:
                             descriptor.origin_fingerprint[i] = ""
                         if descriptor.origin_path[i] is None:
-                            descriptor.origin_path[
-                                i
-                            ] = descriptor.origin_fingerprint[i]
+                            descriptor.origin_path[i] = descriptor.origin_fingerprint[i]
                         for key in cosigner.keys:
                             if key.fingerprint + key.derivation.replace(
                                 "m", ""
@@ -838,9 +836,7 @@ def new_wallet(wallet_type):
                         app.logger.error(
                             "Exception while rescanning blockchain: %e" % e
                         )
-                        flash(
-                            "Failed to perform rescan for wallet: %r" % e, "error"
-                        )
+                        flash("Failed to perform rescan for wallet: %r" % e, "error")
                     wallet.getdata()
                     return redirect(url_for("wallet", wallet_alias=wallet.alias))
                 else:
