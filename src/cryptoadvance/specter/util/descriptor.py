@@ -1,4 +1,5 @@
 import re
+from embit import bip32, ec, networks, script
 
 # From: https://github.com/bitcoin/bitcoin/blob/master/src/script/descriptor.cpp
 
@@ -53,6 +54,21 @@ def AddChecksum(desc):
     return desc + "#" + DescriptorChecksum(desc)
 
 
+def derive_pubkey(key, path_suffix=None, idx=None):
+    # if SEC pubkey - just return it
+    if key[:2] in ["02", "03", "04"]:
+        return ec.PublicKey.parse(bytes.fromhex(key))
+    # otherwise - xpub or xprv
+    hd = bip32.HDKey.from_base58(key)
+    if hd.is_private:
+        hd = hd.to_public()
+    # if we have path suffix
+    path = "m" + (path_suffix or "")
+    if idx is not None:
+        path = path.replace("*", str(idx))
+    return hd.derive(path).key
+
+
 class Descriptor:
     def __init__(
         self,
@@ -68,6 +84,7 @@ class Descriptor:
         wsh=None,
         multisig_M=None,
         multisig_N=None,
+        sort_keys=True,
     ):
         self.origin_fingerprint = origin_fingerprint
         self.origin_path = origin_path
@@ -82,10 +99,21 @@ class Descriptor:
         self.multisig_M = multisig_M
         self.multisig_N = multisig_N
         self.m_path = None
+        self.sort_keys = sort_keys
 
         if origin_path and not isinstance(origin_path, list):
             self.m_path_base = "m" + origin_path
             self.m_path = "m" + origin_path + (path_suffix or "")
+        elif isinstance(origin_path, list):
+            self.m_path_base = []
+            self.m_path = []
+            for i in range(0, len(origin_path)):
+                if origin_path[i]:
+                    self.m_path_base.append("m" + origin_path[i])
+                    self.m_path.append("m" + origin_path[i] + (path_suffix[i] or ""))
+                else:
+                    self.m_path_base.append(None)
+                    self.m_path.append(None)
 
     @classmethod
     def parse(cls, desc, testnet=False):
@@ -101,6 +129,7 @@ class Descriptor:
         path_suffix = None
         multisig_M = None
         multisig_N = None
+        sort_keys = True
 
         # Check the checksum
         check_split = desc.split("#")
@@ -133,8 +162,13 @@ class Descriptor:
                 return None
             # get the list of keys only
             keys = desc.split(",", 1)[1].split(")", 1)[0].split(",")
+            sort_keys = "sortedmulti" in desc
             if "sortedmulti" in desc:
-                keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
+                # sorting makes sense only if individual pubkeys are provided
+                base_keys = [x if "]" not in x else x.split("]")[1] for x in keys]
+                bare_pubkeys = [k for k in base_keys if k[:2] in ["02", "03", "04"]]
+                if len(bare_pubkeys) == len(keys):
+                    keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
             multisig_M = desc.split(",")[0].split("(")[-1]
             multisig_N = len(keys)
         else:
@@ -180,6 +214,7 @@ class Descriptor:
                     sh,
                     sh_wsh,
                     wsh,
+                    sort_keys,
                 )
             )
         if len(descriptors) == 1:
@@ -199,29 +234,170 @@ class Descriptor:
                 wsh,
                 multisig_M,
                 multisig_N,
+                sort_keys,
             )
+
+    @property
+    def is_multisig(self):
+        return bool(self.multisig_N)
+
+    def derive(self, idx, keep_xpubs=False):
+        """
+        Derives a descriptor with index idx up to the pubkeys.
+        If keep_xpubs is False all xpubs will be replaces by pubkeys
+        so [fgp/path]xpub/suffix changes to [fgp/path/suffix]pubkey
+        Otherwise xpubs will be sorted according to pubkeys
+        but remain in the descriptor
+        """
+        if self.is_multisig:
+            keys = []
+            for i, key in enumerate(self.base_key):
+                keys.append(
+                    (
+                        derive_pubkey(key, self.path_suffix[i], idx),
+                        key,
+                        self.origin_fingerprint[i],
+                        self.origin_path[i],
+                        self.path_suffix[i],
+                    )
+                )
+            if self.sort_keys:
+                keys = sorted(keys, key=lambda k: k[0])
+            origin_fingerprint = [k[2] for k in keys]
+            if keep_xpubs:
+                base_key = [k[1] for k in keys]
+                origin_path = [k[3] for k in keys]
+                path_suffix = [(k[4] or "") for k in keys]
+                path_suffix = [(p.replace("*", str(idx)) or None) for p in path_suffix]
+            else:
+                base_key = [k[0].sec().hex() for k in keys]
+                origin_path = [(k[3] or "") + (k[4] or "") for k in keys]
+                origin_path = [(p.replace("*", str(idx)) or None) for p in origin_path]
+                path_suffix = [None for k in keys]
+        else:
+            origin_fingerprint = self.origin_fingerprint
+            if keep_xpubs:
+                base_key = self.base_key
+                origin_path = self.origin_path
+                path_suffix = self.path_suffix
+                path_suffix = (
+                    path_suffix.replace("*", str(idx)) if path_suffix else None
+                )
+            else:
+                base_key = (
+                    derive_pubkey(self.base_key, self.path_suffix, idx).sec().hex()
+                )
+                origin_path = (self.origin_path or "") + (self.path_suffix or "")
+                origin_path = origin_path.replace("*", str(idx)) or None
+                path_suffix = None
+        return Descriptor(
+            origin_fingerprint,
+            origin_path,
+            base_key,
+            path_suffix,
+            self.testnet,
+            self.sh_wpkh,
+            self.wpkh,
+            self.sh,
+            self.sh_wsh,
+            self.wsh,
+            self.multisig_M,
+            self.multisig_N,
+            self.sort_keys,
+        )
+
+    def scriptpubkey(self, idx=None):
+        if idx is None and "*" in self.serialize():
+            raise RuntimeError("Index is required")
+        if self.is_multisig:
+            keys = []
+            for i, key in enumerate(self.base_key):
+                keys.append(derive_pubkey(key, self.path_suffix[i], idx))
+            if self.sort_keys:
+                keys = sorted(keys)
+            sc = script.multisig(int(self.multisig_M), keys)
+            if self.sh:
+                return script.p2sh(sc)
+            elif self.sh_wsh:
+                return script.p2sh(script.p2wsh(sc))
+            elif self.wsh:
+                return script.p2wsh(sc)
+        else:
+            key = derive_pubkey(self.base_key, self.path_suffix, idx)
+            if self.wpkh:
+                return script.p2wpkh(key)
+            elif self.sh_wpkh:
+                return script.p2sh(script.p2wpkh(key))
+            else:
+                return script.p2pkh(key)
+
+    def address(self, idx=None, network=None):
+        if network is None:
+            net = networks.NETWORKS["test" if self.testnet else "main"]
+        else:
+            net = networks.NETWORKS[network]
+        return self.scriptpubkey(idx).address(net)
 
     def serialize(self):
         descriptor_open = "pkh("
         descriptor_close = ")"
-        origin = ""
-        path_suffix = ""
 
         if self.wpkh:
             descriptor_open = "wpkh("
         elif self.sh_wpkh:
             descriptor_open = "sh(wpkh("
             descriptor_close = "))"
-        elif self.sh or self.sh_wsh or self.wsh:
-            # serialize multisig descriptor is not supported yet.
-            return None
+        elif self.sh:
+            descriptor_open = "sh("
+            descriptor_close = ")"
+        elif self.sh_wsh:
+            descriptor_open = "sh(wsh("
+            descriptor_close = "))"
+        elif self.wsh:
+            descriptor_open = "wsh("
+            descriptor_close = ")"
 
-        if self.origin_fingerprint and self.origin_path:
-            origin = "[" + self.origin_fingerprint + self.origin_path + "]"
+        if self.is_multisig:
+            multi = "sortedmulti" if self.sort_keys else "multi"
+            base_open = f"{multi}({self.multisig_M},"
+            base_close = ")"
+            origins = []
+            for i in range(self.multisig_N):
+                path_suffix = ""
+                origin = ""
+                if self.origin_fingerprint[i] and self.origin_path[i]:
+                    origin = (
+                        "[" + self.origin_fingerprint[i] + self.origin_path[i] + "]"
+                    )
 
-        if self.path_suffix:
-            path_suffix = self.path_suffix
+                if self.path_suffix[i]:
+                    path_suffix = self.path_suffix[i]
 
-        return AddChecksum(
-            descriptor_open + origin + self.base_key + path_suffix + descriptor_close
-        )
+                origins.append(origin + self.base_key[i] + path_suffix)
+
+            base = base_open + ",".join(origins) + base_close
+        else:
+            origin = ""
+            path_suffix = ""
+            if self.origin_fingerprint and self.origin_path:
+                origin = "[" + self.origin_fingerprint + self.origin_path + "]"
+
+            if self.path_suffix:
+                path_suffix = self.path_suffix
+
+            base = origin + self.base_key + path_suffix
+
+        return AddChecksum(descriptor_open + base + descriptor_close)
+
+
+def sort_descriptor(descriptor, index=None):
+    """
+    Sorts descriptor to maintain compatibility with Core 19
+    as it doesn't support sortedmulti.
+    Returns a derived multi() descriptor with sorted xpubs inside.
+    """
+    desc = Descriptor.parse(descriptor)
+    desc.sort_keys = True
+    sorted_desc = desc.derive(index, keep_xpubs=True)
+    sorted_desc.sort_keys = False
+    return sorted_desc.serialize()
