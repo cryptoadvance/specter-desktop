@@ -7,6 +7,7 @@ from .helpers import der_to_bytes, parse_utxo
 from .util.base58 import decode_base58
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
+from .util.tx import decoderawtransaction
 from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
@@ -425,8 +426,9 @@ class Wallet:
             if tx["confirmations"] == 0 and (
                 tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
             ):
-                raw_tx = self.rpc.decoderawtransaction(
-                    self.rpc.gettransaction(tx["txid"])["hex"]
+                raw_tx = decoderawtransaction(
+                    self.rpc.gettransaction(tx["txid"])["hex"],
+                    self.manager.chain
                 )
                 tx["vsize"] = raw_tx["vsize"]
 
@@ -735,7 +737,7 @@ class Wallet:
             available.update(balance)
             for tx in locked_utxo:
                 tx_data = self.rpc.gettransaction(tx["txid"])
-                raw_tx = self.rpc.decoderawtransaction(tx_data["hex"])
+                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
                 delta = raw_tx["vout"][tx["vout"]]["value"]
                 if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
                     available["untrusted_pending"] -= delta
