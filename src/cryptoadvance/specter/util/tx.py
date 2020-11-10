@@ -9,7 +9,7 @@ TYPES_MAP = {
 
 
 def decoderawinput(vin):
-    obj = {
+    result = {
         "txid": vin.txid.hex(),
         "vout": vin.vout,
         "scriptSig": {
@@ -20,12 +20,12 @@ def decoderawinput(vin):
         "sequence": vin.sequence,
     }
     if vin.is_segwit:
-        obj["txinwitness"] = [item.hex() for item in vin.witness.items]
-    return obj
+        result["txinwitness"] = [item.hex() for item in vin.witness.items]
+    return result
 
 
 def decoderawoutput(vout, chain):
-    return {
+    result = {
         "value": vout.value * 1e-8,
         "scriptPubKey": {
             # TODO: asm
@@ -34,9 +34,13 @@ def decoderawoutput(vout, chain):
             # TODO: reqSigs, type, address only if you can
             # "reqSigs": 1,
             # "type": "witness_v0_keyhash",
-            "addresses": [vout.script_pubkey.address(NETWORKS[chain])],
         },
     }
+    try:
+        result["addresses"] = [vout.script_pubkey.address(NETWORKS[chain])]
+    except:
+        pass
+    return result
 
 
 def decoderawtransaction(hextx, chain="main"):
