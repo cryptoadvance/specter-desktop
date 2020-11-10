@@ -37,5 +37,5 @@ setup(
         "Operating System :: OS Independent",
         "Framework :: Flask",
     ],
-    python_requires=">=3.7,<=3.8",
+    python_requires=">=3.7,<3.9",
 )
