@@ -1,13 +1,13 @@
 import copy, hashlib, json, logging, os
 import time
-from hwilib.descriptor import AddChecksum
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, sort_descriptor, parse_utxo
+from .helpers import der_to_bytes, parse_utxo
 from .util.base58 import decode_base58
-from .util.descriptor import Descriptor
+from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
+from .util.tx import decoderawtransaction
 from .persistence import write_json_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
@@ -426,8 +426,8 @@ class Wallet:
             if tx["confirmations"] == 0 and (
                 tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
             ):
-                raw_tx = self.rpc.decoderawtransaction(
-                    self.rpc.gettransaction(tx["txid"])["hex"]
+                raw_tx = decoderawtransaction(
+                    self.rpc.gettransaction(tx["txid"])["hex"], self.manager.chain
                 )
                 tx["vsize"] = raw_tx["vsize"]
 
@@ -665,16 +665,7 @@ class Wallet:
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        if self.is_multisig:
-            try:
-                # first try with sortedmulti
-                addr = self.rpc.deriveaddresses(desc, [index, index + 1])[0]
-            except Exception:
-                # if sortedmulti is not supported
-                desc = sort_descriptor(self.rpc, desc, index=index, change=change)
-                addr = self.rpc.deriveaddresses(desc)[0]
-            return addr
-        return self.rpc.deriveaddresses(desc, [index, index + 1])[0]
+        return Descriptor.parse(desc).address(index, self.manager.chain)
 
     def get_descriptor(self, index=None, change=False, address=None):
         """
@@ -685,24 +676,12 @@ class Wallet:
             return self.rpc.getaddressinfo(address).get("desc", "")
         if index is None:
             index = self.change_index if change else self.address_index
-        desc = self.rpc.getaddressinfo(self.get_address(index, change)).get("desc", "")
-        result = {"descriptor": desc, "xpubs_descriptor": None}
-        if self.is_multisig:
-            if address is not None:
-                d = self.rpc.getaddressinfo(address)["desc"]
-                path = d.split("[")[1].split("]")[0].split("/")
-                change = bool(int(path[-2]))
-                index = int(path[-1])
-            if index is None:
-                index = self.change_index if change else self.address_index
-            desc = self.change_descriptor if change else self.recv_descriptor
-            try:
-                result["xpubs_descriptor"] = sort_descriptor(
-                    self.rpc, desc, index=index, change=change
-                )
-            except Exception:
-                pass
-        return result
+        desc = self.change_descriptor if change else self.recv_descriptor
+        derived_desc = Descriptor.parse(desc).derive(index).serialize()
+        derived_desc_xpubs = (
+            Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
+        )
+        return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
 
     def get_electrum_watchonly(self):
         if len(self.keys) == 1:
@@ -757,7 +736,7 @@ class Wallet:
             available.update(balance)
             for tx in locked_utxo:
                 tx_data = self.rpc.gettransaction(tx["txid"])
-                raw_tx = self.rpc.decoderawtransaction(tx_data["hex"])
+                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
                 delta = raw_tx["vout"][tx["vout"]]["value"]
                 if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
                     available["untrusted_pending"] -= delta
@@ -813,9 +792,7 @@ class Wallet:
                 arg.pop("range")
                 batch = []
                 for i in range(start, end):
-                    sorted_desc = sort_descriptor(
-                        self.rpc, desc, index=i, change=change
-                    )
+                    sorted_desc = sort_descriptor(desc, index=i)
                     # create fresh object
                     obj = {}
                     obj.update(arg)
