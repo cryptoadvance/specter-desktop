@@ -102,9 +102,9 @@
 			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
 				<div class="small-card radio">
 					{% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
-						<img src="{{ url_for('static', filename='img/' ~ device.device_type ~ '_icon.svg') }}" width="18px">
+						<img src="{{ url_for('static', filename='img/devices/' ~ device.device_type ~ '_icon.svg') }}" width="18px">
 					{% else %}
-						<img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
+						<img src="{{ url_for('static', filename='img/devices/other_icon.svg') }}" width="18px">
 					{% endif %}
 					{{ device.name }}
 				</div>
