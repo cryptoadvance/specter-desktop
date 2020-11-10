@@ -270,7 +270,7 @@ class Specter:
                 wallets_folder,
                 self.rpc,
                 self.chain,
-                self.device_manager,
+                user.device_manager,
                 path=wallets_rpcpath,
             )
             user.wallet_manager = wallet_manager
