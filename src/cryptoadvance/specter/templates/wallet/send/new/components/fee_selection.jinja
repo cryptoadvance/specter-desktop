@@ -35,6 +35,8 @@
             Fee rate: <span id="fee_rate_dynamic_text"></span>
         </div>
     </div>
+    <br>
+    <label><input type="checkbox" class="inline" name="rbf" id="rbf" value="1" checked> RBF Enabled</label>
 </div>
 
 <script>
@@ -60,7 +62,9 @@
                     method: 'GET'
                 }
             );
-            return await response.json();
+            let res = await response.json();
+            res.feerate = parseInt((parseFloat(res.feerate) / 1000) * 1e8);
+            return res;
         } catch(e) {
             console.log('Caught error:', e);
             return { success: false, error: e };
@@ -74,7 +78,7 @@
         if (!feesJSON.hasOwnProperty('errors')) {
             let fee = feesJSON.feerate;
             blocks = feesJSON.blocks + ' blocks';
-            document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' BTC/kB');
+            document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' sat/vbyte');
             document.getElementById('fee_rate_dynamic').value = fee;
         } else {
             document.getElementById('fee_rate_dynamic_text').innerHTML = 'will be set by Bitcoin Core automatically';

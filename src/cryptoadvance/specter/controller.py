@@ -376,6 +376,16 @@ def hwi_settings():
     )
 
 
+@app.route("/specter_backup.zip")
+@login_required
+def backup_file():
+    return send_file(
+        app.specter.specter_backup_file(),
+        attachment_filename="specter-backup.zip",
+        as_attachment=True,
+    )
+
+
 @app.route("/settings/general", methods=["GET", "POST"])
 @login_required
 def general_settings():
@@ -402,12 +412,6 @@ def general_settings():
                 validate_bool=validate_merkleproof_bool
             )
             app.specter.check()
-        elif action == "backup":
-            return send_file(
-                app.specter.specter_backup_file(),
-                attachment_filename="specter-backup.zip",
-                as_attachment=True,
-            )
         elif action == "restore":
             restore_devices = []
             restore_wallets = []
@@ -1275,10 +1279,11 @@ def wallet_sendnew(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()))
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1)) - 1
+            rbf = bool(request.form.get("rbf", False))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
             if "dynamic" in request.form.get("fee_options"):
-                fee_rate = float(request.form.get("fee_rate_dynamic")) * 1e5
+                fee_rate = float(request.form.get("fee_rate_dynamic"))
             else:
                 if request.form.get("fee_rate"):
                     fee_rate = float(request.form.get("fee_rate"))
@@ -1291,6 +1296,7 @@ def wallet_sendnew(wallet_alias):
                     fee_rate=fee_rate,
                     selected_coins=selected_coins,
                     readonly="estimate_fee" in request.form,
+                    rbf=rbf,
                 )
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
@@ -1349,6 +1355,22 @@ def wallet_sendnew(wallet_alias):
                 )
             except Exception as e:
                 flash("Could not delete Pending PSBT!", "error")
+        elif action == "rbf":
+            try:
+                rbf_tx_id = request.form["rbf_tx_id"]
+                rbf_fee_rate = float(request.form["rbf_fee_rate"])
+                psbt = wallet.send_rbf_tx(rbf_tx_id, rbf_fee_rate)
+                return render_template(
+                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                    psbt=psbt,
+                    labels=[],
+                    wallet_alias=wallet_alias,
+                    wallet=wallet,
+                    specter=app.specter,
+                    rand=rand,
+                )
+            except Exception as e:
+                flash("Failed to perform RBF. Error: %s" % e, "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = ast.literal_eval(request.form["psbt"])
