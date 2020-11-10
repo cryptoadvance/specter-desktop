@@ -427,8 +427,7 @@ class Wallet:
                 tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
             ):
                 raw_tx = decoderawtransaction(
-                    self.rpc.gettransaction(tx["txid"])["hex"],
-                    self.manager.chain
+                    self.rpc.gettransaction(tx["txid"])["hex"], self.manager.chain
                 )
                 tx["vsize"] = raw_tx["vsize"]
 

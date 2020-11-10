@@ -39,7 +39,7 @@ def decoderawoutput(vout, chain):
     }
 
 
-def decoderawtransaction(hextx, chain='main'):
+def decoderawtransaction(hextx, chain="main"):
     raw = bytes.fromhex(hextx)
     tx = Transaction.parse(raw)
     txhash = sha256(sha256(raw).digest()).digest()[::-1].hex()
