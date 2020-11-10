@@ -165,7 +165,7 @@ class Descriptor:
             sort_keys = "sortedmulti" in desc
             if "sortedmulti" in desc:
                 # sorting makes sense only if individual pubkeys are provided
-                base_keys = [x if "]" not in x else x.split("]")[1]]
+                base_keys = [x if "]" not in x else x.split("]")[1] for x in keys]
                 bare_pubkeys = [k for k in base_keys if k[:2] in ["02", "03", "04"]]
                 if len(bare_pubkeys) == len(keys):
                     keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
