@@ -3,6 +3,7 @@ import os
 from cryptoadvance.specter.util.shell import which
 from cryptoadvance.specter.bitcoind import BitcoindPlainController
 from cryptoadvance.specter.bitcoind import BitcoindDockerController
+from cryptoadvance.specter.bitcoind import fetch_wallet_addresses_for_mining
 
 
 def test_bitcoinddocker_running(caplog, docker, request):
@@ -42,3 +43,10 @@ def test_bitcoinddocker_running(caplog, docker, request):
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     my_bitcoind.testcoin_faucet(random_address, amount=25, mine_tx=True)
     my_bitcoind.stop_bitcoind()
+
+def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    # Todo: instantiate a specter-testwallet
+    addresses = fetch_wallet_addresses_for_mining(wallets_filled_data_folder)
+    assert addresses  # make more sense out of this test
