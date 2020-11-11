@@ -15,6 +15,7 @@ import signal
 
 logger = logging.getLogger(__name__)
 
+
 @click.group()
 def cli():
     pass
@@ -41,7 +42,7 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
     # and it's data folder
     logger.info("Logging is hopefully configured")
     if debug:
-        ca_logger = logging.getLogger('cryptoadvance')
+        ca_logger = logging.getLogger("cryptoadvance")
         ca_logger.setLevel(logging.DEBUG)
         logger.debug("We're now on level DEBUG on logger cryptoadvance")
     app = create_app()

@@ -65,8 +65,6 @@ def get_rpc(conf, old_rpc=None):
         return rpc
 
 
-
-
 class Specter:
     """ A central Object mostly holding app-settings """
 
