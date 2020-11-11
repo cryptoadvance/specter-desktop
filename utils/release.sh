@@ -15,9 +15,17 @@ while [[ $# -gt 0 ]]
 do
 key="$1"
 case $key in
-    -s|--skip-release-notes)
-    SKIP_RELEASE_NOTES="yes"
+    --release-notes)
+    RELEASE_NOTES="yes"
     shift # past value
+    ;;
+    --dev)
+    DEV="yes"
+    shift
+    ;;
+    --tag)
+    TAG="yes"
+    shift
     ;;
     --debug)
     set -x
@@ -31,7 +39,16 @@ esac
 done
 
 
-[ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' | wc -l)" = "2" ] || exit 2
+if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' | wc -l)" = "2" ]; then
+    echo "    --> You don't have the correct upstream-remote. You need this to release. Please do this:"
+    echo "git remote add upstream git@gitlab.com:cryptoadvance/specter-cloud.git "
+    exit 2
+fi
+
+if ! [ "$(git remote -v | grep origin | grep 'git@github.com:' | wc -l)" = "2" ]; then
+    echo "    --> You don't have a reasonable origin-remote. You need this to release (especially with --dev). Please add one!"
+    exit 2
+fi
 
 echo "    --> Fetching all tags ..."
 git fetch upstream --tags
@@ -53,7 +70,7 @@ if [ "$current_branch" != "master" ]; then
     fi
 fi
 
-if ! [[ -n "$SKIP_RELEASE_NOTES" ]]; then
+if [[ -n "$RELEASE_NOTES" ]]; then
 
 
     if [ -z $GH_TOKEN ]; then
@@ -88,7 +105,7 @@ if ! [[ -n "$SKIP_RELEASE_NOTES" ]]; then
     echo "Please check your new File and modify as you find approriate!"
     echo "We're waiting here ..."
 
-    echo "    --> Should we commit and push that now? "
+    echo "    --> Should we commit and push that (to origin) now? "
 
     if ! ask_yn ; then
         echo "break"
@@ -99,28 +116,38 @@ if ! [[ -n "$SKIP_RELEASE_NOTES" ]]; then
 
     git add docs/release-notes.md
     git commit -m "adding release_notes to $new_version"
-    git push
+    git push origin
 
-fi
-
-
-echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
-read new_version
-if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
-    echo "Does not match the pattern!"
-    exit 1; 
-fi
-
-if [ -n $PR_MODE ]; then
     echo "Now go ahead and make your PR:"
     echo "https://github.com/cryptoadvance/specter-desktop/compare"
-else
+    exit 0
+fi
+
+if [[ -n "$TAG" ]]; then
+
+    echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
+    read new_version
+    if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
+        echo "Does not match the pattern!"
+        exit 1; 
+    fi
+
+
     echo "    --> Should i now create the tag and push the version $new_version ?"
-    echo "    --> THIS WILL PUSH TO UPSTREAM!!!"
+    if [ -n $DEV ]; then
+        echo "    --> This will push to your origin-remote!"
+    else
+        echo "    --> THIS WILL PUSH TO THE UPSTREAM-REMOTE!"
     if ! ask_yn ; then
         echo "break"
         exit 2
     fi
-    git tag $new_version && git push upstream $new_version
+    
+    git tag $new_version 
+    if [ -n $DEV ]; then
+        git push origin $new_version
+    else
+        git push upstream $new_version
+    fi
 fi
 
