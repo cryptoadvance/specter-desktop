@@ -6,11 +6,7 @@
  #}
 {% macro sidebar_device_list_item(device, device_alias) -%}
     <a href="{{ url_for('device', device_alias=device.alias) }}" class="item {% if device_alias == device.alias %}active{% endif %}">
-        {% if device.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
-            <img src="{{ url_for('static', filename='img/' ~ (device.device_type|lower) ~ '_icon.svg') }}" width="22px">
-        {% else %}
-            <img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="22px">
-        {% endif %}
+        <img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="22px">
         <div>
             {{ device.name }}<br>
             <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} keys</span>
