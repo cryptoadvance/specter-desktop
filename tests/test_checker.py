@@ -6,7 +6,7 @@ from cryptoadvance.specter.util.checker import Checker
 
 
 def test_checker(caplog):
-    callback_mock=Mock()
+    callback_mock = Mock()
     caplog.set_level(logging.DEBUG)
     checker = Checker(lambda: callback_mock(), period=0.01)
     checker.start()
@@ -16,7 +16,9 @@ def test_checker(caplog):
     assert "Checker stopped" in caplog.text
     callback_mock.side_effect = Exception("someException")
     checker.start()
-    time.sleep(0.8) # If the above assumptions are failing, you might want to increase this
+    time.sleep(
+        0.8
+    )  # If the above assumptions are failing, you might want to increase this
     checker.stop()
     assert "someException" in caplog.text
     assert caplog.text.count("someException") == 5

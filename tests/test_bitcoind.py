@@ -44,6 +44,7 @@ def test_bitcoinddocker_running(caplog, docker, request):
     my_bitcoind.testcoin_faucet(random_address, amount=25, mine_tx=True)
     my_bitcoind.stop_bitcoind()
 
+
 def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
