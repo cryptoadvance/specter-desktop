@@ -481,7 +481,7 @@ class Specter:
 
     def update_alt_rate(self, alt_rate, user):
         if user.is_admin:
-            self.config["alt_rate"] = alt_rate
+            self.config["alt_rate"] = float(alt_rate)
             self._save()
         else:
             user.set_alt_rate(self, alt_rate)

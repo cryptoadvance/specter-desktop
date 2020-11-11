@@ -109,7 +109,7 @@ class User(UserMixin):
         self.save_info(specter)
 
     def set_alt_rate(self, specter, alt_rate):
-        self.config["alt_rate"] = alt_rate
+        self.config["alt_rate"] = float(alt_rate)
         self.save_info(specter)
 
     def set_alt_symbol(self, specter, alt_symbol):

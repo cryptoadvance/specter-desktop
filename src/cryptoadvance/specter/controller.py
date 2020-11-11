@@ -399,7 +399,7 @@ def general_settings():
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
-        alt_rate = request.form.get("alt_rate", 0)
+        alt_rate = float(request.form.get("alt_rate", 0))
         alt_symbol = request.form.get("alt_symbol", "")
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
@@ -1798,7 +1798,7 @@ def btcunitamount(value):
 def altunit(value):
     if app.specter.alt_rate and app.specter.alt_symbol:
         return (
-            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
+            "{:,.2f} ".format(float(value) * float(app.specter.alt_rate))
             .rstrip("0")
             .rstrip(".")
             + app.specter.alt_symbol
