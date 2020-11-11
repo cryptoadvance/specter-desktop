@@ -65,6 +65,7 @@ The easiest way to run Specter Desktop is by installing the Specter Desktop app,
 With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app.
 
 ### Installing Specter from Pip
+* Specter requires version 3.7 or 3.8
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
   * macOS: `brew install libusb`
