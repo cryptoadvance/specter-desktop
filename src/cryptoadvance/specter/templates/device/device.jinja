@@ -99,6 +99,35 @@
 			{% endfor %}
 		</div>
 	{% endif %}
+	<div class="hidden" id="new_device_popup">
+	<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
+	<h1>New device was added successfully!</h1>
+	<div class="row overflow">
+		<a href="{{ url_for('device_setup_wizard') }}" style="text-decoration: none;">
+			<div class="small-card radio">
+				<img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
+				Add another device
+			</div>
+		</a>
+		<form action="{{ url_for('new_wallet', wallet_type='simple') }}" method="POST">
+			<input type="hidden" name="device" value="{{ device.alias }}" />
+			<input type="hidden" name="action" value="preselected_device" />
+			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
+				<div class="small-card radio">
+					<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
+					Create wallet
+				</div>
+			</button>
+		</form>
+		{% if specter.device_manager.devices | length > 1 %}
+			<a href="{{ url_for('new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
+				<div class="small-card radio">
+					<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
+					Create multisig
+				</div>
+			</a>
+		{% endif %}
+	</div>
 {% endblock %}
 
 {% block scripts %}
@@ -117,6 +146,11 @@
                 	setTypeButton.style.display = 'none';
 				}
 			}, false);
+
+			var isNewDevice = location.search.split('newdevice=')[1]
+			if (isNewDevice) {
+				showPageOverlay('new_device_popup');
+			}
 		});
 
 		async function signMessageOnDevice() {

@@ -133,6 +133,20 @@ class HWIBridge {
         });
     }
 
+
+    async getXpub(device, derivation="", passphrase=""){
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.fetch('extract_xpub', {
+            device_type: device.type,
+            derivation: derivation,
+            path: device.path,
+            passphrase: device.passphrase,
+        });
+    }
+
+
     async displayAddress(device, descriptor, passphrase=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;

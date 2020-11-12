@@ -3,16 +3,6 @@
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
     <style>
-        #device-confirm[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
-            margin: 20px;
-        }
-        img[src="{{ url_for('static', filename='img/cobo_icon.svg') }}"] {
-            transform: scale(1.30);
-        }
-
-        img[src="{{ url_for('static', filename='img/bitbox02_icon.svg') }}"] {
-            transform: scale(1.9);
-        }
         td {
             text-align: left;
         }
@@ -22,7 +12,7 @@
     </style>
     <div id="device_setup_wizard" style="width: 100%;">
         <h1 style="font-size: 2em;">Add Device</h1><br>
-        <form action="./" method="POST" class="card center" style="width: auto; margin: 40px;">
+        <form id="form" action="./" method="POST" class="card center" style="width: auto; margin: 40px;">
             <div id="step1">
                 <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
                 <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
@@ -31,19 +21,60 @@
                         <label id="label_device_type_{{ cls.name }}">
                             <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
                             <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
-                                {% if cls.device_type in ['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'] %}
-                                    <img src="{{ url_for('static', filename='img/' ~ cls.device_type ~ '_icon.svg') }}" width="18px">
-                                {% else %}
-                                    <img src="{{ url_for('static', filename='img/other_icon.svg') }}" width="18px">
-                                {% endif %}
+                                <img src="{{ url_for('static', filename='img/devices/' ~ cls.icon) }}" width="18px">
                                 {{ cls.name }}
                             </div>
                         </label>
                     {% endfor %}
                 </div>
+                <a class="note center" style="text-decoration: underline; cursor: pointer;" href="{{ url_for('new_device') }}">Manual cofiguration</a>
+
+            </div>
+            <div id="step2-hot-wallet" class="hidden">
+                <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
+                    <br>
+                    <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+                        <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
+                        This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
+                        Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
+                    </p>
+                    <p>Enter you mnemonic here or use the randomly generated one:</p>
+                    <p><b>Make sure to backup these words!</b></p>
+                    {% set wordslist = mnemonic.split(' ') %}
+                    <nav class="row">
+                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
+                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
+                    </nav>
+                    <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
+                    <div id="generated_mnemonic">
+                        <div class="row center" style="max-height: 30px;">
+                            <fieldset style="border:none; display: inline;"> 
+                                <select name="strength" id="strength">
+                                    <option value="128">12 words</option>
+                                    <option value="256">24 words</option>
+                                </select>
+                            </fieldset>
+                            <button type="button" class="btn" style="max-width: 200px;" onclick="generateMnemonic()">Generate New Mnemonic</button>
+                        </div>
+                        <br>
+                        <table id="mnemonic_table">
+                            {% for i in range(wordslist|length // 4) %}
+                                <tr>
+                                    <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
+                                    <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
+                                    <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
+                                    <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
             </div>
             <div id="step2" class="hidden">
                 <h1 style="font-size: 1.8em;">Upload Keys</h1>
+                <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" required/></h2>
+                <br>
                 <div id="coldcard-instructions">
                     <p>
                     Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.<br>
@@ -80,60 +111,12 @@
                 <table>
                     <thead>
                     <tr>
-                        <th></th><th>Purpose</th><th>Derivation</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" onclick="editXpubsTable(this)">Edit</button></th>
+                        <th></th><th>Purpose</th><th>Derivation</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">Edit</button></th>
                     </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td></td>
-                            <td>Single Sig (Nested)</td>
-                            <td>m/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h</td>
-                            <td>-</td>
-                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>Single Sig (Segwit)</td>
-                            <td>m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h</td>
-                            <td>-</td>
-                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>Multisig (Nested)</td>
-                            <td>m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/1h</td>
-                            <td>-</td>
-                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>Multisig (Segwit)</td>
-                            <td>m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</td>
-                            <td>-</td>
-                            <td><button type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
-                        </tr>
-                        <tr id="edit_select_add_method" class="xpubs_edit">
-                            <td></td>
-                            <td></td>
-                            <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_select_add_method').style.display='none';document.getElementById('edit_add_account').style.display='table-row';">Add account</button></td>
-                            <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_select_add_method').style.display='none';document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivaion</button></td>
-                            <td></td>                            
-                        </tr>
-                        <tr id="edit_add_account" style="display: none;">
-                            <td></td>
-                            <td><button type="button" class="btn" style="width: 150px;">Add accouffnt</button></td>
-                            <td><button type="button" class="btn" style="width: 150px;">Add custffom derivaion</button></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        <tr id="edit_custom_der" style="display: none;">
-                            <td></td>
-                            <td><input id="new_xpub_purpose" type="text" placeholder="XPUB puropse"></td>
-                            <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
-                            <td></td>
-                            <td><button type="button" class="btn" style="width: 60px;">Add</button></td>
-                        </tr>
+                    <tbody id="xpubs_table">
                     </tbody>
+                    <input id="xpubs-table-rows-count" name="xpubs_rows_count" type="hidden"/>
                 </table>
                 <br>
                 <div class="row overflow">
@@ -155,44 +138,29 @@
                         </a>
                     </qr-scanner>
                 </div>
-                <br><br>
 				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
 				<br>
                 <div id="advanced_settings_xpubs" class="hidden">
-                <br>
-                ADVANCED!
+                    <div id="advanced-hot-wallet" class="hidden" style="width: 400px; margin: auto;">
+                        <label>Encrypt Wallet File: </label>
+                        <input type="password" name="file_password" class="inline" placeholder="password">
+                        <br>
+                        <br>
+                        <label>BIP39 passphrase (optional): </label>
+                        <input type="password" name="passphrase" class="inline" placeholder="passphrase">
+                        <br>
+                        <p style="margin-bottom: 10px;">Addresses range to import: </p>
+                        From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+                        to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+                        <br>
+                    </div>
 				</div>
-                <input type="hidden" name="xpubs" id="xpubs">
-            </div>
-            <div id="step3" class="hidden" style="margin: auto;">
-                <table>
-                    <thead>
-                    <tr>
-                        <th></th><th>Purpose</th><th>Derivation</th><th>pub</th><th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        
-                    </tbody>
-                </table>
-            </div>
-            <div id="step4" class="hidden">
-                <h1 style="font-size: 1.8em;">Ready to create <span id="wallet-name-confirm"></span> wallet?</h1>
-                <h2>This will <span id="wallet-scan-confirm"></span> your <span id="wallet-type-confirm"></span> wallet.</h2>
-                <br>
-                <div style="margin: 50px;">
-                    <img id="device-confirm" src="{{ url_for('static', filename='img/other_icon.svg') }}" width="80px"/>
-                    <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" width="130px"/>
-                    <img src="{{ url_for('static', filename='img/icon.png') }}" width="130px"/>
-                </div>
-                <br>
-                <p>After clicking submit, you will be redirected to your new wallet.</p>
             </div>
             <br>
             <div class="row">
                 <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
                 <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
-                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman()">Submit</button>
+                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman();">Add Device</button>
             </div>
         </form>
     </div>
@@ -200,32 +168,211 @@
 
 {% block scripts %}
     <script>
-    function setXpubs(xpubs) {
-        document.getElementById('xpubs').value = xpubs;
-        if ((xpubs.indexOf("/49'/") == -1 && xpubs.indexOf("/84'/") == -1) && (xpubs.toLowerCase().indexOf("/49h/") == -1 && xpubs.toLowerCase().indexOf("/84h/") == -1)) {
-            showError('No matching key was found, please make sure to follow the instructions and try again.')
-            return
+        let xpubsTableRows = 0;
+        function addXpub(purpose, derivation, xpub='-') {
+			let xpubsTable = document.getElementById('xpubs_table');
+            
+            for (let existingRow of xpubsTable.children) {
+                let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
+                if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
+                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
+                    document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
+                    return;
+                }
+            }
+            xpubsTableRows++;
+            let xpubsTableRowsInput = document.getElementById('xpubs-table-rows-count')
+            xpubsTableRowsInput.value = xpubsTableRows;
+            let xpubRowHTML = `
+                <td></td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%;"></td>
+                <td id="xpubs-table-row-${xpubsTableRows}-derivation">${derivation}</td>
+                <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
+                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
+                <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
+                <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
+            `
+            let xpubRow = document.createElement('tr');
+            xpubRow.id = `xpubs-table-row-${xpubsTableRows}`;
+			xpubRow.innerHTML = xpubRowHTML;
+            xpubsTable.insertBefore(xpubRow, xpubsTable.children[xpubsTable.children.length - 3]);
         }
-        showNotification((xpubs.split('\n').filter(xpub => xpub != '').length) + ' keys were successfully retrieved from the device.');
-        setStepCompleted(2);
-        nextStep();
-    }
-    </script>
-    <script>
+
+        function addXpubs(xpubs) {
+            xpubs.split('\n').filter(xpub => xpub != '').forEach(xpub => {
+                let [fingerprint, ...derivation] = xpub.split('[')[1].split(']')[0].split('/')
+                derivation = derivation.join('/').replace("'", 'h').toLowerCase();
+                addXpub('Custom', 'm/' + derivation, ['[' + fingerprint.toLowerCase(), '/' , derivation, ']', xpub.split(']')[1]].join(''))
+            })
+            
+            if (document.getElementById('edit-xpubs-table-btn').innerHTML != 'Edit') {
+                for (let el of document.getElementsByClassName('xpubs_edit')) {
+                    el.style.visibility = 'visible';
+                }
+            }
+        }
+
+        function setupXpubsTable() {
+			let xpubsTable = document.getElementById('xpubs_table');
+            xpubsTable.innerHTML = '';
+            let xpubAddAccountRowHTML =  `
+                <td></td>
+                <td></td>
+                <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" style="width: 150px;" placeholder="Account #"></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="addAccountXpubs()">Add account</button></td>
+                <td></td>
+            `
+            let xpubAddAccountRow = document.createElement('tr');
+            xpubAddAccountRow.id = `edit_add_account`;
+            xpubAddAccountRow.style.display = 'none';
+			xpubAddAccountRow.innerHTML = xpubAddAccountRowHTML;
+            xpubsTable.appendChild(xpubAddAccountRow);
+
+            let xpubAddCustomRowHTML =  `
+                <td></td>
+                <td><input id="new_xpub_purpose" type="text" placeholder="XPUB puropse"></td>
+                <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
+                <td></td>
+                <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">Add</button></td>
+            `
+            let xpubAddCustomRow = document.createElement('tr');
+            xpubAddCustomRow.id = `edit_custom_der`;
+            xpubAddCustomRow.style.display = 'none';
+			xpubAddCustomRow.innerHTML = xpubAddCustomRowHTML;
+            xpubsTable.appendChild(xpubAddCustomRow);
+
+            let xpubAddRowHTML = `
+                <td></td>
+                <td></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">Add account</button></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivaion</button></td>
+                <td></td>
+            `
+            let xpubAddRow = document.createElement('tr');
+            xpubAddRow.id = `edit_select_add_method`;
+            xpubAddRow.classList.add(`xpubs_edit`);
+			xpubAddRow.innerHTML = xpubAddRowHTML;
+            xpubsTable.appendChild(xpubAddRow);
+            addAccountXpubs();
+            for (let el of document.getElementsByClassName('xpubs_edit')) {
+                el.style.visibility = 'hidden';
+            }
+        }
+
+        function addAccountXpubs() {
+            let accountNumberField = document.getElementById('account_number_xpubs')
+            let accountNumber = accountNumberField.value;
+            addXpub('#' + accountNumber + ' Single Sig (Nested)', 'm/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/' + accountNumber + 'h');
+            addXpub('#' + accountNumber + ' Single Sig (Segwit)', 'm/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/' + accountNumber + 'h');
+            addXpub('#' + accountNumber + ' Multisig Sig (Nested)', 'm/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/' + accountNumber + 'h/1h');
+            addXpub('#' + accountNumber + ' Multisig Sig (Segwit)', 'm/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/' + accountNumber + 'h/2h');
+            document.getElementById('edit_add_account').style.display = 'none';
+            accountNumberField.value = 0;
+            for (let el of document.getElementsByClassName('xpubs_edit')) {
+                el.style.visibility = 'visible';
+            }
+        }
+
+        function addCustomDerivation() {
+            let purposeTextField = document.getElementById('new_xpub_purpose')
+            let derivationTextField = document.getElementById('new_xpub_derivation')
+            addXpub(purposeTextField.value, derivationTextField.value);
+            document.getElementById('edit_custom_der').style.display = 'none';
+            purposeTextField.value = '';
+            derivationTextField.value = '';
+            for (let el of document.getElementsByClassName('xpubs_edit')) {
+                el.style.visibility = 'visible';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function(){
+            setupXpubsTable();
+        });
+
+        function setMnemonicView(view) {
+            var generatedMnemonic = document.getElementById("generated_mnemonic");
+            var importMnemonic = document.getElementById("import_mnemonic");
+            var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
+            var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+            var mnemonicValue = document.getElementById("mnemonic_value");
+            if (view == 'generate') {
+                generatedMnemonic.style.display = 'block';
+                importMnemonic.style.display = 'none';
+                generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
+                importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+                mnemonicValue.value = '{{ mnemonic }}'
+            } else {
+                generatedMnemonic.style.display = 'none';
+                importMnemonic.style.display = 'block';
+                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                mnemonicValue.value = importMnemonic.value;
+                importMnemonic.addEventListener("input", function() {
+                    mnemonicValue.value = importMnemonic.value;
+                });
+            }
+        }
+
+        async function generateMnemonic() {
+			let url = `{{ url_for('generatemnemonic') }}`;
+            var formData = new FormData(document.getElementById('form'));
+			try {
+				const response = await fetch(
+					url,
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+				if(response.status != 200){
+					showError(await response.text());
+					return;
+				}
+				const jsonResponse = await response.json();
+                let mnemonic = jsonResponse.mnemonic;
+                //blabla
+                document.getElementById("mnemonic_value").value = mnemonic;
+                let wordslist = mnemonic.split(' ');
+                let mnemonicTable = document.getElementById("mnemonic_table");
+                mnemonicTable.innerHTML = ``;
+    
+                for(let i=0; i < wordslist.length / 4; i++) {
+                    mnemonicTable.innerHTML += `
+                        <tr>
+                            <td id="mnemonicwo">${ 4 * i + 1 }. ${ wordslist[4 * i] }</td>
+                            <td>${ 4 * i + 2 }. ${ wordslist[4 * i + 1] }</td>
+                            <td>${ 4 * i + 3 }. ${ wordslist[4 * i + 2] }</td>
+                            <td>${ 4 * i + 4 }. ${ wordslist[4 * i + 3] }</td>
+                        </tr>
+                    `
+                }
+			} catch(e) {
+				console.log("Caught error: ", e);
+				showError(e);
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         let currentStep = 1;
-        let totalSteps = 4;
+        let totalSteps = 2;
         let stepsCompleted = [];
 
         function checkStepCompleted(step) {
-            switch(step) {
-                case 3:
-                    if (document.getElementById('wallet-name').value) {
-                        setStepCompleted(step);
-                    } else {
-                        setStepUncompleted(step);
-                    }
-                    break;
-            }
         }
 
         function setStepCompleted(step) {
@@ -242,10 +389,6 @@
             if (currentStep == totalSteps) {
                 return;
             } else if (currentStep == 1) {
-                for (let i = 2; i <= totalSteps; i++) {
-                    document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
-                }
-
                 var devices = document.getElementsByName('devices');
                 let device;
                 for (var i = 0, length = devices.length; i < length; i++) {
@@ -253,6 +396,26 @@
                         device = devices[i];
                         break;
                     }
+                }
+
+                if (device.value == 'bitcoincore') {
+                    if (document.getElementById('step2-hot-wallet')) {
+                        document.getElementById('step2').id = 'step3';
+                        document.getElementById('step2-hot-wallet').id = 'step2';
+                    }
+                    document.getElementById('toggle_advanced_xpubs').style.display = 'block';
+                    totalSteps = 3;
+                } else {
+                    if (document.getElementById('step3')) {
+                        document.getElementById('step3').id = 'step2';
+                        document.getElementById('step2').id = 'step2-hot-wallet';
+                    }
+                    document.getElementById('toggle_advanced_xpubs').style.display = 'none';
+                    totalSteps = 2;
+                }
+
+                for (let i = 2; i <= totalSteps; i++) {
+                    document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
                 }
 
                 // Update connect methods for step 2
@@ -276,6 +439,8 @@
                 document.getElementById('specter-instructions').classList.add('hidden');
                 document.getElementById('coldcard-instructions').classList.add('hidden');
                 document.getElementById('cobo-instructions').classList.add('hidden');
+                document.getElementById('hot-wallet').classList.add('hidden');
+                document.getElementById('advanced-hot-wallet').classList.add('hidden');
                 document.getElementById('hwi-only-instructions').classList.add('hidden');
                 switch(device.value) {
                     case 'specter':
@@ -289,10 +454,14 @@
                         break;
                     case 'electrum':
                         break;
+                    case 'bitcoincore':
+                        document.getElementById('hot-wallet').classList.remove('hidden');
+                        document.getElementById('advanced-hot-wallet').classList.remove('hidden');
+                        break;
                     default:
                         document.getElementById('hwi-only-instructions').classList.remove('hidden');
                 }
-            } else if (currentStep == 2) {
+            } else if (currentStep == totalSteps) {
                 let xpubs = document.getElementById('xpubs').value;
                 if (xpubs.indexOf("/49'/") == -1 && xpubs.toLowerCase().indexOf("/49h/") == -1) {
                     document.getElementById('type-wpkh').checked = true;
@@ -314,8 +483,9 @@
             document.getElementById('wizard-previous').classList.remove('hidden');
             document.getElementById(`step${currentStep}`).classList.add('hidden');
             document.getElementById(`step${currentStep + 1}`).classList.remove('hidden');
-            document.getElementById('wizard-next').setAttribute('disabled', 'true');
-
+            if (!document.getElementById('step3')) { // Only bitcoin core hot wallet
+                document.getElementById('wizard-next').setAttribute('disabled', 'true');
+            }
             currentStep++;
             if (currentStep in stepsCompleted) {
                 setStepCompleted(currentStep);
@@ -336,12 +506,6 @@
                         deviceType = devices[i].value;
                         break;
                     }
-                }
-                document.getElementById('wallet-name-confirm').innerHTML = document.getElementById('wallet-name').value;
-                document.getElementById('wallet-type-confirm').innerHTML = deviceName + (document.getElementById('type-wpkh').checked ? ' (Segwit)' : ' (Nested Segwit)');
-                document.getElementById('wallet-scan-confirm').innerHTML = document.getElementById('rescan').checked ? 'import' : 'create';
-                if (['specter', 'coldcard', 'trezor', 'ledger', 'cobo', 'bitbox02'].includes(deviceType)) {
-                    document.getElementById('device-confirm').setAttribute('src', '{{ url_for('static', filename='img') }}/' + deviceType + '_icon.svg');
                 }
             }
         }
@@ -383,7 +547,7 @@
         function editXpubsTable(editBtn) {
             let visibility = '';
             if (editBtn.innerHTML == 'Edit') {
-                editBtn.innerHTML = 'Save';
+                editBtn.innerHTML = 'Done';
                 visibility = 'visible';
             } else {
                 editBtn.innerHTML = 'Edit';
@@ -403,12 +567,14 @@
             if (advancedSettigns.style.display === 'block') {
                 advancedSettigns.style.display = 'none';
                 advancedButton.innerHTML = 'Advanced &#9654;';
-                if (isCoinSelectionActive()) {
-                    toggleExpand();
-                }
             } else {
                 advancedSettigns.style.display = 'block';
                 advancedButton.innerHTML = 'Advanced &#9660;';
+                if (totalSteps == 3) {
+                    document.getElementById('advanced-hot-wallet').display = 'block';
+                } else {
+                    document.getElementById('advanced-hot-wallet').display = 'none';
+                }
             }
         }
     </script>
@@ -450,15 +616,22 @@
             if(device == null){
                 return;
             }
-            
-            let account = 0;
-            let xpubs = await getXpubs(device, account);
-            if(xpubs == null){
-                showError('Failed to retrive device data. Please try again.');
-                return;
-            }
 
-            setXpubs(xpubs);
+            let xpubsTable = document.getElementById('xpubs_table');
+            
+            for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
+                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
+                    continue
+                }
+
+                let xpub = await getXpub(device, document.getElementById(xpubRow.id + '-derivation').innerHTML);
+                if(xpub == null){
+                    showError('Failed to retrive device data. Please try again.');
+                    return;
+                }
+
+                addXpub('Custom', document.getElementById(xpubRow.id + '-derivation').innerHTML, xpub)
+            }
         });
     </script>
 
@@ -520,10 +693,11 @@
                             } else {
                                 data += str+"\n";
                             }
-                            setXpubs(data);
+                            addXpubs(data);
                         }
                         reader.readAsText(files[i]);
                     }
+                    el.value = null;
                 });
             }
         });
@@ -546,19 +720,19 @@
                         console.log(obj);
                         let path = obj.AccountKeyPath.replace(/'/g,'h');
                         let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
-                        setXpubs(str);
+                        addXpubs(str);
                     }else if( ("xfp" in obj) &&
                             ("xpub" in obj) &&
                             ("path" in obj)){
                         console.log(obj);
                         let path = obj.path.replace(/'/g,'h').replace("m/","");
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
-                        setXpubs(str);
+                        addXpubs(str);
                     }else{
                         showError("Unknown key format");
                     }
                 }else{
-                    setXpubs(result);
+                    addXpubs(result);
                 }
             });
         }

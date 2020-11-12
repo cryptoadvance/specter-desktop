@@ -7,6 +7,7 @@ from .util.json_rpc import JSONRPC
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
+from embit import bip32, networks
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class HWIBridge(JSONRPC):
             "toggle_passphrase": self.toggle_passphrase,
             "prompt_pin": self.prompt_pin,
             "send_pin": self.send_pin,
+            "extract_xpub": self.extract_xpub,
             "extract_xpubs": self.extract_xpubs,
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
@@ -187,6 +189,43 @@ class HWIBridge(JSONRPC):
         ) as client:
             xpubs = self._extract_xpubs_from_client(client, account)
         return xpubs
+
+    @locked(hwilock)
+    def extract_xpub(
+        self,
+        derivation=None,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            # Client will be configured for testnet if our Specter instance is
+            #   currently connected to testnet. This will prevent us from
+            #   getting mainnet xpubs unless we set is_testnet here:
+            try:
+                client.is_testnet = derivation.split('/')[2].startswith('1')
+            except:
+                client.is_testnet = False
+
+            network = networks.NETWORKS["test" if client.is_testnet else "main"]
+
+            master_fpr = client.get_master_fingerprint_hex()
+
+            try:
+                xpub = client.get_pubkey_at_path(derivation)["xpub"]
+                slip132_prefix = bip32.detect_version(derivation, default="xpub", network=network)
+                xpub = convert_xpub_prefix(xpub, slip132_prefix)
+                return "[{}/{}]{}\n".format(master_fpr, derivation.split('m/')[1], xpub)
+            except Exception:
+                logger.warn("Failed to import Nested Segwit singlesig mainnet key.")
 
     @locked(hwilock)
     def display_address(
