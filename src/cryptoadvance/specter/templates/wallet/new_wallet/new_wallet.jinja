@@ -18,6 +18,12 @@
 					</div>
 				</label>
 			{% endfor %}
+			<a href="{{ url_for('device_setup_wizard') }}" style="text-decoration: none; color: #fff;">
+				<div class="small-card radio">
+					<img src="{{ url_for('static', filename='img/plus_icon.svg') }}" width="18px">
+					Add new device
+				</div>
+			</a>
 		</div>
 		<button id="submit-device" type="submit" name="action" value="device" class="btn centered">Continue</button>
 		<br>

@@ -112,9 +112,9 @@
                 {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
             {% endfor %}
             </div>
+        {% endif %}
+        {% if specter.chain %}
             {{ sidebar_btn(url_for('new_wallet_type'), 'Add new wallet') }}
-        {% elif specter.chain %}
-            {{ sidebar_btn(url_for('singlesig_setup_wizard'), 'Add new wallet') }}
         {% else %}
             <p class="warning">
             &#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
