@@ -64,7 +64,7 @@ class Key:
         return cls(original, fingerprint, derivation, key_type, purpose, xpub)
 
     @classmethod
-    def parse_xpub(cls, xpub, purpose=''):
+    def parse_xpub(cls, xpub, purpose=""):
         derivation = ""
         arr = xpub.strip().split("]")
         original = arr[-1]

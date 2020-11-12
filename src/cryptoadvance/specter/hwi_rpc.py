@@ -211,7 +211,7 @@ class HWIBridge(JSONRPC):
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
             try:
-                client.is_testnet = derivation.split('/')[2].startswith('1')
+                client.is_testnet = derivation.split("/")[2].startswith("1")
             except:
                 client.is_testnet = False
 
@@ -221,9 +221,11 @@ class HWIBridge(JSONRPC):
 
             try:
                 xpub = client.get_pubkey_at_path(derivation)["xpub"]
-                slip132_prefix = bip32.detect_version(derivation, default="xpub", network=network)
+                slip132_prefix = bip32.detect_version(
+                    derivation, default="xpub", network=network
+                )
                 xpub = convert_xpub_prefix(xpub, slip132_prefix)
-                return "[{}/{}]{}\n".format(master_fpr, derivation.split('m/')[1], xpub)
+                return "[{}/{}]{}\n".format(master_fpr, derivation.split("m/")[1], xpub)
             except Exception:
                 logger.warn("Failed to import Nested Segwit singlesig mainnet key.")
 

@@ -41,7 +41,7 @@ class BitcoinCore(Device):
         wallet_manager,
         testnet,
         keys_range=[0, 1000],
-        keys_purposes=[]
+        keys_purposes=[],
     ):
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
@@ -92,9 +92,19 @@ class BitcoinCore(Device):
                 path = paths[i]
                 xpub = xpubs[i]
                 # detect slip132 version for xpubs
-                slip132_prefix = bip32.detect_version(path, default="xpub", network=network)
-                xpub = "[{}{}]{}\n".format(master_fpr, path.replace("m", ""), convert_xpub_prefix(xpub, slip132_prefix))
-                keys.append(Key.parse_xpub(xpub, keys_purposes[i] if len(keys_purposes) > i else '' ))
+                slip132_prefix = bip32.detect_version(
+                    path, default="xpub", network=network
+                )
+                xpub = "[{}{}]{}\n".format(
+                    master_fpr,
+                    path.replace("m", ""),
+                    convert_xpub_prefix(xpub, slip132_prefix),
+                )
+                keys.append(
+                    Key.parse_xpub(
+                        xpub, keys_purposes[i] if len(keys_purposes) > i else ""
+                    )
+                )
             except Exception:
                 # TODO: This should never occur, but just in case,
                 # we must make sure to catch it properly so it

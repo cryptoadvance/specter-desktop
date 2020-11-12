@@ -95,7 +95,7 @@ class Device:
     def key_types(self, network="main"):
         test = network != "main"
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
-    
+
     def has_key_types(self, wallet_type, network="main"):
         if wallet_type == "multisig":
             for key_type in self.key_types(network):

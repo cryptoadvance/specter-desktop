@@ -217,10 +217,12 @@ def broadcast(wallet_alias):
             )
     return jsonify(success=False, error="broadcast tx request must use POST")
 
+
 @app.route("/generatemnemonic/", methods=["GET", "POST"])
 @login_required
 def generatemnemonic():
-    return { "mnemonic": generate_mnemonic(strength=int(request.form["strength"])) }
+    return {"mnemonic": generate_mnemonic(strength=int(request.form["strength"]))}
+
 
 @app.route("/")
 @login_required
@@ -861,14 +863,13 @@ def new_wallet(wallet_type):
                         % device.name
                     )
                     break
-            
+
             name = wallet_type.title()
             wallet_name = name
             i = 2
             while wallet_name in app.specter.wallet_manager.wallets_names:
                 wallet_name = "%s %d" % (name, i)
                 i += 1
-
 
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
@@ -892,12 +893,13 @@ def new_wallet(wallet_type):
                 devices = [
                     app.specter.device_manager.get_by_alias(
                         request.form.get("cosigner{}".format(i))
-                    ) for i in range(0, sigs_total)
+                    )
+                    for i in range(0, sigs_total)
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
                     purposes=purposes,
-                    cosigners = devices,
+                    cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
                     sigs_required=max(len(devices) * 2 // 3, 1),
@@ -926,12 +928,13 @@ def new_wallet(wallet_type):
                 devices = [
                     app.specter.device_manager.get_by_alias(
                         request.form.get("cosigner{}".format(i))
-                    ) for i in range(0, sigs_total)
+                    )
+                    for i in range(0, sigs_total)
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
                     purposes=purposes,
-                    cosigners = devices,
+                    cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
                     sigs_required=max(len(devices) * 2 // 3, 1),
@@ -974,16 +977,18 @@ def new_wallet(wallet_type):
             return redirect(url_for("wallet", wallet_alias=wallet.alias))
         if action == "preselected_device":
             return render_template(
-                    "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
-                    cosigners=[app.specter.device_manager.get_by_alias(request.form['device'])],
-                    wallet_type='simple',
-                    sigs_total=1,
-                    sigs_required=1,
-                    error=err,
-                    specter=app.specter,
-                    rand=rand,
-                )
+                "wallet/new_wallet/new_wallet_keys.jinja",
+                purposes=purposes,
+                cosigners=[
+                    app.specter.device_manager.get_by_alias(request.form["device"])
+                ],
+                wallet_type="simple",
+                sigs_total=1,
+                sigs_required=1,
+                error=err,
+                specter=app.specter,
+                rand=rand,
+            )
 
     return render_template(
         "wallet/new_wallet/new_wallet.jinja",
@@ -1100,16 +1105,18 @@ def device_setup_wizard():
         device_type = request.form.get("devices")
         device_name = request.form.get("device_name", "")
         if not device_name:
-                err = "Device name must not be empty"
+            err = "Device name must not be empty"
         elif device_name in app.specter.device_manager.devices_names:
             err = "Device with this name already exists"
         xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
-        if device_type != 'bitcoincore':
+        if device_type != "bitcoincore":
             keys = []
-            for i in range (0, xpubs_rows_count):
-                purpose = request.form.get("xpubs-table-row-{}-purpose".format(i), 'Custom')
-                xpub = request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), '-')
-                if xpub != '-':
+            for i in range(0, xpubs_rows_count):
+                purpose = request.form.get(
+                    "xpubs-table-row-{}-purpose".format(i), "Custom"
+                )
+                xpub = request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), "-")
+                if xpub != "-":
                     try:
                         keys.append(Key.parse_xpub(xpub, purpose=purpose))
                     except:
@@ -1121,10 +1128,12 @@ def device_setup_wizard():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
                 )
-                flash('{} was added successfully!'.format(device_name))
-                return redirect(url_for("device", device_alias=device.alias) + '?newdevice=true')
+                flash("{} was added successfully!".format(device_name))
+                return redirect(
+                    url_for("device", device_alias=device.alias) + "?newdevice=true"
+                )
             else:
-                flash(err, 'error')
+                flash(err, "error")
         else:
             if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
                 err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
@@ -1138,14 +1147,18 @@ def device_setup_wizard():
             mnemonic = request.form["mnemonic"]
             paths = []
             keys_purposes = []
-            for i in range (0, xpubs_rows_count):
-                purpose = request.form.get("xpubs-table-row-{}-purpose".format(i), 'Custom')
-                path = request.form.get("xpubs-table-row-{}-derivation-hidden".format(i), '')
-                if path != '':
+            for i in range(0, xpubs_rows_count):
+                purpose = request.form.get(
+                    "xpubs-table-row-{}-purpose".format(i), "Custom"
+                )
+                path = request.form.get(
+                    "xpubs-table-row-{}-derivation-hidden".format(i), ""
+                )
+                if path != "":
                     paths.append(path)
                     keys_purposes.append(purpose)
             if not paths:
-                err = 'No paths were specified, please provide at lease one.'
+                err = "No paths were specified, please provide at lease one."
             if err is None:
                 passphrase = request.form["passphrase"]
                 file_password = request.form["file_password"]
@@ -1161,18 +1174,20 @@ def device_setup_wizard():
                     app.specter.wallet_manager,
                     app.specter.chain != "main",
                     keys_range=[range_start, range_end],
-                    keys_purposes=keys_purposes
+                    keys_purposes=keys_purposes,
                 )
-                flash('{} was added successfully!'.format(device_name))
-                return redirect(url_for("device", device_alias=device.alias) + '?newdevice=true')
+                flash("{} was added successfully!".format(device_name))
+                return redirect(
+                    url_for("device", device_alias=device.alias) + "?newdevice=true"
+                )
             else:
-                flash(err, 'error')
+                flash(err, "error")
     return render_template(
         "wizards/device_setup_wizard.jinja",
         mnemonic=mnemonic,
         strength=strength,
         specter=app.specter,
-        rand=rand
+        rand=rand,
     )
 
 
