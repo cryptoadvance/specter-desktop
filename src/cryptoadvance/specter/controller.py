@@ -1022,79 +1022,6 @@ def wallets_overview():
         rand=rand,
     )
 
-
-@app.route("/singlesig_setup_wizard/", methods=["GET", "POST"])
-@login_required
-def singlesig_setup_wizard():
-    err = None
-    if request.method == "POST":
-        xpubs = request.form["xpubs"]
-        if not xpubs:
-            err = "xpubs name must not be empty"
-        keys, failed = Key.parse_xpubs(xpubs)
-        if len(failed) > 0:
-            err = "Failed to parse these xpubs:\n" + "\n".join(failed)
-        device_type = request.form.get("devices")
-        device_name = get_device_class(device_type).name
-        i = 2
-        while device_name in [
-            device.name for device in app.specter.device_manager.devices.values()
-        ]:
-            device_name = "%s %d" % (get_device_class(device_type).name, i)
-            i += 1
-        if err is None:
-            device = app.specter.device_manager.add_device(
-                name=device_name, device_type=device_type, keys=keys
-            )
-        wallet_name = request.form["wallet_name"]
-        if wallet_name in app.specter.wallet_manager.wallets_names:
-            err = "Wallet already exists"
-        address_type = request.form["type"]
-        wallet_key = [
-            key
-            for key in device.keys
-            if key.key_type == address_type
-            and (key.xpub.startswith("xpub") != (app.specter.chain != "main"))
-        ]
-
-        if len(wallet_key) != 1:
-            err = "Device key was not imported properly. Please make\
-                sure your device is on the right network and try again."
-
-        if err:
-            app.specter.device_manager.remove_device(
-                device,
-                app.specter.wallet_manager,
-                bitcoin_datadir=app.specter.bitcoin_datadir,
-                chain=app.specter.chain,
-            )
-            return render_template(
-                "wizards/singlesig_setup_wizard.jinja",
-                error=err,
-                specter=app.specter,
-                rand=rand,
-            )
-        wallet = app.specter.wallet_manager.create_wallet(
-            wallet_name, 1, address_type, wallet_key, [device]
-        )
-        app.logger.info("Created Wallet %s" % wallet_name)
-        rescan_blockchain = request.form["rescan"] == "true"
-        if rescan_blockchain:
-            # old wallet - import more addresses
-            wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
-            wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
-            explorer = None
-            if "use_explorer" in request.form:
-                explorer = app.specter.get_default_explorer()
-            wallet.rescanutxo(explorer)
-            app.specter.info["utxorescan"] = 1
-            app.specter.utxorescanwallet = wallet.alias
-        return redirect(url_for("wallet", wallet_alias=wallet.alias))
-    return render_template(
-        "wizards/singlesig_setup_wizard.jinja", specter=app.specter, rand=rand
-    )
-
-
 @app.route("/device_setup_wizard/", methods=["GET", "POST"])
 @login_required
 def device_setup_wizard():
@@ -1102,12 +1029,16 @@ def device_setup_wizard():
     strength = 128
     mnemonic = generate_mnemonic(strength=strength)
     if request.method == "POST":
-        device_type = request.form.get("devices")
-        device_name = request.form.get("device_name", "")
-        if not device_name:
-            err = "Device name must not be empty"
-        elif device_name in app.specter.device_manager.devices_names:
-            err = "Device with this name already exists"
+        if request.form.get("existing_device"):
+            device = app.specter.device_manager.get_by_alias(request.form.get("existing_device"))
+            device_type = device.device_type
+        else:
+            device_type = request.form.get("devices")
+            device_name = request.form.get("device_name", "")
+            if not device_name:
+                err = "Device name must not be empty"
+            elif device_name in app.specter.device_manager.devices_names:
+                err = "Device with this name already exists"
         xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
         if device_type != "bitcoincore":
             keys = []
@@ -1125,6 +1056,12 @@ def device_setup_wizard():
             if not keys and not err:
                 err = "xpubs name must not be empty"
             if err is None:
+                if request.form.get("existing_device"):
+                    device.add_keys(keys)
+                    flash("{} keys were added successfully".format(len(keys)))
+                    return redirect(
+                        url_for("device", device_alias=device.alias)
+                    )
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
                 )
@@ -1162,6 +1099,21 @@ def device_setup_wizard():
             if err is None:
                 passphrase = request.form["passphrase"]
                 file_password = request.form["file_password"]
+                if request.form.get("existing_device"):
+                    device.add_hot_wallet_keys(
+                        mnemonic,
+                        passphrase,
+                        paths,
+                        file_password,
+                        app.specter.wallet_manager,
+                        app.specter.chain != "main",
+                        keys_range=[range_start, range_end],
+                        keys_purposes=keys_purposes,
+                    )
+                    flash("{} keys were added successfully".format(len(paths)))
+                    return redirect(
+                        url_for("device", device_alias=device.alias)
+                    )
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
@@ -1796,10 +1748,10 @@ def device(device_alias):
             strength = 128
             mnemonic = generate_mnemonic(strength=strength)
             return render_template(
-                "device/new_device.jinja",
+                "wizards/device_setup_wizard.jinja",
                 mnemonic=mnemonic,
                 strength=strength,
-                device=device,
+                existing_device=device,
                 device_alias=device_alias,
                 specter=app.specter,
                 rand=rand,
