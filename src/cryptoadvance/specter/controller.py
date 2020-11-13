@@ -1022,6 +1022,7 @@ def wallets_overview():
         rand=rand,
     )
 
+
 @app.route("/device_setup_wizard/", methods=["GET", "POST"])
 @login_required
 def device_setup_wizard():
@@ -1030,7 +1031,9 @@ def device_setup_wizard():
     mnemonic = generate_mnemonic(strength=strength)
     if request.method == "POST":
         if request.form.get("existing_device"):
-            device = app.specter.device_manager.get_by_alias(request.form.get("existing_device"))
+            device = app.specter.device_manager.get_by_alias(
+                request.form.get("existing_device")
+            )
             device_type = device.device_type
         else:
             device_type = request.form.get("devices")
@@ -1059,9 +1062,7 @@ def device_setup_wizard():
                 if request.form.get("existing_device"):
                     device.add_keys(keys)
                     flash("{} keys were added successfully".format(len(keys)))
-                    return redirect(
-                        url_for("device", device_alias=device.alias)
-                    )
+                    return redirect(url_for("device", device_alias=device.alias))
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
                 )
@@ -1111,9 +1112,7 @@ def device_setup_wizard():
                         keys_purposes=keys_purposes,
                     )
                     flash("{} keys were added successfully".format(len(paths)))
-                    return redirect(
-                        url_for("device", device_alias=device.alias)
-                    )
+                    return redirect(url_for("device", device_alias=device.alias))
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
