@@ -6,7 +6,6 @@ const request = require('request')
 const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
-const console = require('console')
 const helpers = require('./helpers')
 const getFileHash = helpers.getFileHash
 const getAppSettings = helpers.getAppSettings
@@ -44,6 +43,12 @@ let webPreferences = {
 }
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
+
+try {
+  spawn(path.join(__dirname, 'node_modules/tor-router/bin/tor-router'))
+} catch(e) {
+  console.error(e)
+}
 
 let platformName = ''
 switch (process.platform) {
