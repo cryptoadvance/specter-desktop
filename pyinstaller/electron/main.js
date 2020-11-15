@@ -45,9 +45,15 @@ let webPreferences = {
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
 try {
-  spawn(path.join(__dirname, 'node_modules/tor-router/bin/tor-router'))
+  require(
+    '@deadcanaries/granax')({}, { 
+        'SocksPort': 9050,
+        'ControlPort': 9051 
+    }).on('error', function () {
+      // Tor is probably running, ignore...
+    }) 
 } catch(e) {
-  console.error(e)
+  // Tor is probably running, ignore...
 }
 
 let platformName = ''
