@@ -1,5 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
+	{% include "includes/qr-scanner.html" %}
+
 	<form action="?" method="POST">
 		<h1 id="title" class="settings-title">Bitcoin Core settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
@@ -37,10 +39,12 @@
 				Username:<br><input type="text" id="username" name="username" value="{{ username }}">
 				<br><br>
 				Password:<br><input type="password" id="password" name="password" value="{{ password }}">
+				<br><br>
+				Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
+				<qr-scanner id="scan_rpc" style="margin: 10px;">
+					<a slot="button" href="#" class="btn" style="max-width: 180px;"><img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Connect with QR</a>
+				</qr-scanner>
 			</div>
-			<br>
-			Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
-			<br><br>
 			Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">
 			<div class="note">
 				Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
@@ -105,6 +109,7 @@
 		if (autodetect != null) {
 			function toggleAutoDetectMode() {
 				var rpcSettings = document.getElementById("rpc_settings");
+				var scanRpc = document.getElementById("scan_rpc");
 				var lock = document.getElementById("lock");
 				var datadirContainer = document.getElementById("datadir-container");
 				if (autodetect.checked) {
@@ -112,6 +117,7 @@
 					datadirContainer.style.removeProperty('display');
 					rpcSettings.style['pointer-events'] = 'none';
 					rpcSettings.style['background-color'] = '#8881';
+					scanRpc.style.display = 'none';
 					document.getElementById("username").value = '{{ username }}';
 					document.getElementById("password").value = '{{ password }}';
 				} else {
@@ -119,6 +125,7 @@
 					datadirContainer.style['display'] = 'none';
 					rpcSettings.style.removeProperty('background-color');
 					rpcSettings.style.removeProperty('pointer-events');
+					scanRpc.style.removeProperty('display');
 				}
 			}
 
@@ -128,5 +135,30 @@
 			toggleAutoDetectMode();
 		}
 	});
+</script>
+
+<script type="text/javascript">
+	let scanner = document.getElementById('scan_rpc');
+	if(scanner != null) {
+		scanner.addEventListener('scan', e=>{
+			let result = e.detail.result;
+			if(result==null){
+				return;
+			}
+			try {
+				let data = result.split('btcrpc://')[1].split(':')
+				let username = data[0];
+				let password = data[1].split('@')[0];
+				let host = data[1].split('@')[1];
+				let port = data[2].split('?')[0].split('/')[0];
+				document.getElementById('username').value = username;
+				document.getElementById('password').value = password;
+				document.getElementById('host').value = host;
+				document.getElementById('port').value = port;
+			} catch {
+				showError('Failed to read connection data from the QR', 3000)
+			}
+		});
+	}
 </script>
 {% endblock %}
