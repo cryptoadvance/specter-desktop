@@ -68,25 +68,103 @@
 					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
-					<a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.2em; font-weight: bolder;">Read the FAQ</a>
 					<br><br><br>
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
-					<ul style="text-align: left; margin-left: 10%;">
-						<li class="list-item">
-							Click on "Add new device" on the left sidebar and follow the instructions.<br>
-							Follow the same process for each device you would like to use as a separate possible (co)signer in a wallet.
-						</li>
-						<li class="list-item">
-							When adding a new signing device, you can add multiple <code>xpub</code> keys. Each <code>xpub</code> key has a separate purpose for which it can be used (i.e. multisig wallets: P2SH-P2WPKH, P2SH-P2WSH, P2WPKH, P2WSH).<br>
-							Make sure to import all keys you need.
-						</li>
-						<li class="list-item">
-							After adding your device(s), you can start creating wallets by clicking on "Add new wallet".<br>					
-						</li>
-						<li class="list-item">
-							For any questions or support, you can either open a <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff">GitHub issue</a> or ask it in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff">Specter Support Telegram group</a>.
-						</li>
-					</ul>
+					<table>
+						<tbody>
+							<tr>
+								<td>
+									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
+								</td>
+								<td style="text-align: left;">
+									<a href="{{ url_for('settings') }}">
+										<h2>Connect Specter to your Bitcoin Core node.</h2>
+									</a>
+								</td>
+								<td style="text-align: left;">
+									{% if not specter.chain %}
+										<button type="button" class="btn" onclick="showPageOverlay('connect-node-help-popup')">Need help?</button>
+										<div id="connect-node-help-popup" class="hidden">
+											<h1>Connecting Specter to your Bitcoin Core node</h1>
+											<div class="overflow">
+												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('no-node-help-popup')">I don't have a Bitcoin Core node yet.</button>
+												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('local-node-help-popup')">I have Bitcoin Core on this computer.</button>
+												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('remote-node-help-popup')">I have a remote Bitcoin Core node.</button>
+											</div>
+										</div>
+										<div id="no-node-help-popup" class="hidden">
+											<h1>Installing and Setting Up Bitcoin Core</h1>
+											Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop:<br><br>
+											<ul style="text-align: left; margin: auto; line-height: 2;">
+												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+											</ul>
+										</div>
+										<div id="local-node-help-popup" class="hidden">
+											<h1>Connecting Specter to your local Bitcoin Core node</h1>
+											<p>If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.<br>
+											In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.<br>
+											Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.<br><br>
+											<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.<br>
+											If you don't have that, add it and restart Bitcoin Core.
+											</p>
+											<br><br>
+											In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop:<br><br>
+											<ul style="text-align: left; margin: auto; line-height: 2;">
+												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+											</ul>
+										</div>
+										<div id="remote-node-help-popup" class="hidden">
+											<h1>Connecting Specter to your remote Bitcoin Core node</h1>
+											<h3>Connecting to a "node in a box"</h3>
+											<p style="font-size: 1.05em;">
+												Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy.<br>
+												RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually.<br><br>
+												If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually.
+											</p>
+											<h3>Connecting over Tor</h3>
+											<p style="font-size: 1.05em;">Connecting over Tor requires that you first configure Tor on your local machine.<br>
+											You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" style="color: #fff;">Window</a><br>
+											</p>
+										</div>
+									{% endif %}
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
+								</td>
+								<td style="text-align: left;">
+									<a href="{{ url_for('device_setup_wizard') }}">
+										<h2>Add signing devices you wish to use.</h2>
+									</a>
+								</td>
+								<td style="text-align: left;">
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
+								</td>
+								<td style="text-align: left;">
+									<a href="{{ url_for('new_wallet_type') }}">
+										<h2>Create your first wallet!</h2>
+									</a>
+								</td>
+								<td style="text-align: left;">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<br>
+					Having issues? Try reading <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">the FAQ</a><br><br>
+					Still having issues?<br>
+					Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on the GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>
+					<br><br>
+
 					<div class="spacer"></div>
 					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">Help wanted: Do you like Specter?</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
 					<div class="spacer"></div>
