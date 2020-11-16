@@ -276,9 +276,9 @@ class BitcoinRPC:
         """Makes batch request to Core"""
         type(self).counter += len(calls)
         # some debug info for optimizations
-        methods = " ".join(list(dict.fromkeys([call[0] for call in calls])))
-        wallet = self.path.split("/")[-1]
-        print(f"{self.counter}: +{len(calls)} {wallet} {methods}")
+        # methods = " ".join(list(dict.fromkeys([call[0] for call in calls])))
+        # wallet = self.path.split("/")[-1]
+        # print(f"{self.counter}: +{len(calls)} {wallet} {methods}")
         headers = {"content-type": "application/json"}
         payload = [
             {
