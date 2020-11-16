@@ -358,7 +358,7 @@ class Wallet:
 
     def delete_files(self):
         delete_file(self.fullpath)
-        delete_file(self.fullpath+".bkp")
+        delete_file(self.fullpath + ".bkp")
         delete_file(self._addresses.path)
 
     @property
