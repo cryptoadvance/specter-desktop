@@ -75,7 +75,7 @@ def _write_json_file(content, path, lock=None):
             if os.path.isfile(path):
                 os.remove(path)
             os.rename(bkp, path)
-            raise RuntimeError(f"Failed to write to file {path}")
+            logger.error(f"Failed to write to file {path}")
 
 
 def write_json_file(content, path, lock=None):
