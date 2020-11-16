@@ -6,7 +6,7 @@ from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
 from .wallet import Wallet
-from .persistence import delete_json_file, delete_folder
+from .persistence import delete_file, delete_folder
 
 
 logger = logging.getLogger()
@@ -263,8 +263,8 @@ Silently ignored!"
                 if os.path.exists(path):
                     shutil.rmtree(path)
                     break
-        # Delete JSON
-        delete_json_file(wallet.fullpath)
+        # Delete files
+        wallet.delete_files()
         del self.wallets[wallet.name]
         self.update()
 

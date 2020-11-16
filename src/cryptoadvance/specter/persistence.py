@@ -3,7 +3,9 @@
     call the call-back-method.
 """
 
-import os, json
+import os
+import json
+import csv
 import threading
 import logging
 from flask import current_app as app
@@ -83,10 +85,10 @@ def write_json_file(content, path, lock=None):
     storage_callback()
 
 
-def delete_json_file(path):
+def delete_file(path):
     if os.path.exists(path):
         os.remove(path)
-    storage_callback()
+        storage_callback()
 
 
 def write_devices(devices_json):
@@ -126,6 +128,35 @@ def delete_folders(paths):
     for path in paths:
         _delete_folder(path)
     storage_callback()
+
+
+def _write_csv(fname, objs, cls=dict):
+    columns = []
+    # if it's a custom class
+    if hasattr(cls, "columns"):
+        columns = cls.columns
+    # if it's just a dict
+    elif len(objs) > 0:
+        columns = objs[0].keys()
+
+    with fslock:
+        with open(fname, mode="w") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            writer.writeheader()
+            for obj in objs:
+                writer.writerow(obj)
+
+
+def write_csv(fname, objs, cls=dict):
+    _write_csv(fname, objs, cls=dict)
+    storage_callback()
+
+
+def read_csv(fname, cls=dict, *args):
+    with fslock:
+        with open(fname, mode="r") as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            return [cls(*args, **row) for row in csv_reader]
 
 
 def storage_callback():

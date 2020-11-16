@@ -8,13 +8,14 @@ from .util.base58 import decode_base58
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
-from .persistence import write_json_file
+from .persistence import write_json_file, delete_file
 from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
 import requests
 from math import ceil
+from .addresses import Addresses
 
 logger = logging.getLogger()
 
@@ -84,6 +85,11 @@ class Wallet:
         )
         self.last_block = last_block
 
+        addr_path = self.fullpath.replace(".json", "_addr.csv")
+        self._addresses = Addresses(addr_path, self.rpc)
+        if not self._addresses.file_exists:
+            self.migrate_labels()
+
         if address == "":
             self.getnewaddress()
         if change_address == "":
@@ -93,6 +99,26 @@ class Wallet:
         self.update()
         if old_format_detected or self.last_block != last_block:
             self.save_to_file()
+
+    def migrate_labels(self):
+        recv = [
+            dict(
+                address=self.get_address(idx, change=False, check_keypool=False),
+                index=idx,
+                change=False,
+            )
+            for idx in range(self.keypool)
+        ]
+        change = [
+            dict(
+                address=self.get_address(idx, change=True, check_keypool=False),
+                index=idx,
+                change=True,
+            )
+            for idx in range(self.change_keypool)
+        ]
+        # TODO: load addresses for all txs here as well
+        self._addresses.import_addresses(recv + change, check_rpc=True)
 
     def update(self):
         self.get_balance()
@@ -121,17 +147,16 @@ class Wallet:
         addresses = [tx["address"] for tx in txs]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
-        if len(addresses) > 0:
-            # prepare rpc call
-            calls = [("getaddressinfo", addr) for addr in addresses]
-            # extract results
-            res = [r["result"] for r in self.rpc.multi(calls)]
-            # extract last two indexes of hdkeypath
-            paths = [d["hdkeypath"].split("/")[-2:] for d in res if "hdkeypath" in d]
-            # get change and recv addresses
-            max_recv = max([int(p[1]) for p in paths if p[0] == "0"], default=-1)
-            max_change = max([int(p[1]) for p in paths if p[0] == "1"], default=-1)
-            # these calls will happen only if current addresses are used
+        max_recv = self.address_index - 1
+        max_change = self.change_index - 1
+        for addr in addresses:
+            if addr in self._addresses:
+                a = self._addresses[addr]
+                if a.index is not None:
+                    if a.change:
+                        max_change = max(max_change, a.index)
+                    else:
+                        max_recv = max(max_recv, a.index)
             updated = False
             while max_recv >= self.address_index:
                 self.getnewaddress(change=False, save=False)
@@ -270,7 +295,8 @@ class Wallet:
             self.utxo_labels_list = self.getlabels(
                 utxo["address"] for utxo in self.utxo
             )
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to load utxos, {e}")
             self.utxo = []
             self.utxo_labels_list = {}
 
@@ -298,7 +324,10 @@ class Wallet:
 
     @property
     def json(self):
-        return {
+        return self.to_json()
+
+    def to_json(self, for_export=False):
+        o = {
             "name": self.name,
             "alias": self.alias,
             "description": self.description,
@@ -314,16 +343,23 @@ class Wallet:
             "keys": [key.json for key in self.keys],
             "devices": [device.alias for device in self.devices],
             "sigs_required": self.sigs_required,
-            "pending_psbts": self.pending_psbts,
-            "fullpath": self.fullpath,
-            "last_block": self.last_block,
             "blockheight": self.blockheight,
-            "labels": self.export_labels(),
         }
+        if for_export:
+            o["labels"] = self.export_labels()
+        else:
+            o["pending_psbts"] = self.pending_psbts
+            o["last_block"] = self.last_block
+        return o
 
     def save_to_file(self):
-        write_json_file(self.json, self.fullpath)
+        write_json_file(self.to_json(), self.fullpath)
         self.manager.update()
+
+    def delete_files(self):
+        delete_file(self.fullpath)
+        delete_file(self.fullpath+".bkp")
+        delete_file(self._addresses.path)
 
     @property
     def is_multisig(self):
@@ -468,13 +504,7 @@ class Wallet:
         t.start()
 
     def export_labels(self):
-        labels = self.rpc.listlabels()
-        if "" in labels:
-            labels.remove("")
-        res = self.rpc.multi([("getaddressesbylabel", label) for label in labels])
-        return {
-            labels[i]: list(result["result"].keys()) for i, result in enumerate(res)
-        }
+        return self._addresses.get_labels()
 
     def import_labels(self, labels):
         # format:
@@ -483,13 +513,11 @@ class Wallet:
         #       'label2': ['address3', 'address4']
         #   }
         #
-        rpc_calls = [
-            ("setlabel", address, label)
-            for label, addresses in labels.items()
-            for address in addresses
-        ]
-        if rpc_calls:
-            self.rpc.multi(rpc_calls)
+        for label, addresses in labels.items():
+            if not label:
+                continue
+            for address in addresses:
+                self._addresses.set_label(address, label)
 
     def _rescan_utxo_thread(self, explorer=None):
         # rescan utxo is pretty fast,
@@ -642,7 +670,6 @@ class Wallet:
         )
 
     def getnewaddress(self, change=False, save=True):
-        label = "Change" if change else "Address"
         if change:
             self.change_index += 1
             index = self.change_index
@@ -650,7 +677,6 @@ class Wallet:
             self.address_index += 1
             index = self.address_index
         address = self.get_address(index, change=change)
-        self.setlabel(address, "{} #{}".format(label, index))
         if change:
             self.change_address = address
         else:
@@ -673,7 +699,13 @@ class Wallet:
         or from address belonging to the wallet.
         """
         if address is not None:
-            return self.rpc.getaddressinfo(address).get("desc", "")
+            # only ask rpc if address is not known directly
+            if address not in self._addresses:
+                return self.rpc.getaddressinfo(address).get("desc", "")
+            else:
+                a = self._addresses[address]
+                index = a.index
+                change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
         desc = self.change_descriptor if change else self.recv_descriptor
@@ -768,6 +800,16 @@ class Wallet:
                 "watchonly": True,
             }
         ]
+        addresses = [
+            dict(
+                address=self.get_address(idx, change=change, check_keypool=False),
+                index=idx,
+                change=change,
+            )
+            for idx in range(start, end)
+        ]
+        self._addresses.import_addresses(addresses, check_rpc=False)
+
         if not self.is_multisig:
             r = self.rpc.importmulti(args, {"rescan": False})
         # bip67 requires sorted public keys for multisig addresses
@@ -803,16 +845,6 @@ class Wallet:
             self.change_keypool = end
         else:
             self.keypool = end
-        self.rpc.multi(
-            [
-                (
-                    "setlabel",
-                    self.get_address(i, change=change, check_keypool=False),
-                    "{} #{}".format("Change" if change else "Address", i),
-                )
-                for i in range(start, end)
-            ]
-        )
         self.save_to_file()
         return end
 
@@ -843,7 +875,7 @@ class Wallet:
             dict.fromkeys(
                 [
                     address
-                    for address in (self.addresses + self.change_addresses)
+                    for address in self.wallet_addresses
                     if self.getlabel(address) == label
                 ]
             )
@@ -878,47 +910,22 @@ class Wallet:
         )
 
     def setlabel(self, address, label):
-        self.rpc.setlabel(address, label)
+        self._addresses.set_label(address, label)
 
     def getlabel(self, address):
-        labels = self.getlabels([address])
-        if address in labels:
-            return labels[address]
+        if address in self._addresses:
+            return self._addresses[address].label
         else:
             return address
 
     def getlabels(self, addresses):
         labels = {}
-        addresses_infos = self.rpc.multi(
-            [("getaddressinfo", address) for address in addresses]
-        )
-        for address_info in addresses_infos:
-            address_info = address_info["result"]
-            # Bitcoin Core version 0.20.0 has replaced the `label` field with `labels`, an array currently limited to a single item.
-            label = (
-                address_info["labels"][0]
-                if (
-                    "labels" in address_info
-                    and (
-                        isinstance(address_info["labels"], list)
-                        and len(address_info["labels"]) > 0
-                    )
-                    and "label" not in address_info
-                )
-                else address_info["address"]
-            )
-            if label == "":
-                label = address_info["address"]
-            labels[address_info["address"]] = (
-                address_info["label"]
-                if "label" in address_info and address_info["label"] != ""
-                else label
-            )
+        for addr in addresses:
+            labels[addr] = self.getlabel(addr)
         return labels
 
     def get_address_name(self, address, addr_idx):
-        if self.getlabel(address) == address and addr_idx > -1:
-            self.setlabel(address, "Address #{}".format(addr_idx))
+        # TODO: remove
         return self.getlabel(address)
 
     @property
@@ -968,10 +975,7 @@ class Wallet:
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
-        options = {
-            "includeWatching": True,
-            "replaceable": rbf,
-        }
+        options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
 
         if not existing_psbt:
@@ -1014,8 +1018,6 @@ class Wallet:
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
             }
-
-            self.setlabel(self.change_address, "Change #{}".format(self.change_index))
 
             if fee_rate > 0:
                 # bitcoin core needs us to convert sat/B to BTC/kB

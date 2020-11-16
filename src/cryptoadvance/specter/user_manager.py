@@ -4,8 +4,6 @@ import logging
 from .persistence import (
     read_json_file,
     write_json_file,
-    delete_json_file,
-    delete_folder,
 )
 from .user import User, hash_password
 from flask_login import current_user
