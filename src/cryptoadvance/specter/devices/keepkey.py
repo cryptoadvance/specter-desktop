@@ -7,6 +7,7 @@ from .hwi import keepkey
 class Keepkey(HWIDevice):
     device_type = "keepkey"
     name = "KeepKey"
+    icon = "keepkey_icon.svg"
 
     supports_hwi_toggle_passphrase = True
     supports_hwi_multisig_display_address = True

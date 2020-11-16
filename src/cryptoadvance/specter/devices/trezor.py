@@ -7,6 +7,7 @@ from .hwi import trezor
 class Trezor(HWIDevice):
     device_type = "trezor"
     name = "Trezor"
+    icon = "trezor_icon.svg"
 
     supports_hwi_toggle_passphrase = True
     supports_hwi_multisig_display_address = True

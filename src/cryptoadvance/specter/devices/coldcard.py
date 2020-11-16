@@ -9,6 +9,7 @@ CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
 class ColdCard(SDCardDevice):
     device_type = "coldcard"
     name = "ColdCard"
+    icon = "coldcard_icon.svg"
 
     sd_card_support = True
     wallet_export_type = "file"

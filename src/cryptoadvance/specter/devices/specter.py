@@ -8,6 +8,7 @@ from ..helpers import to_ascii20
 class Specter(HWIDevice):
     device_type = "specter"
     name = "Specter-DIY"
+    icon = "specter_icon.svg"
 
     exportable_to_wallet = True
     sd_card_support = False
