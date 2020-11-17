@@ -44,6 +44,18 @@ let webPreferences = {
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
+try {
+  require(
+    '@deadcanaries/granax')({}, { 
+        'SocksPort': 9050,
+        'ControlPort': 9051 
+    }).on('error', function () {
+      // Tor is probably running, ignore...
+    }) 
+} catch(e) {
+  // Tor is probably running, ignore...
+}
+
 let platformName = ''
 switch (process.platform) {
   case 'darwin':

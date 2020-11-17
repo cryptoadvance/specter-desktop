@@ -35,7 +35,7 @@ VALID_PREFIXES = {
 
 
 class Key:
-    def __init__(self, original, fingerprint, derivation, key_type, xpub):
+    def __init__(self, original, fingerprint, derivation, key_type, purpose, xpub):
         if key_type is None:
             key_type = ""
         if fingerprint is None or fingerprint == "":
@@ -44,10 +44,13 @@ class Key:
             derivation = ""
         if key_type not in purposes:
             raise Exception("Invalid key type specified: {}.")
+        if not purpose:
+            purpose = purposes[key_type]
         self.original = original
         self.fingerprint = fingerprint
         self.derivation = derivation
         self.key_type = key_type
+        self.purpose = purpose
         self.xpub = xpub
 
     @classmethod
@@ -56,11 +59,12 @@ class Key:
         fingerprint = key_dict["fingerprint"] if "fingerprint" in key_dict else ""
         derivation = key_dict["derivation"] if "derivation" in key_dict else ""
         key_type = key_dict["type"] if "type" in key_dict else ""
+        purpose = key_dict["purpose"] if "purpose" in key_dict else ""
         xpub = key_dict["xpub"] if "xpub" in key_dict else ""
-        return cls(original, fingerprint, derivation, key_type, xpub)
+        return cls(original, fingerprint, derivation, key_type, purpose, xpub)
 
     @classmethod
-    def parse_xpub(cls, xpub):
+    def parse_xpub(cls, xpub, purpose=""):
         derivation = ""
         arr = xpub.strip().split("]")
         original = arr[-1]
@@ -69,6 +73,9 @@ class Key:
             xpub = arr[1]
 
         fingerprint = ""
+        # just to be sure fgp/1h/2/3/ is also parsed correctly
+        # because we have free-form inputs
+        derivation = derivation.rstrip("/")
         if derivation != "":
             if derivation[0] != "[":
                 raise Exception("Missing leading [")
@@ -115,16 +122,16 @@ class Key:
         # defining key type from derivation
         if derivation != "" and key_type == "":
             derivation_path = derivation.split("/")
-            purpose = derivation_path[1]
-            if purpose == "44h":
+            derivation_type = derivation_path[1]
+            if derivation_type == "44h":
                 key_type = "pkh"
-            elif purpose == "49h":
+            elif derivation_type == "49h":
                 key_type = "sh-wpkh"
-            elif purpose == "84h":
+            elif derivation_type == "84h":
                 key_type = "wpkh"
-            elif purpose == "45h":
+            elif derivation_type == "45h":
                 key_type = "sh"
-            elif purpose == "48h":
+            elif derivation_type == "48h":
                 if len(derivation_path) >= 5:
                     if derivation_path[4] == "1h":
                         key_type = "sh-wsh"
@@ -143,7 +150,7 @@ class Key:
             is_hardened = bool(index & 0x8000_0000)
             derivation = "m/%d%s" % (index & 0x7FFF_FFFF, "h" if is_hardened else "")
 
-        return cls(original, fingerprint, derivation, key_type, xpub)
+        return cls(original, fingerprint, derivation, key_type, purpose, xpub)
 
     @classmethod
     def parse_xpubs(cls, xpubs):
@@ -184,12 +191,9 @@ class Key:
             "fingerprint": self.fingerprint,
             "derivation": self.derivation,
             "type": self.key_type,
+            "purpose": self.purpose,
             "xpub": self.xpub,
         }
-
-    @property
-    def purpose(self):
-        return purposes[self.key_type]
 
     def to_string(self, slip132=True):
         if self.derivation and self.fingerprint:
