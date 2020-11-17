@@ -6,9 +6,10 @@ RUN apt update && apt install -y git
 
 WORKDIR /
 
-RUN git clone $REPO
+RUN git clone $REPO; 
 
 WORKDIR /github-changelog
+RUN git checkout master
 
 RUN python3 setup.py install
 
