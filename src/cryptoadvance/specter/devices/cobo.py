@@ -13,6 +13,7 @@ from ..helpers import to_ascii20
 class Cobo(SDCardDevice):
     device_type = "cobo"
     name = "Cobo Vault"
+    icon = "cobo_icon.svg"
 
     hwi_support = False
     sd_card_support = True

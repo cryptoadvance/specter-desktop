@@ -7,6 +7,7 @@ from ..device import Device
 class Electrum(Device):
     device_type = "electrum"
     name = "Electrum"
+    icon = "electrum_icon.svg"
 
     sd_card_support = True
     qr_code_support = True

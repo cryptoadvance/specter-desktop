@@ -9,6 +9,7 @@ logger = logging.getLogger()
 class Device:
     device_type = None  # this is saved to json
     name = "Unknown device"  # this is how device appears in UI
+    icon = "other_icon.svg"
 
     # override these vars to add support
     # of different communication methods
