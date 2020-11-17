@@ -35,50 +35,7 @@
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.price_check %}
-						<a type="button" style="cursor: pointer;" class="settings-bar-btn" onclick="showPageOverlay('price-popup')">
-							{{ specter.alt_rate }}{{ specter.alt_symbol }}
-						</a>
-						<div id="price-popup" class="hidden">
-							<form id="price-form">
-								<h1>Price Settings</h1>
-								<p>Please set custon rate or choose between the automated price providers options.</p>
-								Price:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								<input style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
-								<br><br>
-								Symbol:&nbsp;&nbsp;
-								<input style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
-								<br><br>
-								<button type="button" class="btn" onclick="savePriceData()" style="margin: auto;">Save</button>
-							</form>
-							<script>
-								async function savePriceData() {
-									let url = `{{ url_for('setprice') }}`;
-									var formData = new FormData(document.getElementById('price-form'));
-									try {
-										const response = await fetch(
-											url,
-											{
-												method: 'POST',
-												body: formData
-											}
-										);
-										if(response.status != 200){
-											showError(await response.text());
-											return;
-										}
-										const jsonResponse = await response.json();
-										if (jsonResponse.success) {
-											location.reload();
-											return
-										};
-										showError('Failed to change price settings, please try again.')
-									} catch(e) {
-										console.log("Caught error: ", e);
-										showError(e);
-									}
-								}
-							</script>
-						</div>
+						{% include "components/price_bar.jinja" %}
 					{% endif %}
 					{% if specter.config.auth != "none" %}
 						<a class="settings-bar-btn" href="{{ url_for('logout') }}">
