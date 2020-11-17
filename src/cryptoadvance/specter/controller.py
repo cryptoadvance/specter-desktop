@@ -719,16 +719,16 @@ def new_wallet(wallet_type):
             # if the node is still syncing
             # and the first block with tx is not there yet
             startblock = min(
-                wallet_data["blockheight"],
-                app.specter.info.get("blocks", 0)
+                wallet_data["blockheight"], app.specter.info.get("blocks", 0)
             )
             # check if pruned
             if app.specter.info.get("pruned", False):
                 newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
                 if newstartblock > startblock:
                     flash(
-                        f"Using pruned node - we will only rescan from block {newstartblock}"
-                    , "error")
+                        f"Using pruned node - we will only rescan from block {newstartblock}",
+                        "error",
+                    )
                     startblock = newstartblock
             try:
                 descriptor = Descriptor.parse(
@@ -739,7 +739,7 @@ def new_wallet(wallet_type):
                     flash("Invalid wallet descriptor.", "error")
                     return redirect(url_for("new_wallet_type"))
             except:
-                flash("Invalid wallet descriptor.","error")
+                flash("Invalid wallet descriptor.", "error")
                 return redirect(url_for("new_wallet_type"))
             if wallet_name in app.specter.wallet_manager.wallets_names:
                 flash("Wallet with the same name already exists", "error")
@@ -779,9 +779,7 @@ def new_wallet(wallet_type):
                     for key in cosigner.keys:
                         if key.fingerprint + key.derivation.replace(
                             "m", ""
-                        ) == descriptor.origin_fingerprint[
-                            i
-                        ] + descriptor.origin_path[
+                        ) == descriptor.origin_fingerprint[i] + descriptor.origin_path[
                             i
                         ].replace(
                             "'", "h"
@@ -828,9 +826,7 @@ def new_wallet(wallet_type):
                     # this is normal behavior in our usecase
                     pass
                 except Exception as e:
-                    app.logger.error(
-                        "Exception while rescanning blockchain: %r" % e
-                    )
+                    app.logger.error("Exception while rescanning blockchain: %r" % e)
                     flash("Failed to perform rescan for wallet: %r" % e, "error")
                 wallet.getdata()
                 return redirect(
