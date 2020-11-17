@@ -96,9 +96,10 @@ class AddressList(dict):
                 self[addr.address] = addr
 
     def save(self):
-        write_csv(self.path, list(self.values()), Address)
+        if len(list(self.keys())) > 0:
+            write_csv(self.path, list(self.values()), Address)
 
-    def import_addresses(self, arr, check_rpc=False):
+    def add(self, arr, check_rpc=False):
         """arr should be a list of dicts"""
         labeled_addresses = {}
         if check_rpc:

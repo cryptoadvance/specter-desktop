@@ -719,8 +719,16 @@ def new_wallet(wallet_type):
             startblock = (
                 wallet_data["blockheight"]
                 if "blockheight" in wallet_data
-                else app.specter.wallet_manager.rpc.getblockcount()
+                else app.specter.info.get("blocks", 0)
             )
+            # check if pruned
+            if app.specter.info.get("pruned", False):
+                newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
+                if newstartblock > startblock:
+                    flash(
+                        f"Using pruned node - we will only rescan from block {newstartblock}"
+                    )
+                    startblock = newstartblock
             try:
                 descriptor = Descriptor.parse(
                     AddChecksum(recv_descriptor.split("#")[0]),

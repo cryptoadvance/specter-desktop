@@ -16,6 +16,7 @@ import threading
 import requests
 from math import ceil
 from .addresslist import AddressList
+from .txlist import TxList
 
 logger = logging.getLogger()
 
@@ -88,7 +89,12 @@ class Wallet:
         addr_path = self.fullpath.replace(".json", "_addr.csv")
         self._addresses = AddressList(addr_path, self.rpc)
         if not self._addresses.file_exists:
-            self.migrate_labels()
+            self.fetch_labels()
+
+        txs_path = self.fullpath.replace(".json", "_txs.csv")
+        self._transactions = TxList(txs_path, self.rpc)
+        if not self._transactions.file_exists:
+            self.fetch_transactions()
 
         if address == "":
             self.getnewaddress()
@@ -100,7 +106,8 @@ class Wallet:
         if old_format_detected or self.last_block != last_block:
             self.save_to_file()
 
-    def migrate_labels(self):
+    def fetch_labels(self):
+        """Load addresses and labels to self._addresses"""
         recv = [
             dict(
                 address=self.get_address(idx, change=False, check_keypool=False),
@@ -118,7 +125,45 @@ class Wallet:
             for idx in range(self.change_keypool)
         ]
         # TODO: load addresses for all txs here as well
-        self._addresses.import_addresses(recv + change, check_rpc=True)
+        self._addresses.add(recv + change, check_rpc=True)
+
+    def fetch_transactions(self):
+        """Load transactions from Bitcoin Core"""
+        arr = []
+        idx = 0
+        batch = 100
+        while True:
+            res = self.rpc.listtransactions("*", batch, batch * idx, True)
+            arr.extend(res)
+            idx += 1
+            # not sure if Core <20 returns last batch or empty array at the end
+            if len(res) < batch or len(arr) < batch * idx:
+                break
+        txs = dict.fromkeys([a["txid"] for a in arr])
+        txids = list(txs.keys())
+        # get all raw transactions
+        res = self.rpc.multi([("gettransaction", txid) for txid in txids])
+        for i, r in enumerate(res):
+            tx = r["result"]
+            txid = txids[i]
+            # check if we already added it
+            if txs.get(txid, None) is not None:
+                continue
+            # find minimal from 3 times:
+            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+            time = min(
+                tx.get("blocktime", maxtime),
+                tx.get("timereceived", maxtime),
+                tx.get("time", maxtime),
+            )
+            txs[txid] = {
+                "txid": txid,
+                "blockheight": tx.get("blockheight", None),
+                "time": time,
+                "conflicts": tx.get("walletconflicts", []),
+                "hex": tx.get("hex", None),
+            }
+        self._transactions.add(txs)
 
     def update(self):
         self.get_balance()
@@ -808,7 +853,7 @@ class Wallet:
             )
             for idx in range(start, end)
         ]
-        self._addresses.import_addresses(addresses, check_rpc=False)
+        self._addresses.add(addresses, check_rpc=False)
 
         if not self.is_multisig:
             r = self.rpc.importmulti(args, {"rescan": False})
