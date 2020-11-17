@@ -6,3 +6,4 @@ pip-tools==5.3.1
 pytest==5.2.2
 PySocks==1.7.1
 pytest-cov==2.10.1
+mock==4.0.2
