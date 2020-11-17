@@ -190,6 +190,8 @@
 		Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.
 	</div>
 	<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
+	<button id="pdf-wallet-download" type="button" class="btn centered padded">Download Backup PDF</button>
+	{% include 'wallet/components/wallet_pdf.jinja' %}
 	{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
 	<form action="." method="POST" class="padded" style="width: 500px">
 		<h1>Delete Wallet</h1>
@@ -232,4 +234,5 @@
 			}
 		}
 	</script>
+
 {% endblock %}
