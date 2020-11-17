@@ -59,6 +59,8 @@ As a small team on a tiny budget we are working hard to make Specter better ever
 We are quite overwhelmed with the response, the guides and shoutouts. Thank you!
 Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 
+[Donations are welcome](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
+
 ## How to run
 ### Using the Specter Desktop app
 The easiest way to run Specter Desktop is by installing the Specter Desktop app, which you can find on the [GitHub release page](https://github.com/cryptoadvance/specter-desktop/releases).
