@@ -13,6 +13,8 @@ from .helpers import set_loglevel
 from os import path
 import signal
 
+logger = logging.getLogger(__name__)
+
 
 @click.group()
 def cli():
@@ -38,6 +40,11 @@ def cli():
 def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwibridge):
     # create an app to get Specter instance
     # and it's data folder
+    logger.info("Logging is hopefully configured")
+    if debug:
+        ca_logger = logging.getLogger("cryptoadvance")
+        ca_logger.setLevel(logging.DEBUG)
+        logger.debug("We're now on level DEBUG on logger cryptoadvance")
     app = create_app()
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
