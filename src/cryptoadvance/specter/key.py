@@ -73,6 +73,9 @@ class Key:
             xpub = arr[1]
 
         fingerprint = ""
+        # just to be sure fgp/1h/2/3/ is also parsed correctly
+        # because we have free-form inputs
+        derivation = derivation.rstrip("/")
         if derivation != "":
             if derivation[0] != "[":
                 raise Exception("Missing leading [")
