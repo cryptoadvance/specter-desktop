@@ -619,7 +619,7 @@ class Wallet:
                 txs = next_txs
             else:
                 break
-        current_blockheight = self.rpc.getblockcount()
+        current_blockheight = 481824 if self.manager.chain == "main" else 0
         if len(txs) > 0 and "confirmations" in txs[0]:
             blockheight = (
                 current_blockheight - txs[0]["confirmations"] - 101
