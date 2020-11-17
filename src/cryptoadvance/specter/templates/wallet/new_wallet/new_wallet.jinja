@@ -1,42 +1,9 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<form action="./" method="POST">
-		<div class="center">
-			Name it &nbsp; &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet">
-		</div>
-		<br>
-		<h1>Type of the wallet</h1>
-		<nav class="row">
-			<label>
-				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
-				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio left">Nested Segwit</div>
-			</label>
-			<label>
-				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
-				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio right">Segwit</div>
-			</label>
-		</nav>
-
-		<div class="note optional">
-			<center>
-				<br><b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.
-			</center>
-		</div>
+	<form action="./" method="POST" onsubmit="return isValidForm()">
 		{% if wallet_type == 'multisig' %}
-			<br>
-			<div class="center">
-				Using 
-				<input class="inline" type="number" name="sigs_required" min=1 max="{{ sigs_total }}" step=1 value="{{ sigs_required }}" />
-				<input type="hidden" name="sigs_required" value="{{ sigs_required }}"/>
-				of 
-				<input class="inline" type="number" name="sigs_total" min=2 max="{{ sigs_total }}" step=1 value="{{ sigs_total }}"/>
-			</div>
-			<br>
-			<h1>Pick the devices you want to use as cosigners</h1>
+			<h1>Pick the devices you want in your multisig quorum</h1>
 		{% else %}
-			<div class="spacer"></div>
 			<h1>Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
@@ -44,45 +11,48 @@
 			{% for device_name in specter.device_manager.devices_names if wallet_type != 'multisig' or specter.device_manager.devices[device_name].device_type != 'bitbox02' %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
-					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" name="devices" value="{{ device.alias }}" class="hidden" data-key-types='{{ device.key_types(specter.chain) | tojson }}' chain="{{specter.chain}}">
+					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) %}disabled{% endif %}>
 					<div class="small-card radio">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device_name }}
 					</div>
 				</label>
 			{% endfor %}
+			<a href="{{ url_for('device_setup_wizard') }}" style="text-decoration: none; color: #fff;">
+				<div class="small-card radio">
+					<img src="{{ url_for('static', filename='img/plus_icon.svg') }}" width="18px">
+					Add new device
+				</div>
+			</a>
 		</div>
-		<button type="submit" name="action" value="device" class="btn centered">Continue</button>
+		<button id="submit-device" type="submit" name="action" value="device" class="btn centered">Continue</button>
 		<br>
 		<div class="note">
 			<center>
 				{% if wallet_type == 'multisig' %}
 					We use sorted multisig (BIP-67), so <b>order is NOT important.</b><br>
-				{% else %}
-					On the next page we will ask you to choose the keys.
+					<br>
 				{% endif %}
 			</center>
 		</div>
 	</form>
 {% endblock %}
 {% block scripts %}
-<script type="text/javascript">
-	function updateType(val){
-		let devs = document.getElementsByName('devices');
-		devs.forEach(dev => {
-			let types = JSON.parse(dev.getAttribute('data-key-types'));
-			dev.disabled = !(types.includes("") || types.includes(val));
-			if(dev.disabled){
-				dev.checked = false;
+	<script>
+	function isValidForm() {
+		if ('{{wallet_type}}' == 'multisig') {
+			let checkedCount = 0;
+			for (let device of document.getElementsByName('devices')) {
+				if (device.checked) {
+					checkedCount++;
+				}
 			}
-		});
-	}
-	// initial trigger
-	let els = document.getElementsByName("type");
-	els.forEach(el=>{
-		if (el.checked){
-			updateType(el.value);
+			if (checkedCount < 2) {
+				showNotification('Please select at least 2 devices for your multisig')
+				return false;
+			}
 		}
-	})
-</script>
+		return true;
+	}
+	</script>
 {% endblock %}

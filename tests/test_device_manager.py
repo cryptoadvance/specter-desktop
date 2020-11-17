@@ -17,6 +17,7 @@ def test_DeviceManager(empty_data_folder):
         "08686ac6",
         "m/48h/1h/0h/2h",
         "wsh",
+        "",
         "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL",
     )
     # the DeviceManager doesn't care so much about the content of a key
