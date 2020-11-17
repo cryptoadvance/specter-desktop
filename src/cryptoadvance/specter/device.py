@@ -96,6 +96,17 @@ class Device:
         test = network != "main"
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
+    def has_key_types(self, wallet_type, network="main"):
+        if wallet_type == "multisig":
+            for key_type in self.key_types(network):
+                if key_type in ["", "sh-wsh", "wsh"]:
+                    return True
+        elif wallet_type == "simple":
+            for key_type in self.key_types(network):
+                if key_type in ["", "sh-wpkh", "wpkh"]:
+                    return True
+        return "" in self.key_types(network)
+
     def __eq__(self, other):
         if other is None:
             return False
