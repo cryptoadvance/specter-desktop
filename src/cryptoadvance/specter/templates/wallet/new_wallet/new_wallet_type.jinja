@@ -22,21 +22,12 @@
 			</div>
 		</center>
 	</div><br>
-	{% if specter.device_manager.devices|length < 2 %}
-		<span class="warning" style="display: inline-block;">&#9432;<br>
-			You must have at least 2 devices to create a multisig.
-		</span>
-	{% endif %}
 	<nav class="row">
-		<a href="{{ url_for('singlesig_setup_wizard') }}" class="small-card">
-			<img src="{{ url_for('static', filename='img/wizard.svg') }}"/>
-			New wallet wizard<br><br>
-		</a>
 		<a href="./simple/" class="small-card">
 			<img src="{{ url_for('static', filename='img/simple_icon.svg') }}"/>
 			Single key wallet
 		</a>
-		<a class="small-card" {% if specter.device_manager.devices|length > 1 %}href="./multisig/"{% else %}style="background: transparent; opacity: 0.2;{% endif %}">
+		<a class="small-card" href="./multisig/">
 			<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}"/>
 			Multisignature wallet<br><br>
 		</a>

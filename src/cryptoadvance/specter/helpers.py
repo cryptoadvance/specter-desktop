@@ -161,10 +161,15 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     for cosigner in cosigners:
         device = copy.deepcopy(cosigner)
         allowed_types = ["", wallet_type]
+        if wallet_type == "simple":
+            allowed_types += ["sh-wpkh", "wpkh"]
+        elif wallet_type == "multisig":
+            allowed_types += ["sh-wsh", "wsh"]
         device.keys = [
             key
             for key in device.keys
-            if key.xpub.startswith(prefix) and key.key_type in allowed_types
+            if key.xpub.startswith(prefix)
+            and (key.key_type in allowed_types or wallet_type == "*")
         ]
         devices.append(device)
     return devices
