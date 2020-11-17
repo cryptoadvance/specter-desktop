@@ -10,6 +10,9 @@ def test_checker(caplog):
     caplog.set_level(logging.DEBUG)
     checker = Checker(lambda: callback_mock(), period=0.01)
     checker.start()
+    time.sleep(
+        0.1
+    )  # If the above assumptions are failing, you might want to increase this
     assert "Checker started" in caplog.text
     assert "This message won't show again until stopped and started." in caplog.text
     checker.stop()
