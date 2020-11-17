@@ -41,6 +41,7 @@
 				Password:<br><input type="password" id="password" name="password" value="{{ password }}">
 				<br><br>
 				Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
+				<br>
 				<qr-scanner id="scan_rpc" style="margin: 10px;">
 					<a slot="button" href="#" class="btn" style="max-width: 180px;"><img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Connect with QR</a>
 				</qr-scanner>
