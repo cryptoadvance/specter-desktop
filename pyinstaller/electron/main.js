@@ -6,7 +6,6 @@ const request = require('request')
 const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
-const console = require('console')
 const helpers = require('./helpers')
 const getFileHash = helpers.getFileHash
 const getAppSettings = helpers.getAppSettings
@@ -214,7 +213,9 @@ function updatingLoaderMsg(msg) {
   if (mainWindow) {
     let code = `
     var launchText = document.getElementById('launch-text');
-    launchText.innerHTML = '${msg}';
+    if (launchText) {
+      launchText.innerHTML = '${msg}';
+    }
     `;
     mainWindow.webContents.executeJavaScript(code);
   } 
@@ -356,7 +357,7 @@ function openPreferences() {
 }
 
 function showError(error) {
-  dialog.showErrorBox('Specter Desktop encounter an error', error.toString())
+  console.error('Specter Desktop encounter an error', error.toString())
   updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
 }
 
