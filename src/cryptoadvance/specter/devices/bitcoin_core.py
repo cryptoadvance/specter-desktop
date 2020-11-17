@@ -41,6 +41,7 @@ class BitcoinCore(Device):
         wallet_manager,
         testnet,
         keys_range=[0, 1000],
+        keys_purposes=[],
     ):
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
@@ -82,27 +83,34 @@ class BitcoinCore(Device):
             {"rescan": False},
         )
 
-        xpubs_str = ""
         xpubs = [root.derive(path).to_public().to_base58() for path in paths]
         # root fingerprint is fingerprint field of the first child
         master_fpr = root.child(0).fingerprint.hex()
-
+        keys = []
         for i in range(len(paths)):
-            path = paths[i]
-            xpub = xpubs[i]
-            # detect slip132 version for xpubs
-            slip132_prefix = bip32.detect_version(path, default="xpub", network=network)
-            xpub = convert_xpub_prefix(xpub, slip132_prefix)
-            xpubs_str += "[{}{}]{}\n".format(master_fpr, path.replace("m", ""), xpub)
-
-        keys, failed = Key.parse_xpubs(xpubs_str)
-        if len(failed) > 0:
-            # TODO: This should never occur, but just in case,
-            # we must make sure to catch it properly so it
-            # doesn't crash the app no matter what.
-            raise Exception("Failed to parse these xpubs:\n" + "\n".join(failed))
-        else:
-            self.add_keys(keys)
+            try:
+                path = paths[i]
+                xpub = xpubs[i]
+                # detect slip132 version for xpubs
+                slip132_prefix = bip32.detect_version(
+                    path, default="xpub", network=network
+                )
+                xpub = "[{}{}]{}\n".format(
+                    master_fpr,
+                    path.replace("m", ""),
+                    convert_xpub_prefix(xpub, slip132_prefix),
+                )
+                keys.append(
+                    Key.parse_xpub(
+                        xpub, keys_purposes[i] if len(keys_purposes) > i else ""
+                    )
+                )
+            except Exception:
+                # TODO: This should never occur, but just in case,
+                # we must make sure to catch it properly so it
+                # doesn't crash the app no matter what.
+                raise Exception("Failed to parse this xpub:\n" + "\n".join(xpub))
+        self.add_keys(keys)
 
     def _load_wallet(self, wallet_manager):
         try:
