@@ -18,7 +18,7 @@
             {% endif %}
         </td>
         <td>
-            {{ (pending_psbt['amount'] | sum) | btcunitamount }}{% if specter.alt_rate and specter.alt_symbol %}<span class="note">&nbsp;({{ (pending_psbt['amount'] | sum) | altunit }})</span>{% endif %}
+            {{ (pending_psbt['amount'] | sum) | btcunitamount }}{% if specter.price_check %}<span class="note">&nbsp;({{ (pending_psbt['amount'] | sum) | altunit }})</span>{% endif %}
         </td>
         <td>
             {{ pending_psbt['time'] | datetime }}

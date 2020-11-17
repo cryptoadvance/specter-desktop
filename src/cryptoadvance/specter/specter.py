@@ -110,8 +110,9 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
-            "alt_rate": 0,
-            "alt_symbol": "",
+            "price_check": False,
+            "alt_rate": 1,
+            "alt_symbol": "BTC",
             "validate_merkle_proofs": False,
         }
 
@@ -441,6 +442,13 @@ class Specter:
             self._save()
         else:
             user.set_unit(self, unit)
+    
+    def update_price_check_setting(self, price_check_bool, user):
+        if user.is_admin:
+            self.config["price_check"] = price_check_bool
+            self._save()
+        else:
+            user.set_price_check(self, price_check_bool)
 
     def update_alt_rate(self, alt_rate, user):
         if user.is_admin:
@@ -558,12 +566,15 @@ class Specter:
         return self.user_config.get("unit", "btc")
 
     @property
+    def price_check(self):
+        return self.user_config.get("price_check", False)
+    @property
     def alt_rate(self):
-        return self.user_config.get("alt_rate", 0)
+        return self.user_config.get("alt_rate", 1)
 
     @property
     def alt_symbol(self):
-        return self.user_config.get("alt_symbol", "")
+        return self.user_config.get("alt_symbol", "BTC")
 
     @property
     def admin(self):

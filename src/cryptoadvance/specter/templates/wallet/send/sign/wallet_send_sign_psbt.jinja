@@ -74,7 +74,7 @@
 					{% else %}
 						{% if specter.chain !='main' %}t{%endif%}BTC
 					{% endif %}
-					{% if specter.alt_rate and specter.alt_symbol %}
+					{% if specter.price_check %}
 						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 					{% endif %}
 					to<b>

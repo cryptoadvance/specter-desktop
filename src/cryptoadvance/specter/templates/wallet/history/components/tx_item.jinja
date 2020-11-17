@@ -28,7 +28,7 @@
             {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </td>
         <td>
-            {{ tx['amount'] | btcunitamount }} {% if specter.alt_rate and specter.alt_symbol %}<span class="note">&nbsp;({{ tx['amount'] | altunit }})</span>{% endif %}
+            {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">&nbsp;({{ tx['amount'] | altunit }})</span>{% endif %}
         </td>
         <td>
             {%if tx['confirmations'] == 0 %}
@@ -81,7 +81,7 @@
             {% endif %}
             {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </p>
-        <p>Amount: {{ tx['amount'] | btcunitamount }}{% if specter.alt_rate and specter.alt_symbol %}<span class="note">{{ tx['amount'] | altunit }}{% endif %}</span></p>
+        <p>Amount: {{ tx['amount'] | btcunitamount }}{% if specter.price_check %}<span class="note">{{ tx['amount'] | altunit }}{% endif %}</span></p>
         <p>Status:
         {%if tx['confirmations'] == 0 %}
             Pending.

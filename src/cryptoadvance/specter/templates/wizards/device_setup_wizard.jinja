@@ -336,7 +336,7 @@
 				}
 				const jsonResponse = await response.json();
                 let mnemonic = jsonResponse.mnemonic;
-                //blabla
+
                 document.getElementById("mnemonic_value").value = mnemonic;
                 let wordslist = mnemonic.split(' ');
                 let mnemonicTable = document.getElementById("mnemonic_table");

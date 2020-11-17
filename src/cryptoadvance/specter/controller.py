@@ -223,6 +223,19 @@ def broadcast(wallet_alias):
 def generatemnemonic():
     return {"mnemonic": generate_mnemonic(strength=int(request.form["strength"]))}
 
+@app.route("/setprice/", methods=["GET", "POST"])
+@login_required
+def setprice():
+    try:
+        alt_rate = request.form.get("alt_rate", 0)
+        alt_symbol = request.form.get("alt_symbol", "")
+        if alt_rate and alt_symbol:
+            app.specter.update_alt_rate(alt_rate, current_user)
+            app.specter.update_alt_symbol(alt_symbol, current_user)
+            return { "success": True }
+    except:
+        pass
+    return { "success": False }
 
 @app.route("/")
 @login_required
@@ -399,14 +412,12 @@ def general_settings():
     explorer = app.specter.explorer
     loglevel = get_loglevel(app)
     unit = app.specter.unit
-    alt_rate = app.specter.alt_rate
-    alt_symbol = app.specter.alt_symbol
+    price_check = app.specter.price_check
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
-        alt_rate = request.form.get("alt_rate", 0)
-        alt_symbol = request.form.get("alt_symbol", "")
+        price_check = request.form.get("pricecheck", "off") == "on"
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
@@ -418,8 +429,7 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_unit(unit, current_user)
-            app.specter.update_alt_rate(alt_rate, current_user)
-            app.specter.update_alt_symbol(alt_symbol, current_user)
+            app.specter.update_price_check_setting(price_check, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
@@ -499,8 +509,7 @@ This may take a few hours to complete.",
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
-        alt_rate=alt_rate,
-        alt_symbol=alt_symbol,
+        pricecheck=price_check,
         specter=app.specter,
         current_version=current_version,
         rand=rand,
@@ -1874,7 +1883,7 @@ def btcunitamount(value):
 
 @app.template_filter("altunit")
 def altunit(value):
-    if app.specter.alt_rate and app.specter.alt_symbol:
+    if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
         return (
             "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
             .rstrip("0")
