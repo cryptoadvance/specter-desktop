@@ -826,7 +826,8 @@ def new_wallet(wallet_type):
                         )
                         flash("Failed to perform rescan for wallet: %r" % e, "error")
                     wallet.getdata()
-                    return redirect(url_for("wallet", wallet_alias=wallet.alias))
+                    return redirect(url_for("wallet_receive", wallet_alias=wallet.alias) + "?newwallet=true")
+
                 else:
                     return render_template(
                         "wallet/new_wallet/import_wallet.jinja",
@@ -974,7 +975,7 @@ def new_wallet(wallet_type):
                         )
                         err = "%r" % e
                     wallet.getdata()
-            return redirect(url_for("wallet", wallet_alias=wallet.alias))
+            return redirect(url_for("wallet_receive", wallet_alias=wallet.alias) + "?newwallet=true")
         if action == "preselected_device":
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
