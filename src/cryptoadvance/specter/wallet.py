@@ -15,7 +15,7 @@ from .specter_error import SpecterError
 import threading
 import requests
 from math import ceil
-from .addresses import Addresses
+from .addresslist import AddressList
 
 logger = logging.getLogger()
 
@@ -86,7 +86,7 @@ class Wallet:
         self.last_block = last_block
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
-        self._addresses = Addresses(addr_path, self.rpc)
+        self._addresses = AddressList(addr_path, self.rpc)
         if not self._addresses.file_exists:
             self.migrate_labels()
 

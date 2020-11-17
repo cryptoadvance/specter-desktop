@@ -84,7 +84,7 @@ class Address(dict):
             return f"Address({self.address})"
 
 
-class Addresses(dict):
+class AddressList(dict):
     def __init__(self, path, rpc):
         super().__init__()
         self.path = path
