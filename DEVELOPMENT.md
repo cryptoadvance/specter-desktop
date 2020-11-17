@@ -43,6 +43,14 @@ pytest tests/test_specter
 pytest tests/test_specter -k Manager 
 ```
 
+# Code-Style
+
+Before your create a PR, make sure to [blackify](https://github.com/psf/black) all your changes. In order to automate that,
+there is a git pre-commit hook which you can simply install like this:
+```
+pre-commit install
+```
+
 # Developing on tests
 ## bitcoin-specific stuff
 
