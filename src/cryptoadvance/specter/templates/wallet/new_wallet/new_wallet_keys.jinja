@@ -1,11 +1,39 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
-		<div class="spacer"></div>
-		{% if cosigners | length == 1 %}
-			<h1>Select the {{ cosigners[0].name }}'s key to use in {{ wallet_name }}.</h1>
-		{% else %}
-			<h1>Select the key of devices to use in {{ wallet_name }}.</h1>
+		<h1>Name your Wallet</h1>
+		<div class="center">
+			<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="My new wallet" required>
+		</div>
+		<br>
+		<h1>Type of the wallet</h1>
+		<nav class="row">
+			<label>
+				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
+				class="hidden" onchange="updateType(this.value);">
+				<div class="btn radio left">Nested Segwit</div>
+			</label>
+			<label>
+				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
+				class="hidden" onchange="updateType(this.value);">
+				<div class="btn radio right">Segwit</div>
+			</label>
+		</nav>
+
+		<div class="note optional">
+			<center>
+				<br><b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.
+			</center>
+		</div>
+		<br>
+		{% if wallet_type == 'multisig' %}
+			<div class="center">
+				Using 
+				<input class="inline" type="number" name="sigs_required" min=1 max="{{ cosigners | length }}" step=1 value="{{ sigs_required }}" />
+				of 
+				<span style="margin: 0px 40px; font-size: 1.2em;">{{ cosigners | length }}<span>
+			</div>
+			<br>
 		{% endif %}
 		<div class="center" style="max-width: 500px; margin: auto;">
 			<div style="display: inline-block; text-align: center; margin-top: 10px;">
@@ -79,13 +107,10 @@
 			</div>
 		</div>
 		<div class="spacer"></div>
-		<input type="hidden" name="wallet_name" value="{{ wallet_name }}">
-		<input type="hidden" name="type" value="{{ wallet_type }}">
 		{% for cosigner in cosigners %}
 			<input type="hidden" name="cosigner{{ loop.index0 }}" value="{{ cosigner.alias }}"/>
 		{% endfor %}
-		<input type="hidden" name="sigs_required" value="{{ sigs_required }}">
-		<input type="hidden" name="sigs_total" value="{{ sigs_total }}">
+		<input type="hidden" name="sigs_total" value="{{ cosigners | length }}">
 		{% for device in cosigners %}
 			<h1>Signer {{ loop.index }} - {{ device.name }}</h1>
 			{% set outer_loop = loop %}
@@ -101,8 +126,8 @@
 								<th>Actions</th>
 							</tr>
 						</thead>
-						<tbody>
-							{% for key in device.keys %}
+						<tbody id="device{{ loop.index0 }}">
+							{% for key in device.keys if key.is_testnet == (specter.chain != "main") %}
 								<tr>
 									<td>
 										{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
@@ -112,17 +137,31 @@
 											{{ bitcoin_svg('test', 16) }} Test
 										{% endif %}
 									</td>
-									<td>{{ purposes[key.key_type] }}</td>
+									<td>{{ key.purpose }}</td>
 									<td class="optional">{{ key.derivation }}</td>
 									<td class="scroll xpub optional"><span>{{ key.original }}</span></td>
 									<td width="120px">
 										<label>
-											<input type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" class="hidden" {% if loop.index == 1 %}checked{% endif %}/>
+											<input class="device-key hidden" data-key-types="{{key.key_type}}" type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" {% if loop.index == 1 %}checked{% endif %}/>
 											<div class="btn inline hovering">Use this key</div>
 										</label>
 									</td>
 								</tr>
 							{% endfor %}
+							<tr class="hidden">
+								<td>
+								The device does not have keys matching the wallet type selected.
+								</td>
+								<td>
+								Please choose a different type or add the keys to the device...
+								</td>
+								<td>
+								</td>
+								<td>
+								</td>
+								<td>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -141,6 +180,41 @@
 {% endblock %}
 {% block scripts %}
 	<script>
+		function updateType(val){
+			let keys = document.getElementsByClassName('device-key');
+			let allDevices = [];
+			let devicesWithExistingKeys = [];
+			for (let i = keys.length - 1; i >= 0; i--) {
+				let key = keys[i];
+				let type = key.getAttribute('data-key-types');
+				key.disabled = !(type == "" || type == val);
+				allDevices.push(key.parentNode.parentNode.parentNode.parentNode.id)
+				if(key.disabled){
+					key.checked = false;
+					key.parentNode.parentNode.parentNode.classList.add('hidden');
+				} else {
+					key.checked = true;
+					key.parentNode.parentNode.parentNode.classList.remove('hidden');
+					devicesWithExistingKeys.push(key.parentNode.parentNode.parentNode.parentNode.id)
+				}
+			}
+
+			for (let device of allDevices) {
+				let deviceHTML = document.getElementById(device)
+				if (devicesWithExistingKeys.indexOf(device) == -1) {
+					deviceHTML.children[deviceHTML.children.length - 1].classList.remove('hidden')
+				} else {
+					deviceHTML.children[deviceHTML.children.length - 1].classList.add('hidden')
+				}
+			}
+		}
+		// initial trigger
+		let els = document.getElementsByName("type");
+		els.forEach(el=>{
+			if (el.checked){
+				updateType(el.value);
+			}
+		})
 		function toggleScanOptions(scanCheckbox) {
 			let scanOptions = document.getElementById('scan-options');
 			if (scanCheckbox.checked) {

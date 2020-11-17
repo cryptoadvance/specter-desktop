@@ -141,6 +141,26 @@
         return result;
     }
 
+    async function getXpub(device, derivation="", passphrase=""){
+        // detect device
+        showHWIProgress("Extracting public key...<br><span style='font-size: 0.8em;'>Derivation: " + derivation + "</span>", 
+            `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+        let result = [];
+        try {
+            result = await hwi.getXpub(device, derivation, passphrase);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        if(!overlayIsActive()){
+            showNotification("HWI is ready again", 3000);
+            // no need to proceed at all
+            return null;
+        }
+        hidePageOverlay();
+        return result;
+    }
+
     // TODO: remove, legacy
     function onCancelOverlay(){
 

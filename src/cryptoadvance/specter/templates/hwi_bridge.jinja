@@ -11,7 +11,7 @@
             {% if tor_service_id %}
                 <img style="width: 28px; padding:3px;float: left;margin-right: 5px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>
                 <span style="float: left;">
-                    HWIBridge is also accessible ove Tor:<br>
+                    HWIBridge is also accessible over Tor:<br>
                     <span title="Copy Tor address" class="explorer-link" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
                         {{ tor_service_id }}.onion
                     </span>

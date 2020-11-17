@@ -2,11 +2,13 @@ import copy
 import json
 import logging
 import os
+import traceback
 import random
 import time
 import zipfile
 from io import BytesIO
 from .helpers import deep_update, clean_psbt
+from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
@@ -49,7 +51,6 @@ def get_rpc(conf, old_rpc=None):
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
-        logger.info("rpc config have changed.")
         return rpc
     # check if we have something detected
     if rpc is None:
@@ -62,47 +63,6 @@ def get_rpc(conf, old_rpc=None):
     else:
         logger.info("rpc config have changed.")
         return rpc
-
-
-class Checker:
-    """
-    Checker class that calls the periodic callback.
-    If you want to force-check within the next second
-    set checker.last_check to 0.
-    """
-
-    def __init__(self, callback, period=600):
-        self.callback = callback
-        self.last_check = 0
-        self.period = period
-        self.running = False
-
-    def start(self):
-        if not self.running:
-            self.running = True
-            self.thread = threading.Thread(target=self.loop)
-            self.thread.daemon = True
-            self.thread.start()
-
-    def stop(self):
-        logger.info("Checker stopped.")
-        self.running = False
-
-    def loop(self):
-        while self.running:
-            # check if it's time to update
-            if time.time() - self.last_check >= self.period:
-                try:
-                    t0 = time.time()
-                    self.callback()
-                    dt = time.time() - t0
-                    logger.info("Checker checked in %.3f seconds" % dt)
-                except Exception as e:
-                    logger.error(e)
-                finally:
-                    self.last_check = time.time()
-            # wait 1 second
-            time.sleep(1)
 
 
 class Specter:
@@ -155,7 +115,10 @@ class Specter:
 
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
-        self.check(check_all=True)
+        try:
+            self.check(check_all=True)
+        except Exception as e:
+            logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True))
         self.checker.start()
 
