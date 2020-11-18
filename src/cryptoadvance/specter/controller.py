@@ -702,6 +702,7 @@ def new_wallet(wallet_type):
         flash("Unknown wallet type requested", "error")
         return redirect(url_for("new_wallet_type"))
 
+    err = None
     if request.method == "POST":
         action = request.form["action"]
         if action == "importwallet":
@@ -846,7 +847,6 @@ def new_wallet(wallet_type):
                     specter=app.specter,
                     rand=rand,
                 )
-        err = None
         if action == "device":
             cosigners = [
                 app.specter.device_manager.get_by_alias(alias)
