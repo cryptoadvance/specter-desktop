@@ -46,7 +46,9 @@ def to_ascii20(name: str) -> str:
     """
     Converts the name to max 20 ascii-only characters.
     """
-    return "".join([c for c in name if c.isascii()])[:20]
+    # ascii characters have codes from 0 to 127
+    # but 127 is "delete" and we don't want it
+    return "".join([c for c in name if ord(c)<127])[:20]
 
 
 def alias(name):
