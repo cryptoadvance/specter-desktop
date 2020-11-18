@@ -40,42 +40,20 @@ usermod -a -G debian-tor `whoami`
 
 ### Running with Tor using command line
 
-You can start the server using `--tor` flag:
+You can start the server using `--tor` flag or enable it in the web interface:
 
 ```sh
 $ python3 -m cryptoadvance.specter server --tor
 ```
 
-### Configure environment variables
-
-Update the `.flaskenv` file in the project root. Set `CONNECT_TOR` to 'True' and set `FLASK_ENV` to 'production':
-```sh
-PORT=25441
-
-# If you want to serve over a Tor hidden service, also set FLASK_ENV=production.
-#   (The autoreloading in 'development' mode causes problems with the Tor connector)
-CONNECT_TOR=True
-
-FLASK_ENV=production
-#FLASK_ENV=development
-```
-
-### Launch with Tor
-
-Now just start Specter Desktop as usual:
-
-```sh
-$ python3 -m cryptoadvance.specter server
-```
-
 Amongst the startup output you'll see:
 ```
- * Connecting to tor
-Started a new hidden service with the address of abcd1234efgh5678.onion
+...
+* Started a new hidden service with the address of blahblahbla123asbfdgfd.onion
 ```
 
 Point a Tor browser at that onion address and you will have (reasonably?) secure access to your Specter Desktop from anywhere in the world!
 
 Each time Specter Desktop restarts the same onion address will be re-enabled.
 
-If you'd like to discard the existing onion address and force the creation of a new one, simply delete the `.tor_service_key` in the project root and restart Specter Desktop.
+If you'd like to discard the existing onion address and force the creation of a new one, simply delete the `.tor_service_key` in the `~/.specter` folder and restart Specter Desktop.

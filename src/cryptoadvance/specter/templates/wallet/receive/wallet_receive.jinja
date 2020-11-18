@@ -110,6 +110,30 @@
 		<button type="button" class="center btn optional" style="width: 300px; max-height: 34px;" id="show_all_addresses" onclick="toggleAddressHistory(this)">Show past addresses</button>
 	{% endif %}
 	<br>
+	<div class="hidden" id="new_wallet_popup">
+		<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
+		<h1>New wallet was created successfully!</h1>
+		<div class="row overflow">
+			<div id="pdf-wallet-download" class="small-card radio">
+				<img src="{{ url_for('static', filename='img/file_icon.svg') }}" width="18px" style="transform: scale(1.8);">
+				<span style="font-size: 1.3em;">
+				Download Backup PDF
+				</span>
+			</div>
+			{% include 'wallet/components/wallet_pdf.jinja' %}
+		</div>
+		<p style="max-width: 500px;">
+		It is recommended that you print and save this wallet backup file with each of your devices.
+		</p>
+		<p style="max-width: 500px;" class="note">
+		This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
+		<p>
+		<p style="max-width: 500px;" class="note">
+		It is reccomended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+		<p>
+		<p style="max-width: 500px;">You can always download this file later from the wallet Settings tab.</p>
+		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Skip backup for now</button>
+	</div>
 	<script>
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
@@ -124,6 +148,10 @@
 				addressesList.style.display = 'block';
 				btn.innerText = 'Hide past addresses';
 			}
+		}
+		var isNewWallet = location.search.split('newwallet=')[1]
+		if (isNewWallet) {
+			showPageOverlay('new_wallet_popup');
 		}
 	</script>
 {% endblock %}

@@ -1,0 +1,152 @@
+<qr-code value='{{ wallet.account_map }}' width="400" id="export-wallet-qr-code" class="hidden"></qr-code>
+<script	type="module">
+    import { jsPDF } from "{{ url_for('static', filename='pdf/jspdf.es.min.js') }}";
+
+    document.getElementById('pdf-wallet-download').onclick = () => {
+        // Default export is a4 paper, portrait, using millimeters for units
+        const doc = new jsPDF();
+        const pageHeight = 297;
+        const pageWidth = 210;
+
+        let currentHeight = 15;
+        doc.setFontSize(18);
+        doc.text('Specter Backup File', 105, currentHeight, {align: 'center'});
+        currentHeight += 10;
+        doc.setFontSize(14);
+        doc.text('(keep this information with each of your key backups)', 105, currentHeight, {align: 'center'});
+        currentHeight += 11;
+
+        doc.setFontSize(18);
+        doc.setFont(undefined, 'bold');
+        doc.text('{{ wallet.name }}'.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
+        currentHeight += '{{ wallet.name }}'.replace(/(.{55})/g, "$1\n").split('\n').length * 10;
+
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(16);
+        {% if wallet.is_multisig %}
+            if ('{{ wallet.address_type }}'.startsWith("w")) {
+                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, native segwit)', 105, currentHeight, {align: 'center'});
+            } else {
+                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, nested segwit)', 105, currentHeight, {align: 'center'});
+            }
+            currentHeight += 7;
+        {% else %}
+            if ('{{ wallet.address_type }}'.startsWith("w")) {
+                doc.text('(Native Segwit)', 105, currentHeight, {align: 'center'});
+            } else {
+                doc.text('(Nested Segwit)', 105, currentHeight, {align: 'center'});
+            }
+            currentHeight += 7;
+        {% endif %}
+
+        if (currentHeight + 125 >= pageHeight) {
+            doc.addPage();
+            currentHeight = 20;
+        }
+
+        let qrCode = document.getElementById('export-wallet-qr-code').shadowRoot.childNodes[3].children[1].children[1].src;
+        doc.addImage(qrCode, 'PNG', 55, currentHeight, 100, 100)
+        currentHeight += 110;
+
+        doc.setFontSize(16);
+        doc.text('Scan this QR code with Specter-Desktop', 105, currentHeight, {align: 'center'});
+        currentHeight += 7;
+        doc.text('or any other compatible wallet.', 105, currentHeight, {align: 'center'});
+        currentHeight += 11;
+
+        doc.setFontSize(16)
+        let deviceName = '';
+        let deviceType = '';
+        let xpubLines = [];
+        {% for key in wallet.keys %}
+            if (currentHeight + 30 >= pageHeight) {
+                doc.addPage();
+                currentHeight = 20;
+            }
+            {% for device in wallet.devices %}
+                {% for _key in device.keys %}
+                    {% if _key == key %}
+                        deviceName = '{{ device.name }}';
+                        deviceType = '{{ device.device_type | title }}';
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            
+            doc.setFontSize(16)
+            doc.setFont(undefined, 'bold')
+            doc.text(deviceName, 15, currentHeight)
+            currentHeight += 8
+            
+            doc.setFont(undefined, 'normal')
+            doc.text('Device type: ' + deviceType, 15, currentHeight);
+            currentHeight += 8
+            doc.text('Master fingerprint:   {{ key.fingerprint }}', 15, currentHeight);
+            currentHeight += 8
+            doc.text('Derivation path:       {{ key.derivation }}', 15, currentHeight);
+            currentHeight += 8
+            xpubLines = '{{ key.xpub }}'.split(/(.{40})/g);
+            xpubLines = xpubLines.filter(line => line !== '');
+            doc.text('Master public key:   ' + xpubLines[0], 15, currentHeight);
+            for (var i = 1; i < xpubLines.length; i++) {
+                currentHeight += 7
+                doc.text(xpubLines[i], 65, currentHeight);
+            }
+            currentHeight += 13
+        {% endfor %}
+        currentHeight -= 3;
+
+        if (currentHeight + 25 >= pageHeight) {
+            doc.addPage();
+            currentHeight = 20;
+        }
+        
+        doc.setLineWidth(0.4)
+        doc.line(25, currentHeight, pageWidth - 25, currentHeight)
+        currentHeight += 13;
+
+        doc.setFontSize(20);
+        doc.text('Advanced Recovery Details', 105, currentHeight, {align: 'center'});
+        currentHeight += 15;
+
+        if (currentHeight + 73 >= pageHeight) {
+            doc.addPage();
+            currentHeight = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.text('Specter Desktop Raw Data', 105, currentHeight, {align: 'center'});
+        currentHeight += 10;
+
+        doc.setFontSize(14)
+        doc.text('{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += 60
+
+        if (currentHeight + 73 >= pageHeight) {
+            doc.addPage();
+            currentHeight = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.text('Bitcoin Core Receive Descriptor', 105, currentHeight, {align: 'center'});
+        currentHeight += 10;
+
+        doc.setFontSize(14)
+        doc.text('{{ wallet.recv_descriptor }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += 60
+        
+        if (currentHeight + 73 >= pageHeight) {
+            doc.addPage();
+            currentHeight = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.text('Bitcoin Core Change Descriptor', 105, currentHeight, {align: 'center'});
+        currentHeight += 10;
+
+        doc.setFontSize(14)
+        doc.text('{{ wallet.change_descriptor }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+
+
+        doc.save("{{ wallet.name.lower() }}_backup.pdf".replace(" ", '_'));
+    }
+</script>
