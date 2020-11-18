@@ -542,7 +542,7 @@ class Wallet:
 
             result.append(tx)
 
-        return result
+        return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):
         return self._transactions.gettransaction(txid, blockheight)
