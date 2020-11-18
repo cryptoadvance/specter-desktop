@@ -112,6 +112,10 @@ class User(UserMixin):
         self.config["price_check"] = price_check_bool
         self.save_info(specter)
 
+    def set_price_provider(self, specter, price_provider):
+        self.config["price_provider"] = price_provider
+        self.save_info(specter)
+
     def set_alt_rate(self, specter, alt_rate):
         self.config["alt_rate"] = alt_rate
         self.save_info(specter)

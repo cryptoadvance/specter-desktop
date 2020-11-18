@@ -18,6 +18,7 @@ from .wallet_manager import WalletManager
 from .user_manager import UserManager
 from .persistence import write_json_file, read_json_file
 from .user import User
+from .util.price_providers import update_price
 import threading
 
 logger = logging.getLogger(__name__)
@@ -113,6 +114,7 @@ class Specter:
             "price_check": False,
             "alt_rate": 1,
             "alt_symbol": "BTC",
+            "price_provider": "",
             "validate_merkle_proofs": False,
         }
 
@@ -124,6 +126,9 @@ class Specter:
             logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True))
         self.checker.start()
+        self.price_checker = Checker(lambda: update_price(self, self.user), 60)
+        if self.price_check and self.price_provider:
+            self.price_checker.start()
 
     def check(self, user=None, check_all=False):
         """
@@ -449,8 +454,20 @@ class Specter:
             self._save()
         else:
             user.set_price_check(self, price_check_bool)
+        if price_check_bool and (self.price_provider and self.user == user):
+            self.price_checker.start()
+        else:
+            self.price_checker.stop()
+
+    def update_price_provider(self, price_provider, user):
+        if user.is_admin:
+            self.config["price_provider"] = price_provider
+            self._save()
+        else:
+            user.set_price_provider(self, price_provider)
 
     def update_alt_rate(self, alt_rate, user):
+        alt_rate = round(float(alt_rate), 2)
         if user.is_admin:
             self.config["alt_rate"] = alt_rate
             self._save()
@@ -568,6 +585,11 @@ class Specter:
     @property
     def price_check(self):
         return self.user_config.get("price_check", False)
+
+    @property
+    def price_provider(self):
+        return self.user_config.get("price_provider", False)
+
     @property
     def alt_rate(self):
         return self.user_config.get("alt_rate", 1)

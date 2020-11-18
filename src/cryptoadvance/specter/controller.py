@@ -50,6 +50,7 @@ from binascii import b2a_base64
 from .util.base43 import b43_decode
 from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
+from .util.price_providers import update_price
 
 from pathlib import Path
 
@@ -227,14 +228,23 @@ def generatemnemonic():
 @login_required
 def setprice():
     try:
-        alt_rate = request.form.get("alt_rate", 0)
-        alt_symbol = request.form.get("alt_symbol", "")
-        if alt_rate and alt_symbol:
-            app.specter.update_alt_rate(alt_rate, current_user)
-            app.specter.update_alt_symbol(alt_symbol, current_user)
-            return { "success": True }
-    except:
-        pass
+        price_type = request.form.get("price_type", "manual")
+        if price_type == "manual":
+            alt_rate = request.form.get("alt_rate", 0)
+            alt_symbol = request.form.get("alt_symbol", "")
+            app.specter.update_price_provider("", current_user)
+            app.specter.price_checker.stop()
+            if alt_rate and alt_symbol:
+                app.specter.update_alt_rate(alt_rate, current_user)
+                app.specter.update_alt_symbol(alt_symbol, current_user)
+                return { "success": True }
+        else:
+            price_provider = request.form.get("price_provider", "")
+            app.specter.update_price_provider(price_provider, current_user)
+            app.specter.price_checker.start()
+            return { "success": update_price(app.specter, current_user) }
+    except Exception as e:
+        app.logger.warning('Failed to update price settings. Exception: {}'.format(e))
     return { "success": False }
 
 @app.route("/")
