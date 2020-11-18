@@ -115,6 +115,7 @@
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
 						{% set tx = wallet.gettransaction(input['txid']) %}
+						{% if tx %}
 						<b>Address:</b>
 						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
 						<br>
@@ -122,6 +123,7 @@
 							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
 						{% endif %}
 						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC
+						{% endif %}
 					</p>
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
