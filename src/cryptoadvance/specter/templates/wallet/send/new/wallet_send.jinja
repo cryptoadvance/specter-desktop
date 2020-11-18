@@ -215,15 +215,17 @@
 			document.getElementById('converted_unit_amount_' + i).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount);
 			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
 
-			let altRate = parseFloat('{{ specter.alt_rate }}');
-			let altSymbol = '{{ specter.alt_symbol }}';
-			let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + i).value)).toFixed(2))
-			if (!isNaN(altAmount) && (altSymbol && altRate)) {
-				document.getElementById('converted_unit_alt_' + i).innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
-			} else {
-				document.getElementById('converted_unit_alt_' + i).innerHTML = '';
+			if('{{ specter.check_price }}' == 'True'){
+				let altRate = parseFloat('{{ specter.alt_rate }}');
+				let altSymbol = '{{ specter.alt_symbol }}';
+				let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + i).value)).toFixed(2))
+				if (!isNaN(altAmount) && (altSymbol && altRate)) {
+					document.getElementById('converted_unit_alt_' + i).innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+				} else {
+					document.getElementById('converted_unit_alt_' + i).innerHTML = '';
+				}
 			}
-
+			
 			validateForm();
 		}
 
