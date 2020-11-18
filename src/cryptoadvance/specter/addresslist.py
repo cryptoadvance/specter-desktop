@@ -148,6 +148,24 @@ class AddressList(dict):
                 labels[lbl] = labels.get(lbl, []) + [addr.address]
         return labels
 
+    def set_used(self, addresses):
+        need_save = False
+        for address in addresses:
+            if address not in self:
+                # external maybe???
+                continue
+            addr = self[address]
+            # doesn't make sense to set used for external addresses
+            if addr.is_external or addr.used:
+                continue
+            addr["used"] = True
+            need_save = True
+        if need_save:
+            self.save()
+
+    def max_used_index(self, change=False):
+        return max(-1, -1, *[addr.index for addr in self.values() if addr.used and addr.change == change])
+
     @property
     def file_exists(self):
         return os.path.isfile(self.path)

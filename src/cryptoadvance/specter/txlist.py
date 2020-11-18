@@ -4,6 +4,7 @@ Manages the list of addresses for the wallet, including labels and derivation pa
 import os
 from .persistence import write_csv, read_csv
 from embit.transaction import Transaction
+from embit.networks import NETWORKS
 import json
 
 
@@ -11,7 +12,6 @@ class TxItem(dict):
     columns = [
         "txid",  # str, txid in hex
         "hex",  # str, raw tx in hex
-        # add merkle proof? it's kinda large
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
         "conflicts",  # rbf conflicts, list of txids
@@ -56,7 +56,8 @@ class TxItem(dict):
 
 
 class TxList(dict):
-    def __init__(self, path, rpc, addresses):
+    def __init__(self, path, rpc, addresses, chain):
+        self.chain = chain
         self.path = path
         self.rpc = rpc
         self._addresses = addresses
@@ -103,6 +104,7 @@ class TxList(dict):
             "conflicts", - list of txids spending the same inputs (rbf)
         }
         """
+        addresses = []
         for txid in txs:
             tx = txs[txid]
             # find minimal from 3 times:
@@ -119,11 +121,21 @@ class TxList(dict):
                 "conflicts": tx.get("walletconflicts", []),
                 "hex": tx.get("hex", None),
             }
-            self[txid] = TxItem(self.rpc, self._addresses, **obj)
+            txitem = TxItem(self.rpc, self._addresses, **obj)
+            self[txid] = txitem
+            if txitem.tx:
+                for vout in txitem.tx.vout:
+                    try:
+                        addr = vout.script_pubkey.address(NETWORKS[self.chain])
+                        addresses.append(addr)
+                    except:
+                        pass # maybe not an address, but a raw script?
+        self._addresses.set_used(addresses)
         self.save()
 
     def load(self, arr):
         """
+        Load transactions to Core with merkle proofs to avoid rescan
         arr should be a dict with dicts:
         "<txid>": {
             "txid",         - hex txid

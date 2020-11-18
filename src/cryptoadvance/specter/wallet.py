@@ -92,7 +92,7 @@ class Wallet:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = TxList(txs_path, self.rpc, self._addresses)
+        self._transactions = TxList(txs_path, self.rpc, self._addresses, self.manager.chain)
         if not self._transactions.file_exists:
             self.fetch_transactions()
 
@@ -180,6 +180,10 @@ class Wallet:
         addresses = list(dict.fromkeys(addresses))
         max_recv = self.address_index - 1
         max_change = self.change_index - 1
+        # get max used from addresses list
+        max_recv = max(max_recv, self._addresses.max_used_index(False))
+        max_change = max(max_change, self._addresses.max_used_index(True))
+        # from tx list
         for addr in addresses:
             if addr in self._addresses:
                 a = self._addresses[addr]
@@ -188,16 +192,16 @@ class Wallet:
                         max_change = max(max_change, a.index)
                     else:
                         max_recv = max(max_recv, a.index)
-            updated = False
-            while max_recv >= self.address_index:
-                self.getnewaddress(change=False, save=False)
-                updated = True
-            while max_change >= self.change_index:
-                self.getnewaddress(change=True, save=False)
-                updated = True
-            # save only if needed
-            if updated:
-                self.save_to_file()
+        updated = False
+        while max_recv >= self.address_index:
+            self.getnewaddress(change=False, save=False)
+            updated = True
+        while max_change >= self.change_index:
+            self.getnewaddress(change=True, save=False)
+            updated = True
+        # save only if needed
+        if updated:
+            self.save_to_file()
         self.last_block = last_block
 
     @staticmethod
@@ -669,13 +673,14 @@ class Wallet:
                 )
             except Exception as e:
                 logger.warning(f"Failed to fetch data from block explorer: {e}")
+        self.check_addresses()
 
     @property
     def rescan_progress(self):
         """Returns None if rescanblockchain is not launched,
         value between 0 and 1 otherwise
         """
-        if "scanning" not in self.info or self.info["scanning"] == False:
+        if self.info.get("scanning", False) == False:
             return None
         else:
             return self.info["scanning"]["progress"]
