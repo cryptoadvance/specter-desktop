@@ -900,7 +900,7 @@ class Wallet:
         balancelist = [
             utxo["amount"] for utxo in self.utxo if utxo["address"] == address
         ]
-        return sum(balancelist)
+        return round(sum(balancelist), 8)
 
     def utxo_on_label(self, label):
         return len(
@@ -908,10 +908,13 @@ class Wallet:
         )
 
     def balance_on_label(self, label):
-        return sum(
-            utxo["amount"]
-            for utxo in self.utxo
-            if self.utxo_labels_list[utxo["address"]] == label
+        return round(
+            sum(
+                utxo["amount"]
+                for utxo in self.utxo
+                if self.utxo_labels_list[utxo["address"]] == label
+            ),
+            8,
         )
 
     def addresses_on_label(self, label):
