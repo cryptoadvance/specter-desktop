@@ -464,7 +464,7 @@ class Wallet:
         try:
             return self.rpc.gettransaction(txid)
         except Exception as e:
-            logger.warning('Could not get transaction {}, error: {}'.format(txid, e))
+            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
@@ -1128,7 +1128,9 @@ class Wallet:
                     prevtx.deserialize(stream)
                     psbt.inputs[i].non_witness_utxo = prevtx
                 except:
-                    logger.error("Can't find previous transaction in the wallet. Signing might not be possible for certain devices...")
+                    logger.error(
+                        "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
+                    )
         else:
             # remove non_witness_utxo if we don't want them
             for inp in psbt.inputs:
