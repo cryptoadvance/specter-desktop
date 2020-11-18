@@ -126,9 +126,6 @@ class Specter:
             logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True))
         self.checker.start()
-        self.price_checker = Checker(lambda: update_price(self, self.user), 60)
-        if self.price_check and self.price_provider:
-            self.price_checker.start()
 
     def check(self, user=None, check_all=False):
         """
@@ -292,6 +289,13 @@ class Specter:
         user = self.user_manager.get_user(user)
         self.check_device_manager(user)
         self.check_wallet_manager(user)
+        try:
+            if self.price_check and self.price_provider:
+                update_price(self, user)
+        except Exception as e:
+            logger.warning(
+                "Failed to get price data for user: {}. Exception: {}".format(user, e)
+            )
 
     def add_user(self, user):
         if user in self.user_manager.users:
@@ -454,10 +458,6 @@ class Specter:
             self._save()
         else:
             user.set_price_check(self, price_check_bool)
-        if price_check_bool and (self.price_provider and self.user == user):
-            self.price_checker.start()
-        else:
-            self.price_checker.stop()
 
     def update_price_provider(self, price_provider, user):
         if user.is_admin:
