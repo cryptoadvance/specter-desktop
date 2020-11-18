@@ -3,7 +3,7 @@ import time
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, parse_utxo
+from .helpers import der_to_bytes
 from .util.base58 import decode_base58
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
@@ -92,7 +92,7 @@ class Wallet:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = TxList(txs_path, self.rpc)
+        self._transactions = TxList(txs_path, self.rpc, self._addresses)
         if not self._transactions.file_exists:
             self.fetch_transactions()
 
@@ -144,25 +144,11 @@ class Wallet:
         # get all raw transactions
         res = self.rpc.multi([("gettransaction", txid) for txid in txids])
         for i, r in enumerate(res):
-            tx = r["result"]
             txid = txids[i]
             # check if we already added it
             if txs.get(txid, None) is not None:
                 continue
-            # find minimal from 3 times:
-            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
-            time = min(
-                tx.get("blocktime", maxtime),
-                tx.get("timereceived", maxtime),
-                tx.get("time", maxtime),
-            )
-            txs[txid] = {
-                "txid": txid,
-                "blockheight": tx.get("blockheight", None),
-                "time": time,
-                "conflicts": tx.get("walletconflicts", []),
-                "hex": tx.get("hex", None),
-            }
+            txs[txid] = r["result"]
         self._transactions.add(txs)
 
     def update(self):
@@ -336,7 +322,19 @@ class Wallet:
 
     def check_utxo(self):
         try:
-            self.utxo = parse_utxo(self, self.rpc.listunspent(0))
+            utxo = self.rpc.listunspent(0)
+            for tx in utxo:
+                tx_data = self.gettransaction(tx["txid"], 0)
+                tx["time"] = tx_data["time"]
+                tx["category"] = "send"
+                try:
+                    # get category from the descriptor - recv or change
+                    idx = tx["desc"].split("[")[1].split("]")[0].split("/")[-2]
+                    if idx == "0":
+                        tx["category"] = "receive"
+                except:
+                    pass
+            self.utxo = utxo
             self.utxo_labels_list = self.getlabels(
                 utxo["address"] for utxo in self.utxo
             )
@@ -460,10 +458,11 @@ class Wallet:
             )
         self.save_to_file()
 
-    def txlist(self, idx, wallet_tx_batch=100, validate_merkle_proofs=False):
+    def txlist(self, page, limit=100, validate_merkle_proofs=False):
+        # TODO: check for new ones?
         try:
             rpc_txs = self.rpc.listtransactions(
-                "*", wallet_tx_batch + 2, wallet_tx_batch * idx, True
+                "*", limit + 2, limit * page, True
             )  # get batch + 2 to make sure you have information about send
             rpc_txs = [tx for tx in rpc_txs if tx.get("confirmations", 0) >= 0]
             rpc_txs = [
@@ -473,7 +472,7 @@ class Wallet:
                     not tx["walletconflicts"]
                     or max(
                         [
-                            self.rpc.gettransaction(conflicting_tx)["timereceived"]
+                            self.gettransaction(conflicting_tx, 0)["time"]
                             for conflicting_tx in tx["walletconflicts"]
                         ]
                     )
@@ -481,7 +480,7 @@ class Wallet:
                 )
             ]
             rpc_txs.reverse()
-            transactions = rpc_txs[:wallet_tx_batch]
+            transactions = rpc_txs[:limit]
         except:
             return []
         result = []
@@ -508,7 +507,7 @@ class Wallet:
                 tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
             ):
                 raw_tx = decoderawtransaction(
-                    self.rpc.gettransaction(tx["txid"])["hex"], self.manager.chain
+                    self.gettransaction(tx["txid"], 0)["hex"], self.manager.chain
                 )
                 tx["vsize"] = raw_tx["vsize"]
 
@@ -541,8 +540,8 @@ class Wallet:
 
         return result
 
-    def gettransaction(self, txid):
-        return self.rpc.gettransaction(txid)
+    def gettransaction(self, txid, blockheight=None):
+        return self._transactions.gettransaction(txid, blockheight)
 
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
@@ -812,7 +811,7 @@ class Wallet:
             available = {}
             available.update(balance)
             for tx in locked_utxo:
-                tx_data = self.rpc.gettransaction(tx["txid"])
+                tx_data = self.gettransaction(tx["txid"])
                 raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
                 delta = raw_tx["vout"][tx["vout"]]["value"]
                 if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
@@ -1130,7 +1129,7 @@ class Wallet:
         return psbt
 
     def send_rbf_tx(self, txid, fee_rate):
-        raw_tx = self.rpc.gettransaction(txid)["hex"]
+        raw_tx = self.gettransaction(txid)["hex"]
         raw_psbt = self.rpc.utxoupdatepsbt(
             self.rpc.converttopsbt(raw_tx, True),
             [self.recv_descriptor, self.change_descriptor],
@@ -1166,7 +1165,7 @@ class Wallet:
             for i, inp in enumerate(psbt.tx.vin):
                 txid = inp.prevout.hash.to_bytes(32, "big").hex()
                 try:
-                    res = self.rpc.gettransaction(txid)
+                    res = self.gettransaction(txid)
                 except:
                     raise SpecterError("Can't find previous transaction in the wallet.")
                 stream = BytesIO(bytes.fromhex(res["hex"]))

@@ -24,8 +24,9 @@ class TxItem(dict):
         lambda v: json.loads(v) if isinstance(v, str) else v,
     ]
 
-    def __init__(self, rpc, **kwargs):
+    def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
+        self._addresses = addresses
         # copy
         kwargs = dict(**kwargs)
         # replace with None or convert
@@ -55,18 +56,39 @@ class TxItem(dict):
 
 
 class TxList(dict):
-    def __init__(self, path, rpc):
+    def __init__(self, path, rpc, addresses):
         self.path = path
         self.rpc = rpc
+        self._addresses = addresses
         txs = []
         if os.path.isfile(self.path):
-            txs = read_csv(self.path, TxItem, self.rpc)
+            txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
         for tx in txs:
             self[tx.txid] = tx
 
     def save(self):
         if len(list(self.keys())) > 0:
             write_csv(self.path, list(self.values()), TxItem)
+
+    def gettransaction(self, txid, blockheight=None):
+        """
+        Will ask Bitcoin Core for a transaction if blockheight is None or txid not known
+        Provide blockheight or 0 if you don't care about confirmations number
+        to avoid RPC calls
+        """
+        if blockheight is None or txid not in self:
+            tx = self.rpc.gettransaction(txid)
+            # save if we don't know about this tx
+            if txid not in self:
+                self.add({txid: tx})
+            if "time" not in tx:
+                tx["time"] = tx["timereceived"]
+            return tx
+        tx = self[txid]
+        return {
+            "hex": tx["hex"],
+            "time": tx["time"],
+        }
 
     def add(self, txs):
         """
@@ -82,13 +104,28 @@ class TxList(dict):
         }
         """
         for txid in txs:
-            self[txid] = TxItem(self.rpc, **txs[txid])
+            tx = txs[txid]
+            # find minimal from 3 times:
+            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+            time = min(
+                tx.get("blocktime", maxtime),
+                tx.get("timereceived", maxtime),
+                tx.get("time", maxtime),
+            )
+            obj = {
+                "txid": txid,
+                "blockheight": tx.get("blockheight", None),
+                "time": time,
+                "conflicts": tx.get("walletconflicts", []),
+                "hex": tx.get("hex", None),
+            }
+            self[txid] = TxItem(self.rpc, self._addresses, **obj)
         self.save()
 
     def load(self, arr):
         """
         arr should be a dict with dicts:
-        "<txid>": { 
+        "<txid>": {
             "txid",         - hex txid
             "hex",          - optional, raw hex transactions
             "merkle_proof", - optional, hex merkle proof

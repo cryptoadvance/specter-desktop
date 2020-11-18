@@ -275,13 +275,13 @@ Silently ignored!"
             wallet.save_to_file()
         self.update()
 
-    def full_txlist(self, idx, validate_merkle_proofs=False):
+    def full_txlist(self, page, validate_merkle_proofs=False):
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
-                    idx,
-                    wallet_tx_batch=100 // len(self.wallets),
+                    page,
+                    limit=(100 // len(self.wallets)),
                     validate_merkle_proofs=validate_merkle_proofs,
                 )
             ]
