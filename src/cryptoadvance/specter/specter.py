@@ -447,7 +447,7 @@ class Specter:
             self._save()
         else:
             user.set_unit(self, unit)
-    
+
     def update_price_check_setting(self, price_check_bool, user):
         if user.is_admin:
             self.config["price_check"] = price_check_bool
