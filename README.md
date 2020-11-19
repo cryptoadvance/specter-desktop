@@ -69,6 +69,7 @@ With this method, all you need to do is just download the right file for your op
 
 ### Installing Specter from Pip
 * Specter requires Python version 3.6 to 3.8. We will support python 3.9 when HWI adds support for it.
+* Bitcoin Core node should be at least v0.19+, better if it's the latest one from [bitcoincore.org](https://bitcoincore.org/en/download/).
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
   * macOS: `brew install libusb`
