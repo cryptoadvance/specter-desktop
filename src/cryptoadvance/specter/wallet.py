@@ -92,7 +92,9 @@ class Wallet:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = TxList(txs_path, self.rpc, self._addresses, self.manager.chain)
+        self._transactions = TxList(
+            txs_path, self.rpc, self._addresses, self.manager.chain
+        )
         if not self._transactions.file_exists:
             self.fetch_transactions()
 
@@ -407,6 +409,7 @@ class Wallet:
         delete_file(self.fullpath)
         delete_file(self.fullpath + ".bkp")
         delete_file(self._addresses.path)
+        delete_file(self._transactions.path)
 
     @property
     def is_multisig(self):
@@ -463,7 +466,6 @@ class Wallet:
         self.save_to_file()
 
     def txlist(self, page, limit=100, validate_merkle_proofs=False):
-        # TODO: check for new ones?
         try:
             rpc_txs = self.rpc.listtransactions(
                 "*", limit + 2, limit * page, True
@@ -492,20 +494,13 @@ class Wallet:
         for tx in transactions:
             if "confirmations" not in tx:
                 tx["confirmations"] = 0
-            if (
-                len(
-                    [
-                        _tx
-                        for _tx in rpc_txs
-                        if (
-                            _tx["txid"] == tx["txid"]
-                            and _tx["address"] == tx["address"]
-                        )
-                    ]
-                )
-                > 1
-            ):
-                continue  # means the tx is duplicated (change), continue
+
+            # skip change outputs
+            addr = tx.get("address", "")
+            if addr in self._addresses:
+                addr = self._addresses[addr]
+                if addr.change:
+                    continue
 
             if tx["confirmations"] == 0 and (
                 tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
@@ -515,6 +510,7 @@ class Wallet:
                 )
                 tx["vsize"] = raw_tx["vsize"]
 
+            # TODO: validate for unique txids only
             tx["validated_blockhash"] = ""  # default is assume unvalidated
             if (
                 validate_merkle_proofs is True
@@ -542,6 +538,20 @@ class Wallet:
 
             result.append(tx)
 
+        # fund duplicates
+        for tx in result:
+            if tx["category"] == "send":
+                continue
+            duplicates = [
+                dup
+                for dup in result
+                if dup["txid"] == tx["txid"] and dup["vout"] == tx["vout"]
+            ]
+            # we have both receive and send
+            if len(duplicates) == 2:
+                result.remove(tx)
+                duplicates[0]["category"] = "selftransfer"
+        print(result)
         return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):

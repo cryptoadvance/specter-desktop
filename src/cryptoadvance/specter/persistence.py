@@ -85,10 +85,19 @@ def write_json_file(content, path, lock=None):
     storage_callback()
 
 
-def delete_file(path):
-    if os.path.exists(path):
-        os.remove(path)
+def delete_files(paths):
+    """deletes multiple files and calls storage callback once"""
+    need_callback = False
+    for path in paths:
+        if os.path.exists(path):
+            os.remove(path)
+            need_callback = True
+    if need_callback:
         storage_callback()
+
+
+def delete_file(path):
+    delete_files([path])
 
 
 def write_devices(devices_json):

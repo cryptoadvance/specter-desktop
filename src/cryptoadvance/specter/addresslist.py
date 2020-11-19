@@ -164,7 +164,15 @@ class AddressList(dict):
             self.save()
 
     def max_used_index(self, change=False):
-        return max(-1, -1, *[addr.index for addr in self.values() if addr.used and addr.change == change])
+        return max(
+            -1,
+            -1,
+            *[
+                addr.index
+                for addr in self.values()
+                if addr.used and addr.change == change
+            ],
+        )
 
     @property
     def file_exists(self):

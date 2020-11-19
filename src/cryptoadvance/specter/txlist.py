@@ -129,7 +129,7 @@ class TxList(dict):
                         addr = vout.script_pubkey.address(NETWORKS[self.chain])
                         addresses.append(addr)
                     except:
-                        pass # maybe not an address, but a raw script?
+                        pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
         self.save()
 
