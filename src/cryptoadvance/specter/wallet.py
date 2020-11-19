@@ -544,7 +544,9 @@ class Wallet:
             duplicates = [
                 dup
                 for dup in result
-                if dup["txid"] == tx["txid"] and dup["vout"] == tx["vout"] and abs(dup["amount"]) == abs(tx["amount"])
+                if dup["txid"] == tx["txid"]
+                and dup["vout"] == tx["vout"]
+                and abs(dup["amount"]) == abs(tx["amount"])
             ]
             # we have both receive and send
             if len(duplicates) > 1:

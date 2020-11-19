@@ -142,9 +142,7 @@ Silently ignored! Wallet error: {e}"
                                     logger.warn(
                                         f"Failed to load wallet {wallet_name}: {e}"
                                     )
-                                    logger.warn(
-                                        traceback.format_exc()
-                                    )
+                                    logger.warn(traceback.format_exc())
                             else:
                                 # wallet is loaded and should stay
                                 keep_wallets.append(wallet_name)

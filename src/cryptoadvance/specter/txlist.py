@@ -7,6 +7,7 @@ from embit.transaction import Transaction
 from embit.networks import NETWORKS
 import json
 
+
 def parse_conflicts(v):
     if not isinstance(v, str):
         return v
@@ -14,6 +15,7 @@ def parse_conflicts(v):
         return json.loads(v.replace("'", '"'))
     except:
         return v
+
 
 class TxItem(dict):
     columns = [
@@ -23,13 +25,7 @@ class TxItem(dict):
         "time",  # int (timestamp in seconds), time received
         "conflicts",  # rbf conflicts, list of txids
     ]
-    type_converter = [
-        str,
-        str,
-        int,
-        int,
-        parse_conflicts,
-    ]
+    type_converter = [str, str, int, int, parse_conflicts]
 
     def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
@@ -93,10 +89,7 @@ class TxList(dict):
                 tx["time"] = tx["timereceived"]
             return tx
         tx = self[txid]
-        return {
-            "hex": tx["hex"],
-            "time": tx["time"],
-        }
+        return {"hex": tx["hex"], "time": tx["time"]}
 
     def add(self, txs):
         """
