@@ -132,66 +132,63 @@ Error returned: {}".format(
 
 
 ################ routes ####################
-@app.route("/wallets/<wallet_alias>/combine/", methods=["GET", "POST"])
+@app.route("/wallets/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
+    # only post requests
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while combine: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    if request.method == "POST":
-        # FIXME: ugly...
-        txid = request.form.get("txid")
-        psbts = [request.form.get("psbt0").strip(), request.form.get("psbt1").strip()]
-        raw = {}
-        combined = None
+        return "SpecterError while combine: %s" % se, 500
+    # FIXME: ugly...
+    txid = request.form.get("txid")
+    psbts = [request.form.get("psbt0").strip(), request.form.get("psbt1").strip()]
+    raw = {}
+    combined = None
 
-        for i, psbt in enumerate(psbts):
-            if "UR:BYTES/" in psbt.upper():
-                psbt = bcur2base64(psbt).decode()
+    for i, psbt in enumerate(psbts):
+        if "UR:BYTES/" in psbt.upper():
+            psbt = bcur2base64(psbt).decode()
 
-            # if electrum then it's base43
+        # if electrum then it's base43
+        try:
+            decoded = b43_decode(psbt)
+            if decoded.startswith(b"psbt\xff"):
+                psbt = b2a_base64(decoded).decode()
+            else:
+                psbt = decoded.hex()
+        except:
+            pass
+
+        psbts[i] = psbt
+        # psbt should start with cHNi
+        # if not - maybe finalized hex tx
+        if not psbt.startswith("cHNi"):
+            raw["hex"] = psbt
+            combined = psbts[1 - i]
+            # check it's hex
             try:
-                decoded = b43_decode(psbt)
-                if decoded.startswith(b"psbt\xff"):
-                    psbt = b2a_base64(decoded).decode()
-                else:
-                    psbt = decoded.hex()
-            except:
-                pass
-
-            psbts[i] = psbt
-            # psbt should start with cHNi
-            # if not - maybe finalized hex tx
-            if not psbt.startswith("cHNi"):
-                raw["hex"] = psbt
-                combined = psbts[1 - i]
-
-        # try converting to bytes
-        if "hex" in raw:
-            raw["complete"] = True
-            raw["psbt"] = combined
-            try:
-                bytes.fromhex(raw["hex"])
+                bytes.fromhex(psbt)
             except:
                 return "Invalid transaction format", 500
 
+    try:
+        if "hex" in raw:
+            raw["complete"] = True
+            raw["psbt"] = combined
         else:
-            try:
-                combined = app.specter.combine(psbts)
-                raw = app.specter.finalize(combined)
-                if "psbt" not in raw:
-                    raw["psbt"] = combined
-                psbt = wallet.update_pending_psbt(combined, txid, raw)
-            except RpcError as e:
-                return e.error_msg, e.status_code
-            except Exception as e:
-                return "Unknown error: %r" % e, 500
-        devices = []
+            combined = app.specter.combine(psbts)
+            raw = app.specter.finalize(combined)
+            if "psbt" not in raw:
+                raw["psbt"] = combined
+        psbt = wallet.update_pending_psbt(combined, txid, raw)
         raw["devices"] = psbt["devices_signed"]
-        return json.dumps(raw)
-    return "meh"
+    except RpcError as e:
+        return e.error_msg, e.status_code
+    except Exception as e:
+        return "Unknown error: %r" % e, 500
+    return json.dumps(raw)
 
 
 @app.route("/wallets/<wallet_alias>/broadcast/", methods=["GET", "POST"])
