@@ -79,24 +79,41 @@
 	<br>
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
 	<div id="addresses_list" class="hidden optional" style="width: 80%;">
+		{% if history_idx != 0 or addresses_count > 10 %}
+			<div style="margin: auto; text-align: center;">
+				<a href="./?history_idx={{ history_idx - 1 }}" class="pagination-arrow {% if history_idx == 0 %}pagination-disabled{% endif %}">&#8249;</a>
+				{% if addresses_count > 0 or idx != 0 %}
+				Page {{ history_idx + 1 }}
+				{% endif %}
+				<a href="./?history_idx={{ history_idx + 1 }}" class="pagination-arrow {% if (addresses_count - (history_idx * 10)) <= 10 %}pagination-disabled{% endif %}">&#8250;</a>
+			</div>
+		{% endif %}
 		<div class="table-holder">
-			<table>
+			<table style="margin: auto;">
 				<thead>
 					<tr>
-						<th>Label</th><th>Address</th><th style="width: 400px;" class="optional">Actions</th>
+						<th>Used</th><th>Label</th><th>Address</th><th style="width: 400px;" class="optional">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					{% for address in wallet.addresses[:-1]|reverse %}
+					{% for address in past_addresses %}
 						<tr>
-							<td class="tx scroll">{{ explorer_link('address', address, wallet.get_address_name(address, -1), specter.explorer) }}</td>
+							<td>
+							{% set address_info = wallet.get_address_info(past_addresses[loop.index0]) %}
+							{% if address_info.used %}
+								<img src="{{ url_for('static', filename='img/checkbox-tick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Used</p>
+							{% else %}
+								<img src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Unused</p>
+							{% endif %}
+							</td>
+							<td class="tx scroll">{{ explorer_link('address', address, address_info.label, specter.explorer) }}</td>
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
-							<td class="optional">
+							<td class="optional row">
 								{% if supports_qr_code != [] %}
-									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="width:170px; float: left; margin-right: 20px; margin-bottom: 2px; margin-top: 2px;">Verify address via QR code</button>
+									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
 								{% endif %}
 								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ wallet.get_descriptor(loop.revindex0)|tojson }}`)' class="btn" style="width:170px; margin-bottom: 2px; margin-top: 2px;">Display address on device</button>
+									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>
 								{% endif %}
 							</td>
 						</tr>

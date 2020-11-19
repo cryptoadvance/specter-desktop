@@ -551,7 +551,6 @@ class Wallet:
             if len(duplicates) == 2:
                 result.remove(tx)
                 duplicates[0]["category"] = "selftransfer"
-        print(result)
         return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):
@@ -776,6 +775,12 @@ class Wallet:
             Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
         )
         return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
+
+    def get_address_info(self, address):
+        try:
+            return self._addresses[address]
+        except:
+            return None
 
     def get_electrum_watchonly(self):
         if len(self.keys) == 1:

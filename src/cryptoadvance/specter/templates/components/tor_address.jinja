@@ -137,7 +137,13 @@
             torDataContainer.style.display = torDataContainer.style.display == 'block' ? 'none' : 'block';
         }
         torToggleBtn.addEventListener("click", toggleTorPopup);
-        torDataContainer.style.right = (document.getElementById('status-bar').children.length < 6 ? 83 : 145) + 'px';
+        let right = 0;
+        for(let i in document.getElementById('status-bar').children) {
+            if (i < document.getElementById('status-bar').children.length - 1) {
+                right += document.getElementById('status-bar').children[i].offsetWidth;
+            }
+        }
+        torDataContainer.style.right = (right + 22) + 'px';
         window.addEventListener('click', function(e){   
             if (!torDataContainer.contains(e.target) && !torToggleBtn.contains(e.target)){
                 if (torDataContainer.style.display == 'block') {
