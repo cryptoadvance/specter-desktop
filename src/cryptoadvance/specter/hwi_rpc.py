@@ -310,7 +310,6 @@ class HWIBridge(JSONRPC):
     ):
         if message == "":
             raise Exception("Message must not be empty")
-        print(derivation_path)
         with self._get_client(
             device_type=device_type,
             fingerprint=fingerprint,

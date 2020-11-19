@@ -9,6 +9,9 @@
         .xpubs_edit {
             visibility: hidden;
         }
+        input[type="text"]:disabled {
+            border: none;
+        }
     </style>
     <div id="device_setup_wizard" style="width: 100%;">
         <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
@@ -175,14 +178,17 @@
 {% block scripts %}
     <script>
         let xpubsTableRows = 0;
+
         function addXpub(purpose, derivation, xpub='-') {
 			let xpubsTable = document.getElementById('xpubs_table');
             derivation = derivation.replaceAll("'", "h");
             for (let existingRow of xpubsTable.children) {
                 let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
                 if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
-                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
-                    document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
+                    if (purpose != 'Custom' && document.getElementById(existingRow.id + '-purpose').value == 'Custom') {
+                        document.getElementById(existingRow.id + '-purpose').value = purpose;
+                    }
+                    document.getElementById(existingRow.id + '-xpub').value = xpub;
                     return;
                 }
             }
@@ -194,8 +200,7 @@
                 <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%;"></td>
                 <td id="xpubs-table-row-${xpubsTableRows}-derivation">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
-                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
-                <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
+                <td><input type="text" id="xpubs-table-row-${xpubsTableRows}-xpub" name="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;" value="${xpub}" /></td>
                 <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
             `
             let xpubRow = document.createElement('tr');
@@ -206,9 +211,19 @@
 
         function addXpubs(xpubs) {
             xpubs.split('\n').filter(xpub => xpub != '').forEach(xpub => {
-                let [fingerprint, ...derivation] = xpub.split('[')[1].split(']')[0].split('/')
-                derivation = derivation.join('/').replace("'", 'h').toLowerCase();
-                addXpub('Custom', 'm/' + derivation, ['[' + fingerprint.toLowerCase(), '/' , derivation, ']', xpub.split(']')[1]].join(''))
+                if (xpub.startsWith("[")) {
+                    let [fingerprint, ...derivation] = xpub.split('[')[1].split(']')[0].split('/')
+                    derivation = derivation.join('/').replace("'", 'h').toLowerCase();
+                    addXpub('Custom', 'm/' + derivation, ['[' + fingerprint.toLowerCase(), '/' , derivation, ']', xpub.split(']')[1]].join(''))
+                } else {
+                    let xpubPurpose = 'Custom'
+                    if (xpub.startsWith("ypub") || xpub.startsWith("upub")) {
+                        xpubPurpose = '#0 Single Sig (Nested)';
+                    } else if (xpub.startsWith("vpub") || xpub.startsWith("zpub")) {
+                        xpubPurpose = '#0 Single Sig (Segwit)';
+                    }
+                    addXpub(xpubPurpose, 'm/', xpub)
+                }
             })
             
             if (document.getElementById('edit-xpubs-table-btn').innerHTML != 'Edit') {
@@ -218,7 +233,7 @@
             }
         }
 
-        function setupXpubsTable() {
+        function setupXpubsTable(device='null') {
 			let xpubsTable = document.getElementById('xpubs_table');
             xpubsTable.innerHTML = '';
             let xpubAddAccountRowHTML =  `
@@ -259,7 +274,11 @@
             xpubAddRow.classList.add(`xpubs_edit`);
 			xpubAddRow.innerHTML = xpubAddRowHTML;
             xpubsTable.appendChild(xpubAddRow);
-            addAccountXpubs();
+            if (device && device != 'electrum') {
+                addAccountXpubs();
+            } else {
+                addXpub('Custom', 'm/');
+            }
             for (let el of document.getElementsByClassName('xpubs_edit')) {
                 el.style.visibility = 'hidden';
             }
@@ -336,7 +355,7 @@
 				}
 				const jsonResponse = await response.json();
                 let mnemonic = jsonResponse.mnemonic;
-                //blabla
+
                 document.getElementById("mnemonic_value").value = mnemonic;
                 let wordslist = mnemonic.split(' ');
                 let mnemonicTable = document.getElementById("mnemonic_table");
@@ -469,6 +488,7 @@
                         document.getElementById('cobo-instructions').classList.remove('hidden');
                         break;
                     case 'electrum':
+                    case 'other':
                         break;
                     case 'bitcoincore':
                         document.getElementById('hot-wallet').classList.remove('hidden');
@@ -506,8 +526,20 @@
                     if (devices[i].checked) {
                         deviceName = devices[i]['data-device-name'];
                         deviceType = devices[i].value;
+                        setupXpubsTable(deviceType);
+                        for (let j = 1; j <= xpubsTableRows; j++) {
+                            let rowXpub = document.getElementById('xpubs-table-row-' + j + '-xpub');
+                            if (rowXpub) {
+                                rowXpub.disabled = !(deviceType == 'other' || deviceType == 'electrum');
+                            }
+                        }
                         break;
                     }
+                }
+                if (deviceType == 'other' || deviceType == 'electrum') {
+                    xpubsEditable = true;
+                } else {
+                    xpubsEditable = false;
                 }
             }
         }
@@ -622,7 +654,7 @@
             let xpubsTable = document.getElementById('xpubs_table');
             
             for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
+                if (document.getElementById(xpubRow.id + '-xpub').value != '-') {
                     continue
                 }
 

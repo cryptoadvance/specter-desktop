@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
     <style>
-		.arrow :hover {
+		.arrow:hover {
 			background-color: #ddd;
 			color: black;
 		}
@@ -24,13 +24,15 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            {{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') | btcunitamount }}
+			{% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
+            {{ fullbalance | btcunitamount }}
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
 				{% if specter.chain !='main' %}t{%endif%}BTC
 			{% endif %}
-        </span>
+        </span><br>
+		<span class="note">{{ fullbalance | altunit }}</span>
         {% if specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') > 0 %}<br>
             <small>( {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.trusted') | btcunitamount }} confirmed, {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') | btcunitamount }} pending )</small>
         {% endif %}

@@ -50,6 +50,7 @@ from binascii import b2a_base64
 from .util.base43 import b43_decode
 from .util.tor import start_hidden_service, stop_hidden_services
 from stem.control import Controller
+from .util.price_providers import update_price
 
 from pathlib import Path
 
@@ -219,6 +220,30 @@ def broadcast(wallet_alias):
 @login_required
 def generatemnemonic():
     return {"mnemonic": generate_mnemonic(strength=int(request.form["strength"]))}
+
+
+@app.route("/setprice/", methods=["GET", "POST"])
+@login_required
+def setprice():
+    try:
+        price_type = request.form.get("price_type", "manual")
+        if price_type == "manual":
+            alt_rate = request.form.get("alt_rate", 0)
+            alt_symbol = request.form.get("alt_symbol", "")
+            app.specter.update_price_provider("", current_user)
+            app.specter.price_checker.stop()
+            if alt_rate and alt_symbol:
+                app.specter.update_alt_rate(alt_rate, current_user)
+                app.specter.update_alt_symbol(alt_symbol, current_user)
+                return {"success": True}
+        else:
+            price_provider = request.form.get("price_provider", "")
+            app.specter.update_price_provider(price_provider, current_user)
+            app.specter.price_checker.start()
+            return {"success": update_price(app.specter, current_user)}
+    except Exception as e:
+        app.logger.warning("Failed to update price settings. Exception: {}".format(e))
+    return {"success": False}
 
 
 @app.route("/")
@@ -396,10 +421,12 @@ def general_settings():
     explorer = app.specter.explorer
     loglevel = get_loglevel(app)
     unit = app.specter.unit
+    price_check = app.specter.price_check
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
+        price_check = request.form.get("pricecheck", "off") == "on"
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
@@ -411,6 +438,7 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_unit(unit, current_user)
+            app.specter.update_price_check_setting(price_check, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
@@ -490,6 +518,7 @@ This may take a few hours to complete.",
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
+        pricecheck=price_check,
         specter=app.specter,
         current_version=current_version,
         rand=rand,
@@ -1048,7 +1077,7 @@ def device_setup_wizard():
                 purpose = request.form.get(
                     "xpubs-table-row-{}-purpose".format(i), "Custom"
                 )
-                xpub = request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), "-")
+                xpub = request.form.get("xpubs-table-row-{}-xpub".format(i), "-")
                 if xpub != "-":
                     try:
                         keys.append(Key.parse_xpub(xpub, purpose=purpose))
@@ -1225,10 +1254,20 @@ def wallet_receive(wallet_alias):
     # check that current address is unused
     # and generate new one if it is
     wallet.check_unused()
+    history_idx = int(request.args.get("history_idx", default=0))
+    past_addresses = wallet.addresses[
+        -10 * history_idx - 2 : -10 * (history_idx + 1) - 2 : -1
+    ]
     return render_template(
         "wallet/receive/wallet_receive.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
+        past_addresses=past_addresses,
+        past_descriptors=[
+            wallet.get_descriptor(address=addr) for addr in past_addresses
+        ],
+        addresses_count=len(wallet.addresses),
+        history_idx=history_idx,
         specter=app.specter,
         rand=rand,
     )
@@ -1861,6 +1900,18 @@ def btcunitamount(value):
         return btcamount(value)
     value = float(value)
     return "{:,.0f}".format(round(value * 1e8))
+
+
+@app.template_filter("altunit")
+def altunit(value):
+    if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
+        return (
+            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
+            .rstrip("0")
+            .rstrip(".")
+            + app.specter.alt_symbol
+        )
+    return ""
 
 
 @app.template_filter("bytessize")
