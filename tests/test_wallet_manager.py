@@ -278,7 +278,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
 
     wallet.getdata()
     assert sorted(wallet.utxo_labels()) == sorted(
-        ["Random label", wallet.get_label(new_address)]
+        ["Random label", wallet.getlabel(new_address)]
     )
     assert sorted(wallet.addresses) == sorted([address, new_address, third_address])
     assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
