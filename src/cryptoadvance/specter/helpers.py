@@ -221,22 +221,3 @@ def generate_mnemonic(strength=256):
     mnemo = Mnemonic("english")
     words = mnemo.generate(strength=strength)
     return words
-
-
-# Transaction processing helpers
-def parse_utxo(wallet, utxo):
-    for tx in utxo:
-        tx_data = wallet.rpc.gettransaction(tx["txid"])
-        tx["time"] = tx_data["time"]
-        if len(tx_data["details"]) > 1:
-            for details in tx_data["details"]:
-                if details["category"] != "send":
-                    tx["category"] = details["category"]
-                    break
-        else:
-            tx["category"] = tx_data["details"][0]["category"]
-        if "confirmations" in tx_data:
-            tx["confirmations"] = tx_data["confirmations"]
-        else:
-            tx["confirmations"] = 0
-    return utxo
