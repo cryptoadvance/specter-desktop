@@ -551,7 +551,6 @@ class Wallet:
             if len(duplicates) == 2:
                 result.remove(tx)
                 duplicates[0]["category"] = "selftransfer"
-        print(result)
         return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):

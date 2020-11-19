@@ -259,7 +259,6 @@ Silently ignored!"
                 os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
-                print(path, os.path.exists(path))
                 if os.path.exists(path):
                     shutil.rmtree(path)
                     break
