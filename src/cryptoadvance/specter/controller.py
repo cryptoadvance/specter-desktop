@@ -1226,8 +1226,8 @@ def wallet_receive(wallet_alias):
     # and generate new one if it is
     wallet.check_unused()
     history_idx = int(request.args.get("history_idx", default=0))
-    past_addresses = wallet.addresses[0:-1][::-1][
-        (10 * history_idx) : (10 * (history_idx + 1))
+    past_addresses = wallet.addresses[
+        - 10 * history_idx - 2 : - 10 * (history_idx + 1) - 2: -1
     ]
     return render_template(
         "wallet/receive/wallet_receive.jinja",
