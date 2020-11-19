@@ -3,9 +3,7 @@ from embit.networks import NETWORKS
 from hashlib import sha256
 import math
 
-TYPES_MAP = {
-    "p2wpkh": "witness_v0_keyhash",
-}
+TYPES_MAP = {"p2wpkh": "witness_v0_keyhash"}
 
 
 def decoderawinput(vin):
