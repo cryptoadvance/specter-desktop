@@ -231,6 +231,7 @@ def setprice():
             alt_rate = request.form.get("alt_rate", 0)
             alt_symbol = request.form.get("alt_symbol", "")
             app.specter.update_price_provider("", current_user)
+            app.specter.price_checker.stop()
             if alt_rate and alt_symbol:
                 app.specter.update_alt_rate(alt_rate, current_user)
                 app.specter.update_alt_symbol(alt_symbol, current_user)
@@ -238,6 +239,7 @@ def setprice():
         else:
             price_provider = request.form.get("price_provider", "")
             app.specter.update_price_provider(price_provider, current_user)
+            app.specter.price_checker.start()
             return {"success": update_price(app.specter, current_user)}
     except Exception as e:
         app.logger.warning("Failed to update price settings. Exception: {}".format(e))
