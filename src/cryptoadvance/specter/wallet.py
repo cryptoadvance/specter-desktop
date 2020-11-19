@@ -555,7 +555,10 @@ class Wallet:
         return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):
-        return self._transactions.gettransaction(txid, blockheight)
+        try:
+            return self._transactions.gettransaction(txid, blockheight)
+        except Exception as e:
+            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def rescanutxo(self, explorer=None):
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
@@ -1184,12 +1187,14 @@ class Wallet:
                 txid = inp.prevout.hash.to_bytes(32, "big").hex()
                 try:
                     res = self.gettransaction(txid)
+                    stream = BytesIO(bytes.fromhex(res["hex"]))
+                    prevtx = CTransaction()
+                    prevtx.deserialize(stream)
+                    psbt.inputs[i].non_witness_utxo = prevtx
                 except:
-                    raise SpecterError("Can't find previous transaction in the wallet.")
-                stream = BytesIO(bytes.fromhex(res["hex"]))
-                prevtx = CTransaction()
-                prevtx.deserialize(stream)
-                psbt.inputs[i].non_witness_utxo = prevtx
+                    logger.error(
+                        "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
+                    )
         else:
             # remove non_witness_utxo if we don't want them
             for inp in psbt.inputs:
