@@ -53,6 +53,13 @@
 				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
 			</select>
 			<br><br>
+			<div class="row">
+				<span>Show Bitcoin price:</span>&nbsp;&nbsp;&nbsp;&nbsp;
+				<label class="switch">
+				<input type="checkbox" id="pricecheck" name="pricecheck" {% if pricecheck %}checked{% endif %}>
+				<span class="slider"></span>
+				</label>
+			</div><br>
 			Block explorer URL ({{ specter.chain }}):<br>
 			<input type="text" name="explorer" value="{{ explorer }}">
 			<div class="warning">
