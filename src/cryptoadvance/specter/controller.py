@@ -1077,7 +1077,7 @@ def device_setup_wizard():
                 purpose = request.form.get(
                     "xpubs-table-row-{}-purpose".format(i), "Custom"
                 )
-                xpub = request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), "-")
+                xpub = request.form.get("xpubs-table-row-{}-xpub".format(i), "-")
                 if xpub != "-":
                     try:
                         keys.append(Key.parse_xpub(xpub, purpose=purpose))
