@@ -697,12 +697,12 @@ def new_wallet_type():
 @app.route("/new_wallet/<wallet_type>/", methods=["GET", "POST"])
 @login_required
 def new_wallet(wallet_type):
-    err = None
     wallet_types = ["simple", "multisig", "import_wallet"]
     if wallet_type not in wallet_types:
-        err = "Unknown wallet type requested"
-        return render_template("base.jinja", specter=app.specter, rand=rand)
+        flash("Unknown wallet type requested", "error")
+        return redirect(url_for("new_wallet_type"))
 
+    err = None
     if request.method == "POST":
         action = request.form["action"]
         if action == "importwallet":
@@ -716,142 +716,138 @@ def new_wallet(wallet_type):
                 wallet_name = wallet_data.get("label", "Imported Wallet")
                 recv_descriptor = wallet_data.get("descriptor", None)
 
-            startblock = (
-                wallet_data["blockheight"]
-                if "blockheight" in wallet_data
-                else app.specter.wallet_manager.rpc.getblockcount()
+            # get min of the two
+            # if the node is still syncing
+            # and the first block with tx is not there yet
+            startblock = min(
+                wallet_data["blockheight"], app.specter.info.get("blocks", 0)
             )
+            # check if pruned
+            if app.specter.info.get("pruned", False):
+                newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
+                if newstartblock > startblock:
+                    flash(
+                        f"Using pruned node - we will only rescan from block {newstartblock}",
+                        "error",
+                    )
+                    startblock = newstartblock
             try:
                 descriptor = Descriptor.parse(
                     AddChecksum(recv_descriptor.split("#")[0]),
                     testnet=app.specter.chain != "main",
                 )
                 if descriptor is None:
-                    err = "Invalid wallet descriptor."
+                    flash("Invalid wallet descriptor.", "error")
+                    return redirect(url_for("new_wallet_type"))
             except:
-                err = "Invalid wallet descriptor."
+                flash("Invalid wallet descriptor.", "error")
+                return redirect(url_for("new_wallet_type"))
             if wallet_name in app.specter.wallet_manager.wallets_names:
-                err = "Wallet with the same name already exists"
+                flash("Wallet with the same name already exists", "error")
+                return redirect(url_for("new_wallet_type"))
 
-            if not err:
-                sigs_total = descriptor.multisig_N
-                sigs_required = descriptor.multisig_M
-                if descriptor.wpkh:
-                    address_type = "wpkh"
-                elif descriptor.wsh:
-                    address_type = "wsh"
-                elif descriptor.sh_wpkh:
-                    address_type = "sh-wpkh"
-                elif descriptor.sh_wsh:
-                    address_type = "sh-wsh"
-                elif descriptor.sh:
-                    address_type = "sh-wsh"
-                else:
-                    address_type = "pkh"
-                keys = []
-                cosigners = []
-                unknown_cosigners = []
-                if sigs_total == None:
-                    sigs_total = 1
-                    sigs_required = 1
-                    descriptor.origin_fingerprint = [descriptor.origin_fingerprint]
-                    descriptor.origin_path = [descriptor.origin_path]
-                    descriptor.base_key = [descriptor.base_key]
-                for i in range(sigs_total):
-                    cosigner_found = False
-                    for device in app.specter.device_manager.devices:
-                        cosigner = app.specter.device_manager.devices[device]
-                        if descriptor.origin_fingerprint[i] is None:
-                            descriptor.origin_fingerprint[i] = ""
-                        if descriptor.origin_path[i] is None:
-                            descriptor.origin_path[i] = descriptor.origin_fingerprint[i]
-                        for key in cosigner.keys:
-                            if key.fingerprint + key.derivation.replace(
-                                "m", ""
-                            ) == descriptor.origin_fingerprint[
-                                i
-                            ] + descriptor.origin_path[
-                                i
-                            ].replace(
-                                "'", "h"
-                            ):
-                                keys.append(key)
-                                cosigners.append(cosigner)
-                                cosigner_found = True
-                                break
-                        if cosigner_found:
+            sigs_total = descriptor.multisig_N
+            sigs_required = descriptor.multisig_M
+            if descriptor.wpkh:
+                address_type = "wpkh"
+            elif descriptor.wsh:
+                address_type = "wsh"
+            elif descriptor.sh_wpkh:
+                address_type = "sh-wpkh"
+            elif descriptor.sh_wsh:
+                address_type = "sh-wsh"
+            elif descriptor.sh:
+                address_type = "sh-wsh"
+            else:
+                address_type = "pkh"
+            keys = []
+            cosigners = []
+            unknown_cosigners = []
+            if sigs_total == None:
+                sigs_total = 1
+                sigs_required = 1
+                descriptor.origin_fingerprint = [descriptor.origin_fingerprint]
+                descriptor.origin_path = [descriptor.origin_path]
+                descriptor.base_key = [descriptor.base_key]
+            for i in range(sigs_total):
+                cosigner_found = False
+                for device in app.specter.device_manager.devices:
+                    cosigner = app.specter.device_manager.devices[device]
+                    if descriptor.origin_fingerprint[i] is None:
+                        descriptor.origin_fingerprint[i] = ""
+                    if descriptor.origin_path[i] is None:
+                        descriptor.origin_path[i] = descriptor.origin_fingerprint[i]
+                    for key in cosigner.keys:
+                        if key.fingerprint + key.derivation.replace(
+                            "m", ""
+                        ) == descriptor.origin_fingerprint[i] + descriptor.origin_path[
+                            i
+                        ].replace(
+                            "'", "h"
+                        ):
+                            keys.append(key)
+                            cosigners.append(cosigner)
+                            cosigner_found = True
                             break
-                    if not cosigner_found:
-                        desc_key = Key.parse_xpub(
-                            "[{}{}]{}".format(
-                                descriptor.origin_fingerprint[i],
-                                descriptor.origin_path[i],
-                                descriptor.base_key[i],
-                            )
+                    if cosigner_found:
+                        break
+                if not cosigner_found:
+                    desc_key = Key.parse_xpub(
+                        "[{}{}]{}".format(
+                            descriptor.origin_fingerprint[i],
+                            descriptor.origin_path[i],
+                            descriptor.base_key[i],
                         )
-                        unknown_cosigners.append(desc_key)
-                    #     raise Exception('Could not find device with matching key to import wallet')
-                wallet_type = "multisig" if sigs_total > 1 else "simple"
-                createwallet = "createwallet" in request.form
-                if createwallet:
-                    wallet_name = request.form["wallet_name"]
-                    for i, unknown_cosigner in enumerate(unknown_cosigners):
-                        unknown_cosigner_name = request.form[
-                            "unknown_cosigner_{}_name".format(i)
-                        ]
-                        device = app.specter.device_manager.add_device(
-                            name=unknown_cosigner_name,
-                            device_type="other",
-                            keys=[unknown_cosigner],
-                        )
-                        keys.append(unknown_cosigner)
-                        cosigners.append(device)
-                    wallet = app.specter.wallet_manager.create_wallet(
-                        wallet_name, sigs_required, address_type, keys, cosigners
                     )
-                    wallet.import_labels(wallet_data.get("labels", {}))
-                    flash("Wallet imported successfully", "info")
-                    try:
-                        wallet.rpc.rescanblockchain(startblock, timeout=1)
-                        app.logger.info("Rescanning Blockchain ...")
-                    except requests.exceptions.ReadTimeout:
-                        # this is normal behavior in our usecase
-                        pass
-                    except Exception as e:
-                        app.logger.error(
-                            "Exception while rescanning blockchain: %e" % e
-                        )
-                        flash("Failed to perform rescan for wallet: %r" % e, "error")
-                    wallet.getdata()
-                    return redirect(
-                        url_for("wallet_receive", wallet_alias=wallet.alias)
-                        + "?newwallet=true"
+                    unknown_cosigners.append(desc_key)
+            wallet_type = "multisig" if sigs_total > 1 else "simple"
+            createwallet = "createwallet" in request.form
+            if createwallet:
+                wallet_name = request.form["wallet_name"]
+                for i, unknown_cosigner in enumerate(unknown_cosigners):
+                    unknown_cosigner_name = request.form[
+                        "unknown_cosigner_{}_name".format(i)
+                    ]
+                    device = app.specter.device_manager.add_device(
+                        name=unknown_cosigner_name,
+                        device_type="other",
+                        keys=[unknown_cosigner],
                     )
-
-                else:
-                    return render_template(
-                        "wallet/new_wallet/import_wallet.jinja",
-                        wallet_data=json.dumps(wallet_data),
-                        wallet_type=wallet_type,
-                        wallet_name=wallet_name,
-                        cosigners=cosigners,
-                        unknown_cosigners=unknown_cosigners,
-                        sigs_required=sigs_required,
-                        sigs_total=sigs_total,
-                        error=err,
-                        specter=app.specter,
-                        rand=rand,
-                    )
-
-            if err:
+                    keys.append(unknown_cosigner)
+                    cosigners.append(device)
+                wallet = app.specter.wallet_manager.create_wallet(
+                    wallet_name, sigs_required, address_type, keys, cosigners
+                )
+                wallet.import_labels(wallet_data.get("labels", {}))
+                flash("Wallet imported successfully", "info")
+                try:
+                    wallet.rpc.rescanblockchain(startblock, timeout=1)
+                    app.logger.info("Rescanning Blockchain ...")
+                except requests.exceptions.ReadTimeout:
+                    # this is normal behavior in our usecase
+                    pass
+                except Exception as e:
+                    app.logger.error("Exception while rescanning blockchain: %r" % e)
+                    flash("Failed to perform rescan for wallet: %r" % e, "error")
+                wallet.getdata()
+                return redirect(
+                    url_for("wallet_receive", wallet_alias=wallet.alias)
+                    + "?newwallet=true"
+                )
+            else:
                 return render_template(
-                    "wallet/new_wallet/new_wallet_type.jinja",
-                    error="Failed to import wallet: " + err,
+                    "wallet/new_wallet/import_wallet.jinja",
+                    wallet_data=json.dumps(wallet_data),
+                    wallet_type=wallet_type,
+                    wallet_name=wallet_name,
+                    cosigners=cosigners,
+                    unknown_cosigners=unknown_cosigners,
+                    sigs_required=sigs_required,
+                    sigs_total=sigs_total,
                     specter=app.specter,
                     rand=rand,
                 )
-
-        if action == "device" and err is None:
+        if action == "device":
             cosigners = [
                 app.specter.device_manager.get_by_alias(alias)
                 for alias in request.form.getlist("devices")
