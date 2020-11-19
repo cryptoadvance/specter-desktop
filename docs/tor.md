@@ -4,7 +4,10 @@ Specter Desktop protects your security and privacy by running on a local server 
 
 Configuring your router to let you VPN into your home network is probably the easiest solution.
 
-But you can also make Specter Desktop available outside of your network via a Tor hidden service. A hidden service generates a secret .onion address that only you know and which can be accessed from a Tor browser from anywhere in the world. This does not require any port forwarding on your router.
+But you can also make Specter Desktop available outside of your network via a Tor hidden service. A hidden service generates an .onion address so Specter can be accessed from a Tor browser from anywhere in the world. This does not require any port forwarding on your router.
+
+Make sure authentication is enabled to avoid access to your Specter by random strangers in the internet. It can be configured in the `Settings -> Authentication` tab.
+"Multiuser" mode is something you want for simple authentication, "RPC password as PIN" makes your Specter available only if Bitcoin Core is running and configured but can cause problems if Bitcoin Core shuts down.
 
 ### Security note
 Tor support, like Specter Desktop as a whole, should be treated as a work-in-progress that is not yet vetted as being fully secure.
