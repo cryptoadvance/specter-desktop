@@ -7,6 +7,13 @@ from embit.transaction import Transaction
 from embit.networks import NETWORKS
 import json
 
+def parse_conflicts(v):
+    if not isinstance(v, str):
+        return v
+    try:
+        return json.loads(v.replace("'", '"'))
+    except:
+        return v
 
 class TxItem(dict):
     columns = [
@@ -21,7 +28,7 @@ class TxItem(dict):
         str,
         int,
         int,
-        lambda v: json.loads(v) if isinstance(v, str) else v,
+        parse_conflicts,
     ]
 
     def __init__(self, rpc, addresses, **kwargs):
