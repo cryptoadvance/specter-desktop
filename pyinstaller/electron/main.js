@@ -15,6 +15,29 @@ let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
 
+const contextMenu = require('electron-context-menu');
+
+contextMenu({
+	menu: (actions) => [
+		{
+      label: 'Reload',
+      click: () => {
+        mainWindow.reload()
+      }
+    },
+    {
+      label: 'Back',
+      click: () => {
+        mainWindow.webContents.goBack()
+      }
+    },
+    actions.separator(),
+    actions.copy(),
+    actions.cut(),
+    actions.paste()
+	]
+});
+
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
         console.log('content-type:', res.headers['content-type'])
