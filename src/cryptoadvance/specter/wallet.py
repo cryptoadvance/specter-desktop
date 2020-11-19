@@ -777,6 +777,12 @@ class Wallet:
         )
         return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
 
+    def get_address_info(self, address):
+        try:
+            return self._addresses[address]
+        except:
+            return None
+
     def get_electrum_watchonly(self):
         if len(self.keys) == 1:
             # Single-sig case:
