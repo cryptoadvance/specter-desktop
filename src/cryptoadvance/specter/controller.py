@@ -1225,10 +1225,16 @@ def wallet_receive(wallet_alias):
     # check that current address is unused
     # and generate new one if it is
     wallet.check_unused()
+    history_idx = int(request.args.get("history_idx", default=0))
+    past_addresses = wallet.addresses[0:-1][::-1][(10 * history_idx):(10 * (history_idx + 1))]
     return render_template(
         "wallet/receive/wallet_receive.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
+        past_addresses=past_addresses,
+        past_descriptors=[wallet.get_descriptor(address=addr) for addr in past_addresses],
+        addresses_count=len(wallet.addresses),
+        history_idx=history_idx,
         specter=app.specter,
         rand=rand,
     )
