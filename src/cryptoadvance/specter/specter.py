@@ -568,7 +568,8 @@ class Specter:
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
                     zf.writestr(
-                        "wallets/{}.json".format(wallet.alias), json.dumps(wallet.json)
+                        "wallets/{}.json".format(wallet.alias),
+                        json.dumps(wallet.to_json(for_export=True)),
                     )
             if self.device_manager:
                 for device in self.device_manager.devices.values():
