@@ -165,10 +165,16 @@
                             Scan QR code
                         </a>
                     </qr-scanner>
-                    <a href="#" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
+                    <button type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
                     <img src="{{ url_for('static', filename='img/paste_icon.svg') }}" style="width: 18px;">
                     Paste xpub
-                    </a>
+                    </button>
+                    <div class="hidden" id="paste-xpub-popup">
+                        <h1>Paste xpub</h1>
+                        <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
+                        <br><br>
+                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();" class="btn centered">Add xpub</button>
+                    </div>
                 </div>
 				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
 				<br>
@@ -337,12 +343,6 @@
 
         document.addEventListener("DOMContentLoaded", function(){
             setupXpubsTable();
-            document.getElementById('xpub-paste').addEventListener("click", function(){
-                let input = prompt("Paste an xpub here");
-                if(input){
-                    addXpubs(input);
-                }
-            });
         });
 
         function setMnemonicView(view) {

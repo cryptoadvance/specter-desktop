@@ -175,7 +175,13 @@
 			</div>
 		</div>
 		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" style="margin-top:20px">
-			<a href="#" class="btn centered" id="pastetx">Paste signed transaction</a>
+			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="btn centered" id="pastetx">Paste signed transaction</a>
+		</div>
+		<div class="hidden" id="paste-tx-popup">
+			<h1>Paste signed transaction</h1>
+			<input type="text" id="paste-tx-text" placeholder="Paste your transaction here">
+			<br><br>
+			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();" class="btn centered">Confirm</button>
 		</div>
 		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
@@ -248,14 +254,6 @@
 				{% if signed_psbt %}
 					combine('{{ signed_psbt }}')
 				{% endif %}
-				let el = document.getElementById("pastetx");
-				el.addEventListener("click", function(){
-					let input = prompt("Paste signed transaction here");
-					if(input){
-						currentSigningDevice = '';
-						combine(input);
-					}
-				});
 			});
 		}
 
