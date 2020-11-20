@@ -7,7 +7,7 @@ import random
 import time
 import zipfile
 from io import BytesIO
-from .helpers import deep_update, clean_psbt
+from .helpers import deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from urllib3.exceptions import NewConnectionError
@@ -565,6 +565,10 @@ class Specter:
     @property
     def chain(self):
         return self._info["chain"]
+
+    @property
+    def is_testnet(self):
+        return is_testnet(self.chain)
 
     @property
     def user_config(self):

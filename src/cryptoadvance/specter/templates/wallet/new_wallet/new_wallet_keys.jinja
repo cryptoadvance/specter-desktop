@@ -127,7 +127,7 @@
 							</tr>
 						</thead>
 						<tbody id="device{{ loop.index0 }}">
-							{% for key in device.keys if key.is_testnet == (specter.chain != "main") %}
+							{% for key in device.keys if key.is_testnet == specter.chain.is_testnet %}
 								<tr>
 									<td>
 										{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}

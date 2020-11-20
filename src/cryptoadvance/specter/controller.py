@@ -34,6 +34,7 @@ from .helpers import (
     generate_mnemonic,
     get_startblock_by_chain,
     to_ascii20,
+    is_testnet,
 )
 from .util.shell import run_shell
 from .specter import Specter
@@ -763,7 +764,7 @@ def new_wallet(wallet_type):
             try:
                 descriptor = Descriptor.parse(
                     AddChecksum(recv_descriptor.split("#")[0]),
-                    testnet=app.specter.chain != "main",
+                    testnet=is_testnet(app.specter.chain),
                 )
                 if descriptor is None:
                     flash("Invalid wallet descriptor.", "error")
@@ -1135,7 +1136,7 @@ def device_setup_wizard():
                         paths,
                         file_password,
                         app.specter.wallet_manager,
-                        app.specter.chain != "main",
+                        is_testnet(app.specter.chain),
                         keys_range=[range_start, range_end],
                         keys_purposes=keys_purposes,
                     )
@@ -1151,7 +1152,7 @@ def device_setup_wizard():
                     paths,
                     file_password,
                     app.specter.wallet_manager,
-                    app.specter.chain != "main",
+                    is_testnet(app.specter.chain),
                     keys_range=[range_start, range_end],
                     keys_purposes=keys_purposes,
                 )
@@ -1720,7 +1721,7 @@ def new_device():
                     paths,
                     file_password,
                     app.specter.wallet_manager,
-                    app.specter.chain != "main",
+                    is_testnet(app.specter.chain),
                     keys_range=[range_start, range_end],
                 )
                 return redirect(url_for("device", device_alias=device.alias))
@@ -1819,7 +1820,7 @@ def device(device_alias):
                         paths,
                         file_password,
                         app.specter.wallet_manager,
-                        app.specter.chain != "main",
+                        is_testnet(app.specter.chain),
                         keys_range=[range_start, range_end],
                     )
             else:

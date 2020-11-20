@@ -2,6 +2,7 @@ import json
 from .key import Key
 from .persistence import read_json_file, write_json_file
 import logging
+from .helpers import is_testnet
 
 logger = logging.getLogger()
 
@@ -93,7 +94,7 @@ class Device:
         self.manager.update()
 
     def key_types(self, network="main"):
-        test = network != "main"
+        test = is_testnet(network)
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
     def has_key_types(self, wallet_type, network="main"):
