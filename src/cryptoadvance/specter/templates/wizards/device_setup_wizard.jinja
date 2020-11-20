@@ -13,7 +13,7 @@
             border: none;
         }
     </style>
-    <div id="device_setup_wizard" style="width: 100%;">
+    <div id="device_setup_wizard" style="width: 100%;" onsubmit="enableXpubs();showPacman();">
         <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
         <form id="form" action="/device_setup_wizard/" method="POST" class="card center" style="width: auto; margin: 40px;">
             {% if existing_device %}
@@ -169,7 +169,7 @@
             <div class="row">
                 <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
                 <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
-                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman();">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
+                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
             </div>
         </form>
     </div>
@@ -178,6 +178,15 @@
 {% block scripts %}
     <script>
         let xpubsTableRows = 0;
+
+        function enableXpubs() {
+            for (let i = 1; i <= xpubsTableRows; i++) {
+                let rowXpub = document.getElementById('xpubs-table-row-' + i + '-xpub');
+                if (rowXpub) {
+                    rowXpub.removeAttribute('disabled');
+                }
+            }
+        }
 
         function addXpub(purpose, derivation, xpub='-') {
 			let xpubsTable = document.getElementById('xpubs_table');
