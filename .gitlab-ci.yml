@@ -46,7 +46,7 @@ test-cypress:
   script:
     # start the server in the background
     - pip3 install -e .
-    - python3 -m cryptoadvance.specter server --daemon
+    - python3 -m cryptoadvance.specter server &
     - /root/node_modules/.bin/cypress run
   artifacts:
     when: always
