@@ -315,6 +315,9 @@ class QRCodeElement extends HTMLElement {
         this.qrcode.clear();
         this.el.innerHTML="";
       }
+      if(value == undefined){
+        return;
+      }
       this.split(value);
       if(this.chunks.length == 1){
         this.isQRlarge = false;
@@ -330,9 +333,6 @@ class QRCodeElement extends HTMLElement {
       }else{
         // if this is bc-ur, remove checksum for static QR
         value = this.maybe_remove_checksum(value);
-      }
-      if(value == undefined){
-        return;
       }
       this.qrcode = new QRCode(this.el, {
         "text":   value,
