@@ -219,6 +219,10 @@ class QRCodeElement extends HTMLElement {
       this.setAttribute('width', this.sizeSlider.value);
     });
     window.setInterval(()=>{
+      // check if it's visible
+      if(this.offsetParent==null){
+        return;
+      }
       if((this.qrcode==null) || this.chunks.length<=1){
         return;
       }
