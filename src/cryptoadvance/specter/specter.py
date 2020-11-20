@@ -148,9 +148,9 @@ class Specter:
             rpc = get_rpc(self.config["rpc"], self.rpc)
 
         # if rpc is not available
-        # do checks more often, once in 3 seconds
+        # do checks more often, once in 20 seconds
         if rpc is None:
-            period = 3
+            period = 20
         else:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:

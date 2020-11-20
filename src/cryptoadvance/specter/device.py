@@ -81,6 +81,8 @@ class Device:
         self.manager.update()
 
     def wallets(self, wallet_manager):
+        if wallet_manager is None:
+            return []
         wallets = []
         for wallet in wallet_manager.wallets.values():
             if self in wallet.devices:

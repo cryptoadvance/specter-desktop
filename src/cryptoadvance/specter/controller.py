@@ -1036,7 +1036,10 @@ def wallet(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    return redirect(url_for("wallet_receive", wallet_alias=wallet_alias))
+    if wallet.fullbalance > 0:
+        return redirect(url_for("wallet_tx_history", wallet_alias=wallet_alias))
+    else:
+        return redirect(url_for("wallet_receive", wallet_alias=wallet_alias))
 
 
 @app.route("/wallets_overview/")

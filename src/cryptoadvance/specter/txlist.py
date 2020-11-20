@@ -8,6 +8,15 @@ from embit.networks import NETWORKS
 import json
 
 
+def parse_conflicts(v):
+    if not isinstance(v, str):
+        return v
+    try:
+        return json.loads(v.replace("'", '"'))
+    except:
+        return v
+
+
 class TxItem(dict):
     columns = [
         "txid",  # str, txid in hex
@@ -16,13 +25,7 @@ class TxItem(dict):
         "time",  # int (timestamp in seconds), time received
         "conflicts",  # rbf conflicts, list of txids
     ]
-    type_converter = [
-        str,
-        str,
-        int,
-        int,
-        lambda v: json.loads(v) if isinstance(v, str) else v,
-    ]
+    type_converter = [str, str, int, int, parse_conflicts]
 
     def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
