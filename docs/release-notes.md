@@ -1,5 +1,6 @@
-## v0.10.0 November 20, 2020
+## v0.10.0 November 21, 2020
 - HWI: Fix integration with Ledger running the latest Bitcoin app (1.5.1) (#650) (@ben-kaufman)
+- HWI: Fix BitBox02 integration (#652) (@ben-kaufman)
 - Bugfix: Fix spelling mistake (#589) (@danielnordh)
 - Bugfix: Fix infinite pacman on backup (#576) (@stepansnigirev)
 - Bugfix: Specifying python version better (#574) (@k9ert)
@@ -9,8 +10,8 @@
 - Bugfix: Fix raw transaction processing (#626) (@stepansnigirev)
 - Bugfix: Add context menu to Electron app (#637) (@ben-kaufman)
 - Bugfix: Remove "ban" over BIP44 xpubs and set default network to mainnet if Bitcoin Core not detected (#643) (@stepansnigirev)
-- Bugfix: Disable BitBox02 until a fix for HWI breaking change is available (#643) (@stepansnigirev)
 - Bugfix: Fix paste psbt/ xpub prompts for desktop app + fix typo causing adding multisig issue (#649) (@ben-kaufman)
+- Bugfix: Fix signing issue with coldcard and cobo when cosigners' derivation path is not specified properly (#653) (@stepansnigirev)
 - Feature: Support Specter file format in import wallet screen (#580) (@ben-kaufman)
 - Feature: Use sat/vbytes as fee unit everywhere (#582) (@ben-kaufman)
 - Feature: Bundle Tor with macOS and Windows desktop apps (#610) (@ben-kaufman)
