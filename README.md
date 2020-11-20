@@ -10,7 +10,7 @@
     - [Using the Specter Desktop app](#using-the-specter-desktop-app)
     - [Installing Specter from Pip](#installing-specter-from-pip)
     - [Connect Specter to Bitcoin Core](#connect-specter-to-bitcoin-core)
-  - [Detailed instructions](#detailed-instructions)
+  - [Tips and tricks (detailed instructions)](#tips-and-tricks-detailed-instructions)
   - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
   - [A few screenshots](#a-few-screenshots)
     - [Adding a new device](#adding-a-new-device)
@@ -62,12 +62,14 @@ Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 [Donations are welcome](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
 
 ## How to run
+
 ### Using the Specter Desktop app
 The easiest way to run Specter Desktop is by installing the Specter Desktop app, which you can find on the [GitHub release page](https://github.com/cryptoadvance/specter-desktop/releases).
 With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app.
 
 ### Installing Specter from Pip
-* Specter requires version 3.7 or 3.8
+* Specter requires Python version 3.6 to 3.8. We will support python 3.9 when HWI adds support for it.
+* Bitcoin Core node should be at least v0.19+, better if it's the latest one from [bitcoincore.org](https://bitcoincore.org/en/download/).
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
   * macOS: `brew install libusb`
@@ -79,10 +81,6 @@ pip3 install cryptoadvance.specter
 * Run Specter
 ```sh
 python3 -m cryptoadvance.specter server 
-# Or as a deamon:
-python3 -m cryptoadvance.specter server --daemon
-# Stop the daemon again:
-python3 -m cryptoadvance.specter server --stop
 ```
 * Upgrade Specter
 ```sh
@@ -91,12 +89,12 @@ pip3 install cryptoadvance.specter --upgrade
 
 After that, specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
 
-You can also run it (as a daemon), using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
+You can also run it using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
 
-An example how to run specter server in the background (`--daemon`) with ssl certificates (`--key`, `--cert`) over tor (make sure to walk through the [tor-document](docs/tor.md) ):
+An example how to run specter server with ssl certificates (`--key`, `--cert`) over tor (make sure to walk through the [tor-document](docs/tor.md) ):
 
 ```sh
-python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem --daemon
+python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem
 ```
 
 ### Connect Specter to Bitcoin Core
@@ -109,11 +107,12 @@ If you use Specter from a remote machine and want to use it with hardware wallet
 
 Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on specter-desktop.
 
-## Detailed instructions
+## Tips and tricks (detailed instructions)
 
-- Beyond local network - how to forward your node through a cheap VPS: [docs/reverse-proxy.md](docs/reverse-proxy.md)
 - Setting up Specter over Tor: [docs/tor.md](docs/tor.md)
 - Using self-signed certificates in local network or Tor: [docs/self-signed-certificates.md](docs/self-signed-certificates.md)
+- Running Specter as a service on a linux machine: [docs/daemon.md](docs/daemon.md)
+- Beyond local network - how to forward your node through a cheap VPS: [docs/reverse-proxy.md](docs/reverse-proxy.md)
 
 ## Errors, doubts.. Read our FAQ!
 

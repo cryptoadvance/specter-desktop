@@ -79,24 +79,41 @@
 	<br>
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
 	<div id="addresses_list" class="hidden optional" style="width: 80%;">
+		{% if history_idx != 0 or addresses_count > 10 %}
+			<div style="margin: auto; text-align: center;">
+				<a href="./?history_idx={{ history_idx - 1 }}" class="pagination-arrow {% if history_idx == 0 %}pagination-disabled{% endif %}">&#8249;</a>
+				{% if addresses_count > 0 or idx != 0 %}
+				Page {{ history_idx + 1 }}
+				{% endif %}
+				<a href="./?history_idx={{ history_idx + 1 }}" class="pagination-arrow {% if (addresses_count - (history_idx * 10)) <= 10 %}pagination-disabled{% endif %}">&#8250;</a>
+			</div>
+		{% endif %}
 		<div class="table-holder">
-			<table>
+			<table style="margin: auto;">
 				<thead>
 					<tr>
-						<th>Label</th><th>Address</th><th style="width: 400px;" class="optional">Actions</th>
+						<th>Used</th><th>Label</th><th>Address</th><th style="width: 400px;" class="optional">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					{% for address in wallet.addresses[:-1]|reverse %}
+					{% for address in past_addresses %}
 						<tr>
-							<td class="tx scroll">{{ explorer_link('address', address, wallet.get_address_name(address, -1), specter.explorer) }}</td>
+							<td>
+							{% set address_info = wallet.get_address_info(past_addresses[loop.index0]) %}
+							{% if address_info.used %}
+								<img src="{{ url_for('static', filename='img/checkbox-tick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Used</p>
+							{% else %}
+								<img src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Unused</p>
+							{% endif %}
+							</td>
+							<td class="tx scroll">{{ explorer_link('address', address, address_info.label, specter.explorer) }}</td>
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
-							<td class="optional">
+							<td class="optional row">
 								{% if supports_qr_code != [] %}
-									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="width:170px; float: left; margin-right: 20px; margin-bottom: 2px; margin-top: 2px;">Verify address via QR code</button>
+									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
 								{% endif %}
 								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ wallet.get_descriptor(loop.revindex0)|tojson }}`)' class="btn" style="width:170px; margin-bottom: 2px; margin-top: 2px;">Display address on device</button>
+									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>
 								{% endif %}
 							</td>
 						</tr>
@@ -110,6 +127,46 @@
 		<button type="button" class="center btn optional" style="width: 300px; max-height: 34px;" id="show_all_addresses" onclick="toggleAddressHistory(this)">Show past addresses</button>
 	{% endif %}
 	<br>
+	<div class="hidden" id="new_wallet_devices_popup">
+		{% set supports_export_to_device = [] %}
+		{% for device in wallet.devices if device.exportable_to_wallet %}
+			{% set supports_export_to_device = supports_export_to_device.append(device) %}
+		{% endfor %}
+		{% if supports_export_to_device != [] %}
+			<h1>Export To Device</h1>
+			<p style="max-width: 500px;">Some of your devices require that you fisrt import your multisig wallet data into the device before you can start verifying addresses and sending transactions.</p>
+			<div class="note center">
+				Import this wallet to a device by scanning its QR code or importing its data file.
+			</div>
+
+			{% for device in wallet.devices %}
+				{% if device.exportable_to_wallet %}
+					{% if device.wallet_export_type == 'file' %}
+						<a 
+						download="{{ wallet.name | ascii20 }}.txt"
+						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
+						{% if device.device_type == 'coldcard' %}
+							onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+						{% endif %}
+						class="btn centered padded">
+							Download {{ device.name }} file
+						</a>
+					{% elif device.wallet_export_type == 'qr' %}
+						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+							<h1>Scan this with your {{ device.name }} device </h1>
+							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
+							<br>
+							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">Back</button>
+						</div>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			<br>
+		{% endif %}
+		<p style="max-width: 500px;">You can always do this later from the wallet Settings tab.</p>
+		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Finish</button>
+	</div>
 	<div class="hidden" id="new_wallet_popup">
 		<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
 		<h1>New wallet was created successfully!</h1>
@@ -132,7 +189,11 @@
 		It is reccomended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
 		<p>
 		<p style="max-width: 500px;">You can always download this file later from the wallet Settings tab.</p>
-		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Skip backup for now</button>
+		{% if wallet.is_multisig and supports_export_to_device != [] %}
+			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">Continue</button>
+		{% else %}
+			<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Continue</button>
+		{% endif %}
 	</div>
 	<script>
 		function verifyQRCode(address, idx) {

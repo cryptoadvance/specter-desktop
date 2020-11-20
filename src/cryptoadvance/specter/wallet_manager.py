@@ -6,7 +6,7 @@ from .helpers import alias, load_jsons
 from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
 from .wallet import Wallet
-from .persistence import delete_json_file, delete_folder
+from .persistence import delete_file, delete_folder
 
 
 logger = logging.getLogger()
@@ -259,12 +259,11 @@ Silently ignored!"
                 os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
-                print(path, os.path.exists(path))
                 if os.path.exists(path):
                     shutil.rmtree(path)
                     break
-        # Delete JSON
-        delete_json_file(wallet.fullpath)
+        # Delete files
+        wallet.delete_files()
         del self.wallets[wallet.name]
         self.update()
 
@@ -275,13 +274,13 @@ Silently ignored!"
             wallet.save_to_file()
         self.update()
 
-    def full_txlist(self, idx, validate_merkle_proofs=False):
+    def full_txlist(self, page, validate_merkle_proofs=False):
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
-                    idx,
-                    wallet_tx_batch=100 // len(self.wallets),
+                    page,
+                    limit=(100 // len(self.wallets)),
                     validate_merkle_proofs=validate_merkle_proofs,
                 )
             ]

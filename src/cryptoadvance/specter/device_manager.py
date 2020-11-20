@@ -6,7 +6,7 @@ from .rpc import get_default_datadir
 
 from .devices import __all__ as device_classes
 from .devices.generic import GenericDevice  # default device type
-from .persistence import write_device, delete_json_file, delete_folder
+from .persistence import write_device, delete_file, delete_folder
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class DeviceManager:
         bitcoin_datadir=get_default_datadir(),
         chain="main",
     ):
-        delete_json_file(device.fullpath)
+        delete_file(device.fullpath)
         # if device can delete itself - call it
         if hasattr(device, "delete"):
             device.delete(wallet_manager, bitcoin_datadir=bitcoin_datadir, chain=chain)

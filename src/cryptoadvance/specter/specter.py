@@ -18,6 +18,7 @@ from .wallet_manager import WalletManager
 from .user_manager import UserManager
 from .persistence import write_json_file, read_json_file
 from .user import User
+from .util.price_providers import update_price
 import threading
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,10 @@ class Specter:
             # empty by default for backward-compatibility
             "uid": "",
             "unit": "btc",
+            "price_check": False,
+            "alt_rate": 1,
+            "alt_symbol": "BTC",
+            "price_provider": "",
             "validate_merkle_proofs": False,
         }
 
@@ -121,6 +126,9 @@ class Specter:
             logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True))
         self.checker.start()
+        self.price_checker = Checker(lambda: update_price(self, self.user))
+        if self.price_check and self.price_provider:
+            self.price_checker.start()
 
     def check(self, user=None, check_all=False):
         """
@@ -440,6 +448,39 @@ class Specter:
         else:
             user.set_unit(self, unit)
 
+    def update_price_check_setting(self, price_check_bool, user):
+        if user.is_admin:
+            self.config["price_check"] = price_check_bool
+            self._save()
+        else:
+            user.set_price_check(self, price_check_bool)
+        if price_check_bool and (self.price_provider and self.user == user):
+            self.price_checker.start()
+        else:
+            self.price_checker.stop()
+
+    def update_price_provider(self, price_provider, user):
+        if user.is_admin:
+            self.config["price_provider"] = price_provider
+            self._save()
+        else:
+            user.set_price_provider(self, price_provider)
+
+    def update_alt_rate(self, alt_rate, user):
+        alt_rate = round(float(alt_rate), 2)
+        if user.is_admin:
+            self.config["alt_rate"] = alt_rate
+            self._save()
+        else:
+            user.set_alt_rate(self, alt_rate)
+
+    def update_alt_symbol(self, alt_symbol, user):
+        if user.is_admin:
+            self.config["alt_symbol"] = alt_symbol
+            self._save()
+        else:
+            user.set_alt_symbol(self, alt_symbol)
+
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False
@@ -542,6 +583,22 @@ class Specter:
         return self.user_config.get("unit", "btc")
 
     @property
+    def price_check(self):
+        return self.user_config.get("price_check", False)
+
+    @property
+    def price_provider(self):
+        return self.user_config.get("price_provider", False)
+
+    @property
+    def alt_rate(self):
+        return self.user_config.get("alt_rate", 1)
+
+    @property
+    def alt_symbol(self):
+        return self.user_config.get("alt_symbol", "BTC")
+
+    @property
     def admin(self):
         for u in self.users:
             if u.is_admin:
@@ -568,7 +625,8 @@ class Specter:
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
                     zf.writestr(
-                        "wallets/{}.json".format(wallet.alias), json.dumps(wallet.json)
+                        "wallets/{}.json".format(wallet.alias),
+                        json.dumps(wallet.to_json(for_export=True)),
                     )
             if self.device_manager:
                 for device in self.device_manager.devices.values():
