@@ -17,6 +17,7 @@ from cryptoadvance.specter.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
 
+pytest_plugins = ['ghost_machine']
 
 def pytest_addoption(parser):
     """Internally called to add options to pytest

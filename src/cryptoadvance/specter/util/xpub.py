@@ -3,6 +3,7 @@ from .base58 import decode_base58, encode_base58_checksum
 
 
 def hash160(d):
+    # ripemd160(sha256(d))
     return hashlib.new("ripemd160", hashlib.sha256(d).digest()).digest()
 
 
