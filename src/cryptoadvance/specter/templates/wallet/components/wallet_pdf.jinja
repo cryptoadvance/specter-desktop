@@ -18,8 +18,8 @@
 
         doc.setFontSize(18);
         doc.setFont(undefined, 'bold');
-        doc.text('{{ wallet.name }}'.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
-        currentHeight += '{{ wallet.name }}'.replace(/(.{55})/g, "$1\n").split('\n').length * 10;
+        doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
+        currentHeight += {{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n").split('\n').length * 10;
 
         doc.setFont(undefined, 'normal');
         doc.setFontSize(16);
@@ -66,7 +66,7 @@
             {% for device in wallet.devices %}
                 {% for _key in device.keys %}
                     {% if _key == key %}
-                        deviceName = '{{ device.name }}';
+                        deviceName = {{ device.name | tojson | safe  }};
                         deviceType = '{{ device.device_type | title }}';
                     {% endif %}
                 {% endfor %}
@@ -80,11 +80,11 @@
             doc.setFont(undefined, 'normal')
             doc.text('Device type: ' + deviceType, 15, currentHeight);
             currentHeight += 8
-            doc.text('Master fingerprint:   {{ key.fingerprint }}', 15, currentHeight);
+            doc.text("Master fingerprint:   {{ key.fingerprint }}", 15, currentHeight);
             currentHeight += 8
-            doc.text('Derivation path:       {{ key.derivation }}', 15, currentHeight);
+            doc.text("Derivation path:       {{ key.derivation }}", 15, currentHeight);
             currentHeight += 8
-            xpubLines = '{{ key.xpub }}'.split(/(.{40})/g);
+            xpubLines = "{{ key.xpub }}".split(/(.{40})/g);
             xpubLines = xpubLines.filter(line => line !== '');
             doc.text('Master public key:   ' + xpubLines[0], 15, currentHeight);
             for (var i = 1; i < xpubLines.length; i++) {
@@ -105,13 +105,12 @@
         currentHeight += 13;
 
         doc.setFontSize(20);
-        doc.text('Advanced Recovery Details', 105, currentHeight, {align: 'center'});
-        currentHeight += 15;
-
-        if (currentHeight + 73 >= pageHeight) {
+        if (currentHeight + 40 + '{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
+        doc.text('Advanced Recovery Details', 105, currentHeight, {align: 'center'});
+        currentHeight += 15;
 
         doc.setFontSize(16);
         doc.text('Specter Desktop Raw Data', 105, currentHeight, {align: 'center'});
@@ -119,9 +118,9 @@
 
         doc.setFontSize(14)
         doc.text('{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += 60
+        currentHeight += '{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
-        if (currentHeight + 73 >= pageHeight) {
+        if (currentHeight + 20 + "{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -131,10 +130,10 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text('{{ wallet.recv_descriptor }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += 60
-        
-        if (currentHeight + 73 >= pageHeight) {
+        doc.text("{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += "{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+
+        if (currentHeight + 20 + "{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -144,9 +143,9 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text('{{ wallet.change_descriptor }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        doc.text("{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += "{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
-
-        doc.save("{{ wallet.name.lower() }}_backup.pdf".replace(" ", '_'));
+        doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
     }
 </script>
