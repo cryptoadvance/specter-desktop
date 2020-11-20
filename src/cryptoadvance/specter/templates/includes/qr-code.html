@@ -248,7 +248,7 @@ class QRCodeElement extends HTMLElement {
     return value;
   }
   split(text){
-    if((this.qrcode!=null && text!=null)){
+    if((text!=null)){
       let is_bcur = (text.includes("UR:") || text.includes("ur:"));
       this.chunks = [];
       let txt_len = text.length;
@@ -330,6 +330,9 @@ class QRCodeElement extends HTMLElement {
       }else{
         // if this is bc-ur, remove checksum for static QR
         value = this.maybe_remove_checksum(value);
+      }
+      if(value == undefined){
+        return;
       }
       this.qrcode = new QRCode(this.el, {
         "text":   value,
