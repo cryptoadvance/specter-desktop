@@ -6,14 +6,33 @@
         td {
             text-align: left;
         }
+
+        @media screen and (max-width:720px) {
+            th, td { 
+                display: block;
+                width: 100%;
+            }
+            td:empty, th:empty {
+                display: none;
+                margin: auto;
+            }
+            th, td, td > input {
+                text-align: center;
+                width: 100%;
+                margin: auto;
+            }
+            .xpub {
+                padding: 10px;
+            }
+            #edit-xpubs-table-btn {
+                margin: auto;
+            }
+        }
         .xpubs_edit {
             visibility: hidden;
         }
-        input[type="text"]:disabled {
-            border: none;
-        }
     </style>
-    <div id="device_setup_wizard" style="width: 100%;">
+    <div id="device_setup_wizard" style="width: 100%;" onsubmit="showPacman();">
         <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
         <form id="form" action="/device_setup_wizard/" method="POST" class="card center" style="width: auto; margin: 40px;">
             {% if existing_device %}
@@ -130,22 +149,26 @@
                 <br>
                 <div class="row overflow">
                     <div id="connect-hwi" class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" width="18px">
+                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" style="width: 18px;">
                         Get via USB
                     </div>
                     <label id="connect-sdcard">
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" width="18px">
+                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" style="width: 18px;">
                             Upload from SD Card
                         </div>
                     </label>
                     <qr-scanner id="xpub-scan">
                         <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" width="18px">
+                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" style="width: 18px;">
                             Scan QR code
                         </a>
                     </qr-scanner>
+                    <a href="#" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
+                    <img src="{{ url_for('static', filename='img/paste_icon.svg') }}" style="width: 18px;">
+                    Paste xpub
+                    </a>
                 </div>
 				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
 				<br>
@@ -169,7 +192,7 @@
             <div class="row">
                 <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
                 <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
-                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit" onsubmit="showPacman();">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
+                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
             </div>
         </form>
     </div>
@@ -185,10 +208,11 @@
             for (let existingRow of xpubsTable.children) {
                 let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
                 if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
+                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
+                    document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
                     if (purpose != 'Custom' && document.getElementById(existingRow.id + '-purpose').value == 'Custom') {
                         document.getElementById(existingRow.id + '-purpose').value = purpose;
                     }
-                    document.getElementById(existingRow.id + '-xpub').value = xpub;
                     return;
                 }
             }
@@ -197,10 +221,11 @@
             xpubsTableRowsInput.value = xpubsTableRows;
             let xpubRowHTML = `
                 <td></td>
-                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%;"></td>
-                <td id="xpubs-table-row-${xpubsTableRows}-derivation">${derivation}</td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%; min-width: 100px;"></td>
+                <td id="xpubs-table-row-${xpubsTableRows}-derivation" style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
-                <td><input type="text" id="xpubs-table-row-${xpubsTableRows}-xpub" name="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;" value="${xpub}" /></td>
+                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
+                <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
                 <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
             `
             let xpubRow = document.createElement('tr');
@@ -312,6 +337,12 @@
 
         document.addEventListener("DOMContentLoaded", function(){
             setupXpubsTable();
+            document.getElementById('xpub-paste').addEventListener("click", function(){
+                let input = prompt("Paste an xpub here");
+                if(input){
+                    addXpubs(input);
+                }
+            });
         });
 
         function setMnemonicView(view) {
@@ -447,11 +478,7 @@
                     totalSteps = parseInt('{{ 1 if existing_device else 2 }}');
                 }
 
-                if (totalSteps > 1) {
-                    for (let i = 2; i <= totalSteps; i++) {
-                        document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
-                    }
-                }
+                
 
                 // Update connect methods for step 2
                 if (device['data-hwi'] == 'True') {
@@ -470,6 +497,11 @@
                     document.getElementById('xpub-scan').classList.remove('hidden');
                 } else {
                     document.getElementById('xpub-scan').classList.add('hidden');
+                }
+                if (device.value == 'electrum' || device.value == 'other') {
+                    document.getElementById('xpub-paste').classList.remove('hidden');
+                } else {
+                    document.getElementById('xpub-paste').classList.add('hidden');
                 }
                 document.getElementById('specter-instructions').classList.add('hidden');
                 document.getElementById('coldcard-instructions').classList.add('hidden');
@@ -527,12 +559,6 @@
                         deviceName = devices[i]['data-device-name'];
                         deviceType = devices[i].value;
                         setupXpubsTable(deviceType);
-                        for (let j = 1; j <= xpubsTableRows; j++) {
-                            let rowXpub = document.getElementById('xpubs-table-row-' + j + '-xpub');
-                            if (rowXpub) {
-                                rowXpub.disabled = !(deviceType == 'other' || deviceType == 'electrum');
-                            }
-                        }
                         break;
                     }
                 }
@@ -654,7 +680,7 @@
             let xpubsTable = document.getElementById('xpubs_table');
             
             for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').value != '-') {
+                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
                     continue
                 }
 

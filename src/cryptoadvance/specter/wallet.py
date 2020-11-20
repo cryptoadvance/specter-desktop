@@ -498,8 +498,7 @@ class Wallet:
             # skip change outputs
             addr = tx.get("address", "")
             if addr in self._addresses:
-                addr = self._addresses[addr]
-                if addr.change:
+                if self._addresses[addr].change:
                     continue
 
             if tx["confirmations"] == 0 and (
@@ -539,18 +538,24 @@ class Wallet:
             result.append(tx)
 
         # fund duplicates
-        for tx in result:
+        for tx in list(result):
             if tx["category"] == "send":
                 continue
             duplicates = [
                 dup
                 for dup in result
-                if dup["txid"] == tx["txid"] and dup["vout"] == tx["vout"]
+                if dup["txid"] == tx["txid"]
+                and dup["vout"] == tx["vout"]
+                and abs(dup["amount"]) == abs(tx["amount"])
             ]
             # we have both receive and send
-            if len(duplicates) == 2:
-                result.remove(tx)
-                duplicates[0]["category"] = "selftransfer"
+            if len(duplicates) > 1:
+                for dup in duplicates:
+                    if dup["category"] == "send":
+                        dup["category"] = "selftransfer"
+                        dup["amount"] = abs(dup["amount"])
+                    else:
+                        result.remove(dup)
         return sorted(result, key=lambda tx: tx["confirmations"])
 
     def gettransaction(self, txid, blockheight=None):
