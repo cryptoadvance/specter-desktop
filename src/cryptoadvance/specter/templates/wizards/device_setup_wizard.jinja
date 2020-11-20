@@ -206,10 +206,10 @@
             xpubsTableRowsInput.value = xpubsTableRows;
             let xpubRowHTML = `
                 <td></td>
-                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%;"></td>
-                <td id="xpubs-table-row-${xpubsTableRows}-derivation">${derivation}</td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%; min-width: 100px;"></td>
+                <td id="xpubs-table-row-${xpubsTableRows}-derivation" style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
-                <td><input type="text" id="xpubs-table-row-${xpubsTableRows}-xpub" name="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;" value="${xpub}" /></td>
+                <td><input type="text" id="xpubs-table-row-${xpubsTableRows}-xpub" name="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto; min-width: 0px;" value="${xpub}" /></td>
                 <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
             `
             let xpubRow = document.createElement('tr');
@@ -456,11 +456,7 @@
                     totalSteps = parseInt('{{ 1 if existing_device else 2 }}');
                 }
 
-                if (totalSteps > 1) {
-                    for (let i = 2; i <= totalSteps; i++) {
-                        document.getElementById(`step${i}`).style.width = document.getElementById('step1').getBoundingClientRect().width + 'px';
-                    }
-                }
+                
 
                 // Update connect methods for step 2
                 if (device['data-hwi'] == 'True') {
