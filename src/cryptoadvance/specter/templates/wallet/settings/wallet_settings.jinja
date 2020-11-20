@@ -1,202 +1,248 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'wallet_settings' %}
-{% block content %}<br>
-	<h1>Keypool control</h1>
-	<form action="." method="POST" class="padded" style="width: 500px">
-		<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
-		<div class="row aligned">
-			<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
-			<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
-		</div>
-	</form>
-
-	<form action="." method="POST" class="padded" style="width: 500px">
-		{% if wallet.rescan_progress %}
-			<div class="row aligned">
-				<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
-				<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
-			</div>
+{% block content %}
+	<style>
+		.subtitle {
+			font-size: 1.4em;
+			text-align: center;
+		}
+		.section-separator {
+			border-top: 1px solid #aaa;
+			margin: 40px 20px;
+		}
+	</style>
+	<br>
+	<nav class="row">
+		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
+		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
+		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
+	</nav><br>
+	<div id="wallet_info_settings_tab" style="width: 100%">
+		<h1 style="font-size: 1.7em;">Wallet Info</h1><br>
+		{% if wallet.is_multisig %}
+			<h2 class="subtitle">Devices</h2>
+			<p style="text-align: center; font-size: 1.2em;">{{ wallet.sigs_required }} out of {{ wallet.keys|length }} multisig</p>
 		{% else %}
-			Rescan blockchain from block:<br>
-			<div class="row aligned">
-				{% if specter.info.chain == "main" %}
-					{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
-				{% else %}
-					{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
-				{% endif %}
-				<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
-				<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
-			</div>
-			{% if specter.info['pruned']  %}
-				<div class="note center full-width">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
-			{% endif %}
-			<div class="note center"><b>481824</b> was the first Segwit block.</div>
+			<h2 class="subtitle">Device</h2>
 		{% endif %}
-	</form>
-	<form action="." method="POST" class="padded" style="width: 500px">
-		{% if specter.info["utxorescan"] %}
-		<div class="row aligned padded">
-			<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
-			<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
-		</div>
-		{% else %}
-		<div class="row aligned">
-			<div style="flex-grow: 1">Or rescan only unspent transactions:
-			</div>
-			<button type="submit" name="action" value="rescanutxo" class="btn" style="max-width: 180px; margin-left: 20px">
-				Rescan UTXO
-				<div class="tool-tip">
-					<i class="tool-tip__icon">i</i>
-					<p class="tool-tip__info">
-						<span class="info">
-							<span class="info__title">Rescanning UTXO set</span><br><br>
-							Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.<br><br>
-							<b>Note:</b> Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.
-						</span>
-					</p>
-				</div>
-			</button>
-		</div>
-		{% if specter.info['pruned']  %}
-			<div class="row" style="margin-top: 10px">
-				<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
-					<div class="tool-tip">
-						<i class="tool-tip__icon">i</i>
-						<p class="tool-tip__info">
-							<span class="info">
-								<span class="info__title">Fetch missing data</span><br><br>
-								You are using a pruned node. Blocks for some transactions may be missing.<br><br>
-								Check this checkbox if you want to fetch missing information from block explorer.
-							</span>
-						</p>
+		<div class="row overflow">
+			{% for device in wallet.devices %}
+				<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
+					<div class="small-card radio">
+						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
+						{{ device.name }}
 					</div>
-
-				</label>
-			</div>
-			<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-				&#9432;<br>Careful with block explorers!<br>
-				This may have privacy implication!<br>
-				Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
-				"They" will know what transactions you are interested in.
-			</span>
-			<script type="text/javascript">
-				let utxocheckbox = document.getElementById("use_explorer");
-				utxocheckbox.addEventListener('change', e=>{
-					let el = document.getElementById("utxo-warning")
-					if(utxocheckbox.checked){
-						el.style.display = "inline-block";
-					}else{
-						el.style.display = "none";
-					}
-				});
-			</script>
-		{% endif %}
-
-		{% endif %}
-	</form>
-	<br>
-	<h1>Wallet Devices</h1>
-	{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% endif %}
-	<div class="row overflow">
-		{% for device in wallet.devices %}
-			<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
-				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
-					{{ device.name }}
-				</div>
-			</a>
-		{% endfor %}
-	</div>
-	<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">Show keys details</button>
-	<br>
-	<div id="keys_list" class="center" style="display: none; width: 85%;">
-		<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
-		<label class="switch">
-			<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
-			<span class="slider"></span>
-		</label><br>
-		<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
-		<br>
-		{% for i in range(wallet.devices | length) %}
-			{% set device = wallet.devices[i] %}
-			{% set key = wallet.keys[i] %}
-			<h1>Signer {% if wallet.is_multisig %}{{ loop.index }} {% endif %}- {{ device.name }}</h1>
-			<div class="table-holder">
-				<table>
-					<thead>
-						<tr>
-							<th>Network</th>
-							<th>Purpose</th>
-							<th class="optional">Derivation</th>
-							<th class="optional">Key</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-								{% if key.xpub.startswith("xpub") %}
-									{{ bitcoin_svg('main', 16) }} Main
-								{% else %}
-									{{ bitcoin_svg('test', 16) }} Test
-								{% endif %}
-							</td>
-							<td>{{ purposes[key.key_type] }}</td>
-							<td class="optional">{{ key.derivation }}</td>
-							<td class="scroll xpub optional"><span class="normal_xpub">{{ key.original }}</span><span class="slip132_xpub hidden">{{ key.xpub }}</span></td>
-						</tr>
-					</tbody>
-				</table>
-			</div>	
-			<div class="spacer"></div>
-		{% endfor %}
-	</div>
-	{% set supports_export_to_device = [] %}
-	{% for device in wallet.devices if device.exportable_to_wallet %}
-		{% set supports_export_to_device = supports_export_to_device.append(device) %}
-	{% endfor %}
-	{% if supports_export_to_device != [] %}
-		<h1>Export To Device</h1>
-		<div class="note center">
-			Import this wallet to a device by scanning its QR code or importing its data file.
+				</a>
+			{% endfor %}
 		</div>
+		<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">Show keys details</button>
+		<br>
+		<div id="keys_list" class="center" style="margin: auto; display: none; width: 85%;">
+			<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
+			<label class="switch">
+				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+				<span class="slider"></span>
+			</label><br>
+			<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
+			<br>
+			{% for i in range(wallet.devices | length) %}
+				{% set device = wallet.devices[i] %}
+				{% set key = wallet.keys[i] %}
+				<h1>Signer {% if wallet.is_multisig %}{{ loop.index }} {% endif %}- {{ device.name }}</h1>
+				<div class="table-holder">
+					<table>
+						<thead>
+							<tr>
+								<th>Network</th>
+								<th>Purpose</th>
+								<th class="optional">Derivation</th>
+								<th class="optional">Key</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>
+									{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+									{% if key.xpub.startswith("xpub") %}
+										{{ bitcoin_svg('main', 16) }} Main
+									{% else %}
+										{{ bitcoin_svg('test', 16) }} Test
+									{% endif %}
+								</td>
+								<td>{{ purposes[key.key_type] }}</td>
+								<td class="optional">{{ key.derivation }}</td>
+								<td class="scroll xpub optional"><span class="normal_xpub">{{ key.original }}</span><span class="slip132_xpub hidden">{{ key.xpub }}</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>	
+				<div class="spacer"></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="hidden" id="wallet_export_settings_tab">
+		<h1 style="font-size: 1.7em;">Export Wallet</h1>
+		<div class="card">
+			{% set supports_export_to_device = [] %}
+			{% for device in wallet.devices if device.exportable_to_wallet %}
+				{% set supports_export_to_device = supports_export_to_device.append(device) %}
+			{% endfor %}
+			{% if supports_export_to_device != [] %}
+				<h2 class="subtitle">Export To Device</h1>
+				<p class="center">
+					Import this wallet to a device by scanning its QR code or importing its data file.
+				</p>
 
-		{% for device in wallet.devices %}
-			{% if device.exportable_to_wallet %}
-				{% if device.wallet_export_type == 'file' %}
-					<a 
-					download="{{ wallet.name | ascii20 }}.txt"
-					href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-					{% if device.device_type == 'coldcard' %}
-						onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+				{% for device in wallet.devices %}
+					{% if device.exportable_to_wallet %}
+						{% if device.wallet_export_type == 'file' %}
+							<a 
+							download="{{ wallet.name | ascii20 }}.txt"
+							href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
+							{% if device.device_type == 'coldcard' %}
+								onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+							{% endif %}
+							class="btn centered padded">
+								Download {{ device.name }} file
+							</a>
+						{% elif device.wallet_export_type == 'qr' %}
+							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+								<h1>Scan this with your {{ device.name }} device </h1>
+								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
+							</div>
+						{% endif %}
 					{% endif %}
-					class="btn centered padded">
-						Download {{ device.name }} file
-					</a>
-				{% elif device.wallet_export_type == 'qr' %}
-					<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
-					<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-						<h1>Scan this with your {{ device.name }} device </h1>
-						<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
-					</div>
-				{% endif %}
+				{% endfor %}
+				<div class="section-separator"></div>
 			{% endif %}
-		{% endfor %}
-		<br>
-	{% endif %}
-	
-	<h1>Export To Wallet Software</h1>
-	<div class="note center">
-		Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.
+			
+			<h2 class="subtitle">Export To Wallet Software</h2>
+			<p class="center">
+				Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.
+			</p>
+			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
+			<div class="section-separator"></div>
+			<h2 class="subtitle">Export PDF backup</h2>
+			<p style="max-width: 500px;" class="center">
+			It is recommended that you print and save this wallet backup file with each of your devices.
+			</p>
+			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Download Backup PDF</button>
+			<p style="max-width: 500px;" class="note center">
+			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
+			<p>
+			<p style="max-width: 500px;" class="note center">
+			It is reccomended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+			<p>
+			{% include 'wallet/components/wallet_pdf.jinja' %}
+			{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
+		</div>
 	</div>
-	<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
-	<button id="pdf-wallet-download" type="button" class="btn centered padded">Download Backup PDF</button>
-	{% include 'wallet/components/wallet_pdf.jinja' %}
-	{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
-	<form action="." method="POST" class="padded" style="width: 500px">
-		<h1>Delete Wallet</h1>
-		<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
-	</form>
+	<div class="hidden" id="wallet_advanced_settings_tab">
+		<h1 style="font-size: 1.7em;">Advanced Options</h1>
+		<div class="card">
+			<h2 class="subtitle">Keypool control</h2>
+			<form action="." method="POST" class="padded" style="width: 500px">
+				<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
+				<div class="row aligned">
+					<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
+					<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
+				</div>
+			</form>
+			<div class="section-separator"></div>
+			<h2 class="subtitle">Blockchain rescan</h2>
+			<form action="." method="POST" class="padded" style="width: 500px">
+				{% if wallet.rescan_progress %}
+					<div class="row aligned">
+						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
+						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
+					</div>
+				{% else %}
+					Rescan blockchain from block:<br>
+					<div class="row aligned">
+						{% if specter.info.chain == "main" %}
+							{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+						{% else %}
+							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
+						{% endif %}
+						<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
+						<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
+					</div>
+					{% if specter.info['pruned']  %}
+						<div class="note center full-width">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+					{% endif %}
+					<div class="note center"><b>481824</b> was the first Segwit block.</div>
+				{% endif %}
+			</form>
+			<form action="." method="POST" class="padded" style="width: 500px">
+				{% if specter.info["utxorescan"] %}
+				<div class="row aligned padded">
+					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
+					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
+				</div>
+				{% else %}
+				<div class="row aligned">
+					<div style="flex-grow: 1">Or rescan only unspent transactions:
+					</div>
+					<button type="submit" name="action" value="rescanutxo" class="btn" style="max-width: 180px; margin-left: 20px">
+						Rescan UTXO
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">Rescanning UTXO set</span><br><br>
+									Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.<br><br>
+									<b>Note:</b> Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.
+								</span>
+							</p>
+						</div>
+					</button>
+				</div>
+				{% if specter.info['pruned']  %}
+					<div class="row" style="margin-top: 10px">
+						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+							<div class="tool-tip">
+								<i class="tool-tip__icon">i</i>
+								<p class="tool-tip__info">
+									<span class="info">
+										<span class="info__title">Fetch missing data</span><br><br>
+										You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+										Check this checkbox if you want to fetch missing information from block explorer.
+									</span>
+								</p>
+							</div>
+
+						</label>
+					</div>
+					<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+						&#9432;<br>Careful with block explorers!<br>
+						This may have privacy implication!<br>
+						Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
+						"They" will know what transactions you are interested in.
+					</span>
+					<script type="text/javascript">
+						let utxocheckbox = document.getElementById("use_explorer");
+						utxocheckbox.addEventListener('change', e=>{
+							let el = document.getElementById("utxo-warning")
+							if(utxocheckbox.checked){
+								el.style.display = "inline-block";
+							}else{
+								el.style.display = "none";
+							}
+						});
+					</script>
+				{% endif %}
+
+				{% endif %}
+			</form>
+			<div class="section-separator"></div>
+			<h2 class="subtitle">Delete wallet</h2>
+			<form action="." method="POST" class="padded" style="width: 500px">
+				<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
+			</form>
+		</div>
+	</div>
+	<br><br>
 {% endblock %}
 
 {% block scripts %}
@@ -233,6 +279,41 @@
 				}
 			}
 		}
+
+		function setSettingsView(view) {
+            let infoSettingsTab = document.getElementById("wallet_info_settings_tab");
+            let exportSettingsTab = document.getElementById("wallet_export_settings_tab");
+            let advancedSettingsTab = document.getElementById("wallet_advanced_settings_tab");
+            let infoSettingsTabBtn = document.getElementById("info_settings_tab_btn");
+            let exportSettingsTabBtn = document.getElementById("export_settings_tab_btn");
+            let advancedSettingsTabBtn = document.getElementById("advanced_settings_tab_btn");
+            switch (view) {
+				case 'info':
+					infoSettingsTab.style.display = 'block';
+					exportSettingsTab.style.display = 'none';
+					advancedSettingsTab.style.display = 'none';
+					infoSettingsTabBtn.className = infoSettingsTabBtn.className += ' checked';
+					exportSettingsTabBtn.className = exportSettingsTabBtn.className.replace(/checked/, '');
+					advancedSettingsTabBtn.className = advancedSettingsTabBtn.className.replace(/checked/, '');
+					break;
+				case 'export':
+					infoSettingsTab.style.display = 'none';
+					exportSettingsTab.style.display = 'block';
+					advancedSettingsTab.style.display = 'none';
+					infoSettingsTabBtn.className = infoSettingsTabBtn.className.replace(/checked/, '');
+					exportSettingsTabBtn.className = exportSettingsTabBtn.className += ' checked';
+					advancedSettingsTabBtn.className = advancedSettingsTabBtn.className.replace(/checked/, '');
+					break;
+				case 'advanced':
+					infoSettingsTab.style.display = 'none';
+					exportSettingsTab.style.display = 'none';
+					advancedSettingsTab.style.display = 'block';
+					infoSettingsTabBtn.className = infoSettingsTabBtn.className.replace(/checked/, '');
+					exportSettingsTabBtn.className = exportSettingsTabBtn.className.replace(/checked/, '');
+					advancedSettingsTabBtn.className = advancedSettingsTabBtn.className += ' checked';
+					break;
+            }
+        }
 	</script>
 
 {% endblock %}
