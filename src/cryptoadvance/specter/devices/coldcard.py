@@ -49,7 +49,9 @@ class ColdCard(SDCardDevice):
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
-        psbts["sdcard"] = wallet.fill_psbt(psbts["sdcard"], non_witness=False, xpubs=True)
+        psbts["sdcard"] = wallet.fill_psbt(
+            psbts["sdcard"], non_witness=False, xpubs=True
+        )
         self.replace_derivations(wallet, psbts)
         return psbts
 
