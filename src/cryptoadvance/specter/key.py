@@ -9,10 +9,8 @@ purposes = OrderedDict(
         "": "General",
         "wpkh": "Single (Segwit)",
         "sh-wpkh": "Single (Nested)",
-        "pkh": "Single (Legacy)",
         "wsh": "Multisig (Segwit)",
         "sh-wsh": "Multisig (Nested)",
-        "sh": "Multisig (Legacy)",
     }
 )
 
@@ -43,8 +41,8 @@ class Key:
         if derivation is None:
             derivation = ""
         if key_type not in purposes:
-            raise Exception("Invalid key type specified: {}.")
-        if not purpose:
+            key_type = ""
+        if not purpose or purpose not in list(purposes.values()):
             purpose = purposes[key_type]
         self.original = original
         self.fingerprint = fingerprint
@@ -55,12 +53,12 @@ class Key:
 
     @classmethod
     def from_json(cls, key_dict):
-        original = key_dict["original"] if "original" in key_dict else ""
-        fingerprint = key_dict["fingerprint"] if "fingerprint" in key_dict else ""
-        derivation = key_dict["derivation"] if "derivation" in key_dict else ""
-        key_type = key_dict["type"] if "type" in key_dict else ""
-        purpose = key_dict["purpose"] if "purpose" in key_dict else ""
-        xpub = key_dict["xpub"] if "xpub" in key_dict else ""
+        original = key_dict.get("original", "")
+        fingerprint = key_dict.get("fingerprint", "")
+        derivation = key_dict.get("derivation", "")
+        key_type = key_dict.get("type", "")
+        purpose = key_dict.get("purpose", "")
+        xpub = key_dict.get("xpub", "")
         return cls(original, fingerprint, derivation, key_type, purpose, xpub)
 
     @classmethod
@@ -123,14 +121,10 @@ class Key:
         if derivation != "" and key_type == "":
             derivation_path = derivation.split("/")
             derivation_type = derivation_path[1]
-            if derivation_type == "44h":
-                key_type = "pkh"
-            elif derivation_type == "49h":
+            if derivation_type == "49h":
                 key_type = "sh-wpkh"
             elif derivation_type == "84h":
                 key_type = "wpkh"
-            elif derivation_type == "45h":
-                key_type = "sh"
             elif derivation_type == "48h":
                 if len(derivation_path) >= 5:
                     if derivation_path[4] == "1h":

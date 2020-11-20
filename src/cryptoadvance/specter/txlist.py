@@ -86,10 +86,7 @@ class TxList(dict):
                 tx["time"] = tx["timereceived"]
             return tx
         tx = self[txid]
-        return {
-            "hex": tx["hex"],
-            "time": tx["time"],
-        }
+        return {"hex": tx["hex"], "time": tx["time"]}
 
     def add(self, txs):
         """
