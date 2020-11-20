@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 defaultlock = threading.Lock()
 
 
+def is_testnet(chain):
+    return chain in ["test", "regtest", "signet"]
+
+
 def locked(customlock=defaultlock):
     """
     @locked(lock) decorator.

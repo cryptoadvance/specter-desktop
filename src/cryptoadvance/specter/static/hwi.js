@@ -121,7 +121,7 @@ class HWIBridge {
         });
     }
 
-    async getXpubs(device, account=0, passphrase=""){
+    async getXpubs(device, account=0, passphrase="", chain=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
@@ -130,11 +130,12 @@ class HWIBridge {
             account: account,
             path: device.path,
             passphrase: device.passphrase,
+            chain: chain,
         });
     }
 
 
-    async getXpub(device, derivation="", passphrase=""){
+    async getXpub(device, derivation="", passphrase="", chain=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
@@ -143,6 +144,7 @@ class HWIBridge {
             derivation: derivation,
             path: device.path,
             passphrase: device.passphrase,
+            chain: chain,
         });
     }
 

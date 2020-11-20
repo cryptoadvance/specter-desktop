@@ -304,7 +304,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 		}
 		
 		let account = document.getElementById('usb_account_number').value;
-		let xpubs = await getXpubs(device, account);
+		let xpubs = await getXpubs(device, account, "", "{specter.chain}");
 		if(xpubs == null){
 			return;
 		}

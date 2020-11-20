@@ -1,7 +1,7 @@
 from hwilib.serializations import PSBT
 import hwilib.commands as hwi_commands
 from hwilib import bech32
-from .helpers import locked
+from .helpers import locked, is_testnet
 from .util.xpub import convert_xpub_prefix
 from .util.json_rpc import JSONRPC
 import threading
@@ -210,10 +210,13 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            try:
-                client.is_testnet = derivation.split("/")[2].startswith("1")
-            except:
-                client.is_testnet = False
+            if not chain:
+                try:
+                    client.is_testnet = derivation.split("/")[2].startswith("1")
+                except:
+                    client.is_testnet = False
+            else:
+                client.is_testnet = is_testnet(chain)
 
             network = networks.NETWORKS["test" if client.is_testnet else "main"]
 
@@ -351,7 +354,7 @@ class HWIBridge(JSONRPC):
                     "The device was identified but could not be reached.  Please check it is properly connected and try again"
                 )
             try:
-                client.is_testnet = chain != "main"
+                client.is_testnet = is_testnet(chain)
                 yield client
             finally:
                 client.close()
