@@ -18,10 +18,8 @@ stages:
   - releasing
 
 before_script:
-  - docker info # Print out docker version for debugging
+  - docker info || echo "no docker-command found" # Print out docker version for debugging
   - python -V  # Print out python version for debugging
-  - apt update
-  - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
   - pip3 install virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
