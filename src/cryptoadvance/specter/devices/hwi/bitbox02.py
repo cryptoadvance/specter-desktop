@@ -177,6 +177,10 @@ def enumerate(password: str = "") -> List[Dict[str, object]]:
         path = device_info["path"].decode()
         client = Bitbox02Client(path)
         client.set_noise_config(SilentNoiseConfig())
+        d_data: Dict[str, object] = {}
+        bb02 = None
+        with handle_errors(common_err_msgs["enumerate"], d_data):
+            bb02 = client.init(expect_initialized=None)
         version, platform, edition, unlocked = bitbox02.BitBox02.get_info(
             client.transport
         )
@@ -189,25 +193,32 @@ def enumerate(password: str = "") -> List[Dict[str, object]]:
 
         assert isinstance(edition, BitBox02Edition)
 
-        d_data = {
-            "type": "bitbox02",
-            "path": path,
-            "model": {
-                BitBox02Edition.MULTI: "bitbox02_multi",
-                BitBox02Edition.BTCONLY: "bitbox02_btconly",
-            }[edition],
-            "needs_pin_sent": False,
-            "needs_passphrase_sent": False,
-        }
+        d_data.update(
+            {
+                "type": "bitbox02",
+                "path": path,
+                "model": {
+                    BitBox02Edition.MULTI: "bitbox02_multi",
+                    BitBox02Edition.BTCONLY: "bitbox02_btconly",
+                }[edition],
+                "needs_pin_sent": False,
+                "needs_passphrase_sent": False,
+            }
+        )
 
-        with handle_errors(common_err_msgs["enumerate"], d_data):
-            if not unlocked:
-                raise DeviceNotReadyError(
-                    "Please load wallet to unlock."
-                    if _using_external_gui
-                    else "Please use any subcommand to unlock"
-                )
-            d_data["fingerprint"] = client.get_master_fingerprint_hex()
+        if bb02 is not None:
+            with handle_errors(common_err_msgs["enumerate"], d_data):
+                if not bb02.device_info()["initialized"]:
+                    raise DeviceNotReadyError(
+                        "BitBox02 is not initialized. Please initialize it using the BitBoxApp."
+                    )
+                elif not unlocked:
+                    raise DeviceNotReadyError(
+                        "Please load wallet to unlock."
+                        if _using_external_gui
+                        else "Please use any subcommand to unlock"
+                    )
+                d_data["fingerprint"] = client.get_master_fingerprint_hex()
 
         result.append(d_data)
 
@@ -265,7 +276,7 @@ class Bitbox02Client(HardwareWalletClient):
     def set_noise_config(self, noise_config: BitBoxNoiseConfig) -> None:
         self.noise_config = noise_config
 
-    def init(self, expect_initialized: bool = True) -> bitbox02.BitBox02:
+    def init(self, expect_initialized: Optional[bool] = True) -> bitbox02.BitBox02:
         if self.bb02 is not None:
             return self.bb02
 
@@ -283,14 +294,17 @@ class Bitbox02Client(HardwareWalletClient):
                     raise
             self.bb02 = bb02
             is_initialized = bb02.device_info()["initialized"]
-            if expect_initialized:
-                if not is_initialized:
-                    raise HWWError(
-                        "The BitBox02 must be initialized first.",
-                        DEVICE_NOT_INITIALIZED,
+            if expect_initialized is not None:
+                if expect_initialized:
+                    if not is_initialized:
+                        raise HWWError(
+                            "The BitBox02 must be initialized first.",
+                            DEVICE_NOT_INITIALIZED,
+                        )
+                elif is_initialized:
+                    raise UnavailableActionError(
+                        "The BitBox02 must be wiped before setup."
                     )
-            elif is_initialized:
-                raise UnavailableActionError("The BitBox02 must be wiped before setup.")
 
             return bb02
         raise Exception(
