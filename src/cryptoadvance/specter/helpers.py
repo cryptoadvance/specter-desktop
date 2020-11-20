@@ -25,7 +25,7 @@ defaultlock = threading.Lock()
 
 
 def is_testnet(chain):
-    return chain not in ["main", "", None]
+    return chain in ["test", "regtest", "signet"]
 
 
 def locked(customlock=defaultlock):
