@@ -8,9 +8,20 @@
         }
 
         @media screen and (max-width:720px) {
-            th,td { 
-                display:block; 
-                width:100%; 
+            th, td { 
+                display: block;
+                width: 100%;
+            }
+            td:empty, th:empty {
+                display: none;
+                margin: auto;
+            }
+            th, td, td > input {
+                text-align: center;
+                width: 100%;
+            }
+            #edit-xpubs-table-btn {
+                margin: auto;
             }
         }
         .xpubs_edit {
