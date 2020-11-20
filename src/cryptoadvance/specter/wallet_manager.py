@@ -7,7 +7,7 @@ from .rpc import get_default_datadir, RpcError
 from .specter_error import SpecterError
 from .wallet import Wallet
 from .persistence import delete_file, delete_folder
-
+import traceback
 
 logger = logging.getLogger()
 
@@ -142,6 +142,7 @@ Silently ignored! Wallet error: {e}"
                                     logger.warn(
                                         f"Failed to load wallet {wallet_name}: {e}"
                                     )
+                                    logger.warn(traceback.format_exc())
                             else:
                                 # wallet is loaded and should stay
                                 keep_wallets.append(wallet_name)
