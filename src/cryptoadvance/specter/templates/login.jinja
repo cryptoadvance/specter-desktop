@@ -8,9 +8,9 @@
         <h1>Login to Specter</h1>
         <form action="{{ url_for('login') }}" method="POST" role="form">
             {% if specter.config['auth'] == 'usernamepassword' %}
-                <input class="form-control" placeholder="Username" name="username" type="text" value=""><br><br>
+                <input id="username" class="form-control" placeholder="Username" name="username" type="text" value=""><br><br>
             {% endif %}
-            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+            <input id="password" class="form-control" placeholder="Password" name="password" type="password" value="">
             <input type="hidden" name="next" value="{{ data.next }}">
             <br>
             <br>

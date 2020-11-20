@@ -42,6 +42,21 @@ test:
    # - python3 tests/conftest.py 
    - py.test --cov-report term --cov cryptoadvance --docker
 
+test-cypress:
+  image: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
+  stage: test
+  script:
+    # start the server in the background
+    - pip3 install -e .
+    - python3 -m cryptoadvance.specter server --daemon
+    - /root/node_modules/.bin/cypress run
+  artifacts:
+    when: always
+    paths:
+      - cypress/videos/**/*.mp4
+      - cypress/screenshots/**/*.png
+    expire_in: 1 day
+
 release_pip:
   stage: releasing
   only: 
