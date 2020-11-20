@@ -1,7 +1,7 @@
 import hashlib
 
 # from ..device import Device
-from .sd_card_device import SDCardDevice
+from .coldcard import ColdCard
 from hwilib.serializations import PSBT
 from binascii import a2b_base64
 from ..util import bcur
@@ -10,7 +10,7 @@ from ..util.xpub import get_xpub_fingerprint
 from ..helpers import to_ascii20
 
 
-class Cobo(SDCardDevice):
+class Cobo(ColdCard):
     device_type = "cobo"
     name = "Cobo Vault"
     icon = "cobo_icon.svg"
@@ -27,8 +27,10 @@ class Cobo(SDCardDevice):
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
         # make sure nonwitness and xpubs are not there
-        updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
-        raw_psbt = a2b_base64(updated_psbt)
+        psbts["qrcode"] = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        # see cc class
+        self.replace_derivations(wallet, psbts)
+        raw_psbt = a2b_base64(psbts["qrcode"])
         enc, hsh = bcur.bcur_encode(raw_psbt)
         qrpsbt = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
         psbts["qrcode"] = qrpsbt
