@@ -99,7 +99,7 @@
                     location.reload();
                     return
                 };
-                showError('Failed to change price settings, please try again.')
+                showError('Failed to fetch price data from selected provider, please try again or select another provider.')
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(e);
