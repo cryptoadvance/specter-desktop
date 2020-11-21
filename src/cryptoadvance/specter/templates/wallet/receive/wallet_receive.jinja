@@ -149,7 +149,7 @@
 							onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
 						{% endif %}
 						class="btn centered padded">
-							Download {{ device.name }} file
+							Save {{ device.name }} file
 						</a>
 					{% elif device.wallet_export_type == 'qr' %}
 						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
@@ -174,7 +174,7 @@
 			<div id="pdf-wallet-download" class="small-card radio">
 				<img src="{{ url_for('static', filename='img/file_icon.svg') }}" width="18px" style="transform: scale(1.8);">
 				<span style="font-size: 1.3em;">
-				Download Backup PDF
+				Save Backup PDF
 				</span>
 			</div>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
