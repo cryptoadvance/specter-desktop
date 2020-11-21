@@ -240,7 +240,8 @@ def setprice():
         else:
             price_provider = request.form.get("price_provider", "")
             app.specter.update_price_provider(price_provider, current_user)
-            app.specter.price_checker.start()
+            if not app.specter.price_checker.running:
+                app.specter.price_checker.start()
             return {"success": update_price(app.specter, current_user)}
     except Exception as e:
         app.logger.warning("Failed to update price settings. Exception: {}".format(e))
