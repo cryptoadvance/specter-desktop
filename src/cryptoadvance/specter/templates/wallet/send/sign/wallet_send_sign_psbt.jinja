@@ -181,7 +181,7 @@
 			<h1>Paste signed transaction</h1>
 			<input type="text" id="paste-tx-text" placeholder="Paste your transaction here">
 			<br><br>
-			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();" class="btn centered">Confirm</button>
+			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';" class="btn centered">Confirm</button>
 		</div>
 		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
