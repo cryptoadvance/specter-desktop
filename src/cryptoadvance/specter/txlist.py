@@ -6,6 +6,9 @@ from .persistence import write_csv, read_csv
 from embit.transaction import Transaction
 from embit.networks import NETWORKS
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def parse_conflicts(v):
@@ -65,14 +68,21 @@ class TxList(dict):
         self.rpc = rpc
         self._addresses = addresses
         txs = []
-        if os.path.isfile(self.path):
-            txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
-        for tx in txs:
-            self[tx.txid] = tx
+        file_exists = False
+        try:
+            if os.path.isfile(self.path):
+                txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
+                for tx in txs:
+                    self[tx.txid] = tx
+                file_exists = True
+        except Exception as e:
+            logger.error(e)
+        self._file_exists = file_exists
 
     def save(self):
         if len(list(self.keys())) > 0:
             write_csv(self.path, list(self.values()), TxItem)
+        self._file_exists = True
 
     def gettransaction(self, txid, blockheight=None):
         """
@@ -160,4 +170,4 @@ class TxList(dict):
 
     @property
     def file_exists(self):
-        return os.path.isfile(self.path)
+        return self._file_exists and os.path.isfile(self.path)
