@@ -262,9 +262,9 @@
 			}
 			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
 			if (units[i] == 'sat') {
-				maxAmount = Math.round(maxAmount);
+				maxAmount = Math.round(maxAmount - 1);
 			} else {
-				maxAmount = parseFloat(maxAmount.toFixed(8));
+				maxAmount = parseFloat((maxAmount - (1 / 1e8)).toFixed(8));
 			}
 			if (maxAmount < 0) {
 				maxAmount = 0;
@@ -430,7 +430,7 @@
 				if (!feeOptionManual.checked) {
 					feeOptionManual.checked = true;
 					showFeeOption(feeOptionManual);
-					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value / 1000 * 2 * 1e8) / 2;
+					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value * 2) / 2;
 					if (manualRate < 1) {
 						manualRate = 1;
 					}

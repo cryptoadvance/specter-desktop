@@ -556,7 +556,7 @@ def bitcoin_core_settings():
             user = request.form["username"]
             password = request.form["password"]
             port = request.form["port"]
-            host = request.form["host"]
+            host = request.form["host"].rstrip("/")
 
         # protocol://host
         if "://" in host:
