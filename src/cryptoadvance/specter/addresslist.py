@@ -3,6 +3,9 @@ Manages the list of addresses for the wallet, including labels and derivation pa
 """
 import os
 from .persistence import write_csv, read_csv
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Address(dict):
@@ -97,8 +100,8 @@ class AddressList(dict):
                 for addr in addresses:
                     self[addr.address] = addr
                 file_exists = True
-            except:
-                pass
+            except Exception as e:
+                logger.error(e)
         self._file_exists = file_exists
 
     def save(self):
