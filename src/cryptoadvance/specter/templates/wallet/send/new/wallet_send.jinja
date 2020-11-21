@@ -262,14 +262,14 @@
 			}
 			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
 			if (units[i] == 'sat') {
-				maxAmount = Math.round(maxAmount);
+				maxAmount = Math.round(maxAmount - 1);
 			} else {
-				maxAmount = parseFloat(maxAmount.toFixed(8));
+				maxAmount = parseFloat((maxAmount - (1 / 1e8)).toFixed(8));
 			}
 			if (maxAmount < 0) {
 				maxAmount = 0;
 			}
-			amountInput.value = maxAmount - (1 / 1e8);
+			amountInput.value = maxAmount;
 			
 			calculateConvertedUnit(i);
 		}
