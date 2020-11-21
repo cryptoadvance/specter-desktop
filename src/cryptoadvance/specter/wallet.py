@@ -329,6 +329,8 @@ class Wallet:
     def check_utxo(self):
         try:
             utxo = self.rpc.listunspent(0)
+            # list only the ones we know (have descriptor for it)
+            utxo = [tx for tx in utxo if tx.get("desc", "")]
             for tx in utxo:
                 tx_data = self.gettransaction(tx["txid"], 0)
                 tx["time"] = tx_data["time"]
