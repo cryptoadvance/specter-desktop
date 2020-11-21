@@ -713,15 +713,17 @@ class Wallet:
                 txs = next_txs
             else:
                 break
-        current_blockheight = 481824 if self.manager.chain == "main" else 0
-        if len(txs) > 0 and "confirmations" in txs[0]:
-            blockheight = (
-                current_blockheight - txs[0]["confirmations"] - 101
-            )  # To ensure coinbase transactions are indexed properly
-            return (
-                0 if blockheight < 0 else blockheight
-            )  # To ensure regtest don't have negative blockheight
-        return current_blockheight
+        try:
+            if len(txs) > 0 and "blockheight" in txs[0]:
+                blockheight = (
+                    txs[0]["blockheight"] - 101
+                )  # To ensure coinbase transactions are indexed properly
+                return (
+                    0 if blockheight < 0 else blockheight
+                )  # To ensure regtest don't have negative blockheight
+        except:
+            pass
+        return 481824 if self.manager.chain == "main" else 0
 
     @property
     def account_map(self):
