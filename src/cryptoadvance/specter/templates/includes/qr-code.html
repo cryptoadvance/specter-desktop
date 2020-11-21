@@ -219,6 +219,10 @@ class QRCodeElement extends HTMLElement {
       this.setAttribute('width', this.sizeSlider.value);
     });
     window.setInterval(()=>{
+      // check if it's visible
+      if(this.offsetParent==null){
+        return;
+      }
       if((this.qrcode==null) || this.chunks.length<=1){
         return;
       }
@@ -248,7 +252,7 @@ class QRCodeElement extends HTMLElement {
     return value;
   }
   split(text){
-    if((this.qrcode!=null && text!=null)){
+    if((text!=null)){
       let is_bcur = (text.includes("UR:") || text.includes("ur:"));
       this.chunks = [];
       let txt_len = text.length;
@@ -314,6 +318,9 @@ class QRCodeElement extends HTMLElement {
       if(this.qrcode != null){
         this.qrcode.clear();
         this.el.innerHTML="";
+      }
+      if(value == undefined){
+        return;
       }
       this.split(value);
       if(this.chunks.length == 1){

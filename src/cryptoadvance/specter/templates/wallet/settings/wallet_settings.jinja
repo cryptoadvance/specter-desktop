@@ -103,7 +103,7 @@
 								onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
 							{% endif %}
 							class="btn centered padded">
-								Download {{ device.name }} file
+								Save {{ device.name }} file
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
 							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
@@ -127,7 +127,7 @@
 			<p style="max-width: 500px;" class="center">
 			It is recommended that you print and save this wallet backup file with each of your devices.
 			</p>
-			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Download Backup PDF</button>
+			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
 			<p style="max-width: 500px;" class="note center">
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
 			<p>
