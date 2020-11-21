@@ -65,14 +65,21 @@ class TxList(dict):
         self.rpc = rpc
         self._addresses = addresses
         txs = []
-        if os.path.isfile(self.path):
-            txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
-        for tx in txs:
-            self[tx.txid] = tx
+        file_exists = False
+        try:
+            if os.path.isfile(self.path):
+                txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
+                for tx in txs:
+                    self[tx.txid] = tx
+                file_exists = True
+        except:
+            pass
+        self._file_exists = file_exists
 
     def save(self):
         if len(list(self.keys())) > 0:
             write_csv(self.path, list(self.values()), TxItem)
+        self._file_exists = True
 
     def gettransaction(self, txid, blockheight=None):
         """
@@ -160,4 +167,4 @@ class TxList(dict):
 
     @property
     def file_exists(self):
-        return os.path.isfile(self.path)
+        return self._file_exists and os.path.isfile(self.path)

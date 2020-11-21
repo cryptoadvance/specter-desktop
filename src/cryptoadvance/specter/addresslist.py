@@ -89,15 +89,22 @@ class AddressList(dict):
         super().__init__()
         self.path = path
         self.rpc = rpc
+        file_exists = False
         if os.path.isfile(self.path):
-            addresses = read_csv(self.path, Address, self.rpc)
-            # dict allows faster lookups
-            for addr in addresses:
-                self[addr.address] = addr
+            try:
+                addresses = read_csv(self.path, Address, self.rpc)
+                # dict allows faster lookups
+                for addr in addresses:
+                    self[addr.address] = addr
+                file_exists = True
+            except:
+                pass
+        self._file_exists = file_exists
 
     def save(self):
         if len(list(self.keys())) > 0:
             write_csv(self.path, list(self.values()), Address)
+        self._file_exists = True
 
     def add(self, arr, check_rpc=False):
         """arr should be a list of dicts"""
@@ -176,4 +183,4 @@ class AddressList(dict):
 
     @property
     def file_exists(self):
-        return os.path.isfile(self.path)
+        return self._file_exists and os.path.isfile(self.path)
