@@ -214,5 +214,11 @@
 		if (isNewWallet) {
 			showPageOverlay('new_wallet_popup');
 		}
+		
+		{% if past_addresses and history_idx > 0 %}
+			document.addEventListener("DOMContentLoaded", function(){
+					toggleAddressHistory();
+			});
+		{% endif %}
 	</script>
 {% endblock %}
