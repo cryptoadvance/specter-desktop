@@ -17,3 +17,7 @@ class Ledger(HWIDevice):
     @classmethod
     def get_client(cls, *args, **kwargs):
         return ledger.LedgerClient(*args, **kwargs)
+
+    @classmethod
+    def enumerate(cls, *args, **kwargs):
+        return ledger.enumerate(*args, **kwargs)
