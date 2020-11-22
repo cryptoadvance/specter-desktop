@@ -209,9 +209,8 @@ class Echo():
 @click.option("--data-dir", default="/tmp/bitcoind_plain_datadir", help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ")
 @click.option("--mining/--no-mining", default=True, help="Turns on mining (default)")
 @click.option("--mining-period", default="15", help="Every mining-period (in seconds), a block gets mined (default 15sec)")
-@click.option("--cleanup/--no-cleanup", default=False, help="CTRL-C will kill the bitcoind and the Datadir (default:false)")
 @click.option("--reset", is_flag=True, default=False, help="Will kill the bitcoind. Datadir will get lost.")
-def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, cleanup, reset):
+def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, reset):
     ''' This will start a bitcoind regtest and mines a block every mining-period. 
         If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will 
         still continue to run. You have to shut it down.
@@ -259,7 +258,7 @@ def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period
         echo("starting or detecting container")
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
-        my_bitcoind.start_bitcoind(cleanup_at_exit=cleanup, datadir=data_dir)
+        my_bitcoind.start_bitcoind(cleanup_at_exit=True, datadir=data_dir)
     except docker.errors.ImageNotFound:
         echo(f"Image with tag {docker_tag} does not exist!")
         echo(
