@@ -196,7 +196,7 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(self, cleanup_at_exit=False, datadir=None):
+    def _start_bitcoind(self, cleanup_at_exit=True, datadir=None):
         if datadir == None:
             datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
@@ -213,12 +213,10 @@ class BitcoindPlainController(BitcoindController):
         )
 
         def cleanup_bitcoind():
-            self.bitcoind_proc.kill()  # much faster then terminate() and speed is key here over being nice
+            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
             logger.info(
                 "Killed bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
             )
-            shutil.rmtree(datadir)
-            logger.info("removed temp-dir")
 
         if cleanup_at_exit:
             logger.debug("REGISTERING EXIT FUNCTIONS")
