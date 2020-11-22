@@ -253,7 +253,8 @@ class BitcoindDockerController(BitcoindController):
 
     def _start_bitcoind(self, cleanup_at_exit, datadir=None):
         if datadir != None:
-            raise Exception("Cannot specify datadir in BitcoindDockerController!")
+            # ignored
+            pass
         bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
