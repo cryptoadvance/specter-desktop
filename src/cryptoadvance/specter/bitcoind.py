@@ -66,7 +66,7 @@ class BitcoindController:
     def __init__(self, rpcport=18443):
         self.rpcconn = Btcd_conn(rpcport=rpcport)
 
-    def start_bitcoind(self, cleanup_at_exit=False):
+    def start_bitcoind(self, cleanup_at_exit=False, datadir=None):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
         developing locally against a different regtest-instance
@@ -76,7 +76,7 @@ class BitcoindController:
             return self.check_existing()
 
         logger.debug("Starting bitcoind")
-        self._start_bitcoind(cleanup_at_exit)
+        self._start_bitcoind(cleanup_at_exit, datadir=datadir)
 
         self.wait_for_bitcoind(self.rpcconn)
         self.mine(block_count=100)
@@ -196,8 +196,9 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(self, cleanup_at_exit=False):
-        datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir")
+    def _start_bitcoind(self, cleanup_at_exit=False, datadir=None):
+        if datadir == None:
+            datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
             self.rpcconn,
             run_docker=False,
@@ -213,13 +214,14 @@ class BitcoindPlainController(BitcoindController):
 
         def cleanup_bitcoind():
             self.bitcoind_proc.kill()  # much faster then terminate() and speed is key here over being nice
-            logger.debug(
+            logger.info(
                 "Killed bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
             )
             shutil.rmtree(datadir)
-            logger.debug("removed temp-dir")
+            logger.info("removed temp-dir")
 
         if cleanup_at_exit:
+            logger.debug("REGISTERING EXIT FUNCTIONS")
             atexit.register(cleanup_bitcoind)
 
     def stop_bitcoind(self):
@@ -251,7 +253,9 @@ class BitcoindDockerController(BitcoindController):
             rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
             self.rpcconn = rpcconn
 
-    def _start_bitcoind(self, cleanup_at_exit):
+    def _start_bitcoind(self, cleanup_at_exit, datadir=None):
+        if datadir != None:
+            raise Exception("Cannot specify datadir in BitcoindDockerController!")
         bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
@@ -275,6 +279,7 @@ class BitcoindDockerController(BitcoindController):
         )
 
         def cleanup_docker_bitcoind():
+            logger.info("Cleaning up bitcoind-docker-container")
             self.btcd_container.stop()
             self.btcd_container.remove()
 

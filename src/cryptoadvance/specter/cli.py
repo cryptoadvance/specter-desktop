@@ -4,6 +4,8 @@ import os
 from os import path
 import subprocess
 import sys
+from pathlib import Path
+import shutil
 import time
 from stem.control import Controller
 from .util.tor import stop_hidden_services, start_hidden_service
@@ -204,10 +206,12 @@ class Echo():
 @click.option("--quiet/--no-quiet", default=False, help="as less output as possible")
 @click.option("--nodocker", default=False, is_flag=True, help="use without docker (non-default)")
 @click.option("--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag")
+@click.option("--data-dir", default="/tmp/bitcoind_plain_datadir", help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ")
 @click.option("--mining/--no-mining", default=True, help="Turns on mining (default)")
 @click.option("--mining-period", default="15", help="Every mining-period (in seconds), a block gets mined (default 15sec)")
+@click.option("--cleanup/--no-cleanup", default=False, help="CTRL-C will kill the bitcoind and the Datadir (default:false)")
 @click.option("--reset", is_flag=True, default=False, help="Will kill the bitcoind. Datadir will get lost.")
-def bitcoind(debug, quiet, nodocker, docker_tag, mining, mining_period, reset):
+def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, cleanup, reset):
     ''' This will start a bitcoind regtest and mines a block every mining-period. 
         If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will 
         still continue to run. You have to shut it down.
@@ -215,13 +219,16 @@ def bitcoind(debug, quiet, nodocker, docker_tag, mining, mining_period, reset):
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
     from .bitcoind import BitcoindDockerController, BitcoindPlainController, fetch_wallet_addresses_for_mining
+    if debug:
+        logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
+        logger.debug("Now on debug-logging")
     echo = Echo(quiet).echo
 
     if reset:
         if not nodocker:
             echo("ERROR: --reset only works in conjunction with --nodocker currently")
             return
-        echo("bitcoind-process gets killed ...")
+        did_something=False
             
         p = subprocess.Popen(['ps', '-A'], stdout=subprocess.PIPE)
         out, err = p.communicate()
@@ -229,22 +236,30 @@ def bitcoind(debug, quiet, nodocker, docker_tag, mining, mining_period, reset):
             if 'bitcoind' in line:
                 pid = int(line.split(None, 1)[0])
                 try:
+                    echo(f"Killing bitcoind-process with id {pid} ...")
+                    did_something=True
                     os.kill(pid, signal.SIGTERM)
                 except PermissionError:
                     echo(f"Pid {pid} not owned by us. Might be a docker-process? {line}")
+        if Path(data_dir).exists():
+            echo(f"Purging Datadirectory {data_dir} ...")
+            did_something=True
+            shutil.rmtree(data_dir)
+        if not did_something:
+            echo("Nothing to do!")
         return
     logging.getLogger().setLevel(logging.INFO)
     mining_every_x_seconds = float(mining_period)
-    if debug:
-        logging.getLogger().setLevel(logging.DEBUG)
     if nodocker:
         echo("starting plain bitcoind")
         my_bitcoind = BitcoindPlainController()
+        # Make sure datadir does exist if specified:
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
     else:
         echo("starting or detecting container")
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
-        my_bitcoind.start_bitcoind()
+        my_bitcoind.start_bitcoind(cleanup_at_exit=cleanup, datadir=data_dir)
     except docker.errors.ImageNotFound:
         echo(f"Image with tag {docker_tag} does not exist!")
         echo(
@@ -304,27 +319,3 @@ def bitcoind(debug, quiet, nodocker, docker_tag, mining, mining_period, reset):
                 echo("",prefix=False)
                 echo(f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",nl=False)
             time.sleep(mining_every_x_seconds)
-
-
-if __name__ == "__main__":
-    # central and early configuring of logging see
-    # https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
-    dictConfig(
-        {
-            "version": 1,
-            "formatters": {
-                "default": {
-                    "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-                }
-            },
-            "handlers": {
-                "wsgi": {
-                    "class": "logging.StreamHandler",
-                    "stream": "ext://flask.logging.wsgi_errors_stream",
-                    "formatter": "default",
-                }
-            },
-            "root": {"level": "INFO", "handlers": ["wsgi"]},
-        }
-    )
-    cli()
