@@ -11,7 +11,6 @@ import os
 import sys
 from pathlib import Path
 import requests
-from cryptoadvance.specter.util.shell import run_shell, which
 from github_binary_upload import publish_release_from_tag
 
 
