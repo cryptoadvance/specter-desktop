@@ -1,83 +1,135 @@
 <style>
+    .left-toolbar {
+        border-radius: 0 0 0 15px;
+    }
+    .left-toolbar:hover {
+        border-radius: 0 0 0 15px;
+    }
     #price_provider option[disabled] {
         display: none;
     }
 </style>
-<a type="button" style="cursor: pointer;" class="settings-bar-btn" onclick="showPageOverlay('price-popup')">
-    {{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}{{ specter.alt_symbol }}
+<a id="price-bar-btn" type="button" style="cursor: pointer;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+    {% if specter.price_check %}
+        <span>{{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}{{ specter.alt_symbol }}</span>
+    {% else %}
+        <img src="{{ url_for('static', filename='img/shitcoins.svg') }}" style="width: 22px;"/>
+    {% endif %}
 </a>
 <div id="price-popup" class="hidden">
     <form id="price-form">
-        <h1>Price Settings</h1>
-        <p>Please set custon rate or choose between the automated price providers options.</p>
-        <nav class="row">
-            <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')"> Manual </button>
-            <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')"> Automatic </button>
-        </nav>
-        <br>
-        <div id="manual_price">
-            Price:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
-            <br><br>
-            Symbol:&nbsp;&nbsp;
-            <input style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
+    <h1>Price Settings</h1>
+    {% if specter.price_check %}
+        <div class="card">
+            <p>Please set custon rate or choose between the automated price providers options.</p>
+            <nav class="row">
+                <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')"> Manual </button>
+                <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')"> Automatic </button>
+            </nav>
             <br>
-        </div>
-        <div id="automatic_price" class="hidden">
-            <h2>Select price provider:</h2>
-            <table style="border: none; margin: auto;">
-                <tbody>
-                    <tr style="background: none;">
-                        <td style="padding-bottom: 0px; padding-left: 100px; border: none; text-align: right;">
-                            Currency:
-                        </td>
-                        <td style="padding-bottom: 0px; border: none; text-align: left;">
-                            <fieldset style="border:none; display: inline;"> 
-                                <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
-                                    <option value="usd" selected>$ (USD)</option>
-                                    <option value="eur" {% if specter.price_provider and specter.price_provider.endswith('eur') %}selected{% endif %}>€ (EUR)</option>
-                                    <option value="gbp" {% if specter.price_provider and specter.price_provider.endswith('gbp') %}selected{% endif %}>£ (GBP)</option>
-                                </select>
-                            </fieldset>
-                        </td>
-                    </tr>
-                    <tr style="background: none;">
-                        <td style="padding-top: 10px; padding-bottom: 10px; padding-right: 15px; border: none; text-align: right;">
-                            <p>Provider:</p>
-                        </td>
-                        <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
-                            <fieldset style="border:none; display: inline;"> 
-                                <select name="price_provider" id="price_provider">
-                                    <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
-                                    <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
-                                    <option data-currency-type="usd" value="spotbit_kraken" {% if specter.price_provider == 'spotbit_kraken' %}selected{% endif %}>Spotbit Kraken (Tor) USD</option>
-                                    <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>
-                                    <option data-currency-type="usd" value="spotbit_okcoin" {% if specter.price_provider == 'spotbit_okcoin' %}selected{% endif %}>Spotbit OKCoin (Tor) USD</option>
-                                    <option data-currency-type="usd" value="spotbit_bitstamp" {% if specter.price_provider == 'spotbit_bitstamp' %}selected{% endif %}>Spotbit Bitstamp (Tor) USD</option>
-                                    <option data-currency-type="eur" value="coindesk_eur" {% if specter.price_provider == 'coindesk_eur' %}selected{% endif %}>Coindesk EUR</option>
-                                    <option data-currency-type="eur" value="spotbit_coinbase_eur" {% if specter.price_provider == 'spotbit_coinbase_eur' %}selected{% endif %}>Spotbit Coinbase (Tor) EUR</option>
-                                    <option data-currency-type="eur" value="spotbit_kraken_eur" {% if specter.price_provider == 'spotbit_kraken_eur' %}selected{% endif %}>Spotbit Kraken (Tor) EUR</option>
-                                    <option data-currency-type="eur" value="spotbit_bitfinex_eur" {% if specter.price_provider == 'spotbit_bitfinex_eur' %}selected{% endif %}>Spotbit Bitfinex (Tor) EUR</option>
-                                    <option data-currency-type="eur" value="spotbit_okcoin_eur" {% if specter.price_provider == 'spotbit_okcoin_eur' %}selected{% endif %}>Spotbit OKCoin (Tor) EUR</option>
-                                    <option data-currency-type="eur" value="spotbit_bitstamp_eur" {% if specter.price_provider == 'spotbit_bitstamp_eur' %}selected{% endif %}>Spotbit Bitstamp (Tor) EUR</option>
-                                    <option data-currency-type="gbp" value="coindesk_gbp" {% if specter.price_provider == 'coindesk_gbp' %}selected{% endif %}>Coindesk GBP</option>
-                                    <option data-currency-type="gbp" value="spotbit_coinbase_gbp" {% if specter.price_provider == 'spotbit_coinbase_gbp' %}selected{% endif %}>Spotbit Coinbase (Tor) GBP</option>
-                                    <option data-currency-type="gbp" value="spotbit_kraken_gbp" {% if specter.price_provider == 'spotbit_kraken_gbp' %}selected{% endif %}>Spotbit Kraken (Tor) GBP</option>
-                                    <option data-currency-type="gbp" value="spotbit_bitfinex_gbp" {% if specter.price_provider == 'spotbit_bitfinex_gbp' %}selected{% endif %}>Spotbit Bitfinex (Tor) GBP</option>
-                                    <option data-currency-type="gbp" value="spotbit_bitstamp_gbp" {% if specter.price_provider == 'spotbit_bitstamp_gbp' %}selected{% endif %}>Spotbit Bitstamp (Tor) GBP</option>
-                                </select>
-                            </fieldset>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <p class="note" style="max-width: 300px">Price will automatically be fetched from the selected provider every minute.</p>
+            <div id="manual_price">
+                Price:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <input style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
+                <br><br>
+                Symbol:&nbsp;&nbsp;
+                <input style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
+                <br>
+            </div>
+            <div id="automatic_price" class="hidden">
+                <h2>Select price provider:</h2>
+                <table style="border: none; margin: auto;">
+                    <tbody>
+                        <tr style="background: none;">
+                            <td style="padding-bottom: 0px; padding-left: 100px; border: none; text-align: right;">
+                                Currency:
+                            </td>
+                            <td style="padding-bottom: 0px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline;"> 
+                                    <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
+                                        <option value="usd" selected>$ (USD)</option>
+                                        <option value="eur" {% if specter.price_provider and specter.price_provider.endswith('eur') %}selected{% endif %}>€ (EUR)</option>
+                                        <option value="gbp" {% if specter.price_provider and specter.price_provider.endswith('gbp') %}selected{% endif %}>£ (GBP)</option>
+                                    </select>
+                                </fieldset>
+                            </td>
+                        </tr>
+                        <tr style="background: none;">
+                            <td style="padding-top: 10px; padding-bottom: 10px; padding-right: 15px; border: none; text-align: right;">
+                                <p>Provider:</p>
+                            </td>
+                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline;"> 
+                                    <select name="price_provider" id="price_provider">
+                                        <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
+                                        <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
+                                        <option data-currency-type="usd" value="spotbit_kraken" {% if specter.price_provider == 'spotbit_kraken' %}selected{% endif %}>Spotbit Kraken (Tor) USD</option>
+                                        <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>
+                                        <option data-currency-type="usd" value="spotbit_okcoin" {% if specter.price_provider == 'spotbit_okcoin' %}selected{% endif %}>Spotbit OKCoin (Tor) USD</option>
+                                        <option data-currency-type="usd" value="spotbit_bitstamp" {% if specter.price_provider == 'spotbit_bitstamp' %}selected{% endif %}>Spotbit Bitstamp (Tor) USD</option>
+                                        <option data-currency-type="eur" value="coindesk_eur" {% if specter.price_provider == 'coindesk_eur' %}selected{% endif %}>Coindesk EUR</option>
+                                        <option data-currency-type="eur" value="spotbit_coinbase_eur" {% if specter.price_provider == 'spotbit_coinbase_eur' %}selected{% endif %}>Spotbit Coinbase (Tor) EUR</option>
+                                        <option data-currency-type="eur" value="spotbit_kraken_eur" {% if specter.price_provider == 'spotbit_kraken_eur' %}selected{% endif %}>Spotbit Kraken (Tor) EUR</option>
+                                        <option data-currency-type="eur" value="spotbit_bitfinex_eur" {% if specter.price_provider == 'spotbit_bitfinex_eur' %}selected{% endif %}>Spotbit Bitfinex (Tor) EUR</option>
+                                        <option data-currency-type="eur" value="spotbit_okcoin_eur" {% if specter.price_provider == 'spotbit_okcoin_eur' %}selected{% endif %}>Spotbit OKCoin (Tor) EUR</option>
+                                        <option data-currency-type="eur" value="spotbit_bitstamp_eur" {% if specter.price_provider == 'spotbit_bitstamp_eur' %}selected{% endif %}>Spotbit Bitstamp (Tor) EUR</option>
+                                        <option data-currency-type="gbp" value="coindesk_gbp" {% if specter.price_provider == 'coindesk_gbp' %}selected{% endif %}>Coindesk GBP</option>
+                                        <option data-currency-type="gbp" value="spotbit_coinbase_gbp" {% if specter.price_provider == 'spotbit_coinbase_gbp' %}selected{% endif %}>Spotbit Coinbase (Tor) GBP</option>
+                                        <option data-currency-type="gbp" value="spotbit_kraken_gbp" {% if specter.price_provider == 'spotbit_kraken_gbp' %}selected{% endif %}>Spotbit Kraken (Tor) GBP</option>
+                                        <option data-currency-type="gbp" value="spotbit_bitfinex_gbp" {% if specter.price_provider == 'spotbit_bitfinex_gbp' %}selected{% endif %}>Spotbit Bitfinex (Tor) GBP</option>
+                                        <option data-currency-type="gbp" value="spotbit_bitstamp_gbp" {% if specter.price_provider == 'spotbit_bitstamp_gbp' %}selected{% endif %}>Spotbit Bitstamp (Tor) GBP</option>
+                                    </select>
+                                </fieldset>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="note" style="max-width: 300px">Price will automatically be fetched from the selected provider every minute.</p>
+            </div>
+            <br><br>
+            <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
+            <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">Save</button>
         </div>
         <br><br>
-        <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
-        <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">Save</button>
+        <button type="button" class="btn" onclick="togglePriceCheck(false)" style="margin: auto;" >Disable showing price</button>
+    {% else %}
+        <p>You can enable showing price feature to see the price<br>information of your Bitcoin amounts accross Specter.</p>
+        <br>
+        <button type="button" class="btn" style="margin: auto;" onclick="togglePriceCheck(true)">Enable showing price</button>
+    {% endif %}
     </form>
     <script>
+        async function togglePriceCheck(showPrice) {
+            if (showPrice) {
+                showNotification('Turning on show price mode...', 0)
+            } else {
+                showNotification('Turning off show price mode...', 0)
+            }
+            let url = `{{ url_for('toggleshowprice') }}`;
+            var formData = new FormData(document.getElementById('price-form'));
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if (jsonResponse.success) {
+                    location.reload();
+                    return
+                };
+                showError('Failed to toggle price mode...')
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+            }
+        }
+
         async function savePriceData(reload) {
             showNotification('Updating price date...', 0)
             let url = `{{ url_for('setprice') }}`;
@@ -139,10 +191,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", function(){
-            {% if specter.price_provider %}
-                setPriceView('automatic');
+            {% if specter.price_check %}
+                {% if specter.price_provider %}
+                    setPriceView('automatic');
+                {% endif %}
+                filterProviderOptions();
             {% endif %}
-            filterProviderOptions();
         });
     </script>
 </div>
