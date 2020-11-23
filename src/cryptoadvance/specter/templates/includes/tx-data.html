@@ -1,0 +1,132 @@
+<template id="tx-data">
+    <style>
+        .tx-data-table td {
+            text-align: left;
+            padding: 10px;
+            overflow: auto;
+            max-width: 100%;
+        }
+        .tx-data-table tr {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #aaa;
+        }
+        .tx_info {
+			padding: 1em;
+			border: 1px solid #506072;
+			border-radius: 4px;
+			text-align: center;
+			margin-bottom: 2em;
+		}
+    </style>
+    <div class="tx-data">
+        <h2>Transaction details</h2>
+        <div class="tx-data-info"></div>
+        <div class="note"></div>
+    </div>
+</template>
+  
+<script type="text/javascript">
+    class TxDataElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('tx-data').content;
+            var clone = style.cloneNode(true);
+            var txidHeader = clone.querySelector(".txid");
+        
+            this.el = clone.querySelector(".tx-data");
+            this.note = clone.querySelector(".note");
+            this.info = clone.querySelector(".tx-data-info");
+            this.txid = this.getAttribute('data-txid');
+            this.wallet = this.getAttribute('data-tx-wallet');
+            this.note.innerText = `Loading transaction details...\n\nTransaction ID: ${this.txid}`;
+            fetchTxData(this);
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+    }
+    async function fetchTxData(self) {
+        let url = `{{ url_for('decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        var formData = new FormData();
+        formData.append('txid', self.txid)
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            if (jsonResponse.success) {
+                console.log(jsonResponse);
+                let rawtx = jsonResponse.rawtx;
+                let tx = jsonResponse.tx;
+                let rawtxHTML = `
+                <table class="tx-data-table">
+                <tbody>
+                <tr><td>Transaction id:</td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+                <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
+                `;
+                if (tx.fee) {
+                    rawtxHTML += `
+                        <tr><td>Fee:</td><td>${parseInt(-1e8 * tx.fee)} sats</td></tr>
+                        <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * tx.fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
+                    `;
+                }
+                if (tx.confirmations) {
+                    rawtxHTML += `
+                        <tr><td>Mine at block:</td><td>${tx.blockheight}</td></tr>
+                        <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
+                        <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
+                    `;
+                }
+                rawtxHTML += `
+                    <tr><td>Inputs count:</td><td>${rawtx.vin.length}</td></tr>
+                    <tr><td>Outputs count:</td><td>${rawtx.vout.length}</td></tr>
+                `;
+                rawtxHTML += `
+                 </tbody>
+                 </table>
+                `;
+                rawtxHTML += `<h3>Inputs</h3>`;
+                for (let i in rawtx.vin) {
+                    rawtxHTML += `
+                        <p class="tx_info" style="text-align: left; background-color: #131a24;">
+                            <b>Input #${i}</b><br><br>
+                            Transaction id: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
+                            Output # ${rawtx.vin[i].vout}
+                        </p>
+                    `;
+                }
+
+                rawtxHTML += `<h3>Outputs</h3>`;
+                for (let i in rawtx.vout) {
+                    rawtxHTML += `
+                    <p class="tx_info" style="text-align: left; background-color: #131a24;">
+                        <b>Output #${i}</b><br><br>
+                        Address: <explorer-link style="word-break: break-all;" data-type="address" data-value="${rawtx.vout[i].addresses[0]}"></explorer-link><br>
+                        Value: ${rawtx.vout[i].value}
+                    </p>
+                `;
+                }
+                
+                self.info.innerHTML = rawtxHTML;
+                self.note.innerText = "";
+                return
+
+            };
+            self.note.innerText = "Failed to load transaction details...";
+        } catch(e) {
+            self.note.innerText = "Failed to load transaction details...";
+            showError(e);
+        }
+    }
+    customElements.define('tx-data', TxDataElement);
+</script>

@@ -19,7 +19,8 @@
             {% endif %}
         </td>
         <td class="tx scroll optional">
-            {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
+            <span class="explorer-link" onclick="showTxData('{{txid}}', '{{wallet.alias}}')">{{ txid }}</span>
+            {# {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }} #}
         </td>
         <td class="tx scroll optional">
             {% if wallet == none %}

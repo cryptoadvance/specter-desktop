@@ -7,6 +7,7 @@ from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
 from .device_manager import get_device_class
+from .util.tx import decoderawtransaction
 
 from functools import wraps
 from flask import g, request, redirect, url_for
@@ -243,6 +244,20 @@ def setprice():
             if not app.specter.price_checker.running:
                 app.specter.price_checker.start()
             return {"success": update_price(app.specter, current_user)}
+    except Exception as e:
+        app.logger.warning("Failed to update price settings. Exception: {}".format(e))
+    return {"success": False}
+
+
+@app.route("/wallets/<wallet_alias>/decoderawtx/", methods=["GET", "POST"])
+@login_required
+def decoderawtx(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        txid = request.form.get("txid", "")
+        if txid:
+            tx = wallet.rpc.gettransaction(txid)
+            return {"success": True, "tx": tx, "rawtx": decoderawtransaction(tx["hex"])}
     except Exception as e:
         app.logger.warning("Failed to update price settings. Exception: {}".format(e))
     return {"success": False}
