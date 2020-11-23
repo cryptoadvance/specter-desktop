@@ -177,13 +177,12 @@ def get_mimetype(filepath: str) -> str:
 
     if os.name == "nt":
         try:
-            import magic
+            import mimetypes
 
-            mime = magic.Magic(mime=True)
-            mime_type = mime.from_file(filepath)
+            mime_type = mimetypes.types_map[f".{filepath.split('.')[-1]}"]
         except ModuleNotFoundError:
             raise Exception(
-                "magic module not found. Do something like pip install magic"
+                "mimetypes module not found. Do something like pip install mimetypes"
             )
     else:
         try:
