@@ -27,6 +27,7 @@ if [ -z $PINNED ]; then
     if [ $LOCAL = $REMOTE ]; then
         echo "Up-to-date"
     elif [ $LOCAL = $BASE ]; then
+        git reset --hard origin/master
         git pull
         bitcoind_setup_needed=true
     fi
@@ -35,7 +36,7 @@ else
         echo "    --> Pinned: $PINNED! Checkout not needed!"
     else
         echo "    --> Pinned: $PINNED! Checkout needed!"
-        git checkout $PINNED
+        git checkout $PINNED || exit 1
         bitcoind_setup_needed=true
     fi
 fi
