@@ -86,9 +86,8 @@ def main():
     )
 
 
-def artifact_exists(ci_project_root_namespace, ci_commit_tag, artifact):
-
-    artifact_url = f"https://github.com/{ci_project_root_namespace}/specter-desktop/releases/download/{ci_commit_tag}/{artifact}"
+def artifact_exists(project, tag, artifact):
+    artifact_url = f"https://github.com/{project}/releases/download/{tag}/{artifact}"
     logger.debug(f"checking for artifact url {artifact_url}")
     r = requests.head(artifact_url)
     if r.status_code != 302:
