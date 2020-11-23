@@ -11,7 +11,6 @@ import os
 import sys
 from pathlib import Path
 import requests
-from github_binary_upload import publish_release_from_tag
 
 import argparse
 import collections
