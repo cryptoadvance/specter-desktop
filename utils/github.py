@@ -65,7 +65,7 @@ def main():
         tag = os.environ["CI_COMMIT_TAG"]
     if len(sys.argv) != 3:
         logger.error("argument artifact not found.")
-    if artifact_exists(project, tag, artifact):
+    if artifact_exists(project, tag, Path(artifact).name):
         logger.info("Github artifact existing. Skipping upload.")
         exit(0)
     else:
