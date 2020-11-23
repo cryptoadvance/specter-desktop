@@ -189,8 +189,9 @@ def server(daemon, stop, restart, force, port, host, cert, key, debug, tor, hwib
             debug = app.config["DEBUG"]
         run(debug=debug)
 
-class Echo():
-    def __init__(self,quiet):
+
+class Echo:
+    def __init__(self, quiet):
         self.quiet = quiet
 
     def echo(self, mystring, prefix=True, **kwargs):
@@ -198,26 +199,51 @@ class Echo():
             pass
         else:
             if prefix:
-                click.echo(f"    --> ",nl=False)
-            click.echo(f"{mystring}",**kwargs)
+                click.echo(f"    --> ", nl=False)
+            click.echo(f"{mystring}", **kwargs)
+
 
 @cli.command()
 @click.option("--debug/--no-debug", default=False, help="Turns on debug-logging")
 @click.option("--quiet/--no-quiet", default=False, help="as less output as possible")
-@click.option("--nodocker", default=False, is_flag=True, help="use without docker (non-default)")
-@click.option("--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag")
-@click.option("--data-dir", default="/tmp/bitcoind_plain_datadir", help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ")
+@click.option(
+    "--nodocker", default=False, is_flag=True, help="use without docker (non-default)"
+)
+@click.option(
+    "--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag"
+)
+@click.option(
+    "--data-dir",
+    default="/tmp/bitcoind_plain_datadir",
+    help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ",
+)
 @click.option("--mining/--no-mining", default=True, help="Turns on mining (default)")
-@click.option("--mining-period", default="15", help="Every mining-period (in seconds), a block gets mined (default 15sec)")
-@click.option("--reset", is_flag=True, default=False, help="Will kill the bitcoind. Datadir will get lost.")
-def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, reset):
-    ''' This will start a bitcoind regtest and mines a block every mining-period. 
-        If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will 
-        still continue to run. You have to shut it down.
-    '''
+@click.option(
+    "--mining-period",
+    default="15",
+    help="Every mining-period (in seconds), a block gets mined (default 15sec)",
+)
+@click.option(
+    "--reset",
+    is_flag=True,
+    default=False,
+    help="Will kill the bitcoind. Datadir will get lost.",
+)
+def bitcoind(
+    debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, reset
+):
+    """This will start a bitcoind regtest and mines a block every mining-period.
+    If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will
+    still continue to run. You have to shut it down.
+    """
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
-    from .bitcoind import BitcoindDockerController, BitcoindPlainController, fetch_wallet_addresses_for_mining
+    from .bitcoind import (
+        BitcoindDockerController,
+        BitcoindPlainController,
+        fetch_wallet_addresses_for_mining,
+    )
+
     if debug:
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
         logger.debug("Now on debug-logging")
@@ -227,22 +253,24 @@ def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period
         if not nodocker:
             echo("ERROR: --reset only works in conjunction with --nodocker currently")
             return
-        did_something=False
-            
-        p = subprocess.Popen(['ps', '-A'], stdout=subprocess.PIPE)
+        did_something = False
+
+        p = subprocess.Popen(["ps", "-A"], stdout=subprocess.PIPE)
         out, err = p.communicate()
         for line in out.decode("utf8").splitlines():
-            if 'bitcoind' in line:
+            if "bitcoind" in line:
                 pid = int(line.split(None, 1)[0])
                 try:
                     echo(f"Killing bitcoind-process with id {pid} ...")
-                    did_something=True
+                    did_something = True
                     os.kill(pid, signal.SIGTERM)
                 except PermissionError:
-                    echo(f"Pid {pid} not owned by us. Might be a docker-process? {line}")
+                    echo(
+                        f"Pid {pid} not owned by us. Might be a docker-process? {line}"
+                    )
         if Path(data_dir).exists():
             echo(f"Purging Datadirectory {data_dir} ...")
-            did_something=True
+            did_something = True
             shutil.rmtree(data_dir)
         if not did_something:
             echo("Nothing to do!")
@@ -304,8 +332,11 @@ def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period
 
         # make them spendable
         my_bitcoind.mine(block_count=100)
-        echo(f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",nl=False)
-        i,j = 0,0
+        echo(
+            f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+            nl=False,
+        )
+        i, j = 0, 0
         while True:
             my_bitcoind.mine()
             echo("%i" % (i % 10), prefix=False, nl=False)
@@ -315,6 +346,9 @@ def bitcoind(debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period
             if i >= 50:
                 j = i
                 i = 0
-                echo("",prefix=False)
-                echo(f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",nl=False)
+                echo("", prefix=False)
+                echo(
+                    f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+                    nl=False,
+                )
             time.sleep(mining_every_x_seconds)
