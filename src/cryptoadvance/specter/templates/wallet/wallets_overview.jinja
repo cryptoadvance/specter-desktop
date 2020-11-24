@@ -54,6 +54,7 @@
         {% from 'wallet/history/txs/components/full_tx_table.jinja' import full_tx_table %}
         {{
             tx_table(
+				specter,
                 transactions == [],
                 full_tx_table(transactions=transactions, wallet=none, specter=specter, includeValidatedBlockhash=validate_merkle_proofs),
 		includeValidatedBlockhash=validate_merkle_proofs,
