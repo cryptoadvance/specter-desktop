@@ -2,8 +2,8 @@ import logging
 from logging.config import dictConfig
 import os
 from os import path
-import subprocess
 import sys
+import psutil
 from pathlib import Path
 import shutil
 import time
@@ -255,19 +255,17 @@ def bitcoind(
             return
         did_something = False
 
-        p = subprocess.Popen(["ps", "-A"], stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        for line in out.decode("utf8").splitlines():
-            if "bitcoind" in line:
-                pid = int(line.split(None, 1)[0])
-                try:
+        for proc in psutil.process_iter():
+            try:
+                # Get process name & pid from process object.
+                processName = proc.name()
+                pid = proc.pid
+                if processName.startswith("bitcoind"):
                     echo(f"Killing bitcoind-process with id {pid} ...")
                     did_something = True
                     os.kill(pid, signal.SIGTERM)
-                except PermissionError:
-                    echo(
-                        f"Pid {pid} not owned by us. Might be a docker-process? {line}"
-                    )
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                echo(f"Pid {pid} not owned by us. Might be a docker-process? {line}")
         if Path(data_dir).exists():
             echo(f"Purging Datadirectory {data_dir} ...")
             did_something = True
