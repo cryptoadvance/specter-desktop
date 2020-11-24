@@ -102,6 +102,7 @@
 				<br><br>
 				{{ 
 					tx_table(
+						specter,
 						not (wallet.utxo_on_address(account) if is_address_view else wallet.utxo_on_label(account) > 0),
 						account_utxo_table(account, viewtype, wallet, specter)
 					) 

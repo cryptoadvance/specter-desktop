@@ -1,11 +1,12 @@
 {# 
     tx_table - Empty table component
     Parameters:
+    - specter: Specter instance
     - isEmpty: Boolean, true if should show an item indicating empty list, false if should show the list contents.
     - content: The content of the table (its rows).
     - includeValidatedBlockhash: boolean
  #}
-{% macro tx_table(isEmpty, content, includeValidatedBlockhash) -%}
+{% macro tx_table(specter, isEmpty, content, includeValidatedBlockhash) -%}
     <table>
         <thead>
             <tr>
@@ -37,4 +38,19 @@
 	    {% endif %}
 	</tbody>
     </table>
+    {% include "includes/tx-data.html" %}
+    {% include "includes/explorer-link.html" %}
+    <div id="tx-data-popup" class="hidden">
+    </div>
+    <script>
+        function showTxData(txid, wallet) {
+            if (wallet) {
+                let txDataPopup = document.getElementById('tx-data-popup');
+                txDataPopup.innerHTML = `<tx-data data-txid="${txid}" data-tx-wallet="${wallet}"></tx-data>`;
+                showPageOverlay('tx-data-popup')
+            } else {
+                copyText(txid, `Copied transaction: ${ txid }`);
+            }
+        }
+    </script>
 {%- endmacro %}
