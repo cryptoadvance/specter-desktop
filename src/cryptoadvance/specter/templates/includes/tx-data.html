@@ -97,6 +97,16 @@
                 `;
                 rawtxHTML += `<h3>Inputs</h3>`;
                 for (let i in rawtx.vin) {
+                    if ('coinbase' in rawtx.vin[i]) {
+                        rawtxHTML += `
+                        <p class="tx_info" style="text-align: left; background-color: #131a24;">
+                            <b>Input #${i}</b><br><br>
+                            <b>Coinbase transaction</b>
+                            <br>
+                        </p>
+                        `;
+                        continue;
+                    }
                     rawtxHTML += `
                         <p class="tx_info" style="text-align: left; background-color: #131a24;">
                             <b>Input #${i}</b><br><br>
@@ -108,13 +118,17 @@
 
                 rawtxHTML += `<h3>Outputs</h3>`;
                 for (let i in rawtx.vout) {
+                    let address = ('addresses' in rawtx.vout[i] && rawtx.vout[i].addresses.length == 1) ? rawtx.vout[i].addresses[0] : 'Unknown';
+                    if (address == 'Unknown') {
+                        address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
+                    }
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
                         <b>Output #${i}</b><br><br>
-                        Address: <explorer-link style="word-break: break-all;" data-type="address" data-value="${rawtx.vout[i].addresses[0]}"></explorer-link><br>
+                        Address: <explorer-link style="word-break: break-all;" data-type="address" data-value="${address}"></explorer-link><br>
                         Value: ${rawtx.vout[i].value}
                     </p>
-                `;
+                    `;
                 }
                 
                 self.info.innerHTML = rawtxHTML;
