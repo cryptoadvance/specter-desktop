@@ -1,0 +1,48 @@
+<template id="explorer-link">
+    <style>
+        .explorer-link {
+            color: inherit;
+            text-decoration: none;
+        }
+        .explorer-link:hover {
+            color: #fff !important;
+            text-decoration: underline !important;
+            cursor: pointer;
+        }
+    </style>
+    {% if specter.explorer %}
+        <a class="explorer-link" target="blank"></a>
+    {% else %}
+        <span class="explorer-link"></span>
+    {% endif %}
+</template>
+  
+<script type="text/javascript">
+    class ExplorerLinkElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('explorer-link').content;
+            var clone = style.cloneNode(true);
+        
+            this.explorerLink = clone.querySelector(".explorer-link");
+            this.explorer = '{{specter.explorer}}'
+            this.type = this.getAttribute('data-type');
+            this.value = this.getAttribute('data-value');
+            if (this.explorer) {
+                this.explorerLink.href = `${ this.explorer }${ this.type }/${ this.value }`
+            } else {
+                this.explorerLink.addEventListener('click', () => {
+                    copyText(this.value, `Copied ${ this.type }: ${ this.value }`);
+                });
+            }
+            this.explorerLink.innerText = this.value;
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+    }
+    
+    customElements.define('explorer-link', ExplorerLinkElement);
+</script>

@@ -7,6 +7,7 @@ from mnemonic import Mnemonic
 from threading import Thread
 from .key import Key
 from .device_manager import get_device_class
+from .util.tx import decoderawtransaction
 
 from functools import wraps
 from flask import g, request, redirect, url_for
@@ -248,6 +249,33 @@ def setprice():
     return {"success": False}
 
 
+@app.route("/toggleshowprice/", methods=["GET", "POST"])
+@login_required
+def toggleshowprice():
+    try:
+        app.specter.update_price_check_setting(
+            not app.specter.price_check, current_user
+        )
+        return {"success": True}
+    except Exception as e:
+        app.logger.warning("Failed to update price settings. Exception: {}".format(e))
+    return {"success": False}
+
+
+@app.route("/wallets/<wallet_alias>/decoderawtx/", methods=["GET", "POST"])
+@login_required
+def decoderawtx(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        txid = request.form.get("txid", "")
+        if txid:
+            tx = wallet.rpc.gettransaction(txid)
+            return {"success": True, "tx": tx, "rawtx": decoderawtransaction(tx["hex"])}
+    except Exception as e:
+        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+    return {"success": False}
+
+
 @app.route("/")
 @login_required
 def index():
@@ -423,12 +451,10 @@ def general_settings():
     explorer = app.specter.explorer
     loglevel = get_loglevel(app)
     unit = app.specter.unit
-    price_check = app.specter.price_check
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
-        price_check = request.form.get("pricecheck", "off") == "on"
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
@@ -440,7 +466,6 @@ def general_settings():
 
             app.specter.update_explorer(explorer, current_user)
             app.specter.update_unit(unit, current_user)
-            app.specter.update_price_check_setting(price_check, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
@@ -520,7 +545,6 @@ This may take a few hours to complete.",
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
-        pricecheck=price_check,
         specter=app.specter,
         current_version=current_version,
         rand=rand,

@@ -98,7 +98,7 @@
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
-					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats<br>
+					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>Fee rate:</b>
 					{% if 'tx_full_size' in psbt %}
 						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
@@ -125,7 +125,7 @@
 						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
 							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
 						{% endif %}
-						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC
+						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -140,6 +140,7 @@
 							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
 						{% endif %}
 						<b>Amount:</b> {{ output['value'] }} BTC
+						<b>Amount:</b> {{ output['value'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
