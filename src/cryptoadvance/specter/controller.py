@@ -249,7 +249,6 @@ def setprice():
     return {"success": False}
 
 
-
 @app.route("/toggleshowprice/", methods=["GET", "POST"])
 @login_required
 def toggleshowprice():
@@ -258,6 +257,9 @@ def toggleshowprice():
             not app.specter.price_check, current_user
         )
         return {"success": True}
+    except Exception as e:
+        app.logger.warning("Failed to update price settings. Exception: {}".format(e))
+    return {"success": False}
 
 
 @app.route("/wallets/<wallet_alias>/decoderawtx/", methods=["GET", "POST"])
@@ -270,7 +272,7 @@ def decoderawtx(wallet_alias):
             tx = wallet.rpc.gettransaction(txid)
             return {"success": True, "tx": tx, "rawtx": decoderawtransaction(tx["hex"])}
     except Exception as e:
-        app.logger.warning("Failed to update price settings. Exception: {}".format(e))
+        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
     return {"success": False}
 
 
