@@ -21,7 +21,6 @@
 
     #tor-toggle-btn {
         cursor: pointer;
-        border-radius: 0 0 0 15px;
         position: relative;
         padding: 10px 40px 10px 20px;
     }
@@ -138,12 +137,12 @@
         }
         torToggleBtn.addEventListener("click", toggleTorPopup);
         let right = 0;
-        for(let i in document.getElementById('status-bar').children) {
-            if (i < document.getElementById('status-bar').children.length - 1) {
-                right += document.getElementById('status-bar').children[i].offsetWidth;
+        for(let el of document.getElementsByClassName('settings-bar-btn')) {
+            if (el.id != 'price-bar-btn') {
+                right += el.offsetWidth;
             }
         }
-        torDataContainer.style.right = (right + 22) + 'px';
+        torDataContainer.style.right = (right - 41) + 'px';
         window.addEventListener('click', function(e){   
             if (!torDataContainer.contains(e.target) && !torToggleBtn.contains(e.target)){
                 if (torDataContainer.style.display == 'block') {
