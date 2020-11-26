@@ -11,6 +11,7 @@ dist
 cert.pem
 key.pem
 *.dmg
+.python-version
 pyinstaller/specterd
 pyinstaller/release
 pyinstaller/release-linux
