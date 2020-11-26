@@ -26,7 +26,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--bitcoind-version",
         action="store",
-        default="v0.19.1",
+        default="v0.20.1",
         help="setup environment: development",
     )
 
