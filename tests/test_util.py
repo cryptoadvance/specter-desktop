@@ -1,5 +1,6 @@
 from binascii import hexlify
 import hashlib
+import pytest
 
 from cryptoadvance.specter.util.base58 import (
 	double_sha256, encode_base58, encode_base58_checksum,
@@ -35,6 +36,20 @@ def test_encode_base58_edge2():
 	expected = b'DUjG'
 	assert encode_base58(testcase) == expected
 
+### copied from embit
+
+def test_simple_encode():
+    data = encode_base58(b"hello world")
+    assert data == "StV1DL6CwTryKyV"
+
+def test_leadingz_encode():
+    data = encode_base58(b"\0\0hello world")
+    assert data == "11StV1DL6CwTryKyV"
+
+def test_encode_empty():
+    data = encode_base58(b"")
+    assert data == ""
+
 def test_decode_base58_P2SH():
 	testcase = '34VDsCMeBjH2AZx4zAn1jYsXDTsMjs2tXD' 
 	# Since decode_base58() does not return the checksum, expected is without checksum here
@@ -47,6 +62,24 @@ def test_decode_base58_xpub(ghost_machine_xpub):
 	expected = b'\x04\x88\xb2\x1e\x03T\x02\xe6\xa6\x80\x00\x00\x00\xf9\xa9\x0e\x13J\xc8\xf5\x0e\xb8\xddk\xfb\xa9%\x89h\xccg\xfeSh:\x06\xda\xb7T?\x90\x95\xbb\xd7\xde\x036>?\x9f\xdbbx||\xe1\x83\x10%9w\x8a\xc3\xa4\xa0XR\xbc\x1eX\xa0\xf5\xb7\xa8\xc6p\x14\xb9'
 	# Strip_leading_zeros argument is not needed here, because we have exactly 82 bytes, thus no 0 bytes
 	assert decode_base58(testcase) == expected
+
+### copied from embit
+
+def test_check_identity():
+    data = b"hello world"
+    out = decode_base58(encode_base58(data))
+    assert out == data
+
+def test_check_failure():
+    data = "3vQB7B6MrGQZaxCuFg4oH"
+    with pytest.raises(ValueError):
+        decode_base58(data)
+
+def test_invalid_input():
+	data = "xyz0"  # 0 is not part of the bitcoin base58 alphabet
+	with pytest.raises(ValueError):
+		encode_base58(data)
+
 
 def test_encode_base58_checksum_P2SH():
 	testcase = decode_base58('34VDsCMeBjH2AZx4zAn1jYsXDTsMjs2tXD', strip_leading_zeros=True)
