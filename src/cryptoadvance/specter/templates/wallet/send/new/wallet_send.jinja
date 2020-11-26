@@ -215,7 +215,7 @@
 			document.getElementById('converted_unit_amount_' + i).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount);
 			document.getElementById('btc_amount_' + i).value = (units[i] == 'btc' ? amounts[i] : amounts[i] / 1e8);
 
-			if('{{ specter.check_price }}' == 'True'){
+			if('{{ specter.price_check }}' == 'True'){
 				let altRate = parseFloat('{{ specter.alt_rate }}');
 				let altSymbol = '{{ specter.alt_symbol }}';
 				let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + i).value)).toFixed(2))
@@ -452,6 +452,14 @@
 				console.log(psbt);
 				let fees = parseInt(psbt.fee * 1e8)
 				document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
+				if('{{ specter.price_check }}' == 'True'){
+					let altRate = parseFloat('{{ specter.alt_rate }}');
+					let altSymbol = '{{ specter.alt_symbol }}';
+					let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
+					if (!isNaN(altAmount) && (altSymbol && altRate)) {
+						document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
+					}
+				}
 				return fees;
 			} catch {
 				document.getElementById('calculated_tx_fee').innerText = `: failed to calculate transaction fees`;
