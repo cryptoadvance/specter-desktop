@@ -46,6 +46,7 @@ test-cypress:
   script:
     # start the server in the background
     - pip3 install -e .
+    - pip3 install -r test_requirements.txt
     - python3 -m cryptoadvance.specter server &
     - python3 -m cryptoadvance.specter bitcoind &
     - /root/node_modules/.bin/cypress run
