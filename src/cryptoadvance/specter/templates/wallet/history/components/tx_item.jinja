@@ -19,7 +19,8 @@
             {% endif %}
         </td>
         <td class="tx scroll optional">
-            {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
+            <span class="explorer-link" onclick="showTxData('{{txid}}', '{{wallet.alias}}')">{{ txid }}</span>
+            {# {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }} #}
         </td>
         <td class="tx scroll optional">
             {% if wallet == none %}
@@ -81,7 +82,7 @@
             {% endif %}
             {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
         </p>
-        <p>Amount: {{ tx['amount'] | btcunitamount }}{% if specter.price_check %}<span class="note">{{ tx['amount'] | altunit }}{% endif %}</span></p>
+        <p>Amount: {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">({{ tx['amount'] | altunit }}){% endif %}</span></p>
         <p>Status:
         {%if tx['confirmations'] == 0 %}
             Pending.

@@ -173,7 +173,7 @@
                         <h1>Paste xpub</h1>
                         <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
                         <br><br>
-                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();" class="btn centered">Add xpub</button>
+                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">Add xpub</button>
                     </div>
                 </div>
 				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
