@@ -3,7 +3,7 @@ describe('See the Welcome Page', () => {
       cy.viewport(1200,660)
       cy.visit('http://localhost:25441')
       cy.contains('Welcome to Specter Desktop')
-      cy.get('a.settings-bar-btn > img').click()
+      cy.get('[href="/settings/"] > img').click()
       cy.contains('Bitcoin Core settings - Specter Desktop custom')
       cy.get('.mobile-right').click()
       cy.contains('General settings - Specter Desktop custom')
