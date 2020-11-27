@@ -12,7 +12,7 @@
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label>
 					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) %}disabled{% endif %}>
-					<div class="small-card radio">
+					<div class="small-card radio" id="{{device.alias}}">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device_name }}
 					</div>

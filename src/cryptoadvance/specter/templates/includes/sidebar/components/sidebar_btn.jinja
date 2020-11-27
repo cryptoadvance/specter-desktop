@@ -3,10 +3,11 @@
     Parameters:
     - url_path: URL path the button should lead to (ie. 'new_wallet', 'new_device').
     - text: The text of the button.
+    - id: an optional id for the "a" element
  #}
-{% macro sidebar_btn(url_path, text, icon=true) -%}
+{% macro sidebar_btn(url_path, text, id="", icon=true) -%}
     <div class="optional">
-        <a href="{{url_path}}/" class="btn">
+        <a href="{{url_path}}/" class="btn" {% if id %}id="{{id}}"{% endif %} >
             {% if icon %}<svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>{% endif %}{{ text }}
         </a>
     </div>
