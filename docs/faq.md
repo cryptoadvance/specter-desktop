@@ -338,11 +338,29 @@ No supply-chain risks as you buy the board and a smartcard from normal electroni
 * On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
 * Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardwarewallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
 
-## *How to upgrade?*
+## *How to upgrade Specter-desktop?*
 
-Use this command: `pip3 install cryptoadvance.specter --upgrade`
+This depends very much on how you've installed it in the first place. You might have it running on a node-implementation like nodl, raspiblitz or mynode or you have it running on your desktop or laptop. Mynode doesn't support manual upgrade, but let's start with the laptop:
 
+### Laptop/Desktop
+If you have downloaded a binary, simply do it again with the new version. If you have a pip-installation (and installed it as described), use this command:
+`pip3 install cryptoadvance.specter --upgrade`
 To check (before and/or afterwards) your installed version, you can use: `pip3 show cryptoadvance.specter`
+
+### Raspiblitz
+You might want to wait until raspiblitz is provising an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
+```
+admin@raspberrypi:~ $ sudo su - bitcoin
+bitcoin@raspberrypi:~ $ cd .specter/
+bitcoin@raspberrypi:~/.specter $ . ./.env/bin/activate
+(.env) bitcoin@raspberrypi:~/.specter $ pip3 list | grep specter
+cryptoadvance.specter 0.9.0 # (or whatever version you have installed)
+(.env) bitcoin@raspberrypi:~/.specter $ pip3 install cryptoadvance.specter --upgrade
+[...]
+(.env) bitcoin@raspberrypi:~/.specter $ pip3 list | grep specter
+cryptoadvance.specter 0.10.1
+(.env) bitcoin@raspberrypi:~/.specter $ service cryptoadvance-specter restart
+```
 
 ## *How can I access the web interface if it's hosted on a headless computer?* 
 
