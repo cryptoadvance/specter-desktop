@@ -352,16 +352,13 @@ To check (before and/or afterwards) your installed version, you can use: `pip3 s
 ### Raspiblitz
 You might want to wait until raspiblitz is provising an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
 ```
-admin@raspberrypi:~ $ sudo su - bitcoin
-bitcoin@raspberrypi:~ $ cd .specter/
-bitcoin@raspberrypi:~/.specter $ . ./.env/bin/activate
-(.env) bitcoin@raspberrypi:~/.specter $ pip3 list | grep specter
-cryptoadvance.specter 0.9.0 # (or whatever version you have installed)
-(.env) bitcoin@raspberrypi:~/.specter $ pip3 install cryptoadvance.specter --upgrade
-[...]
-(.env) bitcoin@raspberrypi:~/.specter $ pip3 list | grep specter
-cryptoadvance.specter 0.10.1
-(.env) bitcoin@raspberrypi:~/.specter $ service cryptoadvance-specter restart
+sudo su - bitcoin
+cd .specter/
+. ./.env/bin/activate
+pip3 list | grep specter
+pip3 install cryptoadvance.specter --upgrade
+pip3 list | grep specter
+service cryptoadvance-specter restart
 ```
 
 ## *How can I access the web interface if it's hosted on a headless computer?* 
