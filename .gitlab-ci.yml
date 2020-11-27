@@ -47,6 +47,7 @@ test-cypress:
     # start the server in the background
     - pip3 install -e .
     - python3 -m cryptoadvance.specter server &
+    - python3 -m cryptoadvance.specter bitcoind --nodocker--quiet &
     - /root/node_modules/.bin/cypress run
   artifacts:
     when: always
