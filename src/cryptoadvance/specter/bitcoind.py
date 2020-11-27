@@ -243,10 +243,7 @@ class BitcoindDockerController(BitcoindController):
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
         super().__init__(rpcport=rpcport)
-        self.docker_exec = which("docker")
         self.docker_tag = docker_tag
-        if self.docker_exec == None:
-            raise ("Docker not existing!")
         if self.detect_bitcoind_container(rpcport) != None:
             rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
             self.rpcconn = rpcconn
