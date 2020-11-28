@@ -63,8 +63,8 @@ describe('Completely empty specter-home', () => {
       // This is hopefully correct for some longer time. If the connection fails, check the 
       // output of python3 -m cryptoadvance.specter bitcoind (in the CI-output !!) for a better ip-address.
       // AUtomating that is probably simply not worth it.
-      //cy.get('#host').type("http://172.17.0.3")
-      cy.get('#host').type("http://localhost")
+      cy.get('#host').type("http://172.17.0.3")
+      //cy.get('#host').type("http://localhost")
       cy.get('#port').clear()
       cy.get('#port').type("18443")
       cy.get('[value="test"]').click()
