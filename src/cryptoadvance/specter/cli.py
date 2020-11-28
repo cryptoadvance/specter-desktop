@@ -2,6 +2,7 @@ import logging
 from logging.config import dictConfig
 import os
 from os import path
+import atexit
 import sys
 import psutil
 from pathlib import Path
@@ -229,8 +230,22 @@ class Echo:
     default=False,
     help="Will kill the bitcoind. Datadir will get lost.",
 )
+@click.option(
+    "--create-conn-json",
+    is_flag=True,
+    default=False,
+    help="Will create a small json-file btcd-conn.json with connection details.",
+)
 def bitcoind(
-    debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, reset
+    debug,
+    quiet,
+    nodocker,
+    docker_tag,
+    data_dir,
+    mining,
+    mining_period,
+    reset,
+    create_conn_json,
 ):
     """This will start a bitcoind regtest and mines a block every mining-period.
     If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will
@@ -317,6 +332,15 @@ def bitcoind(
     echo(
         "   bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=secret getblockchaininfo "
     )
+    if create_conn_json:
+        with open("btcd-conn.json", "w") as file:
+            file.write(my_bitcoind.rpcconn.render_json())
+
+        def cleanup():
+            os.remove("btcd-conn.json")
+
+        atexit.register(cleanup)
+
     if mining:
         echo(
             "Now, mining a block every %f seconds, avoid it via --no-mining"

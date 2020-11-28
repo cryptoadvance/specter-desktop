@@ -114,7 +114,7 @@
             </div>
         {% endif %}
         {% if specter.chain %}
-            {{ sidebar_btn(url_for('new_wallet_type'), 'Add new wallet') }}
+            {{ sidebar_btn(url_for('new_wallet_type'), 'Add new wallet', 'btn_new_wallet') }}
         {% else %}
             <p class="warning">
             &#9432;<br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
