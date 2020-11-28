@@ -79,6 +79,24 @@ $(npm bin)/cypress run
 $(npm bin)/cypress open
 ```
 
+The test_specifications which get executed are specified in cypress.json which looks something like this:
+```
+{
+    "testFiles": [
+      "spec_empty_specter_home.js",
+      "spec_node_configured.js"
+    ]
+}
+```
+
+Each testfile represents a specific state specter is expected to be if running the tests in that file. However currently the states which are required for each file in the test are only created for spec_empty_specter_home.js. The second file simply assumes that the node is configured and is right about that because one of the tests in the first file did it.
+That needs to be improved. Not yet sure how. There are three options:
+* Using commands similiar to the way a device is a prerequisite in the second file (`cy.addDevice("Testdevice Ghost")`) which takes a lot of time.
+* Copying files around in the specter-folder which makes the test brittle
+* Using post-requests as described in this (very interesting) [video](https://youtu.be/LcGHiFnBh3Y?t=1367) with the example of "login" (which is necessary for almost any test)
+
+If you're interested in cypress-test-development, make sure to watch the video above, it's really worth it. Also be sure to not miss the way to copy the css-locator from the cypress-IDE: "Click on elements to see a suggested selector". This is for me the reason why test-development is going so fast.
+
 # Flask specific stuff
 
 Other than Django, Flask is not opionoated at all. You can do all sorts of things and it's quite difficult to judge whether you're doing it right.
