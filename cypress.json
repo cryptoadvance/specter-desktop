@@ -1,8 +1,6 @@
 {
     "testFiles": [
-      "specter_welcome.js",
-      "specter_device_creation.js",
-      "specter_node_configuration.js",
-      "specter_wallet_creation.js"
+      "spec_empty_specter_home.js",
+      "spec_node_configured.js"
     ]
 }
