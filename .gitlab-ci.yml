@@ -30,8 +30,8 @@ test:
  # relying on PRs and people who are working on gitlab-forks are working
  # on CI which probably want fast feedback on the releasing-jobs 
  # and therefore skip the test-job
- only:
-    - $CI_PROJECT_NAMESPACE =~ "cryptoadvance" 
+ #only:
+ #   - $CI_PROJECT_NAMESPACE =~ "k9ert" 
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
