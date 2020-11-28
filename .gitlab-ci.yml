@@ -19,6 +19,8 @@ stages:
 
 before_script:
   - docker info || echo "no docker-command found" # Print out docker version for debugging
+  - echo CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
+  - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
@@ -32,8 +34,9 @@ test:
  # relying on PRs and people who are working on gitlab-forks are working
  # on CI which probably want fast feedback on the releasing-jobs 
  # and therefore skip the test-job
+ # tem deactivated as it did not work as expected
  #only:
- #   - $CI_PROJECT_NAMESPACE =~ "k9ert" 
+ #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
