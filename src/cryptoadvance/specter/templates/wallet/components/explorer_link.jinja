@@ -8,7 +8,7 @@
  #}
 {% macro explorer_link(type, value, text, explorer) -%}
     {% if explorer %}
-        <a target="blank" class="explorer-link" href="{{ explorer }}{{ type }}/{{ value }}">{{ text }}</a>
+        <a target="_blank" class="explorer-link" href="{{ explorer }}{{ type }}/{{ value }}">{{ text }}</a>
     {% else %}
         <span class="explorer-link" onclick="copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')">{{ text }}</span>
     {% endif %}
