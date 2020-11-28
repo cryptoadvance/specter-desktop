@@ -50,7 +50,9 @@
   - [*Can I buy the Specter-devkit pre-built?*](#can-i-buy-the-specter-devkit-pre-built)
 - [TROUBLESHOOT](#troubleshoot)
   - [I have issues connecting my Hardware-Wallet via USB?!](#i-have-issues-connecting-my-hardware-wallet-via-usb)
-  - [*How to upgrade?*](#how-to-upgrade)
+  - [*How to upgrade Specter-desktop?*](#how-to-upgrade-specter-desktop)
+    - [Laptop/Desktop](#laptopdesktop)
+    - [Raspiblitz](#raspiblitz)
   - [*How can I access the web interface if it's hosted on a headless computer?*](#how-can-i-access-the-web-interface-if-its-hosted-on-a-headless-computer)
   - [*Keep getting: No matching distribution found for cryptoadvance.specter*](#keep-getting-no-matching-distribution-found-for-cryptoadvancespecter)
   - [*Even after upgrading to python3 it's still looking at 2.7 version. I uninstalled 2.7, so not sure where to go next?*](#even-after-upgrading-to-python3-its-still-looking-at-27-version-i-uninstalled-27-so-not-sure-where-to-go-next)
@@ -338,11 +340,26 @@ No supply-chain risks as you buy the board and a smartcard from normal electroni
 * On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
 * Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardwarewallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
 
-## *How to upgrade?*
+## *How to upgrade Specter-desktop?*
 
-Use this command: `pip3 install cryptoadvance.specter --upgrade`
+This depends very much on how you've installed it in the first place. You might have it running on a node-implementation like nodl, raspiblitz or mynode or you have it running on your desktop or laptop. Mynode doesn't support manual upgrade, but let's start with the laptop:
 
+### Laptop/Desktop
+If you have downloaded a binary, simply do it again with the new version. If you have a pip-installation (and installed it as described), use this command:
+`pip3 install cryptoadvance.specter --upgrade`
 To check (before and/or afterwards) your installed version, you can use: `pip3 show cryptoadvance.specter`
+
+### Raspiblitz
+You might want to wait until raspiblitz is provising an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
+```
+sudo su - bitcoin
+cd .specter/
+. ./.env/bin/activate
+pip3 list | grep specter
+pip3 install cryptoadvance.specter --upgrade
+pip3 list | grep specter
+service cryptoadvance-specter restart
+```
 
 ## *How can I access the web interface if it's hosted on a headless computer?* 
 
