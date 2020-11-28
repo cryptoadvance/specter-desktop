@@ -14,7 +14,10 @@ describe('Configuring the node in Specter', () => {
           cy.get('#password').clear()
           cy.get('#password').type("wrongPassword") // wrong Password
           cy.get('#host').clear()
-          cy.get('#host').type("http://localhost")
+          // This is hopefully correct for some longer time. If the connection fails, check the 
+          // output of python3 -m cryptoadvance.specter bitcoind (in the CI-output !!) for a better ip-address.
+          // AUtomating that is probably simply not worth it.
+          cy.get('#host').type("http://172.17.0.2")
           cy.get('#port').clear()
           cy.get('#port').type("18443")
           cy.get('[value="test"]').click()

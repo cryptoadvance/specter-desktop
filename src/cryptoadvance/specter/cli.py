@@ -308,10 +308,12 @@ def bitcoind(
                 )
             )
             sys.exit(1)
-        echo("containerImage: %s" % my_bitcoind.btcd_container.image.tags)
-    echo("           url: %s" % my_bitcoind.rpcconn.render_url())
+        echo(f"containerImage: {my_bitcoind.btcd_container.image.tags}")
+    echo(f"           url: {my_bitcoind.rpcconn.render_url()}")
     echo("user, password: bitcoin, secret")
-    echo("    host, port: localhost, 18443")
+    echo(
+        f"    host, port: {my_bitcoind.rpcconn.ipaddress}, {my_bitcoind.rpcconn.rpcport}"
+    )
     echo(
         "   bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=secret getblockchaininfo "
     )
