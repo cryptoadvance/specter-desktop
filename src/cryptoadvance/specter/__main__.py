@@ -1,5 +1,5 @@
 from logging.config import dictConfig
-from .cli import cli
+from .cli import entry_point
 import logging
 
 if __name__ == "__main__":
@@ -15,4 +15,4 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(ch)
     # However initially, we'll set the root-logger to INFO:
     logging.getLogger("cryptoadvance").setLevel(logging.INFO)
-    cli()
+    entry_point()

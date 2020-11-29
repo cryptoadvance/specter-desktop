@@ -7,8 +7,8 @@ import mock
 from mock import patch
 
 
-@patch("cryptoadvance.specter.cli.create_app")
-@patch("cryptoadvance.specter.cli.init_app")
+@patch("cryptoadvance.specter.cli.cli_server.create_app")
+@patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_debug(init_app, create_app, caplog):
     caplog.set_level(logging.DEBUG)
     runner = CliRunner()

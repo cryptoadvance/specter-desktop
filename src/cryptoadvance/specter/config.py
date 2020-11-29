@@ -7,8 +7,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-DATA_FOLDER = "~/.specter"
-
 # BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Loading env-vars from .flaskenv (4 levels above this file)
@@ -30,10 +28,13 @@ def _get_bool_env_var(varname, default=None):
         return bool(value)
 
 
+DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
+
+
 class BaseConfig(object):
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
-    pass
+    DATA_FOLDER = os.getenv("DATA_FOLDER", "~/.specter")
 
 
 class DevelopmentConfig(BaseConfig):
@@ -43,6 +44,11 @@ class DevelopmentConfig(BaseConfig):
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"
+
+
+class CypressTestConfig(TestConfig):
+    DATA_FOLDER = os.getenv("DATA_FOLDER", "~/.specter-cypress")
+    PORT = os.getenv("PORT", 25444)
 
 
 class ProductionConfig(BaseConfig):

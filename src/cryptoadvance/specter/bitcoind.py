@@ -12,7 +12,6 @@ import time
 import docker
 
 from .util.shell import which
-from .server import DATA_FOLDER
 from .rpc import RpcError
 from .rpc import BitcoinRPC
 from .helpers import load_jsons
@@ -410,12 +409,10 @@ class BitcoindDockerController(BitcoindController):
                 raise Exception("Timeout while starting bitcoind-docker-container!")
 
 
-def fetch_wallet_addresses_for_mining(data_folder=None):
+def fetch_wallet_addresses_for_mining(data_folder):
     """parses all the wallet-jsons in the folder (default ~/.specter/wallets/regtest)
     and returns an array with the addresses
     """
-    if data_folder == None:
-        data_folder = os.path.expanduser(DATA_FOLDER)
     wallets = load_jsons(data_folder + "/wallets/regtest")
     address_array = [value["address"] for key, value in wallets.items()]
     # remove duplicates
