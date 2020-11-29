@@ -2046,6 +2046,7 @@ def api_wallet_info(wallet_alias):
     wallet.get_balance()
     # check utxo list
     wallet.check_utxo()
+    wallet.check_unused()
 
     return_dict = {}
     # Get full list of idx from specter
