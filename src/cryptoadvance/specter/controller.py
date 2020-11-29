@@ -1966,8 +1966,7 @@ def notify_upgrade():
 ############### API endpoints ##################
 
 
-# Specter Basic info
-@app.route("/api/specter/", methods=["GET"])
+@app.route("/api/v1alpha/specter/", methods=["GET"])
 @login_required
 def api_specter():
     specter_data = app.specter
@@ -1986,7 +1985,8 @@ def api_specter():
         'last_update': datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     }
 
-    # Include alias list
+    # Include alias list for easy lookup between names and alias
+    # Maybe there's a better way to create this
     wallets_alias = []
     alias_name = {}
     name_alias = {}
@@ -1998,22 +1998,21 @@ def api_specter():
     return_dict['alias_name'] = alias_name
     return_dict['name_alias'] = name_alias
     return_dict['wallets_alias'] = wallets_alias
-
     return (json.dumps(return_dict))
 
 
-# Get wallet basic information
-@app.route("/api/full_txlist/", methods=["GET"])
+@app.route("/api/v1alpha/full_txlist/", methods=["GET"])
 @login_required
 def api_full_txlist():
     try:
-        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs")
+        validate_merkle_proofs = app.specter.config.get(
+            "validate_merkle_proofs")
         idx = 0
         tx_len = 1
         tx_list = []
         while tx_len > 0:
-            transactions = app.specter.wallet_manager.full_txlist(idx,
-                                                                  validate_merkle_proofs)
+            transactions = app.specter.wallet_manager.full_txlist(
+                idx, validate_merkle_proofs)
             tx_list.append(transactions)
             tx_len = len(transactions)
             idx += 1
@@ -2029,13 +2028,10 @@ def api_full_txlist():
         flat_list = message
     return json.dumps(flat_list)
 
-# Get wallet basic information
 
-
-@app.route("/api/wallet_info/<wallet_alias>/", methods=["GET"])
+@app.route("/api/v1alpha/wallet_info/<wallet_alias>/", methods=["GET"])
 @login_required
 def api_wallet_info(wallet_alias):
-
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -2044,28 +2040,44 @@ def api_wallet_info(wallet_alias):
         return json.dumps(message)
 
     wallet.get_balance()
-    # check utxo list
     wallet.check_utxo()
     wallet.check_unused()
 
     return_dict = {}
-    # Get full list of idx from specter
     address_index = wallet.address_index
     validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs")
 
-    tx_data = []
-    for idx in range(0, address_index + 1):
-        tx_data.append(wallet.txlist(idx, validate_merkle_proofs=validate_merkle_proofs))
+    tx_list = []
+    idx = 0
+    tx_len = 1
+    while tx_len > 0:
+        transactions = wallet.txlist(
+            idx, validate_merkle_proofs=validate_merkle_proofs)
+        tx_list.append(transactions)
+        tx_len = len(transactions)
+        idx += 1
+
+    # Flatten the list
+    flat_list = []
+    for element in tx_list:
+        for dic_item in element:
+            flat_list.append(dic_item)
 
     # Check if scanning
     scan = wallet.rescan_progress
+
     return_dict[wallet_alias] = (wallet.__dict__)
-    return_dict['txlist'] = tx_data
+    return_dict['txlist'] = flat_list
     return_dict['scan'] = scan
     return_dict['address_index'] = address_index
+    return_dict['utxo'] = wallet.utxo
 
+    # Serialize only objects that are json compatible
+    # This will exclude classes and methods
     def safe_serialize(obj):
-        def default(o): return f"<<non-serializable: {type(o).__qualname__}>>"
+        def default(o):
+            return f"{type(o).__qualname__}"
         return json.dumps(obj, default=default)
 
     return (safe_serialize(return_dict))
+
