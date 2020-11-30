@@ -1,0 +1,14 @@
+[Unit]
+Description=SpecterDesktop
+Wants=bitcoind.service
+After=bitcoind.service
+
+[Service]
+ExecStart=/usr/bin/python3 -m cryptoadvance.specter server --host 0.0.0.0 --cert=/path/to/cert.pem --key=/path/to/key.pem
+User=bitcoin
+TimeoutSec=120
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
