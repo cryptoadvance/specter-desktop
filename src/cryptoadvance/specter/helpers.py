@@ -227,6 +227,9 @@ def generate_mnemonic(strength=256):
     return words
 
 
+# Parses wallet JSON for import, takes JSON in a supported format
+# and returns a tuple of wallet name, wallet descriptor, and cosigners types (if known, electrum only for now)
+# Supported formats: Specter, Electrum, Account Map (Fully Noded, Gordian, Sparrow etc.)
 def parse_wallet_data_import(wallet_data):
     cosigners_types = []
     # specter format
