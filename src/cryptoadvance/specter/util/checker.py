@@ -50,6 +50,7 @@ class Checker:
     def _execute(self, first_execution=False):
         try:
             t0 = time.time()
+            self.callback()
             dt = time.time() - t0
             if first_execution:
                 logger.info(
