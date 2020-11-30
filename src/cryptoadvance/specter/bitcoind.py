@@ -214,8 +214,11 @@ class BitcoindPlainController(BitcoindController):
         def cleanup_bitcoind():
             self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
             logger.info(
-                "Killed bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
+                "Killed bitcoind with pid {}, waiting for termination ...".format(
+                    self.bitcoind_proc.pid
+                )
             )
+            self.bitcoind_proc.wait()
 
         if cleanup_at_exit:
             logger.debug("REGISTERING EXIT FUNCTIONS")
