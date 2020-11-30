@@ -558,6 +558,9 @@ def bitcoin_core_settings():
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
         return redirect("")
+    # The node might have been down but is now up again
+    # (and the checker did not realized yet) and the user clicked "Configure Node"
+    app.specter.check()
     rpc = app.specter.config["rpc"]
     user = rpc["user"]
     password = rpc["password"]

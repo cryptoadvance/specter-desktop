@@ -29,6 +29,8 @@ def get_rpc(conf, old_rpc=None):
     Checks if config have changed,
     compares with old rpc
     and returns new one if necessary
+    If there is no working rpc-connection,
+    it has to return None
     """
     if "autodetect" not in conf:
         conf["autodetect"] = True
@@ -52,7 +54,7 @@ def get_rpc(conf, old_rpc=None):
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
-        return rpc
+        return rpc if rpc.test_connection() else None
     # check if we have something detected
     if rpc is None:
         # check if old rpc is still valid
