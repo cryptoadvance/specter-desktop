@@ -12,11 +12,13 @@ class Checker:
     set checker.last_check to 0.
     """
 
-    def __init__(self, callback, period=600):
+    def __init__(self, callback, period=600, desc="unknown"):
         """Checker Contructor
         :param callback: a function to be called periodically
         :param period: defines the waiting time in seconds. If you specify values below 1, it won't sleep anymore
+        :param desc: specifies an optional description used in logging
         """
+        self.desc = desc
         self.callback = callback
         self.last_check = 0
         self.period = period
@@ -30,10 +32,10 @@ class Checker:
             self.thread = threading.Thread(target=self.loop)
             self.thread.daemon = True
             self.thread.start()
-        logger.info(f"Checker started with period {self.period}")
+        logger.info(f"Checker {self.desc} started with period {self.period}")
 
     def stop(self):
-        logger.info("Checker stopped.")
+        logger.info(f"Checker {self.desc} stopped.")
         self.running = False
 
     def loop(self):
@@ -48,7 +50,6 @@ class Checker:
     def _execute(self, first_execution=False):
         try:
             t0 = time.time()
-            self.callback()
             dt = time.time() - t0
             if first_execution:
                 logger.info(
@@ -63,6 +64,15 @@ class Checker:
                 logger.error("The above Error-Message is now suppressed!")
         finally:
             self.last_check = time.time()
+
+    @property
+    def period(self):
+        return self._period
+
+    @period.setter
+    def period(self, value):
+        self._period = value
+        logger.info(f"Checker {self.desc} Checking every {self.period} seconds now")
 
     def _sleep(self):
         if self.period > 1:

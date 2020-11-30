@@ -126,9 +126,9 @@ class Specter:
             self.check(check_all=True)
         except Exception as e:
             logger.error(e)
-        self.checker = Checker(lambda: self.check(check_all=True))
+        self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
-        self.price_checker = Checker(lambda: update_price(self, self.user))
+        self.price_checker = Checker(lambda: update_price(self, self.user), "price")
         if self.price_check and self.price_provider:
             self.price_checker.start()
 
@@ -156,7 +156,6 @@ class Specter:
         else:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:
-            logger.info("Checking every %d seconds now" % period)
             self.checker.period = period
         self.rpc = rpc
 

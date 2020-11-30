@@ -15,4 +15,5 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(ch)
     # However initially, we'll set the root-logger to INFO:
     logging.getLogger("cryptoadvance").setLevel(logging.INFO)
+    logging.getLogger("cryptoadvance.specter.util.checker").setLevel(logging.DEBUG)
     entry_point()
