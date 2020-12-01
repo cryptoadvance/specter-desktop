@@ -9,12 +9,12 @@
 	<br>
     <nav class="row">
 		<a 
-			href="{{ url_for('wallet_tx_history', view=viewtype, wallet_alias=wallet_alias)}}"
+			href="{{ url_for('wallets_endpoint.tx_history', view=viewtype, wallet_alias=wallet_alias)}}"
 			class="btn radio left {% if active_menuitem == 'history' %}checked{% endif %}">
 			History
 		</a>
 		<a 
-			href="{{ url_for('wallet_tx_utxo', view=viewtype, wallet_alias=wallet_alias)}}"
+			href="{{ url_for('wallets_endpoint.tx_utxo', view=viewtype, wallet_alias=wallet_alias)}}"
 			class="btn radio right {% if active_menuitem == 'utxo' %}checked{% endif %}">
 			UTXO
 		</a>

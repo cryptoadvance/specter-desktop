@@ -3,7 +3,7 @@
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('general_settings', current_user) }}
+		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
 			<h1> Backup and Restore </h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
@@ -19,7 +19,7 @@
 			Specter Data Backup:
 			<br><br>
 			<div class="row">
-				<a href="{{ url_for('backup_file') }}" download class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
+				<a href="{{ url_for('settings_endpoint.backup_file') }}" download class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
 			</div>
 			<br>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">

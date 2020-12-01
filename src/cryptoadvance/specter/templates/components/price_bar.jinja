@@ -104,7 +104,7 @@
             } else {
                 showNotification('Turning off show price mode...', 0)
             }
-            let url = `{{ url_for('toggleshowprice') }}`;
+            let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
                 const response = await fetch(
@@ -132,7 +132,7 @@
 
         async function savePriceData(reload) {
             showNotification('Updating price date...', 0)
-            let url = `{{ url_for('setprice') }}`;
+            let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
                 const response = await fetch(

@@ -83,7 +83,7 @@ def init_app(app, hwibridge=False, specter=None):
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     if not hwibridge:
         with app.app_context():
-            from cryptoadvance.specter import controller
+            from cryptoadvance.specter.server_endpoints import controller
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped

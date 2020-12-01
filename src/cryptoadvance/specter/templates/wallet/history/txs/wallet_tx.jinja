@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_tx' %}
+{% set tab = 'tx' %}
 {% block content %}
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
 	{{ total_wallet_balances(wallet, specter) }}
