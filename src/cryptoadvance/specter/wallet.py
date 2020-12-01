@@ -791,8 +791,8 @@ class Wallet:
         except:
             return None
 
-    # Exports the wallet data as Electrum JSON format
     def get_electrum_file(self):
+        """ Exports the wallet data as Electrum JSON format """
         electrum_devices = [
             "bitbox02",
             "coldcard",
