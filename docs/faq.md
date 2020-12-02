@@ -33,6 +33,7 @@
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
   - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
+  - [I forgot my password, how can i reset it!](#i-forgot-my-password-how-can-i-reset-it)
 - [BACKING UP FUNDS](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** acccess to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-acccess-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
   - [*To recover a multisig that was built on specter (eg: 2 of 3 with Coldcard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
@@ -247,6 +248,17 @@ With that being said, beware that it's not practical yet to sign transactions vi
 This feature is optional and not needed for the wallet to function. It's only used for convenience in order to generate URLs for addresses.
 Technically, you can use any block explorer but that's not what you want to do, unless you want to try out the feature.
 Simply fill in https://blockstream.info/ to use that block explorer, but you will leak privacy doing that.
+
+## I forgot my password, how can i reset it!
+
+Check the .specter-folder in your Homefolder (or on your mynode/raspiblitz/...). There is a file called `config.json` in there which has a line like this:
+```
+"auth":"somethingInHere"
+```
+Depending on "what's written in `somethingInHere`:
+* If it's `rpcpasswordaspin`, you can lookup the password in your `bitcoin.conf`-file in a line like `rpcpassword=YourPasswordHere`
+* If it's `usernamepassword`, you won't be able to recover the password but you can deactivate it by setting it to `none`
+* If it's `none` (or you just set it to `none`) you can login without any password. So hurry up with setting it again within specter.
 
 # BACKING UP FUNDS 
 
