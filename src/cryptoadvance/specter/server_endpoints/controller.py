@@ -25,6 +25,9 @@ from dotenv import load_dotenv
 load_dotenv(env_path)
 
 from flask import current_app as app
+from .filters import filters_bp
+
+app.register_blueprint(filters_bp)
 
 # Setup specter endpoints
 from .auth import auth_endpoint
@@ -38,9 +41,6 @@ app.register_blueprint(devices_endpoint, url_prefix="/devices")
 app.register_blueprint(price_endpoint, url_prefix="/price")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
-
-# Import filters
-from . import filters
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
