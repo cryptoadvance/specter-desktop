@@ -50,7 +50,7 @@ def feerate(context, value):
 @filters_bp.app_template_filter("btcunitamount")
 def btcunitamount(context, value):
     if app.specter.unit != "sat":
-        return btcamount(value)
+        return btcamount(context, value)
     value = float(value)
     return "{:,.0f}".format(round(value * 1e8))
 
