@@ -102,7 +102,7 @@ def register():
                 "You have registered successfully, \
 please login with your new account to start using Specter"
             )
-            return redirect("login")
+            return redirect(url_for("auth_endpoint.login"))
         else:
             flash(
                 "Invalid registration link, \
@@ -117,7 +117,7 @@ please request a new link from the node operator.",
 def logout():
     logout_user()
     flash("You were logged out", "info")
-    return redirect("login")
+    return redirect(url_for("auth_endpoint.login"))
 
 
 ################### Util ######################
