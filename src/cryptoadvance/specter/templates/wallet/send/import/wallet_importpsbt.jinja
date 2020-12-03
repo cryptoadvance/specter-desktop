@@ -11,7 +11,7 @@
 				<div class="row">
 					<textarea name="rawpsbt" id="rawpsbt" placeholder="Paste PSBT here"></textarea>
 				</div>
-				<div class="row">
+				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
 						<a slot="button" href="#" class="btn" style="margin: 8px;">
 							<img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Scan

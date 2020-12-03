@@ -27,10 +27,13 @@
 					<h2>Users:</h2>
 					{% for user in users %}
 						<form action="?" method="POST">
-							<div style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
-							<span style="line-height: 35px; vertical-align: middle;"><b>Username:</b> {{ user.username }}</span>
-							<button type="submit" name="action" value="deleteuser" class="btn danger" style="float: right; ">Delete User</button>
-							<input type="hidden" name="deleteuser" value="{{ user.id }}">
+							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
+								<span style="line-height: 35px; vertical-align: middle;"><b>Username:</b> {{ user.username }}</span>
+								<br class="mobile-only">
+								<button type="submit" name="action" value="deleteuser" style="float: right;" class="btn danger">Delete User</button>
+								<input type="hidden" name="deleteuser" value="{{ user.id }}">
+								<br class="mobile-only">
+								<br class="mobile-only">
 							</div>
 						</form>
 					{% endfor %}

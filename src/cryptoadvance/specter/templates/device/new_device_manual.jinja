@@ -116,14 +116,14 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
 				<textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
 				<div id="generated_mnemonic">
-					<div class="row center" style="max-height: 30px;">
+					<div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
 						<fieldset style="border:none; display: inline;"> 
 							<select name="strength" id="strength">
 								<option value="128">12 words</option>
 								<option value="256">24 words</option>
 							</select>
 						</fieldset>
-						<button type="submit" class="btn" name="action" value="generatemnemonic" style="max-width: 200px;">Generate New Mnemonic</button>
+						<button type="submit" class="btn" name="action" value="generatemnemonic" style="margin: auto;max-width: 200px;">Generate New Mnemonic</button>
 					</div>
 					<br>
 					<table>
@@ -161,6 +161,8 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 				<br>
 				<p style="margin-bottom: 10px;">Addresses range to import: </p>
 				From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+				<br class="mobile-only">
+				<br class="mobile-only">
 				to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
 				<br>
 				</div>
