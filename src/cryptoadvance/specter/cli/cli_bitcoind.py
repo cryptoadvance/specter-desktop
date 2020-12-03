@@ -3,7 +3,9 @@ import os
 import shutil
 import signal
 import sys
+import atexit
 import time
+import json
 from pathlib import Path
 
 import click
@@ -55,12 +57,27 @@ class Echo:
     help="Will kill the bitcoind. Datadir will get lost.",
 )
 @click.option(
+    "--create-conn-json",
+    is_flag=True,
+    default=False,
+    help="Will create a small json-file btcd-conn.json with connection details.",
+)
+@click.option(
     "--config",
     default=None,
     help="A class from the config.py which sets reasonable Defaults",
 )
 def bitcoind(
-    debug, quiet, nodocker, docker_tag, data_dir, mining, mining_period, reset, config
+    debug,
+    quiet,
+    nodocker,
+    docker_tag,
+    data_dir,
+    mining,
+    mining_period,
+    reset,
+    create_conn_json,
+    config,
 ):
     """This will start a bitcoind regtest and mines a block every mining-period.
     If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will
@@ -150,25 +167,37 @@ def bitcoind(
     echo(
         "   bitcoin-cli: bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=secret getblockchaininfo "
     )
+
+    if create_conn_json:
+        conn = my_bitcoind.rpcconn.as_data()
+        conn["pid"] = os.getpid()  # usefull to sen signals
+        with open("btcd-conn.json", "w") as file:
+            file.write(json.dumps(conn))
+
+        def cleanup():
+            os.remove("btcd-conn.json")
+
+        atexit.register(cleanup)
+
+    signal.signal(
+        signal.SIGUSR1,
+        lambda x, y: mine_2_specter_wallets(
+            my_bitcoind, config_obj["DATA_FOLDER"], echo
+        ),
+    )
+
     if mining:
         miner_loop(my_bitcoind, config_obj["DATA_FOLDER"], mining_every_x_seconds, echo)
 
 
 def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
     " An endless loop mining bitcoin "
-    from ..bitcoind import fetch_wallet_addresses_for_mining
 
     echo(
         "Now, mining a block every %f seconds, avoid it via --no-mining"
         % mining_every_x_seconds
     )
-    # Get each address some coins
-    try:
-        for address in fetch_wallet_addresses_for_mining(data_folder):
-            my_bitcoind.mine(address=address)
-    except FileNotFoundError:
-        # might happen if there no ~/.specter folder yet
-        pass
+    mine_2_specter_wallets(my_bitcoind, data_folder, echo)
 
     # make them spendable
     my_bitcoind.mine(block_count=100)
@@ -191,3 +220,20 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
                 nl=False,
             )
         time.sleep(mining_every_x_seconds)
+
+
+def mine_2_specter_wallets(my_bitcoind, data_folder, echo):
+    """Get each specter-wallet some coins"""
+
+    from ..bitcoind import fetch_wallet_addresses_for_mining
+
+    try:
+
+        for address in fetch_wallet_addresses_for_mining(data_folder):
+            echo("")
+            echo(f"Mining to address {address}")
+            my_bitcoind.mine(address=address)
+        my_bitcoind.mine(block_count=100)
+    except FileNotFoundError:
+        # might happen if there no ~/.specter folder yet
+        pass

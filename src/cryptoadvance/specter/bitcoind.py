@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import json
 
 import docker
 
@@ -54,6 +55,21 @@ class Btcd_conn:
         return "http://{}:{}@{}:{}/wallet/".format(
             self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport
         )
+
+    def as_data(self):
+        """ returns a data-representation of this connection """
+        me = {
+            "user": self.rpcuser,
+            "password": self.rpcpassword,
+            "host": self.ipaddress,
+            "port": self.rpcport,
+            "url": self.render_url(),
+        }
+        return me
+
+    def render_json(self):
+        """ returns a json-representation of this connection """
+        return json.dumps(self.as_data())
 
     def __repr__(self):
         return "<Btcd_conn {}>".format(self.render_url())
