@@ -9,12 +9,12 @@
 {% macro settings_menu(active_menuitem, current_user) -%}
 	<nav class="row">
 		{% if current_user.is_admin %}
-			{{ settings_menu_item('bitcoin_core_settings', 'Bitcoin Core', active_menuitem, isLeft=true) }}
+			{{ settings_menu_item('bitcoin_core', 'Bitcoin Core', active_menuitem, isLeft=true) }}
 		{% endif %}
-		{{ settings_menu_item('general_settings', 'General', active_menuitem, isLeft=(not current_user.is_admin)) }}
-		{{ settings_menu_item('auth_settings', 'Authentication', active_menuitem, optional=true, isRight=not current_user.is_admin) }}
+		{{ settings_menu_item('general', 'General', active_menuitem, isLeft=(not current_user.is_admin)) }}
+		{{ settings_menu_item('auth', 'Authentication', active_menuitem, optional=true, isRight=not current_user.is_admin) }}
 		{% if current_user.is_admin %}
-			{{ settings_menu_item('hwi_settings', 'HWI Bridge', active_menuitem, optional=true, isRight=true) }}
+			{{ settings_menu_item('hwi', 'HWI Bridge', active_menuitem, optional=true, isRight=true) }}
 		{% endif %}
 	</nav>
 {%- endmacro %}

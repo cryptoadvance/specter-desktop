@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_settings' %}
+{% set tab = 'settings' %}
 {% block content %}
 	<style>
 		.subtitle {
@@ -27,7 +27,7 @@
 		{% endif %}
 		<div class="row overflow">
 			{% for device in wallet.devices %}
-				<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device.name }}

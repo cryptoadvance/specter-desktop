@@ -83,7 +83,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="note" style="max-width: 300px">Price will automatically be fetched from the selected provider every 10 minutes.</p>
+                <p class="note" style="max-width: 300px; margin: auto;">Price will automatically be fetched from the selected provider every 10 minutes.</p>
             </div>
             <br><br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
@@ -104,7 +104,7 @@
             } else {
                 showNotification('Turning off show price mode...', 0)
             }
-            let url = `{{ url_for('toggleshowprice') }}`;
+            let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
                 const response = await fetch(
@@ -132,7 +132,7 @@
 
         async function savePriceData(reload) {
             showNotification('Updating price date...', 0)
-            let url = `{{ url_for('setprice') }}`;
+            let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
                 const response = await fetch(

@@ -283,3 +283,16 @@ def parse_wallet_data_import(wallet_data):
         wallet_name = wallet_data.get("label", "Imported Wallet")
         recv_descriptor = wallet_data.get("descriptor", None)
     return (wallet_name, recv_descriptor, cosigners_types)
+
+
+def notify_upgrade(app, flash):
+    """If a new version is available, notifies the user via flash
+    that there is an upgrade to specter.desktop
+    :return the current version
+    """
+    if app.specter.version.upgrade:
+        flash(
+            f"Upgrade notification: new version {app.specter.version.latest} is available.",
+            "info",
+        )
+    return app.specter.version.current

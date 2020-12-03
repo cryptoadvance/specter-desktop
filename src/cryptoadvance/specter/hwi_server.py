@@ -1,5 +1,14 @@
 import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, redirect, render_template, request, flash
+from flask import (
+    Blueprint,
+    Flask,
+    jsonify,
+    url_for,
+    redirect,
+    render_template,
+    request,
+    flash,
+)
 from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
@@ -14,7 +23,7 @@ hwi = HWIBridge()
 
 @hwi_server.route("/", methods=["GET"])
 def index():
-    return redirect("hwi/settings")
+    return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
 
 @hwi_server.route("/api/", methods=["POST"])
