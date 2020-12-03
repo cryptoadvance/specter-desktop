@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
     <h1 id="title">{{wallet.name}}</h1>
-    {% if tab == 'wallet_settings' %}
+    {% if tab == 'settings' %}
         {% from 'components/editable_title.jinja' import editable_title %}
         {{ editable_title(wallet.name) }}
     {% endif %}

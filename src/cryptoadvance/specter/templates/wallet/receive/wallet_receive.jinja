@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_receive' %}
+{% set tab = 'receive' %}
 {% block content %}
 	<style>
 		.update, .cancel, .edit {
@@ -110,7 +110,7 @@
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
 							<td class="optional row">
 								{% if supports_qr_code != [] %}
-									<button onclick="verifyQRCode('{{ address }}', '{{ loop.index0 }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
+									<button onclick="verifyQRCode('{{ address }}', '{{ address_info.index }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
 								{% endif %}
 								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
 									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>

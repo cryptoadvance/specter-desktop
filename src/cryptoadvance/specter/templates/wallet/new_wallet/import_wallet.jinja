@@ -18,7 +18,7 @@
 			<div class="row overflow">
 				{% for cosigner in cosigners %}
 					<input type="hidden" name="cosigner_{{ loop.index0 }}" value="{{ cosigner.alias }}">
-					<a href="{{ url_for('device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
+					<a href="{{ url_for('devices_endpoint.device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
 						<div class="small-card radio">
 							<img src="{{ url_for('static', filename='img/devices/' ~ cosigner.icon) }}" width="18px">
 							{{ cosigner.name }}

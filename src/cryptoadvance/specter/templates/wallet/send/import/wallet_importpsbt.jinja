@@ -1,12 +1,12 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_send' %}
+{% set tab = 'send' %}
 {% block content %}
 	{% include "includes/qr-scanner.html" %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
-	{{ send_nav('wallet_importpsbt', wallet_alias) }}
+	{{ send_nav('import_psbt', wallet_alias) }}
 		<h1 class="padded">Import PSBT transaction:</h1>
 		<span class="center note padded">Paste base64-encoded PSBT transaction here to import.</span>
-		<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" method="POST">
+		<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" method="POST">
 			<div class="card">
 				<div class="row">
 					<textarea name="rawpsbt" id="rawpsbt" placeholder="Paste PSBT here"></textarea>
