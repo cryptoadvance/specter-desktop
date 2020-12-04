@@ -48,7 +48,7 @@
         }
     }
     async function fetchTxData(self) {
-        let url = `{{ url_for('decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        let url = `{{ url_for('wallets_endpoint.decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
         var formData = new FormData();
         formData.append('txid', self.txid)
         try {

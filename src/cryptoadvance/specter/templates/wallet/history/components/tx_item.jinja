@@ -37,7 +37,7 @@
                 {% if tx['category'] in ['send', 'selftransfer'] and ('bip125-replaceable' in tx and tx['bip125-replaceable'] == 'yes') %}
                     <button style="float: right; padding: 10px 25px;" onclick='showPageOverlay(`{{ tx["txid"] }}_rbf_popup`)' type="button" class="btn optional">Speed up</button>
                     <div id='{{ tx["txid"] }}_rbf_popup' class="hidden">
-                        <form action="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}" method="POST">
+                        <form action="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}" method="POST">
                             <h1>Speed up the Transaction</h1>
                             <p>You can speedup the transaction by increasing its fee rate:</p>
                             <input type="hidden" name="rbf_tx_id" value='{{ tx["txid"] }}' />

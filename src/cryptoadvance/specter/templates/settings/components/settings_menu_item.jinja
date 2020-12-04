@@ -10,8 +10,8 @@
  #}
 {% macro settings_menu_item(tab, title, active_menuitem, optional=false, isLeft=false, isRight=false) -%}
 	<a 
-        href="{{ url_for(tab)}}"
-        class="btn radio {% if optional %}optional{% endif %} {% if isLeft %}left{% endif %} {% if isRight %}right{% endif %} {% if active_menuitem == tab %}checked{% endif %} {% if 'general_settings' == tab %}mobile-right{% endif %}">
+        href="{{ url_for('settings_endpoint.' ~ tab)}}"
+        class="btn radio {% if optional %}optional{% endif %} {% if isLeft %}left{% endif %} {% if isRight %}right{% endif %} {% if active_menuitem == tab %}checked{% endif %} {% if 'general' == tab %}mobile-right{% endif %}">
         {{ title }}
     </a>
 {%- endmacro %}
