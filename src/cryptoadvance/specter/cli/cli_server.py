@@ -36,12 +36,29 @@ def cli():
 @click.option("--tor", is_flag=True)
 @click.option("--hwibridge", is_flag=True)
 @click.option(
+    "--data-folder",
+    default=None,
+    help="Enables overriding the specter-data-folder. This is usually ~/.specter",
+)
+@click.option(
     "--config",
     default=None,
     help="A class from the config.py which sets reasonable Defaults",
 )
 def server(
-    daemon, stop, restart, force, port, host, cert, key, debug, tor, hwibridge, config
+    daemon,
+    stop,
+    restart,
+    force,
+    port,
+    host,
+    cert,
+    key,
+    debug,
+    tor,
+    hwibridge,
+    data_folder,
+    config,
 ):
     # create an app to get Specter instance
     # and it's data folder
@@ -57,6 +74,10 @@ def server(
             app = create_app(config=config)
         else:
             app = create_app(config="cryptoadvance.specter.config." + config)
+
+    if not data_folder is None:
+        app.config["DATA_FOLDER"] = data_folder
+
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
 
