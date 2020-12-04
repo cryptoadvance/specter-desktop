@@ -34,7 +34,9 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 class BaseConfig(object):
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
-    DATA_FOLDER = os.path.expanduser(os.getenv("DATA_FOLDER", "~/.specter"))
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
+    )
 
 
 class DevelopmentConfig(BaseConfig):
@@ -47,7 +49,9 @@ class TestConfig(BaseConfig):
 
 
 class CypressTestConfig(TestConfig):
-    DATA_FOLDER = os.path.expanduser(os.getenv("DATA_FOLDER", "~/.specter-cypress"))
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
+    )
     PORT = os.getenv("PORT", 25444)
 
 

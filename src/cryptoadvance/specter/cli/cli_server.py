@@ -20,23 +20,51 @@ def cli():
 
 
 @cli.command()
-@click.option("--daemon", is_flag=True)
-@click.option("--stop", is_flag=True)
-@click.option("--restart", is_flag=True)
-@click.option("--force", is_flag=True)
+@click.option(
+    "--daemon",
+    is_flag=True,
+    help="Deprecated, don't use that and prepare to see it removed",
+)
+@click.option(
+    "--stop",
+    is_flag=True,
+    help="Deprecated, don't use that and prepare to see it removed",
+)
+@click.option(
+    "--restart",
+    is_flag=True,
+    help="Deprecated, don't use that and prepare to see it removed",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Deprecated, don't use that and prepare to see it removed",
+)
 # options below can help to run it on a remote server,
 # but better use nginx
-@click.option("--port")  # default - 25441 set to 80 for http, 443 for https
+@click.option(
+    "--port", help="The TCP-Port to bin specter to"
+)  # default - 25441 set to 80 for http, 443 for https
 # set to 0.0.0.0 to make it available outside
-@click.option("--host", default="127.0.0.1")
+@click.option(
+    "--host",
+    default="127.0.0.1",
+    help="if you do --host 0.0.0.0 then specter will be available in your local lan",
+)
 # for https:
-@click.option("--cert")
+@click.option(
+    "--cert", help="--cert and --key are for using a self-signed-cert/ssl-encryption"
+)
 @click.option("--key")
 @click.option("--debug/--no-debug", default=None)
 @click.option("--tor", is_flag=True)
-@click.option("--hwibridge", is_flag=True)
 @click.option(
-    "--data-folder",
+    "--hwibridge",
+    is_flag=True,
+    help="Start the hwi-bridge to use your HWWs with a remote specter",
+)
+@click.option(
+    "--specter-data-folder",
     default=None,
     help="Enables overriding the specter-data-folder. This is usually ~/.specter",
 )
@@ -76,7 +104,7 @@ def server(
             app = create_app(config="cryptoadvance.specter.config." + config)
 
     if not data_folder is None:
-        app.config["DATA_FOLDER"] = data_folder
+        app.config["SPECTER_DATA_FOLDER"] = data_folder
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
