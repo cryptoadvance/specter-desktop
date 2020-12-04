@@ -35,7 +35,15 @@ addrtypes = {
 
 class WalletManager:
     # chain is required to manage wallets when bitcoind is not running
-    def __init__(self, data_folder, rpc, chain, device_manager, path="specter"):
+    def __init__(
+        self,
+        bitcoin_core_version_raw,
+        data_folder,
+        rpc,
+        chain,
+        device_manager,
+        path="specter",
+    ):
         self.data_folder = data_folder
         self.chain = chain
         self.rpc = rpc
@@ -43,6 +51,7 @@ class WalletManager:
         self.device_manager = device_manager
         self.is_loading = False
         self.wallets = {}
+        self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):

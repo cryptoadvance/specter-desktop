@@ -268,6 +268,7 @@ class Specter:
             or wallet_manager.chain != self.chain
         ):
             wallet_manager = WalletManager(
+                self.bitcoin_core_version_raw,
                 wallets_folder,
                 self.rpc,
                 self.chain,
@@ -653,6 +654,10 @@ class Specter:
     @property
     def bitcoin_core_version(self):
         return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+
+    @property
+    def bitcoin_core_version_raw(self):
+        return self.network_info["version"]
 
     @property
     def chain(self):

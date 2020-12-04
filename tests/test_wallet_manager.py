@@ -8,7 +8,11 @@ from cryptoadvance.specter.wallet_manager import WalletManager
 
 def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
@@ -70,7 +74,11 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
 
 def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -163,7 +171,11 @@ def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -213,7 +225,11 @@ def test_wallet_sortedmulti(
 
 def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -269,7 +285,11 @@ def test_wallet_change_addresses(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
