@@ -206,6 +206,8 @@ def new_wallet(wallet_type):
                 wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
+                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
+                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
                 wallet.import_labels(wallet_data.get("labels", {}))
                 flash("Wallet imported successfully", "info")
                 try:

@@ -250,7 +250,7 @@ def auth():
                 auth = request.form["auth"]
             if specter_username:
                 if current_user.username != specter_username:
-                    if app.specter.user_manager.get_user(specter_username):
+                    if app.specter.user_manager.get_user_by_username(specter_username):
                         flash(
                             "Username is already taken, please choose another one",
                             "error",
