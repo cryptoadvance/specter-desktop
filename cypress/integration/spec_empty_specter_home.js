@@ -5,7 +5,7 @@ describe('Completely empty specter-home', () => {
   })
   it('Visits specter and clicks around', () => {
     cy.viewport(1200,660)
-    cy.visit('http://localhost:25441')
+    cy.visit('/')
     cy.contains('Welcome to Specter Desktop')
     cy.get('[href="/settings/"] > img').click()
     cy.contains('Bitcoin Core settings - Specter Desktop custom')
@@ -19,13 +19,13 @@ describe('Completely empty specter-home', () => {
 
   it('Creates a device in Specter', () => {
     cy.viewport(1200,660)
-    cy.visit('http://localhost:25441')
+    cy.visit('/')
     cy.addDevice("Some Device")
   })
 
   it('Configures the node in Specter', () => {
     cy.viewport(1200,660)
-    cy.visit('http://localhost:25441')
+    cy.visit('/')
     cy.get('[href="/settings/"] > img').click()
     cy.get('#datadir-container').then(($datadir) => {
       cy.log($datadir)

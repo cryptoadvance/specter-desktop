@@ -2,5 +2,6 @@
     "testFiles": [
       "spec_empty_specter_home.js",
       "spec_node_configured.js"
-    ]
+    ],
+    "baseUrl": "http://localhost:25444"
 }

@@ -1,7 +1,7 @@
 describe('Node Configured', () => {
     it('Creates a wallet on specter', () => {
         cy.viewport(1200,660)
-        cy.visit('http://localhost:25441')
+        cy.visit('/')
         cy.addDevice("Testdevice Ghost")
         cy.get('body').then(($body) => {
             if ($body.text().includes('Testwallet Ghost')) {
