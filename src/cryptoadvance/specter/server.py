@@ -52,7 +52,7 @@ def init_app(app, hwibridge=False, specter=None):
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
-        specter = Specter(app.config["SPECTER_DATA_FOLDER"])
+        specter = Specter(data_folder=app.config["SPECTER_DATA_FOLDER"])
 
     # version checker
     # checks for new versions once per hour

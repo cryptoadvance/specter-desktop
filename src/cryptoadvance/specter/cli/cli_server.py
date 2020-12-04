@@ -85,7 +85,7 @@ def server(
     debug,
     tor,
     hwibridge,
-    data_folder,
+    specter_data_folder,
     config,
 ):
     # create an app to get Specter instance
@@ -103,8 +103,8 @@ def server(
         else:
             app = create_app(config="cryptoadvance.specter.config." + config)
 
-    if not data_folder is None:
-        app.config["SPECTER_DATA_FOLDER"] = data_folder
+    if not specter_data_folder is None:
+        app.config["SPECTER_DATA_FOLDER"] = specter_data_folder
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
