@@ -212,8 +212,13 @@ Silently ignored! Wallet error: {e}"
             change_descriptor = "%s(%s)" % (el, change_descriptor)
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
-
-        self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
+        if self.bitcoin_core_version_raw >= 210000:
+            # Use descriptor wallet
+            self.rpc.createwallet(
+                os.path.join(self.rpc_path, wallet_alias), True, True, "", False, True
+            )
+        else:
+            self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
 
         w = Wallet(
             name,

@@ -25,7 +25,7 @@ LISTTRANSACTIONS_BATCH_SIZE = 1000
 class Wallet:
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
-    # a gap of 20 addresses is what many wallets do
+    # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
@@ -966,60 +966,79 @@ class Wallet:
         return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for desciptor wallets is automatically refilled
+        if self.use_descriptors and start > 0:
+            return
+
         if end is None:
+            # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
+
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
             {
                 "desc": desc,
                 "internal": change,
-                "range": [start, end],
                 "timestamp": "now",
-                "keypool": True,
                 "watchonly": True,
             }
         ]
-        addresses = [
-            dict(
-                address=self.get_address(idx, change=change, check_keypool=False),
-                index=idx,
-                change=change,
-            )
-            for idx in range(start, end)
-        ]
-        self._addresses.add(addresses, check_rpc=False)
+        if self.use_descriptors:
+            args[0]["active"] = True
+        else:
+            args[0]["keypool"] = True
+            args[0]["range"] = [start, end]
+
+        if not self.use_descriptors:
+            addresses = [
+                dict(
+                    address=self.get_address(idx, change=change, check_keypool=False),
+                    index=idx,
+                    change=change,
+                )
+                for idx in range(start, end)
+            ]
+            self._addresses.add(addresses, check_rpc=False)
 
         if not self.is_multisig:
-            r = self.rpc.importmulti(args, {"rescan": False})
+            if self.use_descriptors:
+                r = self.rpc.importdescriptors(args)
+            else:
+                r = self.rpc.importmulti(args, {"rescan": False})
         # bip67 requires sorted public keys for multisig addresses
         else:
-            # try if sortedmulti is supported
-            r = self.rpc.importmulti(args, {"rescan": False})
-            # doesn't raise, but instead returns "success": False
-            if not r[0]["success"]:
-                # first import normal multi
-                # remove checksum
-                desc = desc.split("#")[0]
-                # switch to multi
-                desc = desc.replace("sortedmulti", "multi")
-                # add checksum
-                desc = AddChecksum(desc)
-                # update descriptor
-                args[0]["desc"] = desc
+            if self.use_descriptors:
+                self.rpc.importdescriptors(args)
+            else:
+                # try if sortedmulti is supported
                 r = self.rpc.importmulti(args, {"rescan": False})
-                # make a batch of single addresses to import
-                arg = args[0]
-                # remove range key
-                arg.pop("range")
-                batch = []
-                for i in range(start, end):
-                    sorted_desc = sort_descriptor(desc, index=i)
-                    # create fresh object
-                    obj = {}
-                    obj.update(arg)
-                    obj.update({"desc": sorted_desc})
-                    batch.append(obj)
-                r = self.rpc.importmulti(batch, {"rescan": False})
+                # doesn't raise, but instead returns "success": False
+                if not r[0]["success"]:
+                    # first import normal multi
+                    # remove checksum
+                    desc = desc.split("#")[0]
+                    # switch to multi
+                    desc = desc.replace("sortedmulti", "multi")
+                    # add checksum
+                    desc = AddChecksum(desc)
+                    # update descriptor
+                    args[0]["desc"] = desc
+                    r = self.rpc.importmulti(args, {"rescan": False})
+                    # make a batch of single addresses to import
+                    arg = args[0]
+                    # remove range key
+                    arg.pop("range")
+                    batch = []
+                    for i in range(start, end):
+                        sorted_desc = sort_descriptor(desc, index=i)
+                        # create fresh object
+                        obj = {}
+                        obj.update(arg)
+                        obj.update({"desc": sorted_desc})
+                        batch.append(obj)
+                    r = self.rpc.importmulti(batch, {"rescan": False})
         if change:
             self.change_keypool = end
         else:
