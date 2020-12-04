@@ -182,6 +182,8 @@ def general():
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
                     )
+                    wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
+                    wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
                     wallet_obj.import_labels(wallet.get("labels", {}))
                     try:
                         wallet_obj.rpc.rescanblockchain(
