@@ -13,6 +13,7 @@ class Specter(HWIDevice):
     exportable_to_wallet = True
     sd_card_support = False
     qr_code_support = True
+    qr_code_support_verify = True
     wallet_export_type = "qr"
     supports_hwi_multisig_display_address = True
 
