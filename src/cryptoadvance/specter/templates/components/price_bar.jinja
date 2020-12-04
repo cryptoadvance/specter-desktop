@@ -8,6 +8,22 @@
     #price_provider option[disabled] {
         display: none;
     }
+    @media screen and (max-width:720px) {
+        #auto-price-table th, #auto-price-table td { 
+            text-align: center !important;
+            display: block;
+            width: 100%;
+        }
+        #auto-price-table td:empty, #auto-price-table th:empty {
+            display: none;
+            margin: auto;
+        }
+        #auto-price-table th, #auto-price-table td, #auto-price-table td > input {
+            text-align: center;
+            width: 100%;
+            margin: auto;
+        }
+    }
 </style>
 <a id="price-bar-btn" type="button" style="cursor: pointer;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
@@ -37,10 +53,10 @@
             </div>
             <div id="automatic_price" class="hidden">
                 <h2>Select price provider:</h2>
-                <table style="border: none; margin: auto;">
+                <table id="auto-price-table" style="border: none; margin: auto;">
                     <tbody>
                         <tr style="background: none;">
-                            <td style="padding-bottom: 0px; padding-left: 100px; border: none; text-align: right;">
+                            <td style="padding-bottom: 0px; border: none; text-align: right;">
                                 Currency:
                             </td>
                             <td style="padding-bottom: 0px; border: none; text-align: left;">
