@@ -18,6 +18,7 @@ from ..helpers import (
     get_devices_with_keys_by_type,
     get_txid,
     is_testnet,
+    parse_wallet_data_import,
 )
 from ..key import Key
 from ..specter import Specter
@@ -85,20 +86,21 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
-
-            # specter format
-            if "recv_descriptor" in wallet_data:
-                wallet_name = wallet_data.get("name", "Imported Wallet")
-                recv_descriptor = wallet_data.get("recv_descriptor", None)
-            else:
-                wallet_name = wallet_data.get("label", "Imported Wallet")
-                recv_descriptor = wallet_data.get("descriptor", None)
-
+            try:
+                (
+                    wallet_name,
+                    recv_descriptor,
+                    cosigners_types,
+                ) = parse_wallet_data_import(wallet_data)
+            except Exception:
+                flash("Unsupported wallet import format", "error")
+                return redirect(url_for("new_wallet_type"))
             # get min of the two
             # if the node is still syncing
             # and the first block with tx is not there yet
             startblock = min(
-                wallet_data["blockheight"], app.specter.info.get("blocks", 0)
+                wallet_data.get("blockheight", app.specter.info.get("blocks", 0)),
+                app.specter.info.get("blocks", 0),
             )
             # check if pruned
             if app.specter.info.get("pruned", False):
@@ -116,13 +118,13 @@ def new_wallet(wallet_type):
                 )
                 if descriptor is None:
                     flash("Invalid wallet descriptor.", "error")
-                    return redirect(url_for("wallets_endpoint.new_wallet_type"))
+                    return redirect(url_for("new_wallet_type"))
             except:
                 flash("Invalid wallet descriptor.", "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
+                return redirect(url_for("new_wallet_type"))
             if wallet_name in app.specter.wallet_manager.wallets_names:
                 flash("Wallet with the same name already exists", "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
+                return redirect(url_for("new_wallet_type"))
 
             sigs_total = descriptor.multisig_N
             sigs_required = descriptor.multisig_M
@@ -141,6 +143,7 @@ def new_wallet(wallet_type):
             keys = []
             cosigners = []
             unknown_cosigners = []
+            unknown_cosigners_types = []
             if sigs_total == None:
                 sigs_total = 1
                 sigs_required = 1
@@ -178,6 +181,10 @@ def new_wallet(wallet_type):
                         )
                     )
                     unknown_cosigners.append(desc_key)
+                    if len(unknown_cosigners) > len(cosigners_types):
+                        unknown_cosigners_types.append("other")
+                    else:
+                        unknown_cosigners_types.append(cosigners_types[i])
             wallet_type = "multisig" if sigs_total > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
@@ -186,9 +193,12 @@ def new_wallet(wallet_type):
                     unknown_cosigner_name = request.form[
                         "unknown_cosigner_{}_name".format(i)
                     ]
+                    unknown_cosigner_type = request.form.get(
+                        "unknown_cosigner_{}_type".format(i), "other"
+                    )
                     device = app.specter.device_manager.add_device(
                         name=unknown_cosigner_name,
-                        device_type="other",
+                        device_type=unknown_cosigner_type,
                         keys=[unknown_cosigner],
                     )
                     keys.append(unknown_cosigner)
@@ -220,6 +230,7 @@ def new_wallet(wallet_type):
                     wallet_name=wallet_name,
                     cosigners=cosigners,
                     unknown_cosigners=unknown_cosigners,
+                    unknown_cosigners_types=unknown_cosigners_types,
                     sigs_required=sigs_required,
                     sigs_total=sigs_total,
                     specter=app.specter,
