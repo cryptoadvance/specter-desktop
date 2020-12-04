@@ -128,7 +128,9 @@ class Specter:
             logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
-        self.price_checker = Checker(lambda: update_price(self, self.user), desc="price")
+        self.price_checker = Checker(
+            lambda: update_price(self, self.user), desc="price"
+        )
         if self.price_check and self.price_provider:
             self.price_checker.start()
 
