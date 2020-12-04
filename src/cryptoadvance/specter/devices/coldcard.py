@@ -56,6 +56,8 @@ class ColdCard(SDCardDevice):
         return psbts
 
     def export_wallet(self, wallet):
+        if not wallet.is_multisig:
+            return None
         CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
         # try to find at least one derivation
         # cc assume the same derivation for all keys :(

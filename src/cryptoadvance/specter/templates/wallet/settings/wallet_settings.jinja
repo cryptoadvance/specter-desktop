@@ -88,7 +88,10 @@
 		<div class="card">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
-				{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{# check if export_wallet is not None #}
+				{% if device.export_wallet(wallet) %}
+					{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
 				<h2 class="subtitle">Export To Device</h1>
