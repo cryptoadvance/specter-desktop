@@ -45,11 +45,11 @@
 		</div><br>
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
-			{% set supports_qr_code = [] %}
-			{% for device in wallet.devices if device.qr_code_support %}
-				{% set supports_qr_code = supports_qr_code.append(device) %}
+			{% set supports_qr_code_verify = [] %}
+			{% for device in wallet.devices if device.qr_code_support_verify %}
+				{% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
 			{% endfor %}
-			{% if supports_qr_code != [] %}
+			{% if supports_qr_code_verify != [] %}
 				<div id="verify_address_qr_code" class="hidden">
 					<h1>Scan to Verify Address on Your Device</h1><br>
 					<div id="verify_address_qr_code_container"></div><br>
@@ -109,7 +109,7 @@
 							<td class="tx scroll">{{ explorer_link('address', address, address_info.label, specter.explorer) }}</td>
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
 							<td class="optional row">
-								{% if supports_qr_code != [] %}
+								{% if supports_qr_code_verify != [] %}
 									<button onclick="verifyQRCode('{{ address }}', '{{ address_info.index }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
 								{% endif %}
 								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}

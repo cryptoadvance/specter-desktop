@@ -182,6 +182,8 @@ def general():
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
                     )
+                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=False)
+                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=True)
                     wallet_obj.import_labels(wallet.get("labels", {}))
                     try:
                         wallet_obj.rpc.rescanblockchain(
@@ -250,7 +252,7 @@ def auth():
                 auth = request.form["auth"]
             if specter_username:
                 if current_user.username != specter_username:
-                    if app.specter.user_manager.get_user(specter_username):
+                    if app.specter.user_manager.get_user_by_username(specter_username):
                         flash(
                             "Username is already taken, please choose another one",
                             "error",
