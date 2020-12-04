@@ -8,23 +8,23 @@
         }
 
         @media screen and (max-width:720px) {
-            th, td { 
+            #device_setup_wizard th, #device_setup_wizard td { 
                 display: block;
                 width: 100%;
             }
-            td:empty, th:empty {
+            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
                 display: none;
                 margin: auto;
             }
-            th, td, td > input {
+            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
                 text-align: center;
                 width: 100%;
                 margin: auto;
             }
-            .xpub {
+            #device_setup_wizard .xpub {
                 padding: 10px;
             }
-            #edit-xpubs-table-btn {
+            #device_setup_wizard #edit-xpubs-table-btn {
                 margin: auto;
             }
         }
@@ -73,7 +73,7 @@
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
                     <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
                     <div id="generated_mnemonic">
-                        <div class="row center" style="max-height: 30px;">
+                        <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
                             <fieldset style="border:none; display: inline;"> 
                                 <select name="strength" id="strength">
                                     <option value="128">12 words</option>

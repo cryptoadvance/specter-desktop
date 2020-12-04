@@ -4,6 +4,7 @@ from hwilib import bech32
 from .helpers import locked, is_testnet
 from .util.xpub import convert_xpub_prefix
 from .util.json_rpc import JSONRPC
+from .util.descriptor import AddChecksum
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
@@ -254,9 +255,13 @@ class HWIBridge(JSONRPC):
         ) as client:
             if descriptor.get("xpubs_descriptor", None):
                 try:
-                    status = hwi_commands.displayaddress(
-                        client, desc=descriptor["xpubs_descriptor"]
+                    # fix the sortedmulti bug in HWI descriptor parsing
+                    desc = AddChecksum(
+                        descriptor["xpubs_descriptor"]
+                        .replace("sortedmulti", "multi")
+                        .split("#")[0]
                     )
+                    status = hwi_commands.displayaddress(client, desc=desc)
                 except Exception:
                     status = hwi_commands.displayaddress(
                         client, desc=descriptor.get("descriptor", "")
