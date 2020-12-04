@@ -78,14 +78,9 @@ class WalletManager:
                 for wallet in wallets_files:
                     wallet_alias = wallets_files[wallet]["alias"]
                     wallet_name = wallets_files[wallet]["name"]
-                    if (
-                        os.path.join(self.rpc_path, wallet_alias)
-                        not in loaded_wallets
-                    ):
+                    if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
-                            logger.debug(
-                                "loading %s " % wallets_files[wallet]["alias"]
-                            )
+                            logger.debug("loading %s " % wallets_files[wallet]["alias"])
                             self.rpc.loadwallet(
                                 os.path.join(self.rpc_path, wallet_alias)
                             )
@@ -97,9 +92,9 @@ class WalletManager:
                                 for psbt in wallets[wallet_name].pending_psbts:
                                     logger.debug(
                                         "lock %s " % wallet_alias,
-                                        wallets[wallet_name].pending_psbts[psbt][
-                                            "tx"
-                                        ]["vin"],
+                                        wallets[wallet_name].pending_psbts[psbt]["tx"][
+                                            "vin"
+                                        ],
                                     )
                                     wallets[wallet_name].rpc.lockunspent(
                                         False,
@@ -129,9 +124,7 @@ Silently ignored! Wallet error: {e}"
                                     wallets_files[wallet], self.device_manager, self
                                 )
                             except Exception as e:
-                                logger.warn(
-                                    f"Failed to load wallet {wallet_name}: {e}"
-                                )
+                                logger.warn(f"Failed to load wallet {wallet_name}: {e}")
                                 logger.warn(traceback.format_exc())
                         else:
                             # wallet is loaded and should stay
