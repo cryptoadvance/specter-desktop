@@ -936,7 +936,11 @@ class Wallet:
 
     def get_balance(self):
         try:
-            balance = self.rpc.getbalances()["watchonly"]
+            balance = (
+                self.rpc.getbalances()["mine"]
+                if self.use_descriptors
+                else self.rpc.getbalances()["watchonly"]
+            )
             # calculate available balance
             locked_utxo = self.rpc.listlockunspent()
             available = {}
