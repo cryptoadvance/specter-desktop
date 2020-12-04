@@ -117,11 +117,12 @@ class TxList(dict):
         addresses = []
         for txid in txs:
             tx = txs[txid]
-            # find maximal from 3 times:
-            time = max(
-                tx.get("blocktime", 0),
-                tx.get("timereceived", 0),
-                tx.get("time", 0),
+            # find minimal from 3 times:
+            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+            time = min(
+                tx.get("blocktime", maxtime),
+                tx.get("timereceived", maxtime),
+                tx.get("time", maxtime),
             )
             obj = {
                 "txid": txid,

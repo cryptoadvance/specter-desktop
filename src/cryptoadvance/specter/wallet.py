@@ -537,6 +537,15 @@ class Wallet:
 
             result.append(tx)
 
+        for tx in result:
+            # find minimal from 3 times:
+            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+            tx["time"] = min(
+                tx.get("blocktime", maxtime),
+                tx.get("timereceived", maxtime),
+                tx.get("time", maxtime),
+            )
+
         # fund duplicates
         for tx in list(result):
             if tx["category"] == "send":
