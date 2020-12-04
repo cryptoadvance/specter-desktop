@@ -6,7 +6,7 @@
 {% macro editable_title(title) -%}
     <form action="./" method="POST">
         <input type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="font-size: 1.5em; text-align: center; display: none;" />
-        <div class="row">
+        <div class="row center">
             <button type="submit" class="btn update" id="save" name="action" value="rename" style="display: none; width: 49.2%; margin: 3px;">Update</button>
             <button type="button" class="btn cancel" id="cancel" onclick="toggleEdit()" style="display: none; width: 49.2%; margin: 3px;">Cancel</button>
             <button type="button" class="btn edit" id="edit" onclick="toggleEdit()">Edit Name</button>

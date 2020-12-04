@@ -2,9 +2,9 @@
 {% block main %}
 	<form action="./" method="POST" onsubmit="return isValidForm()">
 		{% if wallet_type == 'multisig' %}
-			<h1>Pick the devices you want in your multisig quorum</h1>
+			<h1 style="margin: 20px;">Pick the devices you want in your multisig quorum</h1>
 		{% else %}
-			<h1>Pick the device you want to use</h1>
+			<h1 style="margin: 20px;">Pick the device you want to use</h1>
 		{% endif %}
 		<div class="row overflow">
 			{# Disable BitBox02 multisig for now... #}
