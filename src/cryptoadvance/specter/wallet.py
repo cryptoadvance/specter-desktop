@@ -449,6 +449,12 @@ class Wallet:
         delete_file(self._transactions.path)
 
     @property
+    def use_descriptors(self):
+        if not hasattr(self, "info") or self.info != {}:
+            self.get_info()
+        return "descriptors" in self.info and self.info["descriptors"] == True
+
+    @property
     def is_multisig(self):
         return len(self.keys) > 1
 
