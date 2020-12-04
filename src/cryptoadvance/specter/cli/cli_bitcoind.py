@@ -41,7 +41,7 @@ class Echo:
 )
 @click.option(
     "--data-dir",
-    default="/tmp/bitcoind_plain_datadir",
+    default="/tmp/specter_btcd_regtest_plain_datadir",
     help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ",
 )
 @click.option("--mining/--no-mining", default=True, help="Turns on mining (default)")
@@ -96,10 +96,14 @@ def bitcoind(
     config_obj = Config(".")
     config_obj.from_object(config)
 
-    if debug:
-        logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
-        logger.debug("Now on debug-logging")
     echo = Echo(quiet).echo
+
+    if debug:
+        echo(
+            "Sorry, --debug used this way is deprecated. This feature will get removed. Please do it like this:"
+        )
+        echo("$ python3 -m cryptoadvance-specter --debug bitcoind")
+        exit(1)
 
     if reset:
         if not nodocker:
@@ -125,7 +129,6 @@ def bitcoind(
         if not did_something:
             echo("Nothing to do!")
         return
-    logging.getLogger().setLevel(logging.INFO)
     mining_every_x_seconds = float(mining_period)
     if nodocker:
         echo("starting plain bitcoind")

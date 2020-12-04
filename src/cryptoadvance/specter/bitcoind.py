@@ -287,9 +287,7 @@ class BitcoindDockerController(BitcoindController):
             )
         )
         self.btcd_container = dclient.containers.run(
-            "registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{}".format(
-                self.docker_tag
-            ),
+            image,
             bitcoind_path,
             ports=ports,
             detach=True,
