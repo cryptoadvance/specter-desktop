@@ -225,3 +225,16 @@ def generate_mnemonic(strength=256):
     mnemo = Mnemonic("english")
     words = mnemo.generate(strength=strength)
     return words
+
+
+def notify_upgrade(app, flash):
+    """If a new version is available, notifies the user via flash
+    that there is an upgrade to specter.desktop
+    :return the current version
+    """
+    if app.specter.version.upgrade:
+        flash(
+            f"Upgrade notification: new version {app.specter.version.latest} is available.",
+            "info",
+        )
+    return app.specter.version.current

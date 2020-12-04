@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, redirect
+from flask import Flask, redirect, url_for
 from flask_login import LoginManager, login_user
 
 from .helpers import hwi_get_config
@@ -61,7 +61,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     login_manager = LoginManager()
     login_manager.init_app(app)  # Enable Login
-    login_manager.login_view = "login"  # Enable redirects if unauthorized
+    login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
 
     @login_manager.user_loader
     def user_loader(id):
@@ -82,7 +82,7 @@ def init_app(app, hwibridge=False, specter=None):
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     if not hwibridge:
         with app.app_context():
-            from cryptoadvance.specter import controller
+            from cryptoadvance.specter.server_endpoints import controller
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
@@ -97,7 +97,7 @@ def init_app(app, hwibridge=False, specter=None):
 
         @app.route("/", methods=["GET"])
         def index():
-            return redirect("/hwi/settings")
+            return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
     @app.context_processor
     def inject_tor():
