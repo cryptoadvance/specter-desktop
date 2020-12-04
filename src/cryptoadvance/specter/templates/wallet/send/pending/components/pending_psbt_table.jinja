@@ -12,7 +12,7 @@
     <table>
         <thead>
         <tr>
-            <th></th><th>Address</th><th>Amount</th><th>Time</th><th>Sigs</th><th>Actions</th>
+            <th></th><th class="optional">Address</th><th>Amount</th><th class="optional">Time</th><th>Sigs</th><th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -28,7 +28,7 @@
                     }}
                 {% endfor %}
             {% else %}
-                <td></td><td>No transactions yet.</td><td></td><td></td><td></td><td></td>
+                <td></td><td>No transactions yet.</td><td></td><td class="optional"></td><td class="optional"></td><td></td>
             {% endif %}
         </tbody>
     </table>

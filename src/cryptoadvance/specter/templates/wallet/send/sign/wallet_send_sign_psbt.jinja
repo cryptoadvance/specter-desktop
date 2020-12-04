@@ -61,14 +61,21 @@
 		input[type="checkbox"]:checked ~ .toggle{
 			display: block;
 		}
+		@media screen and (max-width:720px) {
+			.tx {
+				width: 100%;
+				max-width: 179px;
+				min-width: 0px;
+			}
+        }
 	</style>
 	<br>
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form">
+	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" style="margin: auto; max-width: 96%;">
 		<div class="tx_info">
 			
 			{% for i in range(psbt['address']|length) %}
-				<div>Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
+				<div style="word-break: break-all;">Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
 					{% if specter.unit == 'sat' %}
 						sats
 					{% else %}
@@ -93,7 +100,7 @@
 			<label for="showdetails" class="btn togglebtn">
 				transaction details
 			</label>
-			<div class="toggle" id="tx_details">
+			<div class="toggle" id="tx_details" style="word-break: break-all;">
 				<br>
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
@@ -144,7 +151,7 @@
 					</p>
 				{% endfor %}
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
-				<div class="row" style="margin:auto">
+				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
 					<img src="{{url_for('static', filename='img/download.svg')}}"/> Save binary</a>&nbsp;

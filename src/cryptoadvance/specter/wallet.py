@@ -253,9 +253,8 @@ class Wallet:
                 for device in new_dict["devices"]
             ]
             if None in devices:
-                raise Exception(
-                    "A device used by this wallet could not have been found!"
-                )
+                logger.error("A device used by this wallet could not have been found!")
+                return
             else:
                 new_dict["devices"] = [
                     device_manager.devices[device].alias for device in devices
@@ -291,9 +290,8 @@ class Wallet:
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
         except:
-            raise Exception(
-                "Could not construct a Wallet object from the data provided."
-            )
+            logger.error("Could not construct a Wallet object from the data provided.")
+            return
 
         return cls(
             name,

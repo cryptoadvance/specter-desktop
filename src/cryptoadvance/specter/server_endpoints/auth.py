@@ -88,7 +88,11 @@ def register():
         password = hash_password(request.form["password"])
         otp = request.form["otp"]
         user_id = alias(username)
-        if app.specter.user_manager.get_user(user_id):
+        i = 1
+        while app.specter.user_manager.get_user(user_id):
+            i += 1
+            user_id = "{}{}".format(alias(username), i)
+        if app.specter.user_manager.get_user_by_username(username):
             flash("Username is already taken, please choose another one", "error")
             return redirect("register?otp={}".format(otp))
         if app.specter.burn_new_user_otp(otp):

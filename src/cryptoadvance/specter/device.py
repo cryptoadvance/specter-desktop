@@ -16,6 +16,7 @@ class Device:
     # of different communication methods
     sd_card_support = False
     qr_code_support = False
+    qr_code_support_verify = False
     hwi_support = False
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
