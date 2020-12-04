@@ -791,47 +791,70 @@ class Wallet:
         except:
             return None
 
-    def get_electrum_watchonly(self):
+    def get_electrum_file(self):
+        """ Exports the wallet data as Electrum JSON format """
+        electrum_devices = [
+            "bitbox02",
+            "coldcard",
+            "digitalbitbox",
+            "keepkey",
+            "ledger",
+            "safe_t",
+            "trezor",
+        ]
         if len(self.keys) == 1:
             # Single-sig case:
             key = self.keys[0]
-            return {
-                "keystore": {
+            if self.devices[0].device_type in electrum_devices:
+                return {
+                    "keystore": {
+                        "ckcc_xpub": key.xpub,
+                        "derivation": key.derivation.replace("h", "'"),
+                        "root_fingerprint": key.fingerprint,
+                        "hw_type": self.devices[0].device_type,
+                        "label": self.devices[0].name,
+                        "type": "hardware",
+                        "soft_device_id": None,
+                        "xpub": key.original,
+                    },
+                    "wallet_type": "standard",
+                }
+            else:
+                return {
+                    "keystore": {
+                        "derivation": key.derivation.replace("h", "'"),
+                        "root_fingerprint": key.fingerprint,
+                        "type": "bip32",
+                        "xprv": None,
+                        "xpub": key.original,
+                    },
+                    "wallet_type": "standard",
+                }
+
+        # Multisig case
+
+        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
+        for cnt, device in enumerate(self.devices):
+            key = [key for key in device.keys if key in self.keys][0]
+            if device.device_type in electrum_devices:
+                to_return["x{}/".format(cnt + 1)] = {
+                    "ckcc_xpub": key.xpub,
+                    "derivation": key.derivation.replace("h", "'"),
+                    "root_fingerprint": key.fingerprint,
+                    "hw_type": device.device_type,
+                    "label": device.name,
+                    "type": "hardware",
+                    "soft_device_id": None,
+                    "xpub": key.original,
+                }
+            else:
+                to_return["x{}/".format(cnt + 1)] = {
                     "derivation": key.derivation.replace("h", "'"),
                     "root_fingerprint": key.fingerprint,
                     "type": "bip32",
                     "xprv": None,
                     "xpub": key.original,
-                },
-                "wallet_type": "standard",
-            }
-
-        # Multisig case
-
-        # Build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
-        LOOKUP_TABLE = {}
-        for key in self.keys:
-            LOOKUP_TABLE[key.xpub] = key
-
-        desc = Descriptor.parse(
-            desc=self.recv_descriptor,
-            # assume testnet status is the same across all keys
-            testnet=key.is_testnet,
-        )
-        slip132_keys = []
-        for desc_key in desc.base_key:
-            # Find corresponding wallet key
-            slip132_keys.append(LOOKUP_TABLE[desc_key])
-
-        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
-        for cnt, slip132_key in enumerate(slip132_keys):
-            to_return["x{}/".format(cnt + 1)] = {
-                "derivation": slip132_key.derivation.replace("h", "'"),
-                "root_fingerprint": slip132_key.fingerprint,
-                "type": "bip32",
-                "xprv": None,
-                "xpub": slip132_key.original,
-            }
+                }
 
         return to_return
 

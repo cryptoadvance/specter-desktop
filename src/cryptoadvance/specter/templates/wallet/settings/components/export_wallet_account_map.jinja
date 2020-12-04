@@ -12,13 +12,14 @@
     <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>
     <br />
     <hr />
-    <h4>Create Electrum Watch-Only Wallet</h4>
+    <h4>Create Electrum Wallet</h4>
+    If electrum supports your device, you'll get a regular wallet in electrum, otherwise a watch-only-wallet.
     <a
-	id="electrum_watchonly_export"
-	download="{{ wallet.alias | ascii20 }}_electrum_watchonly.backup"
-	onclick="showNotification('Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum_watchonly.backup', 0)"
+	id="electrum_export"
+	download="{{ wallet.alias | ascii20 }}_electrum.backup"
+	onclick="showNotification('Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup', 0)"
 	class="btn centered padded">
-	    Download Electrum Watch-Only File
+	    Download Electrum (Watch-Only) File
     </a>
 </div>
 <script>
@@ -26,6 +27,6 @@ document.addEventListener("DOMContentLoaded", function(){
     document.getElementById('export_wallet_file').href = 'data:text/json,' + encodeURIComponent('{{ wallet.account_map }}');
 });
 document.addEventListener("DOMContentLoaded", function(){
-    document.getElementById('electrum_watchonly_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_watchonly()|tojson }}');
+    document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');
 });
 </script>
