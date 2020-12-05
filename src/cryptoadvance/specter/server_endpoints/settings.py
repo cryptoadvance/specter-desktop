@@ -47,7 +47,8 @@ def bitcoin_core():
         return redirect("")
     # The node might have been down but is now up again
     # (and the checker did not realized yet) and the user clicked "Configure Node"
-    app.specter.check()
+    if app.specter.rpc is None:
+        app.specter.check()
     rpc = app.specter.config["rpc"]
     user = rpc["user"]
     password = rpc["password"]
