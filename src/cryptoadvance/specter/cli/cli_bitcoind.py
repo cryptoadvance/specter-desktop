@@ -185,7 +185,7 @@ def bitcoind(
     signal.signal(
         signal.SIGUSR1,
         lambda x, y: mine_2_specter_wallets(
-            my_bitcoind, config_obj["DATA_FOLDER"], echo
+            my_bitcoind, config_obj["SPECTER_DATA_FOLDER"], echo
         ),
     )
 
