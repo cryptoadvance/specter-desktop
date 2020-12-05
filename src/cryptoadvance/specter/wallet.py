@@ -1320,13 +1320,21 @@ class Wallet:
             address.append(addr)
             amount.append(out["value"])
 
-        return self.createpsbt(
+        psbt = self.createpsbt(
             addresses=address,
             amounts=amount,
             fee_rate=0.0,
             readonly=False,
             existing_psbt=psbt,
         )
+
+        signed_devices = self.get_signed_devices(psbt)
+        psbt["devices_signed"] = [dev.alias for dev in signed_devices]
+        psbt["sigs_count"] = len(signed_devices)
+        raw = self.rpc.finalizepsbt(b64psbt)
+        if "hex" in raw:
+            psbt["raw"] = raw["hex"]
+
         return psbt
 
     @property
