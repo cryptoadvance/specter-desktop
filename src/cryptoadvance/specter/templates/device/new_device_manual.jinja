@@ -337,14 +337,21 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 							console.log(str);
 							if ("keystore" in json) { // ColdCard electrum file
 								let prefix = "";
-								if (("ckcc_xfp" in json.keystore) && ("derivation" in json.keystore)) {
-									prefix = "[";
+								let fingerprint = "";
+								if ("ckcc_xfp" in json.keystore){
 									let num = json.keystore.ckcc_xfp;
 									for (let i = 0; i < 4; i++) {
-										prefix += ('0' + (num % 256).toString(16)).slice(-2);
+										fingerprint += ('0' + (num % 256).toString(16)).slice(-2);
 										num = num >>> 8;
 									}
-									prefix += json.keystore.derivation.substring(1);
+								}
+								if ("root_fingerprint" in json.keystore){
+									fingerprint = json.keystore.root_fingerprint;
+								}
+								if ((fingerprint.length > 0) && ("derivation" in json.keystore)) {
+									prefix = "[";
+									prefix += fingerprint;
+									prefix += json.keystore.derivation.substring(1).replace(/'/g,"h");
 									prefix += "]";
 								}
 								let s = prefix + json.keystore.xpub + "\n";
