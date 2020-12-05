@@ -24,7 +24,6 @@
 - Docs: Update FAQ on how to recover password (#727) (@k9ert)
 - Docs: Update FAQ on how to upgrade Specter Desktop (#702) (@k9ert)
 
-
 ## v0.10.0 November 21, 2020
 - HWI: Fix integration with Ledger running the latest Bitcoin app (1.5.1) (#650) (@ben-kaufman)
 - HWI: Fix BitBox02 integration (#652) (@ben-kaufman)
