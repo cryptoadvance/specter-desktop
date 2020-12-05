@@ -45,6 +45,9 @@ class Specter(HWIDevice):
         for out in qr_psbt.outputs:
             inp.witness_script = None
             inp.redeem_script = None
+        # remove partial sigs from inputs
+        for inp in qr_psbt.inputs:
+            inp.partial_sigs = {}
         psbts["qrcode"] = b2a_base64(qr_psbt.serialize()).strip().decode()
         return psbts
 
