@@ -43,8 +43,8 @@ class Specter(HWIDevice):
                     inp.bip32_derivations.pop(k, None)
         # remove scripts from outputs (DIY should know about the wallet)
         for out in qr_psbt.outputs:
-            inp.witness_script = None
-            inp.redeem_script = None
+            out.witness_script = None
+            out.redeem_script = None
         # remove partial sigs from inputs
         for inp in qr_psbt.inputs:
             inp.partial_sigs = {}
