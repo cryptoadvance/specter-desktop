@@ -103,12 +103,24 @@ def server(
         else:
             app = create_app(config="cryptoadvance.specter.config." + config)
 
-    if not specter_data_folder is None:
+    if specter_data_folder:
         app.config["SPECTER_DATA_FOLDER"] = specter_data_folder
+
+    if port:
+        app.config["PORT"] = int(port)
+
+    # certificates
+    if cert:
+        logger.info("CERT:" + str(cert))
+        app.config["CERT"] = cert
+    if key:
+        key = app.config["KEY"] = key
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
 
+    # This stuff here is deprecated
+    # When we remove it, we should imho keep the pid_file thing which can be very useful!
     # we will store our daemon PID here
     pid_file = path.join(app.specter.data_folder, "daemon.pid")
     toraddr_file = path.join(app.specter.data_folder, "onion.txt")
@@ -152,21 +164,11 @@ def server(
                 if os.path.isfile(filename):
                     extra_files.append(filename)
 
-    # if port is not defined - get it from the configuration
-    if port is None:
-        port = int(app.config["PORT"])
-
-    # certificates
-    if cert is None:
-        cert = os.getenv("CERT", None)
-    if key is None:
-        key = os.getenv("KEY", None)
-
     protocol = "http"
-    kwargs = {"host": host, "port": port, "extra_files": extra_files}
+    kwargs = {"host": host, "port": app.config["PORT"], "extra_files": extra_files}
     if cert is not None and key is not None:
-        cert = os.path.abspath(cert)
-        key = os.path.abspath(key)
+        cert = os.path.abspath(app.config["CERT"])
+        key = os.path.abspath(app.config["KEY"])
         kwargs["ssl_context"] = (cert, key)
         protocol = "https"
 
@@ -174,7 +176,7 @@ def server(
         print(
             " * Running HWI Bridge mode.\n"
             " * You can configure access to the API "
-            "at: %s://%s:%d/hwi/settings" % (protocol, host, port)
+            "at: %s://%s:%d/hwi/settings" % (protocol, host, app.config["PORT"])
         )
 
     # debug is false by default
@@ -184,17 +186,12 @@ def server(
         except Exception:
             app.controller = None
         try:
-            port = 5000  # default flask port
-            if "port" in kwargs:
-                port = kwargs["port"]
-            else:
-                kwargs["port"] = port
             # if we have certificates
             if "ssl_context" in kwargs:
                 tor_port = 443
             else:
                 tor_port = 80
-            app.port = port
+            app.port = kwargs["port"]
             app.tor_port = tor_port
             app.save_tor_address_to = toraddr_file
             if debug and (tor or os.getenv("CONNECT_TOR") == "True"):

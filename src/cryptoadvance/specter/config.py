@@ -37,6 +37,9 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
+    CERT = os.getenv("CERT", None)
+    KEY = os.getenv("KEY", None)
 
 
 class DevelopmentConfig(BaseConfig):
