@@ -632,9 +632,7 @@ def send_new(wallet_alias):
             except Exception as e:
                 flash("Could not import PSBT: %s" % e, "error")
                 return redirect(
-                    url_for(
-                        "wallets_endpoint.wallet_importpsbt", wallet_alias=wallet_alias
-                    )
+                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
                 )
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
