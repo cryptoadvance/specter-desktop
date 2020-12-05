@@ -1148,7 +1148,10 @@ class Wallet:
             extra_inputs = [
                 {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
             ]
-            options["changeAddress"] = psbt["changeAddress"]
+            if "changeAddress" in psbt:
+                options["changeAddress"] = psbt["changeAddress"]
+            if "base64" in psbt:
+                b64psbt = psbt["base64"]
 
         if fee_rate > 0.0:
             if not existing_psbt:
@@ -1204,18 +1207,29 @@ class Wallet:
         psbt["changeAddress"] = [
             vout["scriptPubKey"]["addresses"][0]
             for i, vout in enumerate(psbt["tx"]["vout"])
-            if "bip32_derivs" in psbt["outputs"][i]
-        ][0]
+            if self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+            and self.get_address_info(vout["scriptPubKey"]["addresses"][0]).change
+        ]
+        if psbt["changeAddress"]:
+            psbt["changeAddress"] = psbt["changeAddress"][0]
+        else:
+            raise Exception("Cannot RBF a transaction with no change output")
         return self.createpsbt(
             addresses=[
                 vout["scriptPubKey"]["addresses"][0]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if "bip32_derivs" not in psbt["outputs"][i]
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
             ],
             amounts=[
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if "bip32_derivs" not in psbt["outputs"][i]
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
             ],
             fee_rate=fee_rate,
             readonly=False,
@@ -1299,23 +1313,20 @@ class Wallet:
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
             addr = out["scriptPubKey"]["addresses"][0]
-            info = self.rpc.getaddressinfo(addr)
+            info = self.get_address_info(addr)
             # check if it's a change
-            if info["iswatchonly"] or info["ismine"]:
+            if info and info.change:
                 continue
             address.append(addr)
             amount.append(out["value"])
-        # detect signatures
-        signed_devices = self.get_signed_devices(psbt)
-        psbt["devices_signed"] = [dev.alias for dev in signed_devices]
-        psbt["amount"] = amount
-        psbt["address"] = address
-        psbt["time"] = time.time()
-        psbt["sigs_count"] = len(signed_devices)
-        raw = self.rpc.finalizepsbt(b64psbt)
-        if "hex" in raw:
-            psbt["raw"] = raw["hex"]
-        self.save_pending_psbt(psbt)
+
+        return self.createpsbt(
+            addresses=address,
+            amounts=amount,
+            fee_rate=0.0,
+            readonly=False,
+            existing_psbt=psbt,
+        )
         return psbt
 
     @property
