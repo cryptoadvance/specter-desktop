@@ -79,7 +79,7 @@ def new_wallet(wallet_type):
     wallet_types = ["simple", "multisig", "import_wallet"]
     if wallet_type not in wallet_types:
         flash("Unknown wallet type requested", "error")
-        return redirect(url_for("new_wallet_type"))
+        return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
     err = None
     if request.method == "POST":
@@ -94,7 +94,7 @@ def new_wallet(wallet_type):
                 ) = parse_wallet_data_import(wallet_data)
             except Exception:
                 flash("Unsupported wallet import format", "error")
-                return redirect(url_for("new_wallet_type"))
+                return redirect(url_for("wallets_endpoint.new_wallet_type"))
             # get min of the two
             # if the node is still syncing
             # and the first block with tx is not there yet
@@ -118,13 +118,13 @@ def new_wallet(wallet_type):
                 )
                 if descriptor is None:
                     flash("Invalid wallet descriptor.", "error")
-                    return redirect(url_for("new_wallet_type"))
+                    return redirect(url_for("wallets_endpoint.new_wallet_type"))
             except:
                 flash("Invalid wallet descriptor.", "error")
-                return redirect(url_for("new_wallet_type"))
+                return redirect(url_for("wallets_endpoint.new_wallet_type"))
             if wallet_name in app.specter.wallet_manager.wallets_names:
                 flash("Wallet with the same name already exists", "error")
-                return redirect(url_for("new_wallet_type"))
+                return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
             sigs_total = descriptor.multisig_N
             sigs_required = descriptor.multisig_M
@@ -203,9 +203,13 @@ def new_wallet(wallet_type):
                     )
                     keys.append(unknown_cosigner)
                     cosigners.append(device)
-                wallet = app.specter.wallet_manager.create_wallet(
-                    wallet_name, sigs_required, address_type, keys, cosigners
-                )
+                try:
+                    wallet = app.specter.wallet_manager.create_wallet(
+                        wallet_name, sigs_required, address_type, keys, cosigners
+                    )
+                except Exception as e:
+                    flash("Failed to create wallet: %r" % e, "error")
+                    return redirect(url_for("wallets_endpoint.new_wallet_type"))
                 wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
                 wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
                 wallet.import_labels(wallet_data.get("labels", {}))
@@ -332,9 +336,24 @@ def new_wallet(wallet_type):
                 )
 
             # create a wallet here
-            wallet = app.specter.wallet_manager.create_wallet(
-                wallet_name, sigs_required, address_type, keys, cosigners
-            )
+            try:
+                wallet = app.specter.wallet_manager.create_wallet(
+                    wallet_name, sigs_required, address_type, keys, cosigners
+                )
+            except Exception:
+                err = "Failed to create wallet..."
+                return render_template(
+                    "wallet/new_wallet/new_wallet_keys.jinja",
+                    purposes=purposes,
+                    cosigners=cosigners,
+                    wallet_type=wallet_type,
+                    sigs_total=len(devices),
+                    sigs_required=max(len(devices) * 2 // 3, 1),
+                    error=err,
+                    specter=app.specter,
+                    rand=rand,
+                )
+
             app.logger.info("Created Wallet %s" % wallet_name)
             rescan_blockchain = "rescanblockchain" in request.form
             if rescan_blockchain:
