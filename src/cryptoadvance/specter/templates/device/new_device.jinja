@@ -34,7 +34,7 @@
     </style>
     <div id="device_setup_wizard" style="width: 100%;" onsubmit="showPacman();">
         <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
-        <form id="form" action="./" method="POST" class="card center" style="width: auto; margin: 40px;">
+        <form id="form" action="{{ url_for('devices_endpoint.new_device') }}" method="POST" class="card center" style="width: auto; margin: 40px;">
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
