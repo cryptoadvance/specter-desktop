@@ -8,15 +8,15 @@ from cryptoadvance.specter.util.checker import Checker
 def test_checker(caplog):
     callback_mock = Mock()
     caplog.set_level(logging.DEBUG)
-    checker = Checker(lambda: callback_mock(), period=0.01)
+    checker = Checker(lambda: callback_mock(), period=0.01, desc="test")
     checker.start()
     time.sleep(
         0.1
     )  # If the above assumptions are failing, you might want to increase this
-    assert "Checker started" in caplog.text
+    assert "Checker test started" in caplog.text
     assert "This message won't show again until stopped and started." in caplog.text
     checker.stop()
-    assert "Checker stopped" in caplog.text
+    assert "Checker test stopped" in caplog.text
     callback_mock.side_effect = Exception("someException")
     checker.start()
     time.sleep(

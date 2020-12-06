@@ -11,7 +11,6 @@ from .helpers import hwi_get_config
 from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
-from .config import DATA_FOLDER
 from .util.version import VersionChecker
 
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -53,7 +52,7 @@ def init_app(app, hwibridge=False, specter=None):
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
-        specter = Specter(DATA_FOLDER)
+        specter = Specter(data_folder=app.config["SPECTER_DATA_FOLDER"])
 
     # version checker
     # checks for new versions once per hour

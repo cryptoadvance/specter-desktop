@@ -29,6 +29,8 @@ def get_rpc(conf, old_rpc=None):
     Checks if config have changed,
     compares with old rpc
     and returns new one if necessary
+    If there is no working rpc-connection,
+    it has to return None
     """
     if "autodetect" not in conf:
         conf["autodetect"] = True
@@ -52,7 +54,7 @@ def get_rpc(conf, old_rpc=None):
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
-        return rpc
+        return rpc if rpc.test_connection() else None
     # check if we have something detected
     if rpc is None:
         # check if old rpc is still valid
@@ -124,9 +126,11 @@ class Specter:
             self.check(check_all=True)
         except Exception as e:
             logger.error(e)
-        self.checker = Checker(lambda: self.check(check_all=True))
+        self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
-        self.price_checker = Checker(lambda: update_price(self, self.user))
+        self.price_checker = Checker(
+            lambda: update_price(self, self.user), desc="price"
+        )
         if self.price_check and self.price_provider:
             self.price_checker.start()
 
@@ -154,7 +158,6 @@ class Specter:
         else:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:
-            logger.info("Checking every %d seconds now" % period)
             self.checker.period = period
         self.rpc = rpc
 
