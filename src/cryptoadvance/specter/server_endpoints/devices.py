@@ -286,7 +286,7 @@ def device(device_alias):
             strength = 128
             mnemonic = generate_mnemonic(strength=strength)
             return render_template(
-                "device/new_device_manual.jinja",
+                "device/new_device.jinja",
                 mnemonic=mnemonic,
                 strength=strength,
                 existing_device=device,
