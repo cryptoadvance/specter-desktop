@@ -32,11 +32,11 @@
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
 					{% include "components/tor_address.jinja" %}
-					<a class="settings-bar-btn" href="{{ url_for('settings') }}">
+					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth != "none" %}
-						<a class="settings-bar-btn" href="{{ url_for('logout') }}">
+						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}">
 							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
 						</a>
 					{% endif %}
@@ -78,7 +78,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('settings') }}">
+									<a href="{{ url_for('settings_endpoint.settings') }}">
 										<h2>Connect Specter to your Bitcoin Core node.</h2>
 									</a>
 								</td>
@@ -97,9 +97,9 @@
 											<h1>Installing and Setting Up Bitcoin Core</h1>
 											Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop:<br><br>
 											<ul style="text-align: left; margin: auto; line-height: 2;">
-												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
-												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
-												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
 											</ul>
 										</div>
 										<div id="local-node-help-popup" class="hidden">
@@ -113,9 +113,9 @@
 											<br><br>
 											In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop:<br><br>
 											<ul style="text-align: left; margin: auto; line-height: 2;">
-												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
-												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
-												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
 											</ul>
 										</div>
 										<div id="remote-node-help-popup" class="hidden">
@@ -139,7 +139,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('device_setup_wizard') }}">
+									<a href="{{ url_for('devices_endpoint.new_device') }}">
 										<h2>Add signing devices you wish to use.</h2>
 									</a>
 								</td>
@@ -151,7 +151,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('new_wallet_type') }}">
+									<a href="{{ url_for('wallets_endpoint.new_wallet_type') }}">
 										<h2>Create your first wallet!</h2>
 									</a>
 								</td>

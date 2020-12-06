@@ -3,7 +3,7 @@
 	<form action="?" method="POST">
 		<h1 id="title" class="settings-title">Authentication settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('auth_settings', current_user) }}
+		{{ settings_menu('auth', current_user) }}
 		<div class="card" style="margin: 20px auto;">
 			{% if specter.config.auth == "none" or current_user.is_admin %}
 				Authentication:<br>
@@ -27,10 +27,13 @@
 					<h2>Users:</h2>
 					{% for user in users %}
 						<form action="?" method="POST">
-							<div style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
-							<span style="line-height: 35px; vertical-align: middle;"><b>Username:</b> {{ user.username }}</span>
-							<button type="submit" name="action" value="deleteuser" class="btn danger" style="float: right; ">Delete User</button>
-							<input type="hidden" name="deleteuser" value="{{ user.id }}">
+							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
+								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>Username:</b> {{ user.username }}</span>
+								<br class="mobile-only">
+								<button type="submit" name="action" value="deleteuser" style="float: right; max-width: 250px;" class="btn danger">Delete User</button>
+								<input type="hidden" name="deleteuser" value="{{ user.id }}">
+								<br class="mobile-only">
+								<br class="mobile-only">
 							</div>
 						</form>
 					{% endfor %}

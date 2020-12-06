@@ -253,9 +253,8 @@ class Wallet:
                 for device in new_dict["devices"]
             ]
             if None in devices:
-                raise Exception(
-                    "A device used by this wallet could not have been found!"
-                )
+                logger.error("A device used by this wallet could not have been found!")
+                return
             else:
                 new_dict["devices"] = [
                     device_manager.devices[device].alias for device in devices
@@ -291,9 +290,8 @@ class Wallet:
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
         except:
-            raise Exception(
-                "Could not construct a Wallet object from the data provided."
-            )
+            logger.error("Could not construct a Wallet object from the data provided.")
+            return
 
         return cls(
             name,
@@ -538,6 +536,15 @@ class Wallet:
                     )
 
             result.append(tx)
+
+        for tx in result:
+            # find minimal from 3 times:
+            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+            tx["time"] = min(
+                tx.get("blocktime", maxtime),
+                tx.get("timereceived", maxtime),
+                tx.get("time", maxtime),
+            )
 
         # fund duplicates
         for tx in list(result):
@@ -791,47 +798,70 @@ class Wallet:
         except:
             return None
 
-    def get_electrum_watchonly(self):
+    def get_electrum_file(self):
+        """ Exports the wallet data as Electrum JSON format """
+        electrum_devices = [
+            "bitbox02",
+            "coldcard",
+            "digitalbitbox",
+            "keepkey",
+            "ledger",
+            "safe_t",
+            "trezor",
+        ]
         if len(self.keys) == 1:
             # Single-sig case:
             key = self.keys[0]
-            return {
-                "keystore": {
+            if self.devices[0].device_type in electrum_devices:
+                return {
+                    "keystore": {
+                        "ckcc_xpub": key.xpub,
+                        "derivation": key.derivation.replace("h", "'"),
+                        "root_fingerprint": key.fingerprint,
+                        "hw_type": self.devices[0].device_type,
+                        "label": self.devices[0].name,
+                        "type": "hardware",
+                        "soft_device_id": None,
+                        "xpub": key.original,
+                    },
+                    "wallet_type": "standard",
+                }
+            else:
+                return {
+                    "keystore": {
+                        "derivation": key.derivation.replace("h", "'"),
+                        "root_fingerprint": key.fingerprint,
+                        "type": "bip32",
+                        "xprv": None,
+                        "xpub": key.original,
+                    },
+                    "wallet_type": "standard",
+                }
+
+        # Multisig case
+
+        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
+        for cnt, device in enumerate(self.devices):
+            key = [key for key in device.keys if key in self.keys][0]
+            if device.device_type in electrum_devices:
+                to_return["x{}/".format(cnt + 1)] = {
+                    "ckcc_xpub": key.xpub,
+                    "derivation": key.derivation.replace("h", "'"),
+                    "root_fingerprint": key.fingerprint,
+                    "hw_type": device.device_type,
+                    "label": device.name,
+                    "type": "hardware",
+                    "soft_device_id": None,
+                    "xpub": key.original,
+                }
+            else:
+                to_return["x{}/".format(cnt + 1)] = {
                     "derivation": key.derivation.replace("h", "'"),
                     "root_fingerprint": key.fingerprint,
                     "type": "bip32",
                     "xprv": None,
                     "xpub": key.original,
-                },
-                "wallet_type": "standard",
-            }
-
-        # Multisig case
-
-        # Build lookup table to convert from xpub to slip132 encoded xpub (while maintaining sort order)
-        LOOKUP_TABLE = {}
-        for key in self.keys:
-            LOOKUP_TABLE[key.xpub] = key
-
-        desc = Descriptor.parse(
-            desc=self.recv_descriptor,
-            # assume testnet status is the same across all keys
-            testnet=key.is_testnet,
-        )
-        slip132_keys = []
-        for desc_key in desc.base_key:
-            # Find corresponding wallet key
-            slip132_keys.append(LOOKUP_TABLE[desc_key])
-
-        to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
-        for cnt, slip132_key in enumerate(slip132_keys):
-            to_return["x{}/".format(cnt + 1)] = {
-                "derivation": slip132_key.derivation.replace("h", "'"),
-                "root_fingerprint": slip132_key.fingerprint,
-                "type": "bip32",
-                "xprv": None,
-                "xpub": slip132_key.original,
-            }
+                }
 
         return to_return
 
@@ -851,6 +881,7 @@ class Wallet:
                 else:
                     available["trusted"] -= delta
                     available["trusted"] = round(available["trusted"], 8)
+            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
             balance["available"] = available
         except:
             balance = {
@@ -858,7 +889,6 @@ class Wallet:
                 "untrusted_pending": 0,
                 "available": {"trusted": 0, "untrusted_pending": 0},
             }
-            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
         self.balance = balance
         return self.balance
 
@@ -1118,7 +1148,10 @@ class Wallet:
             extra_inputs = [
                 {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
             ]
-            options["changeAddress"] = psbt["changeAddress"]
+            if "changeAddress" in psbt:
+                options["changeAddress"] = psbt["changeAddress"]
+            if "base64" in psbt:
+                b64psbt = psbt["base64"]
 
         if fee_rate > 0.0:
             if not existing_psbt:
@@ -1174,18 +1207,29 @@ class Wallet:
         psbt["changeAddress"] = [
             vout["scriptPubKey"]["addresses"][0]
             for i, vout in enumerate(psbt["tx"]["vout"])
-            if "bip32_derivs" in psbt["outputs"][i]
-        ][0]
+            if self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+            and self.get_address_info(vout["scriptPubKey"]["addresses"][0]).change
+        ]
+        if psbt["changeAddress"]:
+            psbt["changeAddress"] = psbt["changeAddress"][0]
+        else:
+            raise Exception("Cannot RBF a transaction with no change output")
         return self.createpsbt(
             addresses=[
                 vout["scriptPubKey"]["addresses"][0]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if "bip32_derivs" not in psbt["outputs"][i]
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
             ],
             amounts=[
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if "bip32_derivs" not in psbt["outputs"][i]
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
             ],
             fee_rate=fee_rate,
             readonly=False,
@@ -1269,23 +1313,28 @@ class Wallet:
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
             addr = out["scriptPubKey"]["addresses"][0]
-            info = self.rpc.getaddressinfo(addr)
+            info = self.get_address_info(addr)
             # check if it's a change
-            if info["iswatchonly"] or info["ismine"]:
+            if info and info.change:
                 continue
             address.append(addr)
             amount.append(out["value"])
-        # detect signatures
+
+        psbt = self.createpsbt(
+            addresses=address,
+            amounts=amount,
+            fee_rate=0.0,
+            readonly=False,
+            existing_psbt=psbt,
+        )
+
         signed_devices = self.get_signed_devices(psbt)
         psbt["devices_signed"] = [dev.alias for dev in signed_devices]
-        psbt["amount"] = amount
-        psbt["address"] = address
-        psbt["time"] = time.time()
         psbt["sigs_count"] = len(signed_devices)
         raw = self.rpc.finalizepsbt(b64psbt)
         if "hex" in raw:
             psbt["raw"] = raw["hex"]
-        self.save_pending_psbt(psbt)
+
         return psbt
 
     @property

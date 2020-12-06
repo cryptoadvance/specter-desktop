@@ -58,10 +58,11 @@
 			</tbody>
 		</table>
 	</div>
-	<div class="optional" style="line-height: 1; margin-top: 30px;">
+	<div style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
+		<br>
 		{% if device.hwi_support %}
 			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">
@@ -74,6 +75,7 @@
 				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
 			</div>
 		{% endif %}
+		<br>
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
 		{% endif %}
@@ -86,7 +88,7 @@
 		<h1>Wallets Using This Device</h1>
 		<div class="row overflow">
 			{% for wallet in wallets %}
-				<a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						{% if wallet.is_multisig %}
 							<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
@@ -103,13 +105,13 @@
 	<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
 	<h1>New device was added successfully!</h1>
 	<div class="row overflow">
-		<a href="{{ url_for('device_setup_wizard') }}" style="text-decoration: none;">
+		<a href="{{ url_for('devices_endpoint.new_device') }}" style="text-decoration: none;">
 			<div class="small-card radio">
 				<img src="{{ url_for('static', filename='img/plus_icon.svg') }}" width="18px">
 				Add another device
 			</div>
 		</a>
-		<form action="{{ url_for('new_wallet', wallet_type='simple') }}" method="POST">
+		<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
 			<input type="hidden" name="device" value="{{ device.alias }}" />
 			<input type="hidden" name="action" value="preselected_device" />
 			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
@@ -120,7 +122,7 @@
 			</button>
 		</form>
 		{% if specter.device_manager.devices | length > 1 %}
-			<a href="{{ url_for('new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
+			<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
 				<div class="small-card radio">
 					<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
 					Create multisig

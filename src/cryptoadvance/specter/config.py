@@ -7,8 +7,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-DATA_FOLDER = "~/.specter"
-
 # BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Loading env-vars from .flaskenv (4 levels above this file)
@@ -30,10 +28,18 @@ def _get_bool_env_var(varname, default=None):
         return bool(value)
 
 
+DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
+
+
 class BaseConfig(object):
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
-    pass
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
+    )
+    # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
+    CERT = os.getenv("CERT", None)
+    KEY = os.getenv("KEY", None)
 
 
 class DevelopmentConfig(BaseConfig):
@@ -43,6 +49,13 @@ class DevelopmentConfig(BaseConfig):
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"
+
+
+class CypressTestConfig(TestConfig):
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
+    )
+    PORT = os.getenv("PORT", 25444)
 
 
 class ProductionConfig(BaseConfig):

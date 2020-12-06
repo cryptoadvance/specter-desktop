@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_settings' %}
+{% set tab = 'settings' %}
 {% block content %}
 	<style>
 		.subtitle {
@@ -12,10 +12,13 @@
 		}
 	</style>
 	<br>
-	<nav class="row">
+	<nav class="row collapse-on-mobile">
 		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
 		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
 		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		</a>
 	</nav><br>
 	<div id="wallet_info_settings_tab" style="width: 100%">
 		<h1 style="font-size: 1.7em;">Wallet Info</h1><br>
@@ -27,7 +30,7 @@
 		{% endif %}
 		<div class="row overflow">
 			{% for device in wallet.devices %}
-				<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device.name }}
@@ -85,7 +88,10 @@
 		<div class="card">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
-				{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{# check if export_wallet is not None #}
+				{% if device.export_wallet(wallet) %}
+					{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
 				<h2 class="subtitle">Export To Device</h1>
@@ -142,7 +148,7 @@
 		<h1 style="font-size: 1.7em;">Advanced Options</h1>
 		<div class="card">
 			<h2 class="subtitle">Keypool control</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
 				<div class="row aligned">
 					<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
@@ -151,7 +157,7 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Blockchain rescan</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
 						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
@@ -174,7 +180,7 @@
 					<div class="note center"><b>481824</b> was the first Segwit block.</div>
 				{% endif %}
 			</form>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
 					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
@@ -237,7 +243,7 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Delete wallet</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
 			</form>
 		</div>
