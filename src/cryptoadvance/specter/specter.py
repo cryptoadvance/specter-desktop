@@ -54,7 +54,7 @@ def get_rpc(conf, old_rpc=None):
         rpc = BitcoinRPC(**conf)
     # check if we have something to compare with
     if old_rpc is None:
-        return rpc if rpc.test_connection() else None
+        return rpc if rpc and rpc.test_connection() else None
     # check if we have something detected
     if rpc is None:
         # check if old rpc is still valid
