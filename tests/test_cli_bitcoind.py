@@ -12,8 +12,7 @@ def test_bitcoind(caplog):
     # caplog.set_level(logging.DEBUG)
 
     runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(bitcoind, ["--no-mining", "--nodocker", "--cleanuphard"])
+    result = runner.invoke(bitcoind, ["--no-mining", "--nodocker", "--cleanuphard"])
     print(result.output)
     if result.exception != None:
         # Makes searching for issues much more convenient
