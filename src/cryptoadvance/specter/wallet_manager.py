@@ -127,12 +127,17 @@ Silently ignored! Wallet error: {e}"
                             # ok wallet is already there
                             # we only need to update
                             try:
-                                wallets[wallet_name] = Wallet.from_json(
+                                loaded_wallet = Wallet.from_json(
                                     wallets_files[wallet], self.device_manager, self
                                 )
+                                if loaded_wallet:
+                                    wallets[wallet_name] = loaded_wallet
+                                else:
+                                    raise Exception("Failed to load wallet")
                             except Exception as e:
                                 logger.warn(f"Failed to load wallet {wallet_name}: {e}")
                                 logger.warn(traceback.format_exc())
+                                failed_load_wallets.append(wallet)
                         else:
                             # wallet is loaded and should stay
                             keep_wallets.append(wallet_name)
