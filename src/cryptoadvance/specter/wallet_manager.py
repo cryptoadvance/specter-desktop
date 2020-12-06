@@ -223,7 +223,7 @@ Silently ignored! Wallet error: {e}"
             self,
         )
         # save wallet file to disk
-        if self.working_folder is not None:
+        if w and self.working_folder is not None:
             w.save_to_file()
         # get Wallet class instance
         if w:
