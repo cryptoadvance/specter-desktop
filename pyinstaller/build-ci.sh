@@ -40,10 +40,10 @@ mkdir release-linux
 cd dist
 cp -r ../../udev ./udev
 echo "Don't forget to set up udev rules! Check out udev folder for instructions." > README.md
-zip -r ../release-linux/specterd-$1-`arch`-linux-gnu.zip specterd udev README.md
+zip -r ../release-linux/specterd-"$1"-"$(uname -m)"-linux-gnu.zip specterd udev README.md
 
 cp ../electron/dist/Specter-* ./
-tar -czvf ../release-linux/specter_desktop-$1-`arch`-linux-gnu.tar.gz Specter-* udev README.md
+tar -czvf ../release-linux/specter_desktop-"$1"-"$(uname -m)"-linux-gnu.tar.gz Specter-* udev README.md
 
 echo "    --> Cleaning up"
 cd ..
