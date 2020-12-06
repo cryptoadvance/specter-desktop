@@ -81,7 +81,7 @@ class BitcoindController:
     def __init__(self, rpcport=18443):
         self.rpcconn = Btcd_conn(rpcport=rpcport)
 
-    def start_bitcoind(self, cleanup_at_exit=False, datadir=None):
+    def start_bitcoind(self, cleanup_at_exit=False, cleanup_hard=False, datadir=None):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
         developing locally against a different regtest-instance
@@ -91,7 +91,9 @@ class BitcoindController:
             return self.check_existing()
 
         logger.debug("Starting bitcoind")
-        self._start_bitcoind(cleanup_at_exit, datadir=datadir)
+        self._start_bitcoind(
+            cleanup_at_exit, cleanup_hard=cleanup_hard, datadir=datadir
+        )
 
         self.wait_for_bitcoind(self.rpcconn)
         self.mine(block_count=100)
@@ -107,7 +109,7 @@ class BitcoindController:
         """ wrapper for convenience """
         return self.rpcconn.get_rpc()
 
-    def _start_bitcoind(self, cleanup_at_exit):
+    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False):
         raise Exception("This should not be used in the baseclass!")
 
     def check_existing(self):
@@ -211,7 +213,7 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(self, cleanup_at_exit=True, datadir=None):
+    def _start_bitcoind(self, cleanup_at_exit=True, cleanup_hard=False, datadir=None):
         if datadir == None:
             datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
@@ -228,13 +230,15 @@ class BitcoindPlainController(BitcoindController):
         )
 
         def cleanup_bitcoind():
-            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-            logger.info(
-                "Killed bitcoind with pid {}, waiting for termination ...".format(
-                    self.bitcoind_proc.pid
+            if cleanup_hard:
+                self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+                logger.info("Killed bitcoind with pid {self.bitcoind_proc.pid}")
+            else:
+                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+                logger.info(
+                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination ..."
                 )
-            )
-            self.bitcoind_proc.wait()
+                self.bitcoind_proc.wait()
 
         if cleanup_at_exit:
             logger.debug("REGISTERING EXIT FUNCTIONS")
@@ -269,7 +273,7 @@ class BitcoindDockerController(BitcoindController):
             rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
             self.rpcconn = rpcconn
 
-    def _start_bitcoind(self, cleanup_at_exit, datadir=None):
+    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, datadir=None):
         if datadir != None:
             # ignored
             pass

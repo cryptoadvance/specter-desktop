@@ -44,7 +44,11 @@ class Echo:
     default="/tmp/specter_btcd_regtest_plain_datadir",
     help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ",
 )
-@click.option("--mining/--no-mining", default=True, help="Turns on mining (default)")
+@click.option(
+    "--mining/--no-mining",
+    default=True,
+    help="Turns on mining (default). In tests it's useful to turn it off.",
+)
 @click.option(
     "--mining-period",
     default="15",
@@ -63,6 +67,11 @@ class Echo:
     help="Will create a small json-file btcd-conn.json with connection details.",
 )
 @click.option(
+    "--cleanuphard/--no-cleanuphard",
+    default=False,
+    help="Will send a SIGKILL instead of SIGTERM (default) when CTRL-C. Mostly to speedup tests.",
+)
+@click.option(
     "--config",
     default=None,
     help="A class from the config.py which sets reasonable Defaults",
@@ -77,6 +86,7 @@ def bitcoind(
     mining_period,
     reset,
     create_conn_json,
+    cleanuphard,
     config,
 ):
     """This will start a bitcoind regtest and mines a block every mining-period.
@@ -139,7 +149,9 @@ def bitcoind(
         echo("starting or detecting container")
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
-        my_bitcoind.start_bitcoind(cleanup_at_exit=True, datadir=data_dir)
+        my_bitcoind.start_bitcoind(
+            cleanup_at_exit=True, cleanup_hard=cleanuphard, datadir=data_dir
+        )
     except docker.errors.ImageNotFound:
         echo(f"Image with tag {docker_tag} does not exist!")
         echo(
@@ -190,7 +202,9 @@ def bitcoind(
     )
 
     if mining:
-        miner_loop(my_bitcoind, config_obj["DATA_FOLDER"], mining_every_x_seconds, echo)
+        miner_loop(
+            my_bitcoind, config_obj["SPECTER_DATA_FOLDER"], mining_every_x_seconds, echo
+        )
 
 
 def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):

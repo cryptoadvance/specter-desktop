@@ -33,7 +33,7 @@ def test_bitcoinddocker_running(caplog, docker, request):
                 BitcoindPlainController()
             )  # Alternatively take the one on the path for now
 
-    rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True)
+    rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
     requested_version = request.config.getoption("--bitcoind-version")
     assert my_bitcoind.version() == requested_version
     assert rpcconn.get_rpc() != None
