@@ -15,13 +15,6 @@ def test_bitcoinddocker_running(caplog, docker, request):
             rpcport=18999, docker_tag=requested_version
         )  # completly different port to not interfere
     else:
-        try:
-            which("bitcoind")
-        except:
-            # Skip this test as bitcoind is not available
-            # Doesn't make sense to print anything as this won't be shown
-            # for passing tests
-            return
         if os.path.isfile("tests/bitcoin/src/bitcoind"):
             # copied from conftest.py
             # always prefer the self-compiled bitcoind if existing
@@ -29,16 +22,22 @@ def test_bitcoinddocker_running(caplog, docker, request):
                 bitcoind_path="tests/bitcoin/src/bitcoind"
             )
         else:
-            my_bitcoind = (
-                BitcoindPlainController()
-            )  # Alternatively take the one on the path for now
+            try:
+                which("bitcoind")
+                my_bitcoind = BitcoindPlainController()
+            except:
+                # Skip this test as bitcoind is not available
+                # Doesn't make sense to print anything as this won't be shown
+                # for passing tests
+                raise Exception("bitcoind not available")
 
-    rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True)
+    rpcconn = my_bitcoind.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
     requested_version = request.config.getoption("--bitcoind-version")
     assert my_bitcoind.version() == requested_version
     assert rpcconn.get_rpc() != None
     assert rpcconn.get_rpc().ipaddress != None
-    rpcconn.get_rpc().getblockchaininfo()
+    bci = rpcconn.get_rpc().getblockchaininfo()
+    assert bci["blocks"] == 100
     # you can use the testcoin_faucet:
     random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
     my_bitcoind.testcoin_faucet(random_address, amount=25, mine_tx=True)

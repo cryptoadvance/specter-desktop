@@ -59,7 +59,7 @@ def bitcoin_regtest(docker, request):
             bitcoind_controller = (
                 BitcoindPlainController()
             )  # Alternatively take the one on the path for now
-    bitcoind_controller.start_bitcoind(cleanup_at_exit=True)
+    bitcoind_controller.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
     assert (
