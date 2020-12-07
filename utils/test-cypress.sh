@@ -27,9 +27,16 @@ function sub_default {
 function start_bitcoind {
     echo "Startting bitcoind ..."
     if [ "$1" == "reset" ]; then
-        python3 -m cryptoadvance.specter bitcoind --reset --nodocker --config CypressTestConfig
+        if [ "$DOCKER" = "true" ]; then
+            return
+        else
+            python3 -m cryptoadvance.specter bitcoind --reset --nodocker --config CypressTestConfig
+        fi
     fi
-    python3 -m cryptoadvance.specter bitcoind --create-conn-json --nodocker --config CypressTestConfig &
+    if [ "$DOCKER" != "true" ]; then
+        addopts=--nodocker
+    fi
+    python3 -m cryptoadvance.specter bitcoind $addopts --create-conn-json --config CypressTestConfig &
     bitcoind_pid=$!
 }
 
@@ -74,7 +81,6 @@ function restore_snapshot {
 
 function sub_open {
     spec_file=$1
-    echo MUUUH $1
     if [ -n "${spec_file}" ]; then
         restore_snapshot ${spec_file}
         start_bitcoind
@@ -137,6 +143,10 @@ function parse_and_execute() {
       --debug)
           set -x
           DEBUG=true
+          shift
+          ;;
+      --docker)
+          DOCKER=true
           shift
           ;;
       *)

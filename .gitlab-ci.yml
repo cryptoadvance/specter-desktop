@@ -53,9 +53,8 @@ test-cypress:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
-    - ./tests/install_bitcoind.sh
     - npm i
-    - ./utils/test-cypress.sh run
+    - ./utils/test-cypress.sh --docker run
   artifacts:
     when: always
     paths:
