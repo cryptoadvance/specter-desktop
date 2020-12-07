@@ -27,9 +27,7 @@ function sub_default {
 function start_bitcoind {
     echo "Startting bitcoind ..."
     if [ "$1" == "reset" ]; then
-        if [ "$DOCKER" = "true" ]; then
-            return
-        else
+        if [ "$DOCKER" != "true" ]; then
             python3 -m cryptoadvance.specter bitcoind --reset --nodocker --config CypressTestConfig
         fi
     fi
@@ -47,7 +45,7 @@ function stop_bitcoind {
 }
 
 function start_specter {
-    python3 -m cryptoadvance.specter server --config CypressTestConfig --debug &
+    python3 -m cryptoadvance.specter server --config CypressTestConfig --debug > /dev/null &
     specter_pid=$!
     $(npm bin)/wait-on http://localhost:${PORT}
 }
