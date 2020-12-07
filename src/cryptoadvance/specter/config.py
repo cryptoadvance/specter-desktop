@@ -41,7 +41,7 @@ class BaseConfig(object):
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
     # This will get passed to initialize the specter-object
-    DEFAULT_SPECTER_CONFIG = {"uid": ""}
+    DEFAULT_SPECTER_CONFIG = {}
 
 
 class DevelopmentConfig(BaseConfig):
