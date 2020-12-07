@@ -9,7 +9,7 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            <div id="fullbalance_amount">{{ wallet.fullbalance | btcunitamount }}</div>
+            <span id="fullbalance_amount">{{ wallet.fullbalance | btcunitamount }}</span>
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
