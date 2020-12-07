@@ -12,7 +12,6 @@ cache:
   paths:
     - .cache/pip
     - .env/
-    - ./tests/bitcoin
 
 stages:
   - testing
@@ -24,7 +23,7 @@ before_script:
   - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
   - python -V  # Print out python version for debugging
   - apt update
-  - apt install -y jq libusb-1.0-0-dev libudev-dev # usb-support in hidapi
+  - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
   - pip3 install virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
