@@ -92,7 +92,13 @@
 			<table style="margin: auto;">
 				<thead>
 					<tr>
-						<th>Used</th><th>Label</th><th>Address</th><th style="width: 400px;" class="optional">Actions</th>
+						<th>Used</th><th>Label</th><th>Address</th>
+						{% if supports_qr_code_verify != [] or (supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig)) %}
+						<th style="width: 400px;" class="optional">Actions</th>
+						{% endif %}
+						<th style="width: 50px; padding: 10px;">
+							<a href="{{ url_for('wallets_endpoint.addresses_csv', wallet_alias=wallet_alias) }}" download class="btn" style="width: 50px;">Export</a>
+						</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -108,14 +114,17 @@
 							</td>
 							<td class="tx scroll">{{ explorer_link('address', address, address_info.label, specter.explorer) }}</td>
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
-							<td class="optional row">
-								{% if supports_qr_code_verify != [] %}
-									<button onclick="verifyQRCode('{{ address }}', '{{ address_info.index }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
-								{% endif %}
-								{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-									<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>
-								{% endif %}
-							</td>
+							{% if supports_qr_code_verify != [] or (supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig)) %}
+								<td class="optional row">
+									{% if supports_qr_code_verify != [] %}
+										<button onclick="verifyQRCode('{{ address }}', '{{ address_info.index }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
+									{% endif %}
+									{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+										<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>
+									{% endif %}
+								</td>
+							{% endif %}
+							<td></td>
 						</tr>
 					{% endfor %}
 				</tbody>

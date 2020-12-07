@@ -1005,6 +1005,27 @@ def rescan_progress(wallet_alias):
 
 
 ################## Wallet export data endpoints #######################
+# Export wallet transaction history
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses.csv")
+@login_required
+def addresses_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        # stream the response as the data is generated
+        response = Response(
+            addresses_list_to_csv(wallet),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="transactions.csv"
+        )
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export wallet history. Error: %s" % e)
+        flash("Failed to export wallet history. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
 
 # Export wallet transaction history
 @wallets_endpoint.route("/wallet/<wallet_alias>/transactions.csv")
@@ -1080,6 +1101,8 @@ def wallet_overview_txs_csv():
 
 
 ################## Helpers #######################
+
+# Transactions list to user-friendly CSV format
 def txlist_to_csv(wallet, txlist, wallet_manager):
     data = StringIO()
     w = csv.writer(data)
@@ -1149,6 +1172,52 @@ def txlist_to_csv(wallet, txlist, wallet_manager):
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
+        w.writerow(row)
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+
+# Addresses list to user-friendly CSV format
+def addresses_list_to_csv(wallet):
+    data = StringIO()
+    w = csv.writer(data)
+    # write header
+    row = (
+        "Address",
+        "Label",
+        "Index",
+        "Used",
+        "Current balance",
+    )
+    w.writerow(row)
+    yield data.getvalue()
+    data.seek(0)
+    data.truncate(0)
+
+    # write each log item
+    for address in wallet._addresses:
+        address_info = wallet.get_address_info(address)
+        row = (
+            address,
+            address_info.label,
+            "(external)"
+            if address_info.is_external
+            else (
+                str(address_info.index) + (" (change)" if address_info.change else "")
+            ),
+            address_info.used,
+        )
+        if address_info.is_external:
+            balance_on_address = "unknown (external address)"
+        else:
+            balance_on_address = 0
+            if address_info.used:
+                for tx in wallet.utxo:
+                    if tx.get("address", "") == address:
+                        balance_on_address += tx.get("amount", 0)
+        row += (balance_on_address,)
+
         w.writerow(row)
         yield data.getvalue()
         data.seek(0)
