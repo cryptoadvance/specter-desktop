@@ -38,8 +38,8 @@
         {% endif %}
     </h1>
     {% set validate_merkle_proofs=specter.config.validate_merkle_proofs %}
-    {% set transactions = specter.wallet_manager.full_txlist(idx, validate_merkle_proofs) %}
-	{% set next_transactions = specter.wallet_manager.full_txlist(idx + 1, validate_merkle_proofs) %}
+    {% set transactions = specter.wallet_manager.txlist(idx, validate_merkle_proofs) %}
+	{% set next_transactions = specter.wallet_manager.txlist(idx + 1, validate_merkle_proofs) %}
 	{% if idx != 0 or next_transactions|length != 0 %}
 		<div>
 			<a href="./?idx={{ idx - 1 }}" class="arrow {% if idx == 0 %}disabled{% endif %}">&#8249;</a>
@@ -57,7 +57,8 @@
 				specter,
                 transactions == [],
                 full_tx_table(transactions=transactions, wallet=none, specter=specter, includeValidatedBlockhash=validate_merkle_proofs),
-		includeValidatedBlockhash=validate_merkle_proofs,
+				includeValidatedBlockhash=validate_merkle_proofs,
+				export_url=url_for('wallets_endpoint.wallet_overview_txs_csv')
             )
         }}
     </div>

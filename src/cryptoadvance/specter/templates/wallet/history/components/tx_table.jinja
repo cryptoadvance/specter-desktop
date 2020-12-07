@@ -5,8 +5,9 @@
     - isEmpty: Boolean, true if should show an item indicating empty list, false if should show the list contents.
     - content: The content of the table (its rows).
     - includeValidatedBlockhash: boolean
+    - export_url: Endpoind for specter export file ("" = No export)
  #}
-{% macro tx_table(specter, isEmpty, content, includeValidatedBlockhash) -%}
+{% macro tx_table(specter, isEmpty, content, includeValidatedBlockhash, export_url) %}
     <table>
         <thead>
             <tr>
@@ -15,12 +16,15 @@
                 <th class="optional">Address</th>
                 <th>Amount</th>
                 <th>Status</th>
-		{% if includeValidatedBlockhash %}
-		  <th class="optional">
-		      <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
-		      Block Hash
-		  </th>
-	        {% endif %}
+                {% if includeValidatedBlockhash %}
+                <th class="optional">
+                    <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
+                    Block Hash
+                </th>
+	            {% endif %}
+                {% if not isEmpty and export_url %}
+                    <th style="width: 50px; padding: 10px;"><a href="{{ export_url }}" download class="btn" style="width: 50px;">Export</a></th>
+                {% endif %}
             </tr>
 	</thead>
 	<tbody>

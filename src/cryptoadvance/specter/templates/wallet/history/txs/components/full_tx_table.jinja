@@ -10,6 +10,6 @@
  #}
 {% macro full_tx_table(transactions, wallet, specter, includeValidatedBlockhash) -%}
     {% for tx in transactions %}
-        {{ tx_item(tx, wallet, specter, includeValidatedBlockhash) }}
+        {{ tx_item(tx, wallet, specter, includeValidatedBlockhash, True) }}
     {% endfor %}
 {%- endmacro %}

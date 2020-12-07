@@ -52,6 +52,7 @@
 				<a href="./?view=label&idx={{ idx }}">Labels View</a>
 			</div>
 		</div>
+		<a href="{{ url_for('wallets_endpoint.utxo_csv', wallet_alias=wallet_alias) }}" download class="btn" style="max-width:200px; float: right;">Export UTXO list</a>
 	</div>
 	{% from 'wallet/components/editable_label.jinja' import editable_label %}
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}

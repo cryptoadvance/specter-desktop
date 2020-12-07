@@ -5,8 +5,9 @@
     - wallet: Wallet object
     - specter: Specter object.
     - includeValidatedBlockhash: boolean
+    - has_export_button: boolean
  #}
-{% macro tx_item(tx, wallet, specter, includeValidatedBlockhash=False) -%}
+{% macro tx_item(tx, wallet, specter, includeValidatedBlockhash=False, has_export_button=False) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     {% set txid = tx['txid'] %}
     <tr class="{%if tx['confirmations'] == 0 %}unconfirmed{%endif%}" onclick="if(window.innerWidth<=600){showPageOverlay(`{{tx['txid']}}_tx_info_popup`)}">
@@ -62,6 +63,9 @@
 	      {% endif %}
 	  </td>
 	{% endif %}
+    {% if has_export_button %}
+        <td style="max-width: 0px;"></td>
+    {% endif %}
     </tr>
     <div id="{{tx['txid']}}_tx_info_popup" class="hidden" style="text-align:left;">
         <h1>Transaction details</h1>

@@ -30,6 +30,7 @@
 				transactions == [],
 				full_tx_table(transactions=transactions, wallet=wallet, specter=specter, includeValidatedBlockhash=validate_merkle_proofs),
 				includeValidatedBlockhash=validate_merkle_proofs,
+				export_url=url_for('wallets_endpoint.tx_history_csv', wallet_alias=wallet_alias)
 			)
 		}}
 	</div>

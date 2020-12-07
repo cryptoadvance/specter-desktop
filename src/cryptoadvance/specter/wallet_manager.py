@@ -267,7 +267,7 @@ Silently ignored! Wallet error: {e}"
             wallet.save_to_file()
         self.update()
 
-    def full_txlist(self, page, validate_merkle_proofs=False):
+    def txlist(self, page, validate_merkle_proofs=False):
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
@@ -284,6 +284,22 @@ Silently ignored! Wallet error: {e}"
             for tx in txlist:
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
+
+    def full_txlist(self, validate_merkle_proofs=False):
+        idx = 0
+        tx_len = 1
+        tx_list = []
+        while tx_len > 0:
+            transactions = self.txlist(idx, validate_merkle_proofs)
+            tx_list.append(transactions)
+            tx_len = len(transactions)
+            idx += 1
+        # Flatten the list
+        flat_list = []
+        for element in tx_list:
+            for dic_item in element:
+                flat_list.append(dic_item)
+        return flat_list
 
     def delete(self, specter):
         """Deletes all the wallets"""

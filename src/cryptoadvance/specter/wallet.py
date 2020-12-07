@@ -567,6 +567,25 @@ class Wallet:
                         result.remove(dup)
         return sorted(result, key=lambda tx: tx["confirmations"])
 
+    def full_txlist(self, validate_merkle_proofs=False):
+        tx_list = []
+        idx = 0
+        tx_len = 1
+        while tx_len > 0:
+            transactions = self.txlist(
+                idx, validate_merkle_proofs=validate_merkle_proofs
+            )
+            tx_list.append(transactions)
+            tx_len = len(transactions)
+            idx += 1
+
+        # Flatten the list
+        flat_list = []
+        for element in tx_list:
+            for dic_item in element:
+                flat_list.append(dic_item)
+        return flat_list
+
     def gettransaction(self, txid, blockheight=None):
         try:
             return self._transactions.gettransaction(txid, blockheight)

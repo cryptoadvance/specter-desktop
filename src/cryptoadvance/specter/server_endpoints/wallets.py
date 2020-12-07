@@ -1,4 +1,6 @@
-import ast, json, os, time, base64, random, requests
+import ast, csv, json, os, time, base64, random, requests
+from io import StringIO
+from werkzeug.wrappers import Response
 from ..util.tx import decoderawtransaction
 
 from flask import (
@@ -1000,3 +1002,154 @@ def rescan_progress(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
         return {}
+
+
+################## Wallet export data endpoints #######################
+
+# Export wallet transaction history
+@wallets_endpoint.route("/wallet/<wallet_alias>/transactions.csv")
+@login_required
+def tx_history_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+        txlist = wallet.full_txlist(validate_merkle_proofs=validate_merkle_proofs)
+
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(wallet, txlist, app.specter.wallet_manager),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="transactions.csv"
+        )
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export wallet history. Error: %s" % e)
+        flash("Failed to export wallet history. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
+
+# Export wallet UTXO list
+@wallets_endpoint.route("/wallet/<wallet_alias>/utxo.csv")
+@login_required
+def utxo_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(
+                wallet,
+                sorted(wallet.utxo, key=lambda utxo: utxo["time"], reverse=True),
+                app.specter.wallet_manager,
+            ),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set("Content-Disposition", "attachment", filename="utxo.csv")
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export wallet history. Error: %s" % e)
+        flash("Failed to export wallet history. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
+
+# Export all wallets transaction history combined
+@wallets_endpoint.route("/wallets_overview/transactions.csv")
+@login_required
+def wallet_overview_txs_csv():
+    try:
+        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+        txlist = app.specter.wallet_manager.full_txlist(
+            validate_merkle_proofs=validate_merkle_proofs
+        )
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(None, txlist, app.specter.wallet_manager), mimetype="text/csv"
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="transactions.csv"
+        )
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export wallet history. Error: %s" % e)
+        flash("Failed to export wallet history. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
+
+################## Helpers #######################
+def txlist_to_csv(wallet, txlist, wallet_manager):
+    data = StringIO()
+    w = csv.writer(data)
+    # write header
+    row = (
+        "Timestamp",
+        "TxID",
+        "Category",
+        "Address",
+        "Label",
+        "Amount",
+        "Block Height",
+        "Date",
+        "Raw Transaction",
+    )
+    if not wallet:
+        row = ("Wallet",) + row
+    w.writerow(row)
+    yield data.getvalue()
+    data.seek(0)
+    data.truncate(0)
+
+    # write each log item
+    _wallet = wallet
+    for tx in txlist:
+        if not wallet:
+            wallet_alias = tx.get("wallet_alias", None)
+            try:
+                _wallet = wallet_manager.get_by_alias(wallet_alias)
+            except Exception as e:
+                app.logger.error(
+                    "Failed to get wallet: {} for tx: {}. Skipping exporting transaction.".format(
+                        wallet_alias,
+                        tx,
+                    )
+                )
+        # find minimal from 3 times:
+        maxtime = 10445238000  # TODO: change after 31 dec 2300 lol±
+        tx["time"] = min(
+            tx.get("blocktime", maxtime),
+            tx.get("timereceived", maxtime),
+            tx.get("time", maxtime),
+        )
+        label = _wallet.getlabel(tx["address"])
+        if label == tx["address"]:
+            label = ""
+        tx_raw = _wallet.gettransaction(tx["txid"])
+        if tx_raw:
+            tx_hex = tx_raw["hex"]
+        else:
+            tx_hex = ""
+        if not tx.get("blockheight", None):
+            if tx_raw.get("blockheight", None):
+                tx["blockheight"] = tx_raw["blockheight"]
+            else:
+                tx["blockheight"] = "Unconfirmed"
+        row = (
+            tx["time"],
+            tx["txid"],
+            tx["category"],
+            tx["address"],
+            label,
+            "{:,.8f}".format(tx["amount"]).rstrip("0").rstrip("."),
+            tx["blockheight"],
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tx["time"])),
+            tx_hex,
+        )
+        if not wallet:
+            row = (tx.get("wallet_alias", ""),) + row
+        w.writerow(row)
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
