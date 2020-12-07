@@ -40,6 +40,8 @@ class BaseConfig(object):
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
+    # This will get passed to initialize the specter-object
+    DEFAULT_SPECTER_CONFIG = {"uid": ""}
 
 
 class DevelopmentConfig(BaseConfig):
@@ -56,6 +58,9 @@ class CypressTestConfig(TestConfig):
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
     )
     PORT = os.getenv("PORT", 25444)
+    DEFAULT_SPECTER_CONFIG = {
+        "uid": "123456"
+    }  # need to be static in order to (un-)tar bitcoind-dirs reliable
 
 
 class ProductionConfig(BaseConfig):

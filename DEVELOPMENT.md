@@ -66,36 +66,22 @@ it each time it's starting with the genesis-block. This has some implications:
 * This also means that it makes a huge difference whether you run a test standalone or together with all other tests
 * Depending on whether you do one or the other, you cannot rely on transactionIDs. So if you run a test standalone twice, you can assert txids but you can't any longer when you run all the tests
 
-## Some hints on cypress
+## Cypress UI-testing
 Cypress is just awesome. It's quite easy to create Frontend-tests and it's even recording all tests and you can immediately see how it went. So each test-run, the tests are kept for one day (see the ["artifacts-section"](https://github.com/k9ert/specter-desktop/blob/cypress/.gitlab-ci.yml#L53-L58)) and you can watch them by browsing the artifacts on any gitlab-job-page (right-hand-side marked with "Job artifacts").
 
+Executing the tests is done via `./utils/test-cypress.sh`:
 ```
 # make sure you have npm on the path
-npm ci
+
 # run the tests
-$(npm bin)/cypress run
-
+./utils/test-cypress.sh run
 # open the cypress application (to develop/debug/run tests interactively)
-$(npm bin)/cypress open
+./utils/test-cypress.sh open
 ```
-
 The test_specifications which get executed are specified in cypress.json which looks something like this:
-```
-{
-    "testFiles": [
-      "spec_empty_specter_home.js",
-      "spec_node_configured.js"
-    ]
-}
-```
 
-Each testfile represents a specific state specter is expected to be if running the tests in that file. However currently the states which are required for each file in the test are only created for spec_empty_specter_home.js. The second file simply assumes that the node is configured and is right about that because one of the tests in the first file did it.
-That needs to be improved. Not yet sure how. There are three options:
-* Using commands similiar to the way a device is a prerequisite in the second file (`cy.addDevice("Testdevice Ghost")`) which takes a lot of time.
-* Copying files around in the specter-folder which makes the test brittle
-* Using post-requests as described in this (very interesting) [video](https://youtu.be/LcGHiFnBh3Y?t=1367) with the example of "login" (which is necessary for almost any test)
+More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
 
-If you're interested in cypress-test-development, make sure to watch the video above, it's really worth it. Also be sure to not miss the way to copy the css-locator from the cypress-IDE: "Click on elements to see a suggested selector". This is for me the reason why test-development is going so fast.
 
 # Flask specific stuff
 

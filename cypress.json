@@ -1,7 +1,8 @@
 {
     "testFiles": [
       "spec_empty_specter_home.js",
-      "spec_node_configured.js"
+      "spec_node_configured.js",
+      "spec_existing_history.js"
     ],
     "baseUrl": "http://localhost:25444"
 }
