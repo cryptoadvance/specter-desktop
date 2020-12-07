@@ -142,7 +142,14 @@ def bitcoind(
     mining_every_x_seconds = float(mining_period)
     if nodocker:
         echo("starting plain bitcoind")
-        my_bitcoind = BitcoindPlainController()
+        if os.path.isfile("tests/bitcoin/src/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/src/bitcoind"
+            )  # always prefer the self-compiled bitcoind if existing
+        else:
+            my_bitcoind = (
+                BitcoindPlainController()
+            )  # Alternatively take the one on the path for now
         # Make sure datadir does exist if specified:
         Path(data_dir).mkdir(parents=True, exist_ok=True)
     else:
