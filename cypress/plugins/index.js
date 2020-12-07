@@ -15,15 +15,18 @@
 /**
  * @type {Cypress.PluginConfig}
  */
+const fs = require('fs');
+
 module.exports = (on, config) => {
   // `config` is the resolved Cypress config
+  const conn_file = fs.readFileSync('btcd-conn.json');
+  const conn = JSON.parse(conn_file);
   on('task', {
     'clear:specter-home': () => {
       const homedir = require('os').homedir();
       const specter_home=homedir+"/.specter";
       var rimraf = require("rimraf");
       rimraf.sync(specter_home);
-      var fs = require('fs');
       fs.mkdirSync(specter_home);
       fs.mkdirSync(specter_home+"/devices");
       fs.mkdirSync(specter_home+"/wallets");
@@ -32,8 +35,12 @@ module.exports = (on, config) => {
   })
 
   on('task', {
-    'seed:node-configuration': () => {
-      // do something here
+    'node:mine': () => {
+
+      // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets
+      // See the signal-handler in bitcoind
+      process.kill(parseInt(conn["pid"], 10), 10);
+      return null
     }
   })
 

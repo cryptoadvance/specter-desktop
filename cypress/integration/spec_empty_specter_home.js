@@ -9,7 +9,7 @@ describe('Completely empty specter-home', () => {
     cy.contains('Welcome to Specter Desktop')
     cy.get('[href="/settings/"] > img').click()
     cy.contains('Bitcoin Core settings - Specter Desktop custom')
-    cy.get('.mobile-right').click()
+    cy.get('[href="/settings/general"]').click()
     cy.contains('General settings - Specter Desktop custom')
     cy.get('[href="/settings/auth"]').click()
     cy.contains('Authentication settings - Specter Desktop custom')

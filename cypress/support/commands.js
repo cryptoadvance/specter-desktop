@@ -28,7 +28,7 @@ Cypress.Commands.add("addDevice", (name) => {
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
           cy.get('#devices_list > .item > div').click()
-          cy.get('[style="line-height: 1; margin-top: 30px;"] > :nth-child(4) > .btn').click()
+          cy.get('#forget_device').click()
         } 
         cy.get('#side-content').click()
         cy.get('#btn_new_device').click()
