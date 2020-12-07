@@ -52,10 +52,8 @@ test-cypress:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
-    - python3 -m cryptoadvance.specter server &
-    - python3 -m cryptoadvance.specter bitcoind --quiet --create-conn-json &
     - npm i
-    - /root/node_modules/.bin/cypress run
+    - ./utils/test-cypress.sh run
   artifacts:
     when: always
     paths:
