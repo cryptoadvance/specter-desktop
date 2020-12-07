@@ -18,9 +18,16 @@ describe('Node Configured', () => {
         cy.get('#keysform > .centered').click()
         cy.get('body').contains("New wallet was created successfully!")
         // Download PDF
-        cy.get('#pdf-wallet-download > img').click()
+        // unfortunately this results in weird effects in cypress run
+        //cy.get('#pdf-wallet-download > img').click()
         cy.task("node:mine") 
         cy.get('#btn_continue').click()
+        cy.get('#btn_transactions').click()
+        cy.get('#fullbalance_amount')
+        .should(($div) => {
+            const n = parseFloat($div.text())
+            expect(n).to.be.gte(0).and.be.lte(50)
+        })
 
     })
 })

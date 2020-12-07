@@ -25,7 +25,7 @@
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
 			{% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
-            {{ fullbalance | btcunitamount }}
+            <div id="fullbalance_amount">{{ fullbalance | btcunitamount }}</div>
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}

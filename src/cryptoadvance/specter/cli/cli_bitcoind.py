@@ -185,7 +185,10 @@ def bitcoind(
 
     if create_conn_json:
         conn = my_bitcoind.rpcconn.as_data()
-        conn["pid"] = os.getpid()  # usefull to sen signals
+        conn["pid"] = os.getpid()  # usefull to send signals
+        conn["specter_data_folder"] = config_obj[
+            "SPECTER_DATA_FOLDER"
+        ]  # e.g. cypress might want to know where we're mining to
         with open("btcd-conn.json", "w") as file:
             file.write(json.dumps(conn))
 

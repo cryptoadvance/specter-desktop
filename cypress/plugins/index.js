@@ -23,8 +23,8 @@ module.exports = (on, config) => {
   const conn = JSON.parse(conn_file);
   on('task', {
     'clear:specter-home': () => {
-      const homedir = require('os').homedir();
-      const specter_home=homedir+"/.specter";
+      console.log('Removing and recreating Specter-data-folder %s', conn["specter_data_folder"])
+      const specter_home=conn["specter_data_folder"];
       var rimraf = require("rimraf");
       rimraf.sync(specter_home);
       fs.mkdirSync(specter_home);
@@ -36,7 +36,6 @@ module.exports = (on, config) => {
 
   on('task', {
     'node:mine': () => {
-
       // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets
       // See the signal-handler in bitcoind
       process.kill(parseInt(conn["pid"], 10), 10);
