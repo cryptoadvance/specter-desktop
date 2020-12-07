@@ -60,29 +60,38 @@ function cleanup()
 
 trap cleanup EXIT
 
+
+function restore_snapshot {
+    spec_file=$1
+    [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
+    rm -rf /tmp/${default_bitcoind_datadir}
+    rm -rf ~/.specter-cypress
+    echo "untaring ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
+    tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp
+    echo "untaring ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
+    tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~
+}
+
 function sub_open {
-    start_bitcoind
+    spec_file=$1
+    echo MUUUH $1
+    if [ -n "${spec_file}" ]; then
+        restore_snapshot ${spec_file}
+        start_bitcoind
+    else
+        start_bitcoind reset
+    fi
     start_specter
     $(npm bin)/cypress open
 }
 
-function sub_test1 {
-    echo $1
-}
-
 function sub_run {
     spec_file=$1
-    if [ -n ${spec_file} ]; then
-        [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
-        rm -rf /tmp/${default_bitcoind_datadir}
-        rm -rf ~/.specter-cypress
-        echo "untaring ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
-        tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp
-        echo "untaring ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
-        tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~
-        start_bitcoind
-    else
+    if [ -z ${spec_file} ]; then
         start_bitcoind reset
+    else
+        restore_snapshot ${spec_file}
+        start_bitcoind
     fi
     start_specter
     if [ -n ${spec_file} ]; then
