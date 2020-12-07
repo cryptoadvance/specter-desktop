@@ -2,6 +2,7 @@ import ast, csv, json, os, time, base64, random, requests
 from io import StringIO
 from werkzeug.wrappers import Response
 from ..util.tx import decoderawtransaction
+from ..util.price_providers import get_price_at
 
 from flask import (
     Flask,
@@ -13,7 +14,7 @@ from flask import (
     jsonify,
     flash,
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 from ..util.descriptor import AddChecksum, Descriptor
 from ..helpers import (
     bcur2base64,
@@ -1018,7 +1019,7 @@ def addresses_csv(wallet_alias):
         )
         # add a filename
         response.headers.set(
-            "Content-Disposition", "attachment", filename="transactions.csv"
+            "Content-Disposition", "attachment", filename="addresses.csv"
         )
         return response
     except Exception as e:
@@ -1038,7 +1039,7 @@ def tx_history_csv(wallet_alias):
 
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(wallet, txlist, app.specter.wallet_manager),
+            txlist_to_csv(wallet, txlist, app.specter, current_user),
             mimetype="text/csv",
         )
         # add a filename
@@ -1062,8 +1063,9 @@ def utxo_csv(wallet_alias):
         response = Response(
             txlist_to_csv(
                 wallet,
-                sorted(wallet.utxo, key=lambda utxo: utxo["time"], reverse=True),
-                app.specter.wallet_manager,
+                wallet.utxo,
+                app.specter,
+                current_user,
             ),
             mimetype="text/csv",
         )
@@ -1087,7 +1089,7 @@ def wallet_overview_txs_csv():
         )
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(None, txlist, app.specter.wallet_manager), mimetype="text/csv"
+            txlist_to_csv(None, txlist, app.specter, current_user), mimetype="text/csv"
         )
         # add a filename
         response.headers.set(
@@ -1103,19 +1105,29 @@ def wallet_overview_txs_csv():
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
-def txlist_to_csv(wallet, txlist, wallet_manager):
+def txlist_to_csv(wallet, txlist, specter, current_user):
+    txlist = sorted(txlist, key=lambda tx: tx["time"])
     data = StringIO()
     w = csv.writer(data)
     # write header
+    symbol = "USD"
+    if specter.price_provider.endswith("_eur"):
+        symbol = "EUR"
+    elif specter.price_provider.endswith("_gbp"):
+        symbol = "GBP"
     row = (
-        "Timestamp",
-        "TxID",
-        "Category",
-        "Address",
-        "Label",
-        "Amount",
-        "Block Height",
         "Date",
+        "Label",
+        "Category",
+        "Amount ({})".format(specter.unit.upper()),
+        "Value ({})".format(symbol),
+        "Rate (BTC/{})".format(symbol)
+        if specter.unit != "sat"
+        else "Rate ({}/SAT)".format(symbol),
+        "TxID",
+        "Address",
+        "Block Height",
+        "Timestamp",
         "Raw Transaction",
     )
     if not wallet:
@@ -1131,14 +1143,9 @@ def txlist_to_csv(wallet, txlist, wallet_manager):
         if not wallet:
             wallet_alias = tx.get("wallet_alias", None)
             try:
-                _wallet = wallet_manager.get_by_alias(wallet_alias)
+                _wallet = specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
-                app.logger.error(
-                    "Failed to get wallet: {} for tx: {}. Skipping exporting transaction.".format(
-                        wallet_alias,
-                        tx,
-                    )
-                )
+                continue
         # find minimal from 3 times:
         maxtime = 10445238000  # TODO: change after 31 dec 2300 lol±
         tx["time"] = min(
@@ -1159,15 +1166,33 @@ def txlist_to_csv(wallet, txlist, wallet_manager):
                 tx["blockheight"] = tx_raw["blockheight"]
             else:
                 tx["blockheight"] = "Unconfirmed"
+        if specter.unit == "sat":
+            value = float(tx["amount"])
+            tx["amount"] = round(value * 1e8)
+        success, rate, symbol = get_price_at(
+            specter, current_user, timestamp=tx["time"]
+        )
+        if success:
+            rate = float(rate)
+            if specter.unit == "sat":
+                rate = rate / 1e8
+            amount_price = float(tx["amount"]) * rate
+            if specter.unit == "sat":
+                rate = round(1 / rate)
+        else:
+            amount_price = "-"
+            rate = "-"
         row = (
-            tx["time"],
-            tx["txid"],
-            tx["category"],
-            tx["address"],
+            time.strftime("%Y-%m-%d", time.localtime(tx["time"])),
             label,
-            "{:,.8f}".format(tx["amount"]).rstrip("0").rstrip("."),
+            tx["category"],
+            tx["amount"],
+            round(amount_price * 100) / 100,
+            rate,
+            tx["txid"],
+            tx["address"],
             tx["blockheight"],
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tx["time"])),
+            tx["time"],
             tx_hex,
         )
         if not wallet:
@@ -1198,6 +1223,8 @@ def addresses_list_to_csv(wallet):
     # write each log item
     for address in wallet._addresses:
         address_info = wallet.get_address_info(address)
+        if not address_info.is_labeled and not address_info.used:
+            continue
         row = (
             address,
             address_info.label,
