@@ -35,8 +35,8 @@ test:
  # on CI which probably want fast feedback on the releasing-jobs 
  # and therefore skip the test-job
  # tem deactivated as it did not work as expected
- only:
-    - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
+ #only:
+ #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
