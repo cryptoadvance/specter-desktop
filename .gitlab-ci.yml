@@ -12,6 +12,7 @@ cache:
   paths:
     - .cache/pip
     - .env/
+    - ./tests/bitcoin
 
 stages:
   - testing
@@ -35,8 +36,8 @@ test:
  # on CI which probably want fast feedback on the releasing-jobs 
  # and therefore skip the test-job
  # tem deactivated as it did not work as expected
- #only:
- #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
+ only:
+    - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
@@ -52,6 +53,7 @@ test-cypress:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
+    - ./tests/install_bicoind.sh
     - npm i
     - ./utils/test-cypress.sh run
   artifacts:
