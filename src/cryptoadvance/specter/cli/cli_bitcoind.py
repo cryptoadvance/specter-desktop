@@ -238,11 +238,12 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
     while True:
         try:
             my_bitcoind.mine()
+            current_height = my_bitcoind.rpcconn.get_rpc().getblockchaininfo()["blocks"]
         except Exception as e:
             logger.debug(
                 "Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
-            echo("THE_END")
+            echo(f"THE_END(@height:{current_height})")
             break
         echo("%i" % (i % 10), prefix=False, nl=False)
         if i % 10 == 9:
@@ -252,7 +253,7 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
             i = 0
             echo("", prefix=False)
             echo(
-                f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+                f"height: {current_height} | ",
                 nl=False,
             )
         time.sleep(mining_every_x_seconds)
