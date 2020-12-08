@@ -33,9 +33,7 @@
 	<br>
 	<div class="center card" style="width: 610px; padding-top: 25px;">
 		<form action="./" method="POST">
-			{% set address_label = wallet.get_address_name(wallet.address, wallet.address_index) %}
-			{% from 'wallet/components/editable_label.jinja' import editable_label %}
-			{{ editable_label(address_label, -1) }}
+			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
 		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', 'Copied Address: {{ wallet.address }}');">{{ wallet.address }}</p>
@@ -106,7 +104,7 @@
 								<img src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Unused</p>
 							{% endif %}
 							</td>
-							<td class="tx scroll">{{ explorer_link('address', address, address_info.label, specter.explorer) }}</td>
+							<td class="tx scroll"><address-label data-address="{{ address }}" data-label="{{ address_info.label }}" data-wallet="{{ wallet_alias }}"></address-label></td>
 							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
 							<td class="optional row">
 								{% if supports_qr_code_verify != [] %}

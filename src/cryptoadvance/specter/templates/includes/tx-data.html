@@ -34,7 +34,7 @@
             var style = document.getElementById('tx-data').content;
             var clone = style.cloneNode(true);
             var txidHeader = clone.querySelector(".txid");
-        
+
             this.el = clone.querySelector(".tx-data");
             this.note = clone.querySelector(".note");
             this.info = clone.querySelector(".tx-data-info");
@@ -125,7 +125,7 @@
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
                         <b>Output #${i}</b><br><br>
-                        Address: <explorer-link style="word-break: break-all;" data-type="address" data-value="${address}"></explorer-link><br>
+                        Address: <address-label data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
                         Value: ${rawtx.vout[i].value}
                     </p>
                     `;

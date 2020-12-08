@@ -22,6 +22,13 @@ document.addEventListener("notification", (e)=>{
 	}
 	showNotification(e.detail.message, e.detail.timeout);
 });
+
+document.addEventListener("updateAddressLabel", function (e) {
+	document.querySelectorAll('address-label').forEach(el => {
+		let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+		return el.dispatchEvent(event);
+	});
+});
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }

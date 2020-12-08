@@ -1000,3 +1000,33 @@ def rescan_progress(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
         return {}
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
+@login_required
+def get_label(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form.get("address", "")
+        label = wallet.getlabel(address)
+        return {
+            "address": address,
+            "label": label,
+        }
+    except SpecterError as se:
+        app.logger.error("SpecterError while get label: %s" % se)
+        return {}
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
+@login_required
+def set_label(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form["address"]
+        label = request.form["label"]
+        wallet.setlabel(address, label)
+        return {"success": True}
+    except SpecterError as se:
+        app.logger.error("SpecterError while get label: %s" % se)
+        return {"success": False}

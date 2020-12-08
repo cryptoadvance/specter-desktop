@@ -20,13 +20,12 @@
         </td>
         <td class="tx scroll optional">
             <span class="explorer-link" onclick="showTxData('{{txid}}', '{{wallet.alias}}')">{{ txid }}</span>
-            {# {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }} #}
         </td>
         <td class="tx scroll optional">
             {% if wallet == none %}
                 {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
             {% endif %}
-            {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
+            <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
         </td>
         <td>
             {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">&nbsp;({{ tx['amount'] | altunit }})</span>{% endif %}
@@ -80,7 +79,7 @@
             {% if wallet == none %}
                 {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
             {% endif %}
-            {{ explorer_link('address', tx['address'], tx['address'] if wallet == none else wallet.get_address_name(tx['address'], -1), specter.explorer) }}
+            <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
         </p>
         <p>Amount: {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">({{ tx['amount'] | altunit }}){% endif %}</span></p>
         <p>Status:
