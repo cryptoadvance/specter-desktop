@@ -26,7 +26,7 @@ describe('Node Configured', () => {
         cy.get('#fullbalance_amount')
         .should(($div) => {
             const n = parseFloat($div.text())
-            expect(n).to.be.gte(0).and.be.lte(50)
+            expect(n).to.be.gt(0).and.be.lte(50)
         })
 
     })

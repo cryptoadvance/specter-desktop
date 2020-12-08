@@ -63,7 +63,6 @@ This will restore the snapshot created above and run this test (and all subseque
 ## Develop on tests
 The spec-files mainly select some element on a webpage and then act on them. Mainly `.click()` and `.type("some Text")`. So it's quite helpfull to have unique IDs for all the elements which we want to use in the tests. The cypress-app has a very convenient way of selecting. Make sure you don't miss that.
 
-For specific things they are `cy.tasks` which can be be implemented. Two of the already exist:
+For specific things there are `cy.tasks` which can be implemented. Two of the already existing tasks:
 * purging the specter-folder is possible via `cy.task("clear:specter-home")`
 * Mining some coins to each of the wallets defined in the specter-folder is possible via `cy.task("node:mine")`. Depending on the height of the blockchain, you might get very different results. The coins are immediately spendable.
-
