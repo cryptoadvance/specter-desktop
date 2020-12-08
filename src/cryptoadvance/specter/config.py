@@ -58,9 +58,14 @@ class CypressTestConfig(TestConfig):
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
     )
     PORT = os.getenv("PORT", 25444)
-    DEFAULT_SPECTER_CONFIG = {
-        "uid": "123456"
-    }  # need to be static in order to (un-)tar bitcoind-dirs reliable
+
+    # need to be static in order to (un-)tar bitcoind-dirs reliable
+    DEFAULT_SPECTER_CONFIG = {"uid": "123456"}
+
+    # only used by cli_bitcoind.py, we want to have that static for the same reason
+    BTCD_REGTEST_DATA_DIR = os.getenv(
+        "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_btc_regtest_plain_datadir"
+    )
 
 
 class ProductionConfig(BaseConfig):
