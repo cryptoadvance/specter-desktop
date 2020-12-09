@@ -10,6 +10,14 @@ export BTCD_REGTEST_DATA_DIR=/tmp/specter_cypress_btc_regtest_plain_datadir
 export SPECTER_DATA_FOLDER=~/.specter-cypress
 
 . ./.env/bin/activate
+function check_consitency {
+    if ps | grep python; then
+        echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
+        sleep 5
+        ps | grep python && (echo "please investigate or kill " && exit 1)
+    fi
+}
+check_consitency
 
 function sub_default {
     cat << EOF
@@ -72,7 +80,7 @@ function start_specter {
 function stop_specter {
     if [ ! -z ${specter_pid+x} ]; then
         echo "--> Killing specter with PID $specter_pid ..."
-        if [ -n $DEBUG ]; then
+        if [ -n "$DEBUG" ]; then
             pstree -p $specter_pid
         fi
         kill $specter_pid # kill -9 would orphane strange processes
@@ -93,7 +101,21 @@ trap cleanup EXIT
 
 function restore_snapshot {
     spec_file=$1
+    # Checking whether spec-files exists
     [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
+    snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
+    [ -f ${snapshot_file} ] || (echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"; ls -l ./cypress/fixtures; exit 1)
+    ts_snapshot=$(stat --print="%X" ${snapshot_file})
+    for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
+    do 
+        ts_spec_file=$(stat --print="%X" $file)
+        if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
+            echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
+            echo "please consider:"
+            echo "./utils/test-cypress.sh snapshot $spec_file"
+            exit 1
+        fi
+    done
     rm -rf /tmp/${BTCD_REGTEST_DATA_DIR}
     rm -rf $SPECTER_DATA_FOLDER
     echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
@@ -122,15 +144,11 @@ function sub_run {
         restore_snapshot ${spec_file}
         start_bitcoind --cleanuphard
         start_specter
+        # Run $spec_file and all of the others coming later which come later!
+        $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
     else 
         start_bitcoind --reset
         start_specter --reset
-    fi
-    
-    if [ -n ${spec_file} ]; then
-        # Run $spec_file and all which come later!
-        $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file --reverse)
-    else
         $(npm bin)/cypress run
     fi
 }
@@ -151,8 +169,10 @@ function sub_snapshot {
     echo "--> stopping bitcoind gracefully ... won't take long ..."
     stop_bitcoind
     echo "--> Creating snapshot  $BTCD_REGTEST_DATA_DIR)"
+    rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz
     tar -czf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp $(basename $BTCD_REGTEST_DATA_DIR)
     echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
+    rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz
     tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)
 }
 
