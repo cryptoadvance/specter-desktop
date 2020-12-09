@@ -125,7 +125,7 @@
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
                         <b>Output #${i}</b><br><br>
-                        Address: <address-label data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                        Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
                         Value: ${rawtx.vout[i].value}
                     </p>
                     `;

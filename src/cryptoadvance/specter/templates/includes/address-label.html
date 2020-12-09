@@ -11,6 +11,14 @@
             max-width: 80%;
             outline: none;
         }
+        .explorer-link {
+            text-decoration: none;
+        }
+        .explorer-link:hover {
+            color: #fff;
+            text-decoration: underline;
+            cursor: pointer
+        }
         .edit {
             background: none;
             border: none;
@@ -33,30 +41,12 @@
             min-height: 33px;
             margin-left: 5px;
         }
-        .explorer-link img {
-            width: 18px;
-            cursor: pointer;
-            vertical-align: sub;
-            opacity: 0.5;
-            visibility: hidden;
-        }
-        .address-label-form:hover .explorer-link img {
-            visibility: visible;
-        }
-
-        .explorer-link:hover img {
-            opacity: 1;
-        }
-
         @media (hover: none) {
-            .address-label-form .explorer-link img {
-                visibility: visible;
+            .explorer-link:hover {
+                text-decoration: none;
             }
-            .explorer-link:hover img {
-                opacity: 0.5;
-            }
-            .explorer-link:active img {
-                opacity: 1;
+            .explorer-link:active {
+                text-decoration: underline;
             }
         }
 
@@ -65,8 +55,7 @@
         }
     </style>
     <form class="address-label-form">
-        <a target="_blank" class="explorer-link" title="Open in block explorer"><img src="{{ url_for('static', filename='img/link.svg') }}"></a>
-        <span class="label" autocomplete="off" spellcheck="false">Fetching address label...</span>
+        <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">Fetching address label...</span></a>
         <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" width="18px"></button>
         <button type="button" class="btn update hidden">Update</button>
         <button type="button" class="btn cancel hidden">Cancel</button>
@@ -115,7 +104,7 @@
                 this.el.style.fontSize = '1.2em';
                 this.edit.style.width = '26px';
                 this.edit.children[0].width = '26';
-                this.explorerLink.children[0].style['vertical-align'] = 'baseline';
+                this.explorerLink.style['text-decoration'] = 'none';
             } else {
                 this.isTitle = false;
             }
@@ -126,15 +115,7 @@
                 document.execCommand('inserttext', false, event.clipboardData.getData('text/plain'));
             });
 
-            // Setup explorer link if explorer is enabled.
-            if (this.explorer) {
-                this.explorerLink.href = `${ this.explorer }address/${ this.address }`
-            } else {
-                this.explorerLink.children[0].src = "{{ url_for('static', filename='img/copy.svg') }}"
-                this.explorerLink.onclick = () => {
-                    copyText(this.address, `Copied address: ${ this.address }`);
-                }
-            }
+            enableExplorerLink(this);
 
             this.edit.onclick = () => {
                 this.label.setAttributeNode(document.createAttribute('contenteditable'));
@@ -143,26 +124,12 @@
                 }
                 this.label.style['border-bottom'] = '1px solid #ccc';
                 this.labelValue = this.label.innerText;
-                this.explorerLink.classList.add('hidden')
-                this.edit.classList.add('hidden')
-                this.cancel.classList.remove('hidden')
-                this.update.classList.remove('hidden')
+                this.edit.classList.add('hidden');
+                this.cancel.classList.remove('hidden');
+                this.update.classList.remove('hidden');
+                disableExplorerLink(this);
                 this.isEditing = true;
             }
-
-            this.addEventListener("updateAddressLabel", function (e) {
-                if (this.address != e.detail.address) {
-                    return
-                }
-                this.labelValue = e.detail.label
-                if (!this.isEditing) {
-                    if (e.detail.label) {
-                        this.label.innerText = e.detail.label
-                    } else {
-                        this.label.innerText = e.detail.address
-                    }
-                }
-            });
 
             this.cancel.onclick = () => {
                 this.label.innerText = this.labelValue;
@@ -183,6 +150,19 @@
                 }
             }
         
+            this.addEventListener("updateAddressLabel", function (e) {
+                if (this.address != e.detail.address) {
+                    return
+                }
+                this.labelValue = e.detail.label
+                if (!this.isEditing) {
+                    if (e.detail.label) {
+                        this.label.innerText = e.detail.label
+                    } else {
+                        this.label.innerText = e.detail.address
+                    }
+                }
+            });
         }
     
         // Listen to update address label event
@@ -194,11 +174,33 @@
             self.label.style['font-size'] = '1.5em';
         }
         self.label.style.border = 'none';
-        self.explorerLink.classList.remove('hidden')
-        self.edit.classList.remove('hidden')
-        self.cancel.classList.add('hidden')
-        self.update.classList.add('hidden')
+        self.edit.classList.remove('hidden');
+        self.cancel.classList.add('hidden');
+        self.update.classList.add('hidden');
         self.isEditing = false;
+        enableExplorerLink(self);
+    }
+
+    function enableExplorerLink(self) {
+        self.explorerLink.classList.add('explorer-link');
+        self.explorerLink.style.removeProperty('text-decoration')
+        if (self.explorer) {
+            self.explorerLink.href = `${ self.explorer }address/${ self.address }`
+        } else {
+            self.explorerLink.onclick = () => {
+                copyText(self.address, `Copied address: ${ self.address }`);
+            }
+        }
+    }
+
+    function disableExplorerLink(self) {
+        self.explorerLink.classList.remove('explorer-link');
+        self.explorerLink.style['text-decoration'] = 'none';
+        if (self.explorer) {
+            self.explorerLink.href = `javascript: void(0)`
+        } else {
+            self.explorerLink.onclick = () => {}
+        }
     }
         
 

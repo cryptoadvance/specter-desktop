@@ -85,7 +85,7 @@
 						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 					{% endif %}
 					to<b>
-					{{ explorer_link('address', psbt['address'][i], wallet.get_address_name(psbt["address"][i], -1), specter.explorer) }}
+					<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ wallet.getlabel(psbt['address'][i]) }}" data-wallet="{{ wallet_alias }}"></address-label>
 					</b><br><br>
 				</div>
 			{% endfor %}
@@ -127,7 +127,7 @@
 						{% set tx = wallet.gettransaction(input['txid']) %}
 						{% if tx %}
 						<b>Address:</b>
-						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
+						<address-label data-address="{{ tx['details'][0]['address'] }}" data-wallet="{{ wallet_alias }}"></address-label>
 						<br>
 						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
 							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
@@ -141,7 +141,7 @@
 					<p class="tx_info" style="text-align: left; background-color: #131a24;">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
 						<b>Address:</b>
-						{{ explorer_link('address', output['scriptPubKey']['addresses'][0], output['scriptPubKey']['addresses'][0], specter.explorer) }}
+						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
 						<br>
 						{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
 							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
