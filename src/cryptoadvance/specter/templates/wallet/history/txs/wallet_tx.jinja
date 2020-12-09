@@ -6,7 +6,7 @@
 	{% if wallet.utxo|length > 0 %}
 		<div style="padding: 0 30px; width: 100%;">
 				{% from 'wallet/history/components/history_nav.jinja' import history_nav %}
-				{{ history_nav('history', wallet_alias, viewtype) }}
+				{{ history_nav('history', wallet_alias) }}
 		</div><br>
 	{% endif %}
 	{% set validate_merkle_proofs=specter.config.validate_merkle_proofs %}
@@ -23,12 +23,11 @@
 	{% endif %}
 	<div class="table-holder">
 		{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
-		{% from 'wallet/history/txs/components/full_tx_table.jinja' import full_tx_table %}
 		{{
 			tx_table(
 				specter,
-				transactions == [],
-				full_tx_table(transactions=transactions, wallet=wallet, specter=specter, includeValidatedBlockhash=validate_merkle_proofs),
+				transactions,
+				wallet,
 				includeValidatedBlockhash=validate_merkle_proofs,
 			)
 		}}

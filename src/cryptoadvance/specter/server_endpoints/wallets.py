@@ -472,26 +472,13 @@ def tx_utxo(wallet_alias):
     wallet.get_balance()
     # check utxo list
     wallet.check_utxo()
-    viewtype = "address" if request.args.get("view") != "label" else "label"
     idx = int(request.args.get("idx", default=0))
-    if request.method == "POST":
-        action = request.form["action"]
-        if action == "updatelabel":
-            label = request.form["label"]
-            account = request.form["account"]
-            if viewtype == "address":
-                wallet.setlabel(account, label)
-            else:
-                for address in wallet.addresses_on_label(account):
-                    wallet.setlabel(address, label)
-                wallet.getdata()
     return render_template(
         "wallet/history/utxo/wallet_utxo.jinja",
         idx=idx,
         wallet_alias=wallet_alias,
         wallet=wallet,
         history=False,
-        viewtype=viewtype,
         specter=app.specter,
         rand=rand,
     )

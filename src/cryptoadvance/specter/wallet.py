@@ -340,14 +340,10 @@ class Wallet:
                         tx["category"] = "receive"
                 except:
                     pass
-            self.utxo = utxo
-            self.utxo_labels_list = self.getlabels(
-                utxo["address"] for utxo in self.utxo
-            )
+            self.utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
             logger.error(f"Failed to load utxos, {e}")
             self.utxo = []
-            self.utxo_labels_list = {}
 
     def getdata(self):
         self.check_utxo()
@@ -953,70 +949,6 @@ class Wallet:
             self.keypool = end
         self.save_to_file()
         return end
-
-    def utxo_on_address(self, address):
-        utxo = [tx for tx in self.utxo if tx["address"] == address]
-        return len(utxo)
-
-    def balance_on_address(self, address):
-        balancelist = [
-            utxo["amount"] for utxo in self.utxo if utxo["address"] == address
-        ]
-        return round(sum(balancelist), 8)
-
-    def utxo_on_label(self, label):
-        return len(
-            [tx for tx in self.utxo if self.utxo_labels_list[tx["address"]] == label]
-        )
-
-    def balance_on_label(self, label):
-        return round(
-            sum(
-                utxo["amount"]
-                for utxo in self.utxo
-                if self.utxo_labels_list[utxo["address"]] == label
-            ),
-            8,
-        )
-
-    def addresses_on_label(self, label):
-        return list(
-            dict.fromkeys(
-                [
-                    address
-                    for address in self.wallet_addresses
-                    if self.getlabel(address) == label
-                ]
-            )
-        )
-
-    def utxo_addresses(self, idx=0, wallet_utxo_batch=100):
-        return list(
-            dict.fromkeys(
-                list(
-                    reversed(
-                        [
-                            utxo["address"]
-                            for utxo in sorted(self.utxo, key=lambda utxo: utxo["time"])
-                        ]
-                    )
-                )[(wallet_utxo_batch * idx) : (wallet_utxo_batch * (idx + 1))]
-            )
-        )
-
-    def utxo_labels(self, idx=0, wallet_utxo_batch=100):
-        return list(
-            dict.fromkeys(
-                list(
-                    reversed(
-                        [
-                            self.utxo_labels_list[utxo["address"]]
-                            for utxo in sorted(self.utxo, key=lambda utxo: utxo["time"])
-                        ]
-                    )
-                )[(wallet_utxo_batch * idx) : (wallet_utxo_batch * (idx + 1))]
-            )
-        )
 
     def setlabel(self, address, label):
         self._addresses.set_label(address, label)

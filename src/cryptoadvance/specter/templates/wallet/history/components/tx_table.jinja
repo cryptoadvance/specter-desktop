@@ -2,11 +2,12 @@
     tx_table - Empty table component
     Parameters:
     - specter: Specter instance
-    - isEmpty: Boolean, true if should show an item indicating empty list, false if should show the list contents.
-    - content: The content of the table (its rows).
+    - transactions: Transactions to list in the table
+    - wallet: Wallet object
     - includeValidatedBlockhash: boolean
  #}
-{% macro tx_table(specter, isEmpty, content, includeValidatedBlockhash) -%}
+{% from 'wallet/history/components/tx_item.jinja' import tx_item %}
+{% macro tx_table(specter, transactions, wallet, includeValidatedBlockhash) -%}
     <table>
         <thead>
             <tr>
@@ -24,16 +25,18 @@
             </tr>
 	</thead>
 	<tbody>
-	    {% if not isEmpty %}
-                {{ content }}
-            {% else %}
+	    {% if transactions != [] %}
+                {% for tx in transactions %}
+                    {{ tx_item(tx, wallet, specter, includeValidatedBlockhash) }}
+                {% endfor %}
+        {% else %}
                 <td></td>
                 <td>No transactions yet.</td>
                 <td class="optional"></td>
                 <td class="optional"></td>
-		{% if includeValidatedBlockhash %}
-		  <td class="optional"></td>
-		{% endif %}
+                {% if includeValidatedBlockhash %}
+                    <td class="optional"></td>
+                {% endif %}
                 <td></td>
 	    {% endif %}
 	</tbody>
