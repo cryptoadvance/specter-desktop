@@ -1,4 +1,4 @@
-import random, traceback
+import random, traceback, socket
 from datetime import datetime
 
 from flask import (
@@ -76,8 +76,22 @@ def inject_debug():
 
 @app.context_processor
 def inject_tor():
+    tor_connectable = None
+    if request.args.get("action", "") == "testtor":
+        try:
+            res = app.specter.requests_session(force_tor=True).get(
+                "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website
+            )
+            tor_connectable = res.status_code == 200
+            if tor_connectable:
+                flash("Tor requests test completed successfully!", "info")
+        except Exception as e:
+            flash("Failed to make test request over Tor. Error: %s" % e, "error")
+            tor_connectable = False
     if app.config["DEBUG"]:
-        return dict(tor_service_id="", tor_enabled=False)
+        return dict(
+            tor_connectable=tor_connectable, tor_service_id="", tor_enabled=False
+        )
     if (
         request.args.get("action", "") == "stoptor"
         or request.args.get("action", "") == "starttor"
@@ -116,8 +130,17 @@ Error returned: {}".format(
                         ),
                         "error",
                     )
-                    return dict(tor_service_id="", tor_enabled=False)
-    return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
+                    return dict(
+                        tor_connectable=tor_connectable,
+                        tor_service_id="",
+                        tor_enabled=False,
+                    )
+
+    return dict(
+        tor_connectable=tor_connectable,
+        tor_service_id=app.tor_service_id,
+        tor_enabled=app.tor_enabled,
+    )
 
 
 ################ Specter global routes ####################

@@ -1,7 +1,7 @@
 <style>
     #onion-address-container {
         position: absolute;
-        width: 240px;
+        width: 420px;
         top: 10px;
         padding: 10px;
         margin: 10px;
@@ -28,7 +28,7 @@
     .onion-address {
         word-wrap: break-word;
         color: #fff;
-        font-size: 0.8em;
+        font-size: 0.7em;
         text-decoration: none;
     }
 
@@ -70,8 +70,9 @@
     }
 
     .tor-btn {
+        font-weight: bolder;
         margin-top: 10px;
-        width: 90px;
+        width: 180px;
         border: none;
         font-size: 0.8em;
         color: #fff;
@@ -87,55 +88,44 @@
     }
 </style>
 <div id="onion-address-container" class="hidden optional">
-    <div class="tool-tip" style="margin: 3px;">
-        <i class="tool-tip__icon">i</i>
-        <p class="tool-tip__info" style="margin-top: 22px;">
-            <span class="info">
-                <span class="info__title">Accessing Specter with a Tor hidden service<br></span><br>
-                Running a Tor hidden service with Specter allows you to securly access Specter from any remote device and location.<br><br>
-                <b>Please Note:</b><br>Connecting over Tor requires that you first configure Tor on your local machine.<br>
-                You can checkout <a target="_blank" href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;">this video tutorial</a>, or read the documentation for <a target="_blank" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" style="color: #fff;">Mac and Linux</a> or <a target="_blank" href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" style="color: #fff;">Window</a><br>
-            </span>
-        </p>
-    </div>
-    {% if tor_service_id %}
-        {% if specter.config.auth == "none" %}
-            <p style="color: #fff;">
-            ⚠️ Warning!<br>
-            Your are running Specter over Tor with no authentication settings configured.<br>
-            This means your Specter instance is accessible to anyone with the .onion URL.<br>
-            This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!<br>
-            It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service.<br>
-            Please go to Settings -> Authentication and set up an authentication method.
-            </p>
-        {% endif %}
-        <span style="font-size: 0.95em; color: #fff;">Specter Running on Tor</span><br>
-        <div style="margin-top: 5px;"> <span style="font-size: 0.85em; color: #fff;">Running at:</span></div>
-        <div class="center">
-            <span title="Copy Tor address" class="onion-address centered" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
-            {{ tor_service_id }}.onion
-            </span>
-        </div>
-        {% if current_user.is_admin and (tor_service_id and tor_service_id + '.onion' not in request.url) %}
-            <form action="?" class="center">
-                <button class="tor-btn" type="submit" name="action" value="stoptor">Stop Tor</button>
-            </form>
-        {% endif %}
-    {% else %}
-        {% if debug %}
-            <span style="font-size: 0.95em; color: #fff;">Tor is unavailable...</span><br>
-            <div style="margin-top: 5px;">
-                <span style="font-size: 0.85em; color: #fff;">You are running Specter in debug mode, but Tor hidden services are only available in production mode.</span>
-            </div>
-        {% else %}
-            <span style="font-size: 0.95em; color: #fff;">Tor service is down...</span><br>
-            {% if current_user.is_admin and ('.onion' not in request.url) %}
-                <form action="?" class="center">
-                    <button class="tor-btn" type="submit" name="action" value="starttor">Start Tor</button>
-                </form>
+    <h1 style="font-size: 1.2em; color: #fff; margin-bottom: 5px;">
+    Tor management panel
+    </h1>
+    <p style="font-size: 0.85em; color: #fff; margin: 10px;">
+    Here you can test your connection to Tor and manage your Specter hidden service.
+    </p>
+    <div class="center" style="border: 1px solid #fff; border-radius: 4px; padding: 10px;">
+        {% if tor_service_id %}
+            {% if specter.config.auth == "none" %}
+                <p style="color: #fff;">
+                ⚠️ Warning!<br>
+                Your are running Specter over Tor with no authentication settings configured.<br>
+                This means your Specter instance is accessible to anyone with the .onion URL.<br>
+                This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!<br>
+                It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service.<br>
+                Please go to Settings -> Authentication and set up an authentication method.
+                </p>
             {% endif %}
+                <span style="font-size: 1em; color: #fff; margin-bottom: 5px;">
+                Specter hidden service is running at:
+                </span>
+                <span title="Copy Tor address" class="onion-address centered" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+                {{ tor_service_id }}.onion
+                </span>
+        {% else %}
+            <span style="font-size: 1em; color: #fff; margin-bottom: 5px;">
+                Specter hidden service is off...
+            </span>
         {% endif %}
-    {% endif %}
+        <form action="?" class="center">
+            <button class="tor-btn" type="submit" name="action" value="testtor">Test Connection</button>
+            {% if current_user.is_admin and (tor_service_id and tor_service_id + '.onion' not in request.url) %}
+                <button class="tor-btn" type="submit" name="action" value="stoptor">Stop Hidden Service</button>
+            {% elif current_user.is_admin and ('.onion' not in request.url) %}
+                <button class="tor-btn" type="submit" name="action" value="starttor">Start Hidden Service</button>
+            {% endif %}
+        </form>
+    </div>
 </div>
 <div class="settings-bar-btn" id='tor-toggle-btn'>
     <img id="tor-btn" src="{{ url_for('static', filename='img/tor.svg') }}"/>
