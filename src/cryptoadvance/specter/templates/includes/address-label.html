@@ -145,6 +145,9 @@
                         address: this.address,
                     }});
                     document.dispatchEvent(event);
+                    if (!this.labelValue) {
+                        this.label.innerText = this.address
+                    }
                 } else {
                     showError('Failed to update address label...')
                 }
