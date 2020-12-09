@@ -51,7 +51,11 @@
 
     .dot-on {
         {% if tor_enabled %}
-            background-color: #0f0;
+            {% if specter.config.auth != "none" %}
+                background-color: #0f0;
+            {% else %}
+                background-color: yellow;
+            {% endif %} 
         {% else %}
             background-color: #ccc;
         {% endif %}
@@ -95,6 +99,16 @@
         </p>
     </div>
     {% if tor_service_id %}
+        {% if specter.config.auth == "none" %}
+            <p style="color: #fff;">
+            ⚠️ Warning!<br>
+            Your are running Specter over Tor with no authentication settings configured.<br>
+            This means your Specter instance is accessible to anyone with the .onion URL.<br>
+            This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!<br>
+            It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service.<br>
+            Please go to Settings -> Authentication and set up an authentication method.
+            </p>
+        {% endif %}
         <span style="font-size: 0.95em; color: #fff;">Specter Running on Tor</span><br>
         <div style="margin-top: 5px;"> <span style="font-size: 0.85em; color: #fff;">Running at:</span></div>
         <div class="center">

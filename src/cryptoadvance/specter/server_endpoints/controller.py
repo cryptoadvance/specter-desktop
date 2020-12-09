@@ -82,6 +82,13 @@ def inject_tor():
         request.args.get("action", "") == "stoptor"
         or request.args.get("action", "") == "starttor"
     ):
+        if request.args.get("action", "") == "starttor":
+            if app.specter.config.get("auth", "none") == "none":
+                flash(
+                    "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
+                    "error",
+                )
+                return dict(tor_service_id="", tor_enabled=False)
         if hasattr(current_user, "is_admin") and current_user.is_admin:
             try:
                 current_hidden_services = (
