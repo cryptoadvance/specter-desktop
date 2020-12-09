@@ -56,7 +56,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     # version checker
     # checks for new versions once per hour
-    specter.version = VersionChecker()
+    specter.version = VersionChecker(specter=specter)
     specter.version.start()
 
     login_manager = LoginManager()

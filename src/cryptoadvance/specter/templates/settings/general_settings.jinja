@@ -46,6 +46,34 @@
 			<div class="row" style="margin-top: 5px;">
 				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
+			<h1>
+			<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
+			Tor configurations
+			</h1>
+			Use Tor proxy running at: 
+			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
+			<br><br>
+			Tor control port:
+			<p class="note">
+			Restart Specter for change of the control port to take effect.
+			</p>
+			<input name="tor_control_port" value="{{ tor_control_port }}" type="text" placeholder='Set "default" for default or specify port to use.' />
+			<br><br>
+			Do outside calls only over Tor?
+			<tool-tip title="Tor Only mode" style="float: right; margin-bottom: 5px;">
+			Some optional Specter functionalities, like rescanning UTXO on a pruned node, or getting the Bitcoin price, might make calls to external APIs and services.<br><br>
+			Toggle this on to ensure Specter routes all these external calls over Tor proxy.<br><br>
+			Note: Some external sources may stop working if they block Tor call.
+			</tool-tip>
+			<p class="note">
+			Toggle this on to ensure Specter routes all calls external over Tor proxy.
+			</p>
+			<div class="row">
+			    <label class="switch">
+				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
+				<span class="slider"></span>
+			    </label>
+			</div><br><br>
 			<h1> Miscellaneous </h1>
 			Bitcoin unit to use (BTC/sats):
 			<select name="unit">

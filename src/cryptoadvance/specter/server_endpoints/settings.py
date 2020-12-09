@@ -129,11 +129,17 @@ def bitcoin_core():
 def general():
     current_version = notify_upgrade(app, flash)
     explorer = app.specter.explorer
+    proxy_url = app.specter.proxy_url
+    only_tor = app.specter.only_tor
+    tor_control_port = app.specter.tor_control_port
     loglevel = get_loglevel(app)
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
+        proxy_url = request.form["proxy_url"]
+        only_tor = request.form.get("only_tor") == "on"
+        tor_control_port = request.form["tor_control_port"]
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
@@ -145,6 +151,9 @@ def general():
                 set_loglevel(app, loglevel)
 
             app.specter.update_explorer(explorer, current_user)
+            app.specter.update_proxy_url(proxy_url, current_user)
+            app.specter.update_only_tor(only_tor, current_user)
+            app.specter.update_tor_control_port(tor_control_port, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
@@ -224,6 +233,9 @@ This may take a few hours to complete.",
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
+        proxy_url=proxy_url,
+        only_tor=only_tor,
+        tor_control_port=tor_control_port,
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,

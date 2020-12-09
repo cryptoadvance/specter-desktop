@@ -93,12 +93,10 @@ def api():
                 500,
             )
         data["forwarded_request"] = True
-        requests_session = requests.Session()
+        requests_session = app.specter.requests_session(
+            force_tor=".onion/" in app.specter.hwi_bridge_url
+        )
         requests_session.headers.update({"origin": request.environ["HTTP_ORIGIN"]})
-        if ".onion/" in app.specter.hwi_bridge_url:
-            requests_session.proxies = {}
-            requests_session.proxies["http"] = "socks5h://localhost:9050"
-            requests_session.proxies["https"] = "socks5h://localhost:9050"
         forwarded_request = requests_session.post(
             app.specter.hwi_bridge_url, data=json.dumps(data)
         )

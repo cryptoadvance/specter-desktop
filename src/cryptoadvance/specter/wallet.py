@@ -573,8 +573,14 @@ class Wallet:
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
-    def rescanutxo(self, explorer=None):
-        t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
+    def rescanutxo(self, explorer=None, requests_session=None):
+        t = threading.Thread(
+            target=self._rescan_utxo_thread,
+            args=(
+                explorer,
+                requests_session,
+            ),
+        )
         t.start()
 
     def export_labels(self):
@@ -593,7 +599,7 @@ class Wallet:
             for address in addresses:
                 self._addresses.set_label(address, label)
 
-    def _rescan_utxo_thread(self, explorer=None):
+    def _rescan_utxo_thread(self, explorer=None, requests_session=None):
         # rescan utxo is pretty fast,
         # so we can check large range of addresses
         # and adjust keypool accordingly
@@ -668,13 +674,6 @@ class Wallet:
         # handle missing transactions now
         # if Tor is running, requests will be sent over Tor
         if explorer is not None:
-            try:
-                requests_session = requests.Session()
-                requests_session.proxies["http"] = "socks5h://localhost:9050"
-                requests_session.proxies["https"] = "socks5h://localhost:9050"
-                requests_session.get(explorer)
-            except Exception:
-                requests_session = requests.Session()
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
             try:

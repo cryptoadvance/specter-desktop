@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 def update_price(specter, current_user):
     try:
         if specter.price_check:
-            requests_session = requests.Session()
+            requests_session = specter.requests_session(
+                force_tor=".onion/" in specter.price_provider
+            )
             if specter.price_provider == "bitstamp":
                 price = requests_session.get(
                     "https://www.bitstamp.net/api/v2/ticker/btcusd"
@@ -30,8 +32,6 @@ def update_price(specter, current_user):
                 specter.update_alt_symbol("£", current_user)
                 return True
             if specter.price_provider.startswith("spotbit"):
-                requests_session.proxies["http"] = "socks5h://localhost:9050"
-                requests_session.proxies["https"] = "socks5h://localhost:9050"
                 currency = "usd"
                 currency_symbol = "$"
                 if specter.price_provider.endswith("_eur"):

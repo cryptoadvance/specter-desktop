@@ -364,7 +364,7 @@ def new_wallet(wallet_type):
                     explorer = None
                     if "use_explorer" in request.form:
                         explorer = app.specter.get_default_explorer()
-                    wallet.rescanutxo(explorer)
+                    wallet.rescanutxo(explorer, app.specter.requests_session(explorer))
                     app.specter.info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
@@ -833,7 +833,7 @@ def settings(wallet_alias):
             explorer = None
             if "use_explorer" in request.form:
                 explorer = app.specter.get_default_explorer()
-            wallet.rescanutxo(explorer)
+            wallet.rescanutxo(explorer, app.specter.requests_session(explorer))
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
