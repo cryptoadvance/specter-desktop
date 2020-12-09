@@ -62,6 +62,9 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
             loglevel="debug",
             restoredevices=restore_devices,
             restorewallets=restore_wallets,
+            proxy_url="",
+            only_tor="off",
+            tor_control_port="default",
         ),
     )
     assert b"Specter data was successfully loaded from backup." in result.data
