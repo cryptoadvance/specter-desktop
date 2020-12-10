@@ -966,7 +966,11 @@ def decoderawtx(wallet_alias):
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
-            return {"success": True, "tx": tx, "rawtx": decoderawtransaction(tx["hex"])}
+            return {
+                "success": True,
+                "tx": tx,
+                "rawtx": decoderawtransaction(tx["hex"], app.specter.chain),
+            }
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
     return {"success": False}
