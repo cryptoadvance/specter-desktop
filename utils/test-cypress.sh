@@ -55,6 +55,10 @@ function start_bitcoind {
     echo "--> Starting bitcoind with $addopts..."
     python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config CypressTestConfig &
     bitcoind_pid=$!
+    while ! [ -f ./btcd-conn.json ] ; do
+        sleep 0.5
+    done
+
 }
 
 function stop_bitcoind {
