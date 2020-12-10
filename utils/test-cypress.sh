@@ -10,14 +10,14 @@ export BTCD_REGTEST_DATA_DIR=/tmp/specter_cypress_btc_regtest_plain_datadir
 export SPECTER_DATA_FOLDER=~/.specter-cypress
 
 . ./.env/bin/activate
-function check_consitency {
+function check_consistency {
     if ps | grep python; then
         echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
         sleep 5
         ps | grep python && (echo "please investigate or kill " && exit 1)
     fi
 }
-check_consitency
+check_consistency
 
 function sub_default {
     cat << EOF
