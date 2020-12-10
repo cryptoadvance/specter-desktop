@@ -155,7 +155,7 @@ def bitcoind(
         # Make sure datadir does exist if specified:
         Path(config_obj["BTCD_REGTEST_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
     else:
-        echo("starting or detecting container")
+        echo("starting container")
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
         my_bitcoind.start_bitcoind(

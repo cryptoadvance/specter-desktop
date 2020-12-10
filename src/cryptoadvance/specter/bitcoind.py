@@ -274,9 +274,12 @@ class BitcoindDockerController(BitcoindController):
         self.btcd_container = None
         super().__init__(rpcport=rpcport)
         self.docker_tag = docker_tag
+
         if self.detect_bitcoind_container(rpcport) != None:
-            rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
-            self.rpcconn = rpcconn
+            rpcconn, btcd_container = self.detect_bitcoind_container(rpcport)
+            logger.debug("Detected old container ... deleting it")
+            btcd_container.stop()
+            btcd_container.remove()
 
     def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, datadir=None):
         if datadir != None:
@@ -337,6 +340,7 @@ class BitcoindDockerController(BitcoindController):
                 if container == self.btcd_container:
                     self.btcd_container.stop()
                     logger.info("Stopped btcd_container {}".format(self.btcd_container))
+                    self.btcd_container.remove()
                     return
         raise Exception("Ambigious Container running")
 
