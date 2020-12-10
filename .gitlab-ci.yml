@@ -53,7 +53,8 @@ test-cypress:
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
     - npm i
-    - ./utils/test-cypress.sh --docker run
+    - ./utils/test-cypress.sh --docker --debug run
+    - docker ps || echo "probably no docker available anyway"
   artifacts:
     when: always
     paths:
