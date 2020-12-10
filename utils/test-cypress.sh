@@ -84,9 +84,6 @@ function start_specter {
 function stop_specter {
     if [ ! -z ${specter_pid+x} ]; then
         echo "--> Killing specter with PID $specter_pid ..."
-        if [ -n "$DEBUG" ]; then
-            pstree -p $specter_pid
-        fi
         kill $specter_pid # kill -9 would orphane strange processes
         # We don't need to wait as that wastes time.
         unset specter_pid
