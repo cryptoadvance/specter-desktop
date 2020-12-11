@@ -524,6 +524,16 @@ class Wallet:
                 amounts = {}
                 inputs_mine_count = 0
                 for vin in raw_tx["vin"]:
+                    # coinbase tx
+                    if (
+                        vin["txid"]
+                        == "0000000000000000000000000000000000000000000000000000000000000000"
+                    ):
+                        if tx["confirmations"] <= 100:
+                            category = "immature"
+                        else:
+                            category = "generate"
+                        break
                     if vin["txid"] in self._transactions:
                         try:
                             address = decoderawtransaction(
@@ -595,7 +605,8 @@ class Wallet:
                             or self.get_address_info(address).is_external
                         ]
                 else:
-                    category = "receive"
+                    if not category:
+                        category = "receive"
                     addresses = [
                         address
                         for address in addresses
