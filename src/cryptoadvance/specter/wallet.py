@@ -543,30 +543,44 @@ class Wallet:
                     addresses.append(address)
                     amounts[address] = out["value"]
 
-                # This will see a Tx like coinjoin as self transfer
-                # Maybe should have its own category...
                 if inputs_mine_count:
-                    if outputs_mine_count == len(raw_tx["vout"]):
-                        category = "selftransfer"
-                        if (
-                            len(
-                                [
-                                    address
-                                    for address in addresses
-                                    if self.get_address_info(address)
-                                    and not self.get_address_info(address).change
-                                ]
-                            )
-                            > 0
-                        ):
-                            addresses = [
+                    if outputs_mine_count and (
+                        len(
+                            [
                                 address
                                 for address in addresses
                                 if self.get_address_info(address)
                                 and not self.get_address_info(address).change
                             ]
+                        )
+                        > 0
+                    ):
+                        category = "selftransfer"
+                        addresses = [
+                            address
+                            for address in addresses
+                            if self.get_address_info(address)
+                            and not self.get_address_info(address).change
+                        ]
+                    elif outputs_mine_count and (
+                        len(
+                            [
+                                address
+                                for address in addresses
+                                if self.get_address_info(address)
+                                and self.get_address_info(address).change
+                            ]
+                        )
+                        > 1
+                        or len(raw_tx["vout"]) == 1
+                    ):
+                        category = "selftransfer"
+                        addresses = [
+                            address
+                            for address in addresses
+                            if self.get_address_info(address)
+                        ]
                     else:
-                        # Send
                         category = "send"
                         addresses = [
                             address
