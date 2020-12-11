@@ -41,6 +41,16 @@ generic-options:
 EOF
 }
 
+function send_signal() {
+  # use like send_signal <SIGNAL> <PID>
+  # whereas SIGNAL is either SIGTERM or SIGKILL
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    kill -${1} $2
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    kill -s $signal_name $2
+  fi
+}
+
 function start_bitcoind {
 
   while [[ $# -gt 0 ]]; do
@@ -83,32 +93,32 @@ function start_bitcoind {
 }
 
 function stop_bitcoind {
-    if [ ! -z ${bitcoind_pid+x} ]; then
-        echo "--> Killing/Terminating bitcoindwrapper with PID $bitcoind_pid ..."
-        kill $bitcoind_pid
-        wait $bitcoind_pid
-        unset bitcoind_pid
-    fi
+  if [ ! -z ${bitcoind_pid+x} ]; then
+    echo "--> Killing/Terminating bitcoindwrapper with PID $bitcoind_pid ..."
+    send_signal TERM $bitcoind_pid
+    wait $bitcoind_pid
+    unset bitcoind_pid
+  fi
 }
 
 function start_specter {
-    if [ "$1" = "--reset" ]; then
-        echo "--> Purging $SPECTER_DATA_FOLDER"
-        rm -rf $SPECTER_DATA_FOLDER
-    fi
-    echo "--> Starting specter ..."
-    python3 -m cryptoadvance.specter $DEBUG server --config CypressTestConfig --debug > /dev/null &
-    specter_pid=$!
-    $(npm bin)/wait-on http://localhost:${PORT}
+  if [ "$1" = "--reset" ]; then
+    echo "--> Purging $SPECTER_DATA_FOLDER"
+    rm -rf $SPECTER_DATA_FOLDER
+  fi
+  echo "--> Starting specter ..."
+  python3 -m cryptoadvance.specter $DEBUG server --config CypressTestConfig --debug > /dev/null &
+  specter_pid=$!
+  $(npm bin)/wait-on http://localhost:${PORT}
 }
 
 function stop_specter {
-    if [ ! -z ${specter_pid+x} ]; then
-        echo "--> Killing specter with PID $specter_pid ..."
-        kill $specter_pid # kill -9 would orphane strange processes
-        # We don't need to wait as that wastes time.
-        unset specter_pid
-    fi
+  if [ ! -z ${specter_pid+x} ]; then
+    echo "--> Killing specter with PID $specter_pid ..."
+    send_signal TERM $specter_pid # kill -9 would orphane strange processes
+    # We don't need to wait as that wastes time.
+    unset specter_pid
+  fi
 }
 
 function cleanup()
@@ -176,26 +186,26 @@ function sub_run {
 }
 
 function sub_snapshot {
-    spec_file=$1
-    # We'll create a snapshot BEFORE this spec-file has been tested:
-    if [ ! -f ./cypress/integration/$spec_file ]; then
-        echo "ERROR: Use one of these arguments:"
-        cat cypress.json | jq -r ".testFiles[]"
-        exit 2
-    fi
-    start_bitcoind --reset
-    start_specter --reset
-    $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file)
-    echo "--> stopping specter"
-    stop_specter
-    echo "--> stopping bitcoind gracefully ... won't take long ..."
-    stop_bitcoind
-    echo "--> Creating snapshot  $BTCD_REGTEST_DATA_DIR)"
-    rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz
-    tar -czf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp $(basename $BTCD_REGTEST_DATA_DIR)
-    echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
-    rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz
-    tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)
+  spec_file=$1
+  # We'll create a snapshot BEFORE this spec-file has been tested:
+  if [ ! -f ./cypress/integration/$spec_file ]; then
+    echo "ERROR: Use one of these arguments:"
+    cat cypress.json | jq -r ".testFiles[]"
+    exit 2
+  fi
+  start_bitcoind --reset
+  start_specter --reset
+  $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file)
+  echo "--> stopping specter"
+  stop_specter
+  echo "--> stopping bitcoind gracefully ... won't take long ..."
+  stop_bitcoind
+  echo "--> Creating snapshot  $BTCD_REGTEST_DATA_DIR)"
+  rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz
+  tar -czf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp $(basename $BTCD_REGTEST_DATA_DIR)
+  echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
+  rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz
+  tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)
 }
 
 
@@ -209,33 +219,33 @@ function parse_and_execute() {
   do
   arg="$1"
   case $arg in
-      "" | "-h" | "--help")
-          sub_default
-          shift
-          ;;
-      --debug)
-          set -x
-          DEBUG=--debug
-          shift
-          ;;
-      --docker)
-          DOCKER=true
-          shift
-          ;;
-      *)
-          shift
-          sub_${arg} $@
-          ret_value=$?
-          if [ $ret_value = 127 ]; then
-              echo "Error: '$arg' is not a known subcommand." >&2
-              echo "       Run '$progname --help' for a list of known subcommands." >&2
-              exit 1
-          elif [ $ret_value = 0 ]; then
-              exit 0
-          else
-              exit $ret_value
-          fi
-          ;;
+    "" | "-h" | "--help")
+      sub_default
+      shift
+      ;;
+    --debug)
+      set -x
+      DEBUG=--debug
+      shift
+      ;;
+    --docker)
+      DOCKER=true
+      shift
+      ;;
+    *)
+      shift
+      sub_${arg} $@
+      ret_value=$?
+      if [ $ret_value = 127 ]; then
+        echo "Error: '$arg' is not a known subcommand." >&2
+        echo "       Run '$progname --help' for a list of known subcommands." >&2
+        exit 1
+      elif [ $ret_value = 0 ]; then
+        exit 0
+      else
+        exit $ret_value
+      fi
+      ;;
   esac
   done
 }
