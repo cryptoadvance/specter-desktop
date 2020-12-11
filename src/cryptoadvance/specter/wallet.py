@@ -471,7 +471,12 @@ class Wallet:
         self.save_to_file()
 
     def txlist(
-        self, page, limit=100, fetch_transactions=True, validate_merkle_proofs=False
+        self,
+        page,
+        limit=100,
+        fetch_transactions=True,
+        validate_merkle_proofs=False,
+        current_blockheight=None,
     ):
         if fetch_transactions:
             self.fetch_transactions()
@@ -496,7 +501,8 @@ class Wallet:
                     < tx["time"]
                 )
             ]
-            current_blockheight = self.rpc.getblockcount()
+            if not current_blockheight:
+                current_blockheight = self.rpc.getblockcount()
             result = []
             blocks = {}
             for tx in transactions:

@@ -447,6 +447,8 @@ def tx_history(wallet_alias):
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     # update balances in the wallet
     wallet.get_balance()
+    app.specter.check_blockheight()
+
     idx = int(request.args.get("idx", default=0))
 
     return render_template(
