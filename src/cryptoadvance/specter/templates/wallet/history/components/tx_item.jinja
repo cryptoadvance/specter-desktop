@@ -25,10 +25,15 @@
             {% if wallet == none %}
                 {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
             {% endif %}
-            <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
+            {% if tx['address'] is iterable and tx['address'] is not string %}
+                {{ tx['address']|length }} Recipients
+            {% else %}
+                <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
+            {% endif %}
         </td>
         <td>
-            {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">&nbsp;({{ tx['amount'] | altunit }})</span>{% endif %}
+            {% set amount = tx['amount'] | sum if tx['amount'] is iterable else tx['amount'] %}
+            {{ amount | btcunitamount }} {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
         </td>
         <td>
             {%if tx['confirmations'] == 0 %}
@@ -74,14 +79,24 @@
         <p class="tx scroll" style="max-width: 100%; background-color: #0f161f; border-radius: 5px;">
             {{ explorer_link('tx', tx['txid'], tx['txid'], specter.explorer) }}
         </p>
-        <p>Address:</p>
+        {% if tx['address'] is iterable and tx['address'] is not string %}
+            <p>Address:</p>
+        {% else %}
+            <p>Addresses:</p><br>
+        {% endif %}
         <p class="tx scroll" style="max-width: 100%; background-color: #0f161f; border-radius: 5px;">
             {% if wallet == none %}
                 {% set wallet = specter.wallet_manager.get_by_alias(tx['wallet_alias']) %}
             {% endif %}
-            <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
-        </p>
-        <p>Amount: {{ tx['amount'] | btcunitamount }} {% if specter.price_check %}<span class="note">({{ tx['amount'] | altunit }}){% endif %}</span></p>
+            {% if tx['address'] is iterable and tx['address'] is not string %}
+                {% for address in tx['address'] %}
+                    <address-label data-address="{{ address }}" data-label="{{ address if not wallet else wallet.getlabel(address) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link><br>
+                {% endfor %}
+            {% else %}
+                <address-label data-address="{{ tx['address'] }}" data-label="{{ tx['address'] if not wallet else wallet.getlabel(tx['address']) }}" data-wallet="{{ wallet.alias if wallet else tx['wallet_alias'] }}"></explorer-link>
+            {% endif %}
+        </p>        
+        <p>Amount: {{ amount | btcunitamount }} {% if specter.price_check %}<span class="note">({{ amount | altunit }}){% endif %}</span></p>
         <p>Status:
         {%if tx['confirmations'] == 0 %}
             Pending.

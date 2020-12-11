@@ -26,9 +26,10 @@ class TxItem(dict):
         "hex",  # str, raw tx in hex
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
+        "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
     ]
-    type_converter = [str, str, int, int, parse_conflicts]
+    type_converter = [str, str, int, int, str, parse_conflicts]
 
     def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
@@ -59,6 +60,16 @@ class TxItem(dict):
 
     def __repr__(self):
         return f"TxItem({str(self)})"
+
+    def __dict__(self):
+        return {
+            "txid": self["txid"],
+            "blockheight": self["blockheight"],
+            "time": self["time"],
+            "conflicts": self["conflicts"],
+            "bip125-replaceable": self["bip125-replaceable"],
+            "hex": self["hex"],
+        }
 
 
 class TxList(dict):
@@ -129,6 +140,7 @@ class TxList(dict):
                 "blockheight": tx.get("blockheight", None),
                 "time": time,
                 "conflicts": tx.get("walletconflicts", []),
+                "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
             txitem = TxItem(self.rpc, self._addresses, **obj)

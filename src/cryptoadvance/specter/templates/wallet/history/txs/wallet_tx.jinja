@@ -11,7 +11,7 @@
 	{% endif %}
 	{% set validate_merkle_proofs=specter.config.validate_merkle_proofs %}
 	{% set transactions = wallet.txlist(idx, validate_merkle_proofs=validate_merkle_proofs) %}
-	{% set next_transactions = wallet.txlist(idx + 1, validate_merkle_proofs=validate_merkle_proofs) %}
+	{% set next_transactions = wallet.txlist(idx + 1, fetch_transactions=False, validate_merkle_proofs=validate_merkle_proofs) %}
 	{% if idx != 0 or next_transactions|length != 0 %}
 		<div>
 			<a href="./?idx={{ idx - 1 }}" class="pagination-arrow {% if idx == 0 %}pagination-disabled{% endif %}">&#8249;</a>

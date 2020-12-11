@@ -1004,8 +1004,9 @@ def get_label(wallet_alias):
             "address": address,
             "label": label,
         }
-    except SpecterError as se:
-        app.logger.error("SpecterError while get label: %s" % se)
+    except Exception as e:
+        flash("Error while get label: %s" % e, "error")
+        app.logger.error("Error while get label: %s" % e)
         return {}
 
 
@@ -1018,6 +1019,6 @@ def set_label(wallet_alias):
         label = request.form["label"]
         wallet.setlabel(address, label)
         return {"success": True}
-    except SpecterError as se:
-        app.logger.error("SpecterError while get label: %s" % se)
-        return {"success": False}
+    except Exception as e:
+        flash("Error while get label: %s" % e, "error")
+        app.logger.error("Error while get label: %s" % e)

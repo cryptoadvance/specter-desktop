@@ -95,15 +95,12 @@ class Wallet:
         self._transactions = TxList(
             txs_path, self.rpc, self._addresses, self.manager.chain
         )
-        if not self._transactions.file_exists:
-            self.fetch_transactions()
 
         if address == "":
             self.getnewaddress()
         if change_address == "":
             self.getnewaddress(change=True)
 
-        self.getdata()
         self.update()
         if old_format_detected or self.last_block != last_block:
             self.save_to_file()
@@ -136,6 +133,17 @@ class Wallet:
         batch = 100
         while True:
             res = self.rpc.listtransactions("*", batch, batch * idx, True)
+            res = [
+                tx
+                for tx in res
+                if tx["txid"] not in self._transactions
+                or self._transactions[tx["txid"]].get("blockheight", None)
+                != tx.get("blockheight", None)
+                or self._transactions[tx["txid"]].get("conflicts", [])
+                != tx.get("walletconflicts", [])
+            ]
+            # TODO: Looks like Core ignore a consolidation (self-transfer) going into the change address (in listtransactions)
+            # This means it'll show unconfirmed for us forever...
             arr.extend(res)
             idx += 1
             # not sure if Core <20 returns last batch or empty array at the end
@@ -154,9 +162,9 @@ class Wallet:
         self._transactions.add(txs)
 
     def update(self):
+        self.getdata()
         self.get_balance()
         self.check_addresses()
-        self.get_info()
 
     def check_unused(self):
         """Check current receive address is unused and get new if needed"""
@@ -346,6 +354,7 @@ class Wallet:
             self.utxo = []
 
     def getdata(self):
+        self.fetch_transactions()
         self.check_utxo()
         self.get_info()
         # TODO: Should do the same for the non change address (?)
@@ -461,107 +470,163 @@ class Wallet:
             )
         self.save_to_file()
 
-    def txlist(self, page, limit=100, validate_merkle_proofs=False):
+    def txlist(
+        self, page, limit=100, fetch_transactions=True, validate_merkle_proofs=False
+    ):
+        if fetch_transactions:
+            self.fetch_transactions()
         try:
-            rpc_txs = self.rpc.listtransactions(
-                "*", limit + 2, limit * page, True
-            )  # get batch + 2 to make sure you have information about send
-            rpc_txs = [tx for tx in rpc_txs if tx.get("confirmations", 0) >= 0]
-            rpc_txs = [
+            _transactions = [tx.__dict__().copy() for tx in self._transactions.values()]
+            transactions = sorted(
+                _transactions, key=lambda tx: tx["time"], reverse=True
+            )
+            if limit:
+                transactions = transactions[limit * page : limit * (page + 1)]
+            transactions = [
                 tx
-                for tx in rpc_txs
+                for tx in transactions
                 if (
-                    not tx["walletconflicts"]
+                    not tx["conflicts"]
                     or max(
                         [
                             self.gettransaction(conflicting_tx, 0)["time"]
-                            for conflicting_tx in tx["walletconflicts"]
+                            for conflicting_tx in tx["conflicts"]
                         ]
                     )
-                    < tx["timereceived"]
+                    < tx["time"]
                 )
             ]
-            rpc_txs.reverse()
-            transactions = rpc_txs[:limit]
-        except:
-            return []
-        result = []
-        blocks = {}
-        for tx in transactions:
-            if "confirmations" not in tx:
-                tx["confirmations"] = 0
-
-            # skip change outputs
-            addr = tx.get("address", "")
-            if addr in self._addresses:
-                if self._addresses[addr].change:
-                    continue
-
-            if tx["confirmations"] == 0 and (
-                tx["category"] == "send" and tx["bip125-replaceable"] == "yes"
-            ):
-                raw_tx = decoderawtransaction(
-                    self.gettransaction(tx["txid"], 0)["hex"], self.manager.chain
-                )
-                tx["vsize"] = raw_tx["vsize"]
-
-            # TODO: validate for unique txids only
-            tx["validated_blockhash"] = ""  # default is assume unvalidated
-            if (
-                validate_merkle_proofs is True
-                and tx["confirmations"] > 0
-                and tx.get("blockhash")
-            ):
-                proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
-                logger.debug(
-                    f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
-                )
-                if is_valid_merkle_proof(
-                    proof_hex=proof_hex,
-                    target_tx_hex=tx["txid"],
-                    target_block_hash_hex=tx["blockhash"],
-                    target_merkle_root_hex=None,
-                ):
-                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
-                    # See merkletooltip.html for details
-                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
-                    tx["validated_blockhash"] = tx["blockhash"]
+            current_blockheight = self.rpc.getblockcount()
+            result = []
+            blocks = {}
+            for tx in transactions:
+                if not tx.get("blockheight", 0):
+                    tx["confirmations"] = 0
                 else:
-                    logger.warning(
-                        f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
-                    )
+                    tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-            result.append(tx)
+                raw_tx = decoderawtransaction(tx["hex"], self.manager.chain)
+                tx["vsize"] = raw_tx["vsize"]
+                if (
+                    tx.get("confirmations") == 0
+                    and tx.get("bip125-replaceable", "no") == "yes"
+                ):
+                    tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
 
-        for tx in result:
-            # find minimal from 3 times:
-            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
-            tx["time"] = min(
-                tx.get("blocktime", maxtime),
-                tx.get("timereceived", maxtime),
-                tx.get("time", maxtime),
-            )
+                category = ""
+                addresses = []
+                amounts = {}
+                inputs_mine_count = 0
+                for vin in raw_tx["vin"]:
+                    if vin["txid"] in self._transactions:
+                        try:
+                            address = decoderawtransaction(
+                                self._transactions[vin["txid"]]["hex"],
+                                self.manager.chain,
+                            )["vout"][vin["vout"]]["addresses"][0]
+                            address_info = self.get_address_info(address)
+                            if address_info and not address_info.is_external:
+                                inputs_mine_count += 1
+                        except Exception:
+                            continue
 
-        # fund duplicates
-        for tx in list(result):
-            if tx["category"] == "send":
-                continue
-            duplicates = [
-                dup
-                for dup in result
-                if dup["txid"] == tx["txid"]
-                and dup["vout"] == tx["vout"]
-                and abs(dup["amount"]) == abs(tx["amount"])
-            ]
-            # we have both receive and send
-            if len(duplicates) > 1:
-                for dup in duplicates:
-                    if dup["category"] == "send":
-                        dup["category"] = "selftransfer"
-                        dup["amount"] = abs(dup["amount"])
+                outputs_mine_count = 0
+                for out in raw_tx["vout"]:
+                    try:
+                        address = out["addresses"][0]
+                    except Exception:
+                        # couldn't get address...
+                        continue
+                    address_info = self.get_address_info(address)
+                    if address_info and not address_info.is_external:
+                        outputs_mine_count += 1
+                    addresses.append(address)
+                    amounts[address] = out["value"]
+
+                # This will see a Tx like coinjoin as self transfer
+                # Maybe should have its own category...
+                if inputs_mine_count:
+                    if outputs_mine_count == len(raw_tx["vout"]):
+                        category = "selftransfer"
+                        if (
+                            len(
+                                [
+                                    address
+                                    for address in addresses
+                                    if self.get_address_info(address)
+                                    and not self.get_address_info(address).change
+                                ]
+                            )
+                            > 0
+                        ):
+                            addresses = [
+                                address
+                                for address in addresses
+                                if self.get_address_info(address)
+                                and not self.get_address_info(address).change
+                            ]
                     else:
-                        result.remove(dup)
-        return sorted(result, key=lambda tx: tx["confirmations"])
+                        # Send
+                        category = "send"
+                        addresses = [
+                            address
+                            for address in addresses
+                            if not self.get_address_info(address)
+                            or self.get_address_info(address).is_external
+                        ]
+                else:
+                    category = "receive"
+                    addresses = [
+                        address
+                        for address in addresses
+                        if self.get_address_info(address)
+                        and not self.get_address_info(address).is_external
+                    ]
+
+                amounts = [amounts[address] for address in addresses]
+
+                if len(addresses) == 1:
+                    addresses = addresses[0]
+                    amounts = amounts[0]
+
+                tx["category"] = category
+                tx["address"] = addresses
+                tx["amount"] = amounts
+                if len(addresses) == 0:
+                    tx["ismine"] = False
+                else:
+                    tx["ismine"] = True
+
+                # TODO: validate for unique txids only
+                tx["validated_blockhash"] = ""  # default is assume unvalidated
+                if validate_merkle_proofs is True and tx["confirmations"] > 0:
+                    tx["blockhash"] = self.rpc.getblockhash(tx)
+                    proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
+                    logger.debug(
+                        f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
+                    )
+                    if is_valid_merkle_proof(
+                        proof_hex=proof_hex,
+                        target_tx_hex=tx["txid"],
+                        target_block_hash_hex=tx["blockhash"],
+                        target_merkle_root_hex=None,
+                    ):
+                        # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
+                        # See merkletooltip.html for details
+                        logger.debug(
+                            f"Merkle proof of { tx['txid'] } validation success"
+                        )
+                        tx["validated_blockhash"] = tx["blockhash"]
+                    else:
+                        logger.warning(
+                            f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
+                        )
+
+                result.append(tx)
+            return result
+        except Exception as e:
+            logging.error("Exception while processing txlist: {}".format(e))
+            return []
 
     def gettransaction(self, txid, blockheight=None):
         try:

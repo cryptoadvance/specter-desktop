@@ -126,11 +126,13 @@
 						(Output #{{ input['vout'] }})<br>
 						{% set tx = wallet.gettransaction(input['txid']) %}
 						{% if tx %}
-						<b>Address:</b>
-						<address-label data-address="{{ tx['details'][0]['address'] }}" data-wallet="{{ wallet_alias }}"></address-label>
-						<br>
-						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
-							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+						{% if tx['details'] %}
+							<b>Address:</b>
+							<address-label data-address="{{ tx['details'][0]['address'] }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<br>
+							{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
+								<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+							{% endif %}
 						{% endif %}
 						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
