@@ -11,7 +11,7 @@ export SPECTER_DATA_FOLDER=~/.specter-cypress
 
 . ./.env/bin/activate
 function check_consistency {
-    if ps | grep python; then
+    if ps | grep python | grep -v grep ; then # the second grep might be necessary because MacOs has a non POSIX ps
         echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
         sleep 5
         ps | grep python && (echo "please investigate or kill " && exit 1)
@@ -42,22 +42,43 @@ EOF
 }
 
 function start_bitcoind {
-    if [ "$1" = "--reset" ]; then
+
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+      --reset)
         echo "--> Purging $BTCD_REGTEST_DATA_DIR"
         rm -rf $BTCD_REGTEST_DATA_DIR
-    fi
-    if [ "$1" = "--cleanuphard" ]; then
+        shift
+        ;;
+      --cleanuphard)
         addopts="--cleanuphard"
-    fi
-    if [ "$DOCKER" != "true" ]; then
-        addopts="$addopts --nodocker"
-    fi
-    echo "--> Starting bitcoind with $addopts..."
-    python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config CypressTestConfig &
-    bitcoind_pid=$!
-    while ! [ -f ./btcd-conn.json ] ; do
-        sleep 0.5
-    done
+        shift
+        ;;
+      *)
+        echo "unrecognized argument for start_bitcoind: $1 "
+        exit 1
+        shift
+        ;;
+    esac
+  done
+
+  if [ "$1" = "--reset" ]; then
+      echo "--> Purging $BTCD_REGTEST_DATA_DIR"
+      rm -rf $BTCD_REGTEST_DATA_DIR
+  fi
+  if [ "$1" = "--cleanuphard" ]; then
+      addopts="--cleanuphard"
+  fi
+  if [ "$DOCKER" != "true" ]; then
+      addopts="$addopts --nodocker"
+  fi
+  echo "--> Starting bitcoind with $addopts..."
+  python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config CypressTestConfig &
+  bitcoind_pid=$!
+  while ! [ -f ./btcd-conn.json ] ; do
+      sleep 0.5
+  done
 
 }
 
@@ -101,57 +122,57 @@ trap cleanup EXIT
 
 
 function restore_snapshot {
-    spec_file=$1
-    # Checking whether spec-files exists
-    [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
-    snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
-    [ -f ${snapshot_file} ] || (echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"; ls -l ./cypress/fixtures; exit 1)
-    ts_snapshot=$(stat --print="%X" ${snapshot_file})
-    for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
-    do 
-        ts_spec_file=$(stat --print="%X" $file)
-        if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
-            echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
-            echo "please consider:"
-            echo "./utils/test-cypress.sh snapshot $spec_file"
-            exit 1
-        fi
-    done
-    rm -rf /tmp/${BTCD_REGTEST_DATA_DIR}
-    rm -rf $SPECTER_DATA_FOLDER
-    echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
-    tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp
-    echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
-    tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~
+  spec_file=$1
+  # Checking whether spec-files exists
+  [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
+  snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
+  [ -f ${snapshot_file} ] || (echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"; ls -l ./cypress/fixtures; exit 1)
+  ts_snapshot=$(stat --print="%X" ${snapshot_file})
+  for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
+  do 
+    ts_spec_file=$(stat --print="%X" $file)
+    if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
+      echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
+      echo "please consider:"
+      echo "./utils/test-cypress.sh snapshot $spec_file"
+      exit 1
+    fi
+  done
+  rm -rf /tmp/${BTCD_REGTEST_DATA_DIR}
+  rm -rf $SPECTER_DATA_FOLDER
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
+  tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
+  tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~
 }
 
 function sub_open {
-    spec_file=$1
-    if [ -n "${spec_file}" ]; then
-        restore_snapshot ${spec_file}
-        start_bitcoind --cleanuphard
-        start_specter
-    else
-        start_bitcoind --reset
-        start_specter --reset
-    fi
+  spec_file=$1
+  if [ -n "${spec_file}" ]; then
+    restore_snapshot ${spec_file}
+    start_bitcoind --cleanuphard --reset
     start_specter
-    $(npm bin)/cypress open
+  else
+    start_bitcoind --reset
+    start_specter --reset
+  fi
+  start_specter
+  $(npm bin)/cypress open
 }
 
 function sub_run {
-    spec_file=$1
-    if [ -f ./cypress/integration/${spec_file} ]; then
-        restore_snapshot ${spec_file}
-        start_bitcoind --cleanuphard
-        start_specter
-        # Run $spec_file and all of the others coming later which come later!
-        $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
-    else 
-        start_bitcoind --reset
-        start_specter --reset
-        $(npm bin)/cypress run
-    fi
+  spec_file=$1
+  if [ -f ./cypress/integration/${spec_file} ]; then
+    restore_snapshot ${spec_file}
+    start_bitcoind --cleanuphard --reset
+    start_specter
+    # Run $spec_file and all of the others coming later which come later!
+    $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
+  else 
+    start_bitcoind --reset
+    start_specter --reset
+    $(npm bin)/cypress run
+  fi
 }
 
 function sub_snapshot {
