@@ -344,6 +344,9 @@ No supply-chain risks as you buy the board and a smartcard from normal electroni
 
 # TROUBLESHOOT
 
+## The AppImage is not starting on Debian 10
+This is a known issue. See [here](https://github.com/cryptoadvance/specter-desktop/issues/769). A questionable workaround might be to start with `--no-sandbox`. The security-implications are beyond this FAQ. Please check the issues for more information.
+
 ## I have issues connecting my Hardware-Wallet via USB?!
 
 * Make sure to not use the Safari-Browser. Chrome is the best option, firefox should work, too. 
