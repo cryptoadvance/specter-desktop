@@ -50,6 +50,7 @@
 - [SPECTER-DEVKIT](#specter-devkit)
   - [*Can I buy the Specter-devkit pre-built?*](#can-i-buy-the-specter-devkit-pre-built)
 - [TROUBLESHOOT](#troubleshoot)
+  - [The AppImage is not starting on Debian 10](#the-appimage-is-not-starting-on-debian-10)
   - [I have issues connecting my Hardware-Wallet via USB?!](#i-have-issues-connecting-my-hardware-wallet-via-usb)
   - [*How to upgrade Specter-desktop?*](#how-to-upgrade-specter-desktop)
     - [Laptop/Desktop](#laptopdesktop)
