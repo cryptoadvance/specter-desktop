@@ -472,8 +472,6 @@ class Wallet:
 
     def txlist(
         self,
-        page,
-        limit=100,
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
@@ -485,8 +483,6 @@ class Wallet:
             transactions = sorted(
                 _transactions, key=lambda tx: tx["time"], reverse=True
             )
-            if limit:
-                transactions = transactions[limit * page : limit * (page + 1)]
             transactions = [
                 tx
                 for tx in transactions
@@ -619,6 +615,9 @@ class Wallet:
                 if len(addresses) == 1:
                     addresses = addresses[0]
                     amounts = amounts[0]
+                    tx["label"] = self.getlabel(addresses)
+                else:
+                    tx["label"] = [self.getlabel(address) for address in addresses]
 
                 tx["category"] = category
                 tx["address"] = addresses

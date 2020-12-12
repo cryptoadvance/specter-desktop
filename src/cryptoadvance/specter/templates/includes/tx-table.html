@@ -1,0 +1,377 @@
+<template id="tx-table">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .tx-table {
+            display: table;
+        }
+        tx-row {
+            display: contents;
+        }
+        .pagination-container {
+            text-align: center;
+            width: 100%;
+        }
+        .pagination-next, .pagination-back {
+            cursor: pointer;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .pagination-idx {
+            min-width: 50px;
+            max-width: 50px;
+            width: 50px;
+            margin: 7px 7px 7px 3px;
+            text-align: center;
+            height: 35px;
+        }
+        .page-limit-label {
+            float: left;
+            margin-top: 8px;
+        }
+        .page-limit-fieldset {
+            float: left;
+            border:none;
+            display: inline;
+        }
+        .search {
+            /* float: right; */
+            margin: auto;
+            width: 100%;
+            max-width: 350px;
+        }
+        .search-container {
+            width: 80%;
+            text-align: center;
+        }
+        .up-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-bottom: solid 7px #fff;
+            border-top-width: 0;
+            cursor: pointer;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .down-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-top: solid 7px #fff;
+            border-bottom-width: 0;
+            margin-top:1px;
+            cursor: pointer;
+            float: right;
+            margin-left: 5px;
+        }
+    </style>
+    <div class="pagination-container">
+        <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
+        Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
+        <br>
+    </div>
+    <span class="page-limit-label">Page limit: </span><fieldset class="page-limit-fieldset"> 
+        <select class="page-limit-select">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="0">All</option>
+        </select>
+    </fieldset>
+    <br>
+    <div class="search-container">
+        <input class="search" type="text" placeholder="Search..." />
+    </div>
+    <br>
+    <table class="tx-table">
+        <thead>
+            <tr>
+                <th value="category" class="category-header"><div class="category-arrow"></div></th>
+                <th value="txid" class="optional txid-header">TxID<div class="txid-arrow"></div></th>
+                <th value="label" class="optional label-header">Label<div class="label-arrow"></div></th>
+                <th value="amount" class="amount-header">Amount<div class="amount-arrow"></div></th>
+                <th value="time" class="time-header">Time<div class="time-arrow up-arrow"></div></th>
+                <th value="confirmations" class="confirmations-header">Confirmations<div class="confirmations-arrow"></div></th>
+                <th value="blockhash" class="optional hidden blockhash-header">
+                    <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
+                    Block Hash<div class="blockhash-arrow"></div>
+                </th>
+            </tr>
+    </thead>
+    <tr class="empty">
+        <td></td>
+        <td>Fetching transactions...</td>
+        <td class="optional"></td>
+        <td class="optional"></td>
+        <td class="optional"></td>
+        <td class="optional hidden blockhash-empty"></td>
+        <td></td>
+    </tr>
+	<tbody class="tx-tbody">
+	</tbody>
+    </table>
+</template>
+
+<script type="text/javascript">
+    class TxTableElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('tx-table').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".tx-table");
+            this.tbody = clone.querySelector(".tx-tbody");
+            this.emptyRow = clone.querySelector(".empty");
+            this.blockhashHeader = clone.querySelector(".blockhash-header");
+            this.blockhashEmpty = clone.querySelector(".blockhash-empty");
+            // pagination
+            this.paginationNext = clone.querySelector(".pagination-next");
+            this.paginationBack = clone.querySelector(".pagination-back");
+            this.paginationContainer = clone.querySelector(".pagination-container");
+            this.paginationCounter = clone.querySelector(".pagination-counter");
+            this.paginationIdxInput = clone.querySelector(".pagination-idx");
+            this.pageLimitSelect = clone.querySelector(".page-limit-select");
+
+            // search
+            this.searchInput = clone.querySelector(".search");
+
+            // sorting
+            this.categoryHeader = clone.querySelector(".category-header");
+            this.txidHeader = clone.querySelector(".txid-header");
+            this.labelHeader = clone.querySelector(".label-header");
+            this.amountHeader = clone.querySelector(".amount-header");
+            this.timeHeader = clone.querySelector(".time-header");
+            this.confirmationsHeader = clone.querySelector(".confirmations-header");
+            this.blockhashHeader = clone.querySelector(".blockhash-header");
+            this.categoryArrow = clone.querySelector(".category-arrow");
+            this.txidArrow = clone.querySelector(".txid-arrow");
+            this.labelArrow = clone.querySelector(".label-arrow");
+            this.amountArrow = clone.querySelector(".amount-arrow");
+            this.timeArrow = clone.querySelector(".time-arrow");
+            this.confirmationsArrow = clone.querySelector(".confirmations-arrow");
+            this.blockhashArrow = clone.querySelector(".blockhash-arrow");
+
+            let sortHeaders = [
+                this.categoryHeader,
+                this.txidHeader,
+                this.labelHeader,
+                this.amountHeader,
+                this.timeHeader,
+                this.confirmationsHeader,
+                this.blockhashHeader
+            ]
+
+
+            this.idx = 0;
+            this.limit = 50;
+            this.search = "";
+            this.sortby = "time";
+            this.sortdir = "desc";
+            this.pageCount = 1;
+            
+            this.paginationNext.onclick = () => {
+                this.idx++;
+                fetchTxItems(this);
+            }
+
+            this.paginationBack.onclick = () => {
+                this.idx--;
+                fetchTxItems(this);
+            }
+
+            this.paginationIdxInput.onchange = () => {
+                let newIdx = parseInt(this.paginationIdxInput.value);
+                if (isNaN(newIdx) || (newIdx < 1 || newIdx > this.pageCount)) {
+                    this.paginationIdxInput.value = this.idx + 1;
+                    return;
+                }
+                this.idx = newIdx - 1;
+                fetchTxItems(this);
+            }
+
+            this.searchInput.onchange = () => {
+                this.search = this.searchInput.value;
+                fetchTxItems(this);
+            }
+
+            this.pageLimitSelect.onchange = () => {
+                this.limit = this.pageLimitSelect.value;
+                fetchTxItems(this);
+            }
+
+            for (let header of sortHeaders) {
+                header.onclick = () => {
+                    console.log(header.classList);
+                    console.log(this.sortby);
+                    console.log(header.classList.toString().indexOf(this.sortby));
+                    if (header.classList.toString().indexOf(this.sortby) != -1) {
+                        // flip direction
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.remove(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'up-arrow' : 'down-arrow');
+                        this.sortdir = this.sortdir == 'asc' ? 'desc' : 'asc';
+                        console.log(this.sortdir);
+                    } else {
+                        sortHeaders.forEach(el => {
+                            let existingArrow = el.querySelector(`.${this.sortby}-arrow`)
+                            if (existingArrow) {
+                                existingArrow.classList.remove('up-arrow');
+                                existingArrow.classList.remove('down-arrow');
+                            }
+                        });
+                        this.sortby = header.getAttribute('value');
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                    }
+                    fetchTxItems(this);
+                }
+            }
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.listType = this.getAttribute('type');
+            this.wallet = this.getAttribute('wallet');
+        }
+
+        static get observedAttributes() {
+            return ['type', 'wallet'];
+        }
+
+        attributeChangedCallback(attrName, oldValue, newValue) {
+            this.listType = this.getAttribute('type');
+            this.wallet = this.getAttribute('wallet');
+            if (!this.listType || (this.listType != "overview" && !this.wallet)) {
+                return
+            }
+            fetchTxItems(this);
+        }
+
+    }
+
+    async function fetchTxItems(self) {
+        self.emptyRow.children[1].innerText = "Fetching transactions...";
+        self.emptyRow.classList.remove('hidden');
+        self.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
+        if (!self.listType || (self.listType != "overview" && !self.wallet)) {
+            self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
+            return
+        }
+        let url;
+        switch (self.listType) {
+            case "overview":
+                url = `{{ url_for('wallets_endpoint.wallets_overview_txlist') }}`;
+                break;
+            case "txlist":
+                url = `{{ url_for('wallets_endpoint.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                break;
+            case "utxo":
+                url = `{{ url_for('wallets_endpoint.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                break
+            default:
+                self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
+                return
+        }
+        var formData = new FormData();
+        formData.append('idx', self.idx);
+        formData.append('limit', self.limit);
+        formData.append('search', self.search);
+        formData.append('sortby', self.sortby);
+        formData.append('sortdir', self.sortdir);
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            console.log(jsonResponse);
+            if ("txlist" in jsonResponse) {
+                if (jsonResponse.txlist) {
+                    let txlist = JSON.parse(jsonResponse.txlist);
+                    for (let tx of txlist) {
+                        let txRow = `
+                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${self.wallet}"></tx-row>
+                        `
+                        self.tbody.innerHTML += txRow;
+                    }
+
+                    // pagination
+                    self.pageCount = jsonResponse.pageCount;
+                    if (self.pageCount == 0 || txlist.length == 0) {
+                        self.emptyRow.classList.remove('hidden');
+                        self.emptyRow.children[1].innerText = "No transactions found...";
+                        self.pageCount = 1;
+                    } else {
+                        self.emptyRow.classList.add('hidden');
+                    }
+
+                    if (self.idx >= self.pageCount) {
+                        self.idx = self.pageCount - 1;
+                        fetchTxItems(self)
+                    }
+
+                    self.paginationIdxInput.value = self.idx + 1;
+
+                    if (self.pageCount > 1) {
+                        self.paginationContainer.classList.remove('hidden');
+                        self.paginationCounter.innerText = `of ${self.pageCount}`;
+                        self.paginationIdxInput.max = self.pageCount;
+                    } else {
+                        self.paginationContainer.classList.add('hidden');
+                    }
+
+                    if (self.idx == 0) {
+                        self.paginationBack.classList.add('pagination-disabled');
+                    } else {
+                        self.paginationBack.classList.remove('pagination-disabled');
+                    }
+
+                    if (self.idx + 1 == self.pageCount) {
+                        self.paginationNext.classList.add('pagination-disabled');
+                    } else {
+                        self.paginationNext.classList.remove('pagination-disabled');
+                    }
+                }
+                return
+            };
+            showError('Failed to fetch transactions list.')
+        } catch(e) {
+            console.log("Caught error: ", e);
+            showError(`Failed to fetch transactions list: ${e}`);
+        }
+    }
+
+    function showTxData(txid, wallet) {
+        if (wallet) {
+            let txDataPopup = document.getElementById('tx-popup');
+            txDataPopup.innerHTML = `<tx-data data-txid="${txid}" data-tx-wallet="${wallet}"></tx-data>`;
+            showPageOverlay('tx-popup');
+        } else {
+            copyText(txid, `Copied transaction: ${ txid }`);
+        }
+    }
+
+    customElements.define('tx-table', TxTableElement);
+</script>

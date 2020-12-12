@@ -40,7 +40,6 @@
 		}
 	</style>
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
-	{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
 	{{ total_wallet_balances(wallet, specter) }}
 	<div style="padding: 0 30px; width: 100%;">
 			{% from 'wallet/history/components/history_nav.jinja' import history_nav %}
@@ -59,14 +58,10 @@
 		</div>
 	{% endif %}
 	<div class="table-holder">
-		{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
-		{{
-			tx_table(
-				specter,
-				utxo,
-				wallet,
-				includeValidatedBlockhash=validate_merkle_proofs,
-			)
-		}}
+		{% include "includes/tx-row.html" %}
+		{% include "includes/tx-data.html" %}
+		{% include "includes/explorer-link.html" %}
+		{% include "includes/tx-table.html" %}
+		<tx-table type="utxo" wallet="{{ wallet.alias }}"></tx-table>
 	</div>
 {% endblock %}

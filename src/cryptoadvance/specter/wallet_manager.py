@@ -267,14 +267,19 @@ Silently ignored! Wallet error: {e}"
             wallet.save_to_file()
         self.update()
 
-    def full_txlist(self, page, validate_merkle_proofs=False):
+    def full_txlist(
+        self,
+        fetch_transactions=True,
+        validate_merkle_proofs=False,
+        current_blockheight=None,
+    ):
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
-                    page,
-                    limit=(100 // len(self.wallets)),
+                    fetch_transactions=fetch_transactions,
                     validate_merkle_proofs=validate_merkle_proofs,
+                    current_blockheight=current_blockheight,
                 )
             ]
             for wallet in self.wallets.values()

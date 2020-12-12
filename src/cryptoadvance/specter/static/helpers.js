@@ -28,6 +28,15 @@ document.addEventListener("updateAddressLabel", function (e) {
 		let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
 		return el.dispatchEvent(event);
 	});
+
+	// TODO: Needed currently for all custom elements containing <address-label>
+	// Find an alternative which would work regardless of shadowRoot
+	document.querySelector('tx-table').shadowRoot.querySelectorAll('tx-row').forEach(el => {
+		el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+			let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+			return el.dispatchEvent(event);
+		});
+	});
 });
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");

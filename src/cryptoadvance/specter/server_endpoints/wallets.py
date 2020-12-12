@@ -1,4 +1,6 @@
 import ast, json, os, time, base64, random, requests
+from datetime import datetime
+from numbers import Number
 from ..util.tx import decoderawtransaction
 
 from flask import (
@@ -875,6 +877,7 @@ def settings(wallet_alias):
 
 
 ################## Wallet util endpoints #######################
+# TODO: move these to an API endpoint
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
@@ -1024,3 +1027,129 @@ def set_label(wallet_alias):
     except Exception as e:
         flash("Error while get label: %s" % e, "error")
         app.logger.error("Error while get label: %s" % e)
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
+@login_required
+def txlist(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = wallet.txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        flash("Error while get txlist: %s" % e, "error")
+        app.logger.error("Error while get txlist: %s" % e)
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
+@login_required
+def utxo_list(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        txlist = wallet.utxo
+        for tx in txlist:
+            if not tx.get("label", None):
+                tx["label"] = wallet.getlabel(tx["address"])
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        flash("Error while get txlist: %s" % e, "error")
+        app.logger.error("Error while get txlist: %s" % e)
+
+
+@wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
+@login_required
+def wallets_overview_txlist():
+    try:
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = app.specter.wallet_manager.full_txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        flash("Error while get txlist: %s" % e, "error")
+        app.logger.error("Error while get txlist: %s" % e)
+
+
+def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
+    if search:
+        txlist = [
+            tx
+            for tx in txlist
+            if search in tx["txid"]
+            or (
+                any(search in address for address in tx["address"])
+                if isinstance(tx["address"], list)
+                else search in tx["address"]
+            )
+            or (
+                any(search in label for label in tx["label"])
+                if isinstance(tx["label"], list)
+                else search in tx["label"]
+            )
+            or (
+                any(search in str(amount) for amount in tx["amount"])
+                if isinstance(tx["amount"], list)
+                else search in str(tx["amount"])
+            )
+            or search in str(tx["confirmations"])
+            or search in str(tx["time"])
+            or search
+            in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
+        ]
+    if sortby:
+
+        def sort(tx):
+            val = tx.get(sortby, None)
+            final = val
+            if val:
+                if isinstance(val, list):
+                    if isinstance(val[0], Number):
+                        final = sum(val)
+                    elif isinstance(val[0], str):
+                        final = sorted(
+                            val, key=lambda s: s.lower(), reverse=sortdir != "asc"
+                        )[0].lower()
+                elif isinstance(val, str):
+                    final = val.lower()
+            print(final)
+            return final
+
+        txlist = sorted(txlist, key=sort, reverse=sortdir != "asc")
+    if limit:
+        page_count = (len(txlist) // limit) + (0 if len(txlist) % limit == 0 else 1)
+        txlist = txlist[limit * idx : limit * (idx + 1)]
+    else:
+        page_count = 1
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}

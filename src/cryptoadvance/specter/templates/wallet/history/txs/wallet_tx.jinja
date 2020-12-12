@@ -10,8 +10,8 @@
 		</div><br>
 	{% endif %}
 	{% set validate_merkle_proofs=specter.config.validate_merkle_proofs %}
-	{% set transactions = wallet.txlist(idx, validate_merkle_proofs=validate_merkle_proofs, current_blockheight=specter.info['blocks']) %}
-	{% set next_transactions = wallet.txlist(idx + 1, fetch_transactions=False, validate_merkle_proofs=validate_merkle_proofs, current_blockheight=specter.info['blocks']) %}
+	{% set transactions = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs, current_blockheight=specter.info['blocks']) %}
+	{% set next_transactions = [] %}
 	{% if idx != 0 or next_transactions|length != 0 %}
 		<div>
 			<a href="./?idx={{ idx - 1 }}" class="pagination-arrow {% if idx == 0 %}pagination-disabled{% endif %}">&#8249;</a>
@@ -22,14 +22,10 @@
 		</div>
 	{% endif %}
 	<div class="table-holder">
-		{% from 'wallet/history/components/tx_table.jinja' import tx_table %}
-		{{
-			tx_table(
-				specter,
-				transactions,
-				wallet,
-				includeValidatedBlockhash=validate_merkle_proofs,
-			)
-		}}
+		{% include "includes/tx-row.html" %}
+		{% include "includes/tx-data.html" %}
+		{% include "includes/explorer-link.html" %}
+		{% include "includes/tx-table.html" %}
+		<tx-table type="txlist" wallet="{{ wallet.alias }}"></tx-table>
 	</div>
 {% endblock %}

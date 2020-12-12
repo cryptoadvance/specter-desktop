@@ -1,14 +1,8 @@
 <template id="tx-data">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .tx-data-table td {
             text-align: left;
-            padding: 10px;
-            overflow: auto;
-            max-width: 100%;
-        }
-        .tx-data-table tr {
-            margin-bottom: 10px;
-            border-bottom: 1px solid #aaa;
         }
         .tx_info {
 			padding: 1em;
@@ -19,7 +13,7 @@
 		}
     </style>
     <div class="tx-data">
-        <h2>Transaction details</h2>
+        <h2>Transaction details</h2><br>
         <div class="tx-data-info"></div>
         <div class="note"></div>
     </div>
@@ -71,7 +65,7 @@
                 let rawtxHTML = `
                 <table class="tx-data-table">
                 <tbody>
-                <tr><td>Transaction id:</td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+                <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
                 <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
                 `;
                 if (tx.fee) {
