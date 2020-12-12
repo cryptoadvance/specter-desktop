@@ -39,7 +39,7 @@ module.exports = (on, config) => {
       // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets
       // See the signal-handler in bitcoind
       console.log('Sending SIGUSR1 to '+conn["pid"])
-      process.kill(parseInt(conn["pid"], 10), 10);
+      process.kill(parseInt(conn["pid"], 10), 'SIGUSR1');
       return null
     }
   })
