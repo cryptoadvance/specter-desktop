@@ -131,9 +131,9 @@
         <td>Fetching transactions...</td>
         <td class="optional"></td>
         <td class="optional"></td>
-        <td class="optional"></td>
-        <td class="optional hidden blockhash-empty"></td>
         <td></td>
+        <td></td>
+        <td class="optional hidden blockhash-empty"></td>
     </tr>
 	<tbody class="tx-tbody">
 	</tbody>
@@ -278,13 +278,8 @@
             shadow.appendChild(clone);
         }
 
-        connectedCallback() {
-            this.listType = this.getAttribute('type');
-            this.wallet = this.getAttribute('wallet');
-        }
-
         static get observedAttributes() {
-            return ['type', 'blockhash', 'wallet'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'wallet'];
         }
 
         attributeChangedCallback(attrName, oldValue, newValue) {
@@ -295,7 +290,18 @@
                 this.blockhashHeader.classList.add('hidden');
                 this.blockhashEmpty.classList.add('hidden');
             }
-            if (this.listType != this.getAttribute('type') || this.wallet != this.getAttribute('wallet')) {
+            if (
+                this.blockhash != this.getAttribute('blockhash') ||
+                this.btcUnit != this.getAttribute('btc-unit') ||
+                this.price != this.getAttribute('price') ||
+                this.symbol != this.getAttribute('symbol') ||
+                this.listType != this.getAttribute('type') ||
+                this.wallet != this.getAttribute('wallet')
+            ) {
+                this.blockhash = this.getAttribute('blockhash');
+                this.btcUnit = this.getAttribute('btc-unit');
+                this.price = this.getAttribute('price');
+                this.symbol = this.getAttribute('symbol');
                 this.listType = this.getAttribute('type');
                 this.wallet = this.getAttribute('wallet');
                 if (!this.listType) {
@@ -360,7 +366,14 @@
                     let txlist = JSON.parse(jsonResponse.txlist);
                     for (let tx of txlist) {
                         let txRow = `
-                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}" data-show-blockhash="${showBlockhash}"></tx-row>
+                        <tx-row
+                            data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
+                            data-price="${self.price ? self.price : 0}"
+                            data-symbol="${self.symbol ? self.symbol : ''}"
+                            data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}'
+                            data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"
+                            data-show-blockhash="${showBlockhash}">
+                            </tx-row>
                         `
                         self.tbody.innerHTML += txRow;
                     }
@@ -411,10 +424,17 @@
         }
     }
 
-    function showTxData(txid, wallet) {
+    function showTxData(btcUnit, price, symbol, txid, wallet) {
         if (wallet) {
             let txDataPopup = document.getElementById('tx-popup');
-            txDataPopup.innerHTML = `<tx-data data-txid="${txid}" data-tx-wallet="${wallet}"></tx-data>`;
+            txDataPopup.innerHTML = `
+            <tx-data
+            data-btc-unit="${btcUnit ? btcUnit : 'btc'}"
+            data-price="${price ? price : 0}"
+            data-symbol="${symbol ? symbol : ''}"
+            data-txid="${txid}"
+            data-tx-wallet="${wallet}">
+            </tx-data>`;
             showPageOverlay('tx-popup');
         } else {
             copyText(txid, `Copied transaction: ${ txid }`);

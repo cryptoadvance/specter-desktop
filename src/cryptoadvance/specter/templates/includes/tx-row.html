@@ -8,7 +8,7 @@
             <span class="explorer-link"></span>
         </td>
         <td class="tx scroll optional address"></td>
-        <td class="amount"></td>
+        <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
         <td class="time"></td>
         <td>
             <span class="confirmations"></span>
@@ -30,7 +30,8 @@
             this.category = clone.querySelector(".category");
             this.txid = clone.querySelector(".txid .explorer-link");
             this.address = clone.querySelector(".address");
-            this.amount = clone.querySelector(".amount");
+            this.amountText = clone.querySelector(".amount");
+            this.amountPrice = clone.querySelector(".amount-price");
             this.time = clone.querySelector(".time");
             this.confirmations = clone.querySelector(".confirmations");
             this.blockhash = clone.querySelector(".blockhash");        
@@ -43,6 +44,9 @@
             this.tx = JSON.parse(this.getAttribute('data-tx'));
             this.wallet = this.getAttribute('data-wallet');
             this.showBlockhash = this.getAttribute('data-show-blockhash') == 'true';
+            this.btcUnit = this.getAttribute('data-btc-unit');
+            this.price = this.getAttribute('data-price');
+            this.symbol = this.getAttribute('data-symbol');
 
             // Set category image
             this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
@@ -54,12 +58,24 @@
             // Set txid
             this.txid.innerText = this.tx.txid;
             this.txid.onclick = () => {
-                showTxData(this.tx.txid, this.wallet)
+                showTxData(
+                    this.btcUnit,
+                    this.price,
+                    this.symbol,
+                    this.tx.txid,
+                    this.wallet
+                );
             }
 
             if (window.innerWidth < 690) {
                 this.el.onclick = () => {
-                    showTxData(this.tx.txid, this.wallet)
+                    showTxData(
+                        this.btcUnit,
+                        this.price,
+                        this.symbol,
+                        this.tx.txid,
+                        this.wallet
+                    );
                 }
             }
 
@@ -72,10 +88,25 @@
             
             // Set amount
             if (Array.isArray(this.tx.amount)) {
-                this.amount.innerText = `${parseFloat(this.tx.amount.reduce((a, b) => a + b, 0).toFixed(8)).toString()}`;
+                this.amount = parseFloat(this.tx.amount.reduce((a, b) => a + b, 0).toFixed(8))
             } else {
-                this.amount.innerText = `${parseFloat(this.tx.amount.toFixed(8)).toString()}`;
+                this.amount = parseFloat(this.tx.amount.toFixed(8));
             }
+
+            if (!this.price || !this.symbol) {
+                this.amountPrice.innerText = '';
+                this.amountPrice.classList.add('hidden');
+            } else {
+                this.amountPrice.innerText = `(${this.symbol}${(parseFloat(this.price) * this.amount).toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")})`;
+                this.amountPrice.classList.remove('hidden');
+            }
+
+            if (this.btcUnit == 'sat') {
+                this.amount = parseInt(this.amount * 1e8);
+            }
+
+            this.amountText.innerText = `${this.amount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`;
+
             // Set confirmations
             if (this.tx.confirmations > 0) {
                 this.confirmations.innerHTML = `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;

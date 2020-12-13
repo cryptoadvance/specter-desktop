@@ -34,6 +34,9 @@
             this.info = clone.querySelector(".tx-data-info");
             this.txid = this.getAttribute('data-txid');
             this.wallet = this.getAttribute('data-tx-wallet');
+            this.btcUnit = this.getAttribute('data-btc-unit');
+            this.price = this.getAttribute('data-price');
+            this.symbol = this.getAttribute('data-symbol');
             this.note.innerText = `Loading transaction details...\n\nTransaction ID: ${this.txid}`;
             fetchTxData(this);
         
@@ -119,11 +122,23 @@
                     if (address == 'Unknown') {
                         address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
                     }
+                    let value = parseFloat(rawtx.vout[i].value.toFixed(8));
+                    let price = '';
+                    if (self.price && self.symbol) {
+                        price = `<span class="note">(${self.symbol}${(parseFloat(self.price) * value).toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")})</span>`;
+                    }
+
+                    if (self.btcUnit == 'sat') {
+                        value = parseInt(value * 1e8)
+                    }
+
+                    value = `${value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`;
+
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
                         <b>Output #${i}</b><br><br>
                         Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                        Value: ${rawtx.vout[i].value}
+                        Value: ${value} ${price}
                     </p>
                     `;
                 }
