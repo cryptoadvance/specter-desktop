@@ -290,6 +290,24 @@ Silently ignored! Wallet error: {e}"
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
+    def full_utxo(self):
+        txlists = [
+            [
+                {
+                    **utxo,
+                    "label": wallet.getlabel(utxo["address"]),
+                    "wallet_alias": wallet.alias,
+                }
+                for utxo in wallet.utxo
+            ]
+            for wallet in self.wallets.values()
+        ]
+        result = []
+        for txlist in txlists:
+            for tx in txlist:
+                result.append(tx)
+        return list(reversed(sorted(result, key=lambda tx: tx["time"])))
+
     def delete(self, specter):
         """Deletes all the wallets"""
         for w in self.wallets:

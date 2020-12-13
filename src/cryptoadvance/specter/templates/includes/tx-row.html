@@ -71,9 +71,9 @@
             
             // Set amount
             if (Array.isArray(this.tx.amount)) {
-                this.amount.innerText = `${this.tx.amount.reduce((a, b) => a + b, 0)}`;
+                this.amount.innerText = `${parseFloat(this.tx.amount.reduce((a, b) => a + b, 0).toFixed(8)).toString()}`;
             } else {
-                this.amount.innerText = `${this.tx.amount}`;
+                this.amount.innerText = `${parseFloat(this.tx.amount.toFixed(8)).toString()}`;
             }
             // Set confirmations
             if (this.tx.confirmations > 0) {

@@ -61,11 +61,14 @@
             if (jsonResponse.success) {
                 console.log(jsonResponse);
                 let rawtx = jsonResponse.rawtx;
+                let walletName = jsonResponse.walletName;
                 let tx = jsonResponse.tx;
+                let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                 let rawtxHTML = `
                 <table class="tx-data-table">
                 <tbody>
                 <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                 <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
                 `;
                 if (tx.fee) {

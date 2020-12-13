@@ -61,7 +61,8 @@
             border-top-width: 0;
             cursor: pointer;
             float: right;
-            margin-left: 5px;
+            margin-right: 50px;
+            margin-top: 5px;
         }
 
         .down-arrow {
@@ -74,9 +75,22 @@
             margin-top:1px;
             cursor: pointer;
             float: right;
-            margin-left: 5px;
+            margin-right: 50px;
+            margin-top: 5px;
         }
     </style>
+    <nav class="row">
+        <button
+            type="button"
+            class="txlist-view-btn btn radio left checked">
+            History
+        </button>
+        <button
+            type="button"
+            class="utxo-view-btn btn radio right">
+            UTXO
+        </button>
+    </nav>
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
         Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
@@ -139,6 +153,11 @@
             this.emptyRow = clone.querySelector(".empty");
             this.blockhashHeader = clone.querySelector(".blockhash-header");
             this.blockhashEmpty = clone.querySelector(".blockhash-empty");
+
+            // tabs (History/ UTXO)
+            this.txlistViewBtn = clone.querySelector(".txlist-view-btn");
+            this.utxoViewBtn = clone.querySelector(".utxo-view-btn");
+
             // pagination
             this.paginationNext = clone.querySelector(".pagination-next");
             this.paginationBack = clone.querySelector(".pagination-back");
@@ -165,6 +184,24 @@
             this.timeArrow = clone.querySelector(".time-arrow");
             this.confirmationsArrow = clone.querySelector(".confirmations-arrow");
             this.blockhashArrow = clone.querySelector(".blockhash-arrow");
+
+
+            // Setup tabs switching
+			this.txlistViewBtn.onclick = () => {
+				if (!this.txlistViewBtn.classList.contains("checked")) {
+					this.utxoViewBtn.classList.remove("checked");
+					this.txlistViewBtn.classList.add("checked");
+					this.setAttribute("type","txlist");
+				}
+			}
+
+			this.utxoViewBtn.onclick = () => {
+				if (!this.utxoViewBtn.classList.contains("checked")) {
+					this.txlistViewBtn.classList.remove("checked");
+					this.utxoViewBtn.classList.add("checked");
+					this.setAttribute("type","utxo");
+				}
+			}
 
             let sortHeaders = [
                 this.categoryHeader,
@@ -254,12 +291,14 @@
         }
 
         attributeChangedCallback(attrName, oldValue, newValue) {
-            this.listType = this.getAttribute('type');
-            this.wallet = this.getAttribute('wallet');
-            if (!this.listType || (this.listType != "overview" && !this.wallet)) {
-                return
+            if (this.listType != this.getAttribute('type') || this.wallet != this.getAttribute('wallet')) {
+                this.listType = this.getAttribute('type');
+                this.wallet = this.getAttribute('wallet');
+                if (!this.listType) {
+                    return
+                }
+                fetchTxItems(this);
             }
-            fetchTxItems(this);
         }
 
     }
@@ -268,20 +307,25 @@
         self.emptyRow.children[1].innerText = "Fetching transactions...";
         self.emptyRow.classList.remove('hidden');
         self.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
-        if (!self.listType || (self.listType != "overview" && !self.wallet)) {
+        if (!self.listType) {
             self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
             return
         }
         let url;
         switch (self.listType) {
-            case "overview":
-                url = `{{ url_for('wallets_endpoint.wallets_overview_txlist') }}`;
-                break;
             case "txlist":
-                url = `{{ url_for('wallets_endpoint.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                if (self.wallet) {
+                    url = `{{ url_for('wallets_endpoint.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                } else {
+                    url = `{{ url_for('wallets_endpoint.wallets_overview_txlist') }}`;
+                }
                 break;
             case "utxo":
-                url = `{{ url_for('wallets_endpoint.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                if (self.wallet) {
+                    url = `{{ url_for('wallets_endpoint.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                } else {
+                    url = `{{ url_for('wallets_endpoint.wallets_overview_utxo_list') }}`;
+                }
                 break
             default:
                 self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
@@ -312,7 +356,7 @@
                     let txlist = JSON.parse(jsonResponse.txlist);
                     for (let tx of txlist) {
                         let txRow = `
-                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${self.wallet}"></tx-row>
+                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"></tx-row>
                         `
                         self.tbody.innerHTML += txRow;
                     }
