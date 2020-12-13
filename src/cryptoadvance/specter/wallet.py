@@ -137,8 +137,8 @@ class Wallet:
                 tx
                 for tx in res
                 if tx["txid"] not in self._transactions
-                or self._transactions[tx["txid"]].get("blockheight", None)
-                != tx.get("blockheight", None)
+                or self._transactions[tx["txid"]].get("blockhash", None)
+                != tx.get("blockhash", None)
                 or self._transactions[tx["txid"]].get("conflicts", [])
                 != tx.get("walletconflicts", [])
             ]
@@ -630,7 +630,6 @@ class Wallet:
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
                 if validate_merkle_proofs is True and tx["confirmations"] > 0:
-                    tx["blockhash"] = self.rpc.getblockhash(tx)
                     proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
                     logger.debug(
                         f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"

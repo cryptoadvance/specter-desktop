@@ -122,7 +122,7 @@
                 <th value="confirmations" class="confirmations-header">Confirmations<div class="confirmations-arrow"></div></th>
                 <th value="blockhash" class="optional hidden blockhash-header">
                     <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
-                    Block Hash<div class="blockhash-arrow"></div>
+                    Block Hash
                 </th>
             </tr>
     </thead>
@@ -176,14 +176,12 @@
             this.amountHeader = clone.querySelector(".amount-header");
             this.timeHeader = clone.querySelector(".time-header");
             this.confirmationsHeader = clone.querySelector(".confirmations-header");
-            this.blockhashHeader = clone.querySelector(".blockhash-header");
             this.categoryArrow = clone.querySelector(".category-arrow");
             this.txidArrow = clone.querySelector(".txid-arrow");
             this.labelArrow = clone.querySelector(".label-arrow");
             this.amountArrow = clone.querySelector(".amount-arrow");
             this.timeArrow = clone.querySelector(".time-arrow");
             this.confirmationsArrow = clone.querySelector(".confirmations-arrow");
-            this.blockhashArrow = clone.querySelector(".blockhash-arrow");
 
 
             // Setup tabs switching
@@ -209,8 +207,7 @@
                 this.labelHeader,
                 this.amountHeader,
                 this.timeHeader,
-                this.confirmationsHeader,
-                this.blockhashHeader
+                this.confirmationsHeader
             ]
 
 
@@ -287,10 +284,17 @@
         }
 
         static get observedAttributes() {
-            return ['type', 'wallet'];
+            return ['type', 'blockhash', 'wallet'];
         }
 
         attributeChangedCallback(attrName, oldValue, newValue) {
+            if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
+                    this.blockhashHeader.classList.remove('hidden');
+                    this.blockhashEmpty.classList.remove('hidden');
+            } else {
+                this.blockhashHeader.classList.add('hidden');
+                this.blockhashEmpty.classList.add('hidden');
+            }
             if (this.listType != this.getAttribute('type') || this.wallet != this.getAttribute('wallet')) {
                 this.listType = this.getAttribute('type');
                 this.wallet = this.getAttribute('wallet');
@@ -350,13 +354,13 @@
                 return;
             }
             const jsonResponse = await response.json();
-            console.log(jsonResponse);
+            let showBlockhash = !self.blockhashHeader.classList.contains('hidden');
             if ("txlist" in jsonResponse) {
                 if (jsonResponse.txlist) {
                     let txlist = JSON.parse(jsonResponse.txlist);
                     for (let tx of txlist) {
                         let txRow = `
-                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"></tx-row>
+                        <tx-row data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}' data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}" data-show-blockhash="${showBlockhash}"></tx-row>
                         `
                         self.tbody.innerHTML += txRow;
                     }

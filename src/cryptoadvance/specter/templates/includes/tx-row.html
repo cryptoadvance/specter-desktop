@@ -42,6 +42,7 @@
         connectedCallback() {
             this.tx = JSON.parse(this.getAttribute('data-tx'));
             this.wallet = this.getAttribute('data-wallet');
+            this.showBlockhash = this.getAttribute('data-show-blockhash') == 'true';
 
             // Set category image
             this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
@@ -112,6 +113,22 @@
             
             // Set time
             this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+
+            // Show blockhash
+            if (this.showBlockhash) {
+                this.blockhash.classList.remove('hidden');
+                if (
+                    this.tx.blockhash &&
+                    this.tx.validated_blockhash &&
+                    this.tx.validated_blockhash == this.tx.blockhash
+                ) {
+                    this.blockhash.innerHTML = `
+                    <explorer-link style="word-break: break-all;" data-type="block" data-value="${this.tx.blockhash}"></explorer-link><br>
+                    `;
+                }
+            } else {
+                this.blockhash.classList.add('hidden');
+            }
         }
     }
 

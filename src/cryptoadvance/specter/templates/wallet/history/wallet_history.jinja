@@ -8,6 +8,6 @@
 		{% include "includes/tx-data.html" %}
 		{% include "includes/explorer-link.html" %}
 		{% include "includes/tx-table.html" %}
-		<tx-table type="txlist" wallet="{{ wallet.alias }}"></tx-table>
+		<tx-table blockhash="{{ specter.config.validate_merkle_proofs | lower }}" type="txlist" wallet="{{ wallet.alias }}"></tx-table>
 	</div>
 {% endblock %}
