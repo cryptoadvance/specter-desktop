@@ -5,6 +5,7 @@ import atexit
 import logging
 import os
 import signal
+import psutil
 import shutil
 import subprocess
 import tempfile
@@ -231,6 +232,7 @@ class BitcoindPlainController(BitcoindController):
         )
 
         def cleanup_bitcoind(*args):
+            timeout = 50  # in secs
             if cleanup_hard:
                 self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
                 logger.info(
@@ -240,9 +242,16 @@ class BitcoindPlainController(BitcoindController):
             else:
                 self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(
-                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination ..."
+                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                 )
-                self.bitcoind_proc.wait()
+                # self.bitcoind_proc.wait() # doesn't have a timeout
+                procs = psutil.Process().children()
+                for p in procs:
+                    p.terminate()
+                _, alive = psutil.wait_procs(procs, timeout=timeout)
+                for p in alive:
+                    logger.info("bitcoind did not terminated in time, killing!")
+                    p.kill()
 
         if cleanup_at_exit:
             logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")

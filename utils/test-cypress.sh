@@ -45,9 +45,12 @@ function send_signal() {
   # use like send_signal <SIGNAL> <PID>
   # whereas SIGNAL is either SIGTERM or SIGKILL
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux wants no SIG-prefix'
+    signal_name=$(echo $1 | sed -e 's/SIG//')
     kill -${1} $2
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    kill -s $signal_name $2
+    # MacOS needs SIG-prefix
+    kill -s $1 $2
   fi
 }
 
@@ -95,7 +98,7 @@ function start_bitcoind {
 function stop_bitcoind {
   if [ ! -z ${bitcoind_pid+x} ]; then
     echo "--> Killing/Terminating bitcoindwrapper with PID $bitcoind_pid ..."
-    send_signal TERM $bitcoind_pid
+    send_signal SIGTERM $bitcoind_pid
     wait $bitcoind_pid
     unset bitcoind_pid
   fi
@@ -115,7 +118,7 @@ function start_specter {
 function stop_specter {
   if [ ! -z ${specter_pid+x} ]; then
     echo "--> Killing specter with PID $specter_pid ..."
-    send_signal TERM $specter_pid # kill -9 would orphane strange processes
+    send_signal SIGTERM $specter_pid # kill -9 would orphane strange processes
     # We don't need to wait as that wastes time.
     unset specter_pid
   fi

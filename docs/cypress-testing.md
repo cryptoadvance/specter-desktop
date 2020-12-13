@@ -1,30 +1,33 @@
 # Cypress Tests
 
-The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the webserver or its prerequisites as part of executing the tests. Therefore we need to manage that ourself.
+The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the webserver or its prerequisites as part of executing the tests. Therefore we need to manage that ourself. This has been tested in Linux and MacOS. Windows is not supported.
 
  So the tests in general are designed to run in a strict sequence specified in cypress.json. So later tests might need the state created in former tests.
 
 This is very different than on unit-tests and, with an increasing amount of tests, this might be cumbersome in order to only execute a specific test or develop on a specific one.
 Therefore there is the possibility to snapshot and restore the state of a specific test-run. Also, in parallel to running the pytests, it would be beneficial to not use the default-folders (`~/.specter` and ) for the state but completely separate that. This way, you can develop live on the application and running the tests in parallel without interference. Doing that is possible via the test-cypress.sh:
 ```
-$ ./utils/test-cypress.sh
-Usage: ./utils/test-cypress.sh <subcommand> [options]
-  Doing stuff with cypress-tests according to <subcommand>
+$ ./utils/test-cypress.sh --help
+Usage: ./utils/test-cypress.sh [generic-options] <subcommand> [options]"
+Doing stuff with cypress-tests according to <subcommand>"
 
-Subcommands:
-    open                  will open the cypress app.
-    run                   will run the tests.
-    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball
-                          of the btc-dir and the specter-dir and store that file in the 
-                          ./cypress/fixtures directory
+Subcommands:"
+    open [spec-file]    will open the cypress app."
+    run  [spec-file]    will run the tests."
+                        open and run take a spec-file optionally. If you add a spec-file, "
+                        then automatically the corresponding snapshot is untarred before and," 
+                        in the case of run, only the spec-file and all subsequent spec_files "
+                        are executed."
+    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball"
+                        of the btc-dir and the specter-dir and store that file in the "
+                        ./cypress/fixtures directory"
 
-open and run take a spec-file optionally. If you add a spec-file, then automatically the
-corresponding snapshot is untarred before and, in the case of run, only the spec-file and
-all subsequent spec_files are executed.
-
+generic-options:
+    --debug             Run as much stuff in debug as we can
+    --docker            Run bitcoind in docker instead of directly
 $
 ```
-Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_btcd_regtest_plain_datadir`)
+Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_cypress_btc_regtest_plain_datadir` and a different post for specter (`25444` instead of `25441`). However, bitcoind-port is still the same. So currently you can't run bitcoind-regtest for developemnt and do (reliable) tests with cypress. You will get failing tests in that case. Will get fixed in the future.
 
 Let's look at some typical use-cases in order to understand how to use this script. In any case, you'll need nodejs installed, so do something like:
 ```
