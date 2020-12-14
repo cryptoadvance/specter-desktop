@@ -975,7 +975,8 @@ def get_label(wallet_alias):
             "label": label,
         }
     except Exception as e:
-        flash("Error while get label: %s" % e, "error")
+        logging.exception(e)
+        return "Error while get_label: %s" % e, 500
         app.logger.error("Error while get label: %s" % e)
         return {}
 
