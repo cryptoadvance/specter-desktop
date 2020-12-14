@@ -141,6 +141,26 @@
 </template>
 
 <script type="text/javascript">
+    /**
+     * Custom element for showing a table of transactions.
+     * Can be configured to show:
+     *  - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
+     *  - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
+     *  - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
+     *  - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
+     * The uses Specter's API to fetch transactions every time the user changes its parameters.
+     * These parameters are configured using components included in this table element:
+     *  - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
+     *  - Sorting transactions by any column (ascending or descending)
+     *  - Search bar to filter transactions using free text search
+     *  - Configuring limit for transactions displayed per page
+     *  - Pagination, jumping between pages and showing the total pages count
+     * 
+     * The table also supports:
+     *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
+     *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
+     *  - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
+    */
     class TxTableElement extends HTMLElement {
         constructor() {
             super();
@@ -150,15 +170,19 @@
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-table");
             this.tbody = clone.querySelector(".tx-tbody");
+
+            // Empty row element
             this.emptyRow = clone.querySelector(".empty");
+
+            // Blockhash header and empty column
             this.blockhashHeader = clone.querySelector(".blockhash-header");
             this.blockhashEmpty = clone.querySelector(".blockhash-empty");
 
-            // tabs (History/ UTXO)
+            // Tabs (History/ UTXO)
             this.txlistViewBtn = clone.querySelector(".txlist-view-btn");
             this.utxoViewBtn = clone.querySelector(".utxo-view-btn");
 
-            // pagination
+            // Pagination
             this.paginationNext = clone.querySelector(".pagination-next");
             this.paginationBack = clone.querySelector(".pagination-back");
             this.paginationContainer = clone.querySelector(".pagination-container");
@@ -166,10 +190,10 @@
             this.paginationIdxInput = clone.querySelector(".pagination-idx");
             this.pageLimitSelect = clone.querySelector(".page-limit-select");
 
-            // search
+            // Search bar element
             this.searchInput = clone.querySelector(".search");
 
-            // sorting
+            // Sorting headers and arrows
             this.categoryHeader = clone.querySelector(".category-header");
             this.txidHeader = clone.querySelector(".txid-header");
             this.labelHeader = clone.querySelector(".label-header");
@@ -201,16 +225,8 @@
 				}
 			}
 
-            let sortHeaders = [
-                this.categoryHeader,
-                this.txidHeader,
-                this.labelHeader,
-                this.amountHeader,
-                this.timeHeader,
-                this.confirmationsHeader
-            ]
 
-
+            // Initialize default sort, search, limit and page parameters
             this.idx = 0;
             this.limit = 50;
             this.search = "";
@@ -218,16 +234,19 @@
             this.sortdir = "desc";
             this.pageCount = 1;
             
+            // Next page action
             this.paginationNext.onclick = () => {
                 this.idx++;
                 fetchTxItems(this);
             }
 
+            // Previous page action
             this.paginationBack.onclick = () => {
                 this.idx--;
                 fetchTxItems(this);
             }
 
+            // Listen to changes in page number selection input
             this.paginationIdxInput.onchange = () => {
                 let newIdx = parseInt(this.paginationIdxInput.value);
                 if (isNaN(newIdx) || (newIdx < 1 || newIdx > this.pageCount)) {
@@ -238,21 +257,30 @@
                 fetchTxItems(this);
             }
 
+            // Listen to changes in search bar
             this.searchInput.onchange = () => {
                 this.search = this.searchInput.value;
                 fetchTxItems(this);
             }
 
+            // Listen to changes in page limit
             this.pageLimitSelect.onchange = () => {
                 this.limit = this.pageLimitSelect.value;
                 fetchTxItems(this);
             }
 
+            // Setup sorting functionality for each column of the table header
+            let sortHeaders = [
+                this.categoryHeader,
+                this.txidHeader,
+                this.labelHeader,
+                this.amountHeader,
+                this.timeHeader,
+                this.confirmationsHeader
+            ];
+
             for (let header of sortHeaders) {
                 header.onclick = () => {
-                    console.log(header.classList);
-                    console.log(this.sortby);
-                    console.log(header.classList.toString().indexOf(this.sortby));
                     if (header.classList.toString().indexOf(this.sortby) != -1) {
                         // flip direction
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.remove(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
@@ -282,6 +310,15 @@
             return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'wallet'];
         }
 
+        /**
+         * Listens to changes on the following attributes:
+         * - blockhash: Should show blockhash column. Either "true" or "false"
+         * - btc-unit: Bitcoin unit to display amounts with. Either "btc" or "sat"
+         * - price: BTC price for price calculations
+         * - symbol: Currency symbol for price calculations
+         * - type: Transactions list type to load. Either "txlist" or "utxo"
+         * - wallet: The wallet alias (null to get all wallets combined)
+        */
         attributeChangedCallback(attrName, oldValue, newValue) {
             if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                     this.blockhashHeader.classList.remove('hidden');
@@ -313,7 +350,12 @@
 
     }
 
+    /**
+     * Fetches txlist from the Specter API and loads the result into TxRowElement
+     * @param self - The TxTableElement itself.
+    */
     async function fetchTxItems(self) {
+        // Clean up from existing transaction list
         self.emptyRow.children[1].innerText = "Fetching transactions...";
         self.emptyRow.classList.remove('hidden');
         self.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
@@ -321,6 +363,8 @@
             self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
             return
         }
+
+        // Select the correct URL based on the list type and selected wallet
         let url;
         switch (self.listType) {
             case "txlist":
@@ -341,6 +385,8 @@
                 self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
                 return
         }
+
+        // Prepare form data with all relevant parameters
         var formData = new FormData();
         formData.append('idx', self.idx);
         formData.append('limit', self.limit);
@@ -361,7 +407,9 @@
             }
             const jsonResponse = await response.json();
             let showBlockhash = !self.blockhashHeader.classList.contains('hidden');
+            
             if ("txlist" in jsonResponse) {
+                // Populate the table with TXRowElement objects using the fetched txlist
                 if (jsonResponse.txlist) {
                     let txlist = JSON.parse(jsonResponse.txlist);
                     for (let tx of txlist) {
@@ -378,8 +426,9 @@
                         self.tbody.innerHTML += txRow;
                     }
 
-                    // pagination
+                    // Pagination
                     self.pageCount = jsonResponse.pageCount;
+                    // Show empty row if no transaction found
                     if (self.pageCount == 0 || txlist.length == 0) {
                         self.emptyRow.classList.remove('hidden');
                         self.emptyRow.children[1].innerText = "No transactions found...";
@@ -388,6 +437,7 @@
                         self.emptyRow.classList.add('hidden');
                     }
 
+                    // If index is greater than the pages count fetch again for the last page
                     if (self.idx >= self.pageCount) {
                         self.idx = self.pageCount - 1;
                         fetchTxItems(self)
@@ -395,6 +445,7 @@
 
                     self.paginationIdxInput.value = self.idx + 1;
 
+                    // If there are multiple pages show the pagination bar
                     if (self.pageCount > 1) {
                         self.paginationContainer.classList.remove('hidden');
                         self.paginationCounter.innerText = `of ${self.pageCount}`;
@@ -403,12 +454,14 @@
                         self.paginationContainer.classList.add('hidden');
                     }
 
+                    // Disable pagination back button if on the first page
                     if (self.idx == 0) {
                         self.paginationBack.classList.add('pagination-disabled');
                     } else {
                         self.paginationBack.classList.remove('pagination-disabled');
                     }
 
+                    // Disable pagination next button if on the last page
                     if (self.idx + 1 == self.pageCount) {
                         self.paginationNext.classList.add('pagination-disabled');
                     } else {
@@ -424,6 +477,15 @@
         }
     }
 
+    /**
+     * Shows a <tx-data> element popup for specified txid.
+     * @param btcUnit 
+     * @param btcUnit - Bitcoin unit to display amounts with. Either "btc" or "sat"
+     * @param price - BTC price for price calculations
+     * @param symbol - Currency symbol for price calculations
+     * @param txid - ID of the transaction to show.
+     * @param wallet - The wallet alias of the wallet the transaction is associated with.
+    */
     function showTxData(btcUnit, price, symbol, txid, wallet) {
         if (wallet) {
             let txDataPopup = document.getElementById('tx-popup');
