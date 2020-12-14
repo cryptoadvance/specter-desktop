@@ -97,7 +97,7 @@
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                this.amountPrice.innerText = `(${this.symbol}${(parseFloat(this.price) * this.amount).toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")})`;
+                this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
                 this.amountPrice.classList.remove('hidden');
             }
 
@@ -105,7 +105,7 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = `${this.amount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`;
+            this.amountText.innerText = `${numberWithCommas(this.amount.toString())}`;
 
             // Set confirmations
             if (this.tx.confirmations > 0) {

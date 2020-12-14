@@ -100,3 +100,10 @@ function toggleMobileNav(btn, openImg, collapseImg) {
 		btn.children[0].src = openImg;
 	}
 }
+
+function numberWithCommas(x) {
+	if (x.split(".").length > 1) {
+		return x.toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.toString().split(".")[1];
+	}
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

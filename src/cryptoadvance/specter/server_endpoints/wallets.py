@@ -1,4 +1,4 @@
-import ast, json, os, time, base64, random, requests
+import ast, json, os, time, base64, random, requests, logging
 from datetime import datetime
 from numbers import Number
 from ..util.tx import decoderawtransaction
@@ -977,8 +977,6 @@ def get_label(wallet_alias):
     except Exception as e:
         logging.exception(e)
         return "Error while get_label: %s" % e, 500
-        app.logger.error("Error while get label: %s" % e)
-        return {}
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
@@ -991,8 +989,8 @@ def set_label(wallet_alias):
         wallet.setlabel(address, label)
         return {"success": True}
     except Exception as e:
-        flash("Error while get label: %s" % e, "error")
-        app.logger.error("Error while get label: %s" % e)
+        logging.exception(e)
+        return "Error while set_label: %s" % e, 500
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
@@ -1017,8 +1015,8 @@ def txlist(wallet_alias):
             txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
         )
     except Exception as e:
-        flash("Error while get txlist: %s" % e, "error")
-        app.logger.error("Error while get txlist: %s" % e)
+        logging.exception(e)
+        return "Error while getting txlist: %s" % e, 500
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
@@ -1039,8 +1037,8 @@ def utxo_list(wallet_alias):
             txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
         )
     except Exception as e:
-        flash("Error while get txlist: %s" % e, "error")
-        app.logger.error("Error while get txlist: %s" % e)
+        logging.exception(e)
+        return "Error while getting utxo list: %s" % e, 500
 
 
 @wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
@@ -1064,8 +1062,8 @@ def wallets_overview_txlist():
             txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
         )
     except Exception as e:
-        flash("Error while get txlist: %s" % e, "error")
-        app.logger.error("Error while get txlist: %s" % e)
+        logging.exception(e)
+        return "Error while getting full txlist: %s" % e, 500
 
 
 @wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
@@ -1083,8 +1081,8 @@ def wallets_overview_utxo_list():
             txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
         )
     except Exception as e:
-        flash("Error while get txlist: %s" % e, "error")
-        app.logger.error("Error while get txlist: %s" % e)
+        logging.exception(e)
+        return "Error while getting full utxo list: %s" % e, 500
 
 
 def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):

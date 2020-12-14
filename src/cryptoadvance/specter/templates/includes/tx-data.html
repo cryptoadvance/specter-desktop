@@ -125,14 +125,14 @@
                     let value = parseFloat(rawtx.vout[i].value.toFixed(8));
                     let price = '';
                     if (self.price && self.symbol) {
-                        price = `<span class="note">(${self.symbol}${(parseFloat(self.price) * value).toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")})</span>`;
+                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
                     }
 
                     if (self.btcUnit == 'sat') {
                         value = parseInt(value * 1e8)
                     }
 
-                    value = `${value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`;
+                    value = `${numberWithCommas(value.toString())}`;
 
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
