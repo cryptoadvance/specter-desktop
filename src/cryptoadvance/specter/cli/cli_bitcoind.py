@@ -41,7 +41,6 @@ class Echo:
 )
 @click.option(
     "--data-dir",
-    default="/tmp/specter_btcd_regtest_plain_datadir",
     help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ",
 )
 @click.option(
@@ -115,6 +114,9 @@ def bitcoind(
         echo("$ python3 -m cryptoadvance-specter --debug bitcoind")
         exit(1)
 
+    if data_dir:
+        config_obj["BTCD_REGTEST_DATA_DIR"] = data_dir
+
     if reset:
         if not nodocker:
             echo("ERROR: --reset only works in conjunction with --nodocker currently")
@@ -132,32 +134,39 @@ def bitcoind(
                     os.kill(pid, signal.SIGTERM)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 echo(f"Pid {pid} not owned by us. Might be a docker-process? {proc}")
-        if Path(data_dir).exists():
-            echo(f"Purging Datadirectory {data_dir} ...")
+        if Path(config_obj["BTCD_REGTEST_DATA_DIR"]).exists():
+            echo(f"Purging Datadirectory {config_obj['BTCD_REGTEST_DATA_DIR']} ...")
             did_something = True
-            shutil.rmtree(data_dir)
+            shutil.rmtree(config_obj["BTCD_REGTEST_DATA_DIR"])
         if not did_something:
             echo("Nothing to do!")
         return
     mining_every_x_seconds = float(mining_period)
     if nodocker:
         echo("starting plain bitcoind")
-        my_bitcoind = BitcoindPlainController()
+        if os.path.isfile("tests/bitcoin/src/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/src/bitcoind"
+            )  # always prefer the self-compiled bitcoind if existing
+        else:
+            my_bitcoind = (
+                BitcoindPlainController()
+            )  # Alternatively take the one on the path for now
         # Make sure datadir does exist if specified:
-        Path(data_dir).mkdir(parents=True, exist_ok=True)
+        Path(config_obj["BTCD_REGTEST_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
     else:
-        echo("starting or detecting container")
+        echo("starting container")
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
         my_bitcoind.start_bitcoind(
-            cleanup_at_exit=True, cleanup_hard=cleanuphard, datadir=data_dir
+            cleanup_at_exit=True,
+            cleanup_hard=cleanuphard,
+            datadir=config_obj["BTCD_REGTEST_DATA_DIR"],
         )
     except docker.errors.ImageNotFound:
         echo(f"Image with tag {docker_tag} does not exist!")
         echo(
-            f"Try to download first with docker pull \
-                     registry.gitlab.com/cryptoadvance/specter-desktop\
-                     /python-bitcoind:{docker_tag}"
+            f"Try to download first with docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{docker_tag}"
         )
         sys.exit(1)
     if not nodocker:
@@ -185,7 +194,10 @@ def bitcoind(
 
     if create_conn_json:
         conn = my_bitcoind.rpcconn.as_data()
-        conn["pid"] = os.getpid()  # usefull to sen signals
+        conn["pid"] = os.getpid()  # usefull to send signals
+        conn["specter_data_folder"] = config_obj[
+            "SPECTER_DATA_FOLDER"
+        ]  # e.g. cypress might want to know where we're mining to
         with open("btcd-conn.json", "w") as file:
             file.write(json.dumps(conn))
 
@@ -224,7 +236,15 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
     )
     i = 0
     while True:
-        my_bitcoind.mine()
+        try:
+            my_bitcoind.mine()
+            current_height = my_bitcoind.rpcconn.get_rpc().getblockchaininfo()["blocks"]
+        except Exception as e:
+            logger.debug(
+                "Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
+            )
+            echo(f"THE_END(@height:{current_height})")
+            break
         echo("%i" % (i % 10), prefix=False, nl=False)
         if i % 10 == 9:
             echo(" ", prefix=False, nl=False)
@@ -233,7 +253,7 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
             i = 0
             echo("", prefix=False)
             echo(
-                f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+                f"height: {current_height} | ",
                 nl=False,
             )
         time.sleep(mining_every_x_seconds)

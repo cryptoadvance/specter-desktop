@@ -190,7 +190,7 @@
 		{% if wallet.is_multisig and supports_export_to_device != [] %}
 			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">Continue</button>
 		{% else %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Continue</button>
+			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">Continue</button>
 		{% endif %}
 	</div>
 	<script>

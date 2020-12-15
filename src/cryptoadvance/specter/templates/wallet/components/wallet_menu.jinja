@@ -8,10 +8,10 @@
  #}
 {% macro wallet_menu(active_menuitem, wallet_alias) -%}
 	<nav class="row collapse-on-mobile">
-		{{ wallet_menu_item('history', 'Transactions', wallet_alias, active_menuitem, isLeft=true) }}
-		{{ wallet_menu_item('receive', 'Receive', wallet_alias, active_menuitem) }}
-		{{ wallet_menu_item('send', 'Send', wallet_alias, active_menuitem) }}
-		{{ wallet_menu_item('settings', 'Settings', wallet_alias, active_menuitem, isRight=true) }}
+		{{ wallet_menu_item('history', 'Transactions', wallet_alias, active_menuitem, isLeft=true, id='btn_transactions') }}
+		{{ wallet_menu_item('receive', 'Receive', wallet_alias, active_menuitem, id='btn_receive') }}
+		{{ wallet_menu_item('send', 'Send', wallet_alias, active_menuitem, id='btn_send') }}
+		{{ wallet_menu_item('settings', 'Settings', wallet_alias, active_menuitem, isRight=true, id='btn_settings') }}
 		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
 			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
 		</a>

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def entry_point(config_home, debug=False):
     # ctx.obj = Repo(config_home, debug)
     if debug:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG)
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
     logger
 

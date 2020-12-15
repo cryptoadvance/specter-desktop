@@ -1,5 +1,6 @@
 # introduction
-specter-desktop is using gitlab and Travis-CI for continuous integration purposes. Both have advantages and disadvantages so ... let's use both!
+Specter-Desktop is using gitlab, Travis-CI and Github-Actions for continuous integration purposes but Github-actions only for Blackify so far. It might be more effort using more than one CI-approach but it makes us also more resilient. 
+Gitlab and Travis-CI have both advantages and disadvantages so ... let's use both!
 Gitlab:
 * is completely open Source for server- and clients
 * the gitlab-runner can run docker and is itself running on docker
@@ -38,10 +39,10 @@ Travis-CI setup is very straightforward. As we're using the build-cache, the bit
 
 # Releasing
 
-## What gets releases
+## What gets released
 
-We're mostly releasing automatically. Currently the following artifacts are releases:
-* specterd (aemon) is a binary for kicking off the specter-desktop service on the commandline. We have binaries for windows, linux and macos
+We're mostly releasing automatically. Currently the following artifacts are releasesd
+* specterd (daemon) is a binary for kicking off the specter-desktop service on the commandline. We have binaries for windows, linux and macos
 * We have an Electron-App which we're also releasing for windows, linux and macos. Unfortunately the macOS build is not yet automated
 * We release a pip-package
 * We release docker-images, these are also not yet automated
