@@ -1,0 +1,36 @@
+{# 
+    addrs_table - Addresses table component
+    Parameters:
+    - specter: Specter instance
+    - content: The content of the table (its rows)
+#}
+{% macro addresses_table(addresses) -%}
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Addresses</th>
+                <th>HD Key Path</th>
+                <th>Used</th>
+                <th>UTXO</th>
+                <th>Amount</th>
+            </tr>
+	    </thead>
+        <tbody>
+
+            {% for addr in addresses %}
+            <tr class="{%if addr['addr_used'] == True %}unconfirmed{%endif%}">
+                <td>#{{ loop.index0 }}</td>
+                <td>{{ addr['address'] }}</td>
+                <td>{{ addr['hdkeypath'] }}</td>
+                <td>{%if addr['addr_used'] == True %}Yes{% else %}No{%endif%}</td>
+                <td>{{ addr['utxo'] }}</td>
+                <td>{{ addr['amount'] }}</td>
+            </tr>
+            {% endfor %}
+
+	    </tbody>
+    </table>
+    <br />
+{%- endmacro %}

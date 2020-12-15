@@ -1,0 +1,21 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'show_addresses' %}
+{% block content %}
+
+<div style="padding: 0 30px; width: 100%;">
+	{% from 'wallet/addresses/components/addresses_nav.jinja' import addresses_nav %}
+	{{ addresses_nav('receive_addresses', wallet_alias) }}
+</div>
+
+<br>
+
+<div class="table-holder">
+	{% from 'wallet/addresses/components/addresses_table.jinja' import addresses_table %}
+
+    {{
+        addresses_table(addresses)
+    }}
+
+</div>
+
+{% endblock %}

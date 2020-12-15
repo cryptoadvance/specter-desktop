@@ -1389,3 +1389,50 @@ class Wallet:
             return 75 + 34
         # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
         return 75 + 34 + 23 * 4
+
+    def addresses_info(self, descriptor):
+        GAP_LIMIT = 10
+
+        consecutive_unused_addresses = 0
+
+        addresses_info = []
+
+        rpc_listunspent = self.rpc.listunspent(0)
+
+        index = -1
+
+        while (consecutive_unused_addresses < GAP_LIMIT):
+
+            index = index + 1
+
+            start_range = index * GAP_LIMIT
+            end_range = start_range + GAP_LIMIT - 1
+
+            derived_addresses = self.rpc.deriveaddresses(descriptor, [start_range, end_range])
+
+            for addr in derived_addresses:
+
+                rpc_addr_info = self.rpc.getaddressinfo(addr) 
+                rpc_receivedbyaddress = self.rpc.getreceivedbyaddress(addr) 
+
+                addr_used = str(rpc_receivedbyaddress) != '0.0'
+
+                addr_utxo = 0
+                addr_amount = 0
+
+                for utxo in [utxo for utxo in rpc_listunspent if utxo["address"] == addr]:
+                    addr_amount = addr_amount + utxo["amount"]
+                    addr_utxo = addr_utxo + 1
+
+                addresses_info.append({
+                    'address': addr,
+                    'hdkeypath': rpc_addr_info['hdkeypath'],
+                    'amount': addr_amount,
+                    'addr_used': addr_used,
+                    'utxo': addr_utxo
+                })
+
+                if (addr_used == False):
+                    consecutive_unused_addresses = consecutive_unused_addresses + 1
+
+        return addresses_info
