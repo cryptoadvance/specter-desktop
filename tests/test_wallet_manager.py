@@ -245,12 +245,6 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
 
     address_balance = wallet.fullbalance
     assert len(wallet.utxo) == 20
-    assert wallet.balance_on_address(address) == address_balance
-    assert wallet.balance_on_label("Random label") == address_balance
-    assert wallet.addresses_on_label("Random label") == [address]
-    assert wallet.utxo_addresses() == [address]
-    assert wallet.utxo_labels() == ["Random label"]
-    assert wallet.utxo_addresses() == [address]
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, "")
@@ -263,31 +257,12 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.get_balance()
 
     assert len(wallet.utxo) == 40
-    assert wallet.utxo_on_address(address) == 20
-    assert (
-        wallet.balance_on_address(new_address) == wallet.fullbalance - address_balance
-    )
-    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
-    assert sorted(wallet.utxo_labels()) == sorted(
-        ["Random label", wallet.getlabel(new_address)]
-    )
-    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
 
     wallet.setlabel(new_address, "")
     third_address = wallet.getnewaddress()
 
     wallet.getdata()
-    assert sorted(wallet.utxo_labels()) == sorted(
-        ["Random label", wallet.getlabel(new_address)]
-    )
     assert sorted(wallet.addresses) == sorted([address, new_address, third_address])
-    assert sorted(wallet.utxo_addresses()) == sorted([address, new_address])
-
-    wallet.setlabel(third_address, "Random label")
-    wallet.getdata()
-    assert sorted(wallet.addresses_on_label("Random label")) == sorted(
-        [address, third_address]
-    )
 
 
 def test_wallet_change_addresses(

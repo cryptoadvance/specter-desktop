@@ -17,7 +17,7 @@
             {{ explorer_link('tx', txid, txid, explorer) }}
         </td>
         <td class="tx scroll">
-            {{ explorer_link('address', address, (label if label != '' else address), explorer) }}
+            <address-label data-address="{{ address }}" data-label="{{ label if label else address }}" data-wallet="{{ wallet_alias }}"></address-label>
         </td>
         <td>{{ amount | btcunitamount }}</td>
     </tr>

@@ -24,11 +24,13 @@ class TxItem(dict):
     columns = [
         "txid",  # str, txid in hex
         "hex",  # str, raw tx in hex
+        "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
+        "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
     ]
-    type_converter = [str, str, int, int, parse_conflicts]
+    type_converter = [str, str, str, int, int, str, parse_conflicts]
 
     def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
@@ -59,6 +61,17 @@ class TxItem(dict):
 
     def __repr__(self):
         return f"TxItem({str(self)})"
+
+    def __dict__(self):
+        return {
+            "txid": self["txid"],
+            "blockhash": self["blockhash"],
+            "blockheight": self["blockheight"],
+            "time": self["time"],
+            "conflicts": self["conflicts"],
+            "bip125-replaceable": self["bip125-replaceable"],
+            "hex": self["hex"],
+        }
 
 
 class TxList(dict):
@@ -110,8 +123,10 @@ class TxList(dict):
             "txid", - hex txid
             "hex",  - hex raw transaction
             "blockheight", - int blockheight if confirmed, None otherwise
+            "blockhash", - str blockhash if confirmed, None otherwise
             "time", - int unix timestamp in seconds when tx was received
             "conflicts", - list of txids spending the same inputs (rbf)
+            "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
         """
         addresses = []
@@ -127,8 +142,10 @@ class TxList(dict):
             obj = {
                 "txid": txid,
                 "blockheight": tx.get("blockheight", None),
+                "blockhash": tx.get("blockhash", None),
                 "time": time,
                 "conflicts": tx.get("walletconflicts", []),
+                "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
             txitem = TxItem(self.rpc, self._addresses, **obj)

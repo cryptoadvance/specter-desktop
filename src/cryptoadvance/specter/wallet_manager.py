@@ -267,14 +267,25 @@ Silently ignored! Wallet error: {e}"
             wallet.save_to_file()
         self.update()
 
-    def txlist(self, page, validate_merkle_proofs=False):
+    def full_txlist(
+        self,
+        fetch_transactions=True,
+        validate_merkle_proofs=False,
+        current_blockheight=None,
+    ):
+        """Returns a list of all transactions in all wallets loaded in the wallet_manager.
+        #Parameters:
+        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
+        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
+        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        """
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
-                    page,
-                    limit=(100 // len(self.wallets)),
+                    fetch_transactions=fetch_transactions,
                     validate_merkle_proofs=validate_merkle_proofs,
+                    current_blockheight=current_blockheight,
                 )
             ]
             for wallet in self.wallets.values()
@@ -285,21 +296,24 @@ Silently ignored! Wallet error: {e}"
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
-    def full_txlist(self, validate_merkle_proofs=False):
-        idx = 0
-        tx_len = 1
-        tx_list = []
-        while tx_len > 0:
-            transactions = self.txlist(idx, validate_merkle_proofs)
-            tx_list.append(transactions)
-            tx_len = len(transactions)
-            idx += 1
-        # Flatten the list
-        flat_list = []
-        for element in tx_list:
-            for dic_item in element:
-                flat_list.append(dic_item)
-        return flat_list
+    def full_utxo(self):
+        """Returns a list of all UTXOs in all wallets loaded in the wallet_manager."""
+        txlists = [
+            [
+                {
+                    **utxo,
+                    "label": wallet.getlabel(utxo["address"]),
+                    "wallet_alias": wallet.alias,
+                }
+                for utxo in wallet.utxo
+            ]
+            for wallet in self.wallets.values()
+        ]
+        result = []
+        for txlist in txlists:
+            for tx in txlist:
+                result.append(tx)
+        return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
     def delete(self, specter):
         """Deletes all the wallets"""

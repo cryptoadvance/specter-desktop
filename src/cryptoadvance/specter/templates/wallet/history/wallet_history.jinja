@@ -1,0 +1,22 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'history' %}
+{% block content %}
+	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+	{{ total_wallet_balances(wallet, specter) }}
+	<div class="table-holder">
+		{% include "includes/tx-row.html" %}
+		{% include "includes/tx-data.html" %}
+		{% include "includes/explorer-link.html" %}
+		{% include "includes/tx-table.html" %}
+		<tx-table 
+		{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+		price="{{ specter.alt_rate }}"
+		symbol="{{ specter.alt_symbol }}"
+		{% endif %}
+		btc-unit="{{ specter.unit }}"
+		blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
+		type="txlist"
+		wallet="{{ wallet.alias }}">
+		</tx-table>
+	</div>
+{% endblock %}

@@ -50,6 +50,7 @@
 - [SPECTER-DEVKIT](#specter-devkit)
   - [*Can I buy the Specter-devkit pre-built?*](#can-i-buy-the-specter-devkit-pre-built)
 - [TROUBLESHOOT](#troubleshoot)
+  - [The AppImage is not starting on Debian 10](#the-appimage-is-not-starting-on-debian-10)
   - [I have issues connecting my Hardware-Wallet via USB?!](#i-have-issues-connecting-my-hardware-wallet-via-usb)
   - [*How to upgrade Specter-desktop?*](#how-to-upgrade-specter-desktop)
     - [Laptop/Desktop](#laptopdesktop)
@@ -343,6 +344,9 @@ With that being said, we are working on a kit (extension board) that includes a 
 No supply-chain risks as you buy the board and a smartcard from normal electronics stores. We will start selling ready to use wallets when we consider it secure enough and when we remove (WIP) from the repo description. Devkits will be available earlier than that.
 
 # TROUBLESHOOT
+
+## The AppImage is not starting on Debian 10
+This is a known issue. See [here](https://github.com/cryptoadvance/specter-desktop/issues/769). A questionable workaround might be to start with `--no-sandbox`. The security-implications are beyond this FAQ. Please check the issues for more information.
 
 ## I have issues connecting my Hardware-Wallet via USB?!
 

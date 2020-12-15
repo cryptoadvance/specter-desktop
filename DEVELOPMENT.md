@@ -1,4 +1,4 @@
-## How to run
+## How to run the Application
 
 Install dependencies:
 
@@ -21,7 +21,7 @@ cd specter-desktop
 python3 -m cryptoadvance.specter server
 ```
 
-# Run the tests
+# Howto run the tests
 Run the tests (still very limited):
 
 ```sh
@@ -43,6 +43,8 @@ pytest tests/test_specter
 pytest tests/test_specter -k Manager 
 ```
 
+Check the cypress-section on how to run cypress-frontend-tests.
+
 # Code-Style
 
 Before your create a PR, make sure to [blackify](https://github.com/psf/black) all your changes. In order to automate that,
@@ -52,6 +54,8 @@ pre-commit install
 ```
 
 # Developing on tests
+We use pytest and for frontend-testing the amazing [cypress.io](https://www.cypress.io/).
+
 ## bitcoin-specific stuff
 
 There are some things worth taking a note here, especially if you rely on a specific state on the blockchain for your tests. Bitcoind is started only once for all the tests. If you run 
@@ -62,11 +66,28 @@ it each time it's starting with the genesis-block. This has some implications:
 * This also means that it makes a huge difference whether you run a test standalone or together with all other tests
 * Depending on whether you do one or the other, you cannot rely on transactionIDs. So if you run a test standalone twice, you can assert txids but you can't any longer when you run all the tests
 
+## Cypress UI-testing
+Cypress is just awesome. It's quite easy to create Frontend-tests and it's even recording all tests and you can immediately see how it went. So each test-run, the tests are kept for one day (see the ["artifacts-section"](https://github.com/k9ert/specter-desktop/blob/cypress/.gitlab-ci.yml#L53-L58)) and you can watch them by browsing the artifacts on any gitlab-job-page (right-hand-side marked with "Job artifacts").
+
+Executing the tests is done via `./utils/test-cypress.sh`:
+```
+# make sure you have npm on the path
+
+# run the tests
+./utils/test-cypress.sh run
+# open the cypress application (to develop/debug/run tests interactively)
+./utils/test-cypress.sh open
+```
+The test_specifications which get executed are specified in cypress.json which looks something like this:
+
+More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
+
+
 # Flask specific stuff
 
 Other than Django, Flask is not opionoated at all. You can do all sorts of things and it's quite difficult to judge whether you're doing it right.
 
-One strange thing which we're doing to get the tests working is forcing the reload of the controller-code (if necessary) [here](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/server.py#L83-L90).
+One strange thing which we're doing to get the tests working is forcing the reload of the controller-code (if necessary) [here](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/server.py#L88-L93).
 
 The if-clause might be quite brittle which would result in very strange 404 in test_controller.
 Check the [archblog](./docs/archblog.md) for a better explanation.
