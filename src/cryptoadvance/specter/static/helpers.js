@@ -27,6 +27,22 @@ document.addEventListener("notification", (e)=>{
 	}
 	showNotification(e.detail.message, e.detail.timeout);
 });
+
+document.addEventListener("updateAddressLabel", function (e) {
+	document.querySelectorAll('address-label').forEach(el => {
+		let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+		return el.dispatchEvent(event);
+	});
+
+	// TODO: Needed currently for all custom elements containing <address-label>
+	// Find an alternative which would work regardless of shadowRoot
+	document.querySelector('tx-table').shadowRoot.querySelectorAll('tx-row').forEach(el => {
+		el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+			let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+			return el.dispatchEvent(event);
+		});
+	});
+});
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }
@@ -88,4 +104,12 @@ function toggleMobileNav(btn, openImg, collapseImg) {
 		x.className = "row collapse-on-mobile";
 		btn.children[0].src = openImg;
 	}
+}
+
+function numberWithCommas(x) {
+	x = parseFloat(x).toString();
+	if (x.split(".").length > 1) {
+		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
+	}
+    return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

@@ -85,7 +85,7 @@
 						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 					{% endif %}
 					to<b>
-					{{ explorer_link('address', psbt['address'][i], wallet.get_address_name(psbt["address"][i], -1), specter.explorer) }}
+					<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ wallet.getlabel(psbt['address'][i]) }}" data-wallet="{{ wallet_alias }}"></address-label>
 					</b><br><br>
 				</div>
 			{% endfor %}
@@ -126,11 +126,13 @@
 						(Output #{{ input['vout'] }})<br>
 						{% set tx = wallet.gettransaction(input['txid']) %}
 						{% if tx %}
-						<b>Address:</b>
-						{{ explorer_link('address', tx['details'][0]['address'], tx['details'][0]['address'], specter.explorer) }}
-						<br>
-						{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
-							<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+						{% if tx['details'] %}
+							<b>Address:</b>
+							<address-label data-address="{{ tx['details'][0]['address'] }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<br>
+							{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
+								<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+							{% endif %}
 						{% endif %}
 						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
@@ -141,7 +143,7 @@
 					<p class="tx_info" style="text-align: left; background-color: #131a24;">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
 						<b>Address:</b>
-						{{ explorer_link('address', output['scriptPubKey']['addresses'][0], output['scriptPubKey']['addresses'][0], specter.explorer) }}
+						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
 						<br>
 						{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
 							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
@@ -350,7 +352,7 @@
 
 				if (jsonResponse.success) {
 					hidePageOverlay();
-					window.location.replace("../tx/");
+					window.location.replace("../history/");
 				} else {
 					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
 				}

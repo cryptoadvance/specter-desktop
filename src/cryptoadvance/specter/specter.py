@@ -218,6 +218,11 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
+    def check_blockheight(self):
+        current_blockheight = self.rpc.getblockcount()
+        if self.info["blocks"] != current_blockheight:
+            self.check(check_all=True)
+
     def get_user_folder_id(self, user=None):
         """
         Returns the suffix for the user wallets and devices.
