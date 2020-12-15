@@ -476,6 +476,12 @@ class Wallet:
         validate_merkle_proofs=False,
         current_blockheight=None,
     ):
+        """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
+        #Parameters:
+        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
+        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
+        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        """
         if fetch_transactions:
             self.fetch_transactions()
         try:

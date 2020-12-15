@@ -273,6 +273,12 @@ Silently ignored! Wallet error: {e}"
         validate_merkle_proofs=False,
         current_blockheight=None,
     ):
+        """Returns a list of all transactions in all wallets loaded in the wallet_manager.
+        #Parameters:
+        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
+        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
+        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        """
         txlists = [
             [
                 {**tx, "wallet_alias": wallet.alias}
@@ -291,6 +297,7 @@ Silently ignored! Wallet error: {e}"
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
     def full_utxo(self):
+        """Returns a list of all UTXOs in all wallets loaded in the wallet_manager."""
         txlists = [
             [
                 {
