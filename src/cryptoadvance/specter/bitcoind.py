@@ -4,6 +4,8 @@
 import atexit
 import logging
 import os
+import signal
+import psutil
 import shutil
 import subprocess
 import tempfile
@@ -215,7 +217,7 @@ class BitcoindPlainController(BitcoindController):
 
     def _start_bitcoind(self, cleanup_at_exit=True, cleanup_hard=False, datadir=None):
         if datadir == None:
-            datadir = tempfile.mkdtemp(prefix="bitcoind_plain_datadir_")
+            datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
             self.rpcconn,
             run_docker=False,
@@ -229,20 +231,35 @@ class BitcoindPlainController(BitcoindController):
             "Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
         )
 
-        def cleanup_bitcoind():
+        def cleanup_bitcoind(*args):
+            timeout = 50  # in secs
             if cleanup_hard:
                 self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
-                logger.info("Killed bitcoind with pid {self.bitcoind_proc.pid}")
+                logger.info(
+                    f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
+                )
+                shutil.rmtree(datadir)
             else:
                 self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(
-                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination ..."
+                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                 )
-                self.bitcoind_proc.wait()
+                # self.bitcoind_proc.wait() # doesn't have a timeout
+                procs = psutil.Process().children()
+                for p in procs:
+                    p.terminate()
+                _, alive = psutil.wait_procs(procs, timeout=timeout)
+                for p in alive:
+                    logger.info("bitcoind did not terminated in time, killing!")
+                    p.kill()
 
         if cleanup_at_exit:
-            logger.debug("REGISTERING EXIT FUNCTIONS")
-            atexit.register(cleanup_bitcoind)
+            logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")
+            # atexit.register(cleanup_bitcoind)
+            # This is for CTRL-C --> SIGINT
+            signal.signal(signal.SIGINT, cleanup_bitcoind)
+            # This is for kill $pid --> SIGTERM
+            signal.signal(signal.SIGTERM, cleanup_bitcoind)
 
     def stop_bitcoind(self):
         # not necessary as the cleanup_bitcoind() will do it automatically!
@@ -265,13 +282,13 @@ class BitcoindDockerController(BitcoindController):
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
         super().__init__(rpcport=rpcport)
-        self.docker_exec = which("docker")
         self.docker_tag = docker_tag
-        if self.docker_exec == None:
-            raise ("Docker not existing!")
+
         if self.detect_bitcoind_container(rpcport) != None:
-            rpcconn, self.btcd_container = self.detect_bitcoind_container(rpcport)
-            self.rpcconn = rpcconn
+            rpcconn, btcd_container = self.detect_bitcoind_container(rpcport)
+            logger.debug("Detected old container ... deleting it")
+            btcd_container.stop()
+            btcd_container.remove()
 
     def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, datadir=None):
         if datadir != None:
@@ -297,13 +314,20 @@ class BitcoindDockerController(BitcoindController):
             detach=True,
         )
 
-        def cleanup_docker_bitcoind():
+        def cleanup_docker_bitcoind(*args):
             logger.info("Cleaning up bitcoind-docker-container")
             self.btcd_container.stop()
             self.btcd_container.remove()
 
         if cleanup_at_exit:
-            atexit.register(cleanup_docker_bitcoind)
+            logger.debug(
+                "Register function cleanup_docker_bitcoind for SIGINT and SIGTERM"
+            )
+            # This is for CTRL-C --> SIGINT
+            signal.signal(signal.SIGINT, cleanup_docker_bitcoind)
+            # This is for kill $pid --> SIGTERM
+            signal.signal(signal.SIGTERM, cleanup_docker_bitcoind)
+
         logger.debug(
             "Waiting for container {} to come up".format(self.btcd_container.id)
         )
@@ -325,6 +349,7 @@ class BitcoindDockerController(BitcoindController):
                 if container == self.btcd_container:
                     self.btcd_container.stop()
                     logger.info("Stopped btcd_container {}".format(self.btcd_container))
+                    self.btcd_container.remove()
                     return
         raise Exception("Ambigious Container running")
 

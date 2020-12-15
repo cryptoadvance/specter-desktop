@@ -1,13 +1,18 @@
 window.addEventListener('load', (event) => {
 	let main = document.getElementsByTagName("main")[0];
 	main.addEventListener('click', (event) => {
-		document.getElementById("side-content").classList.remove("active");
+		side_content = document.getElementById("side-content")
+		if (side_content != null) {
+			side_content.classList.remove("active");
+		}
 	});
 	let menubtn = document.getElementById("menubtn");
-	menubtn.addEventListener('click', (event) => {
-		document.getElementById("side-content").classList.add("active");
-		event.stopPropagation();
-	});
+	if (menubtn != null) {
+		menubtn.addEventListener('click', (event) => {
+			document.getElementById("side-content").classList.add("active");
+			event.stopPropagation();
+		});
+	}
 });
 
 document.addEventListener("errormsg", (e)=>{
