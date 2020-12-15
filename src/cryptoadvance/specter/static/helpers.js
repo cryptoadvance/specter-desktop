@@ -102,8 +102,9 @@ function toggleMobileNav(btn, openImg, collapseImg) {
 }
 
 function numberWithCommas(x) {
+	x = parseFloat(x).toString();
 	if (x.split(".").length > 1) {
-		return x.toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.toString().split(".")[1];
+		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
 	}
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

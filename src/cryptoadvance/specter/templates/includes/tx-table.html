@@ -135,6 +135,15 @@
         <td></td>
         <td class="optional hidden blockhash-empty"></td>
     </tr>
+    <tr class="summary-row hidden">
+        <td></td>
+        <td class="summary-tx-count"></td>
+        <td class="optional"></td>
+        <td class="optional"></td>
+        <td class="summary-amount"></td>
+        <td></td>
+        <td class="optional hidden blockhash-summary"></td>
+    </tr>
 	<tbody class="tx-tbody">
 	</tbody>
     </table>
@@ -177,6 +186,7 @@
             // Blockhash header and empty column
             this.blockhashHeader = clone.querySelector(".blockhash-header");
             this.blockhashEmpty = clone.querySelector(".blockhash-empty");
+            this.blockhashSummary = clone.querySelector(".blockhash-summary");
 
             // Tabs (History/ UTXO)
             this.txlistViewBtn = clone.querySelector(".txlist-view-btn");
@@ -207,6 +217,11 @@
             this.timeArrow = clone.querySelector(".time-arrow");
             this.confirmationsArrow = clone.querySelector(".confirmations-arrow");
 
+
+            // Summary row
+            this.summaryRow = clone.querySelector(".summary-row");
+            this.summaryTxCount = clone.querySelector(".summary-tx-count");
+            this.summaryAmount = clone.querySelector(".summary-amount");
 
             // Setup tabs switching
 			this.txlistViewBtn.onclick = () => {
@@ -323,9 +338,11 @@
             if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                     this.blockhashHeader.classList.remove('hidden');
                     this.blockhashEmpty.classList.remove('hidden');
+                    this.blockhashSummary.classList.remove('hidden');
             } else {
                 this.blockhashHeader.classList.add('hidden');
                 this.blockhashEmpty.classList.add('hidden');
+                this.blockhashSummary.classList.add('hidden');
             }
             if (
                 this.blockhash != this.getAttribute('blockhash') ||
@@ -356,6 +373,7 @@
     */
     async function fetchTxItems(self) {
         // Clean up from existing transaction list
+        self.summaryRow.classList.add('hidden');
         self.emptyRow.children[1].innerText = "Fetching transactions...";
         self.emptyRow.classList.remove('hidden');
         self.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
@@ -412,6 +430,9 @@
                 // Populate the table with TXRowElement objects using the fetched txlist
                 if (jsonResponse.txlist) {
                     let txlist = JSON.parse(jsonResponse.txlist);
+                    let summaryTxCount = 0;
+                    let summaryAmount = 0;
+                    let summaryPrice = 0;
                     for (let tx of txlist) {
                         let txRow = `
                         <tx-row
@@ -424,8 +445,19 @@
                             </tx-row>
                         `
                         self.tbody.innerHTML += txRow;
+                        summaryTxCount++;
+                        summaryAmount += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
+                        summaryPrice += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${self.symbol}`, '').replace(')', '').replace(',', ''));
                     }
 
+                    if (summaryTxCount > 0 && self.search) {
+                        self.summaryTxCount.innerText = `Transactions count: ${summaryTxCount}`;
+                        self.summaryAmount.innerHTML = `Total amount: ${numberWithCommas(summaryAmount.toFixed(8))}`;
+                        if (summaryPrice) {
+                            self.summaryAmount.innerHTML += ` <span class="note">(${self.symbol}${numberWithCommas(summaryPrice.toFixed(2))})</span>`
+                        }
+                        self.summaryRow.classList.remove('hidden');
+                    }
                     // Pagination
                     self.pageCount = jsonResponse.pageCount;
                     // Show empty row if no transaction found
