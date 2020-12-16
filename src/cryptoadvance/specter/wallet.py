@@ -169,8 +169,11 @@ class Wallet:
     def check_unused(self):
         """Check current receive address is unused and get new if needed"""
         addr = self.address
-        while self.rpc.getreceivedbyaddress(addr, 0) != 0:
-            addr = self.getnewaddress()
+        try:
+            while self.rpc.getreceivedbyaddress(addr, 0) != 0:
+                addr = self.getnewaddress()
+        except Exception as e:
+            logger.error(f"Failed to check for address reuse: {e}")
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
