@@ -25,6 +25,7 @@ from ..helpers import (
     is_testnet,
     parse_wallet_data_import,
 )
+from ..persistence import delete_file
 from ..key import Key
 from ..specter import Specter
 from ..specter_error import SpecterError
@@ -774,6 +775,7 @@ def settings(wallet_alias):
         if action == "rescanblockchain":
             startblock = int(request.form["startblock"])
             try:
+                delete_file(wallet._transactions.path)
                 res = wallet.rpc.rescanblockchain(startblock, timeout=1)
             except requests.exceptions.ReadTimeout:
                 # this is normal behaviour in our usecase
