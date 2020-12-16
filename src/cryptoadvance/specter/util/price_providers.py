@@ -59,8 +59,6 @@ def get_price_at(specter, current_user, timestamp="now"):
                     return False, 0, ""
                 return (True, price, "£")
             if specter.price_provider.startswith("spotbit"):
-                if timestamp != "now":
-                    return False, 0, ""
                 requests_session.proxies["http"] = "socks5h://localhost:9050"
                 requests_session.proxies["https"] = "socks5h://localhost:9050"
                 currency = "usd"
@@ -71,37 +69,24 @@ def get_price_at(specter, current_user, timestamp="now"):
                 elif specter.price_provider.endswith("_gbp"):
                     currency = "gbp"
                     currency_symbol = "£"
-                if specter.price_provider.startswith("spotbit_coinbase"):
+                exchange = specter.price_provider.split("spotbit_")[1]
+                print(timestamp)
+                if timestamp == "now":
                     price = requests_session.get(
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/coinbase".format(
-                            currency
+                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
+                            currency, exchange
                         )
                     ).json()["close"]
-                elif specter.price_provider.startswith("spotbit_bitfinex"):
+                else:
+                    print(timestamp)
                     price = requests_session.get(
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/bitfinex".format(
-                            currency
+                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/hist/{}/{}/{}/{}".format(
+                            currency,
+                            exchange,
+                            timestamp * 1000,
+                            (timestamp + 121) * 1000,
                         )
-                    ).json()["close"]
-                elif specter.price_provider.startswith("spotbit_kraken"):
-                    price = requests_session.get(
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/kraken".format(
-                            currency
-                        )
-                    ).json()["close"]
-                elif specter.price_provider.startswith("spotbit_okcoin"):
-                    price = requests_session.get(
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/okcoin".format(
-                            currency
-                        )
-                    ).json()["close"]
-                elif specter.price_provider.startswith("spotbit_bitstamp"):
-                    price = requests_session.get(
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/bitstamp".format(
-                            currency
-                        )
-                    ).json()["close"]
-
+                    ).json()["data"][0][7]
                 return (True, price, currency_symbol)
     except Exception as e:
         logger.warning(
