@@ -275,7 +275,10 @@
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
 				}
-			}
+            }
+            
+            // Init call id to avoid fetch returning after another one triggered
+            this.callId = 0
 
 
             // Initialize default sort, search, limit and page parameters
@@ -430,6 +433,7 @@
      * @param self - The TxTableElement itself.
     */
     async function fetchTxItems(self) {
+        self.callId++;
         // Clean up from existing transaction list
         self.summaryRow.classList.add('hidden');
         self.emptyRow.children[1].innerText = "Fetching transactions...";
@@ -479,6 +483,7 @@
         formData.append('sortby', self.sortby);
         formData.append('sortdir', self.sortdir);
         try {
+            let callId = self.callId;
             const response = await fetch(
                 url,
                 {
@@ -486,6 +491,11 @@
                     body: formData
                 }
             );
+            alert(callId);
+            alert(self.callId);
+            if (callId != self.callId) {
+                return;
+            }
             if(response.status != 200){
                 showError(await response.text());
                 return;
