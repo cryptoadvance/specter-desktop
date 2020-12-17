@@ -315,6 +315,7 @@
             // Listen to changes in search bar
             this.searchInput.onchange = () => {
                 this.search = this.searchInput.value;
+                this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                 fetchTxItems(this);
             }
 
@@ -341,7 +342,7 @@
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.remove(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'up-arrow' : 'down-arrow');
                         this.sortdir = this.sortdir == 'asc' ? 'desc' : 'asc';
-                        console.log(this.sortdir);
+                        this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     } else {
                         sortHeaders.forEach(el => {
                             let existingArrow = el.querySelector(`.${this.sortby}-arrow`)
@@ -352,6 +353,7 @@
                         });
                         this.sortby = header.getAttribute('value');
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                        this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
                     fetchTxItems(this);
                 }
@@ -375,7 +377,7 @@
             
             // Export prices switch toggle
             this.exportPricesSwitch.onchange = () => {
-                this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}`;
+                this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
             // Attach the created element to the shadow dom
@@ -472,7 +474,7 @@
         }
 
         if (self.export.href != '') {
-            self.export.href += `?exportPrices=${self.exportPricesSwitch.checked}`;
+            self.export.href += `?exportPrices=${self.exportPricesSwitch.checked}&search=${self.search}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
         }
 
         // Prepare form data with all relevant parameters

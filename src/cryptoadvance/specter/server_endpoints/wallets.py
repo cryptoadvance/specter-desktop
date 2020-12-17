@@ -1000,6 +1000,14 @@ def tx_history_csv(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
         txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
+        )
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
 
         # stream the response as the data is generated
@@ -1026,12 +1034,24 @@ def utxo_csv(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
-
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                wallet.utxo,
+                idx=0,
+                limit=0,
+                search=search,
+                sortby=sortby,
+                sortdir=sortdir,
+            )["txlist"]
+        )
         # stream the response as the data is generated
         response = Response(
             txlist_to_csv(
                 wallet,
-                wallet.utxo,
+                txlist,
                 app.specter,
                 current_user,
                 includePricesHistory,
@@ -1054,6 +1074,14 @@ def wallet_overview_txs_csv():
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
         txlist = app.specter.wallet_manager.full_txlist(
             validate_merkle_proofs=validate_merkle_proofs
+        )
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
         )
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
@@ -1079,6 +1107,14 @@ def wallet_overview_txs_csv():
 def wallet_overview_utxo_csv():
     try:
         txlist = app.specter.wallet_manager.full_utxo()
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
+        )
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
@@ -1275,7 +1311,6 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
 
 # Transactions list to user-friendly CSV format
 def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=False):
-    _txlist = sorted(_txlist, key=lambda tx: tx["time"])
     txlist = []
     for tx in _txlist:
         if isinstance(tx["address"], list):
