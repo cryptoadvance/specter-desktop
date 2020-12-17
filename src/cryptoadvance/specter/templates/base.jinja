@@ -32,7 +32,6 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
-					{% include "components/tor_address.jinja" %}
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
