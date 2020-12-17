@@ -12,7 +12,7 @@
         <td></td>
         <td class="tx scroll optional">
             {% if pending_psbt['address']|length == 1 %}
-                {{ explorer_link('address', pending_psbt['address'][0], wallet.get_address_name(pending_psbt['address'][0], -1), specter.explorer) }}
+                <address-label data-address="{{ pending_psbt['address'][0] }}" data-label="{{ wallet.getlabel(pending_psbt['address'][0]) }}" data-wallet="{{ wallet_alias }}"></address-label>
             {% else %}
                 {{ pending_psbt['address']|length }} Recipients
             {% endif %}

@@ -1,4 +1,6 @@
-import ast, json, os, time, base64, random, requests
+import ast, json, os, time, base64, random, requests, logging
+from datetime import datetime
+from numbers import Number
 from ..util.tx import decoderawtransaction
 
 from flask import (
@@ -42,11 +44,12 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 @wallets_endpoint.route("/wallets_overview/")
 @login_required
 def wallets_overview():
-    idx = int(request.args.get("idx", default=0))
+    app.specter.check_blockheight()
+    for wallet in app.specter.wallet_manager.wallets.values():
+        wallet.get_balance()
+        wallet.check_utxo()
     return render_template(
         "wallet/wallets_overview.jinja",
-        idx=idx,
-        history=True,
         specter=app.specter,
         rand=rand,
     )
@@ -421,77 +424,29 @@ def wallet(wallet_alias):
         app.logger.error("SpecterError while wallet: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if wallet.fullbalance > 0:
-        return redirect(
-            url_for("wallets_endpoint.tx_history", wallet_alias=wallet_alias)
-        )
+        return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
         return redirect(url_for("wallets_endpoint.receive", wallet_alias=wallet_alias))
 
 
 ###### Wallet transaction history ######
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/tx/")
+@wallets_endpoint.route("/wallet/<wallet_alias>/history/")
 @login_required
-def tx(wallet_alias):
-    return redirect(url_for("wallets_endpoint.tx_history", wallet_alias=wallet_alias))
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/tx/history/")
-@login_required
-def tx_history(wallet_alias):
+def history(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_tx: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     # update balances in the wallet
+    app.specter.check_blockheight()
     wallet.get_balance()
-    idx = int(request.args.get("idx", default=0))
-
-    return render_template(
-        "wallet/history/txs/wallet_tx.jinja",
-        idx=idx,
-        wallet_alias=wallet_alias,
-        wallet=wallet,
-        history=True,
-        specter=app.specter,
-        rand=rand,
-    )
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/tx/utxo/", methods=["GET", "POST"])
-@login_required
-def tx_utxo(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_addresses: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    # update balances in the wallet
-    wallet.get_balance()
-    # check utxo list
     wallet.check_utxo()
-    viewtype = "address" if request.args.get("view") != "label" else "label"
-    idx = int(request.args.get("idx", default=0))
-    if request.method == "POST":
-        action = request.form["action"]
-        if action == "updatelabel":
-            label = request.form["label"]
-            account = request.form["account"]
-            if viewtype == "address":
-                wallet.setlabel(account, label)
-            else:
-                for address in wallet.addresses_on_label(account):
-                    wallet.setlabel(address, label)
-                wallet.getdata()
+
     return render_template(
-        "wallet/history/utxo/wallet_utxo.jinja",
-        idx=idx,
+        "wallet/history/wallet_history.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
-        history=False,
-        viewtype=viewtype,
         specter=app.specter,
         rand=rand,
     )
@@ -886,6 +841,7 @@ def settings(wallet_alias):
 
 
 ################## Wallet util endpoints #######################
+# TODO: move these to an API endpoint
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
@@ -979,7 +935,12 @@ def decoderawtx(wallet_alias):
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
-            return {"success": True, "tx": tx, "rawtx": decoderawtransaction(tx["hex"])}
+            return {
+                "success": True,
+                "tx": tx,
+                "rawtx": decoderawtransaction(tx["hex"], app.specter.chain),
+                "walletName": wallet.name,
+            }
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
     return {"success": False}
@@ -1000,3 +961,177 @@ def rescan_progress(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
         return {}
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
+@login_required
+def get_label(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form.get("address", "")
+        label = wallet.getlabel(address)
+        return {
+            "address": address,
+            "label": label,
+        }
+    except Exception as e:
+        logging.exception(e)
+        return "Error while get_label: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
+@login_required
+def set_label(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form["address"]
+        label = request.form["label"]
+        wallet.setlabel(address, label)
+        return {"success": True}
+    except Exception as e:
+        logging.exception(e)
+        return "Error while set_label: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
+@login_required
+def txlist(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = wallet.txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting txlist: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
+@login_required
+def utxo_list(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        txlist = wallet.utxo
+        for tx in txlist:
+            if not tx.get("label", None):
+                tx["label"] = wallet.getlabel(tx["address"])
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting utxo list: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
+@login_required
+def wallets_overview_txlist():
+    try:
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = app.specter.wallet_manager.full_txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting full txlist: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
+@login_required
+def wallets_overview_utxo_list():
+    try:
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = app.specter.wallet_manager.full_utxo()
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting full utxo list: %s" % e, 500
+
+
+def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
+    if search:
+        txlist = [
+            tx
+            for tx in txlist
+            if search in tx["txid"]
+            or (
+                any(search in address for address in tx["address"])
+                if isinstance(tx["address"], list)
+                else search in tx["address"]
+            )
+            or (
+                any(search in label for label in tx["label"])
+                if isinstance(tx["label"], list)
+                else search in tx["label"]
+            )
+            or (
+                any(search in str(amount) for amount in tx["amount"])
+                if isinstance(tx["amount"], list)
+                else search in str(tx["amount"])
+            )
+            or search in str(tx["confirmations"])
+            or search in str(tx["time"])
+            or search
+            in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
+        ]
+    if sortby:
+
+        def sort(tx):
+            val = tx.get(sortby, None)
+            final = val
+            if val:
+                if isinstance(val, list):
+                    if isinstance(val[0], Number):
+                        final = sum(val)
+                    elif isinstance(val[0], str):
+                        final = sorted(
+                            val, key=lambda s: s.lower(), reverse=sortdir != "asc"
+                        )[0].lower()
+                elif isinstance(val, str):
+                    final = val.lower()
+            return final
+
+        txlist = sorted(txlist, key=sort, reverse=sortdir != "asc")
+    if limit:
+        page_count = (len(txlist) // limit) + (0 if len(txlist) % limit == 0 else 1)
+        txlist = txlist[limit * idx : limit * (idx + 1)]
+    else:
+        page_count = 1
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}

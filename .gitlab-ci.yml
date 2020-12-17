@@ -18,7 +18,9 @@ stages:
   - releasing
 
 before_script:
-  - docker info # Print out docker version for debugging
+  - docker info || echo "no docker-command found" # Print out docker version for debugging
+  - echo CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
+  - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
@@ -32,8 +34,9 @@ test:
  # relying on PRs and people who are working on gitlab-forks are working
  # on CI which probably want fast feedback on the releasing-jobs 
  # and therefore skip the test-job
- only:
-    - $CI_PROJECT_NAMESPACE =~ "cryptoadvance" 
+ # tem deactivated as it did not work as expected
+ #only:
+ #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
@@ -41,6 +44,23 @@ test:
    # pytest --docker not working? Uncomment this for better debugging:
    # - python3 tests/conftest.py 
    - py.test --cov-report term --cov cryptoadvance --docker
+
+test-cypress:
+  image: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
+  stage: testing
+  script:
+    # start the server in the background
+    - pip3 install -e .
+    - pip3 install -r test_requirements.txt
+    - npm i
+    - ./utils/test-cypress.sh --docker --debug run
+    - docker ps || echo "probably no docker available anyway"
+  artifacts:
+    when: always
+    paths:
+      - cypress/videos/**/*.mp4
+      - cypress/screenshots/**/*.png
+    expire_in: 1 day
 
 release_pip:
   stage: releasing

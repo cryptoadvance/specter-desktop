@@ -25,13 +25,18 @@ import threading
 logger = logging.getLogger(__name__)
 
 
-def get_rpc(conf, old_rpc=None, proxy_url="socks5h://localhost:9050", only_tor=False):
+def get_rpc(
+    conf,
+    old_rpc=None,
+    return_broken_instead_none=False,
+    proxy_url="socks5h://localhost:9050",
+    only_tor=False,
+):
     """
-    Checks if config have changed,
-    compares with old rpc
+    Checks if config have changed, compares with old rpc
     and returns new one if necessary
-    If there is no working rpc-connection,
-    it has to return None
+    If there is no working rpc-connection, it has to return None
+    If return_broken_instead_none is True, it'll return even a broken connection.
     """
     if "autodetect" not in conf:
         conf["autodetect"] = True
@@ -53,6 +58,8 @@ def get_rpc(conf, old_rpc=None, proxy_url="socks5h://localhost:9050", only_tor=F
         if not conf.get("port", None):
             conf["port"] = 8332
         rpc = BitcoinRPC(**conf)
+    if return_broken_instead_none:
+        return rpc
     # check if we have something to compare with
     if old_rpc is None:
         return rpc if rpc and rpc.test_connection() else None
@@ -226,6 +233,11 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
+    def check_blockheight(self):
+        current_blockheight = self.rpc.getblockcount()
+        if self.info["blocks"] != current_blockheight:
+            self.check(check_all=True)
+
     def get_user_folder_id(self, user=None):
         """
         Returns the suffix for the user wallets and devices.
@@ -337,9 +349,10 @@ class Specter:
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
         conf.update(kwargs)
+
         rpc = get_rpc(
             conf,
-            None,
+            return_broken_instead_none=True,
             proxy_url=self.proxy_url,
             only_tor=self.only_tor,
         )
@@ -364,13 +377,13 @@ class Specter:
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: ", e)
+            logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: " + str(rpce))
+            logger.error("Caught an RpcError while test_rpc: %s", rpce)
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
             if rpce.status_code == 401:
