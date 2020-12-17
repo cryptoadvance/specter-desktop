@@ -776,6 +776,7 @@ def settings(wallet_alias):
             startblock = int(request.form["startblock"])
             try:
                 delete_file(wallet._transactions.path)
+                wallet.fetch_transactions()
                 res = wallet.rpc.rescanblockchain(startblock, timeout=1)
             except requests.exceptions.ReadTimeout:
                 # this is normal behaviour in our usecase

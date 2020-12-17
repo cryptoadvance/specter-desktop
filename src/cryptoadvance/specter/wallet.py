@@ -698,6 +698,7 @@ class Wallet:
 
     def rescanutxo(self, explorer=None):
         delete_file(self._transactions.path)
+        self.fetch_transactions()
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
 
