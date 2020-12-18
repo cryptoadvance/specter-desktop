@@ -118,7 +118,7 @@ class Specter:
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
-            "tor_control_port": "default",
+            "tor_control_port": "",
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -641,7 +641,7 @@ class Specter:
 
     @property
     def tor_control_port(self):
-        return self.user_config.get("tor_control_port", "default")
+        return self.user_config.get("tor_control_port", "")
 
     @property
     def hwi_bridge_url(self):

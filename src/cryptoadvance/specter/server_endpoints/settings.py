@@ -237,6 +237,13 @@ This may take a few hours to complete.",
 @settings_endpoint.route("/tor", methods=["GET", "POST"])
 @login_required
 def tor():
+    """
+    controls the tor related settings
+    GET for displaying the page, POST for updates
+    param action might be "save", "test_tor" or "toggle_hidden_service"
+    param proxy_url the Tor deamon url, usually something like socks5h://localhost:9050
+    param only_tor "on" or something else ("off")
+    """
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
         return redirect("")

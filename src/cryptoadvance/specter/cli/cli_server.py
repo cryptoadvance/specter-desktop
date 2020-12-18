@@ -190,7 +190,6 @@ def server(
                 address=tor_control_address,
                 port=int(app.specter.tor_control_port)
                 if app.specter.tor_control_port
-                and app.specter.tor_control_port != "default"
                 else "default",
             )
         except Exception:
