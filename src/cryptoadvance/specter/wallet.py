@@ -19,6 +19,7 @@ from .addresslist import AddressList
 from .txlist import TxList
 
 logger = logging.getLogger()
+LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
 class Wallet:
@@ -130,9 +131,13 @@ class Wallet:
         """Load transactions from Bitcoin Core"""
         arr = []
         idx = 0
-        batch = 100
         while True:
-            res = self.rpc.listtransactions("*", batch, batch * idx, True)
+            res = self.rpc.listtransactions(
+                "*",
+                LISTTRANSACTIONS_BATCH_SIZE,
+                LISTTRANSACTIONS_BATCH_SIZE * idx,
+                True,
+            )
             res = [
                 tx
                 for tx in res
@@ -147,7 +152,10 @@ class Wallet:
             arr.extend(res)
             idx += 1
             # not sure if Core <20 returns last batch or empty array at the end
-            if len(res) < batch or len(arr) < batch * idx:
+            if (
+                len(res) < LISTTRANSACTIONS_BATCH_SIZE
+                or len(arr) < LISTTRANSACTIONS_BATCH_SIZE * idx
+            ):
                 break
         txs = dict.fromkeys([a["txid"] for a in arr])
         txids = list(txs.keys())
@@ -663,6 +671,25 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
+    def full_txlist(self, validate_merkle_proofs=False):
+        tx_list = []
+        idx = 0
+        tx_len = 1
+        while tx_len > 0:
+            transactions = self.txlist(
+                idx, validate_merkle_proofs=validate_merkle_proofs
+            )
+            tx_list.append(transactions)
+            tx_len = len(transactions)
+            idx += 1
+
+        # Flatten the list
+        flat_list = []
+        for element in tx_list:
+            for dic_item in element:
+                flat_list.append(dic_item)
+        return flat_list
+
     def gettransaction(self, txid, blockheight=None):
         try:
             return self._transactions.gettransaction(txid, blockheight)
@@ -670,6 +697,8 @@ class Wallet:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def rescanutxo(self, explorer=None):
+        delete_file(self._transactions.path)
+        self.fetch_transactions()
         t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
         t.start()
 
@@ -809,25 +838,22 @@ class Wallet:
 
     @property
     def blockheight(self):
-        txs = self.rpc.listtransactions("*", 100, 0, True)
-        i = 0
-        while len(txs) == 100:
-            i += 1
-            next_txs = self.rpc.listtransactions("*", 100, i * 100, True)
-            if len(next_txs) > 0:
-                txs = next_txs
-            else:
-                break
-        try:
-            if len(txs) > 0 and "blockheight" in txs[0]:
-                blockheight = (
-                    txs[0]["blockheight"] - 101
-                )  # To ensure coinbase transactions are indexed properly
+        self.fetch_transactions()
+        MAX_BLOCKHEIGHT = 999999999999  # Replace before we reach this height
+        first_tx = sorted(
+            self._transactions.values(),
+            key=lambda tx: tx.get("blockheight", None)
+            if tx.get("blockheight", None)
+            else MAX_BLOCKHEIGHT,
+        )
+        first_tx_blockheight = (
+            first_tx[0].get("blockheight", None) if first_tx else None
+        )
+        if first_tx:
+            if first_tx_blockheight - 101 > 0:
                 return (
-                    0 if blockheight < 0 else blockheight
-                )  # To ensure regtest don't have negative blockheight
-        except:
-            pass
+                    first_tx_blockheight - 101
+                )  # Give tiny margin to catch edge case of mined coins
         return 481824 if self.manager.chain == "main" else 0
 
     @property
