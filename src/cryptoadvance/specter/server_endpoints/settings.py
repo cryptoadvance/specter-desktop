@@ -237,6 +237,9 @@ This may take a few hours to complete.",
 @settings_endpoint.route("/tor", methods=["GET", "POST"])
 @login_required
 def tor():
+    if not current_user.is_admin:
+        flash("Only an admin is allowed to access this page.", "error")
+        return redirect("")
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor

@@ -100,18 +100,6 @@ class User(UserMixin):
         self.config["explorers"][specter.chain] = explorer
         self.save_info(specter)
 
-    def set_proxy_url(self, specter, proxy_url):
-        self.config["proxy_url"] = proxy_url
-        self.save_info(specter)
-
-    def set_only_tor(self, specter, only_tor):
-        self.config["only_tor"] = only_tor
-        self.save_info(specter)
-
-    def set_tor_control_port(self, specter, tor_control_port):
-        self.config["tor_control_port"] = tor_control_port
-        self.save_info(specter)
-
     def set_hwi_bridge_url(self, specter, url):
         self.config["hwi_bridge_url"] = url
         self.save_info(specter)

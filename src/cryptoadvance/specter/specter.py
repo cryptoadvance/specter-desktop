@@ -455,33 +455,21 @@ class Specter:
 
     def update_proxy_url(self, proxy_url, user):
         """ update the Tor proxy url """
-        user = self.user_manager.get_user(user)
-        if user.id == "admin":
-            if self.config["proxy_url"] != proxy_url:
-                self.config["proxy_url"] = proxy_url
+        if self.config["proxy_url"] != proxy_url:
+            self.config["proxy_url"] = proxy_url
             self._save()
-        else:
-            user.set_proxy_url(self, proxy_url)
 
     def update_only_tor(self, only_tor, user):
         """ switch whatever to use Tor for all calls """
-        user = self.user_manager.get_user(user)
-        if user.id == "admin":
-            if self.config["only_tor"] != only_tor:
-                self.config["only_tor"] = only_tor
+        if self.config["only_tor"] != only_tor:
+            self.config["only_tor"] = only_tor
             self._save()
-        else:
-            user.set_only_tor(self, only_tor)
 
     def update_tor_control_port(self, tor_control_port, user):
-        """ switch whatever to use Tor for all calls """
-        user = self.user_manager.get_user(user)
-        if user.id == "admin":
-            if self.config["tor_control_port"] != tor_control_port:
-                self.config["tor_control_port"] = tor_control_port
+        """ set the control port of the tor daemon """
+        if self.config["tor_control_port"] != tor_control_port:
+            self.config["tor_control_port"] = tor_control_port
             self._save()
-        else:
-            user.set_tor_control_port(self, tor_control_port)
 
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """
