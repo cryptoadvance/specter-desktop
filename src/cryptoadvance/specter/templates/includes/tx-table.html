@@ -78,6 +78,19 @@
             margin-right: 50px;
             margin-top: 5px;
         }
+        
+        .export-container {
+            max-width: 50%;
+            margin: 20px auto;
+            border: 1px solid #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 7px;
+        }
+        .export {
+            max-width: 200px;
+            margin: auto;
+        }
     </style>
     <nav class="row">
         <button
@@ -111,6 +124,21 @@
         <input class="search" type="text" placeholder="Search..." />
     </div>
     <br>
+    <div class="export-container hidden">
+        <h1>Export transactions to CSV</h1>
+        <div class="{% if not specter.price_check or not (specter.alt_rate and specter.alt_symbol) %}hidden{% endif %}">
+        Fetch historical price data:
+        <label class="switch">
+        <input type="checkbox" class="export-prices">
+        <span class="slider"></span>
+        </label><br><br>
+        <div class="note">
+            If enabled, specter will try to fetch historical prices for each transaction date from the configured price provider.
+            <br><b>This has privacy implications!</b>
+        </div><br>
+        </div>
+        <a class="export btn" download>Export</a>
+    </div>
     <table class="tx-table">
         <thead>
             <tr>
@@ -124,6 +152,7 @@
                     <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
                     Block Hash
                 </th>
+                <th style="width: 50px; padding: 10px;"><button type="button" class="export-btn btn" style="width: 50px;">Export</button></th>
             </tr>
     </thead>
     <tr class="empty">
@@ -134,6 +163,7 @@
         <td></td>
         <td></td>
         <td class="optional hidden blockhash-empty"></td>
+        <td></td>
     </tr>
     <tr class="summary-row hidden">
         <td></td>
@@ -143,6 +173,7 @@
         <td class="optional"></td>
         <td></td>
         <td class="optional hidden blockhash-summary"></td>
+        <td></td>
     </tr>
 	<tbody class="tx-tbody">
 	</tbody>
@@ -164,6 +195,7 @@
      *  - Search bar to filter transactions using free text search
      *  - Configuring limit for transactions displayed per page
      *  - Pagination, jumping between pages and showing the total pages count
+     *  - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
      * 
      * The table also supports:
      *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
@@ -217,11 +249,16 @@
             this.timeArrow = clone.querySelector(".time-arrow");
             this.confirmationsArrow = clone.querySelector(".confirmations-arrow");
 
-
             // Summary row
             this.summaryRow = clone.querySelector(".summary-row");
             this.summaryTxCount = clone.querySelector(".summary-tx-count");
             this.summaryAmount = clone.querySelector(".summary-amount");
+
+            // Export button
+            this.exportBtn = clone.querySelector(".export-btn");
+            this.exportContainer = clone.querySelector(".export-container");
+            this.export = clone.querySelector(".export");
+            this.exportPricesSwitch = clone.querySelector(".export-prices");
 
             // Setup tabs switching
 			this.txlistViewBtn.onclick = () => {
@@ -238,7 +275,10 @@
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
 				}
-			}
+            }
+            
+            // Init call id to avoid fetch returning after another one triggered
+            this.callId = 0
 
 
             // Initialize default sort, search, limit and page parameters
@@ -275,6 +315,7 @@
             // Listen to changes in search bar
             this.searchInput.onchange = () => {
                 this.search = this.searchInput.value;
+                this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                 fetchTxItems(this);
             }
 
@@ -301,7 +342,7 @@
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.remove(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'up-arrow' : 'down-arrow');
                         this.sortdir = this.sortdir == 'asc' ? 'desc' : 'asc';
-                        console.log(this.sortdir);
+                        this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     } else {
                         sortHeaders.forEach(el => {
                             let existingArrow = el.querySelector(`.${this.sortby}-arrow`)
@@ -312,9 +353,31 @@
                         });
                         this.sortby = header.getAttribute('value');
                         this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                        this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
                     fetchTxItems(this);
                 }
+            }
+
+            // Export data
+            this.exportBtn.onclick = () => {
+                if (this.exportBtn.innerText == 'Done') {
+                    this.exportContainer.classList.add('hidden');
+                    this.exportBtn.innerText = 'Export';
+                } else {
+                    this.exportContainer.classList.remove('hidden');
+                    this.exportBtn.innerText = 'Done';
+                }
+            }
+
+            this.export.onclick = () => {
+                this.exportContainer.classList.add('hidden');
+                this.exportBtn.innerText = 'Export';
+            }
+            
+            // Export prices switch toggle
+            this.exportPricesSwitch.onchange = () => {
+                this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
             // Attach the created element to the shadow dom
@@ -372,6 +435,7 @@
      * @param self - The TxTableElement itself.
     */
     async function fetchTxItems(self) {
+        self.callId++;
         // Clean up from existing transaction list
         self.summaryRow.classList.add('hidden');
         self.emptyRow.children[1].innerText = "Fetching transactions...";
@@ -387,21 +451,30 @@
         switch (self.listType) {
             case "txlist":
                 if (self.wallet) {
+                    self.export.href = `{{ url_for('wallets_endpoint.tx_history_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                     url = `{{ url_for('wallets_endpoint.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                 } else {
+                    self.export.href = `{{ url_for('wallets_endpoint.wallet_overview_txs_csv') }}`;
                     url = `{{ url_for('wallets_endpoint.wallets_overview_txlist') }}`;
                 }
                 break;
             case "utxo":
                 if (self.wallet) {
+                    self.export.href = `{{ url_for('wallets_endpoint.utxo_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                     url = `{{ url_for('wallets_endpoint.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                 } else {
+                    self.export.href = `{{ url_for('wallets_endpoint.wallet_overview_utxo_csv') }}`;
                     url = `{{ url_for('wallets_endpoint.wallets_overview_utxo_list') }}`;
                 }
                 break
             default:
+                self.export.href = ``
                 self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
                 return
+        }
+
+        if (self.export.href != '') {
+            self.export.href += `?exportPrices=${self.exportPricesSwitch.checked}&search=${self.search}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
         }
 
         // Prepare form data with all relevant parameters
@@ -412,6 +485,7 @@
         formData.append('sortby', self.sortby);
         formData.append('sortdir', self.sortdir);
         try {
+            let callId = self.callId;
             const response = await fetch(
                 url,
                 {
@@ -419,6 +493,9 @@
                     body: formData
                 }
             );
+            if (callId != self.callId) {
+                return;
+            }
             if(response.status != 200){
                 showError(await response.text());
                 return;
