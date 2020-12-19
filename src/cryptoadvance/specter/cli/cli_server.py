@@ -181,11 +181,15 @@ def server(
     kwargs = configure_ssl(kwargs, app.config, ssl)
 
     if hwibridge:
+        if kwargs.get("ssl_context"):
+            logger.error(
+                "Running the hwibridge is not supported via ssl. Remove --ssl or make sure to not pass --cert or --key."
+            )
+            exit(1)
         print(
             " * Running HWI Bridge mode.\n"
             " * You can configure access to the API "
-            "at: %s://%s:%d/hwi/settings"
-            % ("https" if kwargs["ssl_context"] else "http", host, app.config["PORT"])
+            "at: %s://%s:%d/hwi/settings" % ("http", host, app.config["PORT"])
         )
 
     # debug is false by default
