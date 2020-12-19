@@ -129,6 +129,8 @@ class User(UserMixin):
         self.save_info(specter, delete=True)
 
     def __eq__(self, other):
+        if other == None:
+            return False
         if isinstance(other, str):
             return self.id == other
         return self.id == other.id
