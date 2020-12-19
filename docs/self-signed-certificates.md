@@ -10,7 +10,7 @@ If you are only using the node at home and want to use it from your local networ
 
 The easiest solution is to simply add `--ssl` to the serve-command and the certificate will get created automatically in the specter-home-folder.
 ```
-python3 -m cryptoadance.specter serve --ssl
+python3 -m cryptoadance.specter server --ssl
 ```
 
 # Manual creation
