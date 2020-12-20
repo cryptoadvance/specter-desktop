@@ -156,7 +156,7 @@ You can easily create a .vscode/launch.json file via the debug-window. However t
             "env": {
                 "FLASK_APP": "cryptoadvance.specter.server:create_and_init()",
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "0",
+                "FLASK_DEBUG": "1",
                 "PATH": "./.env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             },
             "args": [
