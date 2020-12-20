@@ -8,17 +8,30 @@ import mock
 from mock import patch, MagicMock, call
 
 
+mock_config_dict = {
+    "PORT": "123",
+    "DEBUG": "WURSTBROT",
+    "SPECTER_SSL_CERT_SUBJECT_C": "AT",
+    "SPECTER_SSL_CERT_SUBJECT_ST": "Blub",
+    "SPECTER_SSL_CERT_SUBJECT_L": "Blub",
+    "SPECTER_SSL_CERT_SUBJECT_O": "Blub",
+    "SPECTER_SSL_CERT_SUBJECT_OU": "Blub",
+    "SPECTER_SSL_CERT_SUBJECT_CN": "Blub",
+    "SPECTER_SSL_CERT_SERIAL_NUMBER": 123,
+    # We don't want to make a more sophisticated mock, so we simply set here
+    # the same value we set via CMD-Line
+    "CERT": "bla",
+    "KEY": "blub",
+}
+
+
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_host_and_port(init_app, create_app, caplog):
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
-    d = {
-        "SPECTER_DATA_FOLDER": "someValueWillGetChanged",
-        "PORT": "123",
-        "DEBUG": "WURSTBROT",
-    }
+    d = mock_config_dict
     mock_app.config.__getitem__.side_effect = d.__getitem__
     create_app.return_value = mock_app
     runner = CliRunner()
@@ -42,14 +55,7 @@ def test_server_host_and_port(init_app, create_app, caplog):
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
-    d = {
-        "PORT": "123",
-        "DEBUG": "WURSTBROT",
-        # We don't want to make a more sophisticated mock, so we simply set here
-        # the same value we set via CMD-Line
-        "CERT": "bla",
-        "KEY": "blub",
-    }
+    d = mock_config_dict
     mock_app.config.__getitem__.side_effect = d.__getitem__
     create_app.return_value = mock_app
     runner = CliRunner()
@@ -72,8 +78,8 @@ def test_server_host_and_port(init_app, create_app, caplog):
     print(mock_app.run.call_args.kwargs)
     # results in something like:
     # {'debug': 'WURSTBROT', 'host': '127.0.0.1', 'port': '123', 'extra_files': ['templates'], 'ssl_context': ('/tmp/tmpnzivft_y/bla', '/tmp/tmpnzivft_y/blub')}
-    assert mock_app.run.call_args.kwargs["ssl_context"][0].endswith("/bla")
-    assert mock_app.run.call_args.kwargs["ssl_context"][1].endswith("/blub")
+    assert mock_app.run.call_args.kwargs["ssl_context"][0].endswith("bla")
+    assert mock_app.run.call_args.kwargs["ssl_context"][1].endswith("blub")
 
 
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
@@ -88,7 +94,6 @@ def test_server_debug(init_app, create_app, caplog):
         traceback.print_tb(result.exception.__traceback__)
     print(result.exception)
     assert result.exit_code == 0
-    assert "Logging is hopefully configured" in caplog.text
     assert "We're now on level DEBUG on logger cryptoadvance" in caplog.text
 
 
@@ -98,11 +103,7 @@ def test_server_datafolder(init_app, create_app, caplog):
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
-    d = {
-        "SPECTER_DATA_FOLDER": "someValueWillGetChanged",
-        "PORT": "123",
-        "DEBUG": "WURSTBROT",
-    }
+    d = mock_config_dict
     mock_app.config.__getitem__.side_effect = d.__getitem__
     create_app.return_value = mock_app
     runner = CliRunner()
@@ -128,6 +129,13 @@ def test_server_config(init_app, create_app, caplog):
     d = {
         "PORT": "123",
         "DEBUG": "WURSTBROT",
+        "SPECTER_SSL_CERT_SUBJECT_C": "AT",
+        "SPECTER_SSL_CERT_SUBJECT_ST": "Blub",
+        "SPECTER_SSL_CERT_SUBJECT_L": "Blub",
+        "SPECTER_SSL_CERT_SUBJECT_O": "Blub",
+        "SPECTER_SSL_CERT_SUBJECT_OU": "Blub",
+        "SPECTER_SSL_CERT_SUBJECT_CN": "Blub",
+        "SPECTER_SSL_CERT_SERIAL_NUMBER": 123,
         # We don't want to make a more sophisticated mock, so we simply set here
         # the same value we set via CMD-Line
         "CERT": "bla",

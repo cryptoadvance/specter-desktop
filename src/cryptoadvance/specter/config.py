@@ -1,11 +1,11 @@
 """ A config module contains static configuration """
+import configparser
 import datetime
 import os
-import configparser
+import random
 from pathlib import Path
 
 from dotenv import load_dotenv
-
 
 # BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -46,6 +46,24 @@ class BaseConfig(object):
     # only used by cli_bitcoind.py, we want to have that static for the same reason
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_btc_regtest_plain_datadir"
+    )
+
+    # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
+    SPECTER_SSL_CERT_SUBJECT_C = os.getenv("SPECTER_SSL_CERT_SUBJECT_C", "DE")
+    SPECTER_SSL_CERT_SUBJECT_ST = os.getenv("SPECTER_SSL_CERT_SUBJECT_ST", "BDW")
+    SPECTER_SSL_CERT_SUBJECT_L = os.getenv("SPECTER_SSL_CERT_SUBJECT_L", "Freiburg")
+    SPECTER_SSL_CERT_SUBJECT_O = os.getenv(
+        "SPECTER_SSL_CERT_SUBJECT_O", "Specter Citadel Cert"
+    )
+    SPECTER_SSL_CERT_SUBJECT_OU = os.getenv(
+        "SPECTER_SSL_CERT_SUBJECT_OU", "Specter Citadel Cert"
+    )
+    SPECTER_SSL_CERT_SUBJECT_CN = os.getenv(
+        "SPECTER_SSL_CERT_SUBJECT_CN", "Specter Citadel Cert"
+    )
+    # For self-signed certs, serial-number collision is a risk, so let's do a random one by default
+    SPECTER_SSL_CERT_SERIAL_NUMBER = int(
+        os.getenv("SPECTER_SSL_CERT_SERIAL_NUMBER", random.randrange(1, 100000))
     )
 
 
