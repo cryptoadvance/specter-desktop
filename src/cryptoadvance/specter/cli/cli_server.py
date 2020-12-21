@@ -9,6 +9,7 @@ from socket import gethostname
 import click
 from OpenSSL import SSL, crypto
 from stem.control import Controller
+from urllib.parse import urlparse
 
 from ..server import create_app, init_app
 from ..util.tor import start_hidden_service, stop_hidden_services
@@ -195,7 +196,15 @@ def server(
     # debug is false by default
     def run(debug=debug):
         try:
-            app.controller = Controller.from_port()
+            tor_control_address = urlparse(app.specter.proxy_url).netloc.split(":")[0]
+            if tor_control_address == "localhost":
+                tor_control_address = "127.0.0.1"
+            app.controller = Controller.from_port(
+                address=tor_control_address,
+                port=int(app.specter.tor_control_port)
+                if app.specter.tor_control_port
+                else "default",
+            )
         except Exception:
             app.controller = None
         try:

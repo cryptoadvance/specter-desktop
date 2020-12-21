@@ -21,7 +21,9 @@ def update_price(specter, current_user):
 def get_price_at(specter, current_user, timestamp="now"):
     try:
         if specter.price_check:
-            requests_session = requests.Session()
+            requests_session = specter.requests_session(
+                force_tor=".onion/" in specter.price_provider
+            )
             if specter.price_provider.startswith("bitstamp"):
                 currency = "usd"
                 currency_symbol = "$"
@@ -59,8 +61,6 @@ def get_price_at(specter, current_user, timestamp="now"):
                     return False, 0, ""
                 return (True, price, "£")
             if specter.price_provider.startswith("spotbit"):
-                requests_session.proxies["http"] = "socks5h://localhost:9050"
-                requests_session.proxies["https"] = "socks5h://localhost:9050"
                 currency = "usd"
                 currency_symbol = "$"
                 if specter.price_provider.endswith("_eur"):

@@ -1,0 +1,101 @@
+<template id="tooltip">
+    <style>
+        .tool-tip {
+            display: inline-block;
+            position: relative;
+            margin-left: 0.5em;
+        }
+        .tool-tip .tool-tip__icon {
+            color: #fff;
+            background: #27b1f0;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            font-style: italic;
+            font-family: times new roman;
+            height: 20px;
+            line-height: 1.3em;
+            text-align: center;
+            width: 20px;
+        }
+        .tool-tip .tool-tip__info {
+            display: none;
+            background: #262626;
+            border: 1px solid #27b1f0;
+            border-radius: 3px;
+            padding: 1em;
+            position: absolute;
+            left: 30px;
+            top: -20px;
+            width: 250px;
+            z-index: 2;
+        }
+        .tool-tip .tool-tip__info:before, .tool-tip .tool-tip__info:after {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 7px;
+            border-style: solid;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #27b1f0;
+        }
+        .tool-tip .tool-tip__info:after {
+            left: -8px;
+            border-right-color: #262626;
+        }
+        .tool-tip .tool-tip__info .info {
+            display: block;
+        }
+        .tool-tip .tool-tip__info .info__title {
+            color: #4A90E2;
+        }
+        .tool-tip:hover .tool-tip__info, .tool-tip:focus .tool-tip__info {
+            display: inline-block;
+        }
+
+        a:focus + .tool-tip .tool-tip__info {
+            display: inline-block;
+        }
+        @media (hover: none) {
+            .tool-tip {
+                display: none;
+            }
+        }
+    </style>
+    <div class="tool-tip">
+        <i class="tool-tip__icon">i</i>
+        <p class="tool-tip__info">
+        <span class="info">
+            <span class="info__title"></span><br><br>
+            <slot></slot>
+        </span>
+        </p>
+    </div>
+  </template>
+  
+  <script type="text/javascript">
+  class TooltipElement extends HTMLElement {
+    constructor() {
+        super();
+        // Create a shadow root
+        var shadow = this.attachShadow({mode: 'open'});
+        var style = document.getElementById('tooltip').content;
+        var clone = style.cloneNode(true);
+
+        this.titleText = clone.querySelector(".info__title");
+
+        // Attach the created element to the shadow dom
+        shadow.appendChild(clone);
+    }
+
+    static get observedAttributes() {
+        return ['title'];
+    }
+
+    attributeChangedCallback(attrName, oldValue, newValue) {
+      let title = this.getAttribute('title');
+      this.titleText.innerHTML = title;
+    }
+  }
+  customElements.define('tool-tip', TooltipElement);
+  </script>
