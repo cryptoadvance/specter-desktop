@@ -5,29 +5,31 @@ The UI is tested via [cypress](https://www.cypress.io/) which is built with node
  So the tests in general are designed to run in a strict sequence specified in cypress.json. So later tests might need the state created in former tests.
 
 This is very different than on unit-tests and, with an increasing amount of tests, this might be cumbersome in order to only execute a specific test or develop on a specific one.
-Therefore there is the possibility to snapshot and restore the state of a specific test-run. Also, in parallel to running the pytests, it would be beneficial to not use the default-folders (`~/.specter` and ) for the state but completely separate that. This way, you can develop live on the application and running the tests in parallel without interference. Doing that is possible via the test-cypress.sh:
+
+So there is the possibility to snapshot and restore the state of a specific test-run. Also, in parallel to running the pytests, it would be beneficial to not use the default-folders (`~/.specter` and ) for the state but completely separate that. This way, you can develop live on the application and running the tests in parallel without interference. Doing that is possible via test-cypress.sh:
 ```
-$ ./utils/test-cypress.sh --help
+$ ./utils/test-cypress.sh 
 Usage: ./utils/test-cypress.sh [generic-options] <subcommand> [options]"
 Doing stuff with cypress-tests according to <subcommand>"
 
-Subcommands:"
-    open [spec-file]    will open the cypress app."
-    run  [spec-file]    will run the tests."
-                        open and run take a spec-file optionally. If you add a spec-file, "
-                        then automatically the corresponding snapshot is untarred before and," 
-                        in the case of run, only the spec-file and all subsequent spec_files "
-                        are executed."
-    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball"
-                        of the btc-dir and the specter-dir and store that file in the "
-                        ./cypress/fixtures directory"
+Subcommands:
+    open [spec-file]    will open the cypress app and maybe unpack the corresponding snapshot upfront
+    dev [spec-file]     will run regtest+specter and maybe unpack the corresponding snapshot upfront 
+    run  [spec-file]    will run the tests.
+                        open and run take a spec-file optionally. If you add a spec-file, 
+                        then automatically the corresponding snapshot is untarred before and,
+                        in the case of run, only the spec-file and all subsequent spec_files 
+                        are executed.
+    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball
+                        of the btc-dir and the specter-dir and store those files in the 
+                        ./cypress/fixtures directory
 
 generic-options:
     --debug             Run as much stuff in debug as we can
     --docker            Run bitcoind in docker instead of directly
 $
 ```
-Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_cypress_btc_regtest_plain_datadir` and a different post for specter (`25444` instead of `25441`). However, bitcoind-port is still the same. So currently you can't run bitcoind-regtest for developemnt and do (reliable) tests with cypress. You will get failing tests in that case. Will get fixed in the future.
+Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_cypress_btc_regtest_plain_datadir` and a different port for specter (`25444` instead of `25441`). However, bitcoind-port is still the same. So currently you can't run bitcoind-regtest for developemnt and do (reliable) tests with cypress. You will get failing tests in that case. Will get fixed in the future.
 
 Let's look at some typical use-cases in order to understand how to use this script. In any case, you'll need nodejs installed, so do something like:
 ```
@@ -56,12 +58,23 @@ spec_node_configured.js
 spec_existing_history.js
 $ ./utils/test-cypress.sh snapshot spec_existing_history.js
 ```
+So this will now run all the tests in sequence up to (but not including) spec_existing_history.js under the assumption that the tests will pass. After that it'll create a snapshot of that state and stored it in `./cypress/fixtures`.
+
+## Run specific tests (with the help of snapshots)
 
 Now you can run (or open) specifically this test-file via:
 ```
 $ ./utils/test-cypress.sh run spec_existing_history.js
 ```
 This will restore the snapshot created above and run this test (and all subsequent ones). Opening the cypress app works the same although there you're responsible to be aware that the state is fitting to the spec-file you want to execute (just like in the case of empty state above)
+
+## Develop based on the state of a specific snapshop
+
+Maybe you'd like to test the application or develop on a specific snapshot. You can do that like this:
+```
+$ ./utils/test-cypress.sh dev spec_existing_history.js
+```
+This will restore the snapshot created above, run bitcoind-regtest/specter and will open the browser to operate on the application. It'll run in debug-state so that you can modify the sourcecode right away.
 
 ## Develop on tests
 The spec-files mainly select some element on a webpage and then act on them. Mainly `.click()` and `.type("some Text")`. So it's quite helpfull to have unique IDs for all the elements which we want to use in the tests. The cypress-app has a very convenient way of selecting. Make sure you don't miss that.
