@@ -8,6 +8,8 @@ PORT=25444
 export BTCD_REGTEST_DATA_DIR=/tmp/specter_cypress_btc_regtest_plain_datadir
 # same with SPECTER_DATA_FOLDER
 export SPECTER_DATA_FOLDER=~/.specter-cypress
+# We'll might change that on the "dev-function"
+export SPECTER_CONFIG=CypressTestConfig
 
 . ./.env/bin/activate
 function check_consistency {
@@ -39,6 +41,25 @@ generic-options:
     --debug             Run as much stuff in debug as we can
     --docker            Run bitcoind in docker instead of directly
 EOF
+}
+
+function open() {
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+      Linux*)
+      sleep 2 # 2 more seconds on linux ;-)
+        xdg-open $*
+        ;;
+      Darwin*)
+        open $*
+        ;;
+      CYGWIN*)
+        open $* # Not so sure about that, though
+        ;;
+      *)
+        echo "UNKNOWN:${unameOut} , cannot open browser!"
+        ;;
+  esac
 }
 
 function send_signal() {
@@ -87,7 +108,7 @@ function start_bitcoind {
       addopts="$addopts --nodocker"
   fi
   echo "--> Starting bitcoind with $addopts..."
-  python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config CypressTestConfig &
+  python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config $SPECTER_CONFIG &
   bitcoind_pid=$!
   while ! [ -f ./btcd-conn.json ] ; do
       sleep 0.5
@@ -110,7 +131,7 @@ function start_specter {
     rm -rf $SPECTER_DATA_FOLDER
   fi
   echo "--> Starting specter ..."
-  python3 -m cryptoadvance.specter $DEBUG server --config CypressTestConfig --debug > /dev/null &
+  python3 -m cryptoadvance.specter $DEBUG server --config $SPECTER_CONFIG --debug > /dev/null &
   specter_pid=$!
   $(npm bin)/wait-on http://localhost:${PORT}
 }
@@ -126,8 +147,8 @@ function stop_specter {
 
 function cleanup()
 {
-    stop_specter
-    stop_bitcoind
+    stop_specter || :
+    stop_bitcoind || :
 }
 
 
@@ -151,12 +172,33 @@ function restore_snapshot {
       exit 1
     fi
   done
-  rm -rf /tmp/${BTCD_REGTEST_DATA_DIR}
+  rm -rf ${BTCD_REGTEST_DATA_DIR}
+  mkdir ${BTCD_REGTEST_DATA_DIR}
   rm -rf $SPECTER_DATA_FOLDER
+  mkdir $SPECTER_DATA_FOLDER
   echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
-  tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp
+  tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C ${BTCD_REGTEST_DATA_DIR} --strip-components=1
   echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
-  tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~
+  tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C $SPECTER_DATA_FOLDER --strip-components=1
+}
+
+function sub_dev {
+  spec_file=$1
+  # Sad that we need to specify stuff here, which is usually specified in config.py
+  local SPECTER_DATA_FOLDER=~/.specter
+  local BTCD_REGTEST_DATA_DIR=/tmp/specter_btc_regtest_plain_datadir
+  local SPECTER_CONFIG=DevelopmentConfig
+  local PORT=25441
+  if [ -n "${spec_file}" ]; then
+    restore_snapshot ${spec_file}
+    start_bitcoind --cleanuphard
+    start_specter
+  else
+    start_bitcoind --reset
+    start_specter --reset
+  fi
+  open http://localhost:25441
+  sleep infinity
 }
 
 function sub_open {
@@ -209,6 +251,16 @@ function sub_snapshot {
   echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
   rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz
   tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)
+}
+
+function sub_export-snapshot {
+  rm -rf ~/.specter || :
+  mkdir ~/.specter
+  # mv ~/.specter-cypress ~/.specter
+  tar -xzf cypress/fixtures/spec_node_configured.js_specterdir.tar.gz -C ~/.specter --strip-components=1
+  rm -rf  /tmp/specter_btc_regtest_plain_datadir
+  mkdir /tmp/specter_btc_regtest_plain_datadir
+  tar -xzf cypress/fixtures/spec_node_configured.js_btcdir.tar.gz -C /tmp/specter_btc_regtest_plain_datadir --strip-components=1
 }
 
 
