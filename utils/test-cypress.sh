@@ -13,11 +13,15 @@ export SPECTER_CONFIG=CypressTestConfig
 
 . ./.env/bin/activate
 function check_consistency {
-    if ps | grep python | grep -v grep ; then # the second grep might be necessary because MacOs has a non POSIX ps
-        echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
-        sleep 5
-        ps | grep python && (echo "please investigate or kill " && exit 1)
-    fi
+  if ! npm version 2> /dev/null 1>&2 ; then
+    echo "npm is not on the PATH. Please install node and bring on the PATH"
+    exit 1
+  fi
+  if ps | grep python | grep -v grep ; then # the second grep might be necessary because MacOs has a non POSIX ps
+      echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
+      sleep 5
+      ps | grep python && (echo "please investigate or kill " && exit 1)
+  fi
 }
 check_consistency
 
@@ -26,16 +30,17 @@ function sub_default {
 Usage: ./utils/test-cypress.sh [generic-options] <subcommand> [options]"
 Doing stuff with cypress-tests according to <subcommand>"
 
-Subcommands:"
-    open [spec-file]    will open the cypress app."
-    run  [spec-file]    will run the tests."
-                        open and run take a spec-file optionally. If you add a spec-file, "
-                        then automatically the corresponding snapshot is untarred before and," 
-                        in the case of run, only the spec-file and all subsequent spec_files "
-                        are executed."
-    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball"
-                        of the btc-dir and the specter-dir and store that file in the "
-                        ./cypress/fixtures directory"
+Subcommands:
+    open [spec-file]    will open the cypress app and maybe unpack the corresponding snapshot upfront
+    dev [spec-file]     will run regtest+specter and maybe unpack the corresponding snapshot upfront 
+    run  [spec-file]    will run the tests.
+                        open and run take a spec-file optionally. If you add a spec-file, 
+                        then automatically the corresponding snapshot is untarred before and,
+                        in the case of run, only the spec-file and all subsequent spec_files 
+                        are executed.
+    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball
+                        of the btc-dir and the specter-dir and store those files in the 
+                        ./cypress/fixtures directory
 
 generic-options:
     --debug             Run as much stuff in debug as we can
@@ -138,7 +143,7 @@ function start_specter {
 
 function stop_specter {
   if [ ! -z ${specter_pid+x} ]; then
-    echo "--> Killing specter with PID $specter_pid ..."
+    echo "--> Terminating specter with PID $specter_pid ..."
     send_signal SIGTERM $specter_pid # kill -9 would orphane strange processes
     # We don't need to wait as that wastes time.
     unset specter_pid
@@ -158,16 +163,22 @@ trap cleanup EXIT
 function restore_snapshot {
   spec_file=$1
   # Checking whether spec-files exists
-  [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq ".testFiles[]"; exit 1)
+  [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq -r ".testFiles[]"; exit 1)
   snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
-  [ -f ${snapshot_file} ] || (echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"; ls -l ./cypress/fixtures; exit 1)
+  if ! [ -f ${snapshot_file} ]; then
+    echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"
+    ls ./cypress/fixtures -1 | sed -e 's/_btcdir.tar.gz//' -e 's/_specterdir.tar.gz//' | uniq
+    echo "But maybe you want to create that snapshot like this:"
+    echo "./utils/test-cypress.sh snapshot $spec_file"
+    exit 1
+  fi
   ts_snapshot=$(stat --print="%X" ${snapshot_file})
   for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
   do 
     ts_spec_file=$(stat --print="%X" $file)
     if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
       echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
-      echo "please consider:"
+      echo "please consider to create a new snapshot:"
       echo "./utils/test-cypress.sh snapshot $spec_file"
       exit 1
     fi
@@ -185,10 +196,13 @@ function restore_snapshot {
 function sub_dev {
   spec_file=$1
   # Sad that we need to specify stuff here, which is usually specified in config.py
-  local SPECTER_DATA_FOLDER=~/.specter
-  local BTCD_REGTEST_DATA_DIR=/tmp/specter_btc_regtest_plain_datadir
-  local SPECTER_CONFIG=DevelopmentConfig
-  local PORT=25441
+  
+  # We could potentially do that on the original ~/.specter folder like this:
+  #local SPECTER_DATA_FOLDER=~/.specter
+  #local BTCD_REGTEST_DATA_DIR=/tmp/specter_btc_regtest_plain_datadir
+  #local SPECTER_CONFIG=DevelopmentConfig
+  #local PORT=25441
+  
   if [ -n "${spec_file}" ]; then
     restore_snapshot ${spec_file}
     start_bitcoind --cleanuphard
@@ -197,7 +211,7 @@ function sub_dev {
     start_bitcoind --reset
     start_specter --reset
   fi
-  open http://localhost:25441
+  open http://localhost:${PORT}
   sleep infinity
 }
 
@@ -246,10 +260,10 @@ function sub_snapshot {
   echo "--> stopping bitcoind gracefully ... won't take long ..."
   stop_bitcoind
   echo "--> Creating snapshot  $BTCD_REGTEST_DATA_DIR)"
-  rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz
+  rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz 2> /dev/null 1>&2 || :
   tar -czf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp $(basename $BTCD_REGTEST_DATA_DIR)
   echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
-  rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz
+  rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz 2> /dev/null 1>&2 || :
   tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)
 }
 
