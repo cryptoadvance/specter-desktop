@@ -70,6 +70,13 @@ if [ "$current_branch" != "master" ]; then
     fi
 fi
 
+echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
+read new_version
+if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
+    echo "Does not match the pattern!"
+    exit 1; 
+fi
+
 if [[ -n "$RELEASE_NOTES" ]]; then
 
 
@@ -79,7 +86,7 @@ if [[ -n "$RELEASE_NOTES" ]]; then
         exit 2
     fi
 
-    latest_version=$(git tag -l "v*" | grep -v 'pre' | tail -1)
+    latest_version=$(git tag -l "v*" | grep -v 'pre' | sort -V | tail -1)
 
     echo "latest_version is $latest_version. "
 
@@ -92,7 +99,7 @@ if [[ -n "$RELEASE_NOTES" ]]; then
 
     echo "Here are the release-notes:"
     echo "--------------------------------------------------"
-    echo "## $new_version} $(date +'%B %d, %Y')" > docs/new_release_notes.md
+    echo "## ${new_version} $(date +'%B %d, %Y')" > docs/new_release_notes.md
     docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version >> docs/new_release_notes.md
     echo "" >> docs/new_release_notes.md
     cat docs/new_release_notes.md
@@ -123,28 +130,23 @@ if [[ -n "$RELEASE_NOTES" ]]; then
     exit 0
 fi
 
+
+
 if [[ -n "$TAG" ]]; then
 
-    echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
-    read new_version
-    if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
-        echo "Does not match the pattern!"
-        exit 1; 
-    fi
-
-
     echo "    --> Should i now create the tag and push the version $new_version ?"
-    if [ -n $DEV ]; then
+    if [ -z $DEV ]; then
         echo "    --> This will push to your origin-remote!"
     else
         echo "    --> THIS WILL PUSH TO THE UPSTREAM-REMOTE!"
-    if ! ask_yn ; then
-        echo "break"
-        exit 2
+        if ! ask_yn ; then
+            echo "break"
+            exit 2
+        fi
     fi
     
     git tag $new_version 
-    if [ -n $DEV ]; then
+    if [ -z $DEV ]; then
         git push origin $new_version
     else
         git push upstream $new_version
