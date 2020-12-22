@@ -866,6 +866,8 @@ def combine(wallet_alias):
     combined = None
 
     for i, psbt in enumerate(psbts):
+        if not psbt:
+            return "Cannot parse empty data as PSBT", 500
         if "UR:BYTES/" in psbt.upper():
             psbt = bcur2base64(psbt).decode()
 
