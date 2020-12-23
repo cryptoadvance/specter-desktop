@@ -50,7 +50,7 @@ def feerate(context, value):
 @filters_bp.app_template_filter("btcunitamount")
 def btcunitamount(context, value):
     if app.specter.unit != "sat":
-        return btcamount(context, value)
+    	return btcamount(context, value)
     value = float(value)
     return "{:,.0f}".format(round(value * 1e8))
 
@@ -59,13 +59,22 @@ def btcunitamount(context, value):
 @filters_bp.app_template_filter("altunit")
 def altunit(context, value):
     if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
-        return (
-            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
-            .rstrip("0")
-            .rstrip(".")
-            + app.specter.alt_symbol
-        )
+        if app.specter.alt_symbol == "€":
+            return (
+	        "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
+                .rstrip("0")
+                .rstrip(".")
+                + app.specter.alt_symbol
+            )	
+        else:
+            return (
+                app.specter.alt_symbol + "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
+                .rstrip("0")
+                .rstrip(".")
+	    )
+	
     return ""
+    	
 
 
 @contextfilter
