@@ -1151,10 +1151,11 @@ def show_receive_addresses(wallet_alias):
         app.logger.error("SpecterError while wallet_send: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
 
-    recv_addresses = wallet.addresses_info(wallet.recv_descriptor)
+    recv_addresses = wallet.addresses_info(False)
 
     return render_template("wallet/addresses/wallet_addresses.jinja",
         addresses=recv_addresses,
+        addresses_tab="receive_addresses",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
@@ -1169,10 +1170,11 @@ def show_change_addresses(wallet_alias):
         app.logger.error("SpecterError while wallet_send: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
 
-    change_addresses = wallet.addresses_info(wallet.change_descriptor)
+    change_addresses = wallet.addresses_info(True)
 
     return render_template("wallet/addresses/wallet_addresses.jinja",
         addresses=change_addresses,
+        addresses_tab="change_addresses",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
