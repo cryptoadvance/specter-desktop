@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 @auth.verify_password
 def verify_password(username, password):
     """Validate user passwords and store user in the 'g' object"""
-
+    if not username or not password:
+        return abort(401)
     logger.info(f"username: {username} ")
     logger.info(f"password: {password} ")
     g.user = app.specter.user_manager.get_user_by_username(username)
@@ -34,7 +35,6 @@ def verify_password(username, password):
 
 def require_admin(func):
     """ User needs Admin-rights method decorator """
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         """ this needs to get implemented properly """
