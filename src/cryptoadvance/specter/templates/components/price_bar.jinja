@@ -27,7 +27,11 @@
 </style>
 <a id="price-bar-btn" type="button" style="cursor: pointer;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
-        <span>{{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}{{ specter.alt_symbol }}</span>
+        {% if specter.alt_symbol == "€" %}
+            <span>{{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}{{ specter.alt_symbol }}</span>
+        {% else %}
+            <span>{{ specter.alt_symbol }}{{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}</span>
+        {% endif %}
     {% else %}
         <img src="{{ url_for('static', filename='img/shitcoins.svg') }}" style="width: 22px;"/>
     {% endif %}
