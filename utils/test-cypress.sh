@@ -67,6 +67,16 @@ function open() {
   esac
 }
 
+exit_if_macos() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Very sorry but this functionality is not yet ready for MacOS :-(."
+    echo "If you can fix that, PRs are very much appreciated!"
+    echo "it's basically the different behaviour of GNU-tools on Linux/MacOS."
+    echo "first step to help is find the calls of \"exit_if_macos\" and deactivate it!"
+    exit 2
+  fi
+}
+
 function send_signal() {
   # use like send_signal <SIGNAL> <PID>
   # whereas SIGNAL is either SIGTERM or SIGKILL
@@ -172,6 +182,7 @@ function restore_snapshot {
     echo "./utils/test-cypress.sh snapshot $spec_file"
     exit 1
   fi
+  exit_if_macos
   ts_snapshot=$(stat --print="%X" ${snapshot_file})
   for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
   do 

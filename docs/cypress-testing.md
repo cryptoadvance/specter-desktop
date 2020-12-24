@@ -1,6 +1,8 @@
 # Cypress Tests
 
-The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the webserver or its prerequisites as part of executing the tests. Therefore we need to manage that ourself. This has been tested in Linux and MacOS. Windows is not supported.
+The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the webserver or its prerequisites as part of executing the tests. Therefore we need to manage that ourself. 
+
+The below stuff has been tested on Linux and MacOS. Linux is fully supported. The snapshot functionality unfortunately doesn't work yet on MacOS. Windows is not supported at all.
 
  So the tests in general are designed to run in a strict sequence specified in cypress.json. So later tests might need the state created in former tests.
 
