@@ -1,0 +1,76 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST" onsubmit="showPacman()">
+		<h1 id="title" class="settings-title">Tor settings - Specter Desktop {{ current_version }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('tor', current_user) }}
+		<div class="card" style="margin: 20px auto;">
+			<h1>
+			<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
+			Tor configurations
+			</h1>
+			Use Tor proxy running at: 
+			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
+			<br>
+            <p class="note">
+			Default for Tor daemon: socks5://127.0.0.1:9050<br>
+			Default for Tor Browser: socks5://127.0.0.1:9150
+			</p>
+			Tor control port:
+			<p class="note">
+			Restart Specter for change of the control port to take effect.
+			</p>
+			<input name="tor_control_port" value="{{ tor_control_port }}" type="text" placeholder='Set to custom port here, if kept empty the default (9051 and 9151) is used' />
+			<br><br>
+			Do outside calls only over Tor?
+			<tool-tip title="Tor Only mode" style="float: right; margin-bottom: 5px;">
+			Some optional Specter functionalities, like rescanning UTXO on a pruned node, or getting the Bitcoin price, might make calls to external APIs and services.<br><br>
+			Toggle this on to ensure Specter routes all these external calls over Tor proxy.<br><br>
+			Note: Some external sources may stop working if they block Tor call.
+			</tool-tip>
+			<p class="note">
+			Toggle this on to ensure Specter routes all calls external over Tor proxy.
+			</p>
+			<div class="row">
+			    <label class="switch">
+				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
+				<span class="slider"></span>
+			    </label>
+			</div><br>
+            <div class="row">
+				<button type="submit" class="btn" name="action" value="test_tor">Test Tor Connection</button>&nbsp;
+				<button type="submit" class="btn" name="action" value="save">Save</button>
+			</div><br><br>
+            {% if not debug %}
+                <h2>Tor Hidden Service</h2>
+                <p>Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere.<br>
+                </p>
+                {% if tor_service_id %}
+                    {% if specter.config.auth == "none" %}
+                        <p class="warning" style="max-width:700px;">
+                        ⚠️ Warning!<br>
+                        Your are running Specter over Tor with no authentication settings configured.
+                        This means your Specter instance is accessible to anyone with the .onion URL.
+                        This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!<br><br>
+                        It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service.
+                        Please go to Settings -> Authentication and set up an authentication method.
+                        </p>
+                    {% endif %}
+                    <p><b>
+                        Specter hidden service is running at:
+                        <span title="Copy Tor address" style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+                        {{ tor_service_id }}.onion
+                        </span>
+                    </b></p>
+                {% endif %}
+                <div class="row">
+                    <button type="submit" class="btn" name="action" value="toggle_hidden_service">
+                    {% if tor_service_id %} Stop {% else %} Start {% endif %}
+                    </button>
+                </div><br>
+            {% endif %}
+		</div>
+	</form>
+{% endblock %}
+{% block scripts %}
+{% endblock %}

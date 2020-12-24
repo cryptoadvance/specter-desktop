@@ -674,35 +674,22 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def full_txlist(self, validate_merkle_proofs=False):
-        tx_list = []
-        idx = 0
-        tx_len = 1
-        while tx_len > 0:
-            transactions = self.txlist(
-                idx, validate_merkle_proofs=validate_merkle_proofs
-            )
-            tx_list.append(transactions)
-            tx_len = len(transactions)
-            idx += 1
-
-        # Flatten the list
-        flat_list = []
-        for element in tx_list:
-            for dic_item in element:
-                flat_list.append(dic_item)
-        return flat_list
-
     def gettransaction(self, txid, blockheight=None):
         try:
             return self._transactions.gettransaction(txid, blockheight)
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
-    def rescanutxo(self, explorer=None):
+    def rescanutxo(self, explorer=None, requests_session=None):
         delete_file(self._transactions.path)
         self.fetch_transactions()
-        t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
+        t = threading.Thread(
+            target=self._rescan_utxo_thread,
+            args=(
+                explorer,
+                requests_session,
+            ),
+        )
         t.start()
 
     def export_labels(self):
@@ -721,7 +708,7 @@ class Wallet:
             for address in addresses:
                 self._addresses.set_label(address, label)
 
-    def _rescan_utxo_thread(self, explorer=None):
+    def _rescan_utxo_thread(self, explorer=None, requests_session=None):
         # rescan utxo is pretty fast,
         # so we can check large range of addresses
         # and adjust keypool accordingly
@@ -796,13 +783,6 @@ class Wallet:
         # handle missing transactions now
         # if Tor is running, requests will be sent over Tor
         if explorer is not None:
-            try:
-                requests_session = requests.Session()
-                requests_session.proxies["http"] = "socks5h://localhost:9050"
-                requests_session.proxies["https"] = "socks5h://localhost:9050"
-                requests_session.get(explorer)
-            except Exception:
-                requests_session = requests.Session()
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
             try:

@@ -12,8 +12,12 @@ Make sure authentication is enabled to avoid access to your Specter by random st
 ### Security note
 Tor support, like Specter Desktop as a whole, should be treated as a work-in-progress that is not yet vetted as being fully secure.
 
+### Setting up Tor using the Tor Browser
+The easiest way to use Tor with Specter is to have the [Tor Browser](https://www.torproject.org/download/) open. Just install it on your computer, open it and it will expose a Tor proxy Specter can connect to.
+To set this up, you'll just need to go to Specter's Settings -> Tor tab, then set the Tor Proxy field to: `socks5://127.0.0.1:9150` (you'll see it listed below the field as the Tor Browser default URL). Then click save and Specter should be working with Tor - just make sure to keep your Tor Browser running while using Specter.
+
 ### Install Tor service
-Install Tor on the same server that you'll be running Specter Desktop:
+Alternatively, you can setup the Tor service. Install Tor on the same server that you'll be running Specter Desktop:
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 

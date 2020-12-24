@@ -1,4 +1,4 @@
-import random, traceback
+import random, traceback, socket
 from datetime import datetime
 
 from flask import (
@@ -72,45 +72,6 @@ def selfcheck():
 def inject_debug():
     """ Can be used in all jinja2 templates """
     return dict(debug=app.config["DEBUG"])
-
-
-@app.context_processor
-def inject_tor():
-    if app.config["DEBUG"]:
-        return dict(tor_service_id="", tor_enabled=False)
-    if (
-        request.args.get("action", "") == "stoptor"
-        or request.args.get("action", "") == "starttor"
-    ):
-        if hasattr(current_user, "is_admin") and current_user.is_admin:
-            try:
-                current_hidden_services = (
-                    app.controller.list_ephemeral_hidden_services()
-                )
-            except Exception:
-                current_hidden_services = []
-            if (
-                request.args.get("action", "") == "stoptor"
-                and len(current_hidden_services) != 0
-            ):
-                stop_hidden_services(app)
-            if (
-                request.args.get("action", "") == "starttor"
-                and len(current_hidden_services) == 0
-            ):
-                try:
-                    start_hidden_service(app)
-                except Exception as e:
-                    flash(
-                        "Failed to start Tor hidden service.\
-Make sure you have Tor running with ControlPort configured and try again.\
-Error returned: {}".format(
-                            e
-                        ),
-                        "error",
-                    )
-                    return dict(tor_service_id="", tor_enabled=False)
-    return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
 
 ################ Specter global routes ####################
