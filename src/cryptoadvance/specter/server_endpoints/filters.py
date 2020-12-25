@@ -59,7 +59,7 @@ def btcunitamount(context, value):
 @filters_bp.app_template_filter("altunit")
 def altunit(context, value):
     if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
-       rate = (
+        rate = (
             "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
             .rstrip("0")
             .rstrip(".")
