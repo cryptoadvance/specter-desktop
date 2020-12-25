@@ -21,7 +21,7 @@
 
             {% for addr in addresses %}
             <tr class="{%if addr['addr_used'] == True %}unconfirmed{%endif%}">
-                <td>#{{ loop.index0 }}</td>
+                <td>#{{ addr['index'] }}</td>
                 <td>{{ addr['address'] }}</td>
                 <td>{{ addr['hdkeypath'] }}</td>
                 <td>{%if addr['addr_used'] == True %}Yes{% else %}No{%endif%}</td>
