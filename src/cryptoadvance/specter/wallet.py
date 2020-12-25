@@ -1405,8 +1405,6 @@ class Wallet:
             addr_utxo = 0
             addr_amount = 0
 
-            rpc_addr_info = self.rpc.getaddressinfo(addr.address) 
-
             for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
