@@ -92,8 +92,8 @@ def new_wallet(wallet_type):
     if request.method == "POST":
         action = request.form["action"]
         if action == "importwallet":
-            wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
             try:
+                wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
                 (
                     wallet_name,
                     recv_descriptor,
@@ -866,6 +866,8 @@ def combine(wallet_alias):
     combined = None
 
     for i, psbt in enumerate(psbts):
+        if not psbt:
+            return "Cannot parse empty data as PSBT", 500
         if "UR:BYTES/" in psbt.upper():
             psbt = bcur2base64(psbt).decode()
 
