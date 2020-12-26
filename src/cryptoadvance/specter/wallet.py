@@ -1,4 +1,4 @@
-import copy, hashlib, json, logging, os
+import copy, hashlib, json, logging, os, re
 import time
 from .device import Device
 from .key import Key
@@ -920,6 +920,10 @@ class Wallet:
             if self.devices[0].device_type in electrum_devices:
                 return {
                     "keystore": {
+                        "ckcc_xfp": int(
+                            "".join(list(reversed(re.findall("..?", key.fingerprint)))),
+                            16,
+                        ),
                         "ckcc_xpub": key.xpub,
                         "derivation": key.derivation.replace("h", "'"),
                         "root_fingerprint": key.fingerprint,
@@ -950,6 +954,9 @@ class Wallet:
             key = [key for key in device.keys if key in self.keys][0]
             if device.device_type in electrum_devices:
                 to_return["x{}/".format(cnt + 1)] = {
+                    "ckcc_xfp": int(
+                        "".join(list(reversed(re.findall("..?", key.fingerprint)))), 16
+                    ),
                     "ckcc_xpub": key.xpub,
                     "derivation": key.derivation.replace("h", "'"),
                     "root_fingerprint": key.fingerprint,

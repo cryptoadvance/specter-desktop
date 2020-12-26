@@ -24,14 +24,14 @@
         doc.setFont(undefined, 'normal');
         doc.setFontSize(16);
         {% if wallet.is_multisig %}
-            if ('{{ wallet.address_type }}'.startsWith("w")) {
+            if ('{{ wallet.address_type }}' == 'bech32') {
                 doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, native segwit)', 105, currentHeight, {align: 'center'});
             } else {
                 doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, nested segwit)', 105, currentHeight, {align: 'center'});
             }
             currentHeight += 7;
         {% else %}
-            if ('{{ wallet.address_type }}'.startsWith("w")) {
+            if ('{{ wallet.address_type }}' == 'bech32') {
                 doc.text('(Native Segwit)', 105, currentHeight, {align: 'center'});
             } else {
                 doc.text('(Nested Segwit)', 105, currentHeight, {align: 'center'});
