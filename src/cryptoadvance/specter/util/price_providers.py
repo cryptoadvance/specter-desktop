@@ -22,7 +22,7 @@ def get_price_at(specter, current_user, timestamp="now"):
     try:
         if specter.price_check:
             requests_session = specter.requests_session(
-                force_tor=".onion/" in specter.price_provider
+                force_tor=("spotbit" in specter.price_provider)
             )
             if specter.price_provider.startswith("bitstamp"):
                 currency = "usd"
