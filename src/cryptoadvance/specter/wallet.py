@@ -1396,10 +1396,6 @@ class Wallet:
 
         addresses_cache = [v for _, v in self._addresses.items() if v.change == is_change]
 
-        rpc_multi_getaddressinfo = self.rpc.multi([("getaddressinfo", addr.address) for addr in addresses_cache])
-
-        hdkeypath_dict = {item['result']['address']:item['result']['hdkeypath'] for item in rpc_multi_getaddressinfo}
-
         for addr in addresses_cache:
 
             addr_utxo = 0
@@ -1412,7 +1408,7 @@ class Wallet:
             addresses_info.append({
                     'index': addr.index,
                     'address': addr.address,
-                    'hdkeypath': hdkeypath_dict[addr.address],
+                    'label': addr.label,
                     'amount': addr_amount,
                     'addr_used': addr.used,
                     'utxo': addr_utxo

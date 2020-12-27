@@ -4,14 +4,14 @@
     - specter: Specter instance
     - content: The content of the table (its rows)
 #}
-{% macro addresses_table(addresses) -%}
+{% macro addresses_table(addresses, wallet_alias) -%}
 
     <table>
         <thead>
             <tr>
                 <th></th>
                 <th>Addresses</th>
-                <th>HD Key Path</th>
+                <th>Label</th>
                 <th>Used</th>
                 <th>UTXO</th>
                 <th>Amount</th>
@@ -23,7 +23,7 @@
             <tr class="{%if addr['addr_used'] == True %}unconfirmed{%endif%}">
                 <td>#{{ addr['index'] }}</td>
                 <td>{{ addr['address'] }}</td>
-                <td>{{ addr['hdkeypath'] }}</td>
+                <td><address-label data-address="{{ addr['address'] }}" data-label="{{ addr['label'] }}" data-wallet="{{ wallet_alias }}"></address-label></td>	
                 <td>{%if addr['addr_used'] == True %}Yes{% else %}No{%endif%}</td>
                 <td>{{ addr['utxo'] }}</td>
                 <td>{{ addr['amount'] }}</td>
