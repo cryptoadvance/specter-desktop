@@ -833,7 +833,7 @@ class Wallet:
             first_tx[0].get("blockheight", None) if first_tx else None
         )
         if first_tx:
-            if first_tx_blockheight - 101 > 0:
+            if first_tx_blockheight and first_tx_blockheight - 101 > 0:
                 return (
                     first_tx_blockheight - 101
                 )  # Give tiny margin to catch edge case of mined coins
