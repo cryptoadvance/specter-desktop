@@ -216,7 +216,7 @@
 					<div id="utxo-explorer">
 						<br>
 						Block explorer URL:
-						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() }}" type="url" placeholder="block explorer url" />
+						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() if specter.get_default_explorer() else '' }}" type="text" placeholder="block explorer url" />
 						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
 							&#9432;<br>Careful with block explorers!<br>
 							This may have privacy implication!<br>
