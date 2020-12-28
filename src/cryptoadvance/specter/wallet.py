@@ -573,42 +573,18 @@ class Wallet:
                     amounts[address] = out["value"]
 
                 if inputs_mine_count:
-                    if outputs_mine_count and (
-                        len(
-                            [
-                                address
-                                for address in addresses
-                                if self.get_address_info(address)
-                                and not self.get_address_info(address).change
-                            ]
-                        )
-                        > 0
-                    ):
+                    if outputs_mine_count == len(raw_tx["vout"]):
                         category = "selftransfer"
-                        addresses = [
+                        # remove change addresses from the dest list
+                        addresses2 = [
                             address
                             for address in addresses
                             if self.get_address_info(address)
                             and not self.get_address_info(address).change
                         ]
-                    elif outputs_mine_count and (
-                        len(
-                            [
-                                address
-                                for address in addresses
-                                if self.get_address_info(address)
-                                and self.get_address_info(address).change
-                            ]
-                        )
-                        > 1
-                        or len(raw_tx["vout"]) == 1
-                    ):
-                        category = "selftransfer"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if self.get_address_info(address)
-                        ]
+                        # use new list only if it's not empty
+                        if len(addresses2) > 0:
+                            addresses = addresses2
                     else:
                         category = "send"
                         addresses = [
