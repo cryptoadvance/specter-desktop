@@ -149,7 +149,7 @@
         }
 
         async function savePriceData(reload) {
-            showNotification('Updating price date...', 0)
+            showNotification('Updating price data...', 0)
             let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
