@@ -1,5 +1,5 @@
 import hashlib
-from .base58 import decode_base58, encode_base58_checksum
+from embit import base58
 
 
 def hash160(d):
@@ -9,8 +9,8 @@ def hash160(d):
 
 def convert_xpub_prefix(xpub, prefix_bytes):
     # Update xpub to specified prefix and re-encode
-    b = decode_base58(xpub)
-    return encode_base58_checksum(prefix_bytes + b[4:])
+    b = base58.decode_check(xpub)
+    return base58.encode_check(prefix_bytes + b[4:])
 
 
 def get_xpub_fingerprint(xpub):
@@ -18,5 +18,5 @@ def get_xpub_fingerprint(xpub):
     Retuns fingerprint of the XPUB itself.
     IMPORTANT! NOT parent fingerprint, but hash160(pubkey) itself!
     """
-    b = decode_base58(xpub)
+    b = base58.decode_check(xpub)
     return hash160(b[-33:])[:4]

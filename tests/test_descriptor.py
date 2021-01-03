@@ -1,4 +1,7 @@
 from cryptoadvance.specter.util.descriptor import *
+from embit import bip32, ec, networks, script
+from cryptoadvance.specter.util.xpub import hash160
+from cryptoadvance.specter.util.base58 import *
 
 
 def test_parse():
@@ -31,3 +34,19 @@ def test_derive():
     )
     assert d.address(10) == "2N1TgzrzxjdgkWSuJLoNUtoLhZBJQSakRRk"
     assert d.address(10, "main") == "39uUw84w8BBQJfGkffkcGrMSLq6Ee4A2f7"
+
+
+def test_attributes():
+    # test vectors from here: https://github.com/bitcoin-core/HWI/blob/1b1596ac6f4fb1ce47a0d1ca7feb1fc553d08e09/test/test_descriptor.py
+    desc = Descriptor.parse(
+        "wpkh([00000001/84'/1'/0']tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/0/0)",
+        True,
+    )
+    assert desc.wpkh == True
+    assert desc.wsh == None
+    assert desc.origin_fingerprint == "00000001"
+    # address from core - deriveaddresses
+    assert (
+        desc.address(0, network="regtest")
+        == "bcrt1qm90ugl4d48jv8n6e5t9ln6t9zlpm5th68x4f8g"
+    )
