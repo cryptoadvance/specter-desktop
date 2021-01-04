@@ -142,6 +142,7 @@ class Wallet:
                 tx
                 for tx in res
                 if tx["txid"] not in self._transactions
+                or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
                 or self._transactions[tx["txid"]].get("conflicts", [])
@@ -524,101 +525,16 @@ class Wallet:
                 else:
                     tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-                raw_tx = decoderawtransaction(tx["hex"], self.manager.chain)
-                tx["vsize"] = raw_tx["vsize"]
                 if (
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
                     tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
 
-                category = ""
-                addresses = []
-                amounts = {}
-                inputs_mine_count = 0
-                for vin in raw_tx["vin"]:
-                    # coinbase tx
-                    if (
-                        vin["txid"]
-                        == "0000000000000000000000000000000000000000000000000000000000000000"
-                    ):
-                        if tx["confirmations"] <= 100:
-                            category = "immature"
-                        else:
-                            category = "generate"
-                        break
-                    if vin["txid"] in self._transactions:
-                        try:
-                            address = decoderawtransaction(
-                                self._transactions[vin["txid"]]["hex"],
-                                self.manager.chain,
-                            )["vout"][vin["vout"]]["addresses"][0]
-                            address_info = self.get_address_info(address)
-                            if address_info and not address_info.is_external:
-                                inputs_mine_count += 1
-                        except Exception:
-                            continue
-
-                outputs_mine_count = 0
-                for out in raw_tx["vout"]:
-                    try:
-                        address = out["addresses"][0]
-                    except Exception:
-                        # couldn't get address...
-                        continue
-                    address_info = self.get_address_info(address)
-                    if address_info and not address_info.is_external:
-                        outputs_mine_count += 1
-                    addresses.append(address)
-                    amounts[address] = out["value"]
-
-                if inputs_mine_count:
-                    if outputs_mine_count == len(raw_tx["vout"]):
-                        category = "selftransfer"
-                        # remove change addresses from the dest list
-                        addresses2 = [
-                            address
-                            for address in addresses
-                            if self.get_address_info(address)
-                            and not self.get_address_info(address).change
-                        ]
-                        # use new list only if it's not empty
-                        if len(addresses2) > 0:
-                            addresses = addresses2
-                    else:
-                        category = "send"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if not self.get_address_info(address)
-                            or self.get_address_info(address).is_external
-                        ]
+                if isinstance(tx["address"], str):
+                    tx["label"] = self.getlabel(tx["address"])
                 else:
-                    if not category:
-                        category = "receive"
-                    addresses = [
-                        address
-                        for address in addresses
-                        if self.get_address_info(address)
-                        and not self.get_address_info(address).is_external
-                    ]
-
-                amounts = [amounts[address] for address in addresses]
-
-                if len(addresses) == 1:
-                    addresses = addresses[0]
-                    amounts = amounts[0]
-                    tx["label"] = self.getlabel(addresses)
-                else:
-                    tx["label"] = [self.getlabel(address) for address in addresses]
-
-                tx["category"] = category
-                tx["address"] = addresses
-                tx["amount"] = amounts
-                if len(addresses) == 0:
-                    tx["ismine"] = False
-                else:
-                    tx["ismine"] = True
+                    tx["label"] = [self.getlabel(address) for address in tx["address"]]
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
