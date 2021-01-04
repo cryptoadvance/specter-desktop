@@ -196,10 +196,7 @@ class TxList(dict):
                     vin["txid"]
                     == "0000000000000000000000000000000000000000000000000000000000000000"
                 ):
-                    if tx["confirmations"] <= 100:
-                        category = "immature"
-                    else:
-                        category = "generate"
+                    category = "generate"
                     break
                 if vin["txid"] in self:
                     try:

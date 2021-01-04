@@ -525,6 +525,11 @@ class Wallet:
                 else:
                     tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
+                # coinbase tx
+                if tx["category"] == "generate":
+                    if tx["confirmations"] <= 100:
+                        category = "immature"
+
                 if (
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
