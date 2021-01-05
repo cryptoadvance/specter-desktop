@@ -23,7 +23,12 @@
     </h1>
     {% if wallet.rescan_progress or specter.utxorescanwallet == wallet.alias %}
         <span id="wallet_rescan_data" style="display: contents;">
-            <h2>Rescanning blockchain: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"] if specter.utxorescanwallet == wallet.alias else wallet.rescan_progress * 100) }}</span>%</h2>
+            {% if wallet.rescan_progress %}
+                <h2>Rescanning blockchain: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</h2>
+            {% endif %}
+            {% if specter.utxorescanwallet == wallet.alias %}
+                <h2>Rescanning UTXO set: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%</h2>
+            {% endif %}
             <span class="warning">
                 &#9432;<br>
                 Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
