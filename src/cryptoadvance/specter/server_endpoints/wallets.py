@@ -559,6 +559,12 @@ def send_new(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
+            addresses = [
+                address.lower()
+                if address.startswith(("BC1", "TB1", "BCRT1"))
+                else address
+                for address in addresses
+            ]
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1)) - 1
             rbf = bool(request.form.get("rbf", False))
