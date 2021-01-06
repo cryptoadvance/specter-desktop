@@ -848,7 +848,11 @@ class Wallet:
 
         to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
         for cnt, device in enumerate(self.devices):
-            key = [key for key in device.keys if key in self.keys][0]
+            keys_matched = [key for key in device.keys if key in self.keys]
+            if keys_matched:
+                key = keys_matched[0]
+            else:
+                return {"error": "Missing key couldn't be found in any device"}
             if device.device_type in electrum_devices:
                 to_return["x{}/".format(cnt + 1)] = {
                     "ckcc_xfp": int(

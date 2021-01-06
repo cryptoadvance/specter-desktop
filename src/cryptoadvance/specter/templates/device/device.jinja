@@ -78,6 +78,7 @@
 		<br>
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
+			<br>
 		{% endif %}
 		<form action="./" method="POST">
 			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">Forget the device</button>
