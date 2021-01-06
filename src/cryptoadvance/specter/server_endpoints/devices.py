@@ -274,7 +274,7 @@ def device(device_alias):
             wallets_with_key = [w for w in wallets if key in w.keys]
             if len(wallets_with_key) != 0:
                 err = "Key could not be removed since it is used in wallets: {}.<br>You must delete those wallets before you can remove this key.<br>You can delete a wallet from its Settings -> Advanced page.".format(
-                    ", ".join([wallet.name for wallet in wallets])
+                    ", ".join([wallet.name for wallet in wallets_with_key])
                 )
             else:
                 device.remove_key(key)
