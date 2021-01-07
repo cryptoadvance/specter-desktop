@@ -222,7 +222,7 @@ def server(
                       Starting in production mode instead."
                 )
                 debug = False
-            if tor or os.getenv("CONNECT_TOR") == "True":
+            if tor or os.getenv("CONNECT_TOR") == "True" or app.specter.config["tor_status"] == True:
                 try:
                     app.tor_enabled = True
                     start_hidden_service(app)
