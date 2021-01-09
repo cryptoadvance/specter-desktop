@@ -119,7 +119,7 @@ class Specter:
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
-            "tor_status": "false",
+            "tor_status": False,
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
