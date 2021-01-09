@@ -555,7 +555,7 @@ class Specter:
             return False
         for i, otp_dict in enumerate(self.config["new_user_otps"]):
             # TODO: Validate OTP did not expire based on created_at
-            if otp_dict["otp"] == int(otp):
+            if otp_dict["otp"] == otp:
                 del self.config["new_user_otps"][i]
                 self._save()
                 return True

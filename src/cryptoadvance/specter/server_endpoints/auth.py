@@ -1,4 +1,4 @@
-import random
+import random, time
 from flask import (
     Flask,
     Blueprint,
@@ -16,6 +16,7 @@ from ..user import User, hash_password, verify_password
 
 
 rand = random.randint(0, 1e32)  # to force style refresh
+last_sensitive_request = 0  # to rate limit sensitive requests
 
 # Setup endpoint blueprint
 auth_endpoint = Blueprint("auth_endpoint", __name__)
@@ -25,6 +26,7 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 def login():
     """ login """
     if request.method == "POST":
+        rate_limit()
         if app.specter.config["auth"] == "none":
             app.login("admin")
             app.logger.info("AUDIT: Successfull Login no credentials")
@@ -84,6 +86,7 @@ def login():
 def register():
     """ register """
     if request.method == "POST":
+        rate_limit()
         username = request.form["username"]
         password = hash_password(request.form["password"])
         otp = request.form["otp"]
@@ -132,3 +135,12 @@ def redirect_login(request):
     else:
         response = redirect(url_for("index"))
     return response
+
+
+def rate_limit():
+    global last_sensitive_request
+    now = time.time()
+    if last_sensitive_request != 0 and last_sensitive_request + 10 > now:
+        remaining_time = last_sensitive_request + 10 - now
+        time.sleep(remaining_time)
+    last_sensitive_request = time.time()

@@ -1,4 +1,4 @@
-import json, os, time, random, requests
+import json, os, time, random, requests, secrets
 
 from flask import (
     Flask,
@@ -330,7 +330,6 @@ def tor():
 def auth():
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
-    new_otp = -1
     users = None
     if current_user.is_admin and auth == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
@@ -356,7 +355,6 @@ def auth():
                         return render_template(
                             "settings/auth_settings.jinja",
                             auth=auth,
-                            new_otp=new_otp,
                             users=users,
                             specter=app.specter,
                             current_version=current_version,
@@ -385,7 +383,7 @@ def auth():
             app.specter.check()
         elif action == "adduser":
             if current_user.is_admin:
-                new_otp = random.randint(100000, 999999)
+                new_otp = secrets.token_urlsafe(16)
                 app.specter.add_new_user_otp(
                     {"otp": new_otp, "created_at": time.time()}
                 )
@@ -412,7 +410,6 @@ def auth():
     return render_template(
         "settings/auth_settings.jinja",
         auth=auth,
-        new_otp=new_otp,
         users=users,
         specter=app.specter,
         current_version=current_version,
