@@ -538,8 +538,10 @@ class Wallet:
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
-                else:
+                elif isinstance(tx["address"], list):
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
+                else:
+                    tx["label"] = None
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
