@@ -230,6 +230,8 @@ def server(
                 try:
                     app.tor_enabled = True
                     start_hidden_service(app)
+                    if app.specter.config["tor_status"] == False:
+                        app.specter.toggle_tor_status()
                 except Exception as e:
                     print(f" * Failed to start Tor hidden service: {e}")
                     print(" * Continuing process with Tor disabled")
