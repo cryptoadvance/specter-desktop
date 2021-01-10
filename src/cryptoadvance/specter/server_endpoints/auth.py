@@ -60,6 +60,11 @@ def login():
                 app.login("admin")
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
+        elif auth["method"] == "passwordonly":
+            password = request.form["password"]
+            if verify_password(app.specter.user_manager.admin.password, password):
+                app.login("admin")
+                return redirect_login(request)
         elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]

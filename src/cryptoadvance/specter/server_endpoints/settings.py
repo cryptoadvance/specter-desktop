@@ -393,7 +393,16 @@ def auth():
                 current_user.save_info(app.specter)
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
-                if method == "rpcpasswordaspin" or method == "usernamepassword":
+                if (
+                    method == "rpcpasswordaspin"
+                    or method == "passwordonly"
+                    or method == "usernamepassword"
+                ):
+                    if method == "passwordonly":
+                        new_password = request.form.get("specter_password_only", "")
+                        if new_password:
+                            current_user.password = hash_password(new_password)
+                            current_user.save_info(app.specter)
                     if method == "usernamepassword":
                         users = [
                             user
