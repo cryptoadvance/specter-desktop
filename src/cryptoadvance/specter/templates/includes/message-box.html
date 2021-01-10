@@ -69,6 +69,12 @@ class MessageBoxElement extends HTMLElement {
     clone.querySelector("a").addEventListener('click', e=>{
       this.close();
     });
+
+    this.main.onclick = () => {
+      if (window.innerWidth < 690) {
+        this.close();
+      }
+    }
     // Attach the created element to the shadow dom
     shadow.appendChild(clone);
   }

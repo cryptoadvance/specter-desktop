@@ -15,16 +15,32 @@ from .util.version import VersionChecker
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 env_path = Path(".") / ".flaskenv"
 load_dotenv(env_path)
 
 
-def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
-    # Enables injection of a different config via Env-Variable
-    if os.environ.get("SPECTER_CONFIG"):
-        config = os.environ.get("SPECTER_CONFIG")
+def calc_module_name(config):
+    """ tiny helper to make passing configs more convenient """
+    if "." in config:
+        return config
+    else:
+        return "cryptoadvance.specter.config." + config
+
+
+def create_app(config=None):
+
+    # Cmdline has precedence over Env-Var
+    if config is not None:
+        config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+    else:
+        # Enables injection of a different config via Env-Variable
+        if os.environ.get("SPECTER_CONFIG"):
+            config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+        else:
+            # Default
+            config = "cryptoadvance.specter.config.DevelopmentConfig"
 
     if getattr(sys, "frozen", False):
 
@@ -38,6 +54,7 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
         )
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
+    logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
@@ -59,7 +76,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     # version checker
     # checks for new versions once per hour
-    specter.version = VersionChecker()
+    specter.version = VersionChecker(specter=specter)
     specter.version.start()
 
     login_manager = LoginManager()

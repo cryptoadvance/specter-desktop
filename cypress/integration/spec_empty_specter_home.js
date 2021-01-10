@@ -13,7 +13,7 @@ describe('Completely empty specter-home', () => {
     cy.contains('General settings - Specter Desktop custom')
     cy.get('[href="/settings/auth"]').click()
     cy.contains('Authentication settings - Specter Desktop custom')
-    cy.get('.right').click()
+    cy.get('[href="/settings/hwi"]').click()
     cy.contains('HWI Bridge settings - Specter Desktop custom')
   })
 

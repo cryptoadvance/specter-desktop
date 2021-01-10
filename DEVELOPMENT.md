@@ -81,7 +81,17 @@ Executing the tests is done via `./utils/test-cypress.sh`:
 The test_specifications which get executed are specified in cypress.json which looks something like this:
 
 More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
-
+Make sure to read it. The tooling we created around cypress quite helpful in daily development.
+In short, you can do this and the last command will give you a reliable development-environment which is the very same
+whenever you start it anew:
+```
+./utils/test-cypress.sh snapshot spec_existing_history.js
+./utils/test-cypress.sh dev spec_existing_history.js
+# CTRL-C
+./utils/test-cypress.sh dev spec_existing_history.js
+# CTRL-C
+[...]
+```
 
 # Flask specific stuff
 
@@ -156,7 +166,7 @@ You can easily create a .vscode/launch.json file via the debug-window. However t
             "env": {
                 "FLASK_APP": "cryptoadvance.specter.server:create_and_init()",
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "0",
+                "FLASK_DEBUG": "1",
                 "PATH": "./.env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             },
             "args": [

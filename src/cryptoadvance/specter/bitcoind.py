@@ -238,7 +238,7 @@ class BitcoindPlainController(BitcoindController):
                 logger.info(
                     f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
                 )
-                shutil.rmtree(datadir)
+                shutil.rmtree(datadir, ignore_errors=True)
             else:
                 self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(

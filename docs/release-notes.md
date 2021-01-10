@@ -1,3 +1,16 @@
+## v0.11.0-pre1 Dezember 21, 2020
+- Feature: Tor settings and tor_only mode #765 (benk10)
+- Feature: adding automatic ssl-creation #789 (Kim Neunert)
+- Feature: Export CSV data functionality for all table-data with optional historical price data  #758 (benk10)
+- Feature: Refactor History Tab and Search in history  #760 (benk10)
+- Feature: Cypress Frontend-testing #712 (Kim Neunert)
+- docs: fixes #769 #773 (Kim Neunert)
+- Bugfix: Remove Notification instead of logging out #755 #791 (benk10)
+- Bugfix: wallet name bug in json backup download #790 (Raj)
+- Bugfix: Catch exception if addres not found in wallet #783 (benk10)
+- Bugfix: spelling #766 (Stevie Zollo)
+- UIUX: Switched Address to Label #720 #764 (figgyfigs)
+
 ## v0.10.2 December 5, 2020
 - HWI: Update udev rules for Specter DIY (#742) (@stepansnigirev)
 - HWI: Update communication with Specter DIY (#746) (@stepansnigirev)

@@ -1,12 +1,22 @@
-# Issuing self-signed certificates
+# Why a certificate is important
 
 Browsers require secure communication with the server to use camera API. Without it we can't use QR code scanning.
 
 If you are running a VPS it's easy - you just [issue a new certificate](./reverse-proxy#adding-https) with Letsencrypt.
 
-If you are only using the node at home and want to use it from your local network you need to issue a certificate yourself.
+If you are only using the node at home and want to use it from your local network and via camera, you need to run it via ssl.
 
-The easiest way is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's ip address as an argument:
+# Easy solution
+
+The easiest solution is to simply add `--ssl` to the serve-command and the certificate will get created automatically in the specter-home-folder.
+```
+python3 -m cryptoadance.specter server --ssl
+```
+
+# Manual creation
+
+
+A second way, which provides more customisation, is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's ip address as an argument:
 
 ```sh
 gen-certificate.sh <your-node-local-ip-address>

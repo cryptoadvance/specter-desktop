@@ -40,6 +40,24 @@ def start_hidden_service(app):
             f.write("%s.onion" % app.tor_service_id)
     app.tor_service_id = app.tor_service_id
     app.tor_enabled = True
+    if app.specter.config.get("auth", "none") == "none":
+        print(" * ############################# Warning! #############################")
+        print(
+            " * Your are running Specter over Tor with no authentication settings configured."
+        )
+        print(
+            " * This means your Specter instance is accessible to anyone with the .onion URL."
+        )
+        print(
+            " * This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!"
+        )
+        print(
+            " * It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service."
+        )
+        print(
+            " * Please go to Settings -> Authentication and set up an authentication method."
+        )
+        print(" * ####################################################################")
 
 
 def stop_hidden_services(app):

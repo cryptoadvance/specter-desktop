@@ -23,6 +23,7 @@
 		{% include "includes/qr-code.html" %}
 	{% endif %}
 	{% include "includes/message-box.html" %}
+	{% include "includes/tool-tip.html" %}
 	<div class="row holder">
 		{% block sidebar %}
 			{% include "includes/sidebar/sidebar.jinja" %}
@@ -31,7 +32,6 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
-					{% include "components/tor_address.jinja" %}
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
@@ -128,7 +128,7 @@
 											</p>
 											<h3>Connecting over Tor</h3>
 											<p style="font-size: 1.05em;">Connecting over Tor requires that you first configure Tor on your local machine.<br>
-											You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" style="color: #fff;">Window</a><br>
+											You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;" target="_blank">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" target="_blank" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" target="_blank" style="color: #fff;">Window</a><br>
 											</p>
 										</div>
 									{% endif %}

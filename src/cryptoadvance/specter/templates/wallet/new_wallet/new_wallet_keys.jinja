@@ -85,23 +85,22 @@
 				<div id="utxo-scan-options" style="display: none">
 					{% if specter.info['pruned']  %}
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
-							<div class="tool-tip">
-								<i class="tool-tip__icon">i</i>
-								<p class="tool-tip__info">
-									<span class="info">
-										<span class="info__title">Fetch missing data</span><br><br>
-										You are using a pruned node. Blocks for some transactions may be missing.<br><br>
-										Check this checkbox if you want to fetch missing information from block explorer.
-									</span>
-								</p>
-							</div>
+							<tool-tip title="Fetch missing data">
+							You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+							Check this checkbox if you want to fetch missing information from block explorer.
+							</tool-tip>
 						</label>
-						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+						<div id="utxo-explorer">
+							<br>
+							Block explorer URL:
+							<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+							<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
 							&#9432;<br>Careful with block explorers!<br>
 							This may have privacy implication!<br>
-							Information fetched from the block explorer contains a list of unspent transactions of your wallet from the old (pruned) blocks.<br>
+							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
 							"They" will know what transactions you are interested in.
 						</span>
+					</div>
 					{% endif %}
 				</div>
 			</div>
@@ -238,7 +237,7 @@
 		let utxocheckbox = document.getElementById("use_explorer");
 		if(utxocheckbox){
 			utxocheckbox.addEventListener('change', e=>{
-				let el = document.getElementById("utxo-warning")
+				let el = document.getElementById("utxo-explorer")
 				if(utxocheckbox.checked){
 					el.style.display = "inline-block";
 				}else{

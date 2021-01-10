@@ -44,9 +44,11 @@
         document.getElementById("{{ device.alias }}_qr_scan_btn")
                 .addEventListener("scan", e =>{
             let result = e.detail.result;
-            if(result!=null){
+            if(result){
                 hidePageOverlay();
                 combine(result);
+            } else {
+                showError("Scan failed, please try again...", 3000);
             }
         });
     </script>

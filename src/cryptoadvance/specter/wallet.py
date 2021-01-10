@@ -1,4 +1,4 @@
-import copy, hashlib, json, logging, os
+import copy, hashlib, json, logging, os, re
 import time
 from .device import Device
 from .key import Key
@@ -19,6 +19,7 @@ from .addresslist import AddressList
 from .txlist import TxList
 
 logger = logging.getLogger()
+LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
 class Wallet:
@@ -130,13 +131,18 @@ class Wallet:
         """Load transactions from Bitcoin Core"""
         arr = []
         idx = 0
-        batch = 100
         while True:
-            res = self.rpc.listtransactions("*", batch, batch * idx, True)
+            res = self.rpc.listtransactions(
+                "*",
+                LISTTRANSACTIONS_BATCH_SIZE,
+                LISTTRANSACTIONS_BATCH_SIZE * idx,
+                True,
+            )
             res = [
                 tx
                 for tx in res
                 if tx["txid"] not in self._transactions
+                or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
                 or self._transactions[tx["txid"]].get("conflicts", [])
@@ -147,7 +153,10 @@ class Wallet:
             arr.extend(res)
             idx += 1
             # not sure if Core <20 returns last batch or empty array at the end
-            if len(res) < batch or len(arr) < batch * idx:
+            if (
+                len(res) < LISTTRANSACTIONS_BATCH_SIZE
+                or len(arr) < LISTTRANSACTIONS_BATCH_SIZE * idx
+            ):
                 break
         txs = dict.fromkeys([a["txid"] for a in arr])
         txids = list(txs.keys())
@@ -169,8 +178,11 @@ class Wallet:
     def check_unused(self):
         """Check current receive address is unused and get new if needed"""
         addr = self.address
-        while self.rpc.getreceivedbyaddress(addr, 0) != 0:
-            addr = self.getnewaddress()
+        try:
+            while self.rpc.getreceivedbyaddress(addr, 0) != 0:
+                addr = self.getnewaddress()
+        except Exception as e:
+            logger.error(f"Failed to check for address reuse: {e}")
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -513,125 +525,23 @@ class Wallet:
                 else:
                     tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-                raw_tx = decoderawtransaction(tx["hex"], self.manager.chain)
-                tx["vsize"] = raw_tx["vsize"]
+                # coinbase tx
+                if tx["category"] == "generate":
+                    if tx["confirmations"] <= 100:
+                        category = "immature"
+
                 if (
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
                     tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
 
-                category = ""
-                addresses = []
-                amounts = {}
-                inputs_mine_count = 0
-                for vin in raw_tx["vin"]:
-                    # coinbase tx
-                    if (
-                        vin["txid"]
-                        == "0000000000000000000000000000000000000000000000000000000000000000"
-                    ):
-                        if tx["confirmations"] <= 100:
-                            category = "immature"
-                        else:
-                            category = "generate"
-                        break
-                    if vin["txid"] in self._transactions:
-                        try:
-                            address = decoderawtransaction(
-                                self._transactions[vin["txid"]]["hex"],
-                                self.manager.chain,
-                            )["vout"][vin["vout"]]["addresses"][0]
-                            address_info = self.get_address_info(address)
-                            if address_info and not address_info.is_external:
-                                inputs_mine_count += 1
-                        except Exception:
-                            continue
-
-                outputs_mine_count = 0
-                for out in raw_tx["vout"]:
-                    try:
-                        address = out["addresses"][0]
-                    except Exception:
-                        # couldn't get address...
-                        continue
-                    address_info = self.get_address_info(address)
-                    if address_info and not address_info.is_external:
-                        outputs_mine_count += 1
-                    addresses.append(address)
-                    amounts[address] = out["value"]
-
-                if inputs_mine_count:
-                    if outputs_mine_count and (
-                        len(
-                            [
-                                address
-                                for address in addresses
-                                if self.get_address_info(address)
-                                and not self.get_address_info(address).change
-                            ]
-                        )
-                        > 0
-                    ):
-                        category = "selftransfer"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if self.get_address_info(address)
-                            and not self.get_address_info(address).change
-                        ]
-                    elif outputs_mine_count and (
-                        len(
-                            [
-                                address
-                                for address in addresses
-                                if self.get_address_info(address)
-                                and self.get_address_info(address).change
-                            ]
-                        )
-                        > 1
-                        or len(raw_tx["vout"]) == 1
-                    ):
-                        category = "selftransfer"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if self.get_address_info(address)
-                        ]
-                    else:
-                        category = "send"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if not self.get_address_info(address)
-                            or self.get_address_info(address).is_external
-                        ]
+                if isinstance(tx["address"], str):
+                    tx["label"] = self.getlabel(tx["address"])
+                elif isinstance(tx["address"], list):
+                    tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
-                    if not category:
-                        category = "receive"
-                    addresses = [
-                        address
-                        for address in addresses
-                        if self.get_address_info(address)
-                        and not self.get_address_info(address).is_external
-                    ]
-
-                amounts = [amounts[address] for address in addresses]
-
-                if len(addresses) == 1:
-                    addresses = addresses[0]
-                    amounts = amounts[0]
-                    tx["label"] = self.getlabel(addresses)
-                else:
-                    tx["label"] = [self.getlabel(address) for address in addresses]
-
-                tx["category"] = category
-                tx["address"] = addresses
-                tx["amount"] = amounts
-                if len(addresses) == 0:
-                    tx["ismine"] = False
-                else:
-                    tx["ismine"] = True
+                    tx["label"] = None
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -669,8 +579,16 @@ class Wallet:
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
-    def rescanutxo(self, explorer=None):
-        t = threading.Thread(target=self._rescan_utxo_thread, args=(explorer,))
+    def rescanutxo(self, explorer=None, requests_session=None):
+        delete_file(self._transactions.path)
+        self.fetch_transactions()
+        t = threading.Thread(
+            target=self._rescan_utxo_thread,
+            args=(
+                explorer,
+                requests_session,
+            ),
+        )
         t.start()
 
     def export_labels(self):
@@ -689,7 +607,7 @@ class Wallet:
             for address in addresses:
                 self._addresses.set_label(address, label)
 
-    def _rescan_utxo_thread(self, explorer=None):
+    def _rescan_utxo_thread(self, explorer=None, requests_session=None):
         # rescan utxo is pretty fast,
         # so we can check large range of addresses
         # and adjust keypool accordingly
@@ -764,13 +682,6 @@ class Wallet:
         # handle missing transactions now
         # if Tor is running, requests will be sent over Tor
         if explorer is not None:
-            try:
-                requests_session = requests.Session()
-                requests_session.proxies["http"] = "socks5h://localhost:9050"
-                requests_session.proxies["https"] = "socks5h://localhost:9050"
-                requests_session.get(explorer)
-            except Exception:
-                requests_session = requests.Session()
             # make sure there is no trailing /
             explorer = explorer.rstrip("/")
             try:
@@ -809,25 +720,22 @@ class Wallet:
 
     @property
     def blockheight(self):
-        txs = self.rpc.listtransactions("*", 100, 0, True)
-        i = 0
-        while len(txs) == 100:
-            i += 1
-            next_txs = self.rpc.listtransactions("*", 100, i * 100, True)
-            if len(next_txs) > 0:
-                txs = next_txs
-            else:
-                break
-        try:
-            if len(txs) > 0 and "blockheight" in txs[0]:
-                blockheight = (
-                    txs[0]["blockheight"] - 101
-                )  # To ensure coinbase transactions are indexed properly
+        self.fetch_transactions()
+        MAX_BLOCKHEIGHT = 999999999999  # Replace before we reach this height
+        first_tx = sorted(
+            self._transactions.values(),
+            key=lambda tx: tx.get("blockheight", None)
+            if tx.get("blockheight", None)
+            else MAX_BLOCKHEIGHT,
+        )
+        first_tx_blockheight = (
+            first_tx[0].get("blockheight", None) if first_tx else None
+        )
+        if first_tx:
+            if first_tx_blockheight and first_tx_blockheight - 101 > 0:
                 return (
-                    0 if blockheight < 0 else blockheight
-                )  # To ensure regtest don't have negative blockheight
-        except:
-            pass
+                    first_tx_blockheight - 101
+                )  # Give tiny margin to catch edge case of mined coins
         return 481824 if self.manager.chain == "main" else 0
 
     @property
@@ -911,6 +819,10 @@ class Wallet:
             if self.devices[0].device_type in electrum_devices:
                 return {
                     "keystore": {
+                        "ckcc_xfp": int(
+                            "".join(list(reversed(re.findall("..?", key.fingerprint)))),
+                            16,
+                        ),
                         "ckcc_xpub": key.xpub,
                         "derivation": key.derivation.replace("h", "'"),
                         "root_fingerprint": key.fingerprint,
@@ -938,9 +850,16 @@ class Wallet:
 
         to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
         for cnt, device in enumerate(self.devices):
-            key = [key for key in device.keys if key in self.keys][0]
+            keys_matched = [key for key in device.keys if key in self.keys]
+            if keys_matched:
+                key = keys_matched[0]
+            else:
+                return {"error": "Missing key couldn't be found in any device"}
             if device.device_type in electrum_devices:
                 to_return["x{}/".format(cnt + 1)] = {
+                    "ckcc_xfp": int(
+                        "".join(list(reversed(re.findall("..?", key.fingerprint)))), 16
+                    ),
                     "ckcc_xpub": key.xpub,
                     "derivation": key.derivation.replace("h", "'"),
                     "root_fingerprint": key.fingerprint,
@@ -1394,9 +1313,11 @@ class Wallet:
 
         addresses_info = []
 
-        addresses_cache = [v for _, v in self._addresses.items() if v.change == is_change]
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
 
-        for addr in addresses_cache:
+        for addr in reversed(addresses_cache):
 
             addr_utxo = 0
             addr_amount = 0
@@ -1405,14 +1326,15 @@ class Wallet:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
-            addresses_info.append({
-                    'index': addr.index,
-                    'address': addr.address,
-                    'label': addr.label,
-                    'amount': addr_amount,
-                    'addr_used': addr.used,
-                    'utxo': addr_utxo
-                })
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "addr_used": addr.used,
+                    "utxo": addr_utxo,
+                }
+            )
 
         return addresses_info
-

@@ -7,11 +7,12 @@ from embit.transaction import Transaction
 from embit.networks import NETWORKS
 import json
 import logging
+from .util.tx import decoderawtransaction
 
 logger = logging.getLogger(__name__)
 
 
-def parse_conflicts(v):
+def parse_arr(v):
     if not isinstance(v, str):
         return v
     try:
@@ -29,8 +30,26 @@ class TxItem(dict):
         "time",  # int (timestamp in seconds), time received
         "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
+        "vsize",
+        "category",
+        "address",
+        "amount",
+        "ismine",
     ]
-    type_converter = [str, str, str, int, int, str, parse_conflicts]
+    type_converter = [
+        str,
+        str,
+        str,
+        int,
+        int,
+        str,
+        parse_arr,
+        int,
+        str,
+        parse_arr,
+        parse_arr,
+        bool,
+    ]
 
     def __init__(self, rpc, addresses, **kwargs):
         self.rpc = rpc
@@ -71,6 +90,11 @@ class TxItem(dict):
             "conflicts": self["conflicts"],
             "bip125-replaceable": self["bip125-replaceable"],
             "hex": self["hex"],
+            "vsize": self["vsize"],
+            "category": self["category"],
+            "address": self["address"],
+            "amount": self["amount"],
+            "ismine": self["ismine"],
         }
 
 
@@ -158,6 +182,91 @@ class TxList(dict):
                     except:
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
+        for tx in [self[tx] for tx in self if tx in txs]:
+            raw_tx = decoderawtransaction(tx["hex"], self.chain)
+            tx["vsize"] = raw_tx["vsize"]
+
+            category = ""
+            addresses = []
+            amounts = {}
+            inputs_mine_count = 0
+            for vin in raw_tx["vin"]:
+                # coinbase tx
+                if (
+                    vin["txid"]
+                    == "0000000000000000000000000000000000000000000000000000000000000000"
+                ):
+                    category = "generate"
+                    break
+                if vin["txid"] in self:
+                    try:
+                        address = decoderawtransaction(
+                            self[vin["txid"]]["hex"],
+                            self.chain,
+                        )["vout"][vin["vout"]]["addresses"][0]
+                        address_info = self._addresses.get(address, None)
+                        if address_info and not address_info.is_external:
+                            inputs_mine_count += 1
+                    except Exception:
+                        continue
+
+            outputs_mine_count = 0
+            for out in raw_tx["vout"]:
+                try:
+                    address = out["addresses"][0]
+                except Exception:
+                    # couldn't get address...
+                    continue
+                address_info = self._addresses.get(address, None)
+                if address_info and not address_info.is_external:
+                    outputs_mine_count += 1
+                addresses.append(address)
+                amounts[address] = out["value"]
+
+            if inputs_mine_count:
+                if outputs_mine_count == len(raw_tx["vout"]):
+                    category = "selftransfer"
+                    # remove change addresses from the dest list
+                    addresses2 = [
+                        address
+                        for address in addresses
+                        if self._addresses.get(address, None)
+                        and not self._addresses[address].change
+                    ]
+                    # use new list only if it's not empty
+                    if len(addresses2) > 0:
+                        addresses = addresses2
+                else:
+                    category = "send"
+                    addresses = [
+                        address
+                        for address in addresses
+                        if not self._addresses.get(address, None)
+                        or self._addresses[address].is_external
+                    ]
+            else:
+                if not category:
+                    category = "receive"
+                addresses = [
+                    address
+                    for address in addresses
+                    if self._addresses.get(address, None)
+                    and not self._addresses[address].is_external
+                ]
+
+            amounts = [amounts[address] for address in addresses]
+
+            if len(addresses) == 1:
+                addresses = addresses[0]
+                amounts = amounts[0]
+
+            tx["category"] = category
+            tx["address"] = addresses
+            tx["amount"] = amounts
+            if len(addresses) == 0:
+                tx["ismine"] = False
+            else:
+                tx["ismine"] = True
         self.save()
 
     def load(self, arr):

@@ -12,12 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class VersionChecker:
-    def __init__(self, name="cryptoadvance.specter"):
+    def __init__(self, name="cryptoadvance.specter", specter=None):
         self.name = name
         self.current = self.get_current_version()
         self.latest = "unknown"
         self.upgrade = False
         self.running = False
+        self.specter = specter
 
     def start(self):
         if not self.running:
@@ -72,7 +73,11 @@ class VersionChecker:
         with open(version_file) as f:
             current = f.read().strip()
         try:
-            releases = requests.get(
+            if self.specter:
+                requests_session = self.specter.requests_session(force_tor=False)
+            else:
+                requests_session = requests.Session()
+            releases = requests_session.get(
                 "https://api.github.com/repos/cryptoadvance/specter-desktop/releases"
             ).json()
             latest = "unknown"
@@ -86,9 +91,13 @@ class VersionChecker:
         return current, latest
 
     def get_pip_version(self):
+        if self.specter:
+            requests_session = self.specter.requests_session(force_tor=False)
+        else:
+            requests_session = requests.Session()
         try:
             releases = (
-                requests.get("https://pypi.org/pypi/cryptoadvance.specter/json")
+                requests_session.get("https://pypi.org/pypi/cryptoadvance.specter/json")
                 .json()["releases"]
                 .keys()
             )

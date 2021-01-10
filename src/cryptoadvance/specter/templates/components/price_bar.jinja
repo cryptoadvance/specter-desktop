@@ -27,7 +27,7 @@
 </style>
 <a id="price-bar-btn" type="button" style="cursor: pointer;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
-        <span>{{ ("%.2f"|format(specter.alt_rate|float)).rstrip('0').rstrip('.') }}{{ specter.alt_symbol }}</span>
+        <span>{{ 1 | altunit}}</span>
     {% else %}
         <img src="{{ url_for('static', filename='img/shitcoins.svg') }}" style="width: 22px;"/>
     {% endif %}
@@ -82,12 +82,14 @@
                                         <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_okcoin" {% if specter.price_provider == 'spotbit_okcoin' %}selected{% endif %}>Spotbit OKCoin (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_bitstamp" {% if specter.price_provider == 'spotbit_bitstamp' %}selected{% endif %}>Spotbit Bitstamp (Tor) USD</option>
+                                        <option data-currency-type="eur" value="bitstamp_eur" {% if specter.price_provider == 'bitstamp_eur' %}selected{% endif %}>Bitstamp EUR</option>
                                         <option data-currency-type="eur" value="coindesk_eur" {% if specter.price_provider == 'coindesk_eur' %}selected{% endif %}>Coindesk EUR</option>
                                         <option data-currency-type="eur" value="spotbit_coinbase_eur" {% if specter.price_provider == 'spotbit_coinbase_eur' %}selected{% endif %}>Spotbit Coinbase (Tor) EUR</option>
                                         <option data-currency-type="eur" value="spotbit_kraken_eur" {% if specter.price_provider == 'spotbit_kraken_eur' %}selected{% endif %}>Spotbit Kraken (Tor) EUR</option>
                                         <option data-currency-type="eur" value="spotbit_bitfinex_eur" {% if specter.price_provider == 'spotbit_bitfinex_eur' %}selected{% endif %}>Spotbit Bitfinex (Tor) EUR</option>
                                         <option data-currency-type="eur" value="spotbit_okcoin_eur" {% if specter.price_provider == 'spotbit_okcoin_eur' %}selected{% endif %}>Spotbit OKCoin (Tor) EUR</option>
                                         <option data-currency-type="eur" value="spotbit_bitstamp_eur" {% if specter.price_provider == 'spotbit_bitstamp_eur' %}selected{% endif %}>Spotbit Bitstamp (Tor) EUR</option>
+                                        <option data-currency-type="gbp" value="bitstamp_gbp" {% if specter.price_provider == 'bitstamp_gbp' %}selected{% endif %}>Bitstamp GBP</option>
                                         <option data-currency-type="gbp" value="coindesk_gbp" {% if specter.price_provider == 'coindesk_gbp' %}selected{% endif %}>Coindesk GBP</option>
                                         <option data-currency-type="gbp" value="spotbit_coinbase_gbp" {% if specter.price_provider == 'spotbit_coinbase_gbp' %}selected{% endif %}>Spotbit Coinbase (Tor) GBP</option>
                                         <option data-currency-type="gbp" value="spotbit_kraken_gbp" {% if specter.price_provider == 'spotbit_kraken_gbp' %}selected{% endif %}>Spotbit Kraken (Tor) GBP</option>
@@ -147,7 +149,7 @@
         }
 
         async function savePriceData(reload) {
-            showNotification('Updating price date...', 0)
+            showNotification('Updating price data...', 0)
             let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {

@@ -138,7 +138,7 @@
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
 			<p>
 			<p style="max-width: 500px;" class="note center">
-			It is reccomended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+			It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
 			<p>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
 			{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
@@ -184,7 +184,7 @@
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
 					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
-					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
+					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
 				</div>
 				{% else %}
 				<div class="row aligned">
@@ -207,31 +207,29 @@
 				{% if specter.info['pruned']  %}
 					<div class="row" style="margin-top: 10px">
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
-							<div class="tool-tip">
-								<i class="tool-tip__icon">i</i>
-								<p class="tool-tip__info">
-									<span class="info">
-										<span class="info__title">Fetch missing data</span><br><br>
-										You are using a pruned node. Blocks for some transactions may be missing.<br><br>
-										Check this checkbox if you want to fetch missing information from block explorer.
-									</span>
-								</p>
-							</div>
-
+							<tool-tip title="Fetch missing data">
+							You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+							Check this checkbox if you want to fetch missing information from block explorer.
+							</tool-tip>
 						</label>
 					</div>
-					<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-						&#9432;<br>Careful with block explorers!<br>
-						This may have privacy implication!<br>
-						Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
-						"They" will know what transactions you are interested in.
-					</span>
+					<div id="utxo-explorer">
+						<br>
+						Block explorer URL:
+						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+							&#9432;<br>Careful with block explorers!<br>
+							This may have privacy implication!<br>
+							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
+							"They" will know what transactions you are interested in.
+						</span>
+					</div>
 					<script type="text/javascript">
 						let utxocheckbox = document.getElementById("use_explorer");
 						utxocheckbox.addEventListener('change', e=>{
-							let el = document.getElementById("utxo-warning")
+							let el = document.getElementById("utxo-explorer")
 							if(utxocheckbox.checked){
-								el.style.display = "inline-block";
+								el.style.display = "block";
 							}else{
 								el.style.display = "none";
 							}

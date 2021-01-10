@@ -1,7 +1,10 @@
-import ast, json, os, time, base64, random, requests, logging
+import ast, csv, json, os, time, base64, random, requests, logging
+from io import StringIO
+from werkzeug.wrappers import Response
 from datetime import datetime
 from numbers import Number
 from ..util.tx import decoderawtransaction
+from ..util.price_providers import get_price_at
 
 from flask import (
     Flask,
@@ -13,7 +16,7 @@ from flask import (
     jsonify,
     flash,
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 from ..util.descriptor import AddChecksum, Descriptor
 from ..helpers import (
     bcur2base64,
@@ -22,6 +25,7 @@ from ..helpers import (
     is_testnet,
     parse_wallet_data_import,
 )
+from ..persistence import delete_file
 from ..key import Key
 from ..specter import Specter
 from ..specter_error import SpecterError
@@ -88,8 +92,8 @@ def new_wallet(wallet_type):
     if request.method == "POST":
         action = request.form["action"]
         if action == "importwallet":
-            wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
             try:
+                wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
                 (
                     wallet_name,
                     recv_descriptor,
@@ -366,8 +370,8 @@ def new_wallet(wallet_type):
                 if "utxo" in request.form.get("full_rescan_option"):
                     explorer = None
                     if "use_explorer" in request.form:
-                        explorer = app.specter.get_default_explorer()
-                    wallet.rescanutxo(explorer)
+                        explorer = request.form["explorer_url"]
+                    wallet.rescanutxo(explorer, app.specter.requests_session(explorer))
                     app.specter.info["utxorescan"] = 1
                     app.specter.utxorescanwallet = wallet.alias
                 else:
@@ -555,6 +559,12 @@ def send_new(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
+            addresses = [
+                address.lower()
+                if address.startswith(("BC1", "TB1", "BCRT1"))
+                else address
+                for address in addresses
+            ]
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1)) - 1
             rbf = bool(request.form.get("rbf", False))
@@ -771,6 +781,8 @@ def settings(wallet_alias):
         if action == "rescanblockchain":
             startblock = int(request.form["startblock"])
             try:
+                delete_file(wallet._transactions.path)
+                wallet.fetch_transactions()
                 res = wallet.rpc.rescanblockchain(startblock, timeout=1)
             except requests.exceptions.ReadTimeout:
                 # this is normal behaviour in our usecase
@@ -787,8 +799,8 @@ def settings(wallet_alias):
         elif action == "rescanutxo":
             explorer = None
             if "use_explorer" in request.form:
-                explorer = app.specter.get_default_explorer()
-            wallet.rescanutxo(explorer)
+                explorer = request.form["explorer_url"]
+            wallet.rescanutxo(explorer, app.specter.requests_session(explorer))
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
         elif action == "abortrescanutxo":
@@ -860,6 +872,8 @@ def combine(wallet_alias):
     combined = None
 
     for i, psbt in enumerate(psbts):
+        if not psbt:
+            return "Cannot parse empty data as PSBT", 500
         if "UR:BYTES/" in psbt.upper():
             psbt = bcur2base64(psbt).decode()
 
@@ -961,6 +975,170 @@ def rescan_progress(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
         return {}
+
+
+################## Wallet export data endpoints #######################
+# Export wallet transaction history
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses.csv")
+@login_required
+def addresses_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        # stream the response as the data is generated
+        response = Response(
+            addresses_list_to_csv(wallet),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="addresses.csv"
+        )
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export wallet history. Error: %s" % e)
+        flash("Failed to export wallet history. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
+
+# Export wallet transaction history
+@wallets_endpoint.route("/wallet/<wallet_alias>/transactions.csv")
+@login_required
+def tx_history_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+        txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
+        )
+        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(
+                wallet, txlist, app.specter, current_user, includePricesHistory
+            ),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="transactions.csv"
+        )
+        return response
+    except Exception as e:
+        logging.exception(e)
+        return "Failed to export wallet history. Error: %s" % e, 500
+
+
+# Export wallet UTXO list
+@wallets_endpoint.route("/wallet/<wallet_alias>/utxo.csv")
+@login_required
+def utxo_csv(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                wallet.utxo,
+                idx=0,
+                limit=0,
+                search=search,
+                sortby=sortby,
+                sortdir=sortdir,
+            )["txlist"]
+        )
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(
+                wallet,
+                txlist,
+                app.specter,
+                current_user,
+                includePricesHistory,
+            ),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set("Content-Disposition", "attachment", filename="utxo.csv")
+        return response
+    except Exception as e:
+        logging.exception(e)
+        return "Failed to export wallet utxo. Error: %s" % e, 500
+
+
+# Export all wallets transaction history combined
+@wallets_endpoint.route("/wallets_overview/full_transactions.csv")
+@login_required
+def wallet_overview_txs_csv():
+    try:
+        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+        txlist = app.specter.wallet_manager.full_txlist(
+            validate_merkle_proofs=validate_merkle_proofs
+        )
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
+        )
+        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(
+                None, txlist, app.specter, current_user, includePricesHistory
+            ),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="full_transactions.csv"
+        )
+        return response
+    except Exception as e:
+        logging.exception(e)
+        return "Failed to export wallets overview history. Error: %s" % e, 500
+
+
+# Export all wallets transaction history combined
+@wallets_endpoint.route("/wallets_overview/full_utxo.csv")
+@login_required
+def wallet_overview_utxo_csv():
+    try:
+        txlist = app.specter.wallet_manager.full_utxo()
+        search = request.args.get("search", None)
+        sortby = request.args.get("sortby", "time")
+        sortdir = request.args.get("sortdir", "desc")
+        txlist = json.loads(
+            process_txlist(
+                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+            )["txlist"]
+        )
+        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+        # stream the response as the data is generated
+        response = Response(
+            txlist_to_csv(
+                None, txlist, app.specter, current_user, includePricesHistory
+            ),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="full_utxo.csv"
+        )
+        return response
+    except Exception as e:
+        logging.exception(e)
+        return "Failed to export wallets overview utxo. Error: %s" % e, 500
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
@@ -1136,10 +1314,13 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
         page_count = 1
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
+
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
 def show_addresses(wallet_alias):
-    return redirect(url_for("wallets_endpoint.show_receive_addresses", wallet_alias=wallet_alias))
+    return redirect(
+        url_for("wallets_endpoint.show_receive_addresses", wallet_alias=wallet_alias)
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/receive_addresses/", methods=["GET"])
@@ -1158,13 +1339,16 @@ def show_receive_addresses(wallet_alias):
 
     recv_addresses = wallet.addresses_info(False)
 
-    return render_template("wallet/addresses/wallet_addresses.jinja",
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
         addresses=recv_addresses,
         addresses_tab="receive_addresses",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
-        rand=rand)
+        rand=rand,
+    )
+
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/change_addresses/", methods=["GET"])
 @login_required
@@ -1182,10 +1366,167 @@ def show_change_addresses(wallet_alias):
 
     change_addresses = wallet.addresses_info(True)
 
-    return render_template("wallet/addresses/wallet_addresses.jinja",
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
         addresses=change_addresses,
         addresses_tab="change_addresses",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
-        rand=rand)
+        rand=rand,
+    )
+
+
+################## Helpers #######################
+
+# Transactions list to user-friendly CSV format
+def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=False):
+    txlist = []
+    for tx in _txlist:
+        if isinstance(tx["address"], list):
+            _tx = tx.copy()
+            for i in range(0, len(tx["address"])):
+                _tx["address"] = tx["address"][i]
+                _tx["amount"] = tx["amount"][i]
+                txlist.append(_tx.copy())
+        else:
+            txlist.append(tx.copy())
+    data = StringIO()
+    w = csv.writer(data)
+    # write header
+    symbol = "USD"
+    if specter.price_provider.endswith("_eur"):
+        symbol = "EUR"
+    elif specter.price_provider.endswith("_gbp"):
+        symbol = "GBP"
+    row = (
+        "Date",
+        "Label",
+        "Category",
+        "Amount ({})".format(specter.unit.upper()),
+        "Value ({})".format(symbol),
+        "Rate (BTC/{})".format(symbol)
+        if specter.unit != "sat"
+        else "Rate ({}/SAT)".format(symbol),
+        "TxID",
+        "Address",
+        "Block Height",
+        "Timestamp",
+        "Raw Transaction",
+    )
+    if not wallet:
+        row = ("Wallet",) + row
+    w.writerow(row)
+    yield data.getvalue()
+    data.seek(0)
+    data.truncate(0)
+
+    # write each log item
+    _wallet = wallet
+    for tx in txlist:
+        if not wallet:
+            wallet_alias = tx.get("wallet_alias", None)
+            try:
+                _wallet = specter.wallet_manager.get_by_alias(wallet_alias)
+            except Exception as e:
+                continue
+        label = _wallet.getlabel(tx["address"])
+        if label == tx["address"]:
+            label = ""
+        tx_raw = _wallet.gettransaction(tx["txid"])
+        if tx_raw:
+            tx_hex = tx_raw["hex"]
+        else:
+            tx_hex = ""
+        if not tx.get("blockheight", None):
+            if tx_raw.get("blockheight", None):
+                tx["blockheight"] = tx_raw["blockheight"]
+            else:
+                tx["blockheight"] = "Unconfirmed"
+        if specter.unit == "sat":
+            value = float(tx["amount"])
+            tx["amount"] = round(value * 1e8)
+        if includePricesHistory:
+            success, rate, symbol = get_price_at(
+                specter, current_user, timestamp=tx["time"]
+            )
+        else:
+            success = False
+        if success:
+            rate = float(rate)
+            if specter.unit == "sat":
+                rate = rate / 1e8
+            amount_price = float(tx["amount"]) * rate
+            if specter.unit == "sat":
+                rate = round(1 / rate)
+        else:
+            amount_price = None
+            rate = "-"
+
+        row = (
+            time.strftime("%Y-%m-%d", time.localtime(tx["time"])),
+            label,
+            tx["category"],
+            round(tx["amount"], (0 if specter.unit == "sat" else 8)),
+            round(amount_price * 100) / 100 if amount_price is not None else "-",
+            rate,
+            tx["txid"],
+            tx["address"],
+            tx["blockheight"],
+            tx["time"],
+            tx_hex,
+        )
+        if not wallet:
+            row = (tx.get("wallet_alias", ""),) + row
+        w.writerow(row)
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+
+# Addresses list to user-friendly CSV format
+def addresses_list_to_csv(wallet):
+    data = StringIO()
+    w = csv.writer(data)
+    # write header
+    row = (
+        "Address",
+        "Label",
+        "Index",
+        "Used",
+        "Current balance",
+    )
+    w.writerow(row)
+    yield data.getvalue()
+    data.seek(0)
+    data.truncate(0)
+
+    # write each log item
+    for address in wallet._addresses:
+        address_info = wallet.get_address_info(address)
+        if not address_info.is_labeled and not address_info.used:
+            continue
+        row = (
+            address,
+            address_info.label,
+            "(external)"
+            if address_info.is_external
+            else (
+                str(address_info.index) + (" (change)" if address_info.change else "")
+            ),
+            address_info.used,
+        )
+        if address_info.is_external:
+            balance_on_address = "unknown (external address)"
+        else:
+            balance_on_address = 0
+            if address_info.used:
+                for tx in wallet.utxo:
+                    if tx.get("address", "") == address:
+                        balance_on_address += tx.get("amount", 0)
+        row += (balance_on_address,)
+
+        w.writerow(row)
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
