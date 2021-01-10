@@ -35,6 +35,12 @@ def login():
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
             if app.specter.rpc is None:
+                if app.specter.config["rpc"]["password"] == request.form["password"]:
+                    app.login("admin")
+                    app.logger.info(
+                        "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
+                    )
+                    return redirect_login(request)
                 flash(
                     "We could not check your password, maybe Bitcoin Core is not running or not configured?",
                     "error",
