@@ -115,6 +115,7 @@ class Specter:
                 "protocol": "http",  # https for the future
             },
             "auth": "none",
+            "auth_rate_limit": 10,
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
@@ -430,10 +431,12 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
-    def update_auth(self, auth):
+    def update_auth(self, auth, auth_rate_limit):
         """ simply persisting the current auth-choice """
         if self.config["auth"] != auth:
             self.config["auth"] = auth
+        if self.config["auth_rate_limit"] != auth_rate_limit:
+            self.config["auth_rate_limit"] = auth_rate_limit
         self._save()
 
     def update_explorer(self, explorer, user):

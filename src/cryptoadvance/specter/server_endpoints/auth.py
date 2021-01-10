@@ -139,8 +139,15 @@ def redirect_login(request):
 
 def rate_limit():
     global last_sensitive_request
+    limit = int(app.specter.config["auth_rate_limit"])
+    if limit < 0:
+        limit = 0
     now = time.time()
-    if last_sensitive_request != 0 and last_sensitive_request + 10 > now:
-        remaining_time = last_sensitive_request + 10 - now
+    if (
+        last_sensitive_request != 0
+        and limit > 0
+        and last_sensitive_request + limit > now
+    ):
+        remaining_time = last_sensitive_request + limit - now
         time.sleep(remaining_time)
     last_sensitive_request = time.time()

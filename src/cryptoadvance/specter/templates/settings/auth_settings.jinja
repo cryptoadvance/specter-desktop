@@ -14,6 +14,9 @@
 				</select>
 				<br><br>
 			{% endif %}
+			<div id="ratelimit" class="{% if specter.config['auth'] == 'none' %}hidden{% endif %}">
+				Rate Limiting (seconds between login/register attempts):<br><input id="auth_rate_limit" type="number" name="auth_rate_limit" min="0" step="1" value="{{ auth_rate_limit }}"><br><br>
+			</div>
 			<div id="usernamepassword" class="{% if specter.config['auth'] != 'usernamepassword' %}hidden{% endif %}">
 				{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
 					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
@@ -49,16 +52,22 @@
 {% block scripts %}
 	<script>
 		function toggleUsernamePassword(select) {
-            var usernamepasswordDiv = document.getElementById("usernamepassword");
-            var specterUsername = document.getElementById("specter_username");
-            var specterPassword = document.getElementById("specter_password");
-            if (select.options[select.selectedIndex].value === 'usernamepassword'){
-                usernamepasswordDiv.style.display = 'block';
-            } else {
-                usernamepasswordDiv.style.display = 'none';
-                specterUsername.value = '{{ current_user.username }}';
-                specterPassword.value = '';
-            }
-        }
+			var ratelimitDiv = document.getElementById("ratelimit");
+			var usernamepasswordDiv = document.getElementById("usernamepassword");
+			var specterUsername = document.getElementById("specter_username");
+			var specterPassword = document.getElementById("specter_password");
+			if (select.options[select.selectedIndex].value !== 'none'){
+				ratelimitDiv.style.display = 'block';
+			} else {
+				ratelimitDiv.style.display = 'none';
+			}
+			if (select.options[select.selectedIndex].value === 'usernamepassword'){
+				usernamepasswordDiv.style.display = 'block';
+			} else {
+				usernamepasswordDiv.style.display = 'none';
+				specterUsername.value = '{{ current_user.username }}';
+				specterPassword.value = '';
+			}
+		}
 	</script>
 {% endblock %}

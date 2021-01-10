@@ -330,6 +330,7 @@ def tor():
 def auth():
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
+    auth_rate_limit = app.specter.config["auth_rate_limit"]
     users = None
     if current_user.is_admin and auth == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
@@ -345,6 +346,7 @@ def auth():
                 specter_password = None
             if current_user.is_admin:
                 auth = request.form["auth"]
+                auth_rate_limit = request.form["auth_rate_limit"]
             if specter_username:
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
@@ -355,6 +357,7 @@ def auth():
                         return render_template(
                             "settings/auth_settings.jinja",
                             auth=auth,
+                            auth_rate_limit=auth_rate_limit,
                             users=users,
                             specter=app.specter,
                             current_version=current_version,
@@ -365,7 +368,7 @@ def auth():
                     current_user.password = hash_password(specter_password)
                 current_user.save_info(app.specter)
             if current_user.is_admin:
-                app.specter.update_auth(auth)
+                app.specter.update_auth(auth, auth_rate_limit)
                 if auth == "rpcpasswordaspin" or auth == "usernamepassword":
                     if auth == "usernamepassword":
                         users = [
@@ -410,6 +413,7 @@ def auth():
     return render_template(
         "settings/auth_settings.jinja",
         auth=auth,
+        auth_rate_limit=auth_rate_limit,
         users=users,
         specter=app.specter,
         current_version=current_version,
