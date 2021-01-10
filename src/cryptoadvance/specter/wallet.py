@@ -168,6 +168,22 @@ class Wallet:
             if txs.get(txid, None) is not None:
                 continue
             txs[txid] = r["result"]
+        # This is a fix for Bitcoin Core versions < v0.20
+        # These do not return the blockheight as part of the `gettransaction` command
+        # So here we check if this property is lacking and if so
+        # query the current block height and manually calculate it.
+        ##################### Remove from here after dropping Core v0.19 support #####################
+        check_blockheight = False
+        for tx in txs.values():
+            if tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+                check_blockheight = True
+                break
+        if check_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+            for tx in txs.values():
+                if tx.get("confirmations", 0) > 0:
+                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
+        ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
 
     def update(self):
