@@ -88,22 +88,37 @@ def register():
     if request.method == "POST":
         rate_limit()
         username = request.form["username"]
-        password = hash_password(request.form["password"])
+        password = request.form["password"]
         otp = request.form["otp"]
-        user_id = alias(username)
-        i = 1
-        while app.specter.user_manager.get_user(user_id):
-            i += 1
-            user_id = "{}{}".format(alias(username), i)
-        if app.specter.user_manager.get_user_by_username(username):
-            flash("Username is already taken, please choose another one", "error")
+        if not username:
+            flash(
+                "Please enter a username.",
+                "error",
+            )
             return redirect("register?otp={}".format(otp))
-        if app.specter.burn_new_user_otp(otp):
+        min_chars = int(app.specter.config["auth_password_min_chars"])
+        if not password or len(password) < min_chars:
+            flash(
+                "Please enter a password of a least {} characters.".format(min_chars),
+                "error",
+            )
+            return redirect("register?otp={}".format(otp))
+        if app.specter.validate_new_user_otp(otp):
+            user_id = alias(username)
+            i = 1
+            while app.specter.user_manager.get_user(user_id):
+                i += 1
+                user_id = "{}{}".format(alias(username), i)
+            if app.specter.user_manager.get_user_by_username(username):
+                flash("Username is already taken, please choose another one", "error")
+                return redirect("register?otp={}".format(otp))
+            app.specter.remove_new_user_otp(otp)
             config = {
                 "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
-            user = User(user_id, username, password, config)
+            password_hash = hash_password(password)
+            user = User(user_id, username, password_hash, config)
             app.specter.add_user(user)
             flash(
                 "You have registered successfully, \

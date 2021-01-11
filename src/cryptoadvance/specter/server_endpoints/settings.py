@@ -331,6 +331,7 @@ def auth():
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
     auth_rate_limit = app.specter.config["auth_rate_limit"]
+    registration_link_timeout = app.specter.config["registration_link_timeout"]
     users = None
     if current_user.is_admin and auth == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
@@ -347,6 +348,7 @@ def auth():
             if current_user.is_admin:
                 auth = request.form["auth"]
                 auth_rate_limit = request.form["auth_rate_limit"]
+                registration_link_timeout = request.form["registration_link_timeout"]
             if specter_username:
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
@@ -358,6 +360,7 @@ def auth():
                             "settings/auth_settings.jinja",
                             auth=auth,
                             auth_rate_limit=auth_rate_limit,
+                            registration_link_timeout=registration_link_timeout,
                             users=users,
                             specter=app.specter,
                             current_version=current_version,
@@ -365,10 +368,30 @@ def auth():
                         )
                 current_user.username = specter_username
                 if specter_password:
+                    min_chars = int(app.specter.config["auth_password_min_chars"])
+                    if len(specter_password) < min_chars:
+                        flash(
+                            "Please enter a password of a least {} characters.".format(
+                                min_chars
+                            ),
+                            "error",
+                        )
+                        return render_template(
+                            "settings/auth_settings.jinja",
+                            auth=auth,
+                            auth_rate_limit=auth_rate_limit,
+                            registration_link_timeout=registration_link_timeout,
+                            users=users,
+                            specter=app.specter,
+                            current_version=current_version,
+                            rand=rand,
+                        )
                     current_user.password = hash_password(specter_password)
                 current_user.save_info(app.specter)
             if current_user.is_admin:
-                app.specter.update_auth(auth, auth_rate_limit)
+                app.specter.update_auth(
+                    auth, auth_rate_limit, registration_link_timeout
+                )
                 if auth == "rpcpasswordaspin" or auth == "usernamepassword":
                     if auth == "usernamepassword":
                         users = [
@@ -387,12 +410,24 @@ def auth():
         elif action == "adduser":
             if current_user.is_admin:
                 new_otp = secrets.token_urlsafe(16)
+                now = time.time()
+                timeout = int(app.specter.config["registration_link_timeout"])
+                timeout = 0 if timeout < 0 else timeout
+                if timeout > 0:
+                    expiry = now + timeout * 60 * 60
+                    if timeout > 1:
+                        expiry_desc = " (expires in {} hours)".format(timeout)
+                    else:
+                        expiry_desc = " (expires in 1 hour)"
+                else:
+                    expiry = 0
+                    expiry_desc = ""
                 app.specter.add_new_user_otp(
-                    {"otp": new_otp, "created_at": time.time()}
+                    {"otp": new_otp, "created_at": now, "expiry": now}
                 )
                 flash(
-                    "New user link generated successfully: {}auth/register?otp={}".format(
-                        request.url_root, new_otp
+                    "New user link generated{}: {}auth/register?otp={}".format(
+                        expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )
@@ -414,6 +449,7 @@ def auth():
         "settings/auth_settings.jinja",
         auth=auth,
         auth_rate_limit=auth_rate_limit,
+        registration_link_timeout=registration_link_timeout,
         users=users,
         specter=app.specter,
         current_version=current_version,

@@ -18,9 +18,8 @@
 				Rate Limiting (seconds between login/register attempts):<br><input id="auth_rate_limit" type="number" name="auth_rate_limit" min="0" step="1" value="{{ auth_rate_limit }}"><br><br>
 			</div>
 			<div id="usernamepassword" class="{% if specter.config['auth'] != 'usernamepassword' %}hidden{% endif %}">
+					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
 				{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
-					<button type="submit" class="btn" style="width: 100%;" name="action" value="adduser">Generate New Registration Link</button>
-					<br>
 					<span class="note">Default is username: admin, password: admin.</span><br>
 				{% endif %}
 				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
@@ -45,6 +44,12 @@
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
+			{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
+			<br>
+			<div id="generateregistrationlink" class="row{% if specter.config['auth'] != 'usernamepassword' %} hidden{% endif %}">
+				<button type="submit" class="btn" name="action" value="adduser">Generate New Registration Link</button>
+			</div>
+			{% endif %}
 		</div>
 	</form>
 {% endblock %}
@@ -56,6 +61,7 @@
 			var usernamepasswordDiv = document.getElementById("usernamepassword");
 			var specterUsername = document.getElementById("specter_username");
 			var specterPassword = document.getElementById("specter_password");
+			var generateregistrationlinkDiv = document.getElementById("generateregistrationlink");
 			if (select.options[select.selectedIndex].value !== 'none'){
 				ratelimitDiv.style.display = 'block';
 			} else {
@@ -63,10 +69,12 @@
 			}
 			if (select.options[select.selectedIndex].value === 'usernamepassword'){
 				usernamepasswordDiv.style.display = 'block';
+				generateregistrationlinkDiv.style.display = 'block';
 			} else {
 				usernamepasswordDiv.style.display = 'none';
 				specterUsername.value = '{{ current_user.username }}';
 				specterPassword.value = '';
+				generateregistrationlinkDiv.style.display = 'none';
 			}
 		}
 	</script>

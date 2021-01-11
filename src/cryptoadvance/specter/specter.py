@@ -115,7 +115,9 @@ class Specter:
                 "protocol": "http",  # https for the future
             },
             "auth": "none",
+            "auth_password_min_chars": 6,
             "auth_rate_limit": 10,
+            "registration_link_timeout": 1,
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
@@ -431,12 +433,14 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
-    def update_auth(self, auth, auth_rate_limit):
+    def update_auth(self, auth, auth_rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
         if self.config["auth"] != auth:
             self.config["auth"] = auth
         if self.config["auth_rate_limit"] != auth_rate_limit:
             self.config["auth_rate_limit"] = auth_rate_limit
+        if self.config["registration_link_timeout"] != registration_link_timeout:
+            self.config["registration_link_timeout"] = registration_link_timeout
         self._save()
 
     def update_explorer(self, explorer, user):
@@ -552,12 +556,25 @@ class Specter:
         self.config["new_user_otps"].append(otp_dict)
         self._save()
 
-    def burn_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if valid"""
+    def validate_new_user_otp(self, otp):
+        """ validates an OTP for user registration and removes it if expired"""
+        if "new_user_otps" not in self.config:
+            return False
+        now = time.time()
+        for i, otp_dict in enumerate(self.config["new_user_otps"]):
+            if otp_dict["otp"] == otp:
+                if "expiry" in otp_dict and otp_dict["expiry"] > now:
+                    del self.config["new_user_otps"][i]
+                    self._save()
+                    return False
+                return True
+        return False
+
+    def remove_new_user_otp(self, otp):
+        """ removes an OTP for user registration"""
         if "new_user_otps" not in self.config:
             return False
         for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            # TODO: Validate OTP did not expire based on created_at
             if otp_dict["otp"] == otp:
                 del self.config["new_user_otps"][i]
                 self._save()
