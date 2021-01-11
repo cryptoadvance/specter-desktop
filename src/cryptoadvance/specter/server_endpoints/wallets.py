@@ -1315,6 +1315,68 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
+@login_required
+def show_addresses(wallet_alias):
+    return redirect(
+        url_for("wallets_endpoint.show_receive_addresses", wallet_alias=wallet_alias)
+    )
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/receive_addresses/", methods=["GET"])
+@login_required
+def show_receive_addresses(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+
+    # update balances in the wallet
+    app.specter.check_blockheight()
+    wallet.get_balance()
+    wallet.check_utxo()
+
+    recv_addresses = wallet.addresses_info(False)
+
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
+        addresses=recv_addresses,
+        addresses_tab="receive_addresses",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/change_addresses/", methods=["GET"])
+@login_required
+def show_change_addresses(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+
+    # update balances in the wallet
+    app.specter.check_blockheight()
+    wallet.get_balance()
+    wallet.check_utxo()
+
+    change_addresses = wallet.addresses_info(True)
+
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
+        addresses=change_addresses,
+        addresses_tab="change_addresses",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
