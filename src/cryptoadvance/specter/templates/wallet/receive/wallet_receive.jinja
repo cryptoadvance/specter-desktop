@@ -186,6 +186,14 @@
 			</div>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
 		</div>
+		<div style="margin: 0 auto;" class="center">
+			<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
+			<label class="switch">
+				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()" checked>
+				<span class="slider"></span>
+			</label><br>
+		</div>
+		<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
 		<p style="max-width: 500px;">
 		It is recommended that you print and save this wallet backup file with each of your devices.
 		</p>
@@ -216,6 +224,11 @@
 				addressesList.style.display = 'block';
 				btn.innerText = 'Hide past addresses';
 			}
+		}
+		function toggleKeyDisplay() {
+			let slip132Checkbox = document.getElementById('use_slip_132_pdf');
+			let xpubs = document.getElementsByClassName('slip132_xpub');
+			let zpubs = document.getElementsByClassName('normal_xpub');
 		}
 		var isNewWallet = location.search.split('newwallet=')[1]
 		if (isNewWallet) {
