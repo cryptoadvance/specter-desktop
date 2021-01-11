@@ -8,7 +8,7 @@ import time
 import zipfile
 import requests
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
+from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from urllib3.exceptions import NewConnectionError
@@ -114,10 +114,12 @@ class Specter:
                 "host": "localhost",  # localhost
                 "protocol": "http",  # https for the future
             },
-            "auth": "none",
-            "auth_password_min_chars": 6,
-            "auth_rate_limit": 10,
-            "registration_link_timeout": 1,
+            "auth": {
+                "method": "none",
+                "password_min_chars": 6,
+                "rate_limit": 10,
+                "registration_link_timeout": 1,
+            },
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
@@ -299,6 +301,7 @@ class Specter:
         if os.path.isfile(self.config_fname):
             with self.lock:
                 self.file_config = read_json_file(self.config_fname)
+                migrate_config(self.file_config)
                 deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
@@ -433,14 +436,15 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
-    def update_auth(self, auth, auth_rate_limit, registration_link_timeout):
+    def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
-        if self.config["auth"] != auth:
-            self.config["auth"] = auth
-        if self.config["auth_rate_limit"] != auth_rate_limit:
-            self.config["auth_rate_limit"] = auth_rate_limit
-        if self.config["registration_link_timeout"] != registration_link_timeout:
-            self.config["registration_link_timeout"] = registration_link_timeout
+        auth = self.config["auth"]
+        if auth["method"] != method:
+            auth["method"] = method
+        if auth["rate_limit"] != rate_limit:
+            auth["rate_limit"] = rate_limit
+        if auth["registration_link_timeout"] != registration_link_timeout:
+            auth["registration_link_timeout"] = registration_link_timeout
         self._save()
 
     def update_explorer(self, explorer, user):

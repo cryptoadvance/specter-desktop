@@ -5,21 +5,21 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}
 		<div class="card" style="margin: 20px auto;">
-			{% if specter.config.auth == "none" or current_user.is_admin %}
+			{% if method == "none" or current_user.is_admin %}
 				Authentication:<br>
-				<select name="auth" onchange="toggleUsernamePassword(this)">
-					<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
-					<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
-					<option value="usernamepassword" {% if auth=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
+				<select name="method" onchange="toggleUsernamePassword(this)">
+					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
+					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
 				</select>
 				<br><br>
 			{% endif %}
-			<div id="ratelimit" class="{% if specter.config['auth'] == 'none' %}hidden{% endif %}">
-				Rate Limiting (seconds between login/register attempts):<br><input id="auth_rate_limit" type="number" name="auth_rate_limit" min="0" step="1" value="{{ auth_rate_limit }}"><br><br>
+			<div id="ratelimit" class="{% if method == 'none' %}hidden{% endif %}">
+				Rate Limiting (seconds between login/register attempts):<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
 			</div>
-			<div id="usernamepassword" class="{% if specter.config['auth'] != 'usernamepassword' %}hidden{% endif %}">
+			<div id="usernamepassword" class="{% if method != 'usernamepassword' %}hidden{% endif %}">
 					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
-				{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
+				{% if method == "usernamepassword" and current_user.is_admin %}
 					<span class="note">Default is username: admin, password: admin.</span><br>
 				{% endif %}
 				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
@@ -44,9 +44,9 @@
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
-			{% if specter.config.auth == "usernamepassword" and current_user.is_admin %}
+			{% if method == "usernamepassword" and current_user.is_admin %}
 			<br>
-			<div id="generateregistrationlink" class="row{% if specter.config['auth'] != 'usernamepassword' %} hidden{% endif %}">
+			<div id="generateregistrationlink" class="row{% if method != 'usernamepassword' %} hidden{% endif %}">
 				<button type="submit" class="btn" name="action" value="adduser">Generate New Registration Link</button>
 			</div>
 			{% endif %}

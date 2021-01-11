@@ -40,7 +40,7 @@ def start_hidden_service(app):
             f.write("%s.onion" % app.tor_service_id)
     app.tor_service_id = app.tor_service_id
     app.tor_enabled = True
-    if app.specter.config.get("auth", "none") == "none":
+    if app.specter.config["auth"].get("method", "none") == "none":
         print(" * ############################# Warning! #############################")
         print(
             " * Your are running Specter over Tor with no authentication settings configured."

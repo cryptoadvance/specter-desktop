@@ -254,7 +254,10 @@ Simply fill in https://blockstream.info/ to use that block explorer, but you wil
 
 Check the .specter-folder in your Homefolder (or on your mynode/raspiblitz/...). There is a file called `config.json` in there which has a line like this:
 ```
-"auth":"somethingInHere"
+"auth": {
+    "method": "somethingInHere",
+    ...
+},
 ```
 Depending on "what's written in `somethingInHere`:
 * If it's `rpcpasswordaspin`, you can lookup the password in your `bitcoin.conf`-file in a line like `rpcpassword=YourPasswordHere`

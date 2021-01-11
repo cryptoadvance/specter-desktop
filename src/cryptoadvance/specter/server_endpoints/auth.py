@@ -27,11 +27,12 @@ def login():
     """ login """
     if request.method == "POST":
         rate_limit()
-        if app.specter.config["auth"] == "none":
+        auth = app.specter.config["auth"]
+        if auth["method"] == "none":
             app.login("admin")
             app.logger.info("AUDIT: Successfull Login no credentials")
             return redirect_login(request)
-        if app.specter.config["auth"] == "rpcpasswordaspin":
+        if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
             if app.specter.rpc is None:
                 flash(
@@ -53,7 +54,7 @@ def login():
                 app.login("admin")
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
-        elif app.specter.config["auth"] == "usernamepassword":
+        elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]
             password = request.form["password"]
@@ -96,7 +97,7 @@ def register():
                 "error",
             )
             return redirect("register?otp={}".format(otp))
-        min_chars = int(app.specter.config["auth_password_min_chars"])
+        min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
             flash(
                 "Please enter a password of a least {} characters.".format(min_chars),
@@ -154,7 +155,7 @@ def redirect_login(request):
 
 def rate_limit():
     global last_sensitive_request
-    limit = int(app.specter.config["auth_rate_limit"])
+    limit = int(app.specter.config["auth"]["rate_limit"])
     if limit < 0:
         limit = 0
     now = time.time()

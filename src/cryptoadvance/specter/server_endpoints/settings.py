@@ -280,7 +280,7 @@ def tor():
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
-                if app.specter.config.get("auth", "none") == "none":
+                if app.specter.config.auth.get("method", "none") == "none":
                     flash(
                         "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
                         "error",
@@ -330,10 +330,11 @@ def tor():
 def auth():
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
-    auth_rate_limit = app.specter.config["auth_rate_limit"]
-    registration_link_timeout = app.specter.config["registration_link_timeout"]
+    method = auth["method"]
+    rate_limit = auth["rate_limit"]
+    registration_link_timeout = auth["registration_link_timeout"]
     users = None
-    if current_user.is_admin and auth == "usernamepassword":
+    if current_user.is_admin and method == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
     if request.method == "POST":
         action = request.form["action"]
@@ -346,8 +347,8 @@ def auth():
                 specter_username = None
                 specter_password = None
             if current_user.is_admin:
-                auth = request.form["auth"]
-                auth_rate_limit = request.form["auth_rate_limit"]
+                method = request.form["method"]
+                rate_limit = request.form["rate_limit"]
                 registration_link_timeout = request.form["registration_link_timeout"]
             if specter_username:
                 if current_user.username != specter_username:
@@ -358,8 +359,8 @@ def auth():
                         )
                         return render_template(
                             "settings/auth_settings.jinja",
-                            auth=auth,
-                            auth_rate_limit=auth_rate_limit,
+                            method=method,
+                            rate_limit=rate_limit,
                             registration_link_timeout=registration_link_timeout,
                             users=users,
                             specter=app.specter,
@@ -368,7 +369,7 @@ def auth():
                         )
                 current_user.username = specter_username
                 if specter_password:
-                    min_chars = int(app.specter.config["auth_password_min_chars"])
+                    min_chars = int(auth["password_min_chars"])
                     if len(specter_password) < min_chars:
                         flash(
                             "Please enter a password of a least {} characters.".format(
@@ -378,8 +379,8 @@ def auth():
                         )
                         return render_template(
                             "settings/auth_settings.jinja",
-                            auth=auth,
-                            auth_rate_limit=auth_rate_limit,
+                            method=method,
+                            rate_limit=rate_limit,
                             registration_link_timeout=registration_link_timeout,
                             users=users,
                             specter=app.specter,
@@ -390,10 +391,10 @@ def auth():
                 current_user.save_info(app.specter)
             if current_user.is_admin:
                 app.specter.update_auth(
-                    auth, auth_rate_limit, registration_link_timeout
+                    method, rate_limit, registration_link_timeout
                 )
-                if auth == "rpcpasswordaspin" or auth == "usernamepassword":
-                    if auth == "usernamepassword":
+                if method == "rpcpasswordaspin" or method == "usernamepassword":
+                    if method == "usernamepassword":
                         users = [
                             user
                             for user in app.specter.user_manager.users
@@ -411,7 +412,7 @@ def auth():
             if current_user.is_admin:
                 new_otp = secrets.token_urlsafe(16)
                 now = time.time()
-                timeout = int(app.specter.config["registration_link_timeout"])
+                timeout = int(registration_link_timeout)
                 timeout = 0 if timeout < 0 else timeout
                 if timeout > 0:
                     expiry = now + timeout * 60 * 60
@@ -447,8 +448,8 @@ def auth():
                 flash("Error: Only the admin account can delete users", "error")
     return render_template(
         "settings/auth_settings.jinja",
-        auth=auth,
-        auth_rate_limit=auth_rate_limit,
+        method=method,
+        rate_limit=rate_limit,
         registration_link_timeout=registration_link_timeout,
         users=users,
         specter=app.specter,
