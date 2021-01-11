@@ -119,6 +119,7 @@ class Specter:
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
+            "tor_status": False,
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -458,6 +459,11 @@ class Specter:
         if self.config["proxy_url"] != proxy_url:
             self.config["proxy_url"] = proxy_url
             self._save()
+
+    def toggle_tor_status(self):
+        """ toggle the Tor status """
+        self.config["tor_status"] = not self.config["tor_status"]
+        self._save()
 
     def update_only_tor(self, only_tor, user):
         """ switch whatever to use Tor for all calls """
