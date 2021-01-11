@@ -14,12 +14,12 @@
 				</select>
 				<br><br>
 			{% endif %}
-			<div id="ratelimit" class="{% if method == 'none' %}hidden{% endif %}">
+			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
 				Rate Limiting (seconds between login/register attempts):<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
 			</div>
 			<div id="usernamepassword" class="{% if method != 'usernamepassword' %}hidden{% endif %}">
-					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
 				{% if method == "usernamepassword" and current_user.is_admin %}
+					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
 					<span class="note">Default is username: admin, password: admin.</span><br>
 				{% endif %}
 				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
@@ -57,19 +57,21 @@
 {% block scripts %}
 	<script>
 		function toggleUsernamePassword(select) {
+		{% if current_user.is_admin %}
 			var ratelimitDiv = document.getElementById("ratelimit");
-			var usernamepasswordDiv = document.getElementById("usernamepassword");
-			var specterUsername = document.getElementById("specter_username");
-			var specterPassword = document.getElementById("specter_password");
-			var generateregistrationlinkDiv = document.getElementById("generateregistrationlink");
 			if (select.options[select.selectedIndex].value !== 'none'){
 				ratelimitDiv.style.display = 'block';
 			} else {
 				ratelimitDiv.style.display = 'none';
 			}
+		{% endif %}
+			var usernamepasswordDiv = document.getElementById("usernamepassword");
+			var specterUsername = document.getElementById("specter_username");
+			var specterPassword = document.getElementById("specter_password");
+			var generateregistrationlinkDiv = document.getElementById("generateregistrationlink");
 			if (select.options[select.selectedIndex].value === 'usernamepassword'){
 				usernamepasswordDiv.style.display = 'block';
-				generateregistrationlinkDiv.style.display = 'block';
+				generateregistrationlinkDiv.style.display = 'flex';
 			} else {
 				usernamepasswordDiv.style.display = 'none';
 				specterUsername.value = '{{ current_user.username }}';
