@@ -390,9 +390,7 @@ def auth():
                     current_user.password = hash_password(specter_password)
                 current_user.save_info(app.specter)
             if current_user.is_admin:
-                app.specter.update_auth(
-                    method, rate_limit, registration_link_timeout
-                )
+                app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method == "rpcpasswordaspin" or method == "usernamepassword":
                     if method == "usernamepassword":
                         users = [
