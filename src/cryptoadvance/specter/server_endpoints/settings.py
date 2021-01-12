@@ -280,7 +280,7 @@ def tor():
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
-                if app.specter.config.auth.get("method", "none") == "none":
+                if app.specter.config["auth"].get("method", "none") == "none":
                     flash(
                         "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
                         "error",
