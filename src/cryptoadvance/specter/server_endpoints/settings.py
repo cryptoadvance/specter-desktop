@@ -422,7 +422,7 @@ def auth():
                     expiry = 0
                     expiry_desc = ""
                 app.specter.add_new_user_otp(
-                    {"otp": new_otp, "created_at": now, "expiry": now}
+                    {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
                 flash(
                     "New user link generated{}: {}auth/register?otp={}".format(

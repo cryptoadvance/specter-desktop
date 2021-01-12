@@ -567,7 +567,11 @@ class Specter:
         now = time.time()
         for i, otp_dict in enumerate(self.config["new_user_otps"]):
             if otp_dict["otp"] == otp:
-                if "expiry" in otp_dict and otp_dict["expiry"] > now:
+                if (
+                    "expiry" in otp_dict
+                    and otp_dict["expiry"] < now
+                    and otp_dict["expiry"] > 0
+                ):
                     del self.config["new_user_otps"][i]
                     self._save()
                     return False
