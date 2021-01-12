@@ -18,7 +18,7 @@
 				Rate Limiting (seconds between login/register attempts):<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
 			</div>
 			<div id="usernamepassword" class="{% if method != 'usernamepassword' %}hidden{% endif %}">
-				{% if method == "usernamepassword" and current_user.is_admin %}
+				{% if current_user.is_admin %}
 					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
 					<span class="note">Default is username: admin, password: admin.</span><br>
 				{% endif %}
