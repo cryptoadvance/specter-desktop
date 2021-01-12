@@ -145,6 +145,10 @@ class Wallet:
                 or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
+                or (
+                    self._transactions[tx["txid"]].get("blockhash", None)
+                    and not self._transactions[tx["txid"]].get("blockheight", None)
+                )  # Fix for Core v19 with Specter v1
                 or self._transactions[tx["txid"]].get("conflicts", [])
                 != tx.get("walletconflicts", [])
             ]
