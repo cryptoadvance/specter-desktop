@@ -262,8 +262,15 @@ class BitcoinRPC:
     def url(self):
         user = urllib.parse.quote_plus("{s.user}".format(s=self));
         password = urllib.parse.quote_plus("{s.password}".format(s=self));
-        encoded = "{s.protocol}://".format(s=self)+user+":"+password+"@{s.host}:{s.port}{s.path}".format(s=self)
-        return encoded;
+        encoded = (
+            "{s.protocol}://".format(s=self)
+            +user
+            +":"
+            +password
+            +"@{s.host}:{s.port}{s.path}".format(s=self)
+        )
+        return encoded
+
 
     def test_connection(self):
         """ returns a boolean depending on whether getblockchaininfo() succeeds """
