@@ -516,7 +516,7 @@
                             data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
                             data-price="${self.price ? self.price : 0}"
                             data-symbol="${self.symbol ? self.symbol : ''}"
-                            data-tx='${JSON.stringify(tx).replace(/[\/\(\)\']/g, "&apos;")}'
+                            data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"
                             data-show-blockhash="${showBlockhash}">
                             </tx-row>

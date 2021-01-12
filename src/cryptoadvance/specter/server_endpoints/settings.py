@@ -295,10 +295,12 @@ def tor():
                             current_hidden_services = []
                         if len(current_hidden_services) != 0:
                             stop_hidden_services(app)
+                            app.specter.toggle_tor_status()
                             flash("Tor hidden service turn off successfully", "info")
                         else:
                             try:
                                 start_hidden_service(app)
+                                app.specter.toggle_tor_status()
                                 flash("Tor hidden service turn on successfully", "info")
                             except Exception as e:
                                 flash(
