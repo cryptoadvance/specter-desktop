@@ -1328,3 +1328,33 @@ class Wallet:
             return 75 + 34
         # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
         return 75 + 34 + 23 * 4
+
+    def addresses_info(self, is_change):
+
+        addresses_info = []
+
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
+
+        for addr in reversed(addresses_cache):
+
+            addr_utxo = 0
+            addr_amount = 0
+
+            for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
+                addr_amount = addr_amount + utxo["amount"]
+                addr_utxo = addr_utxo + 1
+
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "addr_used": addr.used,
+                    "utxo": addr_utxo,
+                }
+            )
+
+        return addresses_info
