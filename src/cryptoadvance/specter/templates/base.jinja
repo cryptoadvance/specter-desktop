@@ -18,7 +18,7 @@
 	</head>
 	<body>
 	<div class="pageloader" id="pageloader"></div>
-	{% if specter.config.auth == "none" or current_user.is_authenticated %}
+	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
 	{% endif %}
@@ -35,7 +35,7 @@
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
-					{% if specter.config.auth != "none" %}
+					{% if specter.config.auth.method != "none" %}
 						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}">
 							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
 						</a>

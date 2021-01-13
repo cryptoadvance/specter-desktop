@@ -1,4 +1,4 @@
-import random
+import random, time
 from flask import (
     Flask,
     Blueprint,
@@ -16,6 +16,7 @@ from ..user import User, hash_password, verify_password
 
 
 rand = random.randint(0, 1e32)  # to force style refresh
+last_sensitive_request = 0  # to rate limit sensitive requests
 
 # Setup endpoint blueprint
 auth_endpoint = Blueprint("auth_endpoint", __name__)
@@ -25,11 +26,13 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 def login():
     """ login """
     if request.method == "POST":
-        if app.specter.config["auth"] == "none":
+        rate_limit()
+        auth = app.specter.config["auth"]
+        if auth["method"] == "none":
             app.login("admin")
             app.logger.info("AUDIT: Successfull Login no credentials")
             return redirect_login(request)
-        if app.specter.config["auth"] == "rpcpasswordaspin":
+        if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
             if app.specter.rpc is None:
                 flash(
@@ -51,7 +54,7 @@ def login():
                 app.login("admin")
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
-        elif app.specter.config["auth"] == "usernamepassword":
+        elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]
             password = request.form["password"]
@@ -84,23 +87,39 @@ def login():
 def register():
     """ register """
     if request.method == "POST":
+        rate_limit()
         username = request.form["username"]
-        password = hash_password(request.form["password"])
+        password = request.form["password"]
         otp = request.form["otp"]
-        user_id = alias(username)
-        i = 1
-        while app.specter.user_manager.get_user(user_id):
-            i += 1
-            user_id = "{}{}".format(alias(username), i)
-        if app.specter.user_manager.get_user_by_username(username):
-            flash("Username is already taken, please choose another one", "error")
+        if not username:
+            flash(
+                "Please enter a username.",
+                "error",
+            )
             return redirect("register?otp={}".format(otp))
-        if app.specter.burn_new_user_otp(otp):
+        min_chars = int(app.specter.config["auth"]["password_min_chars"])
+        if not password or len(password) < min_chars:
+            flash(
+                "Please enter a password of a least {} characters.".format(min_chars),
+                "error",
+            )
+            return redirect("register?otp={}".format(otp))
+        if app.specter.validate_new_user_otp(otp):
+            user_id = alias(username)
+            i = 1
+            while app.specter.user_manager.get_user(user_id):
+                i += 1
+                user_id = "{}{}".format(alias(username), i)
+            if app.specter.user_manager.get_user_by_username(username):
+                flash("Username is already taken, please choose another one", "error")
+                return redirect("register?otp={}".format(otp))
+            app.specter.remove_new_user_otp(otp)
             config = {
                 "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
-            user = User(user_id, username, password, config)
+            password_hash = hash_password(password)
+            user = User(user_id, username, password_hash, config)
             app.specter.add_user(user)
             flash(
                 "You have registered successfully, \
@@ -132,3 +151,19 @@ def redirect_login(request):
     else:
         response = redirect(url_for("index"))
     return response
+
+
+def rate_limit():
+    global last_sensitive_request
+    limit = int(app.specter.config["auth"]["rate_limit"])
+    if limit < 0:
+        limit = 0
+    now = time.time()
+    if (
+        last_sensitive_request != 0
+        and limit > 0
+        and last_sensitive_request + limit > now
+    ):
+        remaining_time = last_sensitive_request + limit - now
+        time.sleep(remaining_time)
+    last_sensitive_request = time.time()
