@@ -1,4 +1,4 @@
-import json, os, time, random, requests
+import json, os, time, random, requests, secrets
 
 from flask import (
     Flask,
@@ -280,7 +280,7 @@ def tor():
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
-                if app.specter.config.get("auth", "none") == "none":
+                if app.specter.config["auth"].get("method", "none") == "none":
                     flash(
                         "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
                         "error",
@@ -332,9 +332,11 @@ def tor():
 def auth():
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
-    new_otp = -1
+    method = auth["method"]
+    rate_limit = auth["rate_limit"]
+    registration_link_timeout = auth["registration_link_timeout"]
     users = None
-    if current_user.is_admin and auth == "usernamepassword":
+    if current_user.is_admin and method == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
     if request.method == "POST":
         action = request.form["action"]
@@ -347,7 +349,9 @@ def auth():
                 specter_username = None
                 specter_password = None
             if current_user.is_admin:
-                auth = request.form["auth"]
+                method = request.form["method"]
+                rate_limit = request.form["rate_limit"]
+                registration_link_timeout = request.form["registration_link_timeout"]
             if specter_username:
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
@@ -357,8 +361,9 @@ def auth():
                         )
                         return render_template(
                             "settings/auth_settings.jinja",
-                            auth=auth,
-                            new_otp=new_otp,
+                            method=method,
+                            rate_limit=rate_limit,
+                            registration_link_timeout=registration_link_timeout,
                             users=users,
                             specter=app.specter,
                             current_version=current_version,
@@ -366,12 +371,30 @@ def auth():
                         )
                 current_user.username = specter_username
                 if specter_password:
+                    min_chars = int(auth["password_min_chars"])
+                    if len(specter_password) < min_chars:
+                        flash(
+                            "Please enter a password of a least {} characters.".format(
+                                min_chars
+                            ),
+                            "error",
+                        )
+                        return render_template(
+                            "settings/auth_settings.jinja",
+                            method=method,
+                            rate_limit=rate_limit,
+                            registration_link_timeout=registration_link_timeout,
+                            users=users,
+                            specter=app.specter,
+                            current_version=current_version,
+                            rand=rand,
+                        )
                     current_user.password = hash_password(specter_password)
                 current_user.save_info(app.specter)
             if current_user.is_admin:
-                app.specter.update_auth(auth)
-                if auth == "rpcpasswordaspin" or auth == "usernamepassword":
-                    if auth == "usernamepassword":
+                app.specter.update_auth(method, rate_limit, registration_link_timeout)
+                if method == "rpcpasswordaspin" or method == "usernamepassword":
+                    if method == "usernamepassword":
                         users = [
                             user
                             for user in app.specter.user_manager.users
@@ -387,13 +410,25 @@ def auth():
             app.specter.check()
         elif action == "adduser":
             if current_user.is_admin:
-                new_otp = random.randint(100000, 999999)
+                new_otp = secrets.token_urlsafe(16)
+                now = time.time()
+                timeout = int(registration_link_timeout)
+                timeout = 0 if timeout < 0 else timeout
+                if timeout > 0:
+                    expiry = now + timeout * 60 * 60
+                    if timeout > 1:
+                        expiry_desc = " (expires in {} hours)".format(timeout)
+                    else:
+                        expiry_desc = " (expires in 1 hour)"
+                else:
+                    expiry = 0
+                    expiry_desc = ""
                 app.specter.add_new_user_otp(
-                    {"otp": new_otp, "created_at": time.time()}
+                    {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
                 flash(
-                    "New user link generated successfully: {}auth/register?otp={}".format(
-                        request.url_root, new_otp
+                    "New user link generated{}: {}auth/register?otp={}".format(
+                        expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )
@@ -413,8 +448,9 @@ def auth():
                 flash("Error: Only the admin account can delete users", "error")
     return render_template(
         "settings/auth_settings.jinja",
-        auth=auth,
-        new_otp=new_otp,
+        method=method,
+        rate_limit=rate_limit,
+        registration_link_timeout=registration_link_timeout,
         users=users,
         specter=app.specter,
         current_version=current_version,

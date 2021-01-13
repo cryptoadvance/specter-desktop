@@ -8,7 +8,7 @@ import time
 import zipfile
 import requests
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
+from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from urllib3.exceptions import NewConnectionError
@@ -114,7 +114,12 @@ class Specter:
                 "host": "localhost",  # localhost
                 "protocol": "http",  # https for the future
             },
-            "auth": "none",
+            "auth": {
+                "method": "none",
+                "password_min_chars": 6,
+                "rate_limit": 10,
+                "registration_link_timeout": 1,
+            },
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
@@ -297,6 +302,7 @@ class Specter:
         if os.path.isfile(self.config_fname):
             with self.lock:
                 self.file_config = read_json_file(self.config_fname)
+                migrate_config(self.file_config)
                 deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
@@ -431,10 +437,15 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
-    def update_auth(self, auth):
+    def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
-        if self.config["auth"] != auth:
-            self.config["auth"] = auth
+        auth = self.config["auth"]
+        if auth["method"] != method:
+            auth["method"] = method
+        if auth["rate_limit"] != rate_limit:
+            auth["rate_limit"] = rate_limit
+        if auth["registration_link_timeout"] != registration_link_timeout:
+            auth["registration_link_timeout"] = registration_link_timeout
         self._save()
 
     def update_explorer(self, explorer, user):
@@ -555,13 +566,30 @@ class Specter:
         self.config["new_user_otps"].append(otp_dict)
         self._save()
 
-    def burn_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if valid"""
+    def validate_new_user_otp(self, otp):
+        """ validates an OTP for user registration and removes it if expired"""
+        if "new_user_otps" not in self.config:
+            return False
+        now = time.time()
+        for i, otp_dict in enumerate(self.config["new_user_otps"]):
+            if otp_dict["otp"] == otp:
+                if (
+                    "expiry" in otp_dict
+                    and otp_dict["expiry"] < now
+                    and otp_dict["expiry"] > 0
+                ):
+                    del self.config["new_user_otps"][i]
+                    self._save()
+                    return False
+                return True
+        return False
+
+    def remove_new_user_otp(self, otp):
+        """ removes an OTP for user registration"""
         if "new_user_otps" not in self.config:
             return False
         for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            # TODO: Validate OTP did not expire based on created_at
-            if otp_dict["otp"] == int(otp):
+            if otp_dict["otp"] == otp:
                 del self.config["new_user_otps"][i]
                 self._save()
                 return True
