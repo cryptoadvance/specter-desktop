@@ -70,7 +70,6 @@ def get_price_at(specter, current_user, timestamp="now"):
                     currency = "gbp"
                     currency_symbol = "£"
                 exchange = specter.price_provider.split("spotbit_")[1]
-                print(timestamp)
                 if timestamp == "now":
                     price = requests_session.get(
                         "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
@@ -78,7 +77,6 @@ def get_price_at(specter, current_user, timestamp="now"):
                         )
                     ).json()["close"]
                 else:
-                    print(timestamp)
                     price = requests_session.get(
                         "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/hist/{}/{}/{}/{}".format(
                             currency,
