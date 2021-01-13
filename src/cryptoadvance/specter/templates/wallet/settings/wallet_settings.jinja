@@ -43,7 +43,7 @@
 		<div id="keys_list" class="center" style="margin: auto; display: none; width: 85%;">
 			<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
 			<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
@@ -134,6 +134,14 @@
 			It is recommended that you print and save this wallet backup file with each of your devices.
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
+			<div style="margin: 0 auto;" class="center">
+				<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
+				<label class="switch">
+				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+				<span class="slider"></span>
+			</label><br>
+			</div>
+			<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
 			<p style="max-width: 500px;" class="note center">
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
 			<p>
