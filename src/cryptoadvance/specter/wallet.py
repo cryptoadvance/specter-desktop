@@ -573,9 +573,12 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def gettransaction(self, txid, blockheight=None):
+    def gettransaction(self, txid, blockheight=None, decode=False):
         try:
-            return self._transactions.gettransaction(txid, blockheight)
+            tx_data = self._transactions.gettransaction(txid, blockheight)
+            if decode:
+                return decoderawtransaction(tx_data["hex"], self.manager.chain)
+            return tx_data
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
