@@ -1,6 +1,3 @@
-"""
-simple hello world rest which has a weird idea about auth
-"""
 import logging
 import json
 
