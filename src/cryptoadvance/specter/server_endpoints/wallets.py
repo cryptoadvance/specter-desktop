@@ -949,6 +949,14 @@ def decoderawtx(wallet_alias):
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
+            # This is a fix for Bitcoin Core versions < v0.20
+            # These do not return the blockheight as part of the `gettransaction` command
+            # So here we check if this property is lacking and if so
+            # query the blockheader based on the transaction blockhash
+            ##################### Remove from here after dropping Core v0.19 support #####################
+            if "blockhash" in tx and "blockheight" not in tx:
+                tx["blockheight"] = wallet.rpc.getblockheader(tx["blockhash"])["height"]
+            ##################### Remove until here after dropping Core v0.19 support #####################
             return {
                 "success": True,
                 "tx": tx,

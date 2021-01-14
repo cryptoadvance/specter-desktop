@@ -7,7 +7,7 @@
     <div class="card">
         <h1>Register to the Specter Node</h1>
         <form action="{{ url_for('auth_endpoint.register') }}" method="POST" role="form">
-            {% if specter.config['auth'] == 'usernamepassword' %}
+            {% if specter.config['auth']['method'] == 'usernamepassword' %}
                 <input class="form-control" placeholder="Username" name="username" type="text" value=""><br><br>
             {% endif %}
             <input class="form-control" placeholder="Password" name="password" type="password" value="">

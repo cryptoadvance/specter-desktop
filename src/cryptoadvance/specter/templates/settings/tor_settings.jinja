@@ -46,7 +46,7 @@
                 <p>Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere.<br>
                 </p>
                 {% if tor_service_id %}
-                    {% if specter.config.auth == "none" %}
+                    {% if specter.config.auth.method == "none" %}
                         <p class="warning" style="max-width:700px;">
                         ⚠️ Warning!<br>
                         Your are running Specter over Tor with no authentication settings configured.

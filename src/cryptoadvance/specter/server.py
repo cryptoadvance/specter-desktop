@@ -93,7 +93,7 @@ def init_app(app, hwibridge=False, specter=None):
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
-    if specter.config.get("auth") == "none":
+    if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
     else:
