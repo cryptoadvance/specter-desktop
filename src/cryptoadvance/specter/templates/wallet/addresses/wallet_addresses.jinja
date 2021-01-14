@@ -2,20 +2,18 @@
 {% set tab = 'show_addresses' %}
 {% block content %}
 
-<div style="padding: 0 30px; width: 100%;">
-	{% from 'wallet/addresses/components/addresses_nav.jinja' import addresses_nav %}
-	{{ addresses_nav(addresses_tab, wallet_alias) }}
-</div>
+	<div class="table-holder">
 
-<br>
-
-<div class="table-holder">
-	{% from 'wallet/addresses/components/addresses_table.jinja' import addresses_table %}
-
-    {{
-        addresses_table(addresses, wallet_alias)
-    }}
-
-</div>
-
+		{% include "includes/addresses-row.html" %}
+        {% include "includes/addresses-table.html" %}
+        
+		<addresses-table
+			{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+			price="{{ specter.alt_rate }}"
+			symbol="{{ specter.alt_symbol }}"
+			{% endif %}
+			btc-unit="{{ specter.unit }}"
+			type="receive"
+			wallet="{{ wallet.alias }}"></addr-table-table>
+	</div>
 {% endblock %}

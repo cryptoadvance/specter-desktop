@@ -1,0 +1,75 @@
+<template id="address-row">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <tr class="address-row">
+        <td class="index"></td>
+        <td class="address"></td>
+        <td class="label"></td>
+        <td class="used"></td>
+        <td class="utxo"></td>
+        <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
+        <td></td>
+    </tr>
+</template>
+
+<script type="text/javascript">
+    class TxRowElement extends HTMLElement {
+        constructor() {
+            super();
+            var shadow = this.attachShadow({ mode: 'open' });
+            var style = document.getElementById('address-row').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".address-row");
+
+            this.index = clone.querySelector(".index");
+            this.address = clone.querySelector(".address");
+            this.label = clone.querySelector(".label");
+            this.used = clone.querySelector(".used");
+            this.utxo = clone.querySelector(".utxo");
+            this.amountText = clone.querySelector(".amount");
+            this.amountPrice = clone.querySelector(".amount-price");
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.addressData = JSON.parse(this.getAttribute('data-address'));
+            this.wallet = this.getAttribute('data-wallet');
+            this.btcUnit = this.getAttribute('data-btc-unit');
+            this.price = this.getAttribute('data-price');
+            this.symbol = this.getAttribute('data-symbol');
+
+            this.index.innerText = `#${this.addressData.index}`;
+            this.address.innerText = this.addressData.address;
+
+            this.label.innerHTML =
+                `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} data-wallet="${this.wallet}"></address-label>`;
+
+            this.used.innerText = `${this.addressData.used ? 'Yes' : 'No'}`;
+
+            this.utxo.innerText = this.addressData.utxo;
+
+            this.amount = parseFloat(this.addressData.amount.toFixed(8));
+
+            if (!this.price || !this.symbol) {
+                this.amountPrice.innerText = '';
+                this.amountPrice.classList.add('hidden');
+            } else {
+                this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                this.amountPrice.classList.remove('hidden');
+            }
+
+            if (this.btcUnit == 'sat') {
+                this.amount = parseInt(this.amount * 1e8);
+            }
+
+            this.amountText.innerText = `${numberWithCommas(this.amount.toString())}`;
+
+            if (this.addressData.used > 0) {
+                this.el.classList.add('unconfirmed');
+            }
+        }
+    }
+
+    customElements.define('address-row', TxRowElement);
+</script>

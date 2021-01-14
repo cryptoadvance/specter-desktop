@@ -1340,7 +1340,7 @@ class Wallet:
             v for _, v in self._addresses.items() if v.change == is_change
         ]
 
-        for addr in reversed(addresses_cache):
+        for addr in addresses_cache:
 
             addr_utxo = 0
             addr_amount = 0
@@ -1355,8 +1355,9 @@ class Wallet:
                     "address": addr.address,
                     "label": addr.label,
                     "amount": addr_amount,
-                    "addr_used": addr.used,
+                    "used": bool(addr.used),
                     "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
                 }
             )
 
