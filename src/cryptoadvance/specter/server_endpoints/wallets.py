@@ -1395,8 +1395,6 @@ def addresses_list_csv(wallet_alias):
 
         only_current_type = request.args.get("onlyCurrentType", "false") == "true"
 
-        print("---\nexport_only_current_type: " + str(only_current_type))
-
         if not only_current_type:
             receive_list = wallet.addresses_info(False)
             change_list = wallet.addresses_info(True)
