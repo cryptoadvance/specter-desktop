@@ -1347,7 +1347,6 @@ def process_addresses_list(
         page_count = 1
 
     return {"addressesList": addresses_list, "pageCount": page_count}
-    # return {"addressesList": json.dumps(addresses_list), "pageCount": page_count}
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
@@ -1373,10 +1372,6 @@ def addresses_list(wallet_alias):
             "addressesList": json.dumps(result["addressesList"]),
             "pageCount": result["pageCount"],
         }
-
-        # return process_addresses_list(
-        #     addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
-        # )
 
     except Exception as e:
         logging.exception(e)
