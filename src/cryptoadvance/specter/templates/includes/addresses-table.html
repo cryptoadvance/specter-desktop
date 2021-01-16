@@ -421,28 +421,13 @@
             let addressesList = JSON.parse(jsonResponse.addressesList);
 
             for (let addr of addressesList) {
-                /*let rowClass = "addr-row";
-
-                if (addr.used) rowClass += ' unconfirmed';
-
-
-                let addrRow = `
-                    <tr class="${rowClass}">
-                        <td>#${addr.index}</td>
-                        <td>${addr.address}</td>
-                        <td><address-label data-address="${addr.address}" data-label="${addr.label}" data-wallet="{{ wallet_alias }}"></address-label></td>	
-                        <td>${addr.used ? 'Yes' : 'No'}</td>
-                        <td>${addr.utxo}</td>
-                        <td>${addr.amount}</td>
-                        <td></td>
-                    </tr>`;*/
 
                 let addrRow = `
                         <address-row 
                             data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
                             data-price="${self.price ? self.price : 0}"
                             data-symbol="${self.symbol ? self.symbol : ''}"
-                            data-address='${JSON.stringify(addr).replace(/[\/\(\)\']/g, "&apos;")}'
+                            data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${self.wallet}"> 
                         </<address-row>`;
 
@@ -452,10 +437,10 @@
             // Pagination
             self.pageCount = jsonResponse.pageCount;
 
-            // Show empty row if no transaction found
+            // Show empty row if no addresses found
             if (self.pageCount == 0 || addressesList.length == 0) {
                 self.emptyRow.classList.remove('hidden');
-                self.emptyRow.children[1].innerText = "No transactions found...";
+                self.emptyRow.children[1].innerText = "No addresses found...";
                 self.pageCount = 1;
             } else {
                 self.emptyRow.classList.add('hidden');
