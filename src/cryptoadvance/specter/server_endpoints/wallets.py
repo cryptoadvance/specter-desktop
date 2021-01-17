@@ -1326,6 +1326,14 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
 def process_addresses_list(
     addresses_list, idx=0, limit=100, sortby=None, sortdir="asc"
 ):
+    """ Receive an address list as parameter and sort it or slice it for pagination.
+        Parameters: addresses_list: list of dict with the keys
+                                    (index, address, label, used, utxo, amount)
+                    idx: pagination index (current page)
+                    limit: maximum number of items on the page
+                    sortby: field by which the list will be ordered
+                            (index, address, label, used, utxo, amount)
+                    sortdir: 'asc' (ascending) or 'desc' (descending) order """  
     if sortby:
 
         def sort(addr):
@@ -1352,7 +1360,17 @@ def process_addresses_list(
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
 @login_required
 def addresses_list(wallet_alias):
-
+    """ Return a JSON with keys:  
+            addressesList: list of addresses with the properties
+                           (index, address, label, used, utxo, amount)
+            pageCount: total number of pages 
+        POST parameters:
+            idx: pagination index (current page)
+            limit: maximum number of items on the page
+            sortby: field by which the list will be ordered
+                    (index, address, label, used, utxo, amount)
+            sortdir: 'asc' (ascending) or 'desc' (descending) order
+            addressType: the current tab address type ('receive' or 'change') """
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
@@ -1381,13 +1399,22 @@ def addresses_list(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list.csv")
 @login_required
 def addresses_list_csv(wallet_alias):
+    """ Return a CSV with addresses of the <wallet_alias> containing the 
+        information: index, address, type, label, used, utxo and amount
+        of each of them.
+        GET parameters: sortby: field by which the CSV will be ordered
+                                (index, address, label, used, utxo, amount)
+                        sortdir: 'asc' (ascending) or 'desc' (descending) order
+                        address_type: the current tab address type ('receive' or 'change')
+                        onlyCurrentType: show all addresses (if false) or just the current 
+                                         type (address_type param) """
+
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
-        sortby = request.args.get("sortby", "time")
-        sortdir = request.args.get("sortdir", "desc")
+        sortby = request.args.get("sortby", "index")
+        sortdir = request.args.get("sortdir", "asc")
         address_type = request.args.get("addressType", "receive")
-
         only_current_type = request.args.get("onlyCurrentType", "false") == "true"
 
         if not only_current_type:
@@ -1433,6 +1460,10 @@ def addresses_list_csv(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
 def show_addresses(wallet_alias):
+    """ Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
+    It updates balances in the wallet before renderization in order to show updated UTXO and 
+    balance of each address. """
+
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
@@ -1444,12 +1475,8 @@ def show_addresses(wallet_alias):
     wallet.get_balance()
     wallet.check_utxo()
 
-    recv_addresses = wallet.addresses_info(False)
-
     return render_template(
         "wallet/addresses/wallet_addresses.jinja",
-        addresses=recv_addresses,
-        addresses_tab="receive_addresses",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
@@ -1611,9 +1638,10 @@ def addresses_list_to_csv(wallet):
         data.seek(0)
         data.truncate(0)
 
-
-# wallet addresses list to user-friendly CSV format
 def wallet_addresses_list_to_csv(addresses_list):
+    """ Convert a list of the wallet addresses to user-friendly CSV format
+        Parameters: addresses_list: a dict of addresses informations
+                    (index, address, type, label, used, utxo and amount) """
     data = StringIO()
     w = csv.writer(data)
     # write header

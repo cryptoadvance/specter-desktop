@@ -12,7 +12,16 @@
 </template>
 
 <script type="text/javascript">
-    class TxRowElement extends HTMLElement {
+    /**
+     *  Custom element for showing a row in a table of addresses.
+        It receive data from component parameters, that are:
+        - data-btc-unit: Bitcoin unit to display amounts with. Either "btc" or "sat"
+        - data-price: BTC price for price calculations
+        - data-symbol: Currency symbol for price calculations
+        - data-address: Address information (JSON with the properties: index, address, label, used, utxo, amount)
+        - data-wallet: The wallet alias
+     */
+    class AddressRowElement extends HTMLElement {
         constructor() {
             super();
             var shadow = this.attachShadow({ mode: 'open' });
@@ -32,6 +41,10 @@
             shadow.appendChild(clone);
         }
 
+        /**
+         * Browser calls this method when the element is added to the document
+         * (can be called many times if an element is repeatedly added/removed)
+        */
         connectedCallback() {
             this.addressData = JSON.parse(this.getAttribute('data-address'));
             this.wallet = this.getAttribute('data-wallet');
@@ -71,5 +84,5 @@
         }
     }
 
-    customElements.define('address-row', TxRowElement);
+    customElements.define('address-row', AddressRowElement);
 </script>
