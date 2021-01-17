@@ -1333,9 +1333,9 @@ class Wallet:
         return 75 + 34 + 23 * 4
 
     def addresses_info(self, is_change):
-        """ Create a list of (receive or change) addresses from cache and retrieve the 
-            related UTXO and amount.
-            Parameters: is_change: if true, return the change addresses else the receive ones.
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
         """
 
         addresses_info = []
