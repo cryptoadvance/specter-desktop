@@ -10,10 +10,10 @@ Below is a table ([source](https://shiftcrypto.ch/blog/how-nearly-all-personal-h
 
 |                                                | BitBox02 | Ledger | Trezor | Coldcard | Specter DIY |
 |------------------------------------------------|----------|--------|--------|----------|-------------|
-| Display own xpub on demand                     | ✅       | ❌     | ❌     | ✅       | ???         |
-| Display cosigner xpubs                         | ✅       | ❌     | ✅     | ✅       | ???         |
-| Show Electrum `Zpub...` and `Ypub...` formats  | ✅       | ❌     | ❌     | ❌       | ???         |
-| Register xpubs inside the device               | ✅       | ❌     | ❌     | ✅       | ???         |
+| Display own xpub on demand                     | ✅       | ❌     | ❌     | ✅       | ✅          |
+| Display cosigner xpubs                         | ✅       | ❌     | ✅     | ✅       | ✅          |
+| Show Electrum `Zpub...` and `Ypub...` formats  | ✅       | ❌     | ❌     | ❌       | ✅          |
+| Register xpubs inside the device               | ✅       | ❌     | ❌     | ✅       | ✅          |
 
 ## Backups
 
