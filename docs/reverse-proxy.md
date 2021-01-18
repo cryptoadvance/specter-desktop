@@ -73,11 +73,25 @@ certbot --nginx
 
 Now Specter should be available over HTTPS: `https://specter.mydomain.com`
 
-## Adding basic authentication
+## Authentication
 
-*Note:* This part is only required if you are running Specter on your node. If you are exposing your Bitcoin RPC it already has authentication with rpcuser and rpcpassword.
+We don't want random people to have access to our wallet, so we want to protect it with login and password. Specter has two methods of authentication built in.
 
-We don't want random people to have access to our wallet, so we want to protect it with login and password.
+You can configure the authentication method used by Specter at `https://specter.mydomain.com/settings/auth`
+
+When authentication is enabled Specter rate limits attempts to login to frustrate brute force password guessing.
+
+### RPC Password as PIN
+
+The Bitcoin Core RPC password is used by Specter to login.
+
+### Multiple Users
+
+With this method you can choose the username and password of the Specter admin user. You can also invite other (limited) users to register also.
+
+### Adding basic authentication via Nginx
+
+*Note:* This part is only required if you do not want to use one of the built in Specter authentication methods. If you use Nginx basic authentication you should also think about rate limiting brute force attacks via software like `fail2ban`.
 
 Nginx has a nice [documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/) on the topic, but I will copy-paste main commands here.
 
