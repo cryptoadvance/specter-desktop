@@ -12,7 +12,7 @@ Below is a table ([source](https://shiftcrypto.ch/blog/how-nearly-all-personal-h
 |------------------------------------------------|----------|--------|--------|----------|-------------|
 | Display own xpub on demand                     | ✅       | ❌     | ❌     | ✅       | ✅          |
 | Display cosigner xpubs                         | ✅       | ❌     | ✅     | ✅       | ✅          |
-| Show Electrum `Zpub...` and `Ypub...` formats  | ✅       | ❌     | ❌     | ❌       | ✅          |
+| Show SLIP-132 formats (`Ypub, Zpub`)           | ✅       | ❌     | ❌     | ✅       | ✅          |
 | Register xpubs inside the device               | ✅       | ❌     | ❌     | ✅       | ✅          |
 
 ## Backups
