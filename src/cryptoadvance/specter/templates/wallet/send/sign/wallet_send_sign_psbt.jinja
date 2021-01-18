@@ -124,17 +124,14 @@
 						<b>Transaction id:</b><br>
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
-						{% set tx = wallet.gettransaction(input['txid']) %}
+						{% set tx = wallet.gettransaction(input['txid'], decode=true) %}
 						{% if tx %}
-						{% if tx['details'] %}
-							<b>Address:</b>
-							<address-label data-address="{{ tx['details'][0]['address'] }}" data-wallet="{{ wallet_alias }}"></address-label>
-							<br>
-							{% if 'label' in tx['details'][0] and tx['details'][0]['label'] != '' %}
-								<b>Label:</b> {{ tx['details'][0]['label'] }}<br>
+							{% if tx.vout and tx.vout|length > input['vout'] and 'addresses' in tx.vout[input['vout']] and tx.vout[input['vout']].addresses|length > 0 %}
+								<b>Address:</b>
+								<address-label data-address="{{ tx.vout[input['vout']].addresses[0] }}" data-wallet="{{ wallet_alias }}"></address-label>
+								<br>
 							{% endif %}
-						{% endif %}
-						<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
+							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -145,9 +142,6 @@
 						<b>Address:</b>
 						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
 						<br>
-						{% if wallet.getlabel(output['scriptPubKey']['addresses'][0]) != output['scriptPubKey']['addresses'][0] %}
-							<b>Label:</b> {{ wallet.getlabel(output['scriptPubKey']['addresses'][0]) }}<br>
-						{% endif %}
 						<b>Amount:</b> {{ output['value'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
