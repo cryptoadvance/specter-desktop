@@ -6,7 +6,7 @@
 		<h1 id="title" class="settings-title">Bitcoin Core settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('bitcoin_core', current_user) }}
-		<div class="card" style="margin: 20px auto;">
+		<div class="card" style="margin: 20px auto 120px;">
 			<h2>Bitcoin JSON-RPC configuration</h2>
 			<br>
 			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
@@ -71,13 +71,15 @@
 						<div>Connectable</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
 						{% if not test['tests']['connectable'] %} 
-							<tool-tip title="Your Node can't be reached" style="float: right; margin-bottom: 5px;">
+							<tool-tip title="Your Node can't be reached" style="float: right;">
 								There are a lot of potential issues preventing the connection.
 								Please doublecheck the Host and the Port. Make sure you can reach
 								the host and make sure that Bitcoin-Core is listening at the port
 								you have specified. 
 								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
 							</tool-tip>
+						{% else %}
+							<div></div>
 						{% endif %}
 					{% endif %}
 
@@ -85,11 +87,13 @@
 						<div>Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
 						{% if not test['tests']['credentials'] %}
-							<tool-tip title="Your Credentials don't work" style="float: right; margin-bottom: 5px;">
+							<tool-tip title="Your Credentials don't work" style="float: right;">
 								Please doublecheck the user and the Password. Look at the bitcoin.conf
 								for the correct values in that field.
 								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
 							</tool-tip>
+						{% else %}
+							<div></div>
 						{% endif %}
 					{% endif %}
 
@@ -102,6 +106,8 @@
 									The version of your Node is too low, unfortunatley.
 									Please upgrade!
 							</tool-tip>
+						{% else %}
+							<div></div>
 						{% endif %}
 					{% endif %}
 					
@@ -113,7 +119,9 @@
 								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
 								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
 							</tool-tip>
-						{% endif %} 
+						{% else %}
+							<div></div>
+						{% endif %}
 					{% endif %}
 
 				</div>
