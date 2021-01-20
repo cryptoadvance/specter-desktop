@@ -22,3 +22,30 @@ def test_load_jsons(caplog):
     assert mydict["ID123"]["fullpath"] == "./tests/helpers_testdata/some_jsonfile.json"
     # Quite handy if you want to get rid of it which is as easy as:
     # os.remove(mydict["ID123"]['fullpath'])
+
+def test_is_ip_private(caplog):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    import cryptoadvance.specter.helpers as helpers
+
+    # https://en.wikipedia.org/wiki/Private_network
+    # For each private network address range, we are testing the lower, arbitrary middle and upper part of the range
+    priv_lo_addresses = ["127.0.0.0", "127.1.32.15", "127.255.255.255"]
+    priv_24_addresses = ["10.0.0.0", "10.1.32.125", "10.255.255.255"]
+    priv_20_addresses = ["172.16.0.0", "172.24.32.125", "172.31.255.255"]
+    priv_16_addresses = ["192.168.0.0", "192.168.16.125", "192.168.255.255"]
+
+    # Randomly generated public ip addresses
+    public_addresses = ["58.28.76.138", "128.5.218.201", "170.45.214.32"]
+
+    assert helpers.is_ip_private("localhost")
+    for ip in priv_lo_addresses:
+        assert helpers.is_ip_private(ip)
+    for ip in priv_24_addresses:
+        assert helpers.is_ip_private(ip)
+    for ip in priv_20_addresses:
+        assert helpers.is_ip_private(ip)
+    for ip in priv_16_addresses:
+        assert helpers.is_ip_private(ip)
+    for ip in public_addresses:
+        assert not helpers.is_ip_private(ip)
