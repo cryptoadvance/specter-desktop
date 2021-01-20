@@ -1,3 +1,31 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Development](#development)
+  - [How to run the Application](#how-to-run-the-application)
+  - [Howto run the tests](#howto-run-the-tests)
+  - [Code-Style](#code-style)
+  - [Developing on tests](#developing-on-tests)
+    - [bitcoin-specific stuff](#bitcoin-specific-stuff)
+    - [Cypress UI-testing](#cypress-ui-testing)
+  - [Flask specific stuff](#flask-specific-stuff)
+  - [More on the bitcoind requirements](#more-on-the-bitcoind-requirements)
+  - [IDE-specific Configuration (might be outdated)](#ide-specific-configuration-might-be-outdated)
+    - [Visual Studio Code](#visual-studio-code)
+      - [Debugging](#debugging)
+      - [Unit-Tests](#unit-tests)
+    - [PyCharm](#pycharm)
+      - [Debugging](#debugging-1)
+      - [Unit-Tests](#unit-tests-1)
+  - [Guidelines and (for now) "best practices"](#guidelines-and-for-now-best-practices)
+    - [General File Layout](#general-file-layout)
+    - [Some words about dependencies](#some-words-about-dependencies)
+    - [Some words specific to the frontend](#some-words-specific-to-the-frontend)
+    - [Some words about style](#some-words-about-style)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Development
 
 ## How to run the Application
