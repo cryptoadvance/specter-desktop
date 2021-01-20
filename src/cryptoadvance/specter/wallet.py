@@ -1333,6 +1333,10 @@ class Wallet:
         return 75 + 34 + 23 * 4
 
     def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
 
         addresses_info = []
 
@@ -1340,7 +1344,7 @@ class Wallet:
             v for _, v in self._addresses.items() if v.change == is_change
         ]
 
-        for addr in reversed(addresses_cache):
+        for addr in addresses_cache:
 
             addr_utxo = 0
             addr_amount = 0
@@ -1355,8 +1359,9 @@ class Wallet:
                     "address": addr.address,
                     "label": addr.label,
                     "amount": addr_amount,
-                    "addr_used": addr.used,
+                    "used": bool(addr.used),
                     "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
                 }
             )
 
