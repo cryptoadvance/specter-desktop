@@ -70,80 +70,50 @@
 					{% if 'connectable' in test['tests'] %}
 						<div>Connectable</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
-						<div> 
-							{% if not test['tests']['connectable'] %} 
-								<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-									<i class="tool-tip__icon">i</i>
-									<p class="tool-tip__info">
-										<span class="info">
-											<span class="info__title">Your Node can't be reached<br><br></span>
-											There are a lot of potential issues preventing the connection.
-											Please doublecheck the Host and the Port. Make sure you can reach
-											the host and make sure that Bitcoin-Core is listening at the port
-											you have specified. 
-											For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
-										</span>
-									</p>
-								</div>
-							{% endif %}</div>
+						{% if not test['tests']['connectable'] %} 
+							<tool-tip title="Your Node can't be reached" style="float: right; margin-bottom: 5px;">
+								There are a lot of potential issues preventing the connection.
+								Please doublecheck the Host and the Port. Make sure you can reach
+								the host and make sure that Bitcoin-Core is listening at the port
+								you have specified. 
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
+							</tool-tip>
+						{% endif %}
 					{% endif %}
 
 					{% if 'credentials' in test['tests'] %}
 						<div>Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
-						<div> 
-							{% if not test['tests']['credentials'] %}
-								<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-									<i class="tool-tip__icon">i</i>
-									<p class="tool-tip__info">
-										<span class="info">
-											<span class="info__title">Your Credentials don't work<br><br></span>
-											Please doublecheck the user and the Password. Look at the bitcoin.conf
-											for the correct values in that field.
-											For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
-										</span>
-									</p>
-								</div>
-							{% endif %}</div>
+						{% if not test['tests']['credentials'] %}
+							<tool-tip title="Your Credentials don't work" style="float: right; margin-bottom: 5px;">
+								Please doublecheck the user and the Password. Look at the bitcoin.conf
+								for the correct values in that field.
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md">article</a>.
+							</tool-tip>
+						{% endif %}
 					{% endif %}
 
 					{% if 'recent_version' in test['tests'] %}
 						<div>Version recent enough</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
-						<div> 
-							{% if not test['tests']['recent_version'] %}
-								<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-									<i class="tool-tip__icon">i</i>
-									<p class="tool-tip__info">
-										<span class="info">
-											<span class="info__title">Your Core Node might be too old<br><br></span>
-											Specter is working well up from Bitcoin Core version 0.17.
-											The version of your Node is too low, unfortunatley.
-											Please upgrade!
-										</span>
-									</p>
-								</div>
-							{% endif %}
-						</div>
+						{% if not test['tests']['recent_version'] %}
+							<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
+									Specter is working well up from Bitcoin Core version 0.17.
+									The version of your Node is too low, unfortunatley.
+									Please upgrade!
+							</tool-tip>
+						{% endif %}
 					{% endif %}
 					
 					{% if 'wallets' in test['tests'] %}
 						<div>Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
-						<div> 
-							{% if not test['tests']['wallets'] %}
-								<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-									<i class="tool-tip__icon">i</i>
-									<p class="tool-tip__info">
-										<span class="info">
-											<span class="info__title">Wallet Support in your Core-Node<br><br></span>
-											The RPC-Interface of your Core-Node is available, but the wallet-api is not.
-											Please make sure to have 'disablewallet=0' in your bitcoin.conf.
-										</span>
-									</p>
-								</div>
-							{% endif %} 
-						</div>
+						{% if not test['tests']['wallets'] %}
+							<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
+								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
+								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
+							</tool-tip>
+						{% endif %} 
 					{% endif %}
 
 				</div>
