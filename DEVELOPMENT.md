@@ -139,7 +139,7 @@ After that, you can configure the bitcoin-core-connection in specter-desktop lik
 You can easily create a .vscode/launch.json file via the debug-window. However this setup won't work properly because the python-environment won't be on the PATH but the hwi-executable need to be available in the PATH. So adding the PATH with something like the below is working with VS-COde 1.41.1 and the python-plugin 2019.11.50794.
 
 
-```json
+```json5
 {
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
@@ -175,7 +175,7 @@ In VS-Code there is a very convenient way of running/debugging the tests:
 <img src=https://code.visualstudio.com/assets/docs/python/testing/editor-adornments-unittest.png>  
 In order to enable that, you need to activate pytest support by placing a settings.json file like this in .vscode/settings.json:
 
-```json
+```json5
 {
     "python.pythonPath": ".env/bin/python3.7",
     "python.testing.unittestEnabled": false,
