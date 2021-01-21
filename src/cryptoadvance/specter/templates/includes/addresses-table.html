@@ -1,0 +1,525 @@
+<template id="addresses-table">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .addresses-table {
+            display: table;
+        }
+
+        address-row {
+            display: contents;
+        }
+
+        .pagination-container {
+            text-align: center;
+            width: 100%;
+        }
+
+        .pagination-next,
+        .pagination-back {
+            cursor: pointer;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .pagination-idx {
+            min-width: 50px;
+            max-width: 50px;
+            width: 50px;
+            margin: 7px 7px 7px 3px;
+            text-align: center;
+            height: 35px;
+        }
+
+        .page-limit-label {
+            float: left;
+            margin-top: 8px;
+        }
+
+        .page-limit-fieldset {
+            float: left;
+            border: none;
+            display: inline;
+        }
+
+        .up-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-bottom: solid 7px #fff;
+            border-top-width: 0;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+
+        .down-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-top: solid 7px #fff;
+            border-bottom-width: 0;
+            margin-top: 1px;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+
+        .export-container {
+            max-width: 50%;
+            margin: 20px auto;
+            border: 1px solid #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 7px;
+        }
+
+        .export {
+            max-width: 200px;
+            margin: auto;
+        }
+    </style>
+
+    <nav class="row">
+        <button type="button" class="receive-addresses-view-btn btn radio left checked">
+            Receive Addresses
+        </button>
+        <button type="button" class="change-addresses-view-btn btn radio right">
+            Change Addresses
+        </button>
+    </nav>
+
+    <div class="pagination-container">
+        <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
+        Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
+            class="pagination-counter"></span>
+        <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
+        <br>
+    </div>
+    <span class="page-limit-label">Page limit: </span>
+    <fieldset class="page-limit-fieldset">
+        <select class="page-limit-select">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="0">All</option>
+        </select>
+    </fieldset>
+
+    <br>
+    <div class="export-container hidden">
+        <h1>Export addresses to CSV</h1>
+
+
+
+        <div>
+            <span class="switch-text"></span>
+            <label class="switch">
+                <input type="checkbox" class="only-current-type-checkbox" checked>
+                <span class="slider"></span>
+            </label><br><br>
+        </div>
+
+
+
+        <a class="export btn" download>Export</a>
+    </div>
+
+    <table class="addresses-table">
+
+        <thead>
+            <tr>
+                <th value="index" class="index-header">
+                    <div class="index-arrow down-arrow"></div>
+                </th>
+                <th value="address" class="address-header">Addresses<div class="address-arrow"></div>
+                </th>
+                <th value="label" class="label-header">Label<div class="label-arrow">
+                </th>
+                <th value="used" class="used-header">Used<div class="used-arrow">
+                </th>
+                <th value="utxo" class="utxo-header">UTXO<div class="utxo-arrow">
+                </th>
+                <th value="amount" class="amount-header">Amount<div class="amount-arrow">
+                </th>
+                <th style="width: 50px; padding: 10px;">
+                    <button type="button" class="export-btn btn" style="width: 50px;">Export</button>
+                </th>
+            </tr>
+        </thead>
+
+        <tr class="empty">
+            <td></td>
+            <td>Fetching addresses ...</td>
+            <td class="optional"></td>
+            <td class="optional"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+
+        <tbody class="addr-tbody">
+        </tbody>
+    </table>
+</template>
+
+<script type="text/javascript">
+    /**
+     * Custom element for showing a table of addresses.
+     * Can be configured to show:
+     *  - The receive addresses of a wallet (set attribute `type` to "receive" and `wallet` to the wallet's alias)
+     *  - The change addresses of a wallet (set attribute `type` to "change" and `wallet` to the wallet's alias)
+     * It uses Specter's API to fetch addresses every time the user changes its parameters.
+     * These parameters are configured using components included in this table element:
+     *  - Tabs for switching between Receive addresses (`type="receive"`) and Change addresses (`type="change"`)
+     *  - Sorting addresses by any column (ascending or descending)
+     *  - Configuring limit for addresses displayed per page
+     *  - Pagination, jumping between pages and showing the total pages count
+     *  - Export - export the all addresses or only receive or change addresses depending on the currently active tab as CSV
+     * 
+     * The table also supports:
+     *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
+     *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
+     */
+    class AddressTableElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({ mode: 'open' });
+            var style = document.getElementById('addresses-table').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".addresses-table");
+            this.tbody = clone.querySelector(".addr-tbody");
+
+            // Empty row element
+            this.emptyRow = clone.querySelector(".empty");
+
+            // Tabs (Receive Addresses/ Change Addresses)
+            this.receiveAddressesViewBtn = clone.querySelector(".receive-addresses-view-btn");
+            this.changeAddressesViewBtn = clone.querySelector(".change-addresses-view-btn");
+
+            // Pagination
+            this.paginationNext = clone.querySelector(".pagination-next");
+            this.paginationBack = clone.querySelector(".pagination-back");
+            this.paginationContainer = clone.querySelector(".pagination-container");
+            this.paginationCounter = clone.querySelector(".pagination-counter");
+            this.paginationIdxInput = clone.querySelector(".pagination-idx");
+            this.pageLimitSelect = clone.querySelector(".page-limit-select");
+
+            // Sorting headers and arrows
+            this.indexHeader = clone.querySelector(".index-header");
+            this.addressHeader = clone.querySelector(".address-header");
+            this.labelHeader = clone.querySelector(".label-header");
+            this.usedHeader = clone.querySelector(".used-header");
+            this.utxoHeader = clone.querySelector(".utxo-header");
+            this.amountHeader = clone.querySelector(".amount-header");
+            this.indexHeader = clone.querySelector(".index-header");
+            this.indexArrow = clone.querySelector(".index-arrow");
+            this.addressArrow = clone.querySelector(".address-arrow");
+            this.labelArrow = clone.querySelector(".label-arrow");
+            this.usedArrow = clone.querySelector(".used-arrow");
+            this.utxoArrow = clone.querySelector(".utxo-arrow");
+            this.amountArrow = clone.querySelector(".amount-arrow");
+
+            // Export button
+            this.exportBtn = clone.querySelector(".export-btn");
+            this.exportContainer = clone.querySelector(".export-container");
+            this.export = clone.querySelector(".export");
+            this.switchText = clone.querySelector(".switch-text");
+            this.onlyCurrentTypeSwitch = clone.querySelector(".only-current-type-checkbox");
+
+            // Setup tabs switching
+            this.receiveAddressesViewBtn.onclick = () => {
+                if (!this.receiveAddressesViewBtn.classList.contains("checked")) {
+                    this.changeAddressesViewBtn.classList.remove("checked");
+                    this.receiveAddressesViewBtn.classList.add("checked");
+                    this.setAttribute("type", "receive");
+                }
+            }
+
+            this.changeAddressesViewBtn.onclick = () => {
+                if (!this.changeAddressesViewBtn.classList.contains("checked")) {
+                    this.receiveAddressesViewBtn.classList.remove("checked");
+                    this.changeAddressesViewBtn.classList.add("checked");
+                    this.setAttribute("type", "change");
+                }
+            }
+
+            // Init call id to avoid fetch returning after another one triggered
+            this.callId = 0
+
+            // Initialize default sort, search, limit and page parameters
+            this.idx = 0;
+            this.limit = 50;
+            this.search = "";
+            this.sortby = "index";
+            this.sortdir = "asc";
+            this.pageCount = 1;
+
+            // Next page action
+            this.paginationNext.onclick = () => {
+                this.idx++;
+                fetchAddressesItems(this);
+            }
+
+            // Previous page action
+            this.paginationBack.onclick = () => {
+                this.idx--;
+                fetchAddressesItems(this);
+            }
+
+            // Listen to changes in page number selection input
+            this.paginationIdxInput.onchange = () => {
+                let newIdx = parseInt(this.paginationIdxInput.value);
+                if (isNaN(newIdx) || (newIdx < 1 || newIdx > this.pageCount)) {
+                    this.paginationIdxInput.value = this.idx + 1;
+                    return;
+                }
+                this.idx = newIdx - 1;
+                fetchAddressesItems(this);
+            }
+
+            // Listen to changes in page limit
+            this.pageLimitSelect.onchange = () => {
+                this.limit = this.pageLimitSelect.value;
+                fetchAddressesItems(this);
+            }
+
+            // Setup sorting functionality for each column of the table header
+            let sortHeaders = [
+                this.indexHeader,
+                this.addressHeader,
+                this.labelHeader,
+                this.usedHeader,
+                this.utxoHeader,
+                this.amountHeader,
+                this.indexHeader
+            ];
+
+            for (let header of sortHeaders) {
+                header.onclick = () => {
+                    if (header.classList.toString().indexOf(this.sortby) != -1) {
+                        // flip direction
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.remove(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'up-arrow' : 'down-arrow');
+                        this.sortdir = this.sortdir == 'asc' ? 'desc' : 'asc';
+                        this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
+                    } else {
+                        sortHeaders.forEach(el => {
+                            let existingArrow = el.querySelector(`.${this.sortby}-arrow`)
+                            if (existingArrow) {
+                                existingArrow.classList.remove('up-arrow');
+                                existingArrow.classList.remove('down-arrow');
+                            }
+                        });
+                        this.sortby = header.getAttribute('value');
+                        this.el.querySelector(`.${this.sortby}-arrow`).classList.add(this.sortdir == 'asc' ? 'down-arrow' : 'up-arrow');
+                        this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
+                    }
+
+                    fetchAddressesItems(this);
+                }
+            }
+
+            // Export data
+            this.exportBtn.onclick = () => {
+                if (this.exportBtn.innerText == 'Done') {
+                    this.exportContainer.classList.add('hidden');
+                    this.exportBtn.innerText = 'Export';
+                } else {
+                    this.exportContainer.classList.remove('hidden');
+                    this.exportBtn.innerText = 'Done';
+                }
+            }
+
+            this.export.onclick = () => {
+                this.exportContainer.classList.add('hidden');
+                this.exportBtn.innerText = 'Export';
+            }
+
+            // Export all addresses or only currently active tab addresses switch toggle
+            this.onlyCurrentTypeSwitch.onchange = () => {
+                this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
+            }
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        static get observedAttributes() {
+            return ['type', 'wallet', 'btc-unit', 'price', 'symbol'];
+        }
+
+        /**
+         * Listens to changes on the following attributes:
+         * - btc-unit: Bitcoin unit to display amounts with. Either "btc" or "sat"
+         * - price: BTC price for price calculations
+         * - symbol: Currency symbol for price calculations
+         * - type: Addresses list type to load. Either "receive" or "change"
+         * - wallet: The wallet alias
+        */
+        attributeChangedCallback(attrName, oldValue, newValue) {
+
+            if (
+                this.listType != this.getAttribute('type') ||
+                this.wallet != this.getAttribute('wallet') ||
+                this.btcUnit != this.getAttribute('btc-unit') ||
+                this.price != this.getAttribute('price') ||
+                this.symbol != this.getAttribute('symbol')
+            ) {
+                this.listType = this.getAttribute('type');
+                this.wallet = this.getAttribute('wallet');
+                this.btcUnit = this.getAttribute('btc-unit');
+                this.price = this.getAttribute('price');
+                this.symbol = this.getAttribute('symbol');
+
+                if (!this.listType) {
+                    return
+                }
+                fetchAddressesItems(this);
+            }
+        }
+    }
+
+    /**
+     * Fetches addresses list from the Specter API and loads the result into AddressRowElement
+     * @param self - The AddressTableElement itself.
+    */
+    async function fetchAddressesItems(self) {
+        self.callId++;
+        // Clean up from existing addresses list
+        self.emptyRow.children[1].innerText = "Fetching addresses...";
+        self.emptyRow.classList.remove('hidden');
+        self.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
+        if (!self.listType) {
+            self.emptyRow.children[1].innerText = "Failed to fetch addresses...";
+            return
+        }
+
+        const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+
+        self.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        self.export.href += `?onlyCurrentType=${self.onlyCurrentTypeSwitch.checked}&addressType=${self.listType}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
+
+        if (self.listType == "receive") {
+            self.switchText.innerText = "Only receive addresses: "
+        } else if (self.listType == "change") {
+            self.switchText.innerText = "Only change addresses: "
+        } else {
+            self.switchText.innerText = "";
+        }
+
+        // Prepare form data with all relevant parameters
+        var formData = new FormData();
+        formData.append('idx', self.idx);
+        formData.append('limit', self.limit);
+        formData.append('addressType', self.listType);
+        formData.append('sortby', self.sortby);
+        formData.append('sortdir', self.sortdir);
+
+        try {
+            let callId = self.callId;
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+            if (callId != self.callId) {
+                return;
+            }
+            if (response.status != 200) {
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+
+            if ("addressesList" in jsonResponse) {
+                // Populate the table with AddressRowElement objects using the fetched address list
+                if (jsonResponse.addressesList) {
+                    let addressesList = JSON.parse(jsonResponse.addressesList);
+
+                    for (let addr of addressesList) {
+
+                        let addrRow = `
+                        <address-row 
+                            data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
+                            data-price="${self.price ? self.price : 0}"
+                            data-symbol="${self.symbol ? self.symbol : ''}"
+                            data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                            data-wallet="${self.wallet}"> 
+                        </<address-row>`;
+
+                        self.tbody.innerHTML += addrRow;
+                    }
+
+                    // Pagination
+                    self.pageCount = jsonResponse.pageCount;
+
+                    // Show empty row if no addresses found
+                    if (self.pageCount == 0 || addressesList.length == 0) {
+                        self.emptyRow.classList.remove('hidden');
+                        self.emptyRow.children[1].innerText = "No addresses found...";
+                        self.pageCount = 1;
+                    } else {
+                        self.emptyRow.classList.add('hidden');
+                    }
+
+                    // If index is greater than the pages count fetch again for the last page
+                    if (self.idx >= self.pageCount) {
+                        self.idx = self.pageCount - 1;
+                        fetchAddressesItems(self)
+                    }
+
+                    self.paginationIdxInput.value = self.idx + 1;
+
+                    // If there are multiple pages show the pagination bar
+                    if (self.pageCount > 1) {
+                        self.paginationContainer.classList.remove('hidden');
+                        self.paginationCounter.innerText = `of ${self.pageCount}`;
+                        self.paginationIdxInput.max = self.pageCount;
+                    } else {
+                        self.paginationContainer.classList.add('hidden');
+                    }
+
+                    // Disable pagination back button if on the first page
+                    if (self.idx == 0) {
+                        self.paginationBack.classList.add('pagination-disabled');
+                    } else {
+                        self.paginationBack.classList.remove('pagination-disabled');
+                    }
+
+                    // Disable pagination next button if on the last page
+                    if (self.idx + 1 == self.pageCount) {
+                        self.paginationNext.classList.add('pagination-disabled');
+                    } else {
+                        self.paginationNext.classList.remove('pagination-disabled');
+                    }
+                }
+                return;
+            }
+            showError('Failed to fetch addresses list.')
+        } catch (e) {
+            console.log("Caught error: ", e);
+            showError(`Failed to fetch addresses list: ${e}`);
+        }
+
+    }
+
+    customElements.define('addresses-table', AddressTableElement);
+</script>

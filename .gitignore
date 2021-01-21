@@ -8,6 +8,7 @@ build
 dist
 *.egg-info
 .vscode
+.idea
 cert.pem
 key.pem
 *.dmg

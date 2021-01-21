@@ -258,7 +258,7 @@ def device(device_alias):
         action = request.form["action"]
         if action == "forget":
             if len(wallets) != 0:
-                err = "Device could not be removed since it is used in wallets: {}.\nYou must delete those wallets before you can remove this device.".format(
+                err = "Device could not be removed since it is used in wallets: {}.<br>You must delete those wallets before you can remove this device.<br>You can delete a wallet from its Settings -> Advanced page.".format(
                     [wallet.name for wallet in wallets]
                 )
             else:
@@ -270,8 +270,14 @@ def device(device_alias):
                 )
                 return redirect("")
         elif action == "delete_key":
-            key = request.form["key"]
-            device.remove_key(Key.from_json({"original": key}))
+            key = Key.from_json({"original": request.form["key"]})
+            wallets_with_key = [w for w in wallets if key in w.keys]
+            if len(wallets_with_key) != 0:
+                err = "Key could not be removed since it is used in wallets: {}.<br>You must delete those wallets before you can remove this key.<br>You can delete a wallet from its Settings -> Advanced page.".format(
+                    ", ".join([wallet.name for wallet in wallets_with_key])
+                )
+            else:
+                device.remove_key(key)
         elif action == "rename":
             device_name = request.form["newtitle"]
             if not device_name:

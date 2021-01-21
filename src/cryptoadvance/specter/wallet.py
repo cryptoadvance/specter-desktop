@@ -142,8 +142,13 @@ class Wallet:
                 tx
                 for tx in res
                 if tx["txid"] not in self._transactions
+                or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
+                or (
+                    self._transactions[tx["txid"]].get("blockhash", None)
+                    and not self._transactions[tx["txid"]].get("blockheight", None)
+                )  # Fix for Core v19 with Specter v1
                 or self._transactions[tx["txid"]].get("conflicts", [])
                 != tx.get("walletconflicts", [])
             ]
@@ -167,6 +172,22 @@ class Wallet:
             if txs.get(txid, None) is not None:
                 continue
             txs[txid] = r["result"]
+        # This is a fix for Bitcoin Core versions < v0.20
+        # These do not return the blockheight as part of the `gettransaction` command
+        # So here we check if this property is lacking and if so
+        # query the current block height and manually calculate it.
+        ##################### Remove from here after dropping Core v0.19 support #####################
+        check_blockheight = False
+        for tx in txs.values():
+            if tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+                check_blockheight = True
+                break
+        if check_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+            for tx in txs.values():
+                if tx.get("confirmations", 0) > 0:
+                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
+        ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
 
     def update(self):
@@ -524,101 +545,23 @@ class Wallet:
                 else:
                     tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-                raw_tx = decoderawtransaction(tx["hex"], self.manager.chain)
-                tx["vsize"] = raw_tx["vsize"]
+                # coinbase tx
+                if tx["category"] == "generate":
+                    if tx["confirmations"] <= 100:
+                        category = "immature"
+
                 if (
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
                     tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
 
-                category = ""
-                addresses = []
-                amounts = {}
-                inputs_mine_count = 0
-                for vin in raw_tx["vin"]:
-                    # coinbase tx
-                    if (
-                        vin["txid"]
-                        == "0000000000000000000000000000000000000000000000000000000000000000"
-                    ):
-                        if tx["confirmations"] <= 100:
-                            category = "immature"
-                        else:
-                            category = "generate"
-                        break
-                    if vin["txid"] in self._transactions:
-                        try:
-                            address = decoderawtransaction(
-                                self._transactions[vin["txid"]]["hex"],
-                                self.manager.chain,
-                            )["vout"][vin["vout"]]["addresses"][0]
-                            address_info = self.get_address_info(address)
-                            if address_info and not address_info.is_external:
-                                inputs_mine_count += 1
-                        except Exception:
-                            continue
-
-                outputs_mine_count = 0
-                for out in raw_tx["vout"]:
-                    try:
-                        address = out["addresses"][0]
-                    except Exception:
-                        # couldn't get address...
-                        continue
-                    address_info = self.get_address_info(address)
-                    if address_info and not address_info.is_external:
-                        outputs_mine_count += 1
-                    addresses.append(address)
-                    amounts[address] = out["value"]
-
-                if inputs_mine_count:
-                    if outputs_mine_count == len(raw_tx["vout"]):
-                        category = "selftransfer"
-                        # remove change addresses from the dest list
-                        addresses2 = [
-                            address
-                            for address in addresses
-                            if self.get_address_info(address)
-                            and not self.get_address_info(address).change
-                        ]
-                        # use new list only if it's not empty
-                        if len(addresses2) > 0:
-                            addresses = addresses2
-                    else:
-                        category = "send"
-                        addresses = [
-                            address
-                            for address in addresses
-                            if not self.get_address_info(address)
-                            or self.get_address_info(address).is_external
-                        ]
+                if isinstance(tx["address"], str):
+                    tx["label"] = self.getlabel(tx["address"])
+                elif isinstance(tx["address"], list):
+                    tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
-                    if not category:
-                        category = "receive"
-                    addresses = [
-                        address
-                        for address in addresses
-                        if self.get_address_info(address)
-                        and not self.get_address_info(address).is_external
-                    ]
-
-                amounts = [amounts[address] for address in addresses]
-
-                if len(addresses) == 1:
-                    addresses = addresses[0]
-                    amounts = amounts[0]
-                    tx["label"] = self.getlabel(addresses)
-                else:
-                    tx["label"] = [self.getlabel(address) for address in addresses]
-
-                tx["category"] = category
-                tx["address"] = addresses
-                tx["amount"] = amounts
-                if len(addresses) == 0:
-                    tx["ismine"] = False
-                else:
-                    tx["ismine"] = True
+                    tx["label"] = None
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -650,9 +593,12 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def gettransaction(self, txid, blockheight=None):
+    def gettransaction(self, txid, blockheight=None, decode=False):
         try:
-            return self._transactions.gettransaction(txid, blockheight)
+            tx_data = self._transactions.gettransaction(txid, blockheight)
+            if decode:
+                return decoderawtransaction(tx_data["hex"], self.manager.chain)
+            return tx_data
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
@@ -927,7 +873,11 @@ class Wallet:
 
         to_return = {"wallet_type": "{}of{}".format(self.sigs_required, len(self.keys))}
         for cnt, device in enumerate(self.devices):
-            key = [key for key in device.keys if key in self.keys][0]
+            keys_matched = [key for key in device.keys if key in self.keys]
+            if keys_matched:
+                key = keys_matched[0]
+            else:
+                return {"error": "Missing key couldn't be found in any device"}
             if device.device_type in electrum_devices:
                 to_return["x{}/".format(cnt + 1)] = {
                     "ckcc_xfp": int(
@@ -1381,3 +1331,38 @@ class Wallet:
             return 75 + 34
         # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
         return 75 + 34 + 23 * 4
+
+    def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
+
+        addresses_info = []
+
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
+
+        for addr in addresses_cache:
+
+            addr_utxo = 0
+            addr_amount = 0
+
+            for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
+                addr_amount = addr_amount + utxo["amount"]
+                addr_utxo = addr_utxo + 1
+
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "used": bool(addr.used),
+                    "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
+                }
+            )
+
+        return addresses_info

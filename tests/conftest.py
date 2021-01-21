@@ -260,7 +260,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
             "host": bitcoin_regtest.rpcconn.ipaddress,
             "protocol": "http",
         },
-        "auth": "rpcpasswordaspin",
+        "auth": {
+            "method": "rpcpasswordaspin",
+        },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     specter.check()

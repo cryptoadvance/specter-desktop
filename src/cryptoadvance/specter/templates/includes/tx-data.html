@@ -82,7 +82,7 @@
                 }
                 if (tx.confirmations) {
                     rawtxHTML += `
-                        <tr><td>Mine at block:</td><td>${tx.blockheight}</td></tr>
+                        <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
                         <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
                         <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
                     `;
