@@ -8,10 +8,10 @@
 			{% if method == "none" or current_user.is_admin %}
 				Authentication:<br>
 				<select name="method" onchange="toggleUsernamePassword(this)">
-					<option value="none" {% if auth=="none" %} selected="selected"{% endif %}>None</option>
-					<option value="passwordonly" {% if auth=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
-					<option value="usernamepassword" {% if auth=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
-					<option value="rpcpasswordaspin" {% if auth=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.config.rpc.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
+					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
+					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
+					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.config.rpc.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
 				</select>
 				<br><br>
 			{% endif %}
