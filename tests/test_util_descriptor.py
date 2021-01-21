@@ -248,11 +248,12 @@ def test_checksums():
 ### Tests of additional descriptor functionality in Specter
 
 
-def test_derive():
+def test_derive_regtest():
     # Using ghost x 11 + machine (1)
     # abandon x 11 + about (2)
     # and zoo x 11 + wrong (3)
     # /48'/1'/0'/1'
+    # Using iancoleman to get tpubs
 
     desc = Descriptor.parse(
         "sh(wsh(sortedmulti(2,tpubDDzWqfZ5TH4819JtJT1MaJGh2FYnbn2KGoqkznXRFdNZAuKLD2CsYtQiV5rEVCUezzz9GaRkeHct5NSxVEG9KWUaRoeEtcafVHr2SVE5DRN/*,tpubDFH9dgzveyD8yHQb8VrpG8FYAuwcLMHMje2CCcbBo1FpaGzYVtJeYYxcYgRqSTta5utUFts8nPPHs9C2bqoxrey5jia6Dwf9mpwrPq7YvcJ/*,tpubDFPtPArj4GzBBcuqDySkeQbKx4r6HwRgcPbbAjbjB5cxYRzJT6iFtiqzce4qQ9XFWZ83DZJ43WCJJsotdG75p7pw4SgUHZ2nkG4YxLQ414i/2)))",
@@ -263,24 +264,42 @@ def test_derive():
         desc.derive(1).serialize()
         == "sh(wsh(sortedmulti(2,03407a711574ae73aa5824f5a66bf4f9a9f49dd274407eb4c27d996019cf4a6552,0376166abb71efb6c9a497a64c1b24c484c29b8a4219a526737e1f370768b1bbe8,03a1427c178f0b1cd679464c4c90444bcfd775d5edb89cf33828170e8be008d921)))#j54e69dq"
     )
-    # Pubkeys sorted
-    # Verified with iancoleman
+    # pubkeys cross-checked with iancoleman
 
     assert desc.address(5) == "2NGamwat67EUkABbkY1HLYjQW3oumUcThnV"
     # Verified with bitcoin-cli deriveaddresses
-
-    assert desc.address(5, "main") == "388fc825v9R6Ev8BKodXQMFumQRe7C8SZ5"
-
-    # bitcoin-cli deriveaddresses "sh(wsh(sortedmulti(2,xpub6DiXipxEgSYqTw3xX2apub7vzsC5gBzmikxriTRnfKRKQjUSpiGQ9XzyFktkVLTGVGF5emH8up1qtsyw726rvnmzHRU8cHH8gDxeLMXSkYE/*,xpub6DkFAXWQ2dHxnMKoSBogHrw1rgNJKR4umdbnNVNTYeCGcduxWnNUHgGptqEQWPKRmeW4Zn4FHSbLMBKEWYaMDYu47Ytg6DdFnPNt8hwn5mE/*,xpub6FHZCoNb3tg3mxjcXsQx1xLpNmod6woECf2fB4nQbe9NXbvha2ucpDpnGbTFF68KUMUr1hNQ9E5jVEvpT2kUkVmFVDrJawcbgXzDpJc2hkF/2)))#gns9r6at" [5,5]
-    # gives 388fc825v9R6Ev8BKodXQMFumQRe7C8SZ5
-    # xpubs from iancoleman
-    # Specter gives 3R2Zsqx4VmyPxPyCrsfTvnREqThbhjFG4N - what's wrong?
 
     assert (
         desc.derive(1, keep_xpubs=True).serialize()
         == "sh(wsh(sortedmulti(2,tpubDFPtPArj4GzBBcuqDySkeQbKx4r6HwRgcPbbAjbjB5cxYRzJT6iFtiqzce4qQ9XFWZ83DZJ43WCJJsotdG75p7pw4SgUHZ2nkG4YxLQ414i/2,tpubDFH9dgzveyD8yHQb8VrpG8FYAuwcLMHMje2CCcbBo1FpaGzYVtJeYYxcYgRqSTta5utUFts8nPPHs9C2bqoxrey5jia6Dwf9mpwrPq7YvcJ/1,tpubDDzWqfZ5TH4819JtJT1MaJGh2FYnbn2KGoqkznXRFdNZAuKLD2CsYtQiV5rEVCUezzz9GaRkeHct5NSxVEG9KWUaRoeEtcafVHr2SVE5DRN/1)))#3mfhjamz"
     )
-    # Suffix goes from /* to /1
+
+
+def test_derive_main():
+    # Using ghost x 11 + machine (1)
+    # abandon x 11 + about (2)
+    # and zoo x 11 + wrong (3)
+    # /48'/0'/0'/1'
+    # Using iancoleman to get xpubs
+
+    desc = Descriptor.parse(
+        "sh(wsh(sortedmulti(2,xpub6DiXipxEgSYqTw3xX2apub7vzsC5gBzmikxriTRnfKRKQjUSpiGQ9XzyFktkVLTGVGF5emH8up1qtsyw726rvnmzHRU8cHH8gDxeLMXSkYE/*,xpub6DkFAXWQ2dHxnMKoSBogHrw1rgNJKR4umdbnNVNTYeCGcduxWnNUHgGptqEQWPKRmeW4Zn4FHSbLMBKEWYaMDYu47Ytg6DdFnPNt8hwn5mE/*,xpub6FHZCoNb3tg3mxjcXsQx1xLpNmod6woECf2fB4nQbe9NXbvha2ucpDpnGbTFF68KUMUr1hNQ9E5jVEvpT2kUkVmFVDrJawcbgXzDpJc2hkF/2)))",
+        True,
+    )
+
+    assert (
+        desc.derive(1).serialize()
+        == "sh(wsh(sortedmulti(2,029dfee2aaa23e2220476c34eda9a76591c1257f8dfce54e42ff014f922ede0838,03151d5b21c6491915e7a103bff913b4d85246c8209a342bb7104850e4cb394686,03646d8e624fedb63739e7963d0c7ad368a7f7935557b2b28c4c954882b19fe6e1)))#rzmdthwy"
+    )
+    # pubkeys cross-checked with iancoleman
+
+    assert desc.address(5, "main") == "388fc825v9R6Ev8BKodXQMFumQRe7C8SZ5"
+    # Verified with bitcoin-cli deriveaddresses
+
+    assert (
+        desc.derive(1, keep_xpubs=True).serialize()
+        == "sh(wsh(sortedmulti(2,xpub6DkFAXWQ2dHxnMKoSBogHrw1rgNJKR4umdbnNVNTYeCGcduxWnNUHgGptqEQWPKRmeW4Zn4FHSbLMBKEWYaMDYu47Ytg6DdFnPNt8hwn5mE/1,xpub6DiXipxEgSYqTw3xX2apub7vzsC5gBzmikxriTRnfKRKQjUSpiGQ9XzyFktkVLTGVGF5emH8up1qtsyw726rvnmzHRU8cHH8gDxeLMXSkYE/1,xpub6FHZCoNb3tg3mxjcXsQx1xLpNmod6woECf2fB4nQbe9NXbvha2ucpDpnGbTFF68KUMUr1hNQ9E5jVEvpT2kUkVmFVDrJawcbgXzDpJc2hkF/2)))#mgjhd0rk"
+    )
 
 
 def test_sort():
