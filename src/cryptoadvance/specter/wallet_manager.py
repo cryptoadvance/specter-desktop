@@ -135,7 +135,9 @@ Silently ignored! Wallet error: {e}"
                                 else:
                                     raise Exception("Failed to load wallet")
                             except Exception as e:
-                                logger.warning(f"Failed to load wallet {wallet_name}: {e}")
+                                logger.warning(
+                                    f"Failed to load wallet {wallet_name}: {e}"
+                                )
                                 logger.warning(traceback.format_exc())
                                 failed_load_wallets.append(wallet)
                         else:

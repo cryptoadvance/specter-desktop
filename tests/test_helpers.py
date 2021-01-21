@@ -23,6 +23,7 @@ def test_load_jsons(caplog):
     # Quite handy if you want to get rid of it which is as easy as:
     # os.remove(mydict["ID123"]['fullpath'])
 
+
 def test_is_ip_private(caplog):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")

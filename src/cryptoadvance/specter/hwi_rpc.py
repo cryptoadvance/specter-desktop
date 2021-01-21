@@ -446,7 +446,9 @@ class HWIBridge(JSONRPC):
                 Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
                 xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
             except Exception:
-                logger.warning("Failed to import Nested Segwit multisigsig testnet key.")
+                logger.warning(
+                    "Failed to import Nested Segwit multisigsig testnet key."
+                )
 
             try:
                 # Testnet multisig native Segwit
