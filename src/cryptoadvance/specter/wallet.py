@@ -729,6 +729,29 @@ class Wallet:
                 )
             except Exception as e:
                 logger.warning(f"Failed to fetch data from block explorer: {e}")
+                # retry if using requests_session failed
+                try:
+                    # get raw transactions
+                    raws = [
+                        requests.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
+                        for tx in missing
+                    ]
+                    # get proofs
+                    proofs = [
+                        requests.get(
+                            f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                        ).text
+                        for tx in missing
+                    ]
+                    # import funds
+                    self.rpc.multi(
+                        [
+                            ("importprunedfunds", raws[i], proofs[i])
+                            for i in range(len(raws))
+                        ]
+                    )
+                except:
+                    logger.warning(f"Failed to fetch data from block explorer: {e}")
         self.check_addresses()
 
     @property
