@@ -1,0 +1,19 @@
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'show_addresses' %}
+{% block content %}
+
+	<div class="table-holder">
+
+		{% include "includes/address-row.html" %}
+        {% include "includes/addresses-table.html" %}
+        
+		<addresses-table
+			{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+			price="{{ specter.alt_rate }}"
+			symbol="{{ specter.alt_symbol }}"
+			{% endif %}
+			btc-unit="{{ specter.unit }}"
+			type="receive"
+			wallet="{{ wallet.alias }}"></addr-table-table>
+	</div>
+{% endblock %}

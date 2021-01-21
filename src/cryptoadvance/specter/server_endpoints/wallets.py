@@ -949,6 +949,14 @@ def decoderawtx(wallet_alias):
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
+            # This is a fix for Bitcoin Core versions < v0.20
+            # These do not return the blockheight as part of the `gettransaction` command
+            # So here we check if this property is lacking and if so
+            # query the blockheader based on the transaction blockhash
+            ##################### Remove from here after dropping Core v0.19 support #####################
+            if "blockhash" in tx and "blockheight" not in tx:
+                tx["blockheight"] = wallet.rpc.getblockheader(tx["blockhash"])["height"]
+            ##################### Remove until here after dropping Core v0.19 support #####################
             return {
                 "success": True,
                 "tx": tx,
@@ -1315,6 +1323,167 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
+def process_addresses_list(
+    addresses_list, idx=0, limit=100, sortby=None, sortdir="asc"
+):
+    """Receive an address list as parameter and sort it or slice it for pagination.
+    Parameters: addresses_list: list of dict with the keys
+                                (index, address, label, used, utxo, amount)
+                idx: pagination index (current page)
+                limit: maximum number of items on the page
+                sortby: field by which the list will be ordered
+                        (index, address, label, used, utxo, amount)
+                sortdir: 'asc' (ascending) or 'desc' (descending) order"""
+    if sortby:
+
+        def sort(addr):
+            val = addr.get(sortby, None)
+            final = val
+            if val:
+                if isinstance(val, str):
+                    final = val.lower()
+            return final
+
+        addresses_list = sorted(addresses_list, key=sort, reverse=sortdir != "asc")
+
+    if limit:
+        page_count = (len(addresses_list) // limit) + (
+            0 if len(addresses_list) % limit == 0 else 1
+        )
+        addresses_list = addresses_list[limit * idx : limit * (idx + 1)]
+    else:
+        page_count = 1
+
+    return {"addressesList": addresses_list, "pageCount": page_count}
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
+@login_required
+def addresses_list(wallet_alias):
+    """Return a JSON with keys:
+        addressesList: list of addresses with the properties
+                       (index, address, label, used, utxo, amount)
+        pageCount: total number of pages
+    POST parameters:
+        idx: pagination index (current page)
+        limit: maximum number of items on the page
+        sortby: field by which the list will be ordered
+                (index, address, label, used, utxo, amount)
+        sortdir: 'asc' (ascending) or 'desc' (descending) order
+        addressType: the current tab address type ('receive' or 'change')"""
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        address_type = request.form.get("addressType", "receive")
+
+        addresses_list = wallet.addresses_info(address_type == "change")
+
+        result = process_addresses_list(
+            addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
+        )
+
+        return {
+            "addressesList": json.dumps(result["addressesList"]),
+            "pageCount": result["pageCount"],
+        }
+
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting addresses_list: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list.csv")
+@login_required
+def addresses_list_csv(wallet_alias):
+    """Return a CSV with addresses of the <wallet_alias> containing the
+    information: index, address, type, label, used, utxo and amount
+    of each of them.
+    GET parameters: sortby: field by which the CSV will be ordered
+                            (index, address, label, used, utxo, amount)
+                    sortdir: 'asc' (ascending) or 'desc' (descending) order
+                    address_type: the current tab address type ('receive' or 'change')
+                    onlyCurrentType: show all addresses (if false) or just the current
+                                     type (address_type param)"""
+
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+        sortby = request.args.get("sortby", "index")
+        sortdir = request.args.get("sortdir", "asc")
+        address_type = request.args.get("addressType", "receive")
+        only_current_type = request.args.get("onlyCurrentType", "false") == "true"
+
+        if not only_current_type:
+            receive_list = wallet.addresses_info(False)
+            change_list = wallet.addresses_info(True)
+
+            receive_result = process_addresses_list(
+                receive_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            change_result = process_addresses_list(
+                change_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            addressesList = (
+                receive_result["addressesList"] + change_result["addressesList"]
+            )
+        else:
+            addresses_list = wallet.addresses_info(address_type == "change")
+
+            result = process_addresses_list(
+                addresses_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            addressesList = result["addressesList"]
+
+        # stream the response as the data is generated
+        response = Response(
+            wallet_addresses_list_to_csv(addressesList),
+            mimetype="text/csv",
+        )
+        # add a filename
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="addresses_list.csv"
+        )
+        return response
+    except Exception as e:
+        app.logger.error("Failed to export addresses list. Error: %s" % e)
+        flash("Failed to export addresses list. Error: %s" % e, "error")
+        return redirect(url_for("index"))
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
+@login_required
+def show_addresses(wallet_alias):
+    """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
+    It updates balances in the wallet before renderization in order to show updated UTXO and
+    balance of each address."""
+
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+
+    # update balances in the wallet
+    app.specter.check_blockheight()
+    wallet.get_balance()
+    wallet.check_utxo()
+
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
@@ -1463,6 +1632,48 @@ def addresses_list_to_csv(wallet):
                     if tx.get("address", "") == address:
                         balance_on_address += tx.get("amount", 0)
         row += (balance_on_address,)
+
+        w.writerow(row)
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+
+def wallet_addresses_list_to_csv(addresses_list):
+    """Convert a list of the wallet addresses to user-friendly CSV format
+    Parameters: addresses_list: a dict of addresses informations
+                (index, address, type, label, used, utxo and amount)"""
+    data = StringIO()
+    w = csv.writer(data)
+    # write header
+    row = (
+        "Index",
+        "Address",
+        "Type",
+        "Label",
+        "Used",
+        "UTXO",
+        "Amount (BTC)",
+    )
+    w.writerow(row)
+    yield data.getvalue()
+    data.seek(0)
+    data.truncate(0)
+
+    # write each log item
+    for address_item in addresses_list:
+
+        used = "Yes" if address_item["used"] else "No"
+
+        row = (
+            address_item["index"],
+            address_item["address"],
+            address_item["type"],
+            address_item["label"],
+            used,
+            address_item["utxo"],
+            address_item["amount"],
+        )
 
         w.writerow(row)
         yield data.getvalue()

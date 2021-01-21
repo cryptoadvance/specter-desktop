@@ -145,6 +145,10 @@ class Wallet:
                 or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
+                or (
+                    self._transactions[tx["txid"]].get("blockhash", None)
+                    and not self._transactions[tx["txid"]].get("blockheight", None)
+                )  # Fix for Core v19 with Specter v1
                 or self._transactions[tx["txid"]].get("conflicts", [])
                 != tx.get("walletconflicts", [])
             ]
@@ -168,6 +172,22 @@ class Wallet:
             if txs.get(txid, None) is not None:
                 continue
             txs[txid] = r["result"]
+        # This is a fix for Bitcoin Core versions < v0.20
+        # These do not return the blockheight as part of the `gettransaction` command
+        # So here we check if this property is lacking and if so
+        # query the current block height and manually calculate it.
+        ##################### Remove from here after dropping Core v0.19 support #####################
+        check_blockheight = False
+        for tx in txs.values():
+            if tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+                check_blockheight = True
+                break
+        if check_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+            for tx in txs.values():
+                if tx.get("confirmations", 0) > 0:
+                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
+        ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
 
     def update(self):
@@ -538,8 +558,10 @@ class Wallet:
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
-                else:
+                elif isinstance(tx["address"], list):
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
+                else:
+                    tx["label"] = None
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -571,9 +593,12 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def gettransaction(self, txid, blockheight=None):
+    def gettransaction(self, txid, blockheight=None, decode=False):
         try:
-            return self._transactions.gettransaction(txid, blockheight)
+            tx_data = self._transactions.gettransaction(txid, blockheight)
+            if decode:
+                return decoderawtransaction(tx_data["hex"], self.manager.chain)
+            return tx_data
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
@@ -1306,3 +1331,38 @@ class Wallet:
             return 75 + 34
         # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
         return 75 + 34 + 23 * 4
+
+    def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
+
+        addresses_info = []
+
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
+
+        for addr in addresses_cache:
+
+            addr_utxo = 0
+            addr_amount = 0
+
+            for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
+                addr_amount = addr_amount + utxo["amount"]
+                addr_utxo = addr_utxo + 1
+
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "used": bool(addr.used),
+                    "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
+                }
+            )
+
+        return addresses_info

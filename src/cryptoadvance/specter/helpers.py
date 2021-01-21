@@ -64,6 +64,13 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
+def migrate_config(config):
+    # migrate old "auth" string into new "auth" json subtree
+    if "auth" in config:
+        if isinstance(config["auth"], str):
+            config["auth"] = dict(method=config["auth"])
+
+
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
