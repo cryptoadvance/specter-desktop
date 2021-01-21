@@ -56,6 +56,16 @@ Note: This allow option is only for trouble shooting, ideally you would limit
 it to your local subnet or the machine running Specter that wants to talk to the
 node via RPC.
 
+### Example - Specter connecting to a remote node: 
+
+Specter is running on your PC with the local network IP-address 192.168.178.55. You want to allow this machine to be able to send RPC requests and connect Specter to the external node, which has the IP-address 192.168.178.45 in your local network. You also want to be able to do RPC requests on the external node itself, i.e. directly or logged in with a ssh-session. You have to specify the two options in bitcoin.conf as follows:
+```
+rpcallowip=192.168.178.55/24
+rpcbind=192.168.178.45
+rpcbind=127.0.0.1
+```
+Note: both options can be specified multiple times.
+
 ### firewall issues
 
 Often enough there are firewalls installed on the machines running services. Usually this is the case if it takes very long until you get a result after clicking the test button in Specter. The solution here is very specific to the firewall used on the server.
