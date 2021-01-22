@@ -21,7 +21,7 @@ Alternatively, you can setup the Tor service. Install Tor on the same server tha
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
-### Configure Specter Desktop
+### Configure Specter Desktop for Remote Instance
 If you're using Specter Desktop (to use hardware wallets for example), then setup the app to connect to your remote Specter server.
 
 1. Open Preferences
