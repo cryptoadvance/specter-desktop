@@ -21,6 +21,18 @@ Alternatively, you can setup the Tor service. Install Tor on the same server tha
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
+### Configure Specter Desktop for Remote Instance
+If you're using Specter Desktop on a remote machine and would like to connect to it over Tor (to use hardware wallets for example), then follow these steps to set up the app to connect to your remote Specter server.
+
+1. Open Preferences
+2. Choose "remote Specter server"
+3. Enter your TOR URL
+4. Switch on "Connect over TOR"
+
+![](../screenshots/desktop-tor-preferences.gif)
+
+After saving, Specter will shutdown. Start it again and you should be able to connect to your remote Specter server.
+
 ### Configure Tor port
 Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs) and uncomment the `ControlPort` line.
 ```sh
