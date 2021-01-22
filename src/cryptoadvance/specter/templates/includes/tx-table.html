@@ -33,15 +33,6 @@
             text-align: center;
             height: 35px;
         }
-        .page-limit-label {
-            float: left;
-            margin-top: 8px;
-        }
-        .page-limit-fieldset {
-            float: left;
-            border:none;
-            display: inline;
-        }
         .search {
             /* float: right; */
             margin: auto;
@@ -49,8 +40,8 @@
             max-width: 350px;
         }
         .search-container {
-            width: 80%;
-            text-align: center;
+            width: 100%;
+            display: flex;
         }
         .up-arrow {
             width: 0;
@@ -110,18 +101,15 @@
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
-    <span class="page-limit-label">Page limit: </span><fieldset class="page-limit-fieldset"> 
-        <select class="page-limit-select">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50" selected>50</option>
-            <option value="100">100</option>
-            <option value="0">All</option>
-        </select>
-    </fieldset>
-    <br>
     <div class="search-container">
+        <!--Left part of the toolbar-->
+        <div style="flex: 1;">
+            {% include "includes/page-limit-select.html" %}
+        </div>
+        <!--Middle part of the toolbar-->
         <input class="search" type="text" placeholder="Search..." />
+        <!--Placeholder for right part of the toolbar-->
+        <div style="flex: 1;"></div>
     </div>
     <br>
     <div class="export-container hidden">
