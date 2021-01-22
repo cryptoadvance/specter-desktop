@@ -22,7 +22,7 @@ Alternatively, you can setup the Tor service. Install Tor on the same server tha
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
 ### Configure Specter Desktop for Remote Instance
-If you're using Specter Desktop (to use hardware wallets for example), then setup the app to connect to your remote Specter server.
+If you're using Specter Desktop on a remote machine and would like to connect to it over Tor (to use hardware wallets for example), then follow these steps to set up the app to connect to your remote Specter server.
 
 1. Open Preferences
 2. Choose "remote Specter server"
