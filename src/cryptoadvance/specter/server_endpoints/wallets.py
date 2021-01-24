@@ -613,24 +613,6 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
-        elif action == "importpsbt":
-            try:
-                b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
-            except Exception as e:
-                flash("Could not import PSBT: %s" % e, "error")
-                return redirect(
-                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
-                )
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
@@ -741,7 +723,7 @@ def send_pending(wallet_alias):
     )
 
 
-@wallets_endpoint.route("/wallet/<wallet_alias>/send/import")
+@wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
 def import_psbt(wallet_alias):
     try:
@@ -749,6 +731,25 @@ def import_psbt(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_send: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "importpsbt":
+            try:
+                b64psbt = "".join(request.form["rawpsbt"].split())
+                psbt = wallet.importpsbt(b64psbt)
+            except Exception as e:
+                flash("Could not import PSBT: %s" % e, "error")
+                return redirect(
+                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
+                )
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     err = None
     return render_template(
         "wallet/send/import/wallet_importpsbt.jinja",
