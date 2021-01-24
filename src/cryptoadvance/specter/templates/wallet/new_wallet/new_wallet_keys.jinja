@@ -129,12 +129,7 @@
 							{% for key in device.keys if key.is_testnet == specter.is_testnet %}
 								<tr>
 									<td>
-										{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-										{% if key.xpub.startswith("xpub") %}
-											{{ bitcoin_svg('main', 16) }} Main
-										{% else %}
-											{{ bitcoin_svg('test', 16) }} Test
-										{% endif %}
+										{% include "components/network_label.jinja" %}
 									</td>
 									<td>{{ key.purpose }}</td>
 									<td class="optional">{{ key.derivation }}</td>
