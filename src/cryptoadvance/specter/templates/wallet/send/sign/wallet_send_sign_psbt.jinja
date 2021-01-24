@@ -71,7 +71,7 @@
 	</style>
 	<br>
 	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" style="margin: auto; margin-top: 0px; max-width: 96%;">
+	<form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" style="margin: auto; margin-top: 0px; max-width: 96%;">
 		<div class="tx_info">
 			
 			{% for i in range(psbt['address']|length) %}

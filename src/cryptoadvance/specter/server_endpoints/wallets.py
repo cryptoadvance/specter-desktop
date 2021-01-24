@@ -631,24 +631,6 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
-        elif action == "openpsbt":
-            psbt = ast.literal_eval(request.form["pending_psbt"])
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
-        elif action == "deletepsbt":
-            try:
-                wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
-                )
-            except Exception as e:
-                flash("Could not delete Pending PSBT!", "error")
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
@@ -733,6 +715,16 @@ def send_pending(wallet_alias):
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
                 flash("Could not delete Pending PSBT!", "error")
+        elif action == "openpsbt":
+            psbt = ast.literal_eval(request.form["pending_psbt"])
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     pending_psbts = wallet.pending_psbts
     ######## Migration to multiple recipients format ###############
     for psbt in pending_psbts:
