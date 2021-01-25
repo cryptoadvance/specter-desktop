@@ -1,5 +1,7 @@
 import random, traceback, socket
 from datetime import datetime
+from binascii import unhexlify
+from flask import make_response
 
 from flask import (
     render_template,
@@ -137,3 +139,46 @@ def get_scantxoutset_status():
         "active": app.specter.info["utxorescan"] is not None,
         "progress": app.specter.info["utxorescan"],
     }
+
+
+@app.route("/bitcoin.pdf")
+@login_required
+def get_whitepaper():
+    if not app.specter.info["pruned"]:
+        raw_tx = app.specter.rpc.getrawtransaction(
+            "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713",
+            False,
+            "00000000000000ecbbff6bafb7efa2f7df05b227d5c73dca8f2635af32a2e949",
+        )
+        outputs = raw_tx.split("0100000000000000")
+        pdf = ""
+        for output in outputs[1:-2]:
+            cur = 6
+            pdf += output[cur : cur + 130]
+            cur += 132
+            pdf += output[cur : cur + 130]
+            cur += 132
+            pdf += output[cur : cur + 130]
+        pdf += outputs[-2][6:-4]
+    else:
+        # Can sth. like specter.rpc.multi([("getblockhash", tx["height"]) for tx in unspents] be used here to make just one RPC call.
+        # Like this? outputs_prun = app.specter.rpc.multi([("gettxout","54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713", i) for i in range(0,946)])
+        outputs_prun = []
+        for i in range(0, 946):
+            output = app.specter.rpc.gettxout(
+                "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713", i
+            )
+            outputs_prun.append(output)
+        pdf = ""
+        for output in outputs_prun[:-1]:
+            cur = 4
+            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
+            cur += 132
+            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
+            cur += 132
+            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
+        pdf += outputs_prun[-1]["scriptPubKey"]["hex"][4:-4]
+    res = make_response(unhexlify(pdf[16:-16]))
+    res.headers.set("Content-Disposition", "attachment")
+    res.headers.set("Content-Type", "application/pdf")
+    return res
