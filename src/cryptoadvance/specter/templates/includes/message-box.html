@@ -8,7 +8,7 @@
     .main{
         min-width: 200px;
         max-width: 800px;
-        font-size: 0.7em;
+        font-size: 0.85em;
         color: #fff;
         overflow-x: scroll;
         background: var(--cmap-bg-lightest);
@@ -48,9 +48,12 @@
     .main::-webkit-scrollbar{
       display: none;
     }
+    .close {
+      margin: 0px -22px;
+    }
   </style>
   <div class="main">
-    <a class="close">⨉</a>
+    <a class="close">&#x2715;</a>
     <slot>
      Error: Something bad happened!
     </slot>

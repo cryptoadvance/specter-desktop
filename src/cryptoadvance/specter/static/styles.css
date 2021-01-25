@@ -576,8 +576,10 @@ textarea{
 #messages{
     position: absolute;
     top: 0;
-    left: 50%;
-    transform:translateX(-50%);
+    width: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     z-index: 99999;
 }
 .btn.danger{
