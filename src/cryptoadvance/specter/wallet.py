@@ -602,7 +602,7 @@ class Wallet:
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
-    def rescanutxo(self, explorer=None, requests_session=None):
+    def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
         delete_file(self._transactions.path)
         self.fetch_transactions()
         t = threading.Thread(
@@ -610,6 +610,7 @@ class Wallet:
             args=(
                 explorer,
                 requests_session,
+                only_tor,
             ),
         )
         t.start()
@@ -630,7 +631,7 @@ class Wallet:
             for address in addresses:
                 self._addresses.set_label(address, label)
 
-    def _rescan_utxo_thread(self, explorer=None, requests_session=None):
+    def _rescan_utxo_thread(self, explorer=None, requests_session=None, only_tor=False):
         # rescan utxo is pretty fast,
         # so we can check large range of addresses
         # and adjust keypool accordingly
@@ -729,6 +730,30 @@ class Wallet:
                 )
             except Exception as e:
                 logger.warning(f"Failed to fetch data from block explorer: {e}")
+                # retry if using requests_session failed
+                if not only_tor:
+                    try:
+                        # get raw transactions
+                        raws = [
+                            requests.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
+                            for tx in missing
+                        ]
+                        # get proofs
+                        proofs = [
+                            requests.get(
+                                f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                            ).text
+                            for tx in missing
+                        ]
+                        # import funds
+                        self.rpc.multi(
+                            [
+                                ("importprunedfunds", raws[i], proofs[i])
+                                for i in range(len(raws))
+                            ]
+                        )
+                    except:
+                        logger.warning(f"Failed to fetch data from block explorer: {e}")
         self.check_addresses()
 
     @property
