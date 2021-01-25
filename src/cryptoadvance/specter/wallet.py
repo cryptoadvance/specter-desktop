@@ -602,7 +602,7 @@ class Wallet:
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
-    def rescanutxo(self, explorer=None, requests_session=None):
+    def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
         delete_file(self._transactions.path)
         self.fetch_transactions()
         t = threading.Thread(
@@ -610,6 +610,7 @@ class Wallet:
             args=(
                 explorer,
                 requests_session,
+                only_tor,
             ),
         )
         t.start()
@@ -630,7 +631,7 @@ class Wallet:
             for address in addresses:
                 self._addresses.set_label(address, label)
 
-    def _rescan_utxo_thread(self, explorer=None, requests_session=None):
+    def _rescan_utxo_thread(self, explorer=None, requests_session=None, only_tor=False):
         # rescan utxo is pretty fast,
         # so we can check large range of addresses
         # and adjust keypool accordingly
@@ -729,6 +730,30 @@ class Wallet:
                 )
             except Exception as e:
                 logger.warning(f"Failed to fetch data from block explorer: {e}")
+                # retry if using requests_session failed
+                if not only_tor:
+                    try:
+                        # get raw transactions
+                        raws = [
+                            requests.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
+                            for tx in missing
+                        ]
+                        # get proofs
+                        proofs = [
+                            requests.get(
+                                f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
+                            ).text
+                            for tx in missing
+                        ]
+                        # import funds
+                        self.rpc.multi(
+                            [
+                                ("importprunedfunds", raws[i], proofs[i])
+                                for i in range(len(raws))
+                            ]
+                        )
+                    except:
+                        logger.warning(f"Failed to fetch data from block explorer: {e}")
         self.check_addresses()
 
     @property
@@ -1333,6 +1358,10 @@ class Wallet:
         return 75 + 34 + 23 * 4
 
     def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
 
         addresses_info = []
 
@@ -1340,7 +1369,7 @@ class Wallet:
             v for _, v in self._addresses.items() if v.change == is_change
         ]
 
-        for addr in reversed(addresses_cache):
+        for addr in addresses_cache:
 
             addr_utxo = 0
             addr_amount = 0
@@ -1355,8 +1384,9 @@ class Wallet:
                     "address": addr.address,
                     "label": addr.label,
                     "amount": addr_amount,
-                    "addr_used": addr.used,
+                    "used": bool(addr.used),
                     "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
                 }
             )
 

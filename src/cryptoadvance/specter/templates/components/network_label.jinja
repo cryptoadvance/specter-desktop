@@ -1,0 +1,14 @@
+<style>
+    .network-label {
+        display: flex;
+        align-items: center;
+    }
+</style>
+<div class="network-label">
+    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+    {% if key.xpub.startswith("xpub") %}
+        {{ bitcoin_svg('main', 16) }}&nbsp;<span>Main</span>
+    {% else %}
+        {{ bitcoin_svg('test', 16) }}&nbsp;<span>Test</span>
+    {% endif %}
+</div>

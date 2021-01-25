@@ -198,7 +198,7 @@
             <div class="row">
                 <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
                 <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
-                <button type="submit" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
+                <button type="submit" class="btn centered action hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
             </div>
         </form>
     </div>
@@ -227,7 +227,7 @@
             xpubsTableRowsInput.value = xpubsTableRows;
             let xpubRowHTML = `
                 <td></td>
-                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB puropse" style="width: 90%; min-width: 100px;"></td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB purpose" style="width: 90%; min-width: 100px;"></td>
                 <td id="xpubs-table-row-${xpubsTableRows}-derivation" style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
                 <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
@@ -282,7 +282,7 @@
 
             let xpubAddCustomRowHTML =  `
                 <td></td>
-                <td><input id="new_xpub_purpose" type="text" placeholder="XPUB puropse"></td>
+                <td><input id="new_xpub_purpose" type="text" placeholder="XPUB purpose"></td>
                 <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
                 <td></td>
                 <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">Add</button></td>

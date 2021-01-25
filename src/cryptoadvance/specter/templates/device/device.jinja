@@ -32,12 +32,7 @@
 				{% for key in device.keys %}
 					<tr>
 						<td>
-							{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-							{% if key.xpub.startswith("xpub") %}
-								{{ bitcoin_svg('main', 16) }} Main
-							{% else %}
-								{{ bitcoin_svg('test', 16) }} Test
-							{% endif %}
+						    {% include "components/network_label.jinja" %}
 						</td>
 						<td>{{ key.purpose }}</td>
 						<td class="optional">{{ key.derivation }}</td>
@@ -64,7 +59,7 @@
 		</form>
 		<br>
 		{% if device.hwi_support %}
-			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
+			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign message on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">
 				Derivation path:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
 				Message:<br>
