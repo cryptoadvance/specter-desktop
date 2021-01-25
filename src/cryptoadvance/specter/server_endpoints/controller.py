@@ -144,41 +144,49 @@ def get_scantxoutset_status():
 @app.route("/bitcoin.pdf")
 @login_required
 def get_whitepaper():
-    if not app.specter.info["pruned"]:
-        raw_tx = app.specter.rpc.getrawtransaction(
-            "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713",
-            False,
-            "00000000000000ecbbff6bafb7efa2f7df05b227d5c73dca8f2635af32a2e949",
-        )
-        outputs = raw_tx.split("0100000000000000")
-        pdf = ""
-        for output in outputs[1:-2]:
-            cur = 6
-            pdf += output[cur : cur + 130]
-            cur += 132
-            pdf += output[cur : cur + 130]
-            cur += 132
-            pdf += output[cur : cur + 130]
-        pdf += outputs[-2][6:-4]
-    else:
-        # Can sth. like specter.rpc.multi([("getblockhash", tx["height"]) for tx in unspents] be used here to make just one RPC call.
-        # Like this? outputs_prun = app.specter.rpc.multi([("gettxout","54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713", i) for i in range(0,946)])
-        outputs_prun = []
-        for i in range(0, 946):
-            output = app.specter.rpc.gettxout(
-                "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713", i
+    if app.specter.chain == "main":
+        if not app.specter.info["pruned"]:
+            raw_tx = app.specter.rpc.getrawtransaction(
+                "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713",
+                False,
+                "00000000000000ecbbff6bafb7efa2f7df05b227d5c73dca8f2635af32a2e949",
             )
-            outputs_prun.append(output)
-        pdf = ""
-        for output in outputs_prun[:-1]:
-            cur = 4
-            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
-            cur += 132
-            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
-            cur += 132
-            pdf += output["scriptPubKey"]["hex"][cur : cur + 130]
-        pdf += outputs_prun[-1]["scriptPubKey"]["hex"][4:-4]
-    res = make_response(unhexlify(pdf[16:-16]))
-    res.headers.set("Content-Disposition", "attachment")
-    res.headers.set("Content-Type", "application/pdf")
-    return res
+            outputs = raw_tx.split("0100000000000000")
+            pdf = ""
+            for output in outputs[1:-2]:
+                cur = 6
+                pdf += output[cur : cur + 130]
+                cur += 132
+                pdf += output[cur : cur + 130]
+                cur += 132
+                pdf += output[cur : cur + 130]
+            pdf += outputs[-2][6:-4]
+        else:
+            outputs_prun = app.specter.rpc.multi(
+                [
+                    (
+                        "gettxout",
+                        "54e48e5f5c656b26c3bca14a8c95aa583d07ebe84dde3b7dd4a78f4e4186e713",
+                        i,
+                    )
+                    for i in range(0, 946)
+                ]
+            )
+            pdf = ""
+            for output in outputs_prun[:-1]:
+                cur = 4
+                pdf += output["result"]["scriptPubKey"]["hex"][cur : cur + 130]
+                cur += 132
+                pdf += output["result"]["scriptPubKey"]["hex"][cur : cur + 130]
+                cur += 132
+                pdf += output["result"]["scriptPubKey"]["hex"][cur : cur + 130]
+            pdf += outputs_prun[-1]["result"]["scriptPubKey"]["hex"][4:-4]
+        res = make_response(unhexlify(pdf[16:-16]))
+        res.headers.set("Content-Disposition", "attachment")
+        res.headers.set("Content-Type", "application/pdf")
+        return res
+    else:
+        return render_template(
+            "500.jinja",
+            error="You need a mainnet node to retrieve the whitepaper. Check your node configurations.",
+        )
