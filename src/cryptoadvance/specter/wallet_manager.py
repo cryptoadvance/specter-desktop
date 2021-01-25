@@ -111,13 +111,13 @@ class WalletManager:
                                         ],
                                     )
                         except RpcError as e:
-                            logger.warn(
+                            logger.warning(
                                 f"Couldn't load wallet {wallet_alias} into core.\
 Silently ignored! RPC error: {e}"
                             )
                             failed_load_wallets.append(wallet)
                         except Exception as e:
-                            logger.warn(
+                            logger.warning(
                                 f"Couldn't load wallet {wallet_alias}.\
 Silently ignored! Wallet error: {e}"
                             )
@@ -135,8 +135,10 @@ Silently ignored! Wallet error: {e}"
                                 else:
                                     raise Exception("Failed to load wallet")
                             except Exception as e:
-                                logger.warn(f"Failed to load wallet {wallet_name}: {e}")
-                                logger.warn(traceback.format_exc())
+                                logger.warning(
+                                    f"Failed to load wallet {wallet_name}: {e}"
+                                )
+                                logger.warning(traceback.format_exc())
                                 failed_load_wallets.append(wallet)
                         else:
                             # wallet is loaded and should stay
