@@ -74,9 +74,9 @@ def migrate_config(config):
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
-        if not isinstance(dv, collections.Mapping):
+        if not isinstance(dv, collections.abc.Mapping):
             d[k] = v
-        elif isinstance(v, collections.Mapping):
+        elif isinstance(v, collections.abc.Mapping):
             d[k] = deep_update(dv, v)
         else:
             d[k] = v
@@ -111,7 +111,7 @@ def set_loglevel(app, loglevel_string):
     )
     loglevels = {"WARN": logging.WARN, "INFO": logging.INFO, "DEBUG": logging.DEBUG}
     logging.getLogger().setLevel(loglevels[loglevel_string])
-    logger.warn("Loglevel-Test: This is a warn-message!")
+    logger.warning("Loglevel-Test: This is a warn-message!")
     logger.info("Loglevel-Test: This is an info-message!")
     logger.debug("Loglevel-Test: This is an debug-message!")
 
@@ -307,10 +307,10 @@ def notify_upgrade(app, flash):
 
 def is_ip_private(ip):
     # https://en.wikipedia.org/wiki/Private_network
-    priv_lo = re.compile("^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-    priv_24 = re.compile("^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-    priv_20 = re.compile("^192\.168\.\d{1,3}.\d{1,3}$")
-    priv_16 = re.compile("^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{1,3}.[0-9]{1,3}$")
+    priv_lo = re.compile(r"^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    priv_24 = re.compile(r"^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    priv_20 = re.compile(r"^192\.168\.\d{1,3}.\d{1,3}$")
+    priv_16 = re.compile(r"^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{1,3}.[0-9]{1,3}$")
 
     res = (
         ip == "localhost"

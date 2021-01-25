@@ -39,17 +39,6 @@
             height: 35px;
         }
 
-        .page-limit-label {
-            float: left;
-            margin-top: 8px;
-        }
-
-        .page-limit-fieldset {
-            float: left;
-            border: none;
-            display: inline;
-        }
-
         .up-arrow {
             width: 0;
             height: 0;
@@ -108,18 +97,9 @@
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
-    <span class="page-limit-label">Page limit: </span>
-    <fieldset class="page-limit-fieldset">
-        <select class="page-limit-select">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50" selected>50</option>
-            <option value="100">100</option>
-            <option value="0">All</option>
-        </select>
-    </fieldset>
-
-    <br>
+    <div>
+        {% include "includes/page-limit-select.html" %}
+    </div>
     <div class="export-container hidden">
         <h1>Export addresses to CSV</h1>
 

@@ -287,7 +287,7 @@ $ pip-compile --generate-hashes requirements.in
 This is good for both security and reproducibility.
 
 ### Some words specific to the frontend
-We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that. High level consultancy help on that would be appreciated even so (or especially when) you take the above security/dependency requirements into account.
+We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that.
 
 ### Some words about style
 * The icons are coming from https://material.io/resources/icons/?style=baseline
