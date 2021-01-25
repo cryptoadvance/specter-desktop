@@ -674,6 +674,7 @@ def send_new(wallet_alias):
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
+        recipients=list(zip(addresses, amounts, labels)),
         rand=rand,
         error=err,
     )
