@@ -12,18 +12,18 @@ def test_home(caplog, client):
     assert result.status_code == 302  # REDIRECT.
     result = client.get("/about")
     assert b"Welcome to Specter" in result.data
-    result = client.get("/new_device", follow_redirects=True)
+    result = client.get("/devices/new_device", follow_redirects=True)
     assert result.status_code == 200  # OK.
-    assert b"Setting up a new device" in result.data
+    assert b"Add Device" in result.data
     result = client.get("/settings", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"settings - Specter Desktop" in result.data
-    result = client.get("/new_wallet", follow_redirects=True)
+    result = client.get("/wallets/new_wallet", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"Select the type of the wallet" in result.data
 
     # Login logout testing
-    result = client.get("/login", follow_redirects=False)
+    result = client.get("/auth/login", follow_redirects=False)
     assert result.status_code == 200
     assert b"Password" in result.data
     result = login(client, "secret")
@@ -62,6 +62,9 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
             loglevel="debug",
             restoredevices=restore_devices,
             restorewallets=restore_wallets,
+            proxy_url="",
+            only_tor="off",
+            tor_control_port="",
         ),
     )
     assert b"Specter data was successfully loaded from backup." in result.data
@@ -73,7 +76,9 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
 
 def login(client, password):
     """ login helper-function """
-    result = client.post("/login", data=dict(password=password), follow_redirects=True)
+    result = client.post(
+        "auth/login", data=dict(password=password), follow_redirects=True
+    )
     assert (
         b"We could not check your password, maybe Bitcoin Core is not running or not configured?"
         not in result.data
@@ -83,4 +88,4 @@ def login(client, password):
 
 def logout(client):
     """ logout helper-method """
-    return client.get("/logout", follow_redirects=True)
+    return client.get("auth/logout", follow_redirects=True)

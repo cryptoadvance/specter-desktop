@@ -4,28 +4,43 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, redirect
+from flask import Flask, redirect, url_for
 from flask_login import LoginManager, login_user
 
 from .helpers import hwi_get_config
 from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
-from .config import DATA_FOLDER
 from .util.version import VersionChecker
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 env_path = Path(".") / ".flaskenv"
 load_dotenv(env_path)
 
 
-def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
-    # Enables injection of a different config via Env-Variable
-    if os.environ.get("SPECTER_CONFIG"):
-        config = os.environ.get("SPECTER_CONFIG")
+def calc_module_name(config):
+    """ tiny helper to make passing configs more convenient """
+    if "." in config:
+        return config
+    else:
+        return "cryptoadvance.specter.config." + config
+
+
+def create_app(config=None):
+
+    # Cmdline has precedence over Env-Var
+    if config is not None:
+        config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+    else:
+        # Enables injection of a different config via Env-Variable
+        if os.environ.get("SPECTER_CONFIG"):
+            config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+        else:
+            # Default
+            config = "cryptoadvance.specter.config.DevelopmentConfig"
 
     if getattr(sys, "frozen", False):
 
@@ -39,6 +54,7 @@ def create_app(config="cryptoadvance.specter.config.DevelopmentConfig"):
         )
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
+    logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
@@ -53,16 +69,19 @@ def init_app(app, hwibridge=False, specter=None):
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
-        specter = Specter(DATA_FOLDER)
+        specter = Specter(
+            data_folder=app.config["SPECTER_DATA_FOLDER"],
+            config=app.config["DEFAULT_SPECTER_CONFIG"],
+        )
 
     # version checker
     # checks for new versions once per hour
-    specter.version = VersionChecker()
+    specter.version = VersionChecker(specter=specter)
     specter.version.start()
 
     login_manager = LoginManager()
     login_manager.init_app(app)  # Enable Login
-    login_manager.login_view = "login"  # Enable redirects if unauthorized
+    login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
 
     @login_manager.user_loader
     def user_loader(id):
@@ -74,7 +93,7 @@ def init_app(app, hwibridge=False, specter=None):
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
-    if specter.config.get("auth") == "none":
+    if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
     else:
@@ -83,7 +102,7 @@ def init_app(app, hwibridge=False, specter=None):
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     if not hwibridge:
         with app.app_context():
-            from cryptoadvance.specter import controller
+            from cryptoadvance.specter.server_endpoints import controller
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
@@ -98,7 +117,7 @@ def init_app(app, hwibridge=False, specter=None):
 
         @app.route("/", methods=["GET"])
         def index():
-            return redirect("/hwi/settings")
+            return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
     app.logger.info("Initializing REST ...")
     from cryptoadvance.specter.api import api_bp

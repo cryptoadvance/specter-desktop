@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_settings' %}
+{% set tab = 'settings' %}
 {% block content %}
 	<style>
 		.subtitle {
@@ -12,10 +12,13 @@
 		}
 	</style>
 	<br>
-	<nav class="row">
+	<nav class="row collapse-on-mobile">
 		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
 		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
 		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		</a>
 	</nav><br>
 	<div id="wallet_info_settings_tab" style="width: 100%">
 		<h1 style="font-size: 1.7em;">Wallet Info</h1><br>
@@ -27,7 +30,7 @@
 		{% endif %}
 		<div class="row overflow">
 			{% for device in wallet.devices %}
-				<a href="{{ url_for('device', device_alias=device.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device.name }}
@@ -40,7 +43,7 @@
 		<div id="keys_list" class="center" style="margin: auto; display: none; width: 85%;">
 			<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()" checked>
+				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
 			<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
@@ -85,7 +88,10 @@
 		<div class="card">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
-				{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{# check if export_wallet is not None #}
+				{% if device.export_wallet(wallet) %}
+					{% set supports_export_to_device = supports_export_to_device.append(device) %}
+				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
 				<h2 class="subtitle">Export To Device</h1>
@@ -128,11 +134,19 @@
 			It is recommended that you print and save this wallet backup file with each of your devices.
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
+			<div style="margin: 0 auto;" class="center">
+				<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
+				<label class="switch">
+				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+				<span class="slider"></span>
+			</label><br>
+			</div>
+			<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
 			<p style="max-width: 500px;" class="note center">
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
 			<p>
 			<p style="max-width: 500px;" class="note center">
-			It is reccomended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+			It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
 			<p>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
 			{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
@@ -142,7 +156,7 @@
 		<h1 style="font-size: 1.7em;">Advanced Options</h1>
 		<div class="card">
 			<h2 class="subtitle">Keypool control</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
 				<div class="row aligned">
 					<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
@@ -151,7 +165,7 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Blockchain rescan</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
 						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
@@ -174,11 +188,11 @@
 					<div class="note center"><b>481824</b> was the first Segwit block.</div>
 				{% endif %}
 			</form>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
 					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
-					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort</button>
+					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
 				</div>
 				{% else %}
 				<div class="row aligned">
@@ -201,31 +215,29 @@
 				{% if specter.info['pruned']  %}
 					<div class="row" style="margin-top: 10px">
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
-							<div class="tool-tip">
-								<i class="tool-tip__icon">i</i>
-								<p class="tool-tip__info">
-									<span class="info">
-										<span class="info__title">Fetch missing data</span><br><br>
-										You are using a pruned node. Blocks for some transactions may be missing.<br><br>
-										Check this checkbox if you want to fetch missing information from block explorer.
-									</span>
-								</p>
-							</div>
-
+							<tool-tip title="Fetch missing data">
+							You are using a pruned node. Blocks for some transactions may be missing.<br><br>
+							Check this checkbox if you want to fetch missing information from block explorer.
+							</tool-tip>
 						</label>
 					</div>
-					<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-						&#9432;<br>Careful with block explorers!<br>
-						This may have privacy implication!<br>
-						Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
-						"They" will know what transactions you are interested in.
-					</span>
+					<div id="utxo-explorer">
+						<br>
+						Block explorer URL:
+						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+							&#9432;<br>Careful with block explorers!<br>
+							This may have privacy implication!<br>
+							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
+							"They" will know what transactions you are interested in.
+						</span>
+					</div>
 					<script type="text/javascript">
 						let utxocheckbox = document.getElementById("use_explorer");
 						utxocheckbox.addEventListener('change', e=>{
-							let el = document.getElementById("utxo-warning")
+							let el = document.getElementById("utxo-explorer")
 							if(utxocheckbox.checked){
-								el.style.display = "inline-block";
+								el.style.display = "block";
 							}else{
 								el.style.display = "none";
 							}
@@ -237,7 +249,7 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Delete wallet</h2>
-			<form action="." method="POST" class="padded" style="width: 500px">
+			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
 			</form>
 		</div>

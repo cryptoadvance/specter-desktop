@@ -32,12 +32,7 @@
 				{% for key in device.keys %}
 					<tr>
 						<td>
-							{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-							{% if key.xpub.startswith("xpub") %}
-								{{ bitcoin_svg('main', 16) }} Main
-							{% else %}
-								{{ bitcoin_svg('test', 16) }} Test
-							{% endif %}
+						    {% include "components/network_label.jinja" %}
 						</td>
 						<td>{{ key.purpose }}</td>
 						<td class="optional">{{ key.derivation }}</td>
@@ -58,12 +53,13 @@
 			</tbody>
 		</table>
 	</div>
-	<div class="optional" style="line-height: 1; margin-top: 30px;">
+	<div style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
+		<br>
 		{% if device.hwi_support %}
-			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign messsage on device</button>
+			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign message on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">
 				Derivation path:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
 				Message:<br>
@@ -74,11 +70,13 @@
 				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
 			</div>
 		{% endif %}
+		<br>
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
+			<br>
 		{% endif %}
 		<form action="./" method="POST">
-			<button type="submit" name="action" value="forget" class="btn danger centered">Forget the device</button>
+			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">Forget the device</button>
 		</form>
 	</div>
 	<br>
@@ -86,7 +84,7 @@
 		<h1>Wallets Using This Device</h1>
 		<div class="row overflow">
 			{% for wallet in wallets %}
-				<a href="{{ url_for('wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
 						{% if wallet.is_multisig %}
 							<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
@@ -103,27 +101,27 @@
 	<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
 	<h1>New device was added successfully!</h1>
 	<div class="row overflow">
-		<a href="{{ url_for('device_setup_wizard') }}" style="text-decoration: none;">
+		<a href="{{ url_for('devices_endpoint.new_device') }}" style="text-decoration: none;">
 			<div class="small-card radio">
 				<img src="{{ url_for('static', filename='img/plus_icon.svg') }}" width="18px">
 				Add another device
 			</div>
 		</a>
-		<form action="{{ url_for('new_wallet', wallet_type='simple') }}" method="POST">
+		<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
 			<input type="hidden" name="device" value="{{ device.alias }}" />
 			<input type="hidden" name="action" value="preselected_device" />
 			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
 				<div class="small-card radio">
 					<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
-					Create wallet
+					Create single key wallet
 				</div>
 			</button>
 		</form>
 		{% if specter.device_manager.devices | length > 1 %}
-			<a href="{{ url_for('new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
+			<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
 				<div class="small-card radio">
 					<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
-					Create multisig
+					Create multisignature wallet
 				</div>
 			</a>
 		{% endif %}

@@ -7,13 +7,17 @@
 altgraph==0.17 \
     --hash=sha256:1f05a47122542f97028caf78775a095fbe6a2699b5089de8477eb583167d69aa \
     --hash=sha256:c623e5f3408ca61d4016f23a681b9adb100802ca3e3da5e718915a9e4052cebe \
-    # via pyinstaller
+    # via macholib, pyinstaller
 future==0.18.2 \
     --hash=sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d \
     # via pefile
+macholib==1.14 \
+    --hash=sha256:0c436bc847e7b1d9bda0560351bf76d7caf930fb585a828d13608839ef42c432 \
+    --hash=sha256:c500f02867515e6c60a27875b408920d18332ddf96b4035ef03beddd782d4281 \
+    # via -r requirements.in
 pefile==2019.4.18 \
     --hash=sha256:a5d6e8305c6b210849b47a6174ddf9c452b2888340b8177874b862ba6c207645 \
-    # via pyinstaller
+    # via -r requirements.in
 pyinstaller-hooks-contrib==2020.9 \
     --hash=sha256:a5fd45a920012802e3f2089e1d3501ef2f49265dfea8fc46c3310f18e3326c91 \
     --hash=sha256:c382f3ac1a42b45cfecd581475c36db77da90e479b2f5bcb6d840d21fa545114 \
@@ -24,7 +28,7 @@ pyinstaller==4.0 \
 pywin32-ctypes==0.2.0 \
     --hash=sha256:24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942 \
     --hash=sha256:9dc2d991b3479cc2df15930958b674a48a227d5361d413827a4cfd0b5876fc98 \
-    # via pyinstaller
+    # via -r requirements.in
 
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.

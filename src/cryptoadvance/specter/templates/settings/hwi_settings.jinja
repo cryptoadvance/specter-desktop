@@ -2,7 +2,7 @@
 {% block main %}
 		<h1 id="title" class="settings-title">HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('hwi_settings', current_user) }}
+		{{ settings_menu('hwi', current_user) }}
 
 		<div class="card" style="margin: 20px auto;">
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
@@ -19,7 +19,7 @@
 			HWI Bridge URL:
 			<br>
 			<form action="?" method="POST">
-				<div class="row">
+				<div class="row break-row-mobile">
 					<input type="text" name="hwi_bridge_url" value="{{ specter.hwi_bridge_url }}">
 					&nbsp;<input type="submit" class="btn" style="width: 200px" value="Save"/>
 				</div>
@@ -39,7 +39,7 @@
 			</p>
 		</div>
 		</h1>
-		<span class="note" style="margin: 0; padding: 0; margin-bottom: 20px; line-height: 1;">
+		<span class="note" style="text-align: center;margin: 0; padding: 0; margin-bottom: 20px; line-height: 1;">
 			<br>Whitelist Specter domain name ( <code alt="Click to copy" id="url" style="text-decoration: underline; display:inline-block; margin: 0; height: auto;" onclick="copyText(this.innerHTML, 'Copied URL: '+this.innerHTML);"></code> ) here:
 		</span>
 		<script type="text/javascript">

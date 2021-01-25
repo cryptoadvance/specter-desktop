@@ -12,10 +12,26 @@ Make sure authentication is enabled to avoid access to your Specter by random st
 ### Security note
 Tor support, like Specter Desktop as a whole, should be treated as a work-in-progress that is not yet vetted as being fully secure.
 
+### Setting up Tor using the Tor Browser
+The easiest way to use Tor with Specter is to have the [Tor Browser](https://www.torproject.org/download/) open. Just install it on your computer, open it and it will expose a Tor proxy Specter can connect to.
+To set this up, you'll just need to go to Specter's Settings -> Tor tab, then set the Tor Proxy field to: `socks5://127.0.0.1:9150` (you'll see it listed below the field as the Tor Browser default URL). Then click save and Specter should be working with Tor - just make sure to keep your Tor Browser running while using Specter.
+
 ### Install Tor service
-Install Tor on the same server that you'll be running Specter Desktop:
+Alternatively, you can setup the Tor service. Install Tor on the same server that you'll be running Specter Desktop:
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
+
+### Configure Specter Desktop for Remote Instance
+If you're using Specter Desktop on a remote machine and would like to connect to it over Tor (to use hardware wallets for example), then follow these steps to set up the app to connect to your remote Specter server.
+
+1. Open Preferences
+2. Choose "remote Specter server"
+3. Enter your TOR URL
+4. Switch on "Connect over TOR"
+
+![](../screenshots/desktop-tor-preferences.gif)
+
+After saving, Specter will shutdown. Start it again and you should be able to connect to your remote Specter server.
 
 ### Configure Tor port
 Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs) and uncomment the `ControlPort` line.

@@ -8,7 +8,7 @@
     .main{
         min-width: 200px;
         max-width: 800px;
-        font-size: 0.7em;
+        font-size: 0.85em;
         color: #fff;
         overflow-x: scroll;
         background: var(--cmap-bg-lightest);
@@ -23,6 +23,7 @@
         -ms-overflow-style: none;  /* IE and Edge */
         scrollbar-width: none;  /* Firefox */
         scrollbar-height: none;  /* Firefox */
+        word-break: break-all;
     }
     .main.error{
         background: var(--cmap-red-darker);
@@ -47,9 +48,12 @@
     .main::-webkit-scrollbar{
       display: none;
     }
+    .close {
+      margin: 0px -22px;
+    }
   </style>
   <div class="main">
-    <a class="close">⨉</a>
+    <a class="close">&#x2715;</a>
     <slot>
      Error: Something bad happened!
     </slot>
@@ -68,6 +72,12 @@ class MessageBoxElement extends HTMLElement {
     clone.querySelector("a").addEventListener('click', e=>{
       this.close();
     });
+
+    this.main.onclick = () => {
+      if (window.innerWidth < 690) {
+        this.close();
+      }
+    }
     // Attach the created element to the shadow dom
     shadow.appendChild(clone);
   }

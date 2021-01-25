@@ -1,6 +1,8 @@
 import logging
 import requests, json, os
 import os, sys, errno
+from .helpers import is_ip_private
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,12 @@ def detect_rpc_confs_via_env():
     return rpc_arr
 
 
-def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
+def autodetect_rpc_confs(
+    datadir=get_default_datadir(),
+    port=None,
+    proxy_url="socks5h://localhost:9050",
+    only_tor=False,
+):
     """Returns an array of valid and working configurations which
     got autodetected.
     autodetection checks env-vars and bitcoin-data-dirs
@@ -152,7 +159,9 @@ def autodetect_rpc_confs(datadir=get_default_datadir(), port=None):
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
-            rpc = BitcoinRPC(**conf)
+            rpc = BitcoinRPC(
+                **conf, proxy_url="socks5h://localhost:9050", only_tor=False
+            )
             if port is not None:
                 if int(rpc.port) != port:
                     continue
@@ -209,6 +218,8 @@ class BitcoinRPC:
         path="",
         timeout=None,
         session=None,
+        proxy_url="socks5h://localhost:9050",
+        only_tor=False,
         **kwargs,
     ):
         path = path.replace("//", "/")  # just in case
@@ -219,15 +230,18 @@ class BitcoinRPC:
         self.host = host
         self.path = path
         self.timeout = timeout
+        self.proxy_url = (proxy_url,)
+        self.only_tor = (only_tor,)
         self.r = None
         # session reuse speeds up requests
         if session is None:
             session = requests.Session()
             # check if we need to connect over Tor
-            if ".onion" in self.host:
-                # configure Tor proxies
-                session.proxies["http"] = "socks5h://localhost:9050"
-                session.proxies["https"] = "socks5h://localhost:9050"
+            if not is_ip_private(host):
+                if only_tor or ".onion" in self.host:
+                    # configure Tor proxies
+                    session.proxies["http"] = proxy_url
+                    session.proxies["https"] = proxy_url
         self.session = session
 
     def wallet(self, name=""):
@@ -240,13 +254,22 @@ class BitcoinRPC:
             path="{}/wallet/{}".format(self.path, name),
             timeout=self.timeout,
             session=self.session,
+            proxy_url=self.proxy_url,
+            only_tor=self.only_tor,
         )
 
     @property
     def url(self):
-        return "{s.protocol}://{s.user}:{s.password}@{s.host}:{s.port}{s.path}".format(
-            s=self
+        user = urllib.parse.quote_plus("{s.user}".format(s=self))
+        password = urllib.parse.quote_plus("{s.password}".format(s=self))
+        encoded = (
+            "{s.protocol}://".format(s=self)
+            + user
+            + ":"
+            + password
+            + "@{s.host}:{s.port}{s.path}".format(s=self)
         )
+        return encoded
 
     def test_connection(self):
         """ returns a boolean depending on whether getblockchaininfo() succeeds """
@@ -270,6 +293,8 @@ class BitcoinRPC:
             self.path,
             self.timeout,
             self.session,
+            self.proxy_url,
+            self.only_tor,
         )
 
     def multi(self, calls: list, **kwargs):

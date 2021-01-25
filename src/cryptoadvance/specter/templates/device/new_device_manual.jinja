@@ -1,0 +1,435 @@
+{% extends "base.jinja" %}
+{% block main %}
+	{% include "includes/hwi/hwi.jinja" %}
+	{% include "includes/qr-scanner.html" %}
+
+	{% if device %}
+		<h1>Adding keys to {{ device.name }}</h1>
+	{% else %}
+		<h1>Setting up a new device</h1>
+	{% endif %}
+	<div class="card">
+		<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
+			{% if not device %}
+				<label>Name it:<label>
+				<div class="row">
+					<input type="text" name="device_name" value="{{ device_name }}" placeholder="Name your device">
+				</div>
+				<br>
+				{% include "device/components/device_type.jinja" %}
+				<p class="warning hidden" id="type_reminder">&#9432;<br>Please make sure to choose the device type before continuing</p>
+				<div id="toggle_passphrase_container" class="hidden">
+					<p>Device Management:</p>
+					<div class="row">
+						<button type="button" class="btn centered" onclick="togglePassphrase(document.getElementById('device_type').value)">Toggle device passphrase</button>
+					</div>
+				</div>
+			{% endif %}
+		{% if not device or not device.hot_wallet %}
+			<div id="cold_device">
+				<br>
+				<h2>Scan, paste or load xpubs:</h2>
+				<div class="note">
+					{% if not device %}
+						You will be able add more keys later, from the device menu.
+					{% endif %}
+				</div>
+				<p>One line per xpub. Ideally with derivation path in the form: <span style="font-style: italic; font-weight: bold; font-size: 15px;"><br>[ fingerprint / derivation / path ] xpub.</span></p>
+				<textarea style="margin: 5px;" id="txt" name="xpubs" placeholder="Enter your xpubs here">{{ xpubs }}</textarea>
+				<div class="row">
+					<qr-scanner id="xpub-scan" style="width:50%">
+						<a slot="button" href="#" class="btn" style="margin: 8px;">
+							<img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Scan
+							<div class="tool-tip">
+								<i class="tool-tip__icon">i</i>
+								<p class="tool-tip__info">
+									<span class="info">
+										<span class="info__title">Using an airgapped device with QR codes<br><br></span>
+										Scan QR codes with extended public keys one by one.<br><br>
+										We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.
+									</span>
+								</p>
+							</div>
+					</a>
+					</qr-scanner>
+					<input type="file" id="file" class="inputfile" multiple/>
+					<label for="file" class="btn" style="margin: 8px;">
+						Choose files
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">Using an airgapped ColdCard with MicroSD<br><br></span>
+									Export extended public keys for single-key wallets to the SD card from<br>
+									<b>Advanced → MicroSD → Export Wallet → Generic JSON</b><br><br>
+									To export multisignature pubkeys go to <br>
+									<b>Settings → Multisig Wallets → Export XPUB</b>
+									We recommend using Native Segwit.
+								</span>
+							</p>
+						</div>
+					</label>
+				</div>
+				<div class="row">
+					<button type="button" class="btn" style="margin: 8px;" id="askhwi">
+						<img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" height="12px">Get over USB
+					</button>
+				</div>
+				<p class="note center" style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">Specify account number (advanced)</p>
+				<div class="hidden" id="usb_import_account_number">
+					<h1>Select the account you wish to import</h1>
+					<p class="center" style="max-width: 500px; margin: 5px auto;">You can set here which account number you wish to import.<br>Account derivation uses the number choosen here to derive an xpub as specified in <a style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
+					Account # <input type="number" step="1" min="0" value="0" id="usb_account_number" style="max-width: 100px; min-width: 100px;"><br><br>
+					<p class="note center">This is an advanced feature.<br>If you're not familiar with account derivations please leave this as 0.</p><br>
+					<button class="btn centered" type="button" onclick="hidePageOverlay()">Close</button>
+				</div>
+				<div class="note">
+					Examples:<br>
+			<pre style="font-size: 1em">
+[f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
+[F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
+upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
+			</pre>
+				</div><br>
+{% if not device %}
+				<button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">Continue</button>
+{% else %}
+				<button type="submit" class="btn centered" name="action" value="morekeys" onsubmit="showPacman()">Continue</button>
+{% endif %}
+			</div>
+{% endif %}
+{% if not device or device.hot_wallet %}
+			<div id="hot_device" class="hidden">
+				<br>
+				<p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+					<span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
+					This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
+					Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
+				</p>
+				<p>Enter you mnemonic here or use the randomly generated one:</p>
+				<p><b>Make sure to backup these words!</b></p>
+				{% set wordslist = mnemonic.split(' ') %}
+				<nav class="row">
+					<button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
+					<button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
+				</nav>
+				<input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+				<textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
+				<div id="generated_mnemonic">
+					<div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
+						<fieldset style="border:none; display: inline;"> 
+							<select name="strength" id="strength">
+								<option value="128">12 words</option>
+								<option value="256">24 words</option>
+							</select>
+						</fieldset>
+						<button type="submit" class="btn" name="action" value="generatemnemonic" style="margin: auto;max-width: 200px;">Generate New Mnemonic</button>
+					</div>
+					<br>
+					<table>
+						{% for i in range(wordslist|length // 4) %}
+							<tr>
+								<td>{{ 4 * i + 1 }} {{ wordslist[4 * i] }}</td>
+								<td>{{ 4 * i + 2 }} {{ wordslist[4 * i + 1] }}</td>
+								<td>{{ 4 * i + 3 }} {{ wordslist[4 * i + 2] }}</td>
+								<td>{{ 4 * i + 4 }} {{ wordslist[4 * i + 3] }}</td>
+							</tr>
+						{% endfor %}
+					</table>
+				</div>
+				<br>
+				<label>Encrypt Wallet File: </label>
+				<input type="password" name="file_password" class="inline" placeholder="password">
+				<br><br>
+				<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
+				<br><br>
+				<div id="advanced_settings" class="hidden">
+					<label>BIP39 passphrase (optional): </label>
+					<input type="password" name="passphrase" class="inline" placeholder="passphrase">
+					<br>
+					<p>Derivation paths:<br>
+					<span class="note">
+					Enter each derivation path as a separate line.
+					Start each path with an <code>m</code>.
+					No trailing slash.</span>
+					</p>
+					<textarea name="derivation_paths" placeholder="Specify derivation paths to import for the wallet">
+m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
+m/49h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
+m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/1h
+m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
+				<br>
+				<p style="margin-bottom: 10px;">Addresses range to import: </p>
+				From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+				<br class="mobile-only">
+				<br class="mobile-only">
+				to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+				<br>
+				</div>
+				<br><br>
+				{% if not device %}
+				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
+{% else %}
+				<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
+{% endif %}
+			</div>
+{% endif %}
+		</form>
+	</div>
+
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+	function toggleAdvanced() {
+		let advancedButton = document.getElementById('toggle_advanced');
+		let advancedSettigns = document.getElementById('advanced_settings');
+		if (advancedSettigns.style.display === 'block') {
+			advancedSettigns.style.display = 'none';
+			advancedButton.innerHTML = 'Advanced &#9654;';
+			if (isCoinSelectionActive()) {
+				toggleExpand();
+			}
+		} else {
+			advancedSettigns.style.display = 'block';
+			advancedButton.innerHTML = 'Advanced &#9660;';
+		}
+	}
+
+	function setMnemonicView(view) {
+		var generatedMnemonic = document.getElementById("generated_mnemonic");
+		var importMnemonic = document.getElementById("import_mnemonic");
+		var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
+		var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+		var mnemonicValue = document.getElementById("mnemonic_value");
+		if (view == 'generate') {
+			generatedMnemonic.style.display = 'block';
+			importMnemonic.style.display = 'none';
+			generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
+			importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+			mnemonicValue.value = '{{ mnemonic }}'
+		} else {
+			generatedMnemonic.style.display = 'none';
+			importMnemonic.style.display = 'block';
+			generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+			importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+			mnemonicValue.value = importMnemonic.value;
+			importMnemonic.addEventListener("input", function() {
+				mnemonicValue.value = importMnemonic.value;
+			});
+		}
+	}
+	function checkType() {
+		var deviceType = document.getElementById("device_type");
+		if (!deviceType.value) {
+			type_reminder.style.display = 'block';
+		} else {
+			type_reminder.style.display = 'none';
+			if(deviceType.value == 'bitcoincore'){
+				showPacman();
+			}
+			return true;
+		}
+		return false;
+	}
+
+	document.addEventListener("DOMContentLoaded", function(){
+		function setPubkeysView() {
+			var coldDevice = document.getElementById("cold_device");
+			var hotDevice = document.getElementById("hot_device");
+			if (deviceType.value == 'bitcoincore') {
+				coldDevice.style.display = 'none';
+				hotDevice.style.display = 'block';
+			} else {
+				coldDevice.style.display = 'block';
+				hotDevice.style.display = 'none';
+			}
+			{% for cls in specter.device_manager.supported_devices %}
+            	if (deviceType.value == '{{ cls.device_type }}') {
+					if ('{{ cls.supports_hwi_toggle_passphrase }}' === 'True') {
+						document.getElementById('toggle_passphrase_container').style.display = 'block';
+					} else {
+						document.getElementById('toggle_passphrase_container').style.display = 'none';
+					}
+				}
+            {% endfor %}
+			
+		}
+		var deviceType = document.getElementById("device_type");
+		var typeReminder = document.getElementById("type_reminder");
+
+		if(deviceType!=null){
+			deviceType.addEventListener("change", function() {
+				type_reminder.style.display = 'none';
+				setPubkeysView();
+			}, false);
+			deviceType.value = '{{ device_type }}';
+			setPubkeysView();
+		}
+
+		var strength = document.getElementById("strength");
+		if(strength!=null){
+			strength.value = '{{ strength }}';
+		}
+		document.getElementById('toggle_advanced').addEventListener('click', (event) => {
+			toggleAdvanced();
+		});
+		if ('{{ device and device.hot_wallet }}' == 'True') {
+			setMnemonicView('import');
+			var hotDevice = document.getElementById("hot_device");
+			hotDevice.style.display = 'block';
+		}
+	});
+</script>
+
+{% if not device or not device.hot_wallet %}
+<script type="text/javascript">
+	{% include "device/components/add_keys.js" %}
+
+	document.getElementById('askhwi').addEventListener('click', async e=>{
+		// detect devices
+		let devices = await enumerate();
+		if(devices == null){
+			return
+		}
+		// this shouldn't happen actually
+		if(devices.length == 0){
+			showError("No devices found :(");
+			return;
+		}
+		console.log(devices)
+		// first only for now
+		let device = await selectDevice(devices);
+		console.log(device);
+		// nothing to do if user cancelled
+		if(device == null){
+			return;
+		}
+		
+		let account = document.getElementById('usb_account_number').value;
+		let xpubs = await getXpubs(device, account, "", "{specter.chain}");
+		if(xpubs == null){
+			return;
+		}
+	    addKeys(xpubs);
+	    setDeviceType(device.type);
+	});
+
+</script>
+{% endif %}
+<script type="text/javascript">
+
+	document.addEventListener("DOMContentLoaded", function(){
+		var el = document.getElementById("file");
+		var txt = document.getElementById("txt");
+
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				files = e.currentTarget.files;
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					console.log(files[i].name);
+					let reader = new FileReader();
+					reader.onload = function(e) {
+						let str = reader.result
+						let data = "";
+						if (str.indexOf("{") >= 0) {
+							let json = JSON.parse(str);
+							console.log(str);
+							if ("keystore" in json) { // ColdCard electrum file
+								let prefix = "";
+								let fingerprint = "";
+								if ("ckcc_xfp" in json.keystore){
+									let num = json.keystore.ckcc_xfp;
+									for (let i = 0; i < 4; i++) {
+										fingerprint += ('0' + (num % 256).toString(16)).slice(-2);
+										num = num >>> 8;
+									}
+								}
+								if ("root_fingerprint" in json.keystore){
+									fingerprint = json.keystore.root_fingerprint;
+								}
+								if ((fingerprint.length > 0) && ("derivation" in json.keystore)) {
+									prefix = "[";
+									prefix += fingerprint;
+									prefix += json.keystore.derivation.substring(1).replace(/'/g,"h");
+									prefix += "]";
+								}
+								let s = prefix + json.keystore.xpub + "\n";
+								data += s;
+							} else if (("bip84" in json) && ("xfp" in json)){
+							// coldcard generic file
+								let s = "";
+								["bip44","bip49","bip84"].forEach((bip)=>{
+									if(bip in json){
+										let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
+										let xpub = json[bip].xpub;
+										if("_pub" in json[bip]){
+											xpub = json[bip]["_pub"];
+										}
+										s += `[${json.xfp}${der}]${xpub}\n`;
+									}
+								});
+								data += s;
+							} else if ("xfp" in json) {
+							// probably ColdCard multisig file
+								let s = "";
+								for (let k in json) {
+									if (k+"_deriv" in json) {
+										s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+									}
+								}
+								data += s;
+							}
+						} else {
+							data += str+"\n";
+						}
+						addKeys(data);
+						setDeviceType('coldcard');
+					}
+					reader.readAsText(files[i]);
+				}
+			});
+		}
+	});
+</script>
+
+<script type="text/javascript">
+	let scanner = document.getElementById('xpub-scan');
+	if(scanner != null) {
+		scanner.addEventListener('scan', e=>{
+			let result = e.detail.result;
+			if(result==null){
+				return;
+			}
+			let deviceType = document.getElementById("device_type");
+			// cobo uses json format
+			if(result.includes("{")){
+				let obj = JSON.parse(result);
+				if( ("ExtPubKey" in obj) && 
+					("AccountKeyPath" in obj) && 
+					("MasterFingerprint" in obj)){
+					console.log(obj);
+					let path = obj.AccountKeyPath.replace(/'/g,'h');
+					let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
+					addKeys(str);
+					setDeviceType('cobo');
+				}else if( ("xfp" in obj) &&
+						  ("xpub" in obj) &&
+						  ("path" in obj)){
+					console.log(obj);
+					let path = obj.path.replace(/'/g,'h').replace("m/","");
+					let str = `[${obj.xfp}/${path}]${obj.xpub}`;
+					addKeys(str);
+					setDeviceType('cobo');
+				}else{
+					showError("Unknown key format");
+				}
+			}else{
+				addKeys(result);
+				setDeviceType('specter');
+			}
+		});
+	}
+</script>
+
+{% endblock %}

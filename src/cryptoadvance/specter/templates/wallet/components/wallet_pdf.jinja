@@ -1,13 +1,12 @@
 <qr-code value='{{ wallet.account_map }}' width="400" id="export-wallet-qr-code" class="hidden"></qr-code>
 <script	type="module">
     import { jsPDF } from "{{ url_for('static', filename='pdf/jspdf.es.min.js') }}";
-
     document.getElementById('pdf-wallet-download').onclick = () => {
         // Default export is a4 paper, portrait, using millimeters for units
         const doc = new jsPDF();
         const pageHeight = 297;
         const pageWidth = 210;
-
+        let useSlip132 = document.getElementById("use_slip_132_pdf").checked;
         let currentHeight = 15;
         doc.setFontSize(18);
         doc.text('Specter Backup File', 105, currentHeight, {align: 'center'});
@@ -24,14 +23,14 @@
         doc.setFont(undefined, 'normal');
         doc.setFontSize(16);
         {% if wallet.is_multisig %}
-            if ('{{ wallet.address_type }}'.startsWith("w")) {
+            if ('{{ wallet.address_type }}' == 'bech32') {
                 doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, native segwit)', 105, currentHeight, {align: 'center'});
             } else {
                 doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, nested segwit)', 105, currentHeight, {align: 'center'});
             }
             currentHeight += 7;
         {% else %}
-            if ('{{ wallet.address_type }}'.startsWith("w")) {
+            if ('{{ wallet.address_type }}' == 'bech32') {
                 doc.text('(Native Segwit)', 105, currentHeight, {align: 'center'});
             } else {
                 doc.text('(Nested Segwit)', 105, currentHeight, {align: 'center'});
@@ -53,7 +52,7 @@
         currentHeight += 7;
         doc.text('or any other compatible wallet.', 105, currentHeight, {align: 'center'});
         currentHeight += 11;
-
+        
         doc.setFontSize(16)
         let deviceName = '';
         let deviceType = '';
@@ -84,7 +83,12 @@
             currentHeight += 8
             doc.text("Derivation path:       {{ key.derivation }}", 15, currentHeight);
             currentHeight += 8
-            xpubLines = "{{ key.xpub }}".split(/(.{40})/g);
+
+            if (useSlip132)
+                xpubLines = "{{ key.original }}".split(/(.{40})/g);
+            else 
+                xpubLines = "{{ key.xpub }}".split(/(.{40})/g);
+            
             xpubLines = xpubLines.filter(line => line !== '');
             doc.text('Master public key:   ' + xpubLines[0], 15, currentHeight);
             for (var i = 1; i < xpubLines.length; i++) {

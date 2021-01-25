@@ -37,6 +37,8 @@ class Cobo(ColdCard):
         return psbts
 
     def export_wallet(self, wallet):
+        if not wallet.is_multisig:
+            return None
         # Cobo uses ColdCard's style
         CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
         # try to find at least one derivation

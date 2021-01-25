@@ -1,5 +1,5 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
-{% set tab = 'wallet_send' %}
+{% set tab = 'send' %}
 {% block content %}
 
 	<style>
@@ -16,14 +16,14 @@
 	{% include "includes/qr-scanner.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
-	{{ send_nav('wallet_sendnew', wallet_alias) }}
+	{{ send_nav('send_new', wallet_alias) }}
 
 	<message-box type="error" id="amount_errors_container" style="position: absolute; top: 0; display: none;">
 		Error!
 		</ul>
 	</message-box>
 
-	<form action="{{ url_for('wallet_sendnew',wallet_alias=wallet_alias) }}" id="send-form" method="POST">
+	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<h1 class="padded">Create Transaction</h1>
 		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
 			{% if specter.unit == 'sat' %}
@@ -36,6 +36,7 @@
 			{% endif %}
 		</p>
 		{% if wallet.locked_amount > 0 %}
+		<div style="margin: auto; text-align: center; max-width: 90%;">
 			<div class="tool-tip" style="text-align: center;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -45,10 +46,12 @@
 					</span>
 				</p>
 			</div>
-			<p style="display: inline; margin: auto;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in unsigned transactions.</p>
-			<br><br>
+			<p style="display: inline; margin: auto; text-align: center;">&nbsp;You have waiting {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.chain !='main' %}t{%endif%}BTC{% endif %} still in unsigned transactions.</p>
+			<br>
+			<br>
+		</div>
 		{% endif %}
-		<div class="card">
+		<div class="card" style="margin: auto;">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			Unit: 
@@ -66,7 +69,7 @@
 			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">Calculate estimated fee</span><span class="note" id="calculated_tx_fee"></span><p>
 			<span id="toggle_advanced" style="cursor: pointer;">Advanced &#9654;</span>
 			<br><br>
-			<div id="advanced_settings" class="hidden">
+			<div id="advanced_settings" class="hidden" style="margin: auto; max-width: 90%;">
 				<div>Transaction editor: 
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
@@ -74,15 +77,15 @@
 				{% include "wallet/send/new/components/fee_selection.jinja" %}
 				<br>
 				<br>
-				<div class="row" id="coin-selection-row" style="margin-top: 30px;">
-					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add another recipient </button>
+				<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 30px;">
+					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient()"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add recipient </button>
 				{% if wallet.utxo | length > 0 %}
-					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins manually</button>
+					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins<span class="optional">&nbsp;manually</span></button>
 				{% endif %}
 				</div><br>
 				{% include "wallet/send/new/components/coin_selection.jinja" %}
 			</div>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create unsigned transaction</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction</button>
 		</div>		
 	</form>
 {% endblock %}
@@ -105,7 +108,7 @@
 				Recipient address:<br>
 				<div class="row">
 					<input type="text" id="address_${i}" name="address_${i}" oninput="validateForm()"> &nbsp;
-					<qr-scanner id="address-scan-${i}">
+					<qr-scanner id="address-scan-${i}" style="margin-top: 3px;">
 						<a slot="button" class="btn" style="height: 35px;"><img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/> Scan</a>
 					</qr-scanner>
 				</div>
@@ -116,6 +119,7 @@
 				Amount:<br>
 				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="1{% if specter.unit != 'sat' %}e-8{% endif %}" autocomplete="off">
 				<input type="hidden" name="btc_amount_${i}" id="btc_amount_${i}">
+				<div class="mobile-only" style="margin-top: 10px;"></div>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
 				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
@@ -440,7 +444,7 @@
 				formData.append("estimate_fee", true);
 				formData.append("action", "createpsbt");
 
-				let url="{{ url_for('wallet_sendnew', wallet_alias=wallet.alias) }}"
+				let url="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}"
 				const response = await fetch(
 					url,
 					{

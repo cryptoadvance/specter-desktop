@@ -1,5 +1,14 @@
 import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, redirect, render_template, request, flash
+from flask import (
+    Blueprint,
+    Flask,
+    jsonify,
+    url_for,
+    redirect,
+    render_template,
+    request,
+    flash,
+)
 from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
@@ -14,7 +23,7 @@ hwi = HWIBridge()
 
 @hwi_server.route("/", methods=["GET"])
 def index():
-    return redirect("hwi/settings")
+    return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
 
 @hwi_server.route("/api/", methods=["POST"])
@@ -84,12 +93,10 @@ def api():
                 500,
             )
         data["forwarded_request"] = True
-        requests_session = requests.Session()
+        requests_session = app.specter.requests_session(
+            force_tor=".onion/" in app.specter.hwi_bridge_url
+        )
         requests_session.headers.update({"origin": request.environ["HTTP_ORIGIN"]})
-        if ".onion/" in app.specter.hwi_bridge_url:
-            requests_session.proxies = {}
-            requests_session.proxies["http"] = "socks5h://localhost:9050"
-            requests_session.proxies["https"] = "socks5h://localhost:9050"
         forwarded_request = requests_session.post(
             app.specter.hwi_bridge_url, data=json.dumps(data)
         )

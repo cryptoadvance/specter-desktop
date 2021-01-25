@@ -77,6 +77,10 @@ class Address(dict):
             return f"{prefix}{index}"
         return self.address
 
+    @property
+    def is_labeled(self):
+        return bool(self["label"])
+
     def __str__(self):
         return self.address
 

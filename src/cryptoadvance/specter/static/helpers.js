@@ -1,13 +1,18 @@
 window.addEventListener('load', (event) => {
 	let main = document.getElementsByTagName("main")[0];
 	main.addEventListener('click', (event) => {
-		document.getElementById("side-content").classList.remove("active");
+		side_content = document.getElementById("side-content")
+		if (side_content != null) {
+			side_content.classList.remove("active");
+		}
 	});
 	let menubtn = document.getElementById("menubtn");
-	menubtn.addEventListener('click', (event) => {
-		document.getElementById("side-content").classList.add("active");
-		event.stopPropagation();
-	});
+	if (menubtn != null) {
+		menubtn.addEventListener('click', (event) => {
+			document.getElementById("side-content").classList.add("active");
+			event.stopPropagation();
+		});
+	}
 });
 
 document.addEventListener("errormsg", (e)=>{
@@ -21,6 +26,22 @@ document.addEventListener("notification", (e)=>{
 		e.detail.timeout = 3000;
 	}
 	showNotification(e.detail.message, e.detail.timeout);
+});
+
+document.addEventListener("updateAddressLabel", function (e) {
+	document.querySelectorAll('address-label').forEach(el => {
+		let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+		return el.dispatchEvent(event);
+	});
+
+	// TODO: Needed currently for all custom elements containing <address-label>
+	// Find an alternative which would work regardless of shadowRoot
+	document.querySelector('tx-table').shadowRoot.querySelectorAll('tx-row').forEach(el => {
+		el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+			let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+			return el.dispatchEvent(event);
+		});
+	});
 });
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
@@ -72,3 +93,23 @@ window.addEventListener('beforeunload', function (e) {
 		document.getElementById("pageloader").style.display = 'block';
 	}, 200);
 });
+
+// toggle a navbar on mobile view
+function toggleMobileNav(btn, openImg, collapseImg) {
+	var x = btn.parentNode;
+	if (x.className === "row collapse-on-mobile") {
+		x.className += " responsive";
+		btn.children[0].src = collapseImg;
+	} else {
+		x.className = "row collapse-on-mobile";
+		btn.children[0].src = openImg;
+	}
+}
+
+function numberWithCommas(x) {
+	x = parseFloat(x).toString();
+	if (x.split(".").length > 1) {
+		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
+	}
+    return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

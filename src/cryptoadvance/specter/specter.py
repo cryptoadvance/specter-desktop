@@ -6,8 +6,9 @@ import traceback
 import random
 import time
 import zipfile
+import requests
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
+from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
 from urllib3.exceptions import NewConnectionError
@@ -24,11 +25,18 @@ import threading
 logger = logging.getLogger(__name__)
 
 
-def get_rpc(conf, old_rpc=None):
+def get_rpc(
+    conf,
+    old_rpc=None,
+    return_broken_instead_none=False,
+    proxy_url="socks5h://localhost:9050",
+    only_tor=False,
+):
     """
-    Checks if config have changed,
-    compares with old rpc
+    Checks if config have changed, compares with old rpc
     and returns new one if necessary
+    If there is no working rpc-connection, it has to return None
+    If return_broken_instead_none is True, it'll return even a broken connection.
     """
     if "autodetect" not in conf:
         conf["autodetect"] = True
@@ -43,16 +51,18 @@ def get_rpc(conf, old_rpc=None):
                 datadir=os.path.expanduser(conf["datadir"])
             )
         if len(rpc_conf_arr) > 0:
-            rpc = BitcoinRPC(**rpc_conf_arr[0])
+            rpc = BitcoinRPC(**rpc_conf_arr[0], proxy_url=proxy_url, only_tor=only_tor)
     else:
         # if autodetect is disabled and port is not defined
         # we use default port 8332
         if not conf.get("port", None):
             conf["port"] = 8332
         rpc = BitcoinRPC(**conf)
+    if return_broken_instead_none:
+        return rpc
     # check if we have something to compare with
     if old_rpc is None:
-        return rpc
+        return rpc if rpc and rpc.test_connection() else None
     # check if we have something detected
     if rpc is None:
         # check if old rpc is still valid
@@ -104,8 +114,17 @@ class Specter:
                 "host": "localhost",  # localhost
                 "protocol": "http",  # https for the future
             },
-            "auth": "none",
+            "auth": {
+                "method": "none",
+                "password_min_chars": 6,
+                "rate_limit": 10,
+                "registration_link_timeout": 1,
+            },
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
+            "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
+            "only_tor": False,
+            "tor_control_port": "",
+            "tor_status": False,
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -124,9 +143,11 @@ class Specter:
             self.check(check_all=True)
         except Exception as e:
             logger.error(e)
-        self.checker = Checker(lambda: self.check(check_all=True))
+        self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
-        self.price_checker = Checker(lambda: update_price(self, self.user))
+        self.price_checker = Checker(
+            lambda: update_price(self, self.user), desc="price"
+        )
         if self.price_check and self.price_provider:
             self.price_checker.start()
 
@@ -145,7 +166,12 @@ class Specter:
         # update rpc if something doesn't work
         rpc = self.rpc
         if rpc is None or not rpc.test_connection():
-            rpc = get_rpc(self.config["rpc"], self.rpc)
+            rpc = get_rpc(
+                self.config["rpc"],
+                self.rpc,
+                proxy_url=self.proxy_url,
+                only_tor=self.only_tor,
+            )
 
         # if rpc is not available
         # do checks more often, once in 20 seconds
@@ -154,7 +180,6 @@ class Specter:
         else:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:
-            logger.info("Checking every %d seconds now" % period)
             self.checker.period = period
         self.rpc = rpc
 
@@ -214,6 +239,11 @@ class Specter:
         if not self._is_running:
             self._info["chain"] = None
 
+    def check_blockheight(self):
+        current_blockheight = self.rpc.getblockcount()
+        if self.info["blocks"] != current_blockheight:
+            self.check(check_all=True)
+
     def get_user_folder_id(self, user=None):
         """
         Returns the suffix for the user wallets and devices.
@@ -272,6 +302,7 @@ class Specter:
         if os.path.isfile(self.config_fname):
             with self.lock:
                 self.file_config = read_json_file(self.config_fname)
+                migrate_config(self.file_config)
                 deep_update(self.config, self.file_config)
             # otherwise - create one and assign unique id
         else:
@@ -325,7 +356,13 @@ class Specter:
     def test_rpc(self, **kwargs):
         conf = copy.deepcopy(self.config["rpc"])
         conf.update(kwargs)
-        rpc = get_rpc(conf)
+
+        rpc = get_rpc(
+            conf,
+            return_broken_instead_none=True,
+            proxy_url=self.proxy_url,
+            only_tor=self.only_tor,
+        )
         if rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
@@ -347,13 +384,13 @@ class Specter:
             r["err"] = ""
             r["code"] = 0
         except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: ", e)
+            logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
             r["err"] = "Failed to connect!"
             r["code"] = -1
         except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: " + str(rpce))
+            logger.error("Caught an RpcError while test_rpc: %s", rpce)
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
             if rpce.status_code == 401:
@@ -390,15 +427,25 @@ class Specter:
                 self.config["rpc"][k] = kwargs[k]
                 need_update = True
         if need_update:
-            self.rpc = get_rpc(self.config["rpc"], None)
+            self.rpc = get_rpc(
+                self.config["rpc"],
+                None,
+                proxy_url=self.proxy_url,
+                only_tor=self.only_tor,
+            )
             self._save()
             self.check(check_all=True)
         return self.rpc is not None
 
-    def update_auth(self, auth):
+    def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
-        if self.config["auth"] != auth:
-            self.config["auth"] = auth
+        auth = self.config["auth"]
+        if auth["method"] != method:
+            auth["method"] = method
+        if auth["rate_limit"] != rate_limit:
+            auth["rate_limit"] = rate_limit
+        if auth["registration_link_timeout"] != registration_link_timeout:
+            auth["registration_link_timeout"] = registration_link_timeout
         self._save()
 
     def update_explorer(self, explorer, user):
@@ -417,6 +464,29 @@ class Specter:
             self._save()
         else:
             user.set_explorer(self, explorer)
+
+    def update_proxy_url(self, proxy_url, user):
+        """ update the Tor proxy url """
+        if self.config["proxy_url"] != proxy_url:
+            self.config["proxy_url"] = proxy_url
+            self._save()
+
+    def toggle_tor_status(self):
+        """ toggle the Tor status """
+        self.config["tor_status"] = not self.config["tor_status"]
+        self._save()
+
+    def update_only_tor(self, only_tor, user):
+        """ switch whatever to use Tor for all calls """
+        if self.config["only_tor"] != only_tor:
+            self.config["only_tor"] = only_tor
+            self._save()
+
+    def update_tor_control_port(self, tor_control_port, user):
+        """ set the control port of the tor daemon """
+        if self.config["tor_control_port"] != tor_control_port:
+            self.config["tor_control_port"] = tor_control_port
+            self._save()
 
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """
@@ -496,13 +566,30 @@ class Specter:
         self.config["new_user_otps"].append(otp_dict)
         self._save()
 
-    def burn_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if valid"""
+    def validate_new_user_otp(self, otp):
+        """ validates an OTP for user registration and removes it if expired"""
+        if "new_user_otps" not in self.config:
+            return False
+        now = time.time()
+        for i, otp_dict in enumerate(self.config["new_user_otps"]):
+            if otp_dict["otp"] == otp:
+                if (
+                    "expiry" in otp_dict
+                    and otp_dict["expiry"] < now
+                    and otp_dict["expiry"] > 0
+                ):
+                    del self.config["new_user_otps"][i]
+                    self._save()
+                    return False
+                return True
+        return False
+
+    def remove_new_user_otp(self, otp):
+        """ removes an OTP for user registration"""
         if "new_user_otps" not in self.config:
             return False
         for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            # TODO: Validate OTP did not expire based on created_at
-            if otp_dict["otp"] == int(otp):
+            if otp_dict["otp"] == otp:
                 del self.config["new_user_otps"][i]
                 self._save()
                 return True
@@ -579,6 +666,18 @@ class Specter:
         return self.user_config.get("explorers", {}).get(self.chain, "")
 
     @property
+    def proxy_url(self):
+        return self.user_config.get("proxy_url", "socks5h://localhost:9050")
+
+    @property
+    def only_tor(self):
+        return self.user_config.get("only_tor", False)
+
+    @property
+    def tor_control_port(self):
+        return self.user_config.get("tor_control_port", "")
+
+    @property
     def hwi_bridge_url(self):
         return self.user_config.get("hwi_bridge_url", "")
 
@@ -619,6 +718,13 @@ class Specter:
     @property
     def wallet_manager(self):
         return self.user.wallet_manager
+
+    def requests_session(self, force_tor=False):
+        requests_session = requests.Session()
+        if self.only_tor or force_tor:
+            requests_session.proxies["http"] = self.proxy_url
+            requests_session.proxies["https"] = self.proxy_url
+        return requests_session
 
     def specter_backup_file(self):
         memory_file = BytesIO()

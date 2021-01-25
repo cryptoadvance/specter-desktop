@@ -576,8 +576,10 @@ textarea{
 #messages{
     position: absolute;
     top: 0;
-    left: 50%;
-    transform:translateX(-50%);
+    width: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     z-index: 99999;
 }
 .btn.danger{
@@ -948,6 +950,9 @@ a:focus + .tool-tip .tool-tip__info {
 #menubtn{
     display: none;
 }
+nav.collapse-on-mobile a.mobile-nav-icon {
+    display: none;
+}
 
 @media (max-width: 1100px){
   #side-content{
@@ -1011,7 +1016,7 @@ a:focus + .tool-tip .tool-tip__info {
 @media (max-width: 690px){
     .card{
         border-width: 0px;
-        width: 90%;
+        width: auto;
     }
     nav.row{
         padding-left: 0;
@@ -1056,7 +1061,7 @@ a:focus + .tool-tip .tool-tip__info {
         width: 200px !important;
         margin: auto !important;
     }
-    .cancel, .update, .edit {
+    .cancel, .update {
         max-width: 45%;
     }
     .label {
@@ -1070,6 +1075,46 @@ a:focus + .tool-tip .tool-tip__info {
     }
     #title {
         margin-top: 20px;
+    }
+    .row.break-row-mobile {
+        display: block;
+    }
+    #generated_mnemonic_row {
+        max-height: 120px !important;
+    }
+    nav.collapse-on-mobile {
+        display: block;
+        margin: auto;
+        max-width: 60%;
+    }
+    nav.collapse-on-mobile a, nav.collapse-on-mobile button{
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    nav.collapse-on-mobile a:not(.checked), nav.collapse-on-mobile button:not(.checked) {display: none;}
+
+    nav.collapse-on-mobile a.mobile-nav-icon {
+        display: block;
+        margin: 10px auto;
+        text-align: center;
+    }
+    nav.collapse-on-mobile.responsive {position: relative;}
+
+    nav.collapse-on-mobile.responsive a, nav.collapse-on-mobile.responsive button {
+        float: none;
+        display: block;
+    }
+    #coin_selection_table .tx {
+        width: 100%;
+        max-width: 70px;
+        min-width: 0px;
+    }
+    #coinselect, #add-recipient {
+        margin: 10px auto !important;
+    }
+    #wizard-previous {
+        margin-right: 10px !important;
     }
 }
 

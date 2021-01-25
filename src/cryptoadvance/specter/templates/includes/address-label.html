@@ -1,0 +1,265 @@
+<template id="address-label">
+    <style>
+        .address-label-form {
+            display: inline;
+        }
+        .label {
+            word-break: break-all;
+            background: none;
+            color: #fff;
+            font-size: 1em;
+            max-width: 80%;
+            outline: none;
+        }
+        .explorer-link {
+            text-decoration: none;
+        }
+        .explorer-link:hover {
+            color: #fff;
+            text-decoration: underline;
+            cursor: pointer
+        }
+        .edit {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            width: 18px;
+            cursor: pointer;
+        }
+        .cancel, .update {
+            background: var(--cmap-border);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 8px 15px 8px 10px;
+            color: #fff;
+            font-size: 0.75em;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            min-height: 33px;
+            margin-left: 5px;
+        }
+        @media (hover: none) {
+            .explorer-link:hover {
+                text-decoration: none;
+            }
+            .explorer-link:active {
+                text-decoration: underline;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    <form class="address-label-form">
+        <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">Fetching address label...</span></a>
+        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" width="18px"></button>
+        <button type="button" class="btn update hidden">Update</button>
+        <button type="button" class="btn cancel hidden">Cancel</button>
+    </form>
+</template>
+
+<script type="text/javascript">
+    class AddressLabelElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('address-label').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".address-label-form");
+            this.label = clone.querySelector(".label");
+            this.update = clone.querySelector(".update");
+            this.cancel = clone.querySelector(".cancel");
+            this.edit = clone.querySelector(".edit");
+            this.explorerLink = clone.querySelector(".explorer-link");
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.address = this.getAttribute('data-address');
+            this.wallet = this.getAttribute('data-wallet');
+            this.labelValue = this.getAttribute('data-label');
+            this.explorer = '{{ specter.explorer }}';
+            this.label.title = this.address;
+            this.isEditing = false;
+
+            // Set the label - fetch if not specified
+            if (this.labelValue) {
+                this.label.innerText = this.labelValue;
+            } else {
+                this.label.innerText = this.address;
+                fetchAddressLabel(this);
+            }
+
+            // Set title mode for address-label element
+            if (this.getAttribute('date-size') == 'title') {
+                this.isTitle = true;
+                this.label.style.fontSize = '1.5em';
+                this.el.style.fontSize = '1.2em';
+                this.edit.style.width = '26px';
+                this.edit.children[0].width = '26';
+                this.explorerLink.style['text-decoration'] = 'none';
+            } else {
+                this.isTitle = false;
+            }
+
+            // Ensure text pasted is not formatted with special formatting.
+            this.label.addEventListener('paste', function (event) {
+                event.preventDefault();
+                document.execCommand('inserttext', false, event.clipboardData.getData('text/plain'));
+            });
+
+            enableExplorerLink(this);
+
+            this.edit.onclick = () => {
+                this.label.setAttributeNode(document.createAttribute('contenteditable'));
+                if (this.isTitle) {
+                    this.label.style['font-size'] = '1.1em';
+                }
+                this.label.style['border-bottom'] = '1px solid #ccc';
+                this.labelValue = this.label.innerText;
+                this.edit.classList.add('hidden');
+                this.cancel.classList.remove('hidden');
+                this.update.classList.remove('hidden');
+                disableExplorerLink(this);
+                this.isEditing = true;
+            }
+
+            this.cancel.onclick = () => {
+                this.label.innerText = this.labelValue;
+                closeEditMode(this);
+            }
+
+            this.update.onclick = async () => {
+                if (await setAddressLabel(this)) {
+                    this.labelValue = this.label.innerText;
+                    closeEditMode(this);
+                    let event = new CustomEvent('updateAddressLabel', { detail: {
+                        label: this.labelValue,
+                        address: this.address,
+                    }});
+                    document.dispatchEvent(event);
+                    if (!this.labelValue) {
+                        this.label.innerText = this.address
+                    }
+                } else {
+                    showError('Failed to update address label...')
+                }
+            }
+        
+            this.addEventListener("updateAddressLabel", function (e) {
+                if (this.address != e.detail.address) {
+                    return
+                }
+                this.labelValue = e.detail.label
+                if (!this.isEditing) {
+                    if (e.detail.label) {
+                        this.label.innerText = e.detail.label
+                    } else {
+                        this.label.innerText = e.detail.address
+                    }
+                }
+            });
+        }
+    }
+
+    function closeEditMode(self) {
+        self.label.removeAttribute('contenteditable')
+        if (self.isTitle) {
+            self.label.style['font-size'] = '1.5em';
+        }
+        self.label.style.border = 'none';
+        self.edit.classList.remove('hidden');
+        self.cancel.classList.add('hidden');
+        self.update.classList.add('hidden');
+        self.isEditing = false;
+        enableExplorerLink(self);
+    }
+
+    function enableExplorerLink(self) {
+        self.explorerLink.classList.add('explorer-link');
+        self.explorerLink.style.removeProperty('text-decoration')
+        if (self.explorer) {
+            self.explorerLink.href = `${ self.explorer }address/${ self.address }`
+        } else {
+            self.explorerLink.onclick = () => {
+                copyText(self.address, `Copied address: ${ self.address }`);
+            }
+        }
+    }
+
+    function disableExplorerLink(self) {
+        self.explorerLink.classList.remove('explorer-link');
+        self.explorerLink.style['text-decoration'] = 'none';
+        if (self.explorer) {
+            self.explorerLink.href = `javascript: void(0)`
+        } else {
+            self.explorerLink.onclick = () => {}
+        }
+    }
+        
+
+    async function fetchAddressLabel(self) {
+        let url = `{{ url_for('wallets_endpoint.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        var formData = new FormData();
+        formData.append('address', self.address);
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            if ("label" in jsonResponse) {
+                if (jsonResponse.label) {
+                    self.label.innerText = jsonResponse.label;
+                }
+                return
+            };
+            showError('Failed to fetch address label data.')
+        } catch(e) {
+            console.log("Caught error: ", e);
+            showError(e);
+        }
+    }
+
+    async function setAddressLabel(self) {
+        let url = `{{ url_for('wallets_endpoint.set_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        var formData = new FormData();
+        formData.append('address', self.address);
+        formData.append('label', self.label.innerText);
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            return jsonResponse.success;
+        } catch(e) {
+            console.log("Caught error: ", e);
+            showError(e);
+            return false;
+        }
+    }
+
+    customElements.define('address-label', AddressLabelElement);
+</script>

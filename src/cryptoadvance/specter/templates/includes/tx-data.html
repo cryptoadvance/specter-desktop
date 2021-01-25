@@ -1,14 +1,8 @@
 <template id="tx-data">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .tx-data-table td {
             text-align: left;
-            padding: 10px;
-            overflow: auto;
-            max-width: 100%;
-        }
-        .tx-data-table tr {
-            margin-bottom: 10px;
-            border-bottom: 1px solid #aaa;
         }
         .tx_info {
 			padding: 1em;
@@ -19,7 +13,7 @@
 		}
     </style>
     <div class="tx-data">
-        <h2>Transaction details</h2>
+        <h2>Transaction details</h2><br>
         <div class="tx-data-info"></div>
         <div class="note"></div>
     </div>
@@ -34,12 +28,15 @@
             var style = document.getElementById('tx-data').content;
             var clone = style.cloneNode(true);
             var txidHeader = clone.querySelector(".txid");
-        
+
             this.el = clone.querySelector(".tx-data");
             this.note = clone.querySelector(".note");
             this.info = clone.querySelector(".tx-data-info");
             this.txid = this.getAttribute('data-txid');
             this.wallet = this.getAttribute('data-tx-wallet');
+            this.btcUnit = this.getAttribute('data-btc-unit');
+            this.price = this.getAttribute('data-price');
+            this.symbol = this.getAttribute('data-symbol');
             this.note.innerText = `Loading transaction details...\n\nTransaction ID: ${this.txid}`;
             fetchTxData(this);
         
@@ -48,7 +45,7 @@
         }
     }
     async function fetchTxData(self) {
-        let url = `{{ url_for('decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        let url = `{{ url_for('wallets_endpoint.decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
         var formData = new FormData();
         formData.append('txid', self.txid)
         try {
@@ -67,11 +64,14 @@
             if (jsonResponse.success) {
                 console.log(jsonResponse);
                 let rawtx = jsonResponse.rawtx;
+                let walletName = jsonResponse.walletName;
                 let tx = jsonResponse.tx;
+                let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                 let rawtxHTML = `
                 <table class="tx-data-table">
                 <tbody>
-                <tr><td>Transaction id:</td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+                <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                 <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
                 `;
                 if (tx.fee) {
@@ -82,7 +82,7 @@
                 }
                 if (tx.confirmations) {
                     rawtxHTML += `
-                        <tr><td>Mine at block:</td><td>${tx.blockheight}</td></tr>
+                        <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
                         <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
                         <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
                     `;
@@ -122,11 +122,23 @@
                     if (address == 'Unknown') {
                         address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
                     }
+                    let value = parseFloat(rawtx.vout[i].value.toFixed(8));
+                    let price = '';
+                    if (self.price && self.symbol) {
+                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                    }
+
+                    if (self.btcUnit == 'sat') {
+                        value = parseInt(value * 1e8)
+                    }
+
+                    value = `${numberWithCommas(value.toString())}`;
+
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: #131a24;">
                         <b>Output #${i}</b><br><br>
-                        Address: <explorer-link style="word-break: break-all;" data-type="address" data-value="${address}"></explorer-link><br>
-                        Value: ${rawtx.vout[i].value}
+                        Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                        Value: ${value} ${price}
                     </p>
                     `;
                 }

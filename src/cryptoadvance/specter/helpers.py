@@ -64,6 +64,13 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
+def migrate_config(config):
+    # migrate old "auth" string into new "auth" json subtree
+    if "auth" in config:
+        if isinstance(config["auth"], str):
+            config["auth"] = dict(method=config["auth"])
+
+
 def deep_update(d, u):
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
@@ -225,3 +232,91 @@ def generate_mnemonic(strength=256):
     mnemo = Mnemonic("english")
     words = mnemo.generate(strength=strength)
     return words
+
+
+def parse_wallet_data_import(wallet_data):
+    """Parses wallet JSON for import, takes JSON in a supported format
+    and returns a tuple of wallet name, wallet descriptor, and cosigners types (if known, electrum only for now)
+    Supported formats: Specter, Electrum, Account Map (Fully Noded, Gordian, Sparrow etc.)
+    """
+    cosigners_types = []
+    # specter format
+    if "recv_descriptor" in wallet_data:
+        wallet_name = wallet_data.get("name", "Imported Wallet")
+        recv_descriptor = wallet_data.get("recv_descriptor", None)
+    # Electrum multisig
+    elif "x1/" in wallet_data:
+        i = 1
+        xpubs = ""
+        while "x{}/".format(i) in wallet_data:
+            d = wallet_data["x{}/".format(i)]
+            xpubs += "[{}]{}/0/*,".format(
+                d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
+            )
+            cosigners_types.append(d["hw_type"])
+            i += 1
+        xpubs = xpubs.rstrip(",")
+        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
+            "addresses"
+        ]["receiving"][0].startswith("tb"):
+            wallet_type = "wsh"
+        else:
+            wallet_type = "sh-wsh"
+        required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
+        recv_descriptor = "{}(sortedmulti({}, {}))".format(
+            wallet_type, required_sigs, xpubs
+        )
+        wallet_name = "Electrum {} of {}".format(required_sigs, i - 1)
+    # Electrum singlesig
+    elif "keystore" in wallet_data:
+        wallet_name = wallet_data["keystore"]["label"]
+        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
+            "addresses"
+        ]["receiving"][0].startswith("tb"):
+            wallet_type = "wpkh"
+        else:
+            wallet_type = "sh-wpkh"
+        recv_descriptor = "{}({})".format(
+            wallet_type,
+            "[{}]{}/0/*,".format(
+                wallet_data["keystore"]["derivation"].replace(
+                    "m", wallet_data["keystore"]["root_fingerprint"]
+                ),
+                wallet_data["keystore"]["xpub"],
+            ),
+        )
+        cosigners_types = [wallet_data["keystore"]["hw_type"]]
+    else:
+        wallet_name = wallet_data.get("label", "Imported Wallet")
+        recv_descriptor = wallet_data.get("descriptor", None)
+    return (wallet_name, recv_descriptor, cosigners_types)
+
+
+def notify_upgrade(app, flash):
+    """If a new version is available, notifies the user via flash
+    that there is an upgrade to specter.desktop
+    :return the current version
+    """
+    if app.specter.version.upgrade:
+        flash(
+            f"Upgrade notification: new version {app.specter.version.latest} is available.",
+            "info",
+        )
+    return app.specter.version.current
+
+
+def is_ip_private(ip):
+    # https://en.wikipedia.org/wiki/Private_network
+    priv_lo = re.compile("^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    priv_24 = re.compile("^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    priv_20 = re.compile("^192\.168\.\d{1,3}.\d{1,3}$")
+    priv_16 = re.compile("^172.(1[6-9]|2[0-9]|3[0-1]).[0-9]{1,3}.[0-9]{1,3}$")
+
+    res = (
+        ip == "localhost"
+        or priv_lo.match(ip)
+        or priv_24.match(ip)
+        or priv_20.match(ip)
+        or priv_16.match(ip)
+    )
+    return res is not None

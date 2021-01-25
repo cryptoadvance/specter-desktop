@@ -1,0 +1,191 @@
+<template id="tx-row">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <tr class="tx-row">
+        <td>
+            <img class="category"/>
+        </td>
+        <td class="tx scroll optional txid">
+            <span class="explorer-link"></span>
+        </td>
+        <td class="tx scroll optional address"></td>
+        <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
+        <td class="time"></td>
+        <td>
+            <span class="confirmations"></span>
+            <button class="rbf btn optional hidden" style="width: 120px; float: right;" type="button">Speed up</button>
+        </td>
+        <td class="hidden optional blockhash"></td>
+        <td></td>
+    </tr>
+</template>
+
+<script type="text/javascript">
+    class TxRowElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('tx-row').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".tx-row");
+            this.category = clone.querySelector(".category");
+            this.txid = clone.querySelector(".txid .explorer-link");
+            this.address = clone.querySelector(".address");
+            this.amountText = clone.querySelector(".amount");
+            this.amountPrice = clone.querySelector(".amount-price");
+            this.time = clone.querySelector(".time");
+            this.confirmations = clone.querySelector(".confirmations");
+            this.blockhash = clone.querySelector(".blockhash");        
+            this.rbf = clone.querySelector(".rbf");        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.tx = JSON.parse(this.getAttribute('data-tx'));
+            this.wallet = this.getAttribute('data-wallet');
+            this.showBlockhash = this.getAttribute('data-show-blockhash') == 'true';
+            this.btcUnit = this.getAttribute('data-btc-unit');
+            this.price = this.getAttribute('data-price');
+            this.symbol = this.getAttribute('data-symbol');
+
+            // Set category image
+            this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
+            
+            // TODO:
+            // Setup tx popup for mobile
+
+
+            // Set txid
+            this.txid.innerText = this.tx.txid;
+            this.txid.onclick = () => {
+                showTxData(
+                    this.btcUnit,
+                    this.price,
+                    this.symbol,
+                    this.tx.txid,
+                    this.wallet
+                );
+            }
+
+            if (window.innerWidth < 690) {
+                this.el.onclick = () => {
+                    showTxData(
+                        this.btcUnit,
+                        this.price,
+                        this.symbol,
+                        this.tx.txid,
+                        this.wallet
+                    );
+                }
+            }
+
+            // Set address-label
+            if (Array.isArray(this.tx.address)) {
+                this.address.innerText = `${this.tx.address.length} Recipients`;
+            } else {
+                this.address.innerHTML = `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+            }
+            
+            // Set amount
+            if (Array.isArray(this.tx.amount)) {
+                this.amount = parseFloat(this.tx.amount.reduce((a, b) => a + b, 0).toFixed(8))
+            } else {
+                this.amount = parseFloat(this.tx.amount.toFixed(8));
+            }
+
+            if (!this.price || !this.symbol) {
+                this.amountPrice.innerText = '';
+                this.amountPrice.classList.add('hidden');
+            } else {
+                this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                this.amountPrice.classList.remove('hidden');
+            }
+
+            if (this.btcUnit == 'sat') {
+                this.amount = parseInt(this.amount * 1e8);
+            }
+
+            this.amountText.innerText = `${numberWithCommas(this.amount.toString())}`;
+
+            // Set confirmations
+            if (this.tx.confirmations > 0) {
+                this.confirmations.innerHTML = `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;
+            } else {
+                this.el.classList.add('unconfirmed');
+                this.confirmations.innerHTML = `Unconfirmed`;
+            }
+
+            if (this.tx.category == "send" && this.tx["bip125-replaceable"] == "yes") {
+                this.rbf.classList.remove('hidden');
+                this.rbf.onclick = () => {
+                    let txDataPopup = document.getElementById('tx-popup');
+                    let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                    let newFee = parseFloat((((this.tx.fee * -1) / this.tx.vsize) * 1e8).toFixed(2));
+                    if (newFee <= 1.02) {
+                        newFee = 1;
+                    }
+                    newFee += 2;
+                    txDataPopup.innerHTML = `
+                    <form action="${url}" method="POST">
+                    <h1>Speed up the Transaction</h1>
+                    <p>You can speedup the transaction by increasing its fee rate:</p>
+                    <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
+                    <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+                    <br>
+                    <br>
+                    <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>
+                    </form>
+                    `;
+                    showPageOverlay('tx-popup');
+                }
+            } else {
+                this.rbf.classList.add('hidden');
+            }
+            
+            // Set time
+            this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+
+            // Show blockhash
+            if (this.showBlockhash) {
+                this.blockhash.classList.remove('hidden');
+                if (
+                    this.tx.blockhash &&
+                    this.tx.validated_blockhash &&
+                    this.tx.validated_blockhash == this.tx.blockhash
+                ) {
+                    this.blockhash.innerHTML = `
+                    <explorer-link style="word-break: break-all;" data-type="block" data-value="${this.tx.blockhash}"></explorer-link><br>
+                    `;
+                }
+            } else {
+                this.blockhash.classList.add('hidden');
+            }
+        }
+    }
+
+    function getCategoryImg(category, isConfirmed) {
+        switch (category) {
+            case "send":
+                if (isConfirmed) {
+                    return `{{ url_for('static', filename='img') }}/send_icon.svg`;
+                }
+                return `{{ url_for('static', filename='img') }}/unconfirmed_send_icon.svg`;
+            case "receive":
+            case "immature":
+                if (isConfirmed && category != "immature") {
+                    return `{{ url_for('static', filename='img') }}/receive_icon.svg`;
+                }
+                return `{{ url_for('static', filename='img') }}/unconfirmed_receive_icon.svg`;
+            case "generate":
+                return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
+            case "selftransfer":
+                if (isConfirmed) {
+                    return `{{ url_for('static', filename='img') }}/selftransfer_icon.svg`;
+                }
+                return `{{ url_for('static', filename='img') }}/unconfirmed_selftransfer_icon.svg`;
+        }
+    }
+
+    customElements.define('tx-row', TxRowElement);
+</script>
