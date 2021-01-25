@@ -352,6 +352,7 @@ def auth():
                 method = request.form["method"]
                 rate_limit = request.form["rate_limit"]
                 registration_link_timeout = request.form["registration_link_timeout"]
+            min_chars = int(auth["password_min_chars"])
             if specter_username:
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
@@ -371,7 +372,6 @@ def auth():
                         )
                 current_user.username = specter_username
                 if specter_password:
-                    min_chars = int(auth["password_min_chars"])
                     if len(specter_password) < min_chars:
                         flash(
                             "Please enter a password of a least {} characters.".format(
@@ -393,7 +393,30 @@ def auth():
                 current_user.save_info(app.specter)
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
-                if method == "rpcpasswordaspin" or method == "usernamepassword":
+                if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
+                    if method == "passwordonly":
+                        new_password = request.form.get("specter_password_only", "")
+                        if new_password:
+                            if len(new_password) < min_chars:
+                                flash(
+                                    "Please enter a password of a least {} characters.".format(
+                                        min_chars
+                                    ),
+                                    "error",
+                                )
+                                return render_template(
+                                    "settings/auth_settings.jinja",
+                                    method=method,
+                                    rate_limit=rate_limit,
+                                    registration_link_timeout=registration_link_timeout,
+                                    users=users,
+                                    specter=app.specter,
+                                    current_version=current_version,
+                                    rand=rand,
+                                )
+
+                            current_user.password = hash_password(new_password)
+                            current_user.save_info(app.specter)
                     if method == "usernamepassword":
                         users = [
                             user
