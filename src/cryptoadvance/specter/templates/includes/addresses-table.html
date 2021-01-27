@@ -1,4 +1,16 @@
 <template id="addresses-table">
+    {% set supports_qr_code_verify = [] %}
+    {% for device in wallet.devices if device.qr_code_support_verify %}
+        {% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
+    {% endfor %}
+    {% set supports_hwi = [] %}
+    {% set supports_hwi_multisig_display_address = [] %}
+    {% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
+        {% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
+    {% endfor %}
+    {% for device in wallet.devices if device.hwi_support %}
+        {% set supports_hwi = supports_hwi.append(device) %}
+    {% endfor %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .addresses-table {
@@ -127,14 +139,17 @@
                 </th>
                 <th value="address" class="address-header">Addresses<div class="address-arrow"></div>
                 </th>
-                <th value="label" class="label-header">Label<div class="label-arrow">
+                <th value="label" class="label-header optional">Label<div class="label-arrow">
                 </th>
-                <th value="used" class="used-header">Used<div class="used-arrow">
+                <th value="used" class="used-header optional">Used<div class="used-arrow">
                 </th>
-                <th value="utxo" class="utxo-header">UTXO<div class="utxo-arrow">
+                <th value="utxo" class="utxo-header optional">UTXO<div class="utxo-arrow">
                 </th>
-                <th value="amount" class="amount-header">Amount<div class="amount-arrow">
+                <th value="amount" class="amount-header optional">Amount<div class="amount-arrow">
                 </th>
+                {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+					<th class="optional"></th>	
+                {% endif %}
                 <th style="width: 50px; padding: 10px;">
                     <button type="button" class="export-btn btn" style="width: 50px;">Export</button>
                 </th>
@@ -146,8 +161,11 @@
             <td>Fetching addresses ...</td>
             <td class="optional"></td>
             <td class="optional"></td>
-            <td></td>
-            <td></td>
+            <td class="optional"></td>
+            <td class="optional"></td>
+            {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+                <th class="optional"></th>	
+            {% endif %}
             <td></td>
         </tr>
 
@@ -438,6 +456,8 @@
 
                         let addrRow = `
                         <address-row 
+                            data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
                             data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
                             data-price="${self.price ? self.price : 0}"
                             data-symbol="${self.symbol ? self.symbol : ''}"
@@ -499,6 +519,32 @@
             showError(`Failed to fetch addresses list: ${e}`);
         }
 
+    }
+
+    
+    /**
+     * Shows a <address-data> element popup for specified address.
+     * @param address - Address data to show.
+     * @param wallet - The wallet alias of the wallet the address belongs to.
+    */
+    function showAddressData(amount, amountPrice, addressData, wallet) {
+        if (wallet) {
+            let addressDataPopup = document.getElementById('address-popup');
+            addressDataPopup.innerHTML = `
+            <address-data
+            data-verify-qr="{{ supports_qr_code_verify != [] }}"
+            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+            data-used="${addressData.used}"
+            data-utxo="${addressData.utxo}"
+            data-amount="${amount}"
+            data-amount-price="${amountPrice}"
+            data-address="${addressData.address}"
+            data-address-wallet="${wallet}">
+            </address-data>`;
+            showPageOverlay('address-popup');
+        } else {
+            copyText(address, `Copied address: ${ address }`);
+        }
     }
 
     customElements.define('addresses-table', AddressTableElement);
