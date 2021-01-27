@@ -763,7 +763,7 @@ def import_psbt(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
-def show_addresses(wallet_alias):
+def addresses(wallet_alias):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
