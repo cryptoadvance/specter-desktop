@@ -95,7 +95,8 @@ def bitcoin_core():
             )
 
             if "tests" in test:
-                if not test["tests"]["connectable"]:
+                # If any test has failed, we notify the user that the test has not passed
+                if False in list(test["tests"].values()):
                     flash(f"Test failed: {test['err']}", "error")
                 else:
                     flash("Test passed", "info")
