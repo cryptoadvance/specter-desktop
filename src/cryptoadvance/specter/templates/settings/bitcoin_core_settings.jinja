@@ -31,7 +31,7 @@
 				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
 			</span>
 			<br><br>
-			<div id="rpc_settings" style="padding: 10px; border-radius: 10px;">
+			<div id="rpc_settings">
 				<div id="lock" class="center">
 					<p style="text-align: center; margin: auto; ">&#128274;</p>
 					<span class="note centered"> (disable auto-detect to configure manually)</span>
@@ -151,6 +151,9 @@
 					datadirContainer.style.removeProperty('display');
 					rpcSettings.style['pointer-events'] = 'none';
 					rpcSettings.style['background-color'] = '#8881';
+					rpcSettings.style['padding'] = '10px';
+					rpcSettings.style['border-radius'] = '10px';
+
 					scanRpc.style.display = 'none';
 					document.getElementById("username").value = '{{ username }}';
 					document.getElementById("password").value = '{{ password }}';
@@ -159,6 +162,8 @@
 					datadirContainer.style['display'] = 'none';
 					rpcSettings.style.removeProperty('background-color');
 					rpcSettings.style.removeProperty('pointer-events');
+					rpcSettings.style.removeProperty('padding');
+					rpcSettings.style.removeProperty('border-radius');
 					scanRpc.style.removeProperty('display');
 				}
 			}

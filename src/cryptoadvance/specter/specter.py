@@ -366,11 +366,16 @@ class Specter:
         if rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
-        r["tests"] = {}
+        r["tests"] = {"connectable": False}
+        r["err"] = ""
+        r["code"] = 0
         try:
             r["tests"]["recent_version"] = (
                 int(rpc.getnetworkinfo()["version"]) >= 170000
             )
+            if not r["tests"]["recent_version"]:
+                r["err"] = "Core Node might be too old"
+
             r["tests"]["connectable"] = True
             r["tests"]["credentials"] = True
             try:
@@ -379,10 +384,9 @@ class Specter:
             except RpcError as rpce:
                 logger.error(rpce)
                 r["tests"]["wallets"] = False
+                r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
-            r["err"] = ""
-            r["code"] = 0
         except ConnectionError as e:
             logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
@@ -393,10 +397,11 @@ class Specter:
             logger.error("Caught an RpcError while test_rpc: %s", rpce)
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
+            r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
+                r["err"] = "RPC authentication failed!"
             else:
-                r["code"] = rpc.r.status_code
                 r["err"] = str(rpce.status_code)
         except Exception as e:
             logger.error(

@@ -93,6 +93,13 @@ def bitcoin_core():
                 autodetect=autodetect,
                 datadir=datadir,
             )
+
+            if "tests" in test:
+                # If any test has failed, we notify the user that the test has not passed
+                if False in list(test["tests"].values()):
+                    flash(f"Test failed: {test['err']}", "error")
+                else:
+                    flash("Test passed", "info")
         elif action == "save":
             if current_user.is_admin:
                 success = app.specter.update_rpc(
