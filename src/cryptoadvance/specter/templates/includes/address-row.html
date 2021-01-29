@@ -105,7 +105,7 @@
                         if (jsonResponse.success) {
                             console.log(jsonResponse);
                             let descriptor = jsonResponse.descriptor;
-                            displayAddressOnDevice(this.addressData.address, descriptor);
+                            displayAddressOnDevice(this.addressData.address, JSON.stringify(descriptor));
                             return;
                         }
                         showError("Failed to load address data to display...");
