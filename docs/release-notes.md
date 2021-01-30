@@ -1,4 +1,4 @@
-## v1.1.0-pre1 Januar 30, 2021
+## v1.1.0 Januar 30, 2021
 - bugfix: Util testing  and small bugfix about multisig treshold  #698 (Manolis)
 - Feature: Replace address list on receive tab with addresses tab #914 (benk10)
 - Support Cobo single key files #915 (benk10)
