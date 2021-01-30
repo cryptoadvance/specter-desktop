@@ -81,6 +81,10 @@ You can configure the authentication method used by Specter at `https://specter.
 
 When authentication is enabled Specter rate limits attempts to login to frustrate brute force password guessing.
 
+### Password Protection
+
+User defined password is used by Specter to login (default: admin).
+
 ### RPC Password as PIN
 
 The Bitcoin Core RPC password is used by Specter to login.
