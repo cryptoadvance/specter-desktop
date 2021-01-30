@@ -70,7 +70,6 @@
                 console.log(jsonResponse);
                 let descriptor = jsonResponse.descriptor;
                 let addressIndex = jsonResponse.index;
-                let addressLabel = jsonResponse.label;
                 let isChange = jsonResponse.change;
                 let walletName = jsonResponse.walletName;
                 let address = jsonResponse.address;
@@ -79,7 +78,7 @@
                 <table class="address-data-table">
                 <tbody>
                 <tr><td>Address:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                <tr><td>Label:</td><td><address-label data-copy-hidden="true" data-label="${addressLabel}" data-address="${address}" data-wallet="${self.wallet}"></address-label><br></td></tr>
+                <tr><td>Label:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br></td></tr>
                 <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                 <tr><td>Address index:</td><td>${addressIndex}</td></tr>
                 <tr><td>Is change address:</td><td>${isChange ? 'Yes' : 'No'}</td></tr>
