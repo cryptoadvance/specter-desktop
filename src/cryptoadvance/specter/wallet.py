@@ -4,7 +4,7 @@ from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes
-from .util.base58 import decode_base58
+from embit import base58
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
@@ -1262,7 +1262,7 @@ class Wallet:
             # for multisig add xpub fields
             if len(self.keys) > 1:
                 for k in self.keys:
-                    key = b"\x01" + decode_base58(k.xpub)
+                    key = b"\x01" + base58.decode_check(k.xpub)
                     if k.fingerprint != "":
                         fingerprint = bytes.fromhex(k.fingerprint)
                     else:
