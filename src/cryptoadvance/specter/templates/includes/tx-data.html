@@ -27,7 +27,6 @@
             var shadow = this.attachShadow({mode: 'open'});
             var style = document.getElementById('tx-data').content;
             var clone = style.cloneNode(true);
-            var txidHeader = clone.querySelector(".txid");
 
             this.el = clone.querySelector(".tx-data");
             this.note = clone.querySelector(".note");

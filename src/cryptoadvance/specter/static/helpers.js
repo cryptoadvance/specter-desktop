@@ -36,12 +36,30 @@ document.addEventListener("updateAddressLabel", function (e) {
 
 	// TODO: Needed currently for all custom elements containing <address-label>
 	// Find an alternative which would work regardless of shadowRoot
-	document.querySelector('tx-table').shadowRoot.querySelectorAll('tx-row').forEach(el => {
-		el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+	if (document.querySelector('tx-table')) {
+		document.querySelector('tx-table').shadowRoot.querySelectorAll('tx-row').forEach(el => {
+			el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+				let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+				return el.dispatchEvent(event);
+			});
+		});
+	}
+
+	if (document.querySelector('addresses-table')) {
+		document.querySelector('addresses-table').shadowRoot.querySelectorAll('address-row').forEach(el => {
+			el.shadowRoot.querySelectorAll('address-label').forEach(el => {
+				let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
+				return el.dispatchEvent(event);
+			});
+		});
+	}
+	
+	if (document.querySelector('address-data')) {
+		document.querySelector('address-data').shadowRoot.querySelectorAll('address-label').forEach(el => {
 			let event = new CustomEvent('updateAddressLabel', { detail: e.detail });
 			return el.dispatchEvent(event);
 		});
-	});
+	}
 });
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
