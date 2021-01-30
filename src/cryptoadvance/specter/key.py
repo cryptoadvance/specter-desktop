@@ -42,8 +42,8 @@ class Key:
             derivation = ""
         if key_type not in purposes:
             key_type = ""
-        if not purpose or purpose not in list(purposes.values()):
-            purpose = purposes[key_type]
+        if not purpose:
+            purpose = purposes.get(key_type, "General")
         self.original = original
         self.fingerprint = fingerprint
         self.derivation = derivation

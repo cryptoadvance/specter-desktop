@@ -6,7 +6,7 @@
 		<h1 id="title" class="settings-title">Bitcoin Core settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('bitcoin_core', current_user) }}
-		<div class="card" style="margin: 20px auto;">
+		<div class="card" style="margin: 20px auto 120px;">
 			<h2>Bitcoin JSON-RPC configuration</h2>
 			<br>
 			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
@@ -31,7 +31,7 @@
 				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
 			</span>
 			<br><br>
-			<div id="rpc_settings" style="padding: 10px; border-radius: 10px;">
+			<div id="rpc_settings">
 				<div id="lock" class="center">
 					<p style="text-align: center; margin: auto; ">&#128274;</p>
 					<span class="note centered"> (disable auto-detect to configure manually)</span>
@@ -70,25 +70,58 @@
 					{% if 'connectable' in test['tests'] %}
 						<div>Connectable</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
-						<div> {% if not test['tests']['connectable'] %} Check e.g. <a href="https://bitcoin.stackexchange.com/questions/74337/testnet-bitcoin-connection-refused-111">this article</a> {% endif %}</div>
+						{% if not test['tests']['connectable'] %} 
+							<tool-tip title="Your Node can't be reached" style="float: right;">
+								There are a lot of potential issues preventing the connection.
+								Please doublecheck the Host and the Port. Make sure you can reach
+								the host and make sure that Bitcoin-Core is listening at the port
+								you have specified. 
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
 					{% endif %}
 
 					{% if 'credentials' in test['tests'] %}
 						<div>Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
-						<div> {% if not test['tests']['credentials'] %} Please double-check your credentials!  {% endif %}</div>
+						{% if not test['tests']['credentials'] %}
+							<tool-tip title="Your Credentials don't work" style="float: right;">
+								Please doublecheck the user and the Password. Look at the bitcoin.conf
+								for the correct values in that field.
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
 					{% endif %}
 
 					{% if 'recent_version' in test['tests'] %}
 						<div>Version recent enough</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
-						<div> {% if not test['tests']['recent_version'] %} Update your Bitcoin Node to at least version 0.17.  {% endif %}</div>
+						{% if not test['tests']['recent_version'] %}
+							<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
+									Specter is working well up from Bitcoin Core version 0.17.
+									The version of your Node is too low, unfortunatley.
+									Please upgrade!
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
 					{% endif %}
 					
 					{% if 'wallets' in test['tests'] %}
 						<div>Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
-						<div> {% if not test['tests']['wallets'] %} Make sure to have 'disablewallet=0' in your bitcoin.conf {% endif %} </div>
+						{% if not test['tests']['wallets'] %}
+							<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
+								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
+								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
 					{% endif %}
 
 				</div>
@@ -118,6 +151,9 @@
 					datadirContainer.style.removeProperty('display');
 					rpcSettings.style['pointer-events'] = 'none';
 					rpcSettings.style['background-color'] = '#8881';
+					rpcSettings.style['padding'] = '10px';
+					rpcSettings.style['border-radius'] = '10px';
+
 					scanRpc.style.display = 'none';
 					document.getElementById("username").value = '{{ username }}';
 					document.getElementById("password").value = '{{ password }}';
@@ -126,6 +162,8 @@
 					datadirContainer.style['display'] = 'none';
 					rpcSettings.style.removeProperty('background-color');
 					rpcSettings.style.removeProperty('pointer-events');
+					rpcSettings.style.removeProperty('padding');
+					rpcSettings.style.removeProperty('border-radius');
 					scanRpc.style.removeProperty('display');
 				}
 			}
