@@ -35,7 +35,7 @@
             this.info = clone.querySelector(".address-data-info");
             this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
             this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
-            this.used = this.getAttribute('data-used');
+            this.used = (this.getAttribute('data-used') == 'true');
             this.utxo = this.getAttribute('data-utxo');
             this.amount = this.getAttribute('data-amount');
             this.amountPrice = this.getAttribute('data-amount-price');
