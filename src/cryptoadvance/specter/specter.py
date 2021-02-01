@@ -15,6 +15,7 @@ from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
 from .device_manager import DeviceManager
+from .service_manager import ServiceManager
 from .wallet_manager import WalletManager
 from .user_manager import UserManager
 from .persistence import write_json_file, read_json_file
@@ -95,6 +96,7 @@ class Specter:
 
         self.rpc = None
         self.user_manager = UserManager(self)
+        self.service_manager = ServiceManager()
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments

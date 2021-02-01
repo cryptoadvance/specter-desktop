@@ -136,6 +136,8 @@
             {% endfor %}
         </div>
         {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device','btn_new_device') }}
+
+        {% include "services/sidebar_services_list.jinja" %}
         <br>
         <div class="footer">
 	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
@@ -173,6 +175,14 @@
         } else {
             document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
                 toggleList('wallets');
+            });
+        }
+
+        if ('{{ specter.service_manager.service_names | length }}' == '0') {
+            document.getElementById('toggle_services_list').innerHTML = 'Services';
+        } else {
+            document.getElementById('toggle_services_list').addEventListener('click', (event) => {
+                toggleList('services');
             });
         }
     });

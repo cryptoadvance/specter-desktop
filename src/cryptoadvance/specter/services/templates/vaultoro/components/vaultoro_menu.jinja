@@ -1,0 +1,18 @@
+{% from 'vaultoro/components/vaultoro_menu_item.jinja' import vaultoro_menu_item %}
+
+{# 
+    vaultoro_menu - Tabs menu to navigate between the vaultoro screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
+ #}
+{% macro vaultoro_menu(active_menuitem) -%}
+	<nav class="row collapse-on-mobile">
+		{{ vaultoro_menu_item('trade', 'Trade', active_menuitem, isLeft=true) }}
+		{{ vaultoro_menu_item('deposit', 'Deposit', active_menuitem) }}
+		{{ vaultoro_menu_item('withdraw', 'Withdraw', active_menuitem) }}
+		{{ vaultoro_menu_item('settings', 'settings', active_menuitem, isRight=true) }}
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		</a>
+	</nav>
+{%- endmacro %}

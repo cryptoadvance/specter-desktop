@@ -1,0 +1,561 @@
+<template id="quote">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+    <h1 class="padded">Trade</h1>
+    <p class="center">Available Funds:<br>
+        <span class="buyWithAsset">GOLD</span> Balance: <span class="buyWithBalance">0.00000000</span><br>
+        <span class="buyAsset">BTC</span> Balance: <span class="buyBalance">0.00000000</span><br>
+    </p>
+    <div class="card" style="width: 610px; padding-top: 25px;">
+    <message-box type="error" class="errorMessagesDiv" style="display: none;"></message-box>
+        
+
+
+    This is using Vaultoro Direct Beta!
+    Vaultoro direct is an easy OTC (over the counter) solution to buying and selling assets on Vaultoro directly with us.<br>
+    <br>
+    <div class="prepTradeDiv">
+        Buy Asset:<br>
+        <div class="row">
+            <select class="buySelect"t>
+                <option value="gold">Gold</option>
+                <option value="silver">Silver</option>
+                <option value="bitcoin">Bitcoin</option>
+            </select>
+        </div>
+        <br>
+        With this Asset:<br>
+        <div class="row">
+            <select class="withSelect"t>
+                <option value="bitcoin">Bitcoin</option>
+            </select>
+        </div>
+        <br>
+        Amount to trade (<span class="amountDescription">The amount of gold you want to buy</span>)<br>
+        <div class="row">
+            <input type="text" class="amount"/><span class></span> 
+            <button class="switchAmountUnitBtn btn">
+                <svg width=20 viewBox="0 0 504 504"><path stroke="white" fill="white" d="M0 168v-16c0-13.255 10.745-24 24-24h360V80c0-21.367 25.899-32.042 40.971-16.971l80 80c9.372 9.373 9.372 24.569 0 33.941l-80 80C409.956 271.982 384 261.456 384 240v-48H24c-13.255 0-24-10.745-24-24zm488 152H128v-48c0-21.314-25.862-32.08-40.971-16.971l-80 80c-9.372 9.373-9.372 24.569 0 33.941l80 80C102.057 463.997 128 453.437 128 432v-48h360c13.255 0 24-10.745 24-24v-16c0-13.255-10.745-24-24-24z"/></svg>
+            </button>
+        </div>
+        <br>
+        <button class="previewTradeBtn btn">Preview Trade</button>
+    </div>
+    <div class="previewTradeDiv" style="display: none;">
+        <h3>You buy:</h2>
+        <h1>
+            <span data-bind="preparedTrade.buyAsset.amount">waiting ...</span>
+            <span data-bind="preparedTrade.buyAsset.unit"></span>
+            <span data-bind="preparedTrade.buyAsset.name"></span>
+        </h1>
+        <h3>You pay:</h2>
+        <h1>
+            <span data-bind="preparedTrade.buyWithAsset.amount">waiting ...</span>
+            <span data-bind="preparedTrade.buyWithAsset.unit"></span>
+            <span data-bind="preparedTrade.buyWithAsset.name"> </span>
+        </h1>
+        <div class="row">
+            <button class="confirmTradeBtn btn" style="margin: 8px;">Confirm Trade</button>
+            <button class="cancelTradeBtn btn" style="margin: 8px;">Cancel</button>
+        </div>
+    </div>
+
+    
+    <br>
+    Min Trade (GOLD): 0.005kg<br>
+
+    <br>
+
+    <svg  version="1.1"  preserveAspectRatio="none" style="width:24px; height:24px;">
+        <circle cx="12" cy="12" r="10" class="loader-ring" fill="none" 
+            stroke="white" stroke-width="2" stroke-dasharray=",20000" transform="rotate(0,100,100)" />
+        
+    </svg>
+
+    <span class="ticker">Gold/BTC: 0.00</span>(kg)
+        <br><br>
+        <div class="debugArea">
+        <hr>
+        <h4>Debug Area</h4>
+
+        <h5>Balances</h5>
+        {{balances}}
+        <h5>quote</h5>
+        <pre class="quote"></pre>
+        <h5>order</h5>
+        <pre class="order"></pre>
+        <h5>bindexample</h5>
+        <p class="bindexample" data-bind="preparedTrade"></p>
+    </div>
+</div>
+</template>
+
+<script type="module" type="text/javascript">
+    /*
+     * check https://medium.com/swlh/https-medium-com-drmoerkerke-data-binding-for-web-components-in-just-a-few-lines-of-code-33f0a46943b3
+     * for infos about CustomElement
+     */
+    import {CustomElement} from '/vaultoro/static/CustomElement.js';
+    /**
+
+      * This custome Element used a state which might look like this, when
+      * it's completely populated (which is probably never the case:
+      * {
+          'preparedTrade': 
+            {"createdAt":1611676535,"expires":1611676595,"pair":"GOLDBTC",
+             "price":"0.00196304","quantity":"1.00000000",
+             "total":"0.00196304","type":"BUY"},
+        }
+    */
+    class VoltoroDirectBuyElement extends CustomElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('quote').content;
+            var clone = style.cloneNode(true);
+    
+            // ErrorMessages
+            this.errorMessagesDiv = clone.querySelector(".errorMessagesDiv");
+
+            // Prepare the trade (choose assets / amount etc)
+            this.prepTradeDiv = clone.querySelector(".prepTradeDiv");
+
+            this.buySelect = clone.querySelector(".buySelect");
+            this.buySelect.onchange = () => {
+                this.buySelectUpdated()
+            }
+
+            this.withSelect = clone.querySelector(".withSelect");
+            this.withSelect.onchange = () => {
+                this.withSelectUpdated()
+            }
+
+            this.amountDescription = clone.querySelector(".amountDescription");
+
+            this.amountInput = clone.querySelector(".amount");
+            this.amountInput.onchange = () => {
+                this.amountInputUpdated()
+            }
+
+            this.switchAmountUnitBtn = clone.querySelector(".switchAmountUnitBtn");
+            this.switchAmountUnitBtn.onclick = () => {
+                this.switchAmountUnitBtnClicked()
+            }
+
+            this.previewTradeBtn = clone.querySelector(".previewTradeBtn");
+            this.previewTradeBtn.onclick = () => {
+                this.previewTradeBtnClicked()
+            }
+
+            // Preview the prepared Trade
+            this.previewTradeDiv = clone.querySelector(".previewTradeDiv");
+            
+            this.confirmTradeBtn = clone.querySelector(".confirmTradeBtn");
+            this.confirmTradeBtn.onclick = () => {
+                this.confirmTradeBtnClicked()
+            }
+
+            this.cancelTradeBtn = clone.querySelector(".cancelTradeBtn");
+            this.cancelTradeBtn.onclick = () => {
+                this.cancelTradeBtnClicked()
+            }
+
+            this.buyWithAssetSpan = clone.querySelector(".buyWithAsset")
+            this.buyAssetSpan = clone.querySelector(".buyAsset")
+
+            this.buyBalance = clone.querySelector(".buyBalance");
+            this.buyWithBalance = clone.querySelector(".buyWithBalance");
+
+
+
+            // Data
+            this.balances={{balances|tojson}}
+            this.setState({amountAsset: this.buySelect.value})
+            this.ticker=null // get filled with {"ask":"0.00178295","bid":"0.00178703","handle":"GOLDBTC"}}
+
+            // counting towards the next time we'll grab the tickerprice
+            this.initCircleTimer(clone)
+            this.angle = 60
+
+            this.tickerSpan = clone.querySelector(".ticker")
+
+            // Debug Area
+            this.quote = clone.querySelector(".quote");
+            this.order = clone.querySelector(".order");
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+            this.updateBalanceList()
+        }
+
+        /*
+         * ----==== Events ====----
+         */
+
+        
+        initCircleTimer(clone) {
+            var circle = clone.querySelector('.loader-ring');
+            var interval = 300;
+            this.angle = 0; // between 0 and 60 , updatable from outside
+            var angle_increment = 1;
+          
+            window.timer = window.setInterval(function() {
+              circle.setAttribute("stroke-dasharray", this.angle + ", 20000");
+          
+              if (this.angle >= 60) {
+                this.angle=0
+                try {
+                    updateTicker(this, this.getTickerAndType().ticker)
+                } catch (e) {
+                    console.log(e)
+                }
+              }
+              this.angle += angle_increment;
+            }.bind(this), interval);
+        }
+
+
+
+        /**
+        * triggered when the buy-selector gets updated. Needs to:
+        * populate the with-select
+        * update the amountinput-Description ("The amount of gold you want to buy")
+        * update the balance-list
+        */
+        buySelectUpdated() {
+            while (this.withSelect.options.length) {
+                this.withSelect.remove(0);
+            }
+
+            switch (this.buySelect.value) {
+                case "gold":
+                case "silver":
+                    var option = document.createElement("option");
+                    option.value="bitcoin"
+                    option.text = "Bitcoin";
+                    this.withSelect.add(option)
+                    break;
+                case "bitcoin":
+                    var option = document.createElement("option");
+                    option.value="gold"
+                    option.text = "Gold";
+                    this.withSelect.add(option)
+                    var option = document.createElement("option");
+                    option.value="silver"
+                    option.text = "Silver";
+                    this.withSelect.add(option)
+                    break;
+
+            }
+            this.setState({amountAsset: this.buySelect.value})
+            this.updateAmountDescription()
+            this.updateBalanceList()
+            // trigger ticker-update
+            this.angle = 60 
+        }
+
+        /**
+        * triggered when the with-selector gets updated. Needs to:
+        * update the balance-list (Maybe swopping the order)
+        * update the amountinput-Description ("The amount of gold you want to buy")
+        */
+        withSelectUpdated() {
+            this.updateBalanceList()
+            this.updateAmountDescription()
+            // trigger ticker-update
+            this.angle = 60 
+        }
+
+        switchAmountUnitBtnClicked() {
+            if (this.state.amountAsset==this.buySelect.value) {
+                this.setState({amountAsset: this.withSelect.value})
+                if (this.buySelect.value == "bitcoin") {
+                    this.amountInput.value = this.amountInput.value / (this.ticker["bid"] * 1000 )
+                } else {
+                    this.amountInput.value = this.amountInput.value * (this.ticker["bid"] * 1000 )
+                }
+                
+            } else {
+                this.setState({amountAsset: this.buySelect.value})
+                if (this.buySelect.value == "bitcoin") {
+                    this.amountInput.value = this.amountInput.value * this.ticker["bid"] / 1000
+                } else {
+                    this.amountInput.value = this.amountInput.value / this.ticker["bid"] / 1000
+                }
+            }
+            this.updateAmountDescription()
+        }
+
+        previewTradeBtnClicked() {
+            var preparedTrade
+            if (!Number.isInteger(parseInt(this.amountInput.value))) {
+                console.log("ERROR , please specify value")
+                throw "ERROR , please specify value"
+            }
+            console.log("previewTradeClicked this.state.amountAsset"+this.state.amountAsset)
+            
+            const tickerType = this.getTickerAndType()
+            var total = null
+            var quantity = null
+            if (this.state.amountAsset=="bitcoin") {
+                total = this.amountInput.value
+            } else {
+                quantity = this.amountInput.value * 1000
+            }
+            console.log("fetch quote for quantity " + quantity + " and type "+tickerType.type)
+            // fetchQuote will call processQuoteResponse ...
+            preparedTrade = fetchQuote(this, tickerType.ticker, tickerType.type, total, quantity)          
+
+            // ... which will setState but still the UI:
+            this.prepTradeDiv.style.display = 'none'
+            this.previewTradeDiv.style.display = 'block'
+        }
+
+        confirmTradeBtnClicked() {
+            console.log(this.state)
+            execTrade(
+                this,
+                this.state.preparedTrade.response.pair,
+                this.state.preparedTrade.response.type,
+                this.state.preparedTrade.response.total,
+                this.state.preparedTrade.response.quantity
+            )
+        }
+
+        cancelTradeBtnClicked() {
+            this.prepTradeDiv.style.display = 'block'
+            this.previewTradeDiv.style.display = 'none'
+            this.setState({preparedTrade: { response: null}})
+            this.setState({preparedTrade: { buyAsset: { name: "waiting ..." }}})
+            this.setState({preparedTrade: {buyAsset: { name: "waiting ..."}}})
+            this.setState({preparedTrade: {buyAsset: { quantity: ""}}})
+            this.setState({preparedTrade: {buyAsset: { unit: ""}}})
+            this.setState({preparedTrade: {buyWithAsset: { name : ""}}})
+        }
+
+        amountInputUpdated() {
+            //Some Validation here
+            // e.g. check for min amount
+        }
+
+         /*
+         * ----==== END OF Events ====----
+         */
+
+
+        updateAmountDescription() {
+            if (this.state.amountAsset==this.buySelect.value) {
+                this.amountDescription.textContent = "The amount of "+this.buySelect.value+ " you want to buy"
+            } else {
+                this.amountDescription.textContent = "The amount of "+this.withSelect.value+ " you want to spend on "+this.buySelect.value 
+            }
+        }
+
+        updateBalanceList() {
+            let buySelectValue= this.balanceKeyMapping(this.buySelect.value)
+            let withSelectValue = this.balanceKeyMapping(this.withSelect.value)
+            // Update the desc/labels
+            this.buyAssetSpan.textContent=buySelectValue
+            this.buyWithAssetSpan.textContent = withSelectValue
+            
+            // update the amounts
+            this.buyBalance.textContent=this.balances.find(el => el.type="SETTLED" && el.handle==buySelectValue.toUpperCase()).quantity
+            this.buyWithBalance.textContent=this.balances.find(el => el.type="SETTLED" && el.handle==withSelectValue.toUpperCase()).quantity
+        }
+
+        balanceKeyMapping(asset) {
+            switch (asset.toUpperCase()) {
+                case "GOLD":
+                    return "GOLD"
+                case "SILVER":
+                    return "SILV"
+                case "BITCOIN":
+                    return "BTC"
+            }
+            return null
+        }
+
+        /**
+         * Depending on the values of the select-fields, it's return one of these
+         * ticker-symbols:
+         * - GOLDBTC
+         * - SILVBTC
+         */
+        getTickerAndType() {
+            if (this.buySelect.value == "gold") {
+                return {ticker:"GOLDBTC" , type:"BUY"}
+            } else if (this.buySelect.value == "silver") {
+                return {ticker:"SILVBTC", type:"BUY"}
+            } else if (this.buySelect.value == "bitcoin") {
+                if (this.withSelect.value == "gold") {
+                    return {ticker:"GOLDBTC" , type:"SELL"}
+                } else {
+                    return {ticker:"SILVBTC" , type:"SELL"}
+                }
+            }
+            throw `Couldn't find correct values for buySelect ${this.buySelect.value} and withSelect ${this.withSelect.value}`
+        }
+
+        getUnit(asset) {
+            switch (asset.toUpperCase()) {
+                case "GOLD":
+                    return "g"
+                case "SILVER":
+                    return "g"
+                case "BITCOIN":
+                    return ""
+            }
+            throw "unknown asset"+asset
+        }
+
+        /**
+         * callback get called from fetchQuote in order to transform the response
+         * to a reasonable this.state
+         */
+        processQuoteResponse(resp) {
+            // Not so nice, would love if that would work in one go but then the binding
+            // no longer works
+            // self.setState({preparedTrade: {response: jsonResponse}  })
+            // we probably not even need all of them here
+            this.setState({preparedTrade: { response: resp}})
+            console.log(this.state)
+            // this.state.preparedTrade.(buyAsset|buyWithAsset) is for the ui
+            // Relevant later to confirm the trade is only state.preparedTrade.response
+            switch (resp.pair+" "+resp.type) {
+                case "GOLDBTC BUY":
+                    this.setState({preparedTrade: {buyAsset: { name: "Gold"}}})
+                    this.setState({preparedTrade: {buyAsset: { amount: resp.quantity/1000}}})
+                    this.setState({preparedTrade: {buyAsset: { unit: "kg"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { name : "BTC"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { unit: ""}}})
+                    this.setState({preparedTrade: {buyWithAsset: { amount : resp.total}}})
+                    break;
+                case "GOLDBTC SELL":
+                    this.setState({preparedTrade: {buyAsset: { name: "BTC"}}})
+                    this.setState({preparedTrade: {buyAsset: { amount: resp.total}}})
+                    this.setState({preparedTrade: {buyAsset: { unit: ""}}})
+                    this.setState({preparedTrade: {buyWithAsset: { name : "Gold"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { unit: "kg"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { amount : resp.quantity/1000}}})
+                    break;
+                case "SILVBTC BUY":
+                    this.setState({preparedTrade: {buyAsset: { name: "Silver"}}})
+                    this.setState({preparedTrade: {buyAsset: { amount: resp.quantity/1000}}})
+                    this.setState({preparedTrade: {buyAsset: { unit: "kg"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { name : "BTC"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { unit: ""}}})
+                    this.setState({preparedTrade: {buyWithAsset: { amount : resp.total}}})
+                    break;
+                case "SILVBTC SELL":
+                    this.setState({preparedTrade: {buyAsset: { name: "BTC"}}})
+                    this.setState({preparedTrade: {buyAsset: { amount: resp.total}}})
+                    this.setState({preparedTrade: {buyAsset: { unit: ""}}})
+                    this.setState({preparedTrade: {buyWithAsset: { name : "Silver"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { unit: "kg"}}})
+                    this.setState({preparedTrade: {buyWithAsset: { amount : resp.quantity/1000}}})
+                    break;
+                default:
+                    throw "couldn't find reasonable data from response"+resp
+            }
+            console.log("state:")
+            console.log(self.state)
+
+        }
+    }
+
+    /* Async function using self as a poor-man's "this"
+        Fetches the ticker from vaultoro and updates the UI
+    */
+    async function updateTicker(self, ticker) {
+        try {
+            const params = new URLSearchParams({
+                "pair": ticker
+            })
+            var url 
+            url = `{{vaultoro_url}}/v1/public/ticker?${params.toString()}`
+            //url = `https://api.vaultoro.com/v1/public/ticker?${params.toString()}`
+            //url = `http://api.vtoro.io/v1/public/ticker?${params.toString()}`
+            const response = await fetch(
+                url,
+                {
+                    method: 'GET'
+                }
+            )
+            const jsonResponse = await response.json();
+            self.ticker = jsonResponse["data"]
+            console.log(self.ticker)
+            self.tickerSpan.textContent = `${self.buySelect.value}/${self.withSelect.value} ${self.ticker["bid"]*1000} `
+        } catch(e) {
+            console.log("Caught error: ", e);
+        }
+    }
+
+    async function fetchQuote(self, pair, type, total, quantity) {
+        var url = '/vaultoro/api/buy/quote'
+        console.log(`Calling fetchQuote pair: ${pair} total/quantity: ${total} / ${quantity} type: ${type}`) 
+
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    headers:{
+                        "Content-type":"application/json"
+                    },
+                    body: JSON.stringify({
+                        "type": type,
+                        "pair":pair,
+                        "total": parseFloat(total),
+                        "quantity": parseFloat(quantity)
+                    })
+                }
+            )
+            // Here is how a typical repsonse looks like:
+            // {"createdAt":1611739612,"expires":1611739672,"pair":"GOLDBTC",
+            //  "price":"0.00200066","quantity":"1000.00000000","total":"2.00066000","type":"BUY"}
+            const jsonResponse = await response.json();
+            self.quote.innerText = JSON.stringify(jsonResponse)
+            
+            self.processQuoteResponse(jsonResponse)
+        } catch(e) {
+            console.log("Caught error: ", e);
+            self.errorMessagesDiv.textContent = e
+        }
+    }
+
+    async function execTrade(self, pair, type, total, quantity) {
+        var url = '/api/buy/order'
+        console.log(`Calling execTrade pair: ${pair} total/quantity: ${total} / ${quantity} type: ${type}`) 
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    headers:{
+                        "Content-type":"application/json"
+                    },
+                    body: JSON.stringify({
+                        "type": "BUY",
+                        "pair":pair,
+                        "quantity": parseFloat(quantity),
+                        "total": parseFloat(total)
+                    })
+                }
+            )
+            const jsonResponse = await response.json();
+            self.order.innerText = JSON.stringify(jsonResponse)
+            if (jsonResponse.errors) {
+                self.errorMessagesDiv.style.display = "block"
+                self.errorMessagesDiv.textContent = jsonResponse.errors
+            } else {
+                //location.replace("/home")
+            }
+        } catch(e) {
+            console.log("Caught error: ", e);
+            self.errorMessagesDiv.style.display = "block"
+            self.errorMessagesDiv.textContent = e
+        }
+    }
+    customElements.define('vaultoro-directbuy', VoltoroDirectBuyElement);
+</script>

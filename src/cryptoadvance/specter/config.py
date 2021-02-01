@@ -70,6 +70,7 @@ class BaseConfig(object):
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
+    EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
 
 
 class TestConfig(BaseConfig):
