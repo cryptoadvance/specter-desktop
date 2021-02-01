@@ -535,10 +535,15 @@ def send_new(wallet_alias):
     addresses = [""]
     labels = [""]
     amounts = [0]
-    fee_rate = 0.0
     err = None
     ui_option = "ui"
     recipients_txt = ""
+    subtract = False
+    subtract_from = 1
+    fee_options = "dynamic"
+    fee_rate = 0.0
+    fee_rate_blocks = 6
+    rbf = True
     if request.method == "POST":
         action = request.form["action"]
         if action == "createpsbt":
@@ -563,6 +568,7 @@ def send_new(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
+                    labels.append('')
             addresses = [
                 address.lower()
                 if address.startswith(("BC1", "TB1", "BCRT1"))
@@ -570,21 +576,23 @@ def send_new(wallet_alias):
                 for address in addresses
             ]
             subtract = bool(request.form.get("subtract", False))
-            subtract_from = int(request.form.get("subtract_from", 1)) - 1
-            rbf = bool(request.form.get("rbf", False))
+            subtract_from = int(request.form.get("subtract_from", 1))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
-            if "dynamic" in request.form.get("fee_options"):
+            fee_options = request.form.get("fee_options")
+            if "dynamic" in fee_options:
                 fee_rate = float(request.form.get("fee_rate_dynamic"))
+                fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
             else:
                 if request.form.get("fee_rate"):
                     fee_rate = float(request.form.get("fee_rate"))
+            rbf = bool(request.form.get("rbf", False))
             try:
                 psbt = wallet.createpsbt(
                     addresses,
                     amounts,
                     subtract=subtract,
-                    subtract_from=subtract_from,
+                    subtract_from=subtract_from - 1,
                     fee_rate=fee_rate,
                     selected_coins=selected_coins,
                     readonly="estimate_fee" in request.form,
@@ -670,11 +678,16 @@ def send_new(wallet_alias):
         psbt=psbt,
         ui_option=ui_option,
         recipients_txt=recipients_txt,
-        labels=labels,
+        recipients=list(zip(addresses, amounts, labels)),
+        subtract=subtract,
+        subtract_from=subtract_from,
+        fee_options=fee_options,
+        fee_rate=fee_rate,
+        fee_rate_blocks=fee_rate_blocks,
+        rbf=rbf,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
-        recipients=list(zip(addresses, amounts, labels)),
         rand=rand,
         error=err,
     )
