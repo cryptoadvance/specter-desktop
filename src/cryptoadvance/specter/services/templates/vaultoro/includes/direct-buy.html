@@ -7,8 +7,9 @@
         <span class="buyAsset">BTC</span> Balance: <span class="buyBalance">0.00000000</span><br>
     </p>
     <div class="card" style="width: 610px; padding-top: 25px;">
-    <message-box type="error" class="errorMessagesDiv" style="display: none;"></message-box>
-        
+    <div class="errorMessagesDiv">
+        <message-box type="error" style="display: none;"></message-box>
+    </div>
 
 
     This is using Vaultoro Direct Beta!
@@ -172,7 +173,7 @@
             // Data
             this.balances={{balances|tojson}}
             this.setState({amountAsset: this.buySelect.value})
-            this.ticker=null // get filled with {"ask":"0.00178295","bid":"0.00178703","handle":"GOLDBTC"}}
+            this.ticker=undefined // get filled with {"ask":"0.00178295","bid":"0.00178703","handle":"GOLDBTC"}}
 
             // counting towards the next time we'll grab the tickerprice
             this.initCircleTimer(clone)
@@ -199,17 +200,15 @@
             var interval = 300;
             this.angle = 0; // between 0 and 60 , updatable from outside
             var angle_increment = 1;
-          
             window.timer = window.setInterval(function() {
-              circle.setAttribute("stroke-dasharray", this.angle + ", 20000");
-          
-              if (this.angle >= 60) {
-                this.angle=0
-                try {
-                    updateTicker(this, this.getTickerAndType().ticker)
-                } catch (e) {
-                    console.log(e)
-                }
+                circle.setAttribute("stroke-dasharray", this.angle + ", 20000");
+                if (this.angle >= 60) {
+                    this.angle=0
+                    try {
+                        updateTicker(this, this.getTickerAndType().ticker)
+                    } catch (e) {
+                        this.handleError(e)
+                    }
               }
               this.angle += angle_increment;
             }.bind(this), interval);
@@ -289,11 +288,10 @@
 
         previewTradeBtnClicked() {
             var preparedTrade
-            if (!Number.isInteger(parseInt(this.amountInput.value))) {
-                console.log("ERROR , please specify value")
-                throw "ERROR , please specify value"
+            if (isNaN(parseFloat((this.amountInput.value)))) {
+                this.handleError("Please specify a valid Number")
+                return
             }
-            console.log("previewTradeClicked this.state.amountAsset"+this.state.amountAsset)
             
             const tickerType = this.getTickerAndType()
             var total = null
@@ -313,7 +311,6 @@
         }
 
         confirmTradeBtnClicked() {
-            console.log(this.state)
             execTrade(
                 this,
                 this.state.preparedTrade.response.pair,
@@ -343,6 +340,13 @@
          * ----==== END OF Events ====----
          */
 
+        handleError(errorText) {
+            console.log(errorText)
+            const messageBox = document.createElement('message-box');
+            messageBox.setType("error")
+            messageBox.textContent = errorText
+            this.errorMessagesDiv.appendChild(messageBox)
+        }
 
         updateAmountDescription() {
             if (this.state.amountAsset==this.buySelect.value) {
@@ -419,7 +423,6 @@
             // self.setState({preparedTrade: {response: jsonResponse}  })
             // we probably not even need all of them here
             this.setState({preparedTrade: { response: resp}})
-            console.log(this.state)
             // this.state.preparedTrade.(buyAsset|buyWithAsset) is for the ui
             // Relevant later to confirm the trade is only state.preparedTrade.response
             switch (resp.pair+" "+resp.type) {
@@ -458,9 +461,6 @@
                 default:
                     throw "couldn't find reasonable data from response"+resp
             }
-            console.log("state:")
-            console.log(self.state)
-
         }
     }
 
@@ -473,9 +473,7 @@
                 "pair": ticker
             })
             var url 
-            url = `{{vaultoro_url}}/v1/public/ticker?${params.toString()}`
-            //url = `https://api.vaultoro.com/v1/public/ticker?${params.toString()}`
-            //url = `http://api.vtoro.io/v1/public/ticker?${params.toString()}`
+            url = `{{vaultoro_url}}/public/ticker?${params.toString()}`
             const response = await fetch(
                 url,
                 {
@@ -483,11 +481,14 @@
                 }
             )
             const jsonResponse = await response.json();
+            if (jsonResponse["data"] == undefined) {
+                self.handleError(`api endpoint ${url} is not returning expected data but: ${JSON.stringify(jsonResponse)}`)
+                return
+            }
             self.ticker = jsonResponse["data"]
-            console.log(self.ticker)
             self.tickerSpan.textContent = `${self.buySelect.value}/${self.withSelect.value} ${self.ticker["bid"]*1000} `
         } catch(e) {
-            console.log("Caught error: ", e);
+            self.handleError(e);
         }
     }
 
@@ -519,14 +520,13 @@
             
             self.processQuoteResponse(jsonResponse)
         } catch(e) {
-            console.log("Caught error: ", e);
-            self.errorMessagesDiv.textContent = e
+            self.handleError(e);
         }
     }
 
     async function execTrade(self, pair, type, total, quantity) {
         var url = '/vaultoro/api/buy/order'
-        console.log(`Calling execTrade pair: ${pair} total/quantity: ${total} / ${quantity} type: ${type}`) 
+        console.log(`Calling execTrade pair: ${pair} type: ${type} total/quantity: ${total} / ${quantity} type: ${type}`) 
         try {
             const response = await fetch(
                 url,
@@ -552,9 +552,7 @@
                 //location.replace("/home")
             }
         } catch(e) {
-            console.log("Caught error: ", e);
-            self.errorMessagesDiv.style.display = "block"
-            self.errorMessagesDiv.textContent = e
+            self.handleError(e);
         }
     }
     customElements.define('vaultoro-directbuy', VoltoroDirectBuyElement);
