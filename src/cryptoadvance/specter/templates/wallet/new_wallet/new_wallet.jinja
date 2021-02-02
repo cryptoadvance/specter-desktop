@@ -8,14 +8,19 @@
 		{% endif %}
 		<div class="row overflow">
 			{# Disable BitBox02 multisig for now... #}
-			{% for device_name in specter.device_manager.devices_names if wallet_type != 'multisig' or specter.device_manager.devices[device_name].device_type != 'bitbox02' %}
+			{% for device_name in specter.device_manager.devices_names %}
 				{% set device = specter.device_manager.devices[device_name] %}
-				<label>
-					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) %}disabled{% endif %}>
+				<label style="position: relative;">
+					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) or (wallet_type == 'multisig' and specter.device_manager.devices[device_name].device_type == 'bitbox02') %}disabled{% endif %}>
 					<div class="small-card radio" id="{{device.alias}}">
 						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
 						{{ device_name }}
 					</div>
+					{% if not device.has_key_types(wallet_type, specter.chain) or (wallet_type == 'multisig' and specter.device_manager.devices[device_name].device_type == 'bitbox02') %}
+						<tool-tip title="Device cannot be selected" style="position: absolute; top: 30px; left: 25px;">
+							{{device.no_key_found_reason(wallet_type, specter.chain)}}
+						</tool-tip>
+					{% endif %}
 				</label>
 			{% endfor %}
 			<a href="{{ url_for('devices_endpoint.new_device') }}" style="text-decoration: none; color: #fff;">
