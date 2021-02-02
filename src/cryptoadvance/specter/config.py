@@ -66,11 +66,14 @@ class BaseConfig(object):
         os.getenv("SPECTER_SSL_CERT_SERIAL_NUMBER", random.randrange(1, 100000))
     )
 
+    # The API for the Vaultoro Service
+    VAULTORO_API = os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
-    EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
+    # EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
 
 
 class TestConfig(BaseConfig):

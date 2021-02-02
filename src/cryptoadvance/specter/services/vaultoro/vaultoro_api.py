@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import logging
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +49,15 @@ class VaultoroApi:
             raise Exception("Neither total nor quantity set")
         return self._call_api("/private/orders/quote", "POST", data=data)
 
-    def create_order(self, pair, quantity):
-        data = {"matchType": "OTC", "type": "BUY", "pair": pair}
-        if quantity != None:
-            data["quantity"] = float(quantity)
-        else:
+    def create_order(self, pair, mytype, total, quantity):
+        data = {
+            "matchType": "OTC",
+            "type": mytype,
+            "pair": pair,
+            "quantity": quantity,
+            "total": total,
+        }
+        if quantity is None or total is None or mytype is None:
             raise Exception("quantity not set")
         return self._call_api("/private/orders/", "POST", data=data)
 
@@ -100,6 +105,7 @@ class VaultoroApi:
             headers=headers,
         )
         result = response.text
+        logger.debug(f"VTClient result {result}")
         try:
             result = json.loads(result)
         except:
@@ -119,7 +125,7 @@ class VaultoroApi:
         # vaultoro_url=os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
 
         # ToDo: decide where to use which domain.
-        domain = "http://localhost:5000/.vaultoro/public/v1"
+        domain = "http://localhost:25441/vaultoro/.vaultoro/v1"
 
         # pathes which won't go through the proxy
         logger.info(f"Making Vaultoro-request: {path}")
@@ -130,6 +136,6 @@ class VaultoroApi:
         ]
         for exc_path in exceptions_for_proxy_filter:
             if path.endswith(exc_path):
-                domain = os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
+                domain = app.config["VAULTORO_API"]
 
         return domain + path

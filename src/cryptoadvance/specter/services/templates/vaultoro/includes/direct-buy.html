@@ -525,7 +525,7 @@
     }
 
     async function execTrade(self, pair, type, total, quantity) {
-        var url = '/api/buy/order'
+        var url = '/vaultoro/api/buy/order'
         console.log(`Calling execTrade pair: ${pair} total/quantity: ${total} / ${quantity} type: ${type}`) 
         try {
             const response = await fetch(
@@ -536,7 +536,7 @@
                         "Content-type":"application/json"
                     },
                     body: JSON.stringify({
-                        "type": "BUY",
+                        "type": type,
                         "pair":pair,
                         "quantity": parseFloat(quantity),
                         "total": parseFloat(total)

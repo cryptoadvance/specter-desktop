@@ -11,11 +11,13 @@ from flask import (
     url_for,
     jsonify,
     flash,
+    make_response,
 )
 from flask_login import login_required, current_user
 from flask import current_app as app
 from ..service_settings_manager import ServiceSettingsManager
 from .vaultoro_api import VaultoroApi
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -111,10 +113,12 @@ def api_buy_quote():
 @vaultoro_endpoint.route("/api/buy/order", methods=["POST"])
 def api_buy_order():
     """ implements https://api-docs.vaultoro.com/otc """
-    pair = request.json["pair"]
-    quantity = request.json["quantity"]
-    total = request.json["total"]
-    return get_api().create_order(pair, quantity)
+    return get_api().create_order(
+        request.json["pair"],
+        request.json["type"],
+        request.json["total"],
+        request.json["quantity"],
+    )
 
 
 @vaultoro_endpoint.route("/api/history/trades", methods=["GET"])
@@ -146,14 +150,14 @@ def trace_call():
     logger.info("tracecall triggered")
 
 
-@app.route("/.vaultoro/public/<path:mypath>", methods=["GET", "POST"])
+@vaultoro_endpoint.route("/.vaultoro/v1/<path:mypath>", methods=["GET", "POST"])
 def vaultoro_proxy(mypath):
     logger.debug(f"VTProxy {mypath}")
     tracefilter = ["v1/private/balances"]
     for path in tracefilter:
         if mypath.endswith(path):
             trace_call()
-    url = vaultoro_url + "/" + mypath
+    url = app.config["VAULTORO_API"] + "/" + mypath
     logger.debug(f"VTProxy {url}")
     # Not sure what about request.data ... irgnore it for now
     session = requests.session()
