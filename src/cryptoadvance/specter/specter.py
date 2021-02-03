@@ -96,7 +96,7 @@ class Specter:
 
         self.rpc = None
         self.user_manager = UserManager(self)
-        self.service_manager = ServiceManager()
+        self.service_manager = ServiceManager(self)
 
         self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
@@ -557,6 +557,11 @@ class Specter:
             self._save()
         else:
             user.set_alt_symbol(self, alt_symbol)
+
+    def update_services(self, services):
+        """ takes a list of service_names which should be activated """
+        self.config["services"] = services
+        self._save()
 
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:

@@ -2,14 +2,16 @@
     <span id="toggle_services_list" style="cursor: pointer;">Services &nbsp; &#9660;</span>
 </div>
 <div id="services_list">
-    {% for service_name in specter.service_manager.services_names %}
-        <a href="{{ url_for(service_name+'_endpoint.settings') }}" class="item service">
-            <img src="{{ url_for(service_name+'_endpoint' + '.static', filename='img/Vaultoro-logo-white.svg') }}" height="30px">
+    {% for service_name, service in specter.service_manager.services.items() %}
+        {% if service["active"] %}
+        <a href="{{ url_for(service['name']+'_endpoint.settings') }}" class="item service">
+            <img src="{{ url_for(service['name']+'_endpoint' + '.static', filename='img/Vaultoro-logo-white.svg') }}" height="30px">
             <div>
                 <!-- {{ service_name }}<br> -->
                 <!-- <span class="note" style="font-size: 0.75em;">4 notifications</span> -->
             </div>
         </a>
+        {% endif %}
     {% endfor %}
 </div>
 <br>

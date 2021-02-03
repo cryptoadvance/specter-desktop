@@ -6,6 +6,7 @@
 		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
 			<h1> Backup and Restore </h1>
+			Specter Data Backup:
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -16,12 +17,12 @@
 					</span>
 				</p>
 			</div>
-			Specter Data Backup:
 			<br><br>
 			<div class="row">
 				<a href="{{ url_for('settings_endpoint.backup_file') }}" download class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
 			</div>
 			<br>
+			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -33,7 +34,7 @@
 					</span>
 				</p>
 			</div>
-			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span><br><br>
+			<br><br>
 			<div class="row">
 				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
 				<input type="hidden" id="restorewallets" name="restorewallets"/>
@@ -63,6 +64,27 @@
 			</div>
 			<br>
 			{% if current_user.is_admin %}
+			Services:
+			<div class="note">
+			    You can opt-in to use these services. All Services are multi-user
+				capable and can be used individual by users. 
+				Some services might not respect the Tor-only policy.
+			</div>
+			<br>
+			{% for service_name in services %}
+				<div class="row" style="margin-bottom: 10px;">
+					<label class="switch" style="margin-right: 30px">
+						<input type="checkbox" id="service_{{service_name}}" name="service_{{service_name}}">
+						<span class="slider" ></span>
+					</label>
+					{{ service_name }}
+					<tool-tip title="{{service_name}}" style="float: right;">
+						{{ services[service_name]["desc"] }}
+					</tool-tip>
+				</div>
+				
+			{% endfor %}
+			<br>
 			Log Level:<br>
 			<select name="loglevel">
 				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>

@@ -64,6 +64,10 @@ class VaultoroApi:
     def get_trades(self):
         # As The API on the test-server isn't returning any usefull data,
         # let's return fake-data in the meantime
+
+        return self._call_api(
+            "/private/history/trades", "GET", params={"pair": "GOLDBTC"}
+        )
         return json.loads(
             """
             {
@@ -107,10 +111,6 @@ class VaultoroApi:
                 }
             }
             """
-        )
-
-        return self._call_api(
-            "/private/history/trades", "GET", params={"pair": "GOLDBTC"}
         )
 
     def coins_withdraw(self, otp, address, quantity):

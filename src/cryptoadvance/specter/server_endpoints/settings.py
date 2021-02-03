@@ -139,13 +139,18 @@ def general():
     explorer = app.specter.explorer
     loglevel = get_loglevel(app)
     unit = app.specter.unit
+    services = app.specter.service_manager.services
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
-
         if current_user.is_admin:
+            active_services = []
+            for service_name in services:
+                if request.form.get(f"service_{service_name}"):
+                    active_services.append(service_name)
+
             loglevel = request.form["loglevel"]
 
         if action == "save":
@@ -157,6 +162,7 @@ def general():
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
+            app.specter.update_services(active_services)
             app.specter.check()
         elif action == "restore":
             restore_devices = []
@@ -232,6 +238,7 @@ This may take a few hours to complete.",
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
+        services=services,
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
