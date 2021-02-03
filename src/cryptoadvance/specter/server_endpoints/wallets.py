@@ -529,6 +529,7 @@ def send_new(wallet_alias):
     err = None
     ui_option = "ui"
     recipients_txt = ""
+    fillform = False
     if request.method == "POST":
         action = request.form["action"]
         if action == "createpsbt":
@@ -691,12 +692,20 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
+        elif action == "fillform":
+            addresses = request.form.getlist("addresses[]")
+            labels = request.form.getlist("labels[]")
+            amounts = request.form.getlist("amounts[]")
+            fillform = True
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
         ui_option=ui_option,
         recipients_txt=recipients_txt,
+        addresses=addresses,
         labels=labels,
+        amounts=amounts,
+        fillform=fillform,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,

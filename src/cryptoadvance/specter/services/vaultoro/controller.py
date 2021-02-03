@@ -60,7 +60,19 @@ def trade():
 @vaultoro_endpoint.route("/deposit/", methods=["GET", "POST"])
 # @login_required
 def deposit():
-    return render_template("vaultoro/settings.jinja", specter=app.specter)
+    all_addresses = get_api().get_wallet_addresses()
+    deposit_address = [
+        address
+        for address in all_addresses
+        if address.get("active", False) and "address" in address
+    ]
+    deposit_address = deposit_address[0]
+    return render_template(
+        "vaultoro/deposit.jinja",
+        deposit_address=deposit_address,
+        all_addresses=all_addresses,
+        specter=app.specter,
+    )
 
 
 @vaultoro_endpoint.route("/withdraw/", methods=["GET", "POST"])

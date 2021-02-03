@@ -1,0 +1,99 @@
+{% extends "vaultoro/components/vaultoro_tab.jinja" %}
+{% set tab = 'deposit' %}
+{% block content %}
+	<style>
+		#active-address {
+			font-weight: bolder;
+			margin: 0px auto;
+			font-size: 16px;
+		}
+
+		.address:hover {
+			cursor: pointer;
+			text-decoration: underline;
+		}
+
+		#deposit-specter {
+			width: 240px;
+			margin-top: 2px;
+			height: 45px;
+		}
+	</style>
+		<br>
+		<h1>Deposit Bitcoin to exchange with Vaultoro</h1>
+		<p style="text-align: center;">You can select one of your Specter wallets you'd like to deposit from,<br>
+		or just use the address below to manually deposit the funds.</p>
+	<div class="center card" style="width: 610px; padding-top: 25px;">
+		<h2>Deposit from Specter wallet</h2>
+		<br>
+		<form method="POST" id="deposit-specter-form">
+			<div class="row">
+				<fieldset style="border:none; display: inline; width: 100%;">
+					<select name="price_provider_currency" id="price_provider_currency" onchange="specterWalletSelected(this.value)">
+						<option value="" readonly="true" hidden="true" selected>Select wallet</option>
+						{% for i, v in specter.wallet_manager.wallets.items()|sort(attribute='1.name') %}
+							<option value="{{specter.wallet_manager.wallets[i].alias}}">{{specter.wallet_manager.wallets[i].name}}</option>
+						{% endfor %}
+					</select>
+				</fieldset>
+				<input type="hidden" name="addresses[]" value="{{ deposit_address.address }}">
+				<input type="hidden" name="labels[]" value="Valutoro deposit (ref. ID: {{ deposit_address.referenceId }})">
+				<input type="hidden" name="amounts[]" value="0">
+				<button type="submit" class="btn" id="deposit-specter" name="action" value="fillform">Deposit from wallet</button>
+			</div>
+		</form>
+		<br>
+		<hr>
+		<br>
+		<h2>Deposit manually</h2>
+		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
+		<p title="Click to copy" class="address" id="active-address" class="padded" style="word-break: break-all;" onclick="copyText('{{ deposit_address.address }}', 'Copied Address: {{ deposit_address.address }}');">{{ deposit_address.address }}</p>
+		(click to copy)
+		<br><br>
+		<qr-code style="margin: auto;" value="{{'bitcoin:' + deposit_address.address }}" width="256"></qr-code><br>
+		</div><br>
+	</div>
+	<br>
+	<h1>Previous deposit addresses</h1>
+		<table style="width: 70%;">
+			<tr>
+				<th>Active</th>
+				<th>Address</th>
+				<th>Created at</th>
+				<th>Reference Id</th>
+			</tr>
+			{% for address in all_addresses %}
+				<tr>
+					<td>
+						{% if address["active"] %}
+							<img src="{{ url_for('static', filename='img/checkbox-tick.svg') }}" width="30px">
+						{% endif %}
+					</td>
+					<td>
+						<span class="address" title="Click to copy" onclick="copyText('{{ address.address }}', 'Copied Address: {{ address.address }}');">{{ address.address }}</span>
+					</td>
+					<td>
+						<script>
+							document.write((new Date(parseInt('{{ address["createdAt"]}}') * 1000)).toLocaleString());
+						</script>
+					</td>
+					<td>
+						{{address["referenceId"]}}
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+	<div class="spacer"></div>
+{% endblock %}
+{% block scripts %}
+	<script>
+		function specterWalletSelected(selectedWallet) {
+			let depositFromWalletForm = document.getElementById("deposit-specter-form");
+			if (selectedWallet) {
+				depositFromWalletForm.action = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", selectedWallet);
+			} else {
+				depositFromWalletForm.removeAttribute('action');
+			}
+		}
+	</script>
+{% endblock %}
