@@ -32,6 +32,20 @@ vaultoro_endpoint = Blueprint(
 vaultoro_url = os.getenv("VAULTORO_API", "https://api.vaultoro.com")
 
 
+@vaultoro_endpoint.route("/balances/", methods=["GET", "POST"])
+# @login_required
+def balances():
+    """ shows the balance and history and such stuff """
+    api = get_api()
+    return render_template(
+        "vaultoro/balances.jinja",
+        specter=app.specter,
+        balances=api.get_balances(),
+        history=api.get_trades(),
+        vaultoro_url=vaultoro_url,
+    )
+
+
 @vaultoro_endpoint.route("/trade/", methods=["GET", "POST"])
 # @login_required
 def trade():

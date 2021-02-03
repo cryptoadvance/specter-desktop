@@ -4,6 +4,9 @@
     {% if tab == 'trade' %}
         {% include "vaultoro/includes/direct-buy.html" %}
     {% endif %}
+    {% if tab == 'balances' %}
+        {% include "vaultoro/includes/balances.html" %}
+    {% endif %}
     {% from 'vaultoro/components/vaultoro_menu.jinja' import vaultoro_menu %}
     {{ vaultoro_menu(tab) }}
     {% block content %}

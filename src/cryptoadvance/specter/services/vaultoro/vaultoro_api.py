@@ -62,6 +62,53 @@ class VaultoroApi:
         return self._call_api("/private/orders/", "POST", data=data)
 
     def get_trades(self):
+        # As The API on the test-server isn't returning any usefull data,
+        # let's return fake-data in the meantime
+        return json.loads(
+            """
+            {
+                "data": [
+                    {
+                        "createdAt": 1595427428,
+                        "fees": {
+                            "typeHandle": "VOLUME30",
+                            "value": "-0.01900000",
+                            "handle": "GOLD"
+                        },
+                        "matchType": "LIMIT",
+                        "orderReferenceId": "dczi1trxkcwatf0x",
+                        "pair": "GOLDBTC",
+                        "price": "0.00615450",
+                        "quantity": "1.0000",
+                        "referenceId": "1pxn6pkkcxgaq9o",
+                        "type": "BUY",
+                        "updatedAt": 1595427428
+                    },
+                    {
+                        "createdAt": 1595427428,
+                        "fees": {
+                            "typeHandle": "VOLUME30",
+                            "value": "-0.01900000",
+                            "handle": "GOLD"
+                        },
+                        "matchType": "LIMIT",
+                        "orderReferenceId": "dczi1trxkcwatf0x",
+                        "pair": "GOLDBTC",
+                        "price": "0.00615450",
+                        "quantity": "1.0000",
+                        "referenceId": "1pxn6pkkcxgaq9o",
+                        "type": "BUY",
+                        "updatedAt": 1595427428
+                    }
+
+                ],
+                "pagination": {
+                    "count": 1
+                }
+            }
+            """
+        )
+
         return self._call_api(
             "/private/history/trades", "GET", params={"pair": "GOLDBTC"}
         )
@@ -86,6 +133,7 @@ class VaultoroApi:
         )
 
     def _call_api(self, url, method, params=None, data=None):
+        # Use the proxy or not?!
         url = self.calc_url(url)
         headers = self._get_headers()
         session = requests.session()
@@ -123,6 +171,8 @@ class VaultoroApi:
 
     def calc_url(self, path):
         # vaultoro_url=os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
+
+        # ToDo: whitelist instead of blacklist.
 
         # ToDo: decide where to use which domain.
         domain = "http://localhost:25441/vaultoro/.vaultoro/v1"

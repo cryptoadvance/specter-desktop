@@ -1,0 +1,77 @@
+<template id="balances">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <h1 class="padded">Balances</h1>
+    <div class="card" style="width: 610px; padding-top: 25px;">
+        <div class="errorMessagesDiv">
+            <message-box type="error" style="display: none;"></message-box>
+        </div>
+        <div class="balancesDiv">
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Settled</th>
+                    <th>Available</th>
+                    <th>Pending</th>
+                </tr>
+                <tr>
+                    <td>BTC</td>
+                    <td data-bind="BTC.SETTLED"></td>
+                    <td data-bind="BTC.AVAILABLE"></td>
+                    <td data-bind="BTC.PENDING"></td>
+                </tr>
+                <tr>
+                    <td>Gold</td>
+                    <td data-bind="GOLD.SETTLED"></td>
+                    <td data-bind="GOLD.AVAILABLE"></td>
+                    <td data-bind="GOLD.PENDING"></td>
+                </tr>
+                <tr>
+                    <td>Silver</td>
+                    <td data-bind="SILV.SETTLED"></td>
+                    <td data-bind="SILV.AVAILABLE"></td>
+                    <td data-bind="SILV.PENDING"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</template>
+
+
+<script type="module" type="text/javascript">
+    /*
+     * check https://medium.com/swlh/https-medium-com-drmoerkerke-data-binding-for-web-components-in-just-a-few-lines-of-code-33f0a46943b3
+     * for infos about CustomElement
+     */
+    import {CustomElement} from '/vaultoro/static/CustomElement.js';
+    class VoltoroBalancesElement extends CustomElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('balances').content;
+            var clone = style.cloneNode(true);
+            
+            this.balancesDiv = clone.querySelector(".balancesDiv");
+
+            // binding 
+            this.bindexample = clone.querySelector(".bindexample");
+            this.balances={{balances|tojson}}
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+
+        }
+
+        connectedCallback() {
+            this.balances.forEach( (pos) => {
+                var pos_type = {}
+                pos_type[pos.type] = pos['quantity']
+                var pos_obj = {}
+                pos_obj[pos.handle] = pos_type
+                this.setState(pos_obj)
+            })
+        }
+    }
+    customElements.define('vaultoro-balances', VoltoroBalancesElement);
+</script>

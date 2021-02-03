@@ -7,7 +7,8 @@
  #}
 {% macro vaultoro_menu(active_menuitem) -%}
 	<nav class="row collapse-on-mobile">
-		{{ vaultoro_menu_item('trade', 'Trade', active_menuitem, isLeft=true) }}
+		{{ vaultoro_menu_item('balances', 'Balances', active_menuitem, isLeft=true) }}
+		{{ vaultoro_menu_item('trade', 'Trade', active_menuitem) }}
 		{{ vaultoro_menu_item('deposit', 'Deposit', active_menuitem) }}
 		{{ vaultoro_menu_item('withdraw', 'Withdraw', active_menuitem) }}
 		{{ vaultoro_menu_item('settings', 'settings', active_menuitem, isRight=true) }}

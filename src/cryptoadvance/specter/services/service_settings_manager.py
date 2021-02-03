@@ -15,9 +15,6 @@ class ServiceSettingsManager:
     load or store a setting
     """
 
-    service_name = "vaultoro"
-
-    # of them via json-files in an empty data folder
     def __init__(self, specter, service_name):
         self.service_name = service_name
         data_folder = specter.data_folder
