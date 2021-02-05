@@ -14,23 +14,17 @@ class ServiceManager:
 
     def __init__(self, specter):
         self.specter = specter
-        self._services = [
-            {
-                "name": "vaultoro",
-                "desc": "A Bitcoin Exchange to trade precious metals agains bitcoin",
-            },
-            {
-                "name": "dummyservice",
-                "desc": "Does nothing but can be switched on or off",
-            },
-        ]
         self._services = {
             "vaultoro": {
                 "name": "vaultoro",
-                "desc": "A Bitcoin Exchange to trade precious metals agains bitcoin",
+                "title": "Vaultoro",
+                "logo": "img/Vaultoro-logo-white.svg",
+                "desc": "A Bitcoin and precious metals exchange allows trading Bitcoin against Gold and Silver",
             },
             "dummyservice": {
                 "name": "dummyservice",
+                "title": "dummyservice",
+                "logo": "",
                 "desc": "Does nothing but can be switched on or off",
             },
         }

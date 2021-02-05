@@ -5,13 +5,9 @@
     {% for service_name, service in specter.service_manager.services.items() %}
         {% if service["active"] %}
         <a href="{{ url_for(service['name']+'_endpoint.settings') }}" class="item service">
-            <img src="{{ url_for(service['name']+'_endpoint' + '.static', filename='img/Vaultoro-logo-white.svg') }}" height="30px">
-            <div>
-                <!-- {{ service_name }}<br> -->
-                <!-- <span class="note" style="font-size: 0.75em;">4 notifications</span> -->
-            </div>
+            <img src="{{ url_for(service['name']+'_endpoint' + '.static', filename=service.logo) }}" height="30px">
         </a>
+        <br>
         {% endif %}
     {% endfor %}
 </div>
-<br>

@@ -47,6 +47,32 @@
 			<div class="row" style="margin-top: 5px;">
 				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
 			</div><br><br>
+			{% if current_user.is_admin %}
+				<h1 id="services-title">Services</h1>
+				<div class="note">
+					You can opt-in to use these services. All Services are multi-user
+					capable and can be used individual by users.<br>
+					<b>Some services might not respect the Tor-only policy.</b>
+				</div>
+				<br>
+				{% for service_name in services %}
+					<div class="row" style="margin-bottom: 10px;">
+						<label class="switch" style="margin-right: 30px">
+							<input type="checkbox" id="service_{{service_name}}" name="service_{{service_name}}" {% if services[service_name]["active"] %}checked{% endif %}>
+							<span class="slider"></span>
+						</label>
+						{% if services[service_name].logo %}
+							<img src="{{ url_for(service_name + '_endpoint' + '.static', filename=services[service_name].logo) }}" height="25px">
+						{% else %}
+							{{ services[service_name]["title"] }}
+						{% endif %}
+						<tool-tip title="{{services[service_name].title}}" style="float: right;">
+							{{ services[service_name]["desc"] }}
+						</tool-tip>
+					</div>
+				{% endfor %}
+				<br>
+			{% endif %}
 			<h1> Miscellaneous </h1>
 			Bitcoin unit to use (BTC/sats):
 			<select name="unit">
@@ -64,27 +90,6 @@
 			</div>
 			<br>
 			{% if current_user.is_admin %}
-			Services:
-			<div class="note">
-			    You can opt-in to use these services. All Services are multi-user
-				capable and can be used individual by users. 
-				Some services might not respect the Tor-only policy.
-			</div>
-			<br>
-			{% for service_name in services %}
-				<div class="row" style="margin-bottom: 10px;">
-					<label class="switch" style="margin-right: 30px">
-						<input type="checkbox" id="service_{{service_name}}" name="service_{{service_name}}">
-						<span class="slider" ></span>
-					</label>
-					{{ service_name }}
-					<tool-tip title="{{service_name}}" style="float: right;">
-						{{ services[service_name]["desc"] }}
-					</tool-tip>
-				</div>
-				
-			{% endfor %}
-			<br>
 			Log Level:<br>
 			<select name="loglevel">
 				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>

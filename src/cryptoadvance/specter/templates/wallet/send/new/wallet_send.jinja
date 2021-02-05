@@ -474,9 +474,6 @@
 		document.addEventListener("DOMContentLoaded", function(){
 			{% if fillform %}
 				{% for _ in addresses %}
-					{# alert("{{ loop.index0 }}");
-					alert("{{ labels[loop.counter] }}");
-					alert("{{ amounts[loop.counter] }}"); #}
 					addRecipient('{{ addresses[loop.index0] }}', '{{ labels[loop.index0] }}', parseFloat('{{ amounts[loop.index0] }}'));
 				{% endfor %}
 				validateForm();

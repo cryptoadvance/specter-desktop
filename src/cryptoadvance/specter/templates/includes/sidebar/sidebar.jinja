@@ -135,9 +135,9 @@
                     {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
             {% endfor %}
         </div>
-        {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device','btn_new_device') }}
-
+        {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device', 'btn_new_device') }}
         {% include "services/sidebar_services_list.jinja" %}
+        {{ sidebar_btn(url_for('settings_endpoint.general', _anchor='services-title'), 'Choose services', 'btn_new_service') }}
         <br>
         <div class="footer">
 	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
