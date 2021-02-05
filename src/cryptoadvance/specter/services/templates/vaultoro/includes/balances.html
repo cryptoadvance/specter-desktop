@@ -44,7 +44,7 @@
      * for infos about CustomElement
      */
     import {CustomElement} from '/vaultoro/static/CustomElement.js';
-    class VoltoroBalancesElement extends CustomElement {
+    class VaultoroBalancesElement extends CustomElement {
         constructor() {
             super();
             // Create a shadow root
@@ -55,8 +55,7 @@
             this.balancesDiv = clone.querySelector(".balancesDiv");
 
             // binding 
-            this.bindexample = clone.querySelector(".bindexample");
-            this.balances={{balances|tojson}}
+            this.balances = JSON.parse('{{ balances|tojson }}');
 
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
@@ -65,13 +64,16 @@
 
         connectedCallback() {
             this.balances.forEach( (pos) => {
-                var pos_type = {}
-                pos_type[pos.type] = pos['quantity']
-                var pos_obj = {}
-                pos_obj[pos.handle] = pos_type
-                this.setState(pos_obj)
+                var pos_type = {};
+                pos_type[pos.type] = pos['quantity'];
+                if (pos_type[pos.type] == '-0.00000000') {
+                    pos_type[pos.type] = '0.00000000';
+                }
+                var pos_obj = {};
+                pos_obj[pos.handle] = pos_type;
+                this.setState(pos_obj);
             })
         }
     }
-    customElements.define('vaultoro-balances', VoltoroBalancesElement);
+    customElements.define('vaultoro-balances', VaultoroBalancesElement);
 </script>

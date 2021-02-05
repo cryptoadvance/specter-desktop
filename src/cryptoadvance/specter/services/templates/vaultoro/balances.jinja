@@ -4,32 +4,33 @@
 
 <vaultoro-balances></vaultoro-balances>
 
-<h1 class="padded">History</h1>
-<div class="card" style="width: 610px; padding-top: 25px;">
-    <div class="historyDiv">
+{% if history["data"] %}
+    <h1 class="padded">History</h1>
+    <div class="card" style="width: 610px; padding-top: 25px;">
         <table>
             <tr>
-                <th>createdAt</th>
-                <th>matchType</th>
-                <th>pair</th>
-                <th>price</th>
-                <th>quantity</th>
-                <th>type</th>
+                <th>Pair</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Type</th>
+                <th>Time</th>
             </tr>
             {% for item in history["data"] %}
-            <tr>
-                <th>{{ item.createdAt }}</th>
-                <th>{{ item.matchType }}</th>
-                <th>{{ item.pair }}</th>
-                <th>{{ item.price }}</th>
-                <th>{{ item.quantity }}</th>
-                <th>{{ item.type }}</th>
-            </tr>
+                <tr>
+                    <td>{{ item.pair }}</td>
+                    <td>{{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.type }}</td>
+                    <td>
+                        <script>
+                            document.write((new Date(parseInt('{{ item.createdAt }}') * 1000)).toLocaleString());
+                        </script>
+                    </td>
+                </tr>
             {% endfor %}
         </table>
     </div>
-</div>
-
+{% endif %}
 <hr>
 <h4> Debug</h4>
 <h5>Balances</h5>

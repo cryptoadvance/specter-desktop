@@ -62,56 +62,33 @@ class VaultoroApi:
         return self._call_api("/private/orders/", "POST", data=data)
 
     def get_trades(self):
-        # As The API on the test-server isn't returning any usefull data,
-        # let's return fake-data in the meantime
+        res = {
+            "GOLDBTC": self._call_api(
+                "/private/history/trades", "GET", params={"pair": "GOLDBTC"}
+            ),
+            "SILVBTC": self._call_api(
+                "/private/history/trades", "GET", params={"pair": "SILVBTC"}
+            ),
+        }
 
-        return self._call_api(
-            "/private/history/trades", "GET", params={"pair": "GOLDBTC"}
-        )
-        return json.loads(
-            """
-            {
-                "data": [
-                    {
-                        "createdAt": 1595427428,
-                        "fees": {
-                            "typeHandle": "VOLUME30",
-                            "value": "-0.01900000",
-                            "handle": "GOLD"
-                        },
-                        "matchType": "LIMIT",
-                        "orderReferenceId": "dczi1trxkcwatf0x",
-                        "pair": "GOLDBTC",
-                        "price": "0.00615450",
-                        "quantity": "1.0000",
-                        "referenceId": "1pxn6pkkcxgaq9o",
-                        "type": "BUY",
-                        "updatedAt": 1595427428
-                    },
-                    {
-                        "createdAt": 1595427428,
-                        "fees": {
-                            "typeHandle": "VOLUME30",
-                            "value": "-0.01900000",
-                            "handle": "GOLD"
-                        },
-                        "matchType": "LIMIT",
-                        "orderReferenceId": "dczi1trxkcwatf0x",
-                        "pair": "GOLDBTC",
-                        "price": "0.00615450",
-                        "quantity": "1.0000",
-                        "referenceId": "1pxn6pkkcxgaq9o",
-                        "type": "BUY",
-                        "updatedAt": 1595427428
-                    }
-
-                ],
-                "pagination": {
-                    "count": 1
-                }
-            }
-            """
-        )
+        return {
+            "data": list(
+                {**trade, "pair": "GOLDBTC"}
+                for trade in (
+                    res["GOLDBTC"]["data"]
+                    if "data" in res["GOLDBTC"]
+                    else res["GOLDBTC"]
+                )
+            )
+            + list(
+                {**trade, "pair": "SILVBTC"}
+                for trade in (
+                    res["SILVBTC"]["data"]
+                    if "data" in res["SILVBTC"]
+                    else res["SILVBTC"]
+                )
+            )
+        }
 
     def coins_withdraw(self, otp, address, quantity):
         return self._call_api(
