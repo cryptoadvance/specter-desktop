@@ -171,7 +171,7 @@
 
 
             // Data
-            this.balances={{balances|tojson}}
+            this.balances= JSON.parse('{{balances|tojson}}')
             this.setState({amountAsset: this.buySelect.value})
             this.ticker=undefined // get filled with {"ask":"0.00178295","bid":"0.00178703","handle":"GOLDBTC"}}
 
@@ -357,15 +357,21 @@
         }
 
         updateBalanceList() {
-            let buySelectValue= this.balanceKeyMapping(this.buySelect.value)
+            let buySelectValue = this.balanceKeyMapping(this.buySelect.value)
             let withSelectValue = this.balanceKeyMapping(this.withSelect.value)
             // Update the desc/labels
-            this.buyAssetSpan.textContent=buySelectValue
+            this.buyAssetSpan.textContent = buySelectValue
             this.buyWithAssetSpan.textContent = withSelectValue
             
             // update the amounts
-            this.buyBalance.textContent=this.balances.find(el => el.type="SETTLED" && el.handle==buySelectValue.toUpperCase()).quantity
-            this.buyWithBalance.textContent=this.balances.find(el => el.type="SETTLED" && el.handle==withSelectValue.toUpperCase()).quantity
+            this.buyBalance.textContent = this.balances.find(el => el.type="SETTLED" && el.handle==buySelectValue.toUpperCase()).quantity
+            if (this.buyBalance.textContent == '-0.00000000') {
+                this.buyBalance.textContent = '0.00000000';
+            }
+            this.buyWithBalance.textContent = this.balances.find(el => el.type="SETTLED" && el.handle==withSelectValue.toUpperCase()).quantity
+            if (this.buyWithBalance.textContent == '-0.00000000') {
+                this.buyWithBalance.textContent = '0.00000000';
+            }
         }
 
         balanceKeyMapping(asset) {
@@ -544,12 +550,11 @@
                 }
             )
             const jsonResponse = await response.json();
-            self.order.innerText = JSON.stringify(jsonResponse)
+            self.order.innerText = JSON.stringify(jsonResponse);
             if (jsonResponse.errors) {
-                self.errorMessagesDiv.style.display = "block"
-                self.errorMessagesDiv.textContent = jsonResponse.errors
+                showError(jsonResponse.errors.replace("got 422 and error ['", '').replace("']", ''));
             } else {
-                //location.replace("/home")
+                showNotification('Trade executed successfully!')
             }
         } catch(e) {
             self.handleError(e);

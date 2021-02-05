@@ -164,12 +164,16 @@ def api_buy_quote():
 @vaultoro_endpoint.route("/api/buy/order", methods=["POST"])
 def api_buy_order():
     """ implements https://api-docs.vaultoro.com/otc """
-    return get_api().create_order(
-        request.json["pair"],
-        request.json["type"],
-        request.json["total"],
-        request.json["quantity"],
-    )
+    try:
+        return get_api().create_order(
+            request.json["pair"],
+            request.json["type"],
+            request.json["total"],
+            request.json["quantity"],
+        )
+    except Exception as e:
+        print({"errors": str(e)})
+        return {"errors": str(e)}
 
 
 @vaultoro_endpoint.route("/api/history/trades", methods=["GET"])
