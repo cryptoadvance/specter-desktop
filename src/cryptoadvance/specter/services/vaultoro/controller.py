@@ -32,53 +32,78 @@ vaultoro_endpoint = Blueprint(
 vaultoro_url = os.getenv("VAULTORO_API", "https://api.vaultoro.com")
 
 
+@vaultoro_endpoint.route("/")
+# @login_required
+def index():
+    settings_manager = ServiceSettingsManager(app.specter, "vaultoro")
+    if not settings_manager.get_key(
+        app.specter.user_manager.get_user(current_user).id, "token"
+    ):
+        return redirect("settings")
+
+    return redirect("balances")
+
+
 @vaultoro_endpoint.route("/balances/", methods=["GET", "POST"])
 # @login_required
 def balances():
     """ shows the balance and history and such stuff """
     api = get_api()
-    return render_template(
-        "vaultoro/balances.jinja",
-        specter=app.specter,
-        balances=api.get_balances(),
-        history=api.get_trades(),
-        vaultoro_url=vaultoro_url,
-    )
+    try:
+        return render_template(
+            "vaultoro/balances.jinja",
+            specter=app.specter,
+            balances=api.get_balances(),
+            history=api.get_trades(),
+            vaultoro_url=vaultoro_url,
+        )
+    except:
+        flash("Please provide a Vaultoro API token to access this page", "error")
+        return redirect(url_for("vaultoro_endpoint.settings"))
 
 
 @vaultoro_endpoint.route("/trade/", methods=["GET", "POST"])
 # @login_required
 def trade():
-    return render_template(
-        "vaultoro/trade.jinja",
-        specter=app.specter,
-        balances=get_api().get_balances(),
-        vaultoro_url=vaultoro_url,
-    )
+    try:
+        return render_template(
+            "vaultoro/trade.jinja",
+            specter=app.specter,
+            balances=get_api().get_balances(),
+            vaultoro_url=vaultoro_url,
+        )
+    except:
+        flash("Please provide a Vaultoro API token to access this page", "error")
+        return redirect(url_for("vaultoro_endpoint.settings"))
 
 
 @vaultoro_endpoint.route("/deposit/", methods=["GET", "POST"])
 # @login_required
 def deposit():
-    all_addresses = get_api().get_wallet_addresses()
-    deposit_address = [
-        address
-        for address in all_addresses
-        if address.get("active", False) and "address" in address
-    ]
-    deposit_address = deposit_address[0]
-    return render_template(
-        "vaultoro/deposit.jinja",
-        deposit_address=deposit_address,
-        all_addresses=all_addresses,
-        specter=app.specter,
-    )
+    try:
+        all_addresses = get_api().get_wallet_addresses()
+        deposit_address = [
+            address
+            for address in all_addresses
+            if address.get("active", False) and "address" in address
+        ]
+        deposit_address = deposit_address[0]
+        return render_template(
+            "vaultoro/deposit.jinja",
+            deposit_address=deposit_address,
+            all_addresses=all_addresses,
+            specter=app.specter,
+        )
+    except:
+        flash("Please provide a Vaultoro API token to access this page", "error")
+        return redirect(url_for("vaultoro_endpoint.settings"))
 
 
 @vaultoro_endpoint.route("/withdraw/", methods=["GET", "POST"])
 # @login_required
 def withdraw():
-    return render_template("vaultoro/settings.jinja", specter=app.specter)
+    flash("Not yet implemented", "error")
+    return redirect(url_for("vaultoro_endpoint.settings"))
 
 
 @vaultoro_endpoint.route("/settings/", methods=["GET", "POST"])

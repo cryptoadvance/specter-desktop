@@ -4,7 +4,7 @@
 <div id="services_list">
     {% for service_name, service in specter.service_manager.services.items() %}
         {% if service["active"] %}
-        <a href="{{ url_for(service['name']+'_endpoint.settings') }}" class="item service">
+        <a href="{{ url_for(service['name']+'_endpoint.index') }}" class="item service">
             <img src="{{ url_for(service['name']+'_endpoint' + '.static', filename=service.logo) }}" height="30px">
         </a>
         <br>

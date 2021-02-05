@@ -3,21 +3,22 @@
 {% block content %}
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<div class="card" style="margin: 20px auto;">
+			<h1 style="margin-bottom: 25px;">
 			<img src="{{ url_for('vaultoro_endpoint.static', filename='img/Vaultoro-logo-white.svg') }}" height="30px">
-			<span style="vertical-align: bottom; margin-bottom: 20px;">
-			configurations</span>
+			<br>
+			<span>Configurations</span>
 			</h1>
-			Vaultoro Token: 
+			<p style="text-align: center; margin-bottom: 5px; font-size: 1.15em;">Vaultoro Token:</p>
 			<textarea id="vaultoro-token" name="vaultoro_token" placeholder="You'll need this to use the service">{{ vaultoro_token }}</textarea>
 			<br>
             <p class="note">
-			check your Vaultoro <a href="https://trade.vaultoro.com/settings" target="_blank">profile-page</a> to create a token
+			Check your Vaultoro <a href="https://trade.vaultoro.com/settings" target="_blank" style="color: #fff;">profile-page</a> to create a token.
 			</p>
 			<br>
             <div class="row">
 				<button type="submit" class="btn" name="action" value="test_token">Test Vaultoro token</button>&nbsp;
 				<button type="submit" class="btn" name="action" value="save">Save</button>
-			</div><br><br>
+			</div>
 		</div>
 	</form>
 {% endblock %}
