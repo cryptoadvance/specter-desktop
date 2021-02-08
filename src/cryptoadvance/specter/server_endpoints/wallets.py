@@ -674,6 +674,7 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
+    show_advanced_settings = ui_option != "ui" or subtract or fee_options != "dynamic" or fee_rate_blocks != 6 or not rbf or selected_coins
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
@@ -687,6 +688,7 @@ def send_new(wallet_alias):
         fee_rate_blocks=fee_rate_blocks,
         rbf=rbf,
         selected_coins=selected_coins,
+        show_advanced_settings=show_advanced_settings,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
