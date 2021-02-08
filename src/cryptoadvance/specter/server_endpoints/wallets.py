@@ -569,7 +569,7 @@ def send_new(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
-                    labels.append('')
+                    labels.append("")
             addresses = [
                 address.lower()
                 if address.startswith(("BC1", "TB1", "BCRT1"))
@@ -674,7 +674,14 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
-    show_advanced_settings = ui_option != "ui" or subtract or fee_options != "dynamic" or fee_rate_blocks != 6 or not rbf or selected_coins
+    show_advanced_settings = (
+        ui_option != "ui"
+        or subtract
+        or fee_options != "dynamic"
+        or fee_rate_blocks != 6
+        or not rbf
+        or selected_coins
+    )
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
