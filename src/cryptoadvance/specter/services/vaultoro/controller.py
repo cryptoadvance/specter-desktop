@@ -102,8 +102,42 @@ def deposit():
 @vaultoro_endpoint.route("/withdraw/", methods=["GET", "POST"])
 # @login_required
 def withdraw():
-    flash("Not yet implemented", "error")
-    return redirect(url_for("vaultoro_endpoint.settings"))
+    if request.method == "POST":
+        action = request.form["action"]
+        try:
+            if action == "withdrawspecter":
+                wallet_alias = request.form["specter_wallet_select"]
+                withdraw_address = app.specter.wallet_manager.get_by_alias(
+                    wallet_alias
+                ).address
+                withdraw_amount = request.form["amount_specter"]
+            elif action == "withdrawmanual":
+                withdraw_address = request.form["manual_withdraw_address"]
+                withdraw_amount = request.form["manual_withdraw_amount"]
+            otp = request.form["otp"]
+            flash(
+                get_api().coins_withdraw(otp, withdraw_address, withdraw_amount),
+                "message",
+            )
+        except Exception as e:
+            flash(f"Withdraw failed with error: {str(e)}", "error")
+
+    try:
+        balance = next(
+            item
+            for item in get_api().get_balances()
+            if item["handle"] == "BTC" and item["type"] == "SETTLED"
+        )["quantity"]
+        if balance == "-0.00000000":
+            balance = "0.00000000"
+    except:
+        flash("Please provide a Vaultoro API token to access this page", "error")
+        return redirect(url_for("vaultoro_endpoint.settings"))
+    return render_template(
+        "vaultoro/withdraw.jinja",
+        balance=balance,
+        specter=app.specter,
+    )
 
 
 @vaultoro_endpoint.route("/settings/", methods=["GET", "POST"])

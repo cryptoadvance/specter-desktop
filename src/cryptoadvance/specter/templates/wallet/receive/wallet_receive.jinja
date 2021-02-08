@@ -67,15 +67,15 @@
 				{% set supports_hwi = supports_hwi.append(device) %}
 			{% endfor %}
 			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor()|tojson }}`)' class="btn centered optional">Display address on device</button><br>
+				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor()|tojson }}`)' class="btn centered">Display address on device</button><br>
 				{% if wallet.is_multisig %}
 					<p class="note center optional">Multsig address on-device display is only available for ColdCard, KeepKey, Specter, and Trezor devices.</p>
 				{% endif %}
 			{% endif %}
 		</form>
 	</div>
-	<br>
-	<br>
+	<br class="bottom-space">
+	<br class="bottom-space">
 	<div class="hidden" id="new_wallet_devices_popup">
 		{% set supports_export_to_device = [] %}
 		{% for device in wallet.devices if device.exportable_to_wallet %}

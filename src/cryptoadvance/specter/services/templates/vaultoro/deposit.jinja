@@ -29,7 +29,7 @@
 		<form method="POST" id="deposit-specter-form">
 			<div class="row">
 				<fieldset style="border:none; display: inline; width: 100%;">
-					<select name="price_provider_currency" id="price_provider_currency" onchange="specterWalletSelected(this.value)">
+					<select onchange="specterWalletSelected(this.value)">
 						<option value="" readonly="true" hidden="true" selected>Select wallet</option>
 						{% for i, v in specter.wallet_manager.wallets.items()|sort(attribute='1.name') %}
 							<option value="{{specter.wallet_manager.wallets[i].alias}}">{{specter.wallet_manager.wallets[i].name}}</option>

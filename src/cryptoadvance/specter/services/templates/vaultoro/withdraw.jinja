@@ -1,0 +1,122 @@
+{% extends "vaultoro/components/vaultoro_tab.jinja" %}
+{% set tab = 'withdraw' %}
+{% include "includes/qr-scanner.html" %}
+{% block content %}
+	<style>
+		#active-address {
+			font-weight: bolder;
+			margin: 0px auto;
+			font-size: 16px;
+		}
+
+		.address:hover {
+			cursor: pointer;
+			text-decoration: underline;
+		}
+
+		#withdraw-specter {
+			margin: auto;
+		}
+		.max-btn:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	</style>
+	<br>
+	<h1>Withdraw Bitcoin from Vaultoro</h1>
+	<p style="text-align: center;">You can select one of your Specter wallets you'd like to withdraw into,<br>
+	or just manually enter an address below to withdraw funds into.</p>
+	<h3 class="center">Your Bitcoin balance on Vaultoro: <span id="btc-balance">{{balance}}</span> BTC</h3>
+	<br>
+	<div class="center card" style="width: 610px; padding-top: 25px;">
+		<h2>Withdraw to Specter wallet</h2>
+		<br>
+		<form method="POST" id="withdraw-specter-form">
+			<fieldset style="border:none; display: inline; width: 100%;">
+				<select name="specter_wallet_select" onchange="specterWalletSelected(this.value)">
+					<option value="" readonly="true" hidden="true" selected>Select wallet</option>
+					{% for i, v in specter.wallet_manager.wallets.items()|sort(attribute='1.name') %}
+						<option value="{{specter.wallet_manager.wallets[i].alias}}">{{specter.wallet_manager.wallets[i].name}}</option>
+					{% endfor %}
+				</select>
+			</fieldset>
+			<br>
+			<br>
+			<div id="withdraw-specter" class="hidden">
+				Amount: <input style="width: 200px" type="number" name="amount_specter" id="amount_specter" min=0 max='{{balance}}' step="1e-8" autocomplete="off">
+				<span class="note max-btn" style="margin-left: 5px;" onclick="document.getElementById('amount_specter').value=parseFloat('{{balance}}')">(withdraw all)</span>
+				<br><br>
+				<button type="button" class="btn" style="margin: auto;" onclick="document.getElementById('submit-otp').value='withdrawspecter';showPageOverlay('otp-popup');">Withdraw to wallet</button>
+			</div>
+			<iframe src="" class="hidden" height="750" style="width: 100%; margin: 0px;overflow: hidden;" frameBorder="0" id="withdraw-specter-iframe" scrolling="no"></iframe>
+		</form>
+		<br>
+		<hr>
+		<br>
+		<h2>Withdraw manually</h2><br>
+		<div class="row">
+			<input type="text" id="address" name="manual_withdraw_address" placeholder="Enter withdraw address"> &nbsp;
+			<qr-scanner id="address-scan" style="margin-top: 3px;">
+				<a slot="button" class="btn" style="height: 35px;"><img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/> Scan</a>
+			</qr-scanner>
+		</div>
+		<br>
+		Amount: <input style="width: 200px" type="number" name="manual_withdraw_amount" id="manual_withdraw_amount" min=0 step="1e-8" max='{{balance}}' autocomplete="off">
+		<span class="note max-btn" style="margin-left: 5px;" onclick="document.getElementById('manual_withdraw_amount').value=parseFloat('{{balance}}')">(withdraw all)</span>
+		<br><br>
+		<button type="button" class="btn" style="margin: auto;" onclick="document.getElementById('submit-otp').value='withdrawmanual';showPageOverlay('otp-popup');">Withdraw to address</button>
+	</div>
+	<div class="hidden" id="otp-popup">
+		<h1>Please confirm your withdrawal</h1>
+		<br>
+		<span>Vaultoro Two Factor Authentication OTP:</span>
+		<input type="text" name="otp" placeholder="Enter your 2FA OTP..."><br><br>
+		<button type="submit" id="submit-otp" name="action" class="btn" style="margin: auto;">Confirm Withdraw</button>
+	</div>
+	<br>
+{% endblock %}
+{% block scripts %}
+	<script>
+		document.getElementById('address-scan').addEventListener('scan', e=>{
+			let addr = e.detail.result.replace('bitcoin:', '').replace('BITCOIN:', '');
+			if (addr.startsWith('BC1')) {
+				addr = addr.toLowerCase();
+			}
+			if(addr == null){
+				return;
+			}
+			let arr = addr.split("?");
+			addr = arr[0]
+			document.getElementById("address").value = addr;
+			let evt = new Event('input');
+			document.getElementById("address").dispatchEvent(evt);
+		});
+
+		document.getElementById("withdraw-specter-iframe").addEventListener("load", function(e) {
+			this.contentWindow.document.getElementById("side-content").remove();
+			this.contentWindow.document.getElementById("title").remove();
+			this.contentWindow.document.getElementById("status-bar").remove();
+			this.contentWindow.document.getElementsByTagName("nav")[0].remove();
+			this.contentWindow.document.querySelector("main").querySelector("div").remove();
+			this.contentWindow.document.querySelector(".card").style['margin-top'] = '0px';
+			let bottomSpaces = this.contentWindow.document.getElementsByClassName("bottom-space");
+			while (bottomSpaces[0]) {
+				bottomSpaces[0].remove();
+			}
+		});
+
+		function specterWalletSelected(selectedWallet) {
+			let withdrawToWalletIframe = document.getElementById("withdraw-specter-iframe");
+			let withdrawToWalletButton = document.getElementById("withdraw-specter");
+			if (selectedWallet) {
+				withdrawToWalletIframe.src = `{{ url_for('wallets_endpoint.receive', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", selectedWallet);
+				withdrawToWalletIframe.classList.remove('hidden');
+				withdrawToWalletButton.classList.remove('hidden');
+			} else {
+				withdrawToWalletIframe.removeAttribute('src');
+				withdrawToWalletIframe.classList.add('hidden');
+				withdrawToWalletButton.classList.add('hidden');
+			}
+		}
+	</script>
+{% endblock %}
