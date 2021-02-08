@@ -5,9 +5,10 @@
     Parameters:
     - unspents: List of wallet UTXOs
     - explorer: explorer link
+    - selected_coins: List of UXTOs previously selected (if any)
  #}
-{% macro coin_selection_table(unspents, explorer) -%}
-    <table style="table-layout: fixed; display: none; max-width:98%;" id="coin_selection_table">
+{% macro coin_selection_table(unspents, explorer, selected_coins) -%}
+    <table style="table-layout: fixed; display: {% if selected_coins %}block{% else %}none{% endif %}; max-width:98%;" id="coin_selection_table">
         <thead>
         <tr>
             <th></th><th>TxID</th><th>Address</th><th>Amount</th>
@@ -16,7 +17,7 @@
         <tbody>
             {% for tx in unspents %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer) }}
+                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer, "{}, {}, {}".format(tx['txid'], tx['vout'], tx['amount']) in selected_coins) }}
             {% endfor %}
         </tbody>
     </table>

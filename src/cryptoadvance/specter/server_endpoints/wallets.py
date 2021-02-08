@@ -544,6 +544,7 @@ def send_new(wallet_alias):
     fee_rate = 0.0
     fee_rate_blocks = 6
     rbf = True
+    selected_coins = []
     if request.method == "POST":
         action = request.form["action"]
         if action == "createpsbt":
@@ -577,8 +578,6 @@ def send_new(wallet_alias):
             ]
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1))
-            selected_coins = request.form.getlist("coinselect")
-            app.logger.info("selected coins: {}".format(selected_coins))
             fee_options = request.form.get("fee_options")
             if "dynamic" in fee_options:
                 fee_rate = float(request.form.get("fee_rate_dynamic"))
@@ -587,6 +586,8 @@ def send_new(wallet_alias):
                 if request.form.get("fee_rate"):
                     fee_rate = float(request.form.get("fee_rate"))
             rbf = bool(request.form.get("rbf", False))
+            selected_coins = request.form.getlist("coinselect")
+            app.logger.info("selected coins: {}".format(selected_coins))
             try:
                 psbt = wallet.createpsbt(
                     addresses,
@@ -594,9 +595,9 @@ def send_new(wallet_alias):
                     subtract=subtract,
                     subtract_from=subtract_from - 1,
                     fee_rate=fee_rate,
+                    rbf=rbf,
                     selected_coins=selected_coins,
                     readonly="estimate_fee" in request.form,
-                    rbf=rbf,
                 )
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
@@ -685,6 +686,7 @@ def send_new(wallet_alias):
         fee_rate=fee_rate,
         fee_rate_blocks=fee_rate_blocks,
         rbf=rbf,
+        selected_coins=selected_coins,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,

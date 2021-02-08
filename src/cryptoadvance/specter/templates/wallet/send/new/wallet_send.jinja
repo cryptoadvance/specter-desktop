@@ -85,7 +85,9 @@
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">Select coins<span class="optional">&nbsp;manually</span></button>
 				{% endif %}
 				</div><br>
-				{% include "wallet/send/new/components/coin_selection.jinja" %}
+                {% with selected_coins=selected_coins %}
+                    {% include "wallet/send/new/components/coin_selection.jinja" %}
+                {% endwith %}
 			</div>
 			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction</button>
 		</div>		
