@@ -35,6 +35,7 @@ from binascii import b2a_base64
 from ..util.base43 import b43_decode
 
 from flask import current_app as app
+from flask import flash
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -65,16 +66,19 @@ def wallets_overview():
 @wallets_endpoint.route("/new_wallet/")
 @login_required
 def new_wallet_type():
-    err = None
     if app.specter.chain is None:
-        err = "Configure Bitcoin Core to create wallets"
-        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+        flash("Configure Bitcoin Core to create wallets", "error")
+        return render_template("base.jinja", specter=app.specter, rand=rand)
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()
-    except Exception:
-        err = '<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
-        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+    except Exception as e:
+        flash(
+            '<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>',
+            "error",
+        )
+        app.logger.error(e)
+        return render_template("base.jinja", specter=app.specter, rand=rand)
     return render_template(
         "wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand
     )
@@ -88,7 +92,6 @@ def new_wallet(wallet_type):
         flash("Unknown wallet type requested", "error")
         return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
-    err = None
     if request.method == "POST":
         action = request.form["action"]
         if action == "importwallet":
@@ -99,8 +102,8 @@ def new_wallet(wallet_type):
                     recv_descriptor,
                     cosigners_types,
                 ) = parse_wallet_data_import(wallet_data)
-            except Exception:
-                flash("Unsupported wallet import format", "error")
+            except Exception as e:
+                flash("Unsupported wallet import format (%s)" % e, "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
             # get min of the two
             # if the node is still syncing
@@ -257,9 +260,10 @@ def new_wallet(wallet_type):
             devices = get_devices_with_keys_by_type(app, cosigners, wallet_type)
             for device in devices:
                 if len(device.keys) == 0:
-                    err = (
+                    flash(
                         "Device %s doesn't have keys matching this wallet type"
-                        % device.name
+                        % device.name,
+                        "error",
                     )
                     break
 
@@ -277,18 +281,16 @@ def new_wallet(wallet_type):
                 wallet_type=wallet_type,
                 sigs_total=len(devices),
                 sigs_required=max(len(devices) * 2 // 3, 1),
-                error=err,
                 specter=app.specter,
                 rand=rand,
             )
-        if action == "key" and err is None:
+        if action == "key":
             wallet_name = request.form["wallet_name"]
             address_type = request.form["type"]
             sigs_total = int(request.form.get("sigs_total", 1))
             sigs_required = int(request.form.get("sigs_required", 1))
             if wallet_name in app.specter.wallet_manager.wallets_names:
-                err = "Wallet already exists"
-            if err:
+                flash("Wallet already exists")
                 devices = [
                     app.specter.device_manager.get_by_alias(
                         request.form.get("cosigner{}".format(i))
@@ -302,7 +304,6 @@ def new_wallet(wallet_type):
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
                     sigs_required=max(len(devices) * 2 // 3, 1),
-                    error=err,
                     specter=app.specter,
                     rand=rand,
                 )
@@ -323,7 +324,10 @@ def new_wallet(wallet_type):
                 except:
                     pass
             if len(keys) != sigs_total or len(cosigners) != sigs_total:
-                err = "No keys were selected for device, please try adding keys first"
+                flash(
+                    "No keys were selected for device, please try adding keys first",
+                    "error",
+                )
                 devices = [
                     app.specter.device_manager.get_by_alias(
                         request.form.get("cosigner{}".format(i))
@@ -337,7 +341,6 @@ def new_wallet(wallet_type):
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
                     sigs_required=max(len(devices) * 2 // 3, 1),
-                    error=err,
                     specter=app.specter,
                     rand=rand,
                 )
@@ -347,8 +350,8 @@ def new_wallet(wallet_type):
                 wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
-            except Exception:
-                err = "Failed to create wallet..."
+            except Exception as e:
+                flash("Failed to create wallet: %s" % e, "error")
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
                     purposes=purposes,
@@ -356,7 +359,6 @@ def new_wallet(wallet_type):
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
                     sigs_required=max(len(devices) * 2 // 3, 1),
-                    error=err,
                     specter=app.specter,
                     rand=rand,
                 )
@@ -390,7 +392,7 @@ def new_wallet(wallet_type):
                         app.logger.error(
                             "Exception while rescanning blockchain: %e" % e
                         )
-                        err = "%r" % e
+                        flash("%r" % e, "error")
                     wallet.getdata()
             return redirect(
                 url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)
@@ -406,7 +408,6 @@ def new_wallet(wallet_type):
                 wallet_type="simple",
                 sigs_total=1,
                 sigs_required=1,
-                error=err,
                 specter=app.specter,
                 rand=rand,
             )
@@ -414,7 +415,6 @@ def new_wallet(wallet_type):
     return render_template(
         "wallet/new_wallet/new_wallet.jinja",
         wallet_type=wallet_type,
-        error=err,
         specter=app.specter,
         rand=rand,
     )
@@ -526,7 +526,6 @@ def send_new(wallet_alias):
     labels = [""]
     amounts = [0]
     fee_rate = 0.0
-    err = None
     ui_option = "ui"
     recipients_txt = ""
     if request.method == "POST":
@@ -581,17 +580,15 @@ def send_new(wallet_alias):
                     rbf=rbf,
                 )
                 if psbt is None:
-                    err = "Probably you don't have enough funds, or something else..."
+                    raise SpecterError(
+                        "Probably you don't have enough funds, or something else..."
+                    )
                 else:
                     # calculate new amount if we need to subtract
                     if subtract:
                         for v in psbt["tx"]["vout"]:
                             if addresses[0] in v["scriptPubKey"]["addresses"]:
                                 amounts[0] = v["value"]
-            except Exception as e:
-                err = e
-                app.logger.error(e)
-            if err is None:
                 if "estimate_fee" in request.form:
                     return psbt
                 return render_template(
@@ -603,6 +600,10 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
+            except Exception as e:
+                app.logger.error(e)
+                flash("%s" % e, "error")
+
         elif action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
@@ -701,7 +702,6 @@ def send_new(wallet_alias):
         wallet=wallet,
         specter=app.specter,
         rand=rand,
-        error=err,
     )
 
 
@@ -746,15 +746,14 @@ def import_psbt(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_send: %s" % se)
+        flash(se, "error")
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    err = None
     return render_template(
         "wallet/send/import/wallet_importpsbt.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
         rand=rand,
-        error=err,
     )
 
 
