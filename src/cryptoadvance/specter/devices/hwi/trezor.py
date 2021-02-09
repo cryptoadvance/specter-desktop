@@ -50,7 +50,7 @@ from hwilib.serializations import (
     ser_uint256,
 )
 from hwilib import bech32
-from usb1 import USBErrorNoDevice
+# from usb1 import USBErrorNoDevice
 from types import MethodType
 
 import base64
