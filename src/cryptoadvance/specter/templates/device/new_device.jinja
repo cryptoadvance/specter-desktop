@@ -737,6 +737,10 @@
                                     }
                                     let s = prefix + json.keystore.xpub + "\n";
                                     data += s;
+                                } else if ("ExtPubKey" in json){
+                                    // Probably Cobo single key txt file
+                                    let der = '/' + json.AccountKeyPath.replace("m","").replace(/'/g,"h");
+                                    data += `[${json.MasterFingerprint}${der}]${json.ExtPubKey}\n`;
                                 } else if (("bip84" in json) && ("xfp" in json)){
                                 // coldcard generic file
                                     let s = "";
@@ -751,6 +755,10 @@
                                         }
                                     });
                                     data += s;
+                                } else if (("xpub" in json) && ("path" in json) && ("xfp" in json)) {
+                                    // Probably Cobo single key file
+                                    let der = json.path.replace("m","").replace(/'/g,"h");
+                                    data += `[${json.xfp}${der}]${json.xpub}\n`;
                                 } else if ("xfp" in json) {
                                 // probably ColdCard multisig file
                                     let s = "";

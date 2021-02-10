@@ -481,20 +481,10 @@ def receive(wallet_alias):
     # check that current address is unused
     # and generate new one if it is
     wallet.check_unused()
-    history_idx = int(request.args.get("history_idx", default=0))
-    past_addresses = wallet.addresses[
-        -10 * history_idx - 2 : -10 * (history_idx + 1) - 2 : -1
-    ]
     return render_template(
         "wallet/receive/wallet_receive.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
-        past_addresses=past_addresses,
-        past_descriptors=[
-            wallet.get_descriptor(address=addr) for addr in past_addresses
-        ],
-        addresses_count=len(wallet.addresses),
-        history_idx=history_idx,
         specter=app.specter,
         rand=rand,
     )
@@ -786,6 +776,36 @@ def import_psbt(wallet_alias):
     )
 
 
+###### Wallet addresses ######
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
+@login_required
+def addresses(wallet_alias):
+    """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
+    It updates balances in the wallet before renderization in order to show updated UTXO and
+    balance of each address."""
+
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    except SpecterError as se:
+        app.logger.error("SpecterError while wallet_send: %s" % se)
+        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+
+    # update balances in the wallet
+    app.specter.check_blockheight()
+    wallet.get_balance()
+    wallet.check_utxo()
+
+    return render_template(
+        "wallet/addresses/wallet_addresses.jinja",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
 ###### Wallet settings ######
 
 
@@ -1009,26 +1029,248 @@ def rescan_progress(wallet_alias):
         return {}
 
 
-################## Wallet export data endpoints #######################
-# Export wallet transaction history
-@wallets_endpoint.route("/wallet/<wallet_alias>/addresses.csv")
+@wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
 @login_required
-def addresses_csv(wallet_alias):
+def get_label(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form.get("address", "")
+        label = wallet.getlabel(address)
+        return {
+            "address": address,
+            "label": label,
+        }
+    except Exception as e:
+        logging.exception(e)
+        return "Error while get_label: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
+@login_required
+def set_label(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form["address"]
+        label = request.form["label"]
+        wallet.setlabel(address, label)
+        return {"success": True}
+    except Exception as e:
+        logging.exception(e)
+        return "Error while set_label: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
+@login_required
+def txlist(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = wallet.txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting txlist: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
+@login_required
+def utxo_list(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        txlist = wallet.utxo
+        for tx in txlist:
+            if not tx.get("label", None):
+                tx["label"] = wallet.getlabel(tx["address"])
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting utxo list: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
+@login_required
+def wallets_overview_txlist():
+    try:
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = app.specter.wallet_manager.full_txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+        )
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting full txlist: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
+@login_required
+def wallets_overview_utxo_list():
+    try:
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        search = request.form.get("search", None)
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        fetch_transactions = request.form.get("fetch_transactions", False)
+        txlist = app.specter.wallet_manager.full_utxo()
+        return process_txlist(
+            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+        )
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting full utxo list: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
+@login_required
+def addresses_list(wallet_alias):
+    """Return a JSON with keys:
+        addressesList: list of addresses with the properties
+                       (index, address, label, used, utxo, amount)
+        pageCount: total number of pages
+    POST parameters:
+        idx: pagination index (current page)
+        limit: maximum number of items on the page
+        sortby: field by which the list will be ordered
+                (index, address, label, used, utxo, amount)
+        sortdir: 'asc' (ascending) or 'desc' (descending) order
+        addressType: the current tab address type ('receive' or 'change')"""
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+        idx = int(request.form.get("idx", 0))
+        limit = int(request.form.get("limit", 100))
+        sortby = request.form.get("sortby", None)
+        sortdir = request.form.get("sortdir", "asc")
+        address_type = request.form.get("addressType", "receive")
+
+        addresses_list = wallet.addresses_info(address_type == "change")
+
+        result = process_addresses_list(
+            addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
+        )
+
+        return {
+            "addressesList": json.dumps(result["addressesList"]),
+            "pageCount": result["pageCount"],
+        }
+
+    except Exception as e:
+        logging.exception(e)
+        return "Error while getting addresses_list: %s" % e, 500
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/addressinfo/", methods=["POST"])
+@login_required
+def addressinfo(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form.get("address", "")
+        if address:
+            descriptor = wallet.get_descriptor(address=address)
+            address_info = wallet.get_address_info(address=address)
+            return {
+                "success": True,
+                "address": address,
+                "descriptor": descriptor,
+                "walletName": wallet.name,
+                **address_info,
+            }
+    except Exception as e:
+        app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
+    return {"success": False}
+
+
+################## Wallet CSV export data endpoints #######################
+# Export wallet addresses list
+@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list.csv")
+@login_required
+def addresses_list_csv(wallet_alias):
+    """Return a CSV with addresses of the <wallet_alias> containing the
+    information: index, address, type, label, used, utxo and amount
+    of each of them.
+    GET parameters: sortby: field by which the CSV will be ordered
+                            (index, address, label, used, utxo, amount)
+                    sortdir: 'asc' (ascending) or 'desc' (descending) order
+                    address_type: the current tab address type ('receive' or 'change')
+                    onlyCurrentType: show all addresses (if false) or just the current
+                                     type (address_type param)"""
+
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+        sortby = request.args.get("sortby", "index")
+        sortdir = request.args.get("sortdir", "asc")
+        address_type = request.args.get("addressType", "receive")
+        only_current_type = request.args.get("onlyCurrentType", "false") == "true"
+
+        if not only_current_type:
+            receive_list = wallet.addresses_info(False)
+            change_list = wallet.addresses_info(True)
+
+            receive_result = process_addresses_list(
+                receive_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            change_result = process_addresses_list(
+                change_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            addressesList = (
+                receive_result["addressesList"] + change_result["addressesList"]
+            )
+        else:
+            addresses_list = wallet.addresses_info(address_type == "change")
+
+            result = process_addresses_list(
+                addresses_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
+            )
+
+            addressesList = result["addressesList"]
+
         # stream the response as the data is generated
         response = Response(
-            addresses_list_to_csv(wallet),
+            wallet_addresses_list_to_csv(addressesList),
             mimetype="text/csv",
         )
         # add a filename
         response.headers.set(
-            "Content-Disposition", "attachment", filename="addresses.csv"
+            "Content-Disposition", "attachment", filename="addresses_list.csv"
         )
         return response
     except Exception as e:
-        app.logger.error("Failed to export wallet history. Error: %s" % e)
-        flash("Failed to export wallet history. Error: %s" % e, "error")
+        app.logger.error("Failed to export addresses list. Error: %s" % e)
+        flash("Failed to export addresses list. Error: %s" % e, "error")
         return redirect(url_for("index"))
 
 
@@ -1171,341 +1413,6 @@ def wallet_overview_utxo_csv():
     except Exception as e:
         logging.exception(e)
         return "Failed to export wallets overview utxo. Error: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
-@login_required
-def get_label(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form.get("address", "")
-        label = wallet.getlabel(address)
-        return {
-            "address": address,
-            "label": label,
-        }
-    except Exception as e:
-        logging.exception(e)
-        return "Error while get_label: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
-@login_required
-def set_label(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form["address"]
-        label = request.form["label"]
-        wallet.setlabel(address, label)
-        return {"success": True}
-    except Exception as e:
-        logging.exception(e)
-        return "Error while set_label: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
-@login_required
-def txlist(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = wallet.txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting txlist: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
-@login_required
-def utxo_list(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        txlist = wallet.utxo
-        for tx in txlist:
-            if not tx.get("label", None):
-                tx["label"] = wallet.getlabel(tx["address"])
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting utxo list: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
-@login_required
-def wallets_overview_txlist():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full txlist: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
-@login_required
-def wallets_overview_utxo_list():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_utxo()
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full utxo list: %s" % e, 500
-
-
-def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
-    if search:
-        txlist = [
-            tx
-            for tx in txlist
-            if search in tx["txid"]
-            or (
-                any(search in address for address in tx["address"])
-                if isinstance(tx["address"], list)
-                else search in tx["address"]
-            )
-            or (
-                any(search in label for label in tx["label"])
-                if isinstance(tx["label"], list)
-                else search in tx["label"]
-            )
-            or (
-                any(search in str(amount) for amount in tx["amount"])
-                if isinstance(tx["amount"], list)
-                else search in str(tx["amount"])
-            )
-            or search in str(tx["confirmations"])
-            or search in str(tx["time"])
-            or search
-            in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
-        ]
-    if sortby:
-
-        def sort(tx):
-            val = tx.get(sortby, None)
-            final = val
-            if val:
-                if isinstance(val, list):
-                    if isinstance(val[0], Number):
-                        final = sum(val)
-                    elif isinstance(val[0], str):
-                        final = sorted(
-                            val, key=lambda s: s.lower(), reverse=sortdir != "asc"
-                        )[0].lower()
-                elif isinstance(val, str):
-                    final = val.lower()
-            return final
-
-        txlist = sorted(txlist, key=sort, reverse=sortdir != "asc")
-    if limit:
-        page_count = (len(txlist) // limit) + (0 if len(txlist) % limit == 0 else 1)
-        txlist = txlist[limit * idx : limit * (idx + 1)]
-    else:
-        page_count = 1
-    return {"txlist": json.dumps(txlist), "pageCount": page_count}
-
-
-def process_addresses_list(
-    addresses_list, idx=0, limit=100, sortby=None, sortdir="asc"
-):
-    """Receive an address list as parameter and sort it or slice it for pagination.
-    Parameters: addresses_list: list of dict with the keys
-                                (index, address, label, used, utxo, amount)
-                idx: pagination index (current page)
-                limit: maximum number of items on the page
-                sortby: field by which the list will be ordered
-                        (index, address, label, used, utxo, amount)
-                sortdir: 'asc' (ascending) or 'desc' (descending) order"""
-    if sortby:
-
-        def sort(addr):
-            val = addr.get(sortby, None)
-            final = val
-            if val:
-                if isinstance(val, str):
-                    final = val.lower()
-            return final
-
-        addresses_list = sorted(addresses_list, key=sort, reverse=sortdir != "asc")
-
-    if limit:
-        page_count = (len(addresses_list) // limit) + (
-            0 if len(addresses_list) % limit == 0 else 1
-        )
-        addresses_list = addresses_list[limit * idx : limit * (idx + 1)]
-    else:
-        page_count = 1
-
-    return {"addressesList": addresses_list, "pageCount": page_count}
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
-@login_required
-def addresses_list(wallet_alias):
-    """Return a JSON with keys:
-        addressesList: list of addresses with the properties
-                       (index, address, label, used, utxo, amount)
-        pageCount: total number of pages
-    POST parameters:
-        idx: pagination index (current page)
-        limit: maximum number of items on the page
-        sortby: field by which the list will be ordered
-                (index, address, label, used, utxo, amount)
-        sortdir: 'asc' (ascending) or 'desc' (descending) order
-        addressType: the current tab address type ('receive' or 'change')"""
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        address_type = request.form.get("addressType", "receive")
-
-        addresses_list = wallet.addresses_info(address_type == "change")
-
-        result = process_addresses_list(
-            addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
-        )
-
-        return {
-            "addressesList": json.dumps(result["addressesList"]),
-            "pageCount": result["pageCount"],
-        }
-
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting addresses_list: %s" % e, 500
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list.csv")
-@login_required
-def addresses_list_csv(wallet_alias):
-    """Return a CSV with addresses of the <wallet_alias> containing the
-    information: index, address, type, label, used, utxo and amount
-    of each of them.
-    GET parameters: sortby: field by which the CSV will be ordered
-                            (index, address, label, used, utxo, amount)
-                    sortdir: 'asc' (ascending) or 'desc' (descending) order
-                    address_type: the current tab address type ('receive' or 'change')
-                    onlyCurrentType: show all addresses (if false) or just the current
-                                     type (address_type param)"""
-
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-
-        sortby = request.args.get("sortby", "index")
-        sortdir = request.args.get("sortdir", "asc")
-        address_type = request.args.get("addressType", "receive")
-        only_current_type = request.args.get("onlyCurrentType", "false") == "true"
-
-        if not only_current_type:
-            receive_list = wallet.addresses_info(False)
-            change_list = wallet.addresses_info(True)
-
-            receive_result = process_addresses_list(
-                receive_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
-            )
-
-            change_result = process_addresses_list(
-                change_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
-            )
-
-            addressesList = (
-                receive_result["addressesList"] + change_result["addressesList"]
-            )
-        else:
-            addresses_list = wallet.addresses_info(address_type == "change")
-
-            result = process_addresses_list(
-                addresses_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
-            )
-
-            addressesList = result["addressesList"]
-
-        # stream the response as the data is generated
-        response = Response(
-            wallet_addresses_list_to_csv(addressesList),
-            mimetype="text/csv",
-        )
-        # add a filename
-        response.headers.set(
-            "Content-Disposition", "attachment", filename="addresses_list.csv"
-        )
-        return response
-    except Exception as e:
-        app.logger.error("Failed to export addresses list. Error: %s" % e)
-        flash("Failed to export addresses list. Error: %s" % e, "error")
-        return redirect(url_for("index"))
-
-
-@wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
-@login_required
-def show_addresses(wallet_alias):
-    """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
-    It updates balances in the wallet before renderization in order to show updated UTXO and
-    balance of each address."""
-
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-
-    # update balances in the wallet
-    app.specter.check_blockheight()
-    wallet.get_balance()
-    wallet.check_utxo()
-
-    return render_template(
-        "wallet/addresses/wallet_addresses.jinja",
-        wallet_alias=wallet_alias,
-        wallet=wallet,
-        specter=app.specter,
-        rand=rand,
-    )
 
 
 ################## Helpers #######################
@@ -1703,3 +1610,89 @@ def wallet_addresses_list_to_csv(addresses_list):
         yield data.getvalue()
         data.seek(0)
         data.truncate(0)
+
+
+def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
+    if search:
+        txlist = [
+            tx
+            for tx in txlist
+            if search in tx["txid"]
+            or (
+                any(search in address for address in tx["address"])
+                if isinstance(tx["address"], list)
+                else search in tx["address"]
+            )
+            or (
+                any(search in label for label in tx["label"])
+                if isinstance(tx["label"], list)
+                else search in tx["label"]
+            )
+            or (
+                any(search in str(amount) for amount in tx["amount"])
+                if isinstance(tx["amount"], list)
+                else search in str(tx["amount"])
+            )
+            or search in str(tx["confirmations"])
+            or search in str(tx["time"])
+            or search
+            in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
+        ]
+    if sortby:
+
+        def sort(tx):
+            val = tx.get(sortby, None)
+            final = val
+            if val:
+                if isinstance(val, list):
+                    if isinstance(val[0], Number):
+                        final = sum(val)
+                    elif isinstance(val[0], str):
+                        final = sorted(
+                            val, key=lambda s: s.lower(), reverse=sortdir != "asc"
+                        )[0].lower()
+                elif isinstance(val, str):
+                    final = val.lower()
+            return final
+
+        txlist = sorted(txlist, key=sort, reverse=sortdir != "asc")
+    if limit:
+        page_count = (len(txlist) // limit) + (0 if len(txlist) % limit == 0 else 1)
+        txlist = txlist[limit * idx : limit * (idx + 1)]
+    else:
+        page_count = 1
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
+
+
+def process_addresses_list(
+    addresses_list, idx=0, limit=100, sortby=None, sortdir="asc"
+):
+    """Receive an address list as parameter and sort it or slice it for pagination.
+    Parameters: addresses_list: list of dict with the keys
+                                (index, address, label, used, utxo, amount)
+                idx: pagination index (current page)
+                limit: maximum number of items on the page
+                sortby: field by which the list will be ordered
+                        (index, address, label, used, utxo, amount)
+                sortdir: 'asc' (ascending) or 'desc' (descending) order"""
+    if sortby:
+
+        def sort(addr):
+            val = addr.get(sortby, None)
+            final = val
+            if val:
+                if isinstance(val, str):
+                    final = val.lower()
+            return final
+
+        addresses_list = sorted(addresses_list, key=sort, reverse=sortdir != "asc")
+
+    if limit:
+        page_count = (len(addresses_list) // limit) + (
+            0 if len(addresses_list) % limit == 0 else 1
+        )
+        addresses_list = addresses_list[limit * idx : limit * (idx + 1)]
+    else:
+        page_count = 1
+
+    return {"addressesList": addresses_list, "pageCount": page_count}

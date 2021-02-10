@@ -1,7 +1,9 @@
 import re
 from embit import bip32, ec, networks, script
+from cryptoadvance.specter.specter_error import SpecterError
 
-# From: https://github.com/bitcoin/bitcoin/blob/master/src/script/descriptor.cpp
+# Based on hwilib by achow101: https://github.com/bitcoin-core/HWI/blob/1.2.1/hwilib/descriptor.py which is from
+# https://github.com/bitcoin/bitcoin/blob/0.21/src/script/descriptor.cpp
 
 
 def PolyMod(c, val):
@@ -54,6 +56,7 @@ def AddChecksum(desc):
     return desc + "#" + DescriptorChecksum(desc)
 
 
+# Not in hwilib
 def derive_pubkey(key, path_suffix=None, idx=None):
     # if SEC pubkey - just return it
     if key[:2] in ["02", "03", "04"]:
@@ -133,16 +136,29 @@ class Descriptor:
 
         # Check the checksum
         check_split = desc.split("#")
+        # Multiple # in desc
         if len(check_split) > 2:
-            return None
+            raise SpecterError(
+                f"Too many separators in the descriptor. Check if there are multiple # in {desc}."
+            )
         if len(check_split) == 2:
-            if len(check_split[1]) != 8:
-                return None
+            # Empty checkusm
+            if len(check_split[1]) == 0:
+                raise SpecterError("Checksum is empty.")
+            # Incorrect length
+            elif len(check_split[1]) != 8:
+                raise SpecterError(
+                    f"Checksum {check_split[1]} doesn't have the correct length. Should be 8 characters not {len(check_split[1])}."
+                )
             checksum = DescriptorChecksum(check_split[0])
-            if not checksum.strip():
-                return None
+            # Check of checksum calc
+            if checksum.strip() == "":
+                raise SpecterError(f"Checksum calculation went wrong.")
+            # Wrong checksum
             if checksum != check_split[1]:
-                return None
+                raise SpecterError(
+                    f"{check_split[1]} is the wrong checkum should be {checksum}."
+                )
         desc = check_split[0]
 
         if desc.startswith("sh(wpkh("):
@@ -171,11 +187,19 @@ class Descriptor:
                     keys.sort(key=lambda x: x if "]" not in x else x.split("]")[1])
             multisig_M = desc.split(",")[0].split("(")[-1]
             multisig_N = len(keys)
+            if int(multisig_M) > multisig_N:
+                raise SpecterError(
+                    f"Multisig threshold cannot be larger than the number of keys. Threshold is {int(multisig_M)} but only {multisig_N} keys specified."
+                )
         else:
             keys = [desc.split("(")[-1].split(")", 1)[0]]
 
         descriptors = []
         for key in keys:
+            origin_fingerprint = None
+            origin_path = None
+            base_key = None
+            path_suffix = None
             origin_match = re.search(r"\[(.*)\]", key)
             if origin_match:
                 origin = origin_match.group(1)
@@ -217,6 +241,7 @@ class Descriptor:
                     sort_keys,
                 )
             )
+
         if len(descriptors) == 1:
             return descriptors[0]
         else:
@@ -244,7 +269,7 @@ class Descriptor:
     def derive(self, idx, keep_xpubs=False):
         """
         Derives a descriptor with index idx up to the pubkeys.
-        If keep_xpubs is False all xpubs will be replaces by pubkeys
+        If keep_xpubs is False all xpubs will be replaced by pubkeys
         so [fgp/path]xpub/suffix changes to [fgp/path/suffix]pubkey
         Otherwise xpubs will be sorted according to pubkeys
         but remain in the descriptor

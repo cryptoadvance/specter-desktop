@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from binascii import hexlify
-from .util.base58 import decode_base58, encode_base58_checksum
+from embit import base58
 from .util.xpub import get_xpub_fingerprint
 
 
@@ -42,8 +42,8 @@ class Key:
             derivation = ""
         if key_type not in purposes:
             key_type = ""
-        if not purpose or purpose not in list(purposes.values()):
-            purpose = purposes[key_type]
+        if not purpose:
+            purpose = purposes.get(key_type, "General")
         self.original = original
         self.fingerprint = fingerprint
         self.derivation = derivation
@@ -101,7 +101,7 @@ class Key:
                 derivation = ""
 
         # checking xpub prefix and defining key type
-        xpub_bytes = decode_base58(xpub, num_bytes=82)
+        xpub_bytes = base58.decode_check(xpub)
         prefix = xpub_bytes[:4]
         is_valid = False
         key_type = ""
@@ -115,7 +115,7 @@ class Key:
             raise Exception("Invalid xpub prefix: %s", prefix.hex())
 
         xpub_bytes = prefix + xpub_bytes[4:]
-        xpub = encode_base58_checksum(xpub_bytes)
+        xpub = base58.encode_check(xpub_bytes)
 
         # defining key type from derivation
         if derivation != "" and key_type == "":
@@ -133,7 +133,7 @@ class Key:
                         key_type = "wsh"
 
         # infer fingerprint and derivation if depth == 0 or depth == 1
-        xpub_bytes = decode_base58(xpub)
+        xpub_bytes = base58.decode_check(xpub)
         depth = xpub_bytes[4]
         if depth == 0:
             fingerprint = hexlify(get_xpub_fingerprint(xpub)).decode()
