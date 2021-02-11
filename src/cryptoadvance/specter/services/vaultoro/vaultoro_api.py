@@ -59,7 +59,7 @@ class VaultoroApi:
         }
         if quantity is None or total is None or mytype is None:
             raise Exception("quantity not set")
-        return self._call_api("/private/orders/", "POST", data=data)
+        return self._call_api("/private/orders", "POST", data=data)
 
     def get_trades(self):
         res = {
@@ -109,10 +109,10 @@ class VaultoroApi:
             params={"asset": "BTC", "quantity": quantity},
         )
 
-    def _call_api(self, url, method, params=None, data=None):
-        # Use the proxy or not?!
-        url = self.calc_url(url)
-        headers = self._get_headers()
+    def _call_api(self, path, method, params=None, data=None):
+        """ call the Vaultoro API (or the proxy) """
+        headers = self._get_headers(path)
+        url = self._calc_url(path)
         session = requests.session()
         if data != None:
             data = json.dumps(data)
@@ -143,26 +143,29 @@ class VaultoroApi:
             raise Exception(f"got {response.status_code} and error {result['errors']}")
         return result
 
-    def _get_headers(self):
-        return {"Vtoken": self.token, "Content-type": "application/json"}
+    def _get_headers(self, path):
+        """return the VTOKEN, the Content-type and maybe specter-version and -destination"""
+        headers = {"Vtoken": self.token, "Content-type": "application/json"}
+        if self._is_proxy_call(path):
+            headers["Specter-Version"] = app.specter.version.info["current"]
+            headers["Specter-Destination"] = app.config["VAULTORO_API"]
+        return headers
 
-    def calc_url(self, path):
-        # vaultoro_url=os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
+    def _calc_url(self, path):
+        """ returns either Vaultoro or proxy-url """
+        if self._is_proxy_call(path):
+            return "https://specter-cloud.bitcoinops.de/.vaultoro/v1" + path
+            # local development of specter-cloud
+            # return "http://localhost.localdomain:5000/.vaultoro/v1"+path
+            # with the proxy still in specter-desktop
+            # return "http://localhost.localdomain:5000/vaultoro/.vaultoro/v1"+path
+        else:
+            return app.config["VAULTORO_API"] + path
 
-        # ToDo: whitelist instead of blacklist.
-
-        # ToDo: decide where to use which domain.
-        domain = "http://localhost:25441/vaultoro/.vaultoro/v1"
-
-        # pathes which won't go through the proxy
-        logger.info(f"Making Vaultoro-request: {path}")
-        exceptions_for_proxy_filter = [
-            "/me",
-            "/private/balances",
-            "/private/orders/quote",
-        ]
-        for exc_path in exceptions_for_proxy_filter:
+    def _is_proxy_call(self, path):
+        """ Should we call the proxy or Vaultoro directly ? """
+        proxy_filter = ["/private/orders"]
+        for exc_path in proxy_filter:
             if path.endswith(exc_path):
-                domain = app.config["VAULTORO_API"]
-
-        return domain + path
+                return True
+        return False
