@@ -7,88 +7,88 @@
         <span class="buyAsset">BTC</span> Balance: <span class="buyBalance">0.00000000</span><br>
     </p>
     <div class="card" style="width: 610px; padding-top: 25px;">
-    <div class="errorMessagesDiv">
-        <message-box type="error" style="display: none;"></message-box>
-    </div>
-
-
-    This is using Vaultoro Direct Beta!
-    Vaultoro direct is an easy OTC (over the counter) solution to buying and selling assets on Vaultoro directly with us.<br>
-    <br>
-    <div class="prepTradeDiv">
-        Buy Asset:<br>
-        <div class="row">
-            <select class="buySelect"t>
-                <option value="gold">Gold</option>
-                <option value="silver">Silver</option>
-                <option value="bitcoin">Bitcoin</option>
-            </select>
+        <div class="errorMessagesDiv">
+            <message-box type="error" style="display: none;"></message-box>
         </div>
+
+
+        <h3 class="center">This is using Vaultoro Direct Beta!</h3>
+        <p class="center">Vaultoro direct is an easy OTC (over the counter) solution to buying and selling assets on Vaultoro directly with us.</p><br>
         <br>
-        With this Asset:<br>
-        <div class="row">
-            <select class="withSelect"t>
-                <option value="bitcoin">Bitcoin</option>
-            </select>
+        <div class="prepTradeDiv">
+            Buy Asset:<br>
+            <div class="row">
+                <select class="buySelect"t>
+                    <option value="gold">Gold</option>
+                    <option value="silver">Silver</option>
+                    <option value="bitcoin">Bitcoin</option>
+                </select>
+            </div>
+            <br>
+            With this Asset:<br>
+            <div class="row">
+                <select class="withSelect"t>
+                    <option value="bitcoin">Bitcoin</option>
+                </select>
+            </div>
+            <br>
+            Amount to trade (<span class="amountDescription">The amount of gold you want to buy</span>)<br>
+            <div class="row">
+                <input type="text" class="amount"/><span class></span>&nbsp;&nbsp;
+                <button class="switchAmountUnitBtn btn">
+                    <svg width=20 viewBox="0 0 504 504"><path stroke="white" fill="white" d="M0 168v-16c0-13.255 10.745-24 24-24h360V80c0-21.367 25.899-32.042 40.971-16.971l80 80c9.372 9.373 9.372 24.569 0 33.941l-80 80C409.956 271.982 384 261.456 384 240v-48H24c-13.255 0-24-10.745-24-24zm488 152H128v-48c0-21.314-25.862-32.08-40.971-16.971l-80 80c-9.372 9.373-9.372 24.569 0 33.941l80 80C102.057 463.997 128 453.437 128 432v-48h360c13.255 0 24-10.745 24-24v-16c0-13.255-10.745-24-24-24z"/></svg>
+                </button>
+            </div>
+            <br>
+            <button class="previewTradeBtn btn">Preview Trade</button>
         </div>
-        <br>
-        Amount to trade (<span class="amountDescription">The amount of gold you want to buy</span>)<br>
-        <div class="row">
-            <input type="text" class="amount"/><span class></span> 
-            <button class="switchAmountUnitBtn btn">
-                <svg width=20 viewBox="0 0 504 504"><path stroke="white" fill="white" d="M0 168v-16c0-13.255 10.745-24 24-24h360V80c0-21.367 25.899-32.042 40.971-16.971l80 80c9.372 9.373 9.372 24.569 0 33.941l-80 80C409.956 271.982 384 261.456 384 240v-48H24c-13.255 0-24-10.745-24-24zm488 152H128v-48c0-21.314-25.862-32.08-40.971-16.971l-80 80c-9.372 9.373-9.372 24.569 0 33.941l80 80C102.057 463.997 128 453.437 128 432v-48h360c13.255 0 24-10.745 24-24v-16c0-13.255-10.745-24-24-24z"/></svg>
-            </button>
+        <div class="previewTradeDiv hidden">
+            <h3>You buy:</h2>
+            <h1>
+                <span data-bind="preparedTrade.buyAsset.amount">waiting ...</span>
+                <span data-bind="preparedTrade.buyAsset.unit"></span>
+                <span data-bind="preparedTrade.buyAsset.name"></span>
+            </h1>
+            <h3>You pay:</h2>
+            <h1>
+                <span data-bind="preparedTrade.buyWithAsset.amount">waiting ...</span>
+                <span data-bind="preparedTrade.buyWithAsset.unit"></span>
+                <span data-bind="preparedTrade.buyWithAsset.name"></span>
+            </h1>
+            <div class="row">
+                <button class="confirmTradeBtn btn" style="margin: 8px;">Confirm Trade</button>
+                <button class="cancelTradeBtn btn" style="margin: 8px;">Cancel</button>
+            </div>
         </div>
-        <br>
-        <button class="previewTradeBtn btn">Preview Trade</button>
-    </div>
-    <div class="previewTradeDiv" style="display: none;">
-        <h3>You buy:</h2>
-        <h1>
-            <span data-bind="preparedTrade.buyAsset.amount">waiting ...</span>
-            <span data-bind="preparedTrade.buyAsset.unit"></span>
-            <span data-bind="preparedTrade.buyAsset.name"></span>
-        </h1>
-        <h3>You pay:</h2>
-        <h1>
-            <span data-bind="preparedTrade.buyWithAsset.amount">waiting ...</span>
-            <span data-bind="preparedTrade.buyWithAsset.unit"></span>
-            <span data-bind="preparedTrade.buyWithAsset.name"> </span>
-        </h1>
-        <div class="row">
-            <button class="confirmTradeBtn btn" style="margin: 8px;">Confirm Trade</button>
-            <button class="cancelTradeBtn btn" style="margin: 8px;">Cancel</button>
+        <div class="successTradeDiv center card hidden">
+            <h1>Order completed successfully! &#x1F389;</h1>
+            <h2><span data-bind="executedTrade.buyWithAsset.amount"></span> <span data-bind="preparedTrade.buyWithAsset.unit"></span> <span data-bind="preparedTrade.buyWithAsset.name"></span> -> <span data-bind="executedTrade.buyAsset.amount"></span> <span data-bind="preparedTrade.buyAsset.unit"></span> <span data-bind="preparedTrade.buyAsset.name"></span></h2>
+            <br>
+            <button type="button" class="btn centered" onclick="location.reload();">Continue</button>
         </div>
-    </div>
+        <br><p>Min Trade <span class="minTrade">(GOLD): 0.005</span>kg</p><br>
+        <svg  version="1.1"  preserveAspectRatio="none" style="width:24px; height:24px;">
+            <circle cx="12" cy="12" r="10" class="loader-ring" fill="none" 
+                stroke="white" stroke-width="2" stroke-dasharray=",20000" transform="rotate(0,100,100)" />
+        </svg>
 
-    
-    <br>
-    Min Trade (GOLD): 0.005kg<br>
-
-    <br>
-
-    <svg  version="1.1"  preserveAspectRatio="none" style="width:24px; height:24px;">
-        <circle cx="12" cy="12" r="10" class="loader-ring" fill="none" 
-            stroke="white" stroke-width="2" stroke-dasharray=",20000" transform="rotate(0,100,100)" />
-        
-    </svg>
-
-    <span class="ticker">Gold/BTC: 0.00</span>(kg)
+        <span class="ticker">Gold/BTC: 0.00</span>(kg)
         <br><br>
         <div class="debugArea">
-        <hr>
-        <h4>Debug Area</h4>
+            <hr>
+            <h4>Debug Area</h4>
 
-        <h5>Balances</h5>
-        {{balances}}
-        <h5>quote</h5>
-        <pre class="quote"></pre>
-        <h5>order</h5>
-        <pre class="order"></pre>
-        <h5>bindexample</h5>
-        <p class="bindexample" data-bind="preparedTrade"></p>
+            <h5>Balances</h5>
+            {{balances}}
+            <h5>quote</h5>
+            <pre class="quote"></pre>
+            <h5>order</h5>
+            <pre class="order"></pre>
+            <h5>bindexample</h5>
+            <p class="bindexample" data-bind="preparedTrade"></p>
+        </div>
     </div>
-</div>
+    <br><br>
 </template>
 
 <script type="module" type="text/javascript">
@@ -134,6 +134,8 @@
 
             this.amountDescription = clone.querySelector(".amountDescription");
 
+            this.minTrade = clone.querySelector(".minTrade");
+
             this.amountInput = clone.querySelector(".amount");
             this.amountInput.onchange = () => {
                 this.amountInputUpdated()
@@ -148,6 +150,8 @@
             this.previewTradeBtn.onclick = () => {
                 this.previewTradeBtnClicked()
             }
+
+            
 
             // Preview the prepared Trade
             this.previewTradeDiv = clone.querySelector(".previewTradeDiv");
@@ -168,8 +172,10 @@
             this.buyBalance = clone.querySelector(".buyBalance");
             this.buyWithBalance = clone.querySelector(".buyWithBalance");
 
+            // See trade executed successfully data
+            this.successTradeDiv = clone.querySelector(".successTradeDiv");
 
-
+            
             // Data
             this.balances= JSON.parse('{{balances|tojson}}')
             this.setState({amountAsset: this.buySelect.value})
@@ -324,11 +330,12 @@
             this.prepTradeDiv.style.display = 'block'
             this.previewTradeDiv.style.display = 'none'
             this.setState({preparedTrade: { response: null}})
-            this.setState({preparedTrade: { buyAsset: { name: "waiting ..." }}})
-            this.setState({preparedTrade: {buyAsset: { name: "waiting ..."}}})
-            this.setState({preparedTrade: {buyAsset: { quantity: ""}}})
-            this.setState({preparedTrade: {buyAsset: { unit: ""}}})
-            this.setState({preparedTrade: {buyWithAsset: { name : ""}}})
+            this.setState({preparedTrade: { buyAsset: { amount: "waiting ..." } }})
+            this.setState({preparedTrade: { buyWithAsset: { amount: "waiting ..."} }})
+            this.setState({preparedTrade: { buyAsset: { unit: ""} }})
+            this.setState({preparedTrade: { buyWithAsset: { unit: ""} }})
+            this.setState({preparedTrade: { buyAsset: { name : ""} }})
+            this.setState({preparedTrade: { buyWithAsset: { name : ""} }})
         }
 
         amountInputUpdated() {
@@ -364,14 +371,16 @@
             this.buyWithAssetSpan.textContent = withSelectValue
             
             // update the amounts
-            this.buyBalance.textContent = this.balances.find(el => el.type="SETTLED" && el.handle==buySelectValue.toUpperCase()).quantity
+            this.buyBalance.textContent = (this.balances.find(el => el.type="SETTLED" && el.handle==buySelectValue.toUpperCase()).quantity / (buySelectValue.toUpperCase() == "BTC" ? 1 : 1000)).toFixed(8)
             if (this.buyBalance.textContent == '-0.00000000') {
                 this.buyBalance.textContent = '0.00000000';
             }
-            this.buyWithBalance.textContent = this.balances.find(el => el.type="SETTLED" && el.handle==withSelectValue.toUpperCase()).quantity
+            this.buyWithBalance.textContent = (this.balances.find(el => el.type="SETTLED" && el.handle==withSelectValue.toUpperCase()).quantity / (withSelectValue.toUpperCase() == "BTC" ? 1 : 1000)).toFixed(8)
             if (this.buyWithBalance.textContent == '-0.00000000') {
                 this.buyWithBalance.textContent = '0.00000000';
             }
+
+            this.minTrade.textContent = buySelectValue == "GOLD" || withSelectValue == "GOLD" ? "(GOLD) 0.005" : "(SILV) 0.1";
         }
 
         balanceKeyMapping(asset) {
@@ -478,8 +487,7 @@
             const params = new URLSearchParams({
                 "pair": ticker
             })
-            var url 
-            url = `{{vaultoro_url}}/public/ticker?${params.toString()}`
+            let url = `{{vaultoro_url}}/v1/public/ticker?${params.toString()}`;
             const response = await fetch(
                 url,
                 {
@@ -518,7 +526,7 @@
                     })
                 }
             )
-            // Here is how a typical repsonse looks like:
+            // Here is how a typical response looks like:
             // {"createdAt":1611739612,"expires":1611739672,"pair":"GOLDBTC",
             //  "price":"0.00200066","quantity":"1000.00000000","total":"2.00066000","type":"BUY"}
             const jsonResponse = await response.json();
@@ -554,7 +562,13 @@
             if (jsonResponse.errors) {
                 showError(jsonResponse.errors.replace("got 422 and error ['", '').replace("']", ''));
             } else {
-                showNotification('Trade executed successfully!')
+                console.log(jsonResponse);
+                self.previewTradeDiv.style.display = 'none';
+                self.successTradeDiv.style.display = 'block';
+                self.setState({executedTrade: { buyAsset: { amount: jsonResponse.result.type == "BUY" ? jsonResponse.result.quantity / 1000 : jsonResponse.result.total } }});
+                self.setState({executedTrade: { buyWithAsset: { amount: jsonResponse.result.type == "SELL" ? jsonResponse.result.quantity / 1000 : jsonResponse.result.total } }});
+                self.setState({executedTrade: { price: jsonResponse.result.price }});
+                showNotification('Trade executed successfully!');
             }
         } catch(e) {
             self.handleError(e);

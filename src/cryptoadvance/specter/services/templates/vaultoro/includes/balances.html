@@ -69,6 +69,9 @@
                 if (pos_type[pos.type] == '-0.00000000') {
                     pos_type[pos.type] = '0.00000000';
                 }
+                if (pos.handle != "BTC") {
+                    pos_type[pos.type] = (parseFloat(pos_type[pos.type]) / 1000).toFixed(8)
+                }
                 var pos_obj = {};
                 pos_obj[pos.handle] = pos_type;
                 this.setState(pos_obj);

@@ -19,7 +19,7 @@
                 <tr>
                     <td>{{ item.pair }}</td>
                     <td>{{ item.price }}</td>
-                    <td>{{ item.quantity }}</td>
+                    <td>{{ "%.8f"|format((item.quantity | float) / 1000) }}</td>
                     <td>{{ item.type }}</td>
                     <td>
                         <script>
