@@ -520,10 +520,17 @@ def send_new(wallet_alias):
     addresses = [""]
     labels = [""]
     amounts = [0]
-    fee_rate = 0.0
+    amount_units = ["btc"]
     err = None
     ui_option = "ui"
     recipients_txt = ""
+    subtract = False
+    subtract_from = 1
+    fee_options = "dynamic"
+    fee_rate = 0.0
+    fee_rate_blocks = 6
+    rbf = True
+    selected_coins = []
     if request.method == "POST":
         action = request.form["action"]
         if action == "createpsbt":
@@ -531,11 +538,13 @@ def send_new(wallet_alias):
             addresses = []
             labels = []
             amounts = []
+            amount_units = []
             ui_option = request.form.get("ui_option")
             if "ui" in ui_option:
                 while "address_{}".format(i) in request.form:
                     addresses.append(request.form["address_{}".format(i)])
                     amounts.append(float(request.form["btc_amount_{}".format(i)]))
+                    amount_units.append(request.form["amount_unit_{}".format(i)])
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
                         wallet.setlabel(addresses[i], labels[i])
@@ -548,6 +557,7 @@ def send_new(wallet_alias):
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
+                    labels.append("")
             addresses = [
                 address.lower()
                 if address.startswith(("BC1", "TB1", "BCRT1"))
@@ -555,25 +565,27 @@ def send_new(wallet_alias):
                 for address in addresses
             ]
             subtract = bool(request.form.get("subtract", False))
-            subtract_from = int(request.form.get("subtract_from", 1)) - 1
-            rbf = bool(request.form.get("rbf", False))
-            selected_coins = request.form.getlist("coinselect")
-            app.logger.info("selected coins: {}".format(selected_coins))
-            if "dynamic" in request.form.get("fee_options"):
+            subtract_from = int(request.form.get("subtract_from", 1))
+            fee_options = request.form.get("fee_options")
+            if "dynamic" in fee_options:
                 fee_rate = float(request.form.get("fee_rate_dynamic"))
+                fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
             else:
                 if request.form.get("fee_rate"):
                     fee_rate = float(request.form.get("fee_rate"))
+            rbf = bool(request.form.get("rbf", False))
+            selected_coins = request.form.getlist("coinselect")
+            app.logger.info("selected coins: {}".format(selected_coins))
             try:
                 psbt = wallet.createpsbt(
                     addresses,
                     amounts,
                     subtract=subtract,
-                    subtract_from=subtract_from,
+                    subtract_from=subtract_from - 1,
                     fee_rate=fee_rate,
+                    rbf=rbf,
                     selected_coins=selected_coins,
                     readonly="estimate_fee" in request.form,
-                    rbf=rbf,
                 )
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
@@ -598,42 +610,6 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
-        elif action == "importpsbt":
-            try:
-                b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
-            except Exception as e:
-                flash("Could not import PSBT: %s" % e, "error")
-                return redirect(
-                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
-                )
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
-        elif action == "openpsbt":
-            psbt = ast.literal_eval(request.form["pending_psbt"])
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
-        elif action == "deletepsbt":
-            try:
-                wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
-                )
-            except Exception as e:
-                flash("Could not delete Pending PSBT!", "error")
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
@@ -686,12 +662,28 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
+    show_advanced_settings = (
+        ui_option != "ui"
+        or subtract
+        or fee_options != "dynamic"
+        or fee_rate_blocks != 6
+        or not rbf
+        or selected_coins
+    )
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
         ui_option=ui_option,
         recipients_txt=recipients_txt,
-        labels=labels,
+        recipients=list(zip(addresses, amounts, amount_units, labels)),
+        subtract=subtract,
+        subtract_from=subtract_from,
+        fee_options=fee_options,
+        fee_rate=fee_rate,
+        fee_rate_blocks=fee_rate_blocks,
+        rbf=rbf,
+        selected_coins=selected_coins,
+        show_advanced_settings=show_advanced_settings,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
@@ -718,6 +710,16 @@ def send_pending(wallet_alias):
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
                 flash("Could not delete Pending PSBT!", "error")
+        elif action == "openpsbt":
+            psbt = ast.literal_eval(request.form["pending_psbt"])
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     pending_psbts = wallet.pending_psbts
     ######## Migration to multiple recipients format ###############
     for psbt in pending_psbts:
@@ -734,7 +736,7 @@ def send_pending(wallet_alias):
     )
 
 
-@wallets_endpoint.route("/wallet/<wallet_alias>/send/import")
+@wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
 def import_psbt(wallet_alias):
     try:
@@ -742,6 +744,25 @@ def import_psbt(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_send: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "importpsbt":
+            try:
+                b64psbt = "".join(request.form["rawpsbt"].split())
+                psbt = wallet.importpsbt(b64psbt)
+            except Exception as e:
+                flash("Could not import PSBT: %s" % e, "error")
+                return redirect(
+                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
+                )
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     err = None
     return render_template(
         "wallet/send/import/wallet_importpsbt.jinja",

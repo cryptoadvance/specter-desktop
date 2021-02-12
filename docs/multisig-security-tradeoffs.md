@@ -1,4 +1,4 @@
-# Multisig Security Tradeoffs
+# Multisig Security Trade-offs
 
 ## Receive addresses
 

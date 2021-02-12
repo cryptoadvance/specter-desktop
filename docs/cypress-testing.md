@@ -1,10 +1,10 @@
 # Cypress Tests
 
-The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the webserver or its prerequisites as part of executing the tests. Therefore we need to manage that ourself. 
+The UI is tested via [cypress](https://www.cypress.io/) which is built with node.js. The tests are specified in `cypress.json`. One of the challenges here is management of state (specter-folder and state of regtest). cypress is [discouraging](https://docs.cypress.io/guides/references/best-practices.html#Web-Servers) to start/stop the web server or its prerequisites as part of executing the tests. Therefore we need to manage that ourselves.
 
 The below stuff has been tested on Linux and MacOS. Linux is fully supported. The snapshot functionality unfortunately doesn't work yet on MacOS. Windows is not supported at all.
 
- So the tests in general are designed to run in a strict sequence specified in cypress.json. So later tests might need the state created in former tests.
+So the tests in general are designed to run in a strict sequence specified in cypress.json. So later tests might need the state created in former tests.
 
 This is very different than on unit-tests and, with an increasing amount of tests, this might be cumbersome in order to only execute a specific test or develop on a specific one.
 
@@ -31,7 +31,7 @@ generic-options:
     --docker            Run bitcoind in docker instead of directly
 $
 ```
-Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_cypress_btc_regtest_plain_datadir` and a different port for specter (`25444` instead of `25441`). However, bitcoind-port is still the same. So currently you can't run bitcoind-regtest for developemnt and do (reliable) tests with cypress. You will get failing tests in that case. Will get fixed in the future.
+Apart from dealing with snapshots, it'll also take care to use different folders (`~/.specter-cypress` and `/tmp/specter_cypress_btc_regtest_plain_datadir` and a different port for specter (`25444` instead of `25441`). However, bitcoind-port is still the same. So currently you can't run bitcoind-regtest for development and do (reliable) tests with cypress. You will get failing tests in that case. Will get fixed in the future.
 
 Let's look at some typical use-cases in order to understand how to use this script. In any case, you'll need nodejs installed, so do something like:
 ```
@@ -43,12 +43,12 @@ npm ci
 ```
 
 ## Run tests
-`./utils/test-cypress.sh run` will simply run all the tests. If there are any issues, you'll find screenshots of failed states and mp4-videos in `cypress/screenshots` and `cypress/videos`. In the case of running in gitlab, thanks to the ["artifacts-section"](https://github.com/k9ert/specter-desktop/blob/cypress/.gitlab-ci.yml#L53-L58), you can watch them by browsing the artifacts on any gitlab-job-page (right-hand-side marked with "Job artifacts"). This will hopefully also be available on travis.
+`./utils/test-cypress.sh run` will simply run all the tests. If there are any issues, you'll find screenshots of failed states and mp4-videos in `cypress/screenshots` and `cypress/videos`. In the case of running in GitLab, thanks to the ["artifacts-section"](https://github.com/k9ert/specter-desktop/blob/cypress/.gitlab-ci.yml#L53-L58), you can watch them by browsing the artifacts on any GitLab-job-page (right-hand-side marked with "Job artifacts"). This will hopefully also be available on Travis.
 
 ## Interactively run tests
-`./utils/test-cypress.sh open` will open the cypress application (after spinning up bitcoind-regtest and specter). Here, you can choose the test-suite you want to execute. As the tests rely on the state of former-tests and we have a clean state, now, you have to run them in sequence no matter which test-file you're interested in. The tests are (and should be) written in a way that is resilient to this but that's especially difficult on the btc-regtest side of the story.
+`./utils/test-cypress.sh open` will open the cypress application (after spinning up bitcoind-regtest and Specter). Here, you can choose the test-suite you want to execute. As the tests rely on the state of former-tests and we have a clean state, now, you have to run them in sequence no matter which test-file you're interested in. The tests are (and should be) written in a way that is resilient to this but that's especially difficult on the btc-regtest side of the story.
 
-You can run the tests more than once but the regtest state will simply continue with its history. Especially if you want to focus on higher level tests (which are running later in the sequence), it's anoying to run all the tests before that.
+You can run the tests more than once but the regtest state will simply continue with its history. Especially if you want to focus on higher level tests (which are running later in the sequence), it's annoying to run all the tests before that.
 
 ## Create a snapshot
 Let's say you want to focus on the currently last test-file `spec_existing_history`. You can create a snapshot of the expected state at the start of the test via:
@@ -70,16 +70,16 @@ $ ./utils/test-cypress.sh run spec_existing_history.js
 ```
 This will restore the snapshot created above and run this test (and all subsequent ones). Opening the cypress app works the same although there you're responsible to be aware that the state is fitting to the spec-file you want to execute (just like in the case of empty state above)
 
-## Develop based on the state of a specific snapshop
+## Develop based on the state of a specific snapshot
 
 Maybe you'd like to test the application or develop on a specific snapshot. You can do that like this:
 ```
 $ ./utils/test-cypress.sh dev spec_existing_history.js
 ```
-This will restore the snapshot created above, run bitcoind-regtest/specter and will open the browser to operate on the application. It'll run in debug-state so that you can modify the sourcecode right away.
+This will restore the snapshot created above, run bitcoind-regtest/specter and will open the browser to operate on the application. It'll run in debug-state so that you can modify the source code right away.
 
 ## Develop on tests
-The spec-files mainly select some element on a webpage and then act on them. Mainly `.click()` and `.type("some Text")`. So it's quite helpfull to have unique IDs for all the elements which we want to use in the tests. The cypress-app has a very convenient way of selecting. Make sure you don't miss that.
+The spec-files mainly select some element on a web page and then act on them. Mainly `.click()` and `.type("some Text")`. So it's quite helpful to have unique IDs for all the elements which we want to use in the tests. The cypress-app has a very convenient way of selecting. Make sure you don't miss that.
 
 For specific things there are `cy.tasks` which can be implemented. Two of the already existing tasks:
 * purging the specter-folder is possible via `cy.task("clear:specter-home")`
