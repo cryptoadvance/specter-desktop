@@ -4,7 +4,7 @@ If you want to have access to your wallet outside of your local network you can 
 
 Here we will describe how to set up your VPS server to forward all requests to your Bitcoin node.
 
-You can either have both Specter and Bitcoin Core on the same node and forward Specter interface to remote server, or you can only do it for Bitcoin Core and keep Specter on your laptop. I will assume first option, if you want to go with the second one just change the port from `25441` to `8334` or whatever port your Core is using.
+You can either have both Specter and Bitcoin Core on the same node and forward Specter interface to remote server, or you can only do it for Bitcoin Core and keep Specter on your laptop. The following guide assumes the first option, however, if you want to go with the second one just change the port from `25441` to `8334` or whatever port your Core is using.
 
 ## Basic configuration
 

@@ -56,7 +56,7 @@ We plan to add support for other hardware wallets as they come up. If you are in
 ## Help wanted: Do you like Specter?
 Please help us to push forward, fix bugs, refine FAQs and please help each other in the support channel.
 As a small team on a tiny budget we are working hard to make Specter better every day – for Bitcoin, for you and for us.
-We are quite overwhelmed with the response, the guides and shoutouts. Thank you!
+We are quite overwhelmed with the response, the guides and shout-outs. Thank you!
 Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 
 [Donations are welcome](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
@@ -73,7 +73,7 @@ With this method, all you need to do is just download the right file for your op
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev python3-dev`
   * macOS: `brew install libusb`
-  * windows: follow instructions in [`windows.md`](docs/windows.md)
+  * Windows: follow instructions in [`windows.md`](docs/windows.md)
  * Install Specter
 ```sh
 pip3 install cryptoadvance.specter
@@ -87,11 +87,11 @@ python3 -m cryptoadvance.specter server
 pip3 install cryptoadvance.specter --upgrade
 ```
 
-After that, specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
+After that, Specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
 
-You can also run it using tor, provide ssl certificates to run over https. Https is especially important because browsers don't allow the website to access camera without secure connection, and we need camera access to scan QR codes.
+You can also run it using Tor, provide SSL certificates to run over https. Https is especially important because browsers don't allow the website to access the camera without secure connection, and we need camera access to scan QR codes.
 
-An example how to run specter server with ssl certificates (`--key`, `--cert`) over tor (make sure to walk through the [tor-document](docs/tor.md) ):
+An example how to run Specter server with SSL certificates (`--key`, `--cert`) over Tor (make sure to walk through the [Tor-document](docs/tor.md) ):
 
 ```sh
 python3 -m cryptoadvance.specter server --tor --cert=./cert.pem --key=./key.pem
@@ -105,7 +105,7 @@ If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This s
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
-Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on specter-desktop.
+Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on Specter-desktop.
 
 ## Tips and tricks (detailed instructions)
 
