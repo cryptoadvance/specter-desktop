@@ -439,13 +439,9 @@
 		}
 
 		async function calculateEstimatedFee() {
-			if (document.getElementById('ui-radio-btn').checked) {
-				for(let i in amounts) {
-					if (!validateAddress(i)) {
-						showError('Please first enter a valid address');
-						return;
-					}
-				}
+			document.getElementById('calculated_tx_fee').innerText = ``;
+			if (await validateForm(true) !== true) {
+				return;
 			}
 			try {
 				let feeOptionManual = document.getElementById('fee_option_manual')
