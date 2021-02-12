@@ -1,6 +1,6 @@
 <div>
     {% from 'wallet/send/new/components/coin_selection_table.jinja' import coin_selection_table %}
-    {{ coin_selection_table(wallet.utxo, specter.explorer) }}
+    {{ coin_selection_table(wallet.utxo, specter.explorer, selected_coins) }}
     <br>
 </div>
 
