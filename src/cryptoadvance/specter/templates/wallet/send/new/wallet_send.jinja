@@ -470,19 +470,24 @@
 						body: formData
 					}
 				);
-				let psbt = await response.json();
-				console.log(psbt);
-				let fees = parseInt(psbt.fee * 1e8)
-				document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
-				if('{{ specter.price_check }}' == 'True'){
-					let altRate = parseFloat('{{ specter.alt_rate }}');
-					let altSymbol = '{{ specter.alt_symbol }}';
-					let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
-					if (!isNaN(altAmount) && (altSymbol && altRate)) {
-						document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
+				let result = await response.json();
+				console.log(result);
+				if (result.success) {
+					let psbt = result.psbt;
+					let fees = parseInt(psbt.fee * 1e8)
+					document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
+					if('{{ specter.price_check }}' == 'True'){
+						let altRate = parseFloat('{{ specter.alt_rate }}');
+						let altSymbol = '{{ specter.alt_symbol }}';
+						let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
+						if (!isNaN(altAmount) && (altSymbol && altRate)) {
+							document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
+						}
 					}
+					return fees;
+				} else {
+					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}
-				return fees;
 			} catch {
 				document.getElementById('calculated_tx_fee').innerText = `: failed to calculate transaction fees`;
 			}
