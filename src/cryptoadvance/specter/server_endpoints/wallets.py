@@ -272,7 +272,6 @@ def new_wallet(wallet_type):
 
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
-                purposes=purposes,
                 cosigners=devices,
                 wallet_type=wallet_type,
                 sigs_total=len(devices),
@@ -297,7 +296,6 @@ def new_wallet(wallet_type):
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -332,7 +330,6 @@ def new_wallet(wallet_type):
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -351,7 +348,6 @@ def new_wallet(wallet_type):
                 err = "Failed to create wallet..."
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=cosigners,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -399,7 +395,6 @@ def new_wallet(wallet_type):
         if action == "preselected_device":
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
-                purposes=purposes,
                 cosigners=[
                     app.specter.device_manager.get_by_alias(request.form["device"])
                 ],
