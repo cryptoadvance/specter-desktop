@@ -3,6 +3,7 @@ from io import StringIO
 from werkzeug.wrappers import Response
 from datetime import datetime
 from numbers import Number
+from math import isnan
 from ..util.tx import decoderawtransaction
 from ..util.price_providers import get_price_at
 
@@ -548,6 +549,8 @@ def send_new(wallet_alias):
                         amount = float(request.form["btc_amount_{}".format(i)])
                     except ValueError:
                         pass
+                    if isnan(amount):
+                        amount = 0.0
                     amounts.append(amount)
                     amount_units.append(request.form["amount_unit_{}".format(i)])
                     labels.append(request.form["label_{}".format(i)])
