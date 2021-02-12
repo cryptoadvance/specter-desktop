@@ -525,6 +525,7 @@ def send_new(wallet_alias):
     addresses = [""]
     labels = [""]
     amounts = [0]
+    amount_units = ["btc"]
     err = None
     ui_option = "ui"
     recipients_txt = ""
@@ -542,11 +543,13 @@ def send_new(wallet_alias):
             addresses = []
             labels = []
             amounts = []
+            amount_units = []
             ui_option = request.form.get("ui_option")
             if "ui" in ui_option:
                 while "address_{}".format(i) in request.form:
                     addresses.append(request.form["address_{}".format(i)])
                     amounts.append(float(request.form["btc_amount_{}".format(i)]))
+                    amount_units.append(request.form["amount_unit_{}".format(i)])
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
                         wallet.setlabel(addresses[i], labels[i])
@@ -677,7 +680,7 @@ def send_new(wallet_alias):
         psbt=psbt,
         ui_option=ui_option,
         recipients_txt=recipients_txt,
-        recipients=list(zip(addresses, amounts, labels)),
+        recipients=list(zip(addresses, amounts, amount_units, labels)),
         subtract=subtract,
         subtract_from=subtract_from,
         fee_options=fee_options,
