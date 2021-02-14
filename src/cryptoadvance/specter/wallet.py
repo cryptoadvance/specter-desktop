@@ -1121,15 +1121,7 @@ class Wallet:
                     "The wallet does not have sufficient funds to make the transaction."
                 )
 
-            if self.available_balance["trusted"] <= sum(amounts):
-                txlist = self.rpc.listunspent(0, 0)
-                b = sum(amounts) - self.available_balance["trusted"]
-                for tx in txlist:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                    b -= tx["amount"]
-                    if b < 0:
-                        break
-            elif selected_coins != []:
+            if selected_coins != []:
                 still_needed = sum(amounts)
                 for coin in selected_coins:
                     coin_txid = coin.split(",")[0]
@@ -1143,6 +1135,14 @@ class Wallet:
                     raise SpecterError(
                         "Selected coins does not cover Full amount! Please select more coins!"
                     )
+            elif self.available_balance["trusted"] <= sum(amounts):
+                txlist = self.rpc.listunspent(0, 0)
+                b = sum(amounts) - self.available_balance["trusted"]
+                for tx in txlist:
+                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    b -= tx["amount"]
+                    if b < 0:
+                        break
 
             # subtract fee from amount of this output:
             # currently only one address is supported, so either
@@ -1155,6 +1155,9 @@ class Wallet:
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
             }
+
+            if self.manager.bitcoin_core_version_raw >= 210000:
+                options["add_inputs"] = selected_coins == []
 
             if fee_rate > 0:
                 # bitcoin core needs us to convert sat/B to BTC/kB
