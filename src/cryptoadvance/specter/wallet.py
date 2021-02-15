@@ -189,6 +189,45 @@ class Wallet:
                     tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
         ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
+        if self.use_descriptors:
+            while (
+                len(
+                    [
+                        tx
+                        for tx in self._transactions
+                        if self._transactions[tx]["category"] != "send"
+                        and not self._transactions[tx]["address"]
+                    ]
+                )
+                != 0
+            ):
+                addresses = [
+                    dict(
+                        address=self.get_address(
+                            idx, change=False, check_keypool=False
+                        ),
+                        index=idx,
+                        change=False,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=False),
+                        self._addresses.max_index(change=False) + self.GAP_LIMIT,
+                    )
+                ]
+                change_addresses = [
+                    dict(
+                        address=self.get_address(idx, change=True, check_keypool=False),
+                        index=idx,
+                        change=True,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=True),
+                        self._addresses.max_index(change=True) + self.GAP_LIMIT,
+                    )
+                ]
+                self._addresses.add(addresses, check_rpc=False)
+                self._addresses.add(change_addresses, check_rpc=False)
+                self._transactions.add(txs)
 
     def update(self):
         self.getdata()
@@ -520,7 +559,18 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
-        if fetch_transactions:
+        if fetch_transactions or (
+            self.use_descriptors
+            and len(
+                [
+                    tx
+                    for tx in self._transactions
+                    if self._transactions[tx]["category"] != "send"
+                    and not self._transactions[tx]["address"]
+                ]
+            )
+            != 0
+        ):
             self.fetch_transactions()
         try:
             _transactions = [tx.__dict__().copy() for tx in self._transactions.values()]
@@ -760,6 +810,7 @@ class Wallet:
                         )
                     except:
                         logger.warning(f"Failed to fetch data from block explorer: {e}")
+        self.fetch_transactions()
         self.check_addresses()
 
     @property
@@ -991,16 +1042,15 @@ class Wallet:
             args[0]["keypool"] = True
             args[0]["range"] = [start, end]
 
-        if not self.use_descriptors:
-            addresses = [
-                dict(
-                    address=self.get_address(idx, change=change, check_keypool=False),
-                    index=idx,
-                    change=change,
-                )
-                for idx in range(start, end)
-            ]
-            self._addresses.add(addresses, check_rpc=False)
+        addresses = [
+            dict(
+                address=self.get_address(idx, change=change, check_keypool=False),
+                index=idx,
+                change=change,
+            )
+            for idx in range(start, end)
+        ]
+        self._addresses.add(addresses, check_rpc=False)
 
         if not self.is_multisig:
             if self.use_descriptors:

@@ -178,12 +178,15 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
             allowed_types += ["sh-wpkh", "wpkh"]
         elif wallet_type == "multisig":
             allowed_types += ["sh-wsh", "wsh"]
-        device.keys = [
-            key
-            for key in device.keys
-            if key.xpub.startswith(prefix)
-            and (key.key_type in allowed_types or wallet_type == "*")
-        ]
+        device.keys = sorted(
+            [
+                key
+                for key in device.keys
+                if key.xpub.startswith(prefix)
+                and (key.key_type in allowed_types or wallet_type == "*")
+            ],
+            key=lambda k: k.original == k.xpub,
+        )
         devices.append(device)
     return devices
 
