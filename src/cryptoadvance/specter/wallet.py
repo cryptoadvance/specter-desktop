@@ -573,7 +573,11 @@ class Wallet:
         ):
             self.fetch_transactions()
         try:
-            _transactions = [tx.__dict__().copy() for tx in self._transactions.values()]
+            _transactions = [
+                tx.__dict__().copy()
+                for tx in self._transactions.values()
+                if tx["ismine"]
+            ]
             transactions = sorted(
                 _transactions, key=lambda tx: tx["time"], reverse=True
             )
