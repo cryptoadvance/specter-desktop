@@ -51,6 +51,7 @@ class WalletManager:
         self.device_manager = device_manager
         self.is_loading = False
         self.wallets = {}
+        self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.update(data_folder, rpc, chain)
 
@@ -80,7 +81,7 @@ class WalletManager:
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
         keep_wallets = []
-        failed_load_wallets = []
+        self.failed_load_wallets = []
         try:
             if self.working_folder is not None and self.rpc is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
@@ -124,13 +125,23 @@ class WalletManager:
                                 f"Couldn't load wallet {wallet_alias} into core.\
 Silently ignored! RPC error: {e}"
                             )
-                            failed_load_wallets.append(wallet)
+                            self.failed_load_wallets.append(
+                                {
+                                    **wallets_files[wallet],
+                                    "loading_error": str(e).replace("'", ""),
+                                }
+                            )
                         except Exception as e:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias}.\
 Silently ignored! Wallet error: {e}"
                             )
-                            failed_load_wallets.append(wallet)
+                            self.failed_load_wallets.append(
+                                {
+                                    **wallets_files[wallet],
+                                    "loading_error": str(e).replace("'", ""),
+                                }
+                            )
                     else:
                         if wallet_name not in existing_names:
                             # ok wallet is already there
@@ -148,7 +159,12 @@ Silently ignored! Wallet error: {e}"
                                     f"Failed to load wallet {wallet_name}: {e}"
                                 )
                                 logger.warning(traceback.format_exc())
-                                failed_load_wallets.append(wallet)
+                                self.failed_load_wallets.append(
+                                    {
+                                        **wallets_files[wallet],
+                                        "loading_error": str(e).replace("'", ""),
+                                    }
+                                )
                         else:
                             # wallet is loaded and should stay
                             keep_wallets.append(wallet_name)

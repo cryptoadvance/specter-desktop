@@ -59,6 +59,30 @@ def wallets_overview():
     )
 
 
+################## Failed wallets fix #######################
+
+
+@wallets_endpoint.route("/failed_wallets/", methods=["POST"])
+@login_required
+def failed_wallets():
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "retry_loading_wallets":
+            app.specter.wallet_manager.update()
+        elif action == "delete_failed_wallet":
+            try:
+                wallet = json.loads(request.form["wallet_data"])
+                fullpath = wallet["fullpath"]
+                delete_file(fullpath)
+                delete_file(fullpath + ".bkp")
+                delete_file(fullpath.replace(".json", "_addr.csv"))
+                delete_file(fullpath.replace(".json", "_txs.csv"))
+                app.specter.wallet_manager.update()
+            except Exception as e:
+                flash(f"Failed to delete failed wallet: {str(e)}", "error")
+    return redirect("/")
+
+
 ################## New wallet #######################
 
 
