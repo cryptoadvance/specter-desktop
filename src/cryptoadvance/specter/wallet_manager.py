@@ -266,6 +266,7 @@ Silently ignored! Wallet error: {e}"
             devices,
             sigs_required,
             {},
+            [],
             os.path.join(self.working_folder, "%s.json" % wallet_alias),
             self.device_manager,
             self,
