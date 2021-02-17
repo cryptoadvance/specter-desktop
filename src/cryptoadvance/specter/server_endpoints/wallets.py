@@ -433,7 +433,7 @@ def wallet(wallet_alias):
 
 
 ###### Wallet transaction history ######
-@wallets_endpoint.route("/wallet/<wallet_alias>/history/")
+@wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
     try:
@@ -441,6 +441,15 @@ def history(wallet_alias):
     except SpecterError as se:
         app.logger.error("SpecterError while wallet_tx: %s" % se)
         return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+
+    tx_list_type = "txlist"
+
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "freezeutxo":
+            wallet.toggle_freeze_utxo(request.form.getlist("selected_utxo"))
+            tx_list_type = "utxo"
+
     # update balances in the wallet
     app.specter.check_blockheight()
     wallet.get_balance()
@@ -450,6 +459,7 @@ def history(wallet_alias):
         "wallet/history/wallet_history.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
+        tx_list_type=tx_list_type,
         specter=app.specter,
         rand=rand,
     )
@@ -530,16 +540,16 @@ def send_new(wallet_alias):
     fee_rate = 0.0
     fee_rate_blocks = 6
     rbf = True
-    selected_coins = []
+    selected_coins = request.form.getlist("coinselect")
     if request.method == "POST":
-        action = request.form["action"]
+        action = request.form.get("action")
         if action == "createpsbt":
             i = 0
             addresses = []
             labels = []
             amounts = []
             amount_units = []
-            ui_option = request.form.get("ui_option")
+            ui_option = request.form.get("ui_option", "ui")
             if "ui" in ui_option:
                 while "address_{}".format(i) in request.form:
                     addresses.append(request.form["address_{}".format(i)])
@@ -567,12 +577,13 @@ def send_new(wallet_alias):
             subtract = bool(request.form.get("subtract", False))
             subtract_from = int(request.form.get("subtract_from", 1))
             fee_options = request.form.get("fee_options")
-            if "dynamic" in fee_options:
-                fee_rate = float(request.form.get("fee_rate_dynamic"))
-                fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
-            else:
-                if request.form.get("fee_rate"):
-                    fee_rate = float(request.form.get("fee_rate"))
+            if fee_options:
+                if "dynamic" in fee_options:
+                    fee_rate = float(request.form.get("fee_rate_dynamic"))
+                    fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
+                else:
+                    if request.form.get("fee_rate"):
+                        fee_rate = float(request.form.get("fee_rate"))
             rbf = bool(request.form.get("rbf", False))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
@@ -1093,7 +1104,7 @@ def utxo_list(wallet_alias):
         search = request.form.get("search", None)
         sortby = request.form.get("sortby", None)
         sortdir = request.form.get("sortdir", "asc")
-        txlist = wallet.utxo
+        txlist = wallet.full_utxo
         for tx in txlist:
             if not tx.get("label", None):
                 tx["label"] = wallet.getlabel(tx["address"])
@@ -1319,7 +1330,7 @@ def utxo_csv(wallet_alias):
         sortdir = request.args.get("sortdir", "desc")
         txlist = json.loads(
             process_txlist(
-                wallet.utxo,
+                wallet.full_utxo,
                 idx=0,
                 limit=0,
                 search=search,
@@ -1557,7 +1568,7 @@ def addresses_list_to_csv(wallet):
         else:
             balance_on_address = 0
             if address_info.used:
-                for tx in wallet.utxo:
+                for tx in wallet.full_utxo:
                     if tx.get("address", "") == address:
                         balance_on_address += tx.get("amount", 0)
         row += (balance_on_address,)

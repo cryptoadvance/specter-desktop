@@ -83,11 +83,19 @@
             max-width: 200px;
             margin: auto;
         }
+        .selected-rows-action-box {
+            float: right;
+        }
+        .selected-rows-action-box .btn {
+            width: 200px;
+            margin: 5px;
+            height: 38px;
+        }
     </style>
     <nav class="row">
         <button
             type="button"
-            class="txlist-view-btn btn radio left checked">
+            class="txlist-view-btn btn radio left">
             History
         </button>
         <button
@@ -111,6 +119,20 @@
         <input class="search" type="text" placeholder="Search..." />
         <!--Placeholder for right part of the toolbar-->
         <div style="flex: 1;"></div>
+    </div>
+    <div class="selected-rows-action-box row hidden">
+        <form class="freeze-tx-form" method="POST">
+            <button type="button" class="btn freeze-tx-btn">
+                <tool-tip title="Freezing UTXOs">
+                    Freezing a UTXO will make Specter disallow spending it.<br><br>
+                    This is useful especially for dealing with dust attack, where you don't want to accidentally spend the dust received.
+                </tool-tip>&nbsp;&nbsp;
+                Un/Freeze UTXOs
+            </button>
+        </form>
+        <form class="compose-tx-form" method="POST">
+            <button type="button" class="btn compose-tx-btn">Create new transaction</button>
+        </form>
     </div>
     <div class="export-container hidden">
         <h1>Export transactions to CSV</h1>
@@ -248,7 +270,14 @@
             this.export = clone.querySelector(".export");
             this.exportPricesSwitch = clone.querySelector(".export-prices");
 
-            // Setup tabs switching
+            // Selected rows
+            this.selectedRowsActionBox = clone.querySelector(".selected-rows-action-box");
+            this.composeTxForm = clone.querySelector(".compose-tx-form");
+            this.composeTxBtn = clone.querySelector(".compose-tx-btn");
+            this.freezeTxForm = clone.querySelector(".freeze-tx-form");
+            this.freezeTxBtn = clone.querySelector(".freeze-tx-btn");
+            this.selectedRows = [];
+            
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
 					this.utxoViewBtn.classList.remove("checked");
@@ -368,6 +397,27 @@
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
+            this.composeTxBtn.onclick = () => {
+                for (let tx of this.selectedRows) {
+                    this.composeTxForm.innerHTML += `
+                        <input type="checkbox" checked class="hidden" name="coinselect" value="${tx.txid}, ${tx.vout}, ${tx.amount}">
+                    `
+                }
+                this.composeTxForm.action = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                this.composeTxForm.submit();
+            }
+
+            this.freezeTxBtn.onclick = () => {
+                for (let tx of this.selectedRows) {
+                    this.freezeTxForm.innerHTML += `
+                        <input type="checkbox" checked class="hidden" name="selected_utxo" value="${tx.txid}:${tx.vout}">
+                    `
+                }
+                this.freezeTxForm.innerHTML += `<input type="hidden" name="action" value="freezeutxo"/>`
+                this.freezeTxForm.action = `{{ url_for('wallets_endpoint.history', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                this.freezeTxForm.submit();
+            }
+
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
@@ -432,6 +482,12 @@
         if (!self.listType) {
             self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
             return
+        }
+
+        if (self.listType == "txlist") {
+            self.txlistViewBtn.classList.add("checked");
+        } else {
+            self.utxoViewBtn.classList.add("checked");
         }
 
         // Select the correct URL based on the list type and selected wallet
@@ -506,7 +562,8 @@
                             data-symbol="${self.symbol ? self.symbol : ''}"
                             data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"
-                            data-show-blockhash="${showBlockhash}">
+                            data-show-blockhash="${showBlockhash}"
+                            data-mode="${self.getAttribute('type') + (self.wallet ? "" : "-overview")}">
                             </tx-row>
                         `
                         self.tbody.innerHTML += txRow;
@@ -564,6 +621,29 @@
                     } else {
                         self.paginationNext.classList.remove('pagination-disabled');
                     }
+
+                    self.selectedRows = [];
+                    self.selectedRowsActionBox.classList.add('hidden');
+
+                    for (let txRow of self.shadowRoot.querySelectorAll('tx-row')) {
+                        txRow.addEventListener('txRowSelected', e=>{
+                            let selectedRow = e.target;
+                            if (e.detail.selected) {
+                                self.selectedRows.push({
+                                    txid: e.detail.txid,
+                                    vout: e.detail.vout,
+                                    amount: e.detail.amount.toFixed(8)
+                                });
+                            } else {
+                                self.selectedRows = self.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
+                            }
+                            if (self.selectedRows.length == 0) {
+                                self.selectedRowsActionBox.classList.add('hidden');
+                            } else {
+                                self.selectedRowsActionBox.classList.remove('hidden');
+                            }
+						});
+                    }
                 }
                 return
             };
@@ -597,6 +677,14 @@
         } else {
             copyText(txid, `Copied transaction: ${ txid }`);
         }
+    }
+
+    /**
+     * Triggered when a tx-row is marked as selected/ unselected .
+     * 
+    */
+    function txRowToggled(txRow) {
+        // if ()
     }
 
     customElements.define('tx-table', TxTableElement);

@@ -260,7 +260,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.get_balance()
 
     address_balance = wallet.fullbalance
-    assert len(wallet.utxo) == 20
+    assert len(wallet.full_utxo) == 20
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, "")
@@ -272,7 +272,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.getdata()
     wallet.get_balance()
 
-    assert len(wallet.utxo) == 40
+    assert len(wallet.full_utxo) == 40
 
     wallet.setlabel(new_address, "")
     third_address = wallet.getnewaddress()

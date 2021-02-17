@@ -17,7 +17,7 @@
         <tbody>
             {% for tx in unspents %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer, "{}, {}, {}".format(tx['txid'], tx['vout'], tx['amount']) in selected_coins) }}
+                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer, "{}, {}, {}".format(tx['txid'], tx['vout'], "%.8f"|format(tx['amount'])) in selected_coins) }}
             {% endfor %}
         </tbody>
     </table>

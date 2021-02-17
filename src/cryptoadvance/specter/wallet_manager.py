@@ -119,6 +119,17 @@ class WalletManager:
                                             ].pending_psbts[psbt]["tx"]["vin"]
                                         ],
                                     )
+                            if len(wallets[wallet_name].frozen_utxo) > 0:
+                                wallets[wallet_name].rpc.lockunspent(
+                                    False,
+                                    [
+                                        {
+                                            "txid": utxo.split(":")[0],
+                                            "vout": int(utxo.split(":")[1]),
+                                        }
+                                        for utxo in wallets[wallet_name].frozen_utxo
+                                    ],
+                                )
                         except RpcError as e:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias} into core.\
@@ -321,7 +332,7 @@ Silently ignored! Wallet error: {e}"
                     "label": wallet.getlabel(utxo["address"]),
                     "wallet_alias": wallet.alias,
                 }
-                for utxo in wallet.utxo
+                for utxo in wallet.full_utxo
             ]
             for wallet in self.wallets.values()
         ]
