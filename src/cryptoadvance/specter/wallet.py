@@ -25,7 +25,7 @@ LISTTRANSACTIONS_BATCH_SIZE = 1000
 class Wallet:
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
-    # a gap of 20 addresses is what many wallets do
+    # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
@@ -189,6 +189,45 @@ class Wallet:
                     tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
         ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
+        if self.use_descriptors:
+            while (
+                len(
+                    [
+                        tx
+                        for tx in self._transactions
+                        if self._transactions[tx]["category"] != "send"
+                        and not self._transactions[tx]["address"]
+                    ]
+                )
+                != 0
+            ):
+                addresses = [
+                    dict(
+                        address=self.get_address(
+                            idx, change=False, check_keypool=False
+                        ),
+                        index=idx,
+                        change=False,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=False),
+                        self._addresses.max_index(change=False) + self.GAP_LIMIT,
+                    )
+                ]
+                change_addresses = [
+                    dict(
+                        address=self.get_address(idx, change=True, check_keypool=False),
+                        index=idx,
+                        change=True,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=True),
+                        self._addresses.max_index(change=True) + self.GAP_LIMIT,
+                    )
+                ]
+                self._addresses.add(addresses, check_rpc=False)
+                self._addresses.add(change_addresses, check_rpc=False)
+                self._transactions.add(txs)
 
     def update(self):
         self.getdata()
@@ -449,6 +488,12 @@ class Wallet:
         delete_file(self._transactions.path)
 
     @property
+    def use_descriptors(self):
+        if not hasattr(self, "info") or self.info != {}:
+            self.get_info()
+        return "descriptors" in self.info and self.info["descriptors"] == True
+
+    @property
     def is_multisig(self):
         return len(self.keys) > 1
 
@@ -514,10 +559,25 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
-        if fetch_transactions:
+        if fetch_transactions or (
+            self.use_descriptors
+            and len(
+                [
+                    tx
+                    for tx in self._transactions
+                    if self._transactions[tx]["category"] != "send"
+                    and not self._transactions[tx]["address"]
+                ]
+            )
+            != 0
+        ):
             self.fetch_transactions()
         try:
-            _transactions = [tx.__dict__().copy() for tx in self._transactions.values()]
+            _transactions = [
+                tx.__dict__().copy()
+                for tx in self._transactions.values()
+                if tx["ismine"]
+            ]
             transactions = sorted(
                 _transactions, key=lambda tx: tx["time"], reverse=True
             )
@@ -754,6 +814,7 @@ class Wallet:
                         )
                     except:
                         logger.warning(f"Failed to fetch data from block explorer: {e}")
+        self.fetch_transactions()
         self.check_addresses()
 
     @property
@@ -930,7 +991,11 @@ class Wallet:
 
     def get_balance(self):
         try:
-            balance = self.rpc.getbalances()["watchonly"]
+            balance = (
+                self.rpc.getbalances()["mine"]
+                if self.use_descriptors
+                else self.rpc.getbalances()["watchonly"]
+            )
             # calculate available balance
             locked_utxo = self.rpc.listlockunspent()
             available = {}
@@ -956,19 +1021,31 @@ class Wallet:
         return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for desciptor wallets is automatically refilled
+        if self.use_descriptors and start > 0:
+            return
+
         if end is None:
+            # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
+
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
             {
                 "desc": desc,
                 "internal": change,
-                "range": [start, end],
                 "timestamp": "now",
-                "keypool": True,
                 "watchonly": True,
             }
         ]
+        if self.use_descriptors:
+            args[0]["active"] = True
+        else:
+            args[0]["keypool"] = True
+            args[0]["range"] = [start, end]
+
         addresses = [
             dict(
                 address=self.get_address(idx, change=change, check_keypool=False),
@@ -980,36 +1057,42 @@ class Wallet:
         self._addresses.add(addresses, check_rpc=False)
 
         if not self.is_multisig:
-            r = self.rpc.importmulti(args, {"rescan": False})
+            if self.use_descriptors:
+                r = self.rpc.importdescriptors(args)
+            else:
+                r = self.rpc.importmulti(args, {"rescan": False})
         # bip67 requires sorted public keys for multisig addresses
         else:
-            # try if sortedmulti is supported
-            r = self.rpc.importmulti(args, {"rescan": False})
-            # doesn't raise, but instead returns "success": False
-            if not r[0]["success"]:
-                # first import normal multi
-                # remove checksum
-                desc = desc.split("#")[0]
-                # switch to multi
-                desc = desc.replace("sortedmulti", "multi")
-                # add checksum
-                desc = AddChecksum(desc)
-                # update descriptor
-                args[0]["desc"] = desc
+            if self.use_descriptors:
+                self.rpc.importdescriptors(args)
+            else:
+                # try if sortedmulti is supported
                 r = self.rpc.importmulti(args, {"rescan": False})
-                # make a batch of single addresses to import
-                arg = args[0]
-                # remove range key
-                arg.pop("range")
-                batch = []
-                for i in range(start, end):
-                    sorted_desc = sort_descriptor(desc, index=i)
-                    # create fresh object
-                    obj = {}
-                    obj.update(arg)
-                    obj.update({"desc": sorted_desc})
-                    batch.append(obj)
-                r = self.rpc.importmulti(batch, {"rescan": False})
+                # doesn't raise, but instead returns "success": False
+                if not r[0]["success"]:
+                    # first import normal multi
+                    # remove checksum
+                    desc = desc.split("#")[0]
+                    # switch to multi
+                    desc = desc.replace("sortedmulti", "multi")
+                    # add checksum
+                    desc = AddChecksum(desc)
+                    # update descriptor
+                    args[0]["desc"] = desc
+                    r = self.rpc.importmulti(args, {"rescan": False})
+                    # make a batch of single addresses to import
+                    arg = args[0]
+                    # remove range key
+                    arg.pop("range")
+                    batch = []
+                    for i in range(start, end):
+                        sorted_desc = sort_descriptor(desc, index=i)
+                        # create fresh object
+                        obj = {}
+                        obj.update(arg)
+                        obj.update({"desc": sorted_desc})
+                        batch.append(obj)
+                    r = self.rpc.importmulti(batch, {"rescan": False})
         if change:
             self.change_keypool = end
         else:
@@ -1092,15 +1175,7 @@ class Wallet:
                     "The wallet does not have sufficient funds to make the transaction."
                 )
 
-            if self.available_balance["trusted"] <= sum(amounts):
-                txlist = self.rpc.listunspent(0, 0)
-                b = sum(amounts) - self.available_balance["trusted"]
-                for tx in txlist:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                    b -= tx["amount"]
-                    if b < 0:
-                        break
-            elif selected_coins != []:
+            if selected_coins != []:
                 still_needed = sum(amounts)
                 for coin in selected_coins:
                     coin_txid = coin.split(",")[0]
@@ -1114,6 +1189,14 @@ class Wallet:
                     raise SpecterError(
                         "Selected coins does not cover Full amount! Please select more coins!"
                     )
+            elif self.available_balance["trusted"] <= sum(amounts):
+                txlist = self.rpc.listunspent(0, 0)
+                b = sum(amounts) - self.available_balance["trusted"]
+                for tx in txlist:
+                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    b -= tx["amount"]
+                    if b < 0:
+                        break
 
             # subtract fee from amount of this output:
             # currently only one address is supported, so either
@@ -1126,6 +1209,9 @@ class Wallet:
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
             }
+
+            if self.manager.bitcoin_core_version_raw >= 210000:
+                options["add_inputs"] = selected_coins == []
 
             if fee_rate > 0:
                 # bitcoin core needs us to convert sat/B to BTC/kB
