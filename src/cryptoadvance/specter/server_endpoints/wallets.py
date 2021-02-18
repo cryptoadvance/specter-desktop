@@ -3,6 +3,7 @@ from io import StringIO
 from werkzeug.wrappers import Response
 from datetime import datetime
 from numbers import Number
+from math import isnan
 from ..util.tx import decoderawtransaction
 from ..util.price_providers import get_price_at
 
@@ -567,7 +568,14 @@ def send_new(wallet_alias):
             if "ui" in ui_option:
                 while "address_{}".format(i) in request.form:
                     addresses.append(request.form["address_{}".format(i)])
-                    amounts.append(float(request.form["btc_amount_{}".format(i)]))
+                    amount = 0.0
+                    try:
+                        amount = float(request.form["btc_amount_{}".format(i)])
+                    except ValueError:
+                        pass
+                    if isnan(amount):
+                        amount = 0.0
+                    amounts.append(amount)
                     amount_units.append(request.form["amount_unit_{}".format(i)])
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
@@ -624,7 +632,7 @@ def send_new(wallet_alias):
                 app.logger.error(e)
             if err is None:
                 if "estimate_fee" in request.form:
-                    return psbt
+                    return jsonify(success=True, psbt=psbt)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -634,6 +642,9 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
+            else:
+                if "estimate_fee" in request.form:
+                    return jsonify(success=False, error=str(err))
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
