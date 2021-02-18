@@ -12,6 +12,7 @@
 <div id="hwi_progress" class="hidden" style="width: 270px;">
     <h1 id="hwi_progress_title">Processing...</h1>
     <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
+    <p id="bitbox02-pairing-code" style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
         Running Specter on a remote machine? &#9654
@@ -77,7 +78,20 @@
         let result = [];
         let retryCounter = 0;
         try {
-            result = await hwi.enumerate(passphrase);
+            try {
+                result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
+            } catch (e) {
+                if (e.message !== 'Fetch is aborted') {
+                    throw e;
+                }
+                if (deviceTypes == 'bitbox02') {
+                    // Likely bitbox02 pairing
+                    let pairingCode = (await hwi.getBitbox02PairingCode()).code;
+                    if (pairingCode) {
+                        document.getElementById('bitbox02-pairing-code').innerHTML = `Pairing Code:<br><br><b>${pairingCode}</b><br><br>Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.`;
+                    }
+                }   
+            }
             if(result!=null && deviceTypes!=null){
                 result = result.filter(dev => deviceTypes.includes(dev.type));
             }
@@ -93,7 +107,20 @@
                     return null;
                 }
                 console.log("Retrying enumerate...");
-                result = await hwi.enumerate(passphrase);
+                try {
+                    result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
+                } catch (e) {
+                    if (e.message !== 'Fetch is aborted') {
+                        throw e;
+                    }
+                    if (deviceTypes == 'bitbox02') {
+                        // Likely bitbox02 pairing
+                        let pairingCode = (await hwi.getBitbox02PairingCode()).code;
+                        if (pairingCode) {
+                            document.getElementById('bitbox02-pairing-code').innerHTML = `Pairing Code:<br><br><b>${pairingCode}</b><br><br>Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.`;
+                        }
+                    }   
+                }
                 if(result!=null && deviceTypes!=null){
                     result = result.filter(dev => deviceTypes.includes(dev.type));
                 }
@@ -110,6 +137,7 @@
             return null;
         }
         console.log(result);
+        document.getElementById('bitbox02-pairing-code').innerHTML = "";
         if(!overlayIsActive() && devicePath == null){
             showNotification("HWI is ready again", 10000);
             // no need to proceed at all
