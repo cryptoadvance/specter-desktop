@@ -2,7 +2,6 @@ import logging
 import requests, json, os
 import os, sys, errno
 from .helpers import is_ip_private
-import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +235,7 @@ class BitcoinRPC:
         # session reuse speeds up requests
         if session is None:
             session = requests.Session()
+            session.auth = (self.user, self.password)
             # check if we need to connect over Tor
             if not is_ip_private(host):
                 if only_tor or ".onion" in self.host:
@@ -260,16 +260,7 @@ class BitcoinRPC:
 
     @property
     def url(self):
-        user = urllib.parse.quote_plus("{s.user}".format(s=self))
-        password = urllib.parse.quote_plus("{s.password}".format(s=self))
-        encoded = (
-            "{s.protocol}://".format(s=self)
-            + user
-            + ":"
-            + password
-            + "@{s.host}:{s.port}{s.path}".format(s=self)
-        )
-        return encoded
+        return "{s.protocol}://{s.host}:{s.port}{s.path}".format(s=self)
 
     def test_connection(self):
         """ returns a boolean depending on whether getblockchaininfo() succeeds """
