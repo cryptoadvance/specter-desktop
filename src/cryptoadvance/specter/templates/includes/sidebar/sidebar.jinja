@@ -117,6 +117,7 @@
             {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), 'Add new wallet', 'btn_new_wallet') }}
             {% if specter.wallet_manager.failed_load_wallets %}
                 <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <p class="warning center">
                         &#9432;<br>Failed to load some wallets<br>
                         <button class="btn" name="action" value="retry_loading_wallets" style="margin: auto;">Retry loading wallets</button>
@@ -131,6 +132,7 @@
                             <p style="color: red">{{wallet.loading_error}}</p>
                             <br><br>
                             <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST" class="row center">
+                                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="wallet_data" value='{{ wallet|tojson|safe }}' />
                                 <a class="btn" id="download_failed_wallet_{{wallet.alias}}" download="{{ wallet.name }}.json" style="width: 180px; height: 35px; margin-top: 1.5px;">Download wallet file</a>&nbsp;&nbsp;
                                 <button class="btn" type="submit" name="action" value="importwallet" formaction="{{ url_for('wallets_endpoint.new_wallet', wallet_type='import_wallet') }}">Recreate the wallet</button>&nbsp;&nbsp;

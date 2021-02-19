@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="./" method="POST" class="center">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="wallet_data" value='{{ wallet_data }}'>
 		<h1>Import Wallet</h1>
 		<span style="font-size: 1.3em;">Wallet name:</span> &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet">

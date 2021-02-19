@@ -10,6 +10,7 @@
 	{% endif %}
 	<div class="card">
 		<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if not device %}
 				<label>Name it:<label>
 				<div class="row">

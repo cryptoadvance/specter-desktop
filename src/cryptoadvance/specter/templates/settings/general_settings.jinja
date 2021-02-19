@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST" onsubmit="showPacman()">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user) }}

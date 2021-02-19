@@ -29,11 +29,13 @@
         <td width="170px">
             <div class="row">
                 <form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
                     <button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">Open</button>
                 </form>
 
                 <form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
                     <button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;" onclick="javascript: form.action='./?pending=True';">Delete</button>
                 </form>

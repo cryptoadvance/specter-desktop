@@ -12,6 +12,7 @@
             {% endif %}
             <input class="form-control" placeholder="Password" name="password" type="password" value="">
             <input type="hidden" name="otp" value="" id="otp">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <br>
             <br>
             <div class="row">

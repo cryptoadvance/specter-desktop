@@ -46,7 +46,8 @@
     async function fetchTxData(self) {
         let url = `{{ url_for('wallets_endpoint.decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
         var formData = new FormData();
-        formData.append('txid', self.txid)
+        formData.append('txid', self.txid);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             const response = await fetch(
                 url,

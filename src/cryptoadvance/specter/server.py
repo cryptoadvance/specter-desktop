@@ -1,11 +1,13 @@
 import logging
 import os
 import sys
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager, login_user
+from flask_wtf.csrf import CSRFProtect
 
 from .helpers import hwi_get_config
 from .specter import Specter
@@ -19,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 env_path = Path(".") / ".flaskenv"
 load_dotenv(env_path)
+
+csrf = CSRFProtect()
 
 
 def calc_module_name(config):
@@ -59,6 +63,8 @@ def create_app(config=None):
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
+    csrf.init_app(app)
+    app.csrf = csrf
     return app
 
 
@@ -66,6 +72,7 @@ def init_app(app, hwibridge=False, specter=None):
     """  see blogpost 19nd Feb 2020 """
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
+    app.secret_key = secrets.token_urlsafe(16)
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
@@ -80,8 +87,10 @@ def init_app(app, hwibridge=False, specter=None):
     specter.version.start()
 
     login_manager = LoginManager()
+    login_manager.session_protection = "strong"
     login_manager.init_app(app)  # Enable Login
     login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
+    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 
     @login_manager.user_loader
     def user_loader(id):
@@ -100,6 +109,7 @@ def init_app(app, hwibridge=False, specter=None):
         app.logger.info("Login enabled")
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
+    csrf.exempt(hwi_server)
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
