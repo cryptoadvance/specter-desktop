@@ -147,6 +147,7 @@
                     <p>You can speedup the transaction by increasing its fee rate:</p>
                     <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
                     <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <br>
                     <br>
                     <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>

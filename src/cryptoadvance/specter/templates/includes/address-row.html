@@ -89,6 +89,7 @@
                     let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     var formData = new FormData();
                     formData.append('address', this.addressData.address)
+                    formData.append('csrf_token', '{{ csrf_token() }}');
                     try {
                         const response = await fetch(
                             url,

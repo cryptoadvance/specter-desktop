@@ -53,6 +53,11 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     ).read()
     result = client.get("/settings/general", follow_redirects=True)
     assert b"Load Specter backup:" in result.data
+    csrf_token = (
+        str(result.data)
+        .split('<input type="hidden" class="csrf-token" name="csrf_token" value="')[1]
+        .split('"')[0]
+    )
     result = client.post(
         "/settings/general",
         data=dict(
@@ -65,6 +70,7 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
             proxy_url="",
             only_tor="off",
             tor_control_port="",
+            csrf_token=csrf_token,
         ),
     )
     assert b"Specter data was successfully loaded from backup." in result.data

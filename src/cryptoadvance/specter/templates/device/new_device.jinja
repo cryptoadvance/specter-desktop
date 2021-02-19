@@ -38,6 +38,7 @@
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div {% if not existing_device %}id="step1"{% else %}class="hidden"{% endif %}>
                 <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
                 <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">

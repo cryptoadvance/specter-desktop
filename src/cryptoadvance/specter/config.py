@@ -3,6 +3,7 @@ import configparser
 import datetime
 import os
 import random
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -91,4 +92,4 @@ class CypressTestConfig(TestConfig):
 
 
 class ProductionConfig(BaseConfig):
-    pass
+    SECRET_KEY = secrets.token_urlsafe(16)

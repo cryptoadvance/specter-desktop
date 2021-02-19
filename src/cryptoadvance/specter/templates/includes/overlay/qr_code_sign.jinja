@@ -1,4 +1,5 @@
 <form id="{{ device.alias }}_sign_tx_qr" class="flex-center flex-column hidden">
+    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
     <nav class="row">
         <label>
             <input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>

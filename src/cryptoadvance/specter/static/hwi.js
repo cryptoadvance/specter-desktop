@@ -26,7 +26,7 @@ class HWIBridge {
                     'method': command, 
                     'id': 1,
                     params,
-                    forwarded_request: (this.url !== '/hwi/api/')
+                    forwarded_request: (this.url !== '/hwi/api/'),
                 })
             }).then(response => response.json());
         }finally{

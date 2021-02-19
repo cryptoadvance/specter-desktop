@@ -19,6 +19,7 @@
 			HWI Bridge URL:
 			<br>
 			<form action="?" method="POST">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row break-row-mobile">
 					<input type="text" name="hwi_bridge_url" value="{{ specter.hwi_bridge_url }}">
 					&nbsp;<input type="submit" class="btn" style="width: 200px" value="Save"/>
