@@ -16,6 +16,7 @@ from .user import User
 from .util.version import VersionChecker
 
 from werkzeug.middleware.proxy_fix import ProxyFix
+from jinja2 import select_autoescape
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ def create_app(config=None):
         )
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
+    app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     app.wsgi_app = ProxyFix(
@@ -72,7 +74,6 @@ def init_app(app, hwibridge=False, specter=None):
     """  see blogpost 19nd Feb 2020 """
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
-    app.secret_key = secrets.token_urlsafe(16)
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
@@ -80,6 +81,10 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
         )
+    app.secret_key = specter.config.get("FLASK_SECRET_KEY", app.config["SECRET_KEY"])
+    if "FLASK_SECRET_KEY" not in specter.config:
+        specter.config["FLASK_SECRET_KEY"] = app.secret_key
+        specter._save()
 
     # version checker
     # checks for new versions once per hour

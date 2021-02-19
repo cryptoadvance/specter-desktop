@@ -16,7 +16,6 @@ from flask import (
     url_for,
     jsonify,
     flash,
-    escape,
 )
 from flask_login import login_required, current_user
 from ..util.descriptor import AddChecksum, Descriptor
@@ -221,13 +220,13 @@ def new_wallet(wallet_type):
             wallet_type = "multisig" if sigs_total > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
-                wallet_name = escape(request.form["wallet_name"])
+                wallet_name = request.form["wallet_name"]
                 for i, unknown_cosigner in enumerate(unknown_cosigners):
-                    unknown_cosigner_name = escape(
-                        request.form["unknown_cosigner_{}_name".format(i)]
-                    )
-                    unknown_cosigner_type = escape(
-                        request.form.get("unknown_cosigner_{}_type".format(i), "other")
+                    unknown_cosigner_name = request.form[
+                        "unknown_cosigner_{}_name".format(i)
+                    ]
+                    unknown_cosigner_type = request.form.get(
+                        "unknown_cosigner_{}_type".format(i), "other"
                     )
                     device = app.specter.device_manager.add_device(
                         name=unknown_cosigner_name,
@@ -307,8 +306,8 @@ def new_wallet(wallet_type):
                 rand=rand,
             )
         if action == "key" and err is None:
-            wallet_name = escape(request.form["wallet_name"])
-            address_type = escape(request.form["type"])
+            wallet_name = request.form["wallet_name"]
+            address_type = request.form["type"]
             sigs_total = int(request.form.get("sigs_total", 1))
             sigs_required = int(request.form.get("sigs_required", 1))
             if wallet_name in app.specter.wallet_manager.wallets_names:
@@ -336,8 +335,8 @@ def new_wallet(wallet_type):
             devices = []
             for i in range(sigs_total):
                 try:
-                    key = escape(request.form["key%d" % i])
-                    cosigner_name = escape(request.form["cosigner%d" % i])
+                    key = request.form["key%d" % i]
+                    cosigner_name = request.form["cosigner%d" % i]
                     cosigner = app.specter.device_manager.get_by_alias(cosigner_name)
                     cosigners.append(cosigner)
                     for k in cosigner.keys:
@@ -389,10 +388,10 @@ def new_wallet(wallet_type):
                 # old wallet - import more addresses
                 wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
                 wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
-                if "utxo" in escape(request.form.get("full_rescan_option")):
+                if "utxo" in request.form.get("full_rescan_option"):
                     explorer = None
                     if "use_explorer" in request.form:
-                        explorer = escape(request.form["explorer_url"])
+                        explorer = request.form["explorer_url"]
                     wallet.rescanutxo(
                         explorer,
                         app.specter.requests_session(explorer),
@@ -497,7 +496,7 @@ def receive(wallet_alias):
         if action == "newaddress":
             wallet.getnewaddress()
         elif action == "updatelabel":
-            label = escape(request.form["label"])
+            label = request.form["label"]
             wallet.setlabel(wallet.address, label)
     # check that current address is unused
     # and generate new one if it is
@@ -565,30 +564,28 @@ def send_new(wallet_alias):
             labels = []
             amounts = []
             amount_units = []
-            ui_option = escape(request.form.get("ui_option"))
+            ui_option = request.form.get("ui_option")
             if "ui" in ui_option:
                 while "address_{}".format(i) in request.form:
-                    addresses.append(escape(request.form["address_{}".format(i)]))
+                    addresses.append(request.form["address_{}".format(i)])
                     amount = 0.0
                     try:
-                        amount = float(escape(request.form["btc_amount_{}".format(i)]))
+                        amount = float(request.form["btc_amount_{}".format(i)])
                     except ValueError:
                         pass
                     if isnan(amount):
                         amount = 0.0
                     amounts.append(amount)
-                    amount_units.append(
-                        escape(request.form["amount_unit_{}".format(i)])
-                    )
-                    labels.append(escape(request.form["label_{}".format(i)]))
-                    if escape(request.form["label_{}".format(i)]) != "":
+                    amount_units.append(request.form["amount_unit_{}".format(i)])
+                    labels.append(request.form["label_{}".format(i)])
+                    if request.form["label_{}".format(i)] != "":
                         wallet.setlabel(addresses[i], labels[i])
                     i += 1
             else:
-                recipients_txt = escape(request.form["recipients"])
+                recipients_txt = request.form["recipients"]
                 for output in recipients_txt.splitlines():
                     addresses.append(output.split(",")[0].strip())
-                    if escape(request.form.get("amount_unit_text")) == "sat":
+                    if request.form.get("amount_unit_text") == "sat":
                         amounts.append(float(output.split(",")[1].strip()) / 1e8)
                     else:
                         amounts.append(float(output.split(",")[1].strip()))
@@ -600,15 +597,15 @@ def send_new(wallet_alias):
                 for address in addresses
             ]
             subtract = bool(request.form.get("subtract", False))
-            subtract_from = int(escape(request.form.get("subtract_from", 1)))
-            fee_options = escape(request.form.get("fee_options"))
+            subtract_from = int(request.form.get("subtract_from", 1))
+            fee_options = request.form.get("fee_options")
             if "dynamic" in fee_options:
-                fee_rate = float(escape(request.form.get("fee_rate_dynamic")))
-                fee_rate_blocks = int(escape(request.form.get("fee_rate_blocks")))
+                fee_rate = float(request.form.get("fee_rate_dynamic"))
+                fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
             else:
-                if escape(request.form.get("fee_rate")):
-                    fee_rate = float(escape(request.form.get("fee_rate")))
-            rbf = bool(escape(request.form.get("rbf", False)))
+                if request.form.get("fee_rate"):
+                    fee_rate = float(request.form.get("fee_rate"))
+            rbf = bool(request.form.get("rbf", False))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
             try:
@@ -650,8 +647,8 @@ def send_new(wallet_alias):
                     return jsonify(success=False, error=str(err))
         elif action == "rbf":
             try:
-                rbf_tx_id = escape(request.form["rbf_tx_id"])
-                rbf_fee_rate = float(escape(request.form["rbf_fee_rate"]))
+                rbf_tx_id = request.form["rbf_tx_id"]
+                rbf_fee_rate = float(request.form["rbf_fee_rate"])
                 psbt = wallet.send_rbf_tx(rbf_tx_id, rbf_fee_rate)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
@@ -901,7 +898,7 @@ def settings(wallet_alias):
             response = redirect(url_for("index"))
             return response
         elif action == "rename":
-            wallet_name = escape(request.form["newtitle"])
+            wallet_name = request.form["newtitle"]
             if not wallet_name:
                 flash("Wallet name cannot be empty", "error")
             elif wallet_name == wallet.name:
