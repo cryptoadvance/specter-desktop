@@ -43,35 +43,41 @@ def test_settings_general(caplog, client):
     assert b"regtest" in result.data
 
 
-# def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
-#     login(client, "secret")
-#     restore_wallets = open(
-#         "./tests/controller_testdata/restore_wallets.json", "r"
-#     ).read()
-#     restore_devices = open(
-#         "./tests/controller_testdata/restore_devices.json", "r"
-#     ).read()
-#     result = client.get("/settings/general", follow_redirects=True)
-#     assert b"Load Specter backup:" in result.data
-#     result = client.post(
-#         "/settings/general",
-#         data=dict(
-#             action="restore",
-#             explorer="",
-#             unit="btc",
-#             loglevel="debug",
-#             restoredevices=restore_devices,
-#             restorewallets=restore_wallets,
-#             proxy_url="",
-#             only_tor="off",
-#             tor_control_port="",
-#         ),
-#     )
-#     assert b"Specter data was successfully loaded from backup." in result.data
-#     assert b"SimpleMyNiceDevice" in result.data
-#     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
-#     assert b"myNiceDevice" in result.data
-#     assert b"btchot" in result.data
+def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
+    login(client, "secret")
+    restore_wallets = open(
+        "./tests/controller_testdata/restore_wallets.json", "r"
+    ).read()
+    restore_devices = open(
+        "./tests/controller_testdata/restore_devices.json", "r"
+    ).read()
+    result = client.get("/settings/general", follow_redirects=True)
+    assert b"Load Specter backup:" in result.data
+    csrf_token = (
+        str(result.data)
+        .split('<input type="hidden" class="csrf-token" name="csrf_token" value="')[1]
+        .split('"')[0]
+    )
+    result = client.post(
+        "/settings/general",
+        data=dict(
+            action="restore",
+            explorer="",
+            unit="btc",
+            loglevel="debug",
+            restoredevices=restore_devices,
+            restorewallets=restore_wallets,
+            proxy_url="",
+            only_tor="off",
+            tor_control_port="",
+            csrf_token=csrf_token,
+        ),
+    )
+    assert b"Specter data was successfully loaded from backup." in result.data
+    assert b"SimpleMyNiceDevice" in result.data
+    # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
+    assert b"myNiceDevice" in result.data
+    assert b"btchot" in result.data
 
 
 def login(client, password):
