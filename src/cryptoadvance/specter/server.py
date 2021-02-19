@@ -38,7 +38,11 @@ def create_app(config=None):
 
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(os.environ.get("SPECTER_CONFIG") if os.environ.get("SPECTER_CONFIG") else config)
+        config = calc_module_name(
+            os.environ.get("SPECTER_CONFIG")
+            if os.environ.get("SPECTER_CONFIG")
+            else config
+        )
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
