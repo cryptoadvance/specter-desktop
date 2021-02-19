@@ -24,6 +24,7 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 
 
 @auth_endpoint.route("/login", methods=["GET", "POST"])
+@app.csrf.exempt
 def login():
     """ login """
     if request.method == "POST":
