@@ -42,7 +42,7 @@ Cypress.Commands.add("addDevice", (name) => {
         cy.get('h2 > input').type(name)
         cy.get('#wizard-previous').click()
         cy.get('#step1 > .note').click()
-        cy.get(':nth-child(1) > input').type(name)
+        cy.get('#device_name').type(name)
         cy.get('#device_type').select("Specter-DIY")
         cy.get('#txt').type("[8c24a510/84h/1h/0h]vpub5Y24kG7ZrCFRkRnHia2sdnt5N7MmsrNry1jMrP8XptMEcZZqkjQA6bc1f52RGiEoJmdy1Vk9Qck9tAL1ohKvuq3oFXe3ADVse6UiTHzuyKx")
         cy.get('#cold_device > [type="submit"]').click()

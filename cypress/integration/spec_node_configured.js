@@ -14,7 +14,7 @@ describe('Node Configured', () => {
         cy.get('#btn_new_wallet').click()
         cy.get('[href="./simple/"]').click()
         cy.get('#testdevice_ghost').click()
-        cy.get('#keysform > :nth-child(2) > .inline').type("Testwallet Ghost")
+        cy.get('#wallet_name').type("Testwallet Ghost")
         cy.get('#keysform > .centered').click()
         cy.get('body').contains("New wallet was created successfully!")
         // Download PDF
