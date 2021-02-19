@@ -9,6 +9,7 @@ from flask import (
     url_for,
     jsonify,
     flash,
+    escape,
 )
 from flask_login import login_required, current_user
 from flask import current_app as app
@@ -49,10 +50,12 @@ def new_device():
         if device_type != "bitcoincore":
             keys = []
             for i in range(0, xpubs_rows_count):
-                purpose = request.form.get(
-                    "xpubs-table-row-{}-purpose".format(i), "Custom"
+                purpose = escape(
+                    request.form.get("xpubs-table-row-{}-purpose".format(i), "Custom")
                 )
-                xpub = request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), "-")
+                xpub = escape(
+                    request.form.get("xpubs-table-row-{}-xpub-hidden".format(i), "-")
+                )
                 if xpub != "-":
                     try:
                         keys.append(Key.parse_xpub(xpub, purpose=purpose))
@@ -92,11 +95,13 @@ def new_device():
             paths = []
             keys_purposes = []
             for i in range(0, xpubs_rows_count):
-                purpose = request.form.get(
-                    "xpubs-table-row-{}-purpose".format(i), "Custom"
+                purpose = escape(
+                    request.form.get("xpubs-table-row-{}-purpose".format(i), "Custom")
                 )
-                path = request.form.get(
-                    "xpubs-table-row-{}-derivation-hidden".format(i), ""
+                path = escape(
+                    request.form.get(
+                        "xpubs-table-row-{}-derivation-hidden".format(i), ""
+                    )
                 )
                 if path != "":
                     paths.append(path)
@@ -163,14 +168,14 @@ def new_device_manual():
     mnemonic = generate_mnemonic(strength=strength)
     if request.method == "POST":
         action = request.form["action"]
-        device_type = request.form["device_type"]
-        device_name = request.form["device_name"]
+        device_type = escape(request.form["device_type"])
+        device_name = escape(request.form["device_name"])
         if action == "newcolddevice":
             if not device_name:
                 err = "Device name must not be empty"
             elif device_name in app.specter.device_manager.devices_names:
                 err = "Device with this name already exists"
-            xpubs = request.form["xpubs"]
+            xpubs = escape(request.form["xpubs"])
             if not xpubs:
                 err = "xpubs name must not be empty"
             keys, failed = Key.parse_xpubs(xpubs)
@@ -279,7 +284,7 @@ def device(device_alias):
             else:
                 device.remove_key(key)
         elif action == "rename":
-            device_name = request.form["newtitle"]
+            device_name = escape(request.form["newtitle"])
             if not device_name:
                 flash("Device name must not be empty", "error")
             elif device_name == device.name:
@@ -331,7 +336,7 @@ def device(device_alias):
                     )
             else:
                 # refactor to fn
-                xpubs = request.form["xpubs"]
+                xpubs = escape(request.form["xpubs"])
                 keys, failed = Key.parse_xpubs(xpubs)
                 err = None
                 if len(failed) > 0:
@@ -348,7 +353,7 @@ def device(device_alias):
                 if err is None:
                     device.add_keys(keys)
         elif action == "settype":
-            device_type = request.form["device_type"]
+            device_type = escape(request.form["device_type"])
             device.set_type(device_type)
     device = copy.deepcopy(device)
     device.keys.sort(

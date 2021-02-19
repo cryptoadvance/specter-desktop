@@ -8,6 +8,7 @@ from flask import (
     url_for,
     jsonify,
     flash,
+    escape,
 )
 from flask_login import login_required, current_user, logout_user
 from flask import current_app as app
@@ -23,6 +24,7 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 
 
 @auth_endpoint.route("/login", methods=["GET", "POST"])
+@app.csrf.exempt
 def login():
     """ login """
     if request.method == "POST":
@@ -67,7 +69,7 @@ def login():
                 return redirect_login(request)
         elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
-            username = request.form["username"]
+            username = escape(request.form["username"])
             password = request.form["password"]
             user = app.specter.user_manager.get_user_by_username(username)
             if user:
@@ -99,9 +101,9 @@ def register():
     """ register """
     if request.method == "POST":
         rate_limit()
-        username = request.form["username"]
+        username = escape(request.form["username"])
         password = request.form["password"]
-        otp = request.form["otp"]
+        otp = escape(request.form["otp"])
         if not username:
             flash(
                 "Please enter a username.",

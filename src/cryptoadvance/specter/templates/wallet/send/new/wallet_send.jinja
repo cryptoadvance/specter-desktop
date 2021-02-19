@@ -24,6 +24,7 @@
 	</message-box>
 
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 class="padded">Create Transaction</h1>
 		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
 			{% if specter.unit == 'sat' %}

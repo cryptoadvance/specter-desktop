@@ -10,6 +10,7 @@ from flask import (
     jsonify,
     flash,
     send_file,
+    escape,
 )
 from flask_login import login_required, current_user
 
@@ -68,11 +69,11 @@ def bitcoin_core():
         if current_user.is_admin:
             autodetect = "autodetect" in request.form
             if autodetect:
-                datadir = request.form["datadir"]
-            user = request.form["username"]
+                datadir = escape(request.form["datadir"])
+            user = escape(request.form["username"])
             password = request.form["password"]
-            port = request.form["port"]
-            host = request.form["host"].rstrip("/")
+            port = escape(request.form["port"])
+            host = escape(request.form["host"].rstrip("/"))
 
         # protocol://host
         if "://" in host:
@@ -141,12 +142,12 @@ def general():
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
-        explorer = request.form["explorer"]
-        unit = request.form["unit"]
+        explorer = escape(request.form["explorer"])
+        unit = escape(request.form["unit"])
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
         if current_user.is_admin:
-            loglevel = request.form["loglevel"]
+            loglevel = escape(request.form["loglevel"])
 
         if action == "save":
             if current_user.is_admin:
@@ -260,9 +261,9 @@ def tor():
     tor_control_port = app.specter.tor_control_port
     if request.method == "POST":
         action = request.form["action"]
-        proxy_url = request.form["proxy_url"]
+        proxy_url = escape(request.form["proxy_url"])
         only_tor = request.form.get("only_tor") == "on"
-        tor_control_port = request.form["tor_control_port"]
+        tor_control_port = escape(request.form["tor_control_port"])
 
         if action == "save":
             app.specter.update_proxy_url(proxy_url, current_user)
@@ -350,15 +351,17 @@ def auth():
 
         if action == "save":
             if "specter_username" in request.form:
-                specter_username = request.form["specter_username"]
+                specter_username = escape(request.form["specter_username"])
                 specter_password = request.form["specter_password"]
             else:
                 specter_username = None
                 specter_password = None
             if current_user.is_admin:
-                method = request.form["method"]
-                rate_limit = request.form["rate_limit"]
-                registration_link_timeout = request.form["registration_link_timeout"]
+                method = escape(request.form["method"])
+                rate_limit = escape(request.form["rate_limit"])
+                registration_link_timeout = escape(
+                    request.form["registration_link_timeout"]
+                )
             min_chars = int(auth["password_min_chars"])
             if specter_username:
                 if current_user.username != specter_username:
@@ -468,7 +471,7 @@ def auth():
                     "error",
                 )
         elif action == "deleteuser":
-            delete_user = request.form["deleteuser"]
+            delete_user = escape(request.form["deleteuser"])
             user = app.specter.user_manager.get_user(delete_user)
             if current_user.is_admin:
                 app.specter.delete_user(user)
@@ -493,7 +496,7 @@ def auth():
 def hwi():
     current_version = notify_upgrade(app, flash)
     if request.method == "POST":
-        hwi_bridge_url = request.form["hwi_bridge_url"]
+        hwi_bridge_url = escape(request.form["hwi_bridge_url"])
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
         flash("HWIBridge URL is updated! Don't forget to whitelist Specter!")
     return render_template(

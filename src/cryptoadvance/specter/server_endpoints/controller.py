@@ -123,6 +123,7 @@ def fees(blocks):
 
 @app.route("/get_txout_set_info")
 @login_required
+@app.csrf.exempt
 def txout_set_info():
     res = app.specter.rpc.gettxoutsetinfo()
     return res
@@ -130,6 +131,7 @@ def txout_set_info():
 
 @app.route("/get_scantxoutset_status")
 @login_required
+@app.csrf.exempt
 def get_scantxoutset_status():
     status = app.specter.rpc.scantxoutset("status", [])
     app.specter.info["utxorescan"] = status.get("progress", None) if status else None

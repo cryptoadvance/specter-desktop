@@ -7,6 +7,7 @@
 {% block main %}
     <div class="card" style="width: 600px;">
         <form action="." method="POST" role="form">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <h1>HWI Bridge Settings</h1>
             {% if tor_service_id %}
                 <img style="width: 28px; padding:3px;float: left;margin-right: 5px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>

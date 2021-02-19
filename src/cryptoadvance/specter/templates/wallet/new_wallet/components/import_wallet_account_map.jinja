@@ -2,6 +2,7 @@
     <h1>Import Wallet</h1>
     <p>Import an existing wallet into Specter by either pasting its data, scanning its QR code or uploading its data file.</p>
     <form action="./import_wallet/" method="POST">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <textarea id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
         <div class="row">
             <a href="#" class="btn" id="scanme" style="margin: 2px;">
@@ -13,7 +14,7 @@
             </label>
         </div><br>
         <button type="submit" class="btn centered" name="action" value="importwallet">Continue</button>
-    <form>
+    </form>
 </div>
 <div class="popup" id="popup">
 	<video muted playsinline id="qr-video" class="video"></video>

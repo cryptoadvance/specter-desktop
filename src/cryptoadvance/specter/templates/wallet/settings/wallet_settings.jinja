@@ -157,6 +157,7 @@
 		<div class="card">
 			<h2 class="subtitle">Keypool control</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
 				<div class="row aligned">
 					<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
@@ -166,6 +167,7 @@
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Blockchain rescan</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
 						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
@@ -189,6 +191,7 @@
 				{% endif %}
 			</form>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
 					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
@@ -250,6 +253,7 @@
 			<div class="section-separator"></div>
 			<h2 class="subtitle">Delete wallet</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
 			</form>
 		</div>
