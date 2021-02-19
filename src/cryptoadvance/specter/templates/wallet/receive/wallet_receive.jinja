@@ -33,6 +33,7 @@
 	<br>
 	<div class="center card" style="width: 610px; padding-top: 25px;">
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
@@ -42,6 +43,7 @@
 		<qr-code style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
 		</div><br>
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
 			{% set supports_qr_code_verify = [] %}
 			{% for device in wallet.devices if device.qr_code_support_verify %}

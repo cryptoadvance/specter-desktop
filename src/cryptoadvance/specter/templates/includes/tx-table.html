@@ -472,6 +472,7 @@
         formData.append('search', self.search);
         formData.append('sortby', self.sortby);
         formData.append('sortdir', self.sortdir);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             let callId = self.callId;
             const response = await fetch(

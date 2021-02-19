@@ -80,6 +80,7 @@
                 <h2>Proceed with signing</h2>
                 {% endif %}
                 <form action="?" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <br/>
                     <div>
                         {% if is_encrypted %}

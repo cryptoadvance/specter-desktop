@@ -3,6 +3,7 @@ import configparser
 import datetime
 import os
 import random
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -69,7 +70,7 @@ class BaseConfig(object):
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
-    SECRET_KEY = "development key"
+    SECRET_KEY = secrets.token_urlsafe(16)
 
 
 class TestConfig(BaseConfig):
@@ -91,4 +92,4 @@ class CypressTestConfig(TestConfig):
 
 
 class ProductionConfig(BaseConfig):
-    pass
+    SECRET_KEY = secrets.token_urlsafe(16)
