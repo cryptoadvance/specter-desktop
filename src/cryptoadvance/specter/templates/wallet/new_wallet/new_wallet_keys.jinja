@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1>Name your Wallet</h1>
 		<div class="center">
 			<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="My new wallet" required>

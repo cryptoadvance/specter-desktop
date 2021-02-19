@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="./" method="POST" onsubmit="return isValidForm()">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		{% if wallet_type == 'multisig' %}
 			<h1 style="margin: 20px;">Pick the devices you want in your multisig quorum</h1>
 		{% else %}
