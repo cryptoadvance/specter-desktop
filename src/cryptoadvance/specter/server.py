@@ -38,14 +38,14 @@ def create_app(config=None):
 
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+        config = calc_module_name(os.environ.get("SPECTER_CONFIG") if os.environ.get("SPECTER_CONFIG") else config)
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
             config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
         else:
             # Default
-            config = "cryptoadvance.specter.config.DevelopmentConfig"
+            config = "cryptoadvance.specter.config.ProductionConfig"
 
     if getattr(sys, "frozen", False):
 
@@ -74,6 +74,7 @@ def init_app(app, hwibridge=False, specter=None):
     """  see blogpost 19nd Feb 2020 """
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
+    app.secret_key = app.config["SECRET_KEY"]
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
@@ -81,10 +82,6 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
         )
-    app.secret_key = specter.config.get("FLASK_SECRET_KEY", app.config["SECRET_KEY"])
-    if "FLASK_SECRET_KEY" not in specter.config:
-        specter.config["FLASK_SECRET_KEY"] = app.secret_key
-        specter._save()
 
     # version checker
     # checks for new versions once per hour

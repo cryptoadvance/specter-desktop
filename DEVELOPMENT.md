@@ -50,7 +50,7 @@ Run the server:
 
 ```sh
 cd specter-desktop
-python3 -m cryptoadvance.specter server
+python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
 ## Howto run the tests
