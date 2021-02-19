@@ -223,7 +223,7 @@ class BitcoinRPC:
     ):
         path = path.replace("//", "/")  # just in case
         self.user = user
-        self.password = password
+        self._password = password
         self.port = port
         self.protocol = protocol
         self.host = host
@@ -234,14 +234,17 @@ class BitcoinRPC:
         self.r = None
         # session reuse speeds up requests
         if session is None:
-            session = requests.Session()
-            session.auth = (self.user, self.password)
-            # check if we need to connect over Tor
-            if not is_ip_private(host):
-                if only_tor or ".onion" in self.host:
-                    # configure Tor proxies
-                    session.proxies["http"] = proxy_url
-                    session.proxies["https"] = proxy_url
+            self._create_session()
+
+    def _create_session(self):
+        session = requests.Session()
+        session.auth = (self.user, self.password)
+        # check if we need to connect over Tor
+        if not is_ip_private(self.host):
+            if self.only_tor or ".onion" in self.host:
+                # configure Tor proxies
+                session.proxies["http"] = self.proxy_url
+                session.proxies["https"] = self.proxy_url
         self.session = session
 
     def wallet(self, name=""):
@@ -261,6 +264,15 @@ class BitcoinRPC:
     @property
     def url(self):
         return "{s.protocol}://{s.host}:{s.port}{s.path}".format(s=self)
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        self._password = value
+        self._create_session()
 
     def test_connection(self):
         """ returns a boolean depending on whether getblockchaininfo() succeeds """
