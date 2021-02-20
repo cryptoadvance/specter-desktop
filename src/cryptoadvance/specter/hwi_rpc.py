@@ -14,6 +14,7 @@ import bitbox02
 from typing import Callable
 from flask import current_app as app
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+from .devices.bitbox02 import Bitbox02Client
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,8 @@ class HWIBridge(JSONRPC):
                     client = None
                     try:
                         client = devcls.get_client(dev["path"], passphrase)
-                        client.set_noise_config(BitBox02NoiseConfig())
+                        if isinstance(client, Bitbox02Client):
+                            client.set_noise_config(BitBox02NoiseConfig())
                         dev["fingerprint"] = client.get_master_fingerprint_hex()
                     finally:
                         if client is not None:
