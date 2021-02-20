@@ -229,8 +229,8 @@ class BitcoinRPC:
         self.host = host
         self.path = path
         self.timeout = timeout
-        self.proxy_url = (proxy_url,)
-        self.only_tor = (only_tor,)
+        self.proxy_url = proxy_url
+        self.only_tor = only_tor
         self.r = None
         # session reuse speeds up requests
         if session is None:
