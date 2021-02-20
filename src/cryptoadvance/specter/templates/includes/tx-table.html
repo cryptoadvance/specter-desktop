@@ -122,6 +122,7 @@
     </div>
     <div class="selected-rows-action-box row hidden">
         <form class="freeze-tx-form" method="POST">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="button" class="btn freeze-tx-btn">
                 <tool-tip title="Freezing UTXOs">
                     Freezing a UTXO will make Specter disallow spending it.<br><br>
@@ -131,6 +132,7 @@
             </button>
         </form>
         <form class="compose-tx-form" method="POST">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="button" class="btn compose-tx-btn">Create new transaction</button>
         </form>
     </div>
