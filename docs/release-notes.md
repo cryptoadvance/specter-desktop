@@ -1,3 +1,19 @@
+## v1.2.0 Februar 20, 2021
+- Bugfix: a minor bug that always shows address as used #927 (jleo84)
+- Bugfix: cypress-tests #961 (Kim Neunert)
+- Bugfix: Fix key initial format in wallet info #925 (benk10)
+- Bugfix: Use the request session API for authentification #958 (Jürgen Hötzel)
+- Chore: Bump cryptography from 3.2 to 3.3.2 #943 (dependabot[bot])
+- Chore: enable dev-restart-login #960 (Kim Neunert)
+- Chore: fix release-notes #928 (Kim Neunert)
+- Docs: Typos #941 (Max Hillebrand)
+- Feature: Add failed wallets popup #952 (benk10)
+- Feature: Freeze UTXO and select UTXO for new transaction from the UTXO tab #956 (benk10)
+- Feature: Use descriptor wallet for Bitcoin Core >= v0.21.0 #737 (Sjors Provoost)
+- UIUX: Add reason for why device is disabled in new wallet screen #932 (benk10)
+- UIUX: pass result of createpsbt call back to calculateEstimatedFee #945 (djpnewton)
+- UIUX: Preserve form status when creating a transaction #938 (djpnewton)
+
 ## v1.1.0 Januar 30, 2021
 - Bugfix: #784 URL encode to prevent breaking characters on RPC connection #866 (Maxi Dev)
 - Bugfix:  #829 - font size and horizontal alignment #900 (Patrick)
