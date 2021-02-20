@@ -350,7 +350,7 @@
 
 				if (jsonResponse.success) {
 					hidePageOverlay();
-					window.location.replace("../history/");
+					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
 					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
 				}
