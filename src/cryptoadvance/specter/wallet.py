@@ -49,6 +49,7 @@ class Wallet:
         devices,
         sigs_required,
         pending_psbts,
+        frozen_utxo,
         fullpath,
         device_manager,
         manager,
@@ -80,6 +81,7 @@ class Wallet:
             raise Exception("A device used by this wallet could not have been found!")
         self.sigs_required = int(sigs_required)
         self.pending_psbts = pending_psbts
+        self.frozen_utxo = frozen_utxo
         self.fullpath = fullpath
         self.manager = manager
         self.rpc = self.manager.rpc.wallet(
@@ -357,6 +359,7 @@ class Wallet:
         change_keypool = wallet_dict.get("change_keypool", 0)
         sigs_required = wallet_dict.get("sigs_required", 1)
         pending_psbts = wallet_dict.get("pending_psbts", {})
+        frozen_utxo = wallet_dict.get("frozen_utxo", [])
         fullpath = wallet_dict.get("fullpath", default_fullpath)
         last_block = wallet_dict.get("last_block", None)
 
@@ -389,6 +392,7 @@ class Wallet:
             devices,
             sigs_required,
             pending_psbts,
+            frozen_utxo,
             fullpath,
             device_manager,
             manager,
@@ -405,13 +409,27 @@ class Wallet:
 
     def check_utxo(self):
         try:
+            locked_utxo = self.rpc.listlockunspent()
+            if locked_utxo:
+                self.rpc.lockunspent(True, locked_utxo)
             utxo = self.rpc.listunspent(0)
+            if locked_utxo:
+                self.rpc.lockunspent(False, locked_utxo)
+                for tx in utxo:
+                    if [
+                        _tx
+                        for _tx in locked_utxo
+                        if _tx["txid"] == tx["txid"] and _tx["vout"] == tx["vout"]
+                    ]:
+                        tx["locked"] = True
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
             for tx in utxo:
                 tx_data = self.gettransaction(tx["txid"], 0)
                 tx["time"] = tx_data["time"]
                 tx["category"] = "send"
+                if "locked" not in tx:
+                    tx["locked"] = False
                 try:
                     # get category from the descriptor - recv or change
                     idx = tx["desc"].split("[")[1].split("]")[0].split("/")[-2]
@@ -419,10 +437,10 @@ class Wallet:
                         tx["category"] = "receive"
                 except:
                     pass
-            self.utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
             logger.error(f"Failed to load utxos, {e}")
-            self.utxo = []
+            self.full_utxo = []
 
     def getdata(self):
         self.fetch_transactions()
@@ -446,6 +464,10 @@ class Wallet:
         if value_on_address > 0:
             self.change_index += 1
             self.getnewaddress(change=True)
+
+    @property
+    def utxo(self):
+        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
 
     @property
     def json(self):
@@ -474,6 +496,7 @@ class Wallet:
             o["labels"] = self.export_labels()
         else:
             o["pending_psbts"] = self.pending_psbts
+            o["frozen_utxo"] = self.frozen_utxo
             o["last_block"] = self.last_block
         return o
 
@@ -518,6 +541,34 @@ class Wallet:
         if txid in self.pending_psbts:
             del self.pending_psbts[txid]
             self.save_to_file()
+
+    def toggle_freeze_utxo(self, utxo_list):
+        # utxo = ["txid:vout", "txid:vout"]
+        for utxo in utxo_list:
+            if utxo in self.frozen_utxo:
+                try:
+                    self.rpc.lockunspent(
+                        True,
+                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
+                    )
+                except Exception as e:
+                    # UTXO was spent
+                    print(e)
+                    pass
+                self.frozen_utxo.remove(utxo)
+            else:
+                try:
+                    self.rpc.lockunspent(
+                        False,
+                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
+                    )
+                except Exception as e:
+                    # UTXO was spent
+                    print(e)
+                    pass
+                self.frozen_utxo.append(utxo)
+
+        self.save_to_file()
 
     def update_pending_psbt(self, psbt, txid, raw):
         if txid in self.pending_psbts:
@@ -1460,7 +1511,9 @@ class Wallet:
             addr_utxo = 0
             addr_amount = 0
 
-            for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
+            for utxo in [
+                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+            ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
