@@ -79,7 +79,7 @@
                 {% else %}
                 <h2>Proceed with signing</h2>
                 {% endif %}
-                <form action="?" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
+                <form action="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
                     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <br/>
                     <div>
