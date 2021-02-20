@@ -10,6 +10,11 @@ from .devices import __all__ as device_classes
 from contextlib import contextmanager
 from embit import bip32, networks
 import logging
+import bitbox02
+from typing import Callable
+from flask import current_app as app
+from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+from .devices.bitbox02 import Bitbox02Client
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +22,20 @@ hwi_classes = [cls for cls in device_classes if cls.hwi_support]
 
 # use this lock for all hwi operations
 hwilock = threading.Lock()
+
+
+class BitBox02NoiseConfig(bitbox02.util.BitBoxAppNoiseConfig):
+    def show_pairing(self, code: str, device_response: Callable[[], bool]) -> bool:
+        config = hwi_get_config(app.specter)
+        config["bitbox02_pairing_code"] = code
+        save_hwi_bridge_config(app.specter, config)
+        if not device_response():
+            config["bitbox02_pairing_code"] = ""
+            save_hwi_bridge_config(app.specter, config)
+            return False
+        config["bitbox02_pairing_code"] = ""
+        save_hwi_bridge_config(app.specter, config)
+        return True
 
 
 def get_device_class(device_type):
@@ -44,6 +63,7 @@ class HWIBridge(JSONRPC):
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
+            "bitbox02_pairing": self.bitbox02_pairing,
         }
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
@@ -83,6 +103,8 @@ class HWIBridge(JSONRPC):
                     client = None
                     try:
                         client = devcls.get_client(dev["path"], passphrase)
+                        if isinstance(client, Bitbox02Client):
+                            client.set_noise_config(BitBox02NoiseConfig())
                         dev["fingerprint"] = client.get_master_fingerprint_hex()
                     finally:
                         if client is not None:
@@ -332,6 +354,10 @@ class HWIBridge(JSONRPC):
                 return status["signature"]
             else:
                 raise Exception("Failed to sign message with device: Unknown Error")
+
+    def bitbox02_pairing(self, chain=""):
+        config = hwi_get_config(app.specter)
+        return {"code": config.get("bitbox02_pairing_code", "")}
 
     ######################## HWI Utils ########################
     @contextmanager
