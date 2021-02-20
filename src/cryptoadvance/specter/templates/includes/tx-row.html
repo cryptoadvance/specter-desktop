@@ -1,8 +1,14 @@
 <template id="tx-row">
+    <style>
+        .frozen {
+            background: #546773;
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <tr class="tx-row">
         <td>
-            <img class="category"/>
+            <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
+            <img class="frozen-img hidden" style="vertical-align: middle;" src="{{ url_for('static', filename='img/snow.svg') }}" height="20" />
         </td>
         <td class="tx scroll optional txid">
             <span class="explorer-link"></span>
@@ -15,7 +21,7 @@
             <button class="rbf btn optional hidden" style="width: 120px; float: right;" type="button">Speed up</button>
         </td>
         <td class="hidden optional blockhash"></td>
-        <td></td>
+        <td><input class="select-tx-value" type="hidden" value=""><img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px"></tool-tip></td>
     </tr>
 </template>
 
@@ -36,7 +42,11 @@
             this.time = clone.querySelector(".time");
             this.confirmations = clone.querySelector(".confirmations");
             this.blockhash = clone.querySelector(".blockhash");        
-            this.rbf = clone.querySelector(".rbf");        
+            this.rbf = clone.querySelector(".rbf");
+            this.selectTxValue = clone.querySelector(".select-tx-value");
+            this.selectTxImg = clone.querySelector(".select-tx-img");
+            this.frozenImg = clone.querySelector(".frozen-img");
+
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
@@ -48,12 +58,17 @@
             this.btcUnit = this.getAttribute('data-btc-unit');
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
+            this.mode = this.getAttribute('data-mode');
 
             // Set category image
             this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
             
             // TODO:
             // Setup tx popup for mobile
+            if (this.tx.locked) {
+                this.el.classList.add('frozen');
+                this.frozenImg.classList.remove('hidden')
+            }
 
 
             // Set txid
@@ -161,6 +176,24 @@
                 }
             } else {
                 this.blockhash.classList.add('hidden');
+            }
+
+            // Select tx option
+            if (this.mode == 'utxo') {
+                this.selectTxImg.classList.remove('hidden');
+                this.selectTxImg.onclick = () => {
+                    this.selectTxImg.src = this.selectTxValue.value ? `{{ url_for('static', filename='img/checkbox-untick.svg') }}` : `{{ url_for('static', filename='img/checkbox-tick.svg') }}`;
+                    this.selectTxValue.value = this.selectTxValue.value ? "" : "true";
+                    let event = new CustomEvent('txRowSelected', { detail: {
+                        selected: this.selectTxValue.value == "true",
+                        txid: this.tx.txid,
+                        vout: this.tx.vout,
+                        amount: this.amount
+                    } });
+                    this.dispatchEvent(event);
+                }
+            } else {
+                this.selectTxImg.classList.add('hidden');
             }
         }
     }
