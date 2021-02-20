@@ -14,7 +14,7 @@
 			{% if not device %}
 				<label>Name it:<label>
 				<div class="row">
-					<input type="text" name="device_name" value="{{ device_name }}" placeholder="Name your device">
+					<input type="text" id="device_name" name="device_name" value="{{ device_name }}" placeholder="Name your device">
 				</div>
 				<br>
 				{% include "device/components/device_type.jinja" %}
