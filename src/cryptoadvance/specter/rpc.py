@@ -235,6 +235,8 @@ class BitcoinRPC:
         # session reuse speeds up requests
         if session is None:
             self._create_session()
+        else:
+            self.session = session
 
     def _create_session(self):
         session = requests.Session()
