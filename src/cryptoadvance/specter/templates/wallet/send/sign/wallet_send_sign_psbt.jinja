@@ -266,6 +266,7 @@
 			let url = "{{ url_for('wallets_endpoint.combine', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
+			formData.append("csrf_token", "{{ csrf_token() }}");
 			formData.append("psbt0", psbt0);
 			formData.append("psbt1", psbt1);
 			formData.append("txid", "{{ psbt['tx']['txid'] }}");
@@ -333,6 +334,7 @@
 			let url="{{ url_for('wallets_endpoint.broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
+			formData.append("csrf_token", "{{ csrf_token() }}");
 			formData.append("tx", tx);
 
 			try {
@@ -348,7 +350,7 @@
 
 				if (jsonResponse.success) {
 					hidePageOverlay();
-					window.location.replace("../history/");
+					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
 					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
 				}
