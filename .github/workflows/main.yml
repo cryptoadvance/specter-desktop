@@ -19,6 +19,7 @@ jobs:
           pip3 install -e .
           pip3 install -r test_requirements.txt
           npm i
+          docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
           ps | grep python | grep -v grep
       - name: Cypress run 1
         run: ./utils/test-cypress.sh --docker --debug run
