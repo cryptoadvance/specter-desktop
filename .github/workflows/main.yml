@@ -15,7 +15,7 @@ jobs:
           apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
           pip3 install virtualenv
           virtualenv --python=python3 .env
-          source .env/bin/activate
+          . ./.env/bin/activate
           pip3 install -e .
           pip3 install -r test_requirements.txt
           ./utils/test-cypress.sh --docker --debug prepare
