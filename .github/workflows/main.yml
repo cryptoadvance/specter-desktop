@@ -10,7 +10,7 @@ jobs:
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
       - run: |
-          ps | grep python | grep -v grep
+          echo ps | grep python | grep -v grep
           python -V  # Print out python version for debugging
           apt update
           apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
@@ -20,7 +20,7 @@ jobs:
           pip3 install -e .
           pip3 install -r test_requirements.txt
           npm i
-          ps | grep python | grep -v grep
+          echo ps | grep python | grep -v grep
       - name: Cypress run 1
         run: ./utils/test-cypress.sh --docker --debug run
       - name: Cypress run 2
