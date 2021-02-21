@@ -44,13 +44,12 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="module")
 
 
-@pytest.fixture(scope="module")
-def bitcoin_regtest(docker, request):
+def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=None):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
         bitcoind_controller = BitcoindDockerController(
-            rpcport=18543, docker_tag=requested_version
+            rpcport=rpcport, docker_tag=requested_version
         )
     else:
         if os.path.isfile("tests/bitcoin/src/bitcoind"):
@@ -61,7 +60,9 @@ def bitcoin_regtest(docker, request):
             bitcoind_controller = (
                 BitcoindPlainController()
             )  # Alternatively take the one on the path for now
-    bitcoind_controller.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
+    bitcoind_controller.start_bitcoind(
+        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+    )
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
     assert (
@@ -70,6 +71,11 @@ def bitcoin_regtest(docker, request):
         % (running_version, requested_version),
     )
     return bitcoind_controller
+
+
+@pytest.fixture(scope="module")
+def bitcoin_regtest(docker, request):
+    return instantiate_bitcoind_controller(docker, request, extra_args=None)
 
 
 @pytest.fixture
