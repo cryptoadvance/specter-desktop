@@ -9,6 +9,3 @@ jobs:
 
       - name: Cypress run
         uses: cypress-io/github-action@v1
-        with:
-          build: pip3 install -e . && pip3 install -r test_requirements.txt
-          start: ./utils/test-cypress.sh --docker --debug run
