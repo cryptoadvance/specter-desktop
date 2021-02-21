@@ -47,5 +47,23 @@ Cypress.Commands.add("addDevice", (name) => {
         cy.get('#txt').type("[8c24a510/84h/1h/0h]vpub5Y24kG7ZrCFRkRnHia2sdnt5N7MmsrNry1jMrP8XptMEcZZqkjQA6bc1f52RGiEoJmdy1Vk9Qck9tAL1ohKvuq3oFXe3ADVse6UiTHzuyKx")
         cy.get('#cold_device > [type="submit"]').click()
         cy.get('#devices_list > .item > div').contains(name)
-      })    
+      })
+})
+
+Cypress.Commands.add("addHotDevice", (name) => { 
+  cy.get('body').then(($body) => {
+      if ($body.text().includes(name)) {
+        cy.get('#devices_list > .item > div').click()
+        cy.get('#forget_device').click()
+      } 
+      cy.get('#side-content').click()
+      cy.get('#btn_new_device').click()
+      // Creating a Device
+      cy.contains('Select Your Device Type')
+      cy.get('#bitcoincore_device_card').click()
+      cy.get('#wizard-next').click()
+      cy.get('#device_name').type(name)
+      cy.get('#wizard-submit').click()
+      cy.get('#devices_list > .item > div').contains(name)
+    })
 })

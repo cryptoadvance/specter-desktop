@@ -132,7 +132,7 @@
 				</div>
 				<br>
 				Address label (optional):<br>
-				<input type="text" id="label" name="label_${i}" value="${label}">
+				<input type="text" id="label_${i}" name="label_${i}" value="${label}">
 				<br><br>
 				Amount:<br>
 				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="${step}" autocomplete="off" value="${amount}">
@@ -140,7 +140,7 @@
 				<div class="mobile-only" style="margin-top: 10px;"></div>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" ${satChecked}>sat</label>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" ${btcChecked}>BTC</label>
-				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
+				<span class="note max-btn" style="margin-left: 5px;" id="send_max_${i}" onclick="setMaxAmount(${i})">(send max)</span>
 				<div>
 					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">${convertedUnit}</span> <span class="note" id="converted_unit_alt_${i}"></span>
 				</div>
