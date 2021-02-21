@@ -3,7 +3,7 @@ on: [push,pull_request]
 jobs:
   cypress-run:
     runs-on: ubuntu-16.04
-    container: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
+    container: registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -19,7 +19,6 @@ jobs:
           pip3 install -e .
           pip3 install -r test_requirements.txt
           npm i
-          docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
           ps | grep python | grep -v grep
       - name: Cypress run 1
         run: ./utils/test-cypress.sh --docker --debug run
