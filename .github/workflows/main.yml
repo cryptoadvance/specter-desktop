@@ -11,4 +11,4 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          build: ./utils/test-cypress.sh --docker --debug prepare
+          build: ls
