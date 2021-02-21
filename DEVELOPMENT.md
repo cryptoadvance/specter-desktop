@@ -65,7 +65,7 @@ pytest
 
 # needs a working docker-setup (but not bitcoind)
 # prerequsisite: 
-# docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
+# docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
 pytest --docker 
 
 # Run all the tests in a specific test-file
