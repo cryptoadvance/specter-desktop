@@ -18,6 +18,7 @@ jobs:
           . ./.env/bin/activate
           pip3 install -e .
           pip3 install -r test_requirements.txt
+          npm i
       - name: Cypress run 1
         run: ./utils/test-cypress.sh --docker --debug run
       - name: Cypress run 2
