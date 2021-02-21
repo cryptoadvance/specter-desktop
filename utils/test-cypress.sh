@@ -255,6 +255,14 @@ function sub_run {
   fi
 }
 
+function sub_prepare {
+  spec_file=$1
+  pip3 install -e .
+  pip3 install -r test_requirements.txt
+  start_bitcoind --reset
+  start_specter --reset
+}
+
 function sub_snapshot {
   spec_file=$1
   # We'll create a snapshot BEFORE this spec-file has been tested:

@@ -2,10 +2,14 @@ name: End-to-end tests
 on: [push,pull_request]
 jobs:
   cypress-run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
+    container: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
-
+        uses: actions/checkout@v2
+      # Install NPM dependencies, cache them correctly
+      # and run all Cypress tests
       - name: Cypress run
-        uses: cypress-io/github-action@v1
+        uses: cypress-io/github-action@v2
+        with:
+          build: ./utils/test-cypress.sh --docker --debug prepare
