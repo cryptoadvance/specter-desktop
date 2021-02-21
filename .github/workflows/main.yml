@@ -20,6 +20,6 @@ jobs:
           pip3 install -r test_requirements.txt
           npm i
       - name: Cypress run 1
-        run: ./utils/test-cypress.sh --docker --debug run
+        run: ./utils/test-cypress.sh run
       - name: Cypress run 2
         uses: cypress-io/github-action@v2

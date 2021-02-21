@@ -23,7 +23,7 @@ function check_consistency {
       ps | grep python && (echo "please investigate or kill " && exit 1)
   fi
 }
-check_consistency
+# check_consistency
 
 function sub_default {
     cat << EOF
