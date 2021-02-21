@@ -11,4 +11,4 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          build: chmod +x ./utils/test-cypress.sh
+          build: chmod +x ./utils/test-cypress.sh && ./utils/test-cypress.sh --docker --debug prepare
