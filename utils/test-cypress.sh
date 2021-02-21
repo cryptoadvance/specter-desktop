@@ -257,8 +257,6 @@ function sub_run {
 
 function sub_prepare {
   spec_file=$1
-  pip3 install -e .
-  pip3 install -r test_requirements.txt
   start_bitcoind --reset
   start_specter --reset
 }

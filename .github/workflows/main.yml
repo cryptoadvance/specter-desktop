@@ -3,11 +3,15 @@ on: [push,pull_request]
 jobs:
   cypress-run:
     runs-on: ubuntu-16.04
+    container: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
-      - run: ./utils/test-cypress.sh --docker --debug prepare
+      - run: |
+          pip3 install -e .
+          pip3 install -r test_requirements.txt
+          ./utils/test-cypress.sh --docker --debug prepare
       - name: Cypress run
         uses: cypress-io/github-action@v2
