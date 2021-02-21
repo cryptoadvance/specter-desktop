@@ -8,7 +8,8 @@ jobs:
         uses: actions/checkout@v2
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
+      - run: chmod +x ./utils/test-cypress.sh
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          build: chmod +x ./utils/test-cypress.sh; ./utils/test-cypress.sh --docker --debug prepare;
+          build: ./utils/test-cypress.sh --docker --debug prepare;
