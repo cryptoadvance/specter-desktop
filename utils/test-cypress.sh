@@ -23,7 +23,7 @@ function check_consistency {
       ps | grep python && (echo "please investigate or kill " && exit 1)
   fi
 }
-# check_consistency
+check_consistency
 
 function sub_default {
     cat << EOF
@@ -253,12 +253,6 @@ function sub_run {
     start_specter --reset
     $(npm bin)/cypress run
   fi
-}
-
-function sub_prepare {
-  spec_file=$1
-  start_bitcoind --reset
-  start_specter --reset
 }
 
 function sub_snapshot {

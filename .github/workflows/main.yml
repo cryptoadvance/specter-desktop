@@ -11,6 +11,8 @@ jobs:
       # and run all Cypress tests
       - run: |
           python -V  # Print out python version for debugging
+          curl -sSL https://get.docker.com/ | sh
+          docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
           apt update
           apt install -y docker libusb-1.0-0-dev libudev-dev # usb-support in hidapi
           pip3 install virtualenv
@@ -19,8 +21,5 @@ jobs:
           pip3 install -e .
           pip3 install -r test_requirements.txt
           npm i
-          docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
-      - name: Cypress run 1
+      - name: Cypress run
         run: ./utils/test-cypress.sh --docker --debug run
-      - name: Cypress run 2
-        uses: cypress-io/github-action@v2
