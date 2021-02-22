@@ -157,8 +157,10 @@ class BitcoindController:
             return True
         except Exception as e:
             if raise_exception:
+                logger.debug("check_bitcoind: Raising exception ...")
                 raise e
             else:
+                logger.debug("check_bitcoind:  returning False")
                 return False
 
     @staticmethod
@@ -167,10 +169,11 @@ class BitcoindController:
         logger.debug("Starting to wait for bitcoind ...")
         i = 0
         while True:
+            logger.debug(f"timeout in {20-i}")
             if BitcoindController.check_bitcoind(rpcconn):
+                logger.debug(f"leaving loop!")
                 break
             time.sleep(0.5)
-            logger.debug(f"timeout in {20-i}")
             i = i + 1
             if i > 20:
                 logger.debug(f"Timeout reached waiting for bitcoind: {rpcconn}")
