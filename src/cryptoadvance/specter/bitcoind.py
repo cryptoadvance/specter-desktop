@@ -155,30 +155,22 @@ class BitcoindController:
             rpcconn.get_rpc()  # that call will also check the connection
             logger.debug("check_bitcoind ran successfully")
             return True
-        except ConnectionRefusedError as e:
-            if raise_exception:
-                throw(e)
-            else:
-                return False
-        except TypeError as e:
-            if raise_exception:
-                throw(e)
-            else:
-                return False
         except Exception as e:
             if raise_exception:
-                throw(e)
+                raise e
             else:
                 return False
 
     @staticmethod
     def wait_for_bitcoind(rpcconn):
         """ tries to reach the bitcoind via rpc. Will timeout after 10 seconds """
+        logger.debug("Starting to wait for bitcoind ...")
         i = 0
         while True:
             if BitcoindController.check_bitcoind(rpcconn):
                 break
             time.sleep(0.5)
+            logger.debug(f"timeout in {20-i}")
             i = i + 1
             if i > 20:
                 logger.debug(f"Timeout reached waiting for bitcoind: {rpcconn}")
