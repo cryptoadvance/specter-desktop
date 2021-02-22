@@ -315,6 +315,9 @@ function parse_and_execute() {
       DOCKER=true
       shift
       ;;
+    --skip-consistency-check)
+      shift
+      ;;
     *)
       shift
       sub_${arg} $@
