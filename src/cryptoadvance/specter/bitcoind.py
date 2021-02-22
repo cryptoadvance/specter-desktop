@@ -99,6 +99,7 @@ class BitcoindController:
 
         self.wait_for_bitcoind(self.rpcconn)
         self.mine(block_count=100)
+        logger.info("bitcoind successfully started")
         return self.rpcconn
 
     def version(self):
@@ -152,6 +153,7 @@ class BitcoindController:
         """ returns true if bitcoind is running on that address/port """
         try:
             rpcconn.get_rpc()  # that call will also check the connection
+            logger.debug("check_bitcoind ran successfully")
             return True
         except ConnectionRefusedError:
             return False
