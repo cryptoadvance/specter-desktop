@@ -96,7 +96,6 @@ class BitcoindController:
         self._start_bitcoind(
             cleanup_at_exit, cleanup_hard=cleanup_hard, datadir=datadir
         )
-
         self.wait_for_bitcoind(self.rpcconn)
         self.mine(block_count=100)
         logger.info("bitcoind successfully started")
@@ -170,8 +169,6 @@ class BitcoindController:
         i = 0
         while True:
             logger.debug(f"timeout in {20-i}")
-            time.sleep(10)
-            self.dump_logs()
             if BitcoindController.check_bitcoind(rpcconn):
                 logger.debug(f"leaving loop!")
                 break
@@ -350,6 +347,8 @@ class BitcoindDockerController(BitcoindController):
             )
         else:
             self.rpcconn = rpcconn
+        time.sleep(10)
+        self.dump_logs()
         return
 
     def stop_bitcoind(self):
