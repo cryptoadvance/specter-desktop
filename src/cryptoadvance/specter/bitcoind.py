@@ -149,18 +149,27 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn):
+    def check_bitcoind(rpcconn, raise_exception=False):
         """ returns true if bitcoind is running on that address/port """
         try:
             rpcconn.get_rpc()  # that call will also check the connection
             logger.debug("check_bitcoind ran successfully")
             return True
-        except ConnectionRefusedError:
-            return False
-        except TypeError:
-            return False
-        except Exception:
-            return False
+        except ConnectionRefusedError as e:
+            if raise_exception:
+                throw(e)
+            else:
+                return False
+        except TypeError as e:
+            if raise_exception:
+                throw(e)
+            else:
+                return False
+        except Exception as e:
+            if raise_exception:
+                throw(e)
+            else:
+                return False
 
     @staticmethod
     def wait_for_bitcoind(rpcconn):
@@ -172,6 +181,9 @@ class BitcoindController:
             time.sleep(0.5)
             i = i + 1
             if i > 20:
+                logger.debug(f"Timeout reached waiting for bitcoind: {rpcconn}")
+                logger.error("Raising Exception")
+                BitcoindController.check_bitcoind(rpcconn, raise_exception=True)
                 raise Exception(
                     "Timeout while trying to reach bitcoind at rpcport {} !".format(
                         rpcconn
@@ -428,6 +440,7 @@ class BitcoindDockerController(BitcoindController):
             if "CI" in os.environ:  # this is a predefined variable in gitlab
                 # This works on Linux (direct docker) and gitlab-CI but not on MAC
                 ipaddress = btcd_container.attrs["NetworkSettings"]["IPAddress"]
+                logger.debug(f"CI detected. Setting ip-address to {ipaddress}")
             else:
                 # This works on most machines but not on gitlab-CI
                 ipaddress = "127.0.0.1"
