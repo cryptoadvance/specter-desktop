@@ -465,7 +465,7 @@ class BitcoindDockerController(BitcoindController):
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
 
-    def dump_logs():
+    def dump_logs(self):
         """ Simply spitsout the container logs to stdout """
         logger.info("-----------------Docker-Logs-Start-----------------")
         logger.info(self.btcd_container.logs())
