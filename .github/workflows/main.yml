@@ -2,7 +2,7 @@ name: End-to-end tests
 on: [push,pull_request]
 jobs:
   cypress-run:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     container: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
     steps:
       - name: Checkout
