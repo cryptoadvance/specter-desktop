@@ -22,4 +22,4 @@ jobs:
           pip3 install -r test_requirements.txt
           npm i
       - name: Cypress run
-        run: ./utils/test-cypress.sh --docker --debug run
+        run: ./utils/test-cypress.sh --docker --debug --skip-consistency-check run

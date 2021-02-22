@@ -23,7 +23,10 @@ function check_consistency {
       ps | grep python && (echo "please investigate or kill " && exit 1)
   fi
 }
-check_consistency
+
+if [[ "$*" != *skip-consistency-check* ]]; then
+  check_consistency
+fi
 
 function sub_default {
     cat << EOF
