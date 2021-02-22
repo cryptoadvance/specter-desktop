@@ -170,6 +170,8 @@ class BitcoindController:
         i = 0
         while True:
             logger.debug(f"timeout in {20-i}")
+            time.sleep(10)
+            self.dump_logs()
             if BitcoindController.check_bitcoind(rpcconn):
                 logger.debug(f"leaving loop!")
                 break
@@ -463,6 +465,12 @@ class BitcoindDockerController(BitcoindController):
             i = i + 1
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
+
+    def dump_logs():
+        """ Simply spitsout the container logs to stdout """
+        logger.info("-----------------Docker-Logs-Start-----------------")
+        logger.info(self.btcd_container.logs())
+        logger.info("-----------------Docker-Logs-End-------------------")
 
 
 def fetch_wallet_addresses_for_mining(data_folder):
