@@ -128,9 +128,9 @@ function start_bitcoind {
   echo "--> Starting bitcoind with $addopts..."
   python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config $SPECTER_CONFIG &
   bitcoind_pid=$!
-  # while ! [ -f ./btcd-conn.json ] ; do
-  #     sleep 0.5
-  # done
+  while ! [ -f ./btcd-conn.json ] ; do
+      sleep 0.5
+  done
 
 }
 
