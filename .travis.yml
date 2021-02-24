@@ -47,5 +47,5 @@ before_install:
 script: 
   - pip install -e .
   - pip install -r test_requirements.txt
-  - ./utils/test-cypress.sh --debug --skip-consistency-check run
+  - ./utils/test-cypress.sh --debug --skip-consistency-check run 
   - pytest --cov=cryptoadvance 
