@@ -37,7 +37,7 @@ class Echo:
     "--nodocker",
     default=False,
     is_flag=True,
-    help="Use without docker. (By default docker is used.)"
+    help="Use without docker. (By default docker is used.)",
 )
 @click.option(
     "--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag"
