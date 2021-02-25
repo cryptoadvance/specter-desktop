@@ -34,7 +34,10 @@ class Echo:
 @click.option("--debug/--no-debug", default=False, help="Turns on debug logging.")
 @click.option("--quiet/--no-quiet", default=False, help="Output as little as possible.")
 @click.option(
-    "--nodocker", default=False, is_flag=True, help="Use without docker. (By default docker is used.)"
+    "--nodocker",
+    default=False,
+    is_flag=True,
+    help="Use without docker. (By default docker is used.)"
 )
 @click.option(
     "--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag"
