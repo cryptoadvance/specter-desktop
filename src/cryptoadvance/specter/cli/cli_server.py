@@ -26,63 +26,63 @@ def cli():
 @click.option(
     "--daemon",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--stop",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--restart",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--force",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 # options below can help to run it on a remote server,
 # but better use nginx
 @click.option(
-    "--port", help="The TCP-Port to bin specter to"
+    "--port", help="TCP port to bind specter to"
 )  # default - 25441 set to 80 for http, 443 for https
 # set to 0.0.0.0 to make it available outside
 @click.option(
     "--host",
     default="127.0.0.1",
-    help="if you do --host 0.0.0.0 then specter will be available in your local lan",
+    help="if you specify --host 0.0.0.0 then specter will be available in your local LAN.",
 )
 # for https:
 @click.option(
-    "--cert", help="--cert and --key are for using a self-signed-cert/ssl-encryption"
+    "--cert", help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption."
 )
 @click.option(
-    "--key", help="--cert and --key are for using a self-signed-cert/ssl-encryption"
+    "--key", help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption."
 )
 @click.option(
     "--ssl/--no-ssl",
     is_flag=True,
     default=False,
-    help="By default will run unencrypted. Use -ssl to create a self-signed certificate or you can also specify it via --cert and --key.",
+    help="By default SSL encryption will not be used. Use -ssl to create a self-signed certificate for SSL encryption. You can also specify encryption via --cert and --key.",
 )
 @click.option("--debug/--no-debug", default=None)
 @click.option("--tor", is_flag=True)
 @click.option(
     "--hwibridge",
     is_flag=True,
-    help="Start the hwi-bridge to use your HWWs with a remote specter",
+    help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
     "--specter-data-folder",
     default=None,
-    help="Enables overriding the specter-data-folder. This is usually ~/.specter",
+    help="Use a custom specter data-folder. By default it is ~/.specter.",
 )
 @click.option(
     "--config",
     default=None,
-    help="A class from the config.py which sets reasonable Defaults",
+    help="A class from the config.py which sets reasonable default values.",
 )
 def server(
     daemon,
@@ -184,11 +184,11 @@ def server(
     if hwibridge:
         if kwargs.get("ssl_context"):
             logger.error(
-                "Running the hwibridge is not supported via ssl. Remove --ssl or make sure to not pass --cert or --key."
+                "Running the hwibridge is not supported via SSL. Remove --ssl, --cert, and --key options."
             )
             exit(1)
         print(
-            " * Running HWI Bridge mode.\n"
+            " * Running in HWI Bridge mode.\n"
             " * You can configure access to the API "
             "at: %s://%s:%d/hwi/settings" % ("http", host, app.config["PORT"])
         )
@@ -256,8 +256,8 @@ def server(
         ):
             raise Exception(
                 " ERROR: --daemon mode is no longer \
-                   supported in python 3.7 and lower \
-                   on MacOS. Upgrade to python 3.8+. (Might not work anyway)"
+                   supported in Python 3.7 and lower \
+                   on MacOS. Upgrade to Python 3.8+. (Might not work anyway.)"
             )
         from daemonize import Daemonize
 
@@ -310,6 +310,6 @@ def configure_ssl(kwargs, app_config, ssl):
             crypto.dump_privatekey(crypto.FILETYPE_PEM, k).decode("utf-8")
         )
 
-    logger.info("Configuring SSL-cert " + app_config["CERT"])
+    logger.info("Configuring SSL-certificate " + app_config["CERT"])
     kwargs["ssl_context"] = (app_config["CERT"], app_config["KEY"])
     return kwargs
