@@ -56,10 +56,12 @@ def cli():
 )
 # for https:
 @click.option(
-    "--cert", help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption."
+    "--cert",
+    help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption.",
 )
 @click.option(
-    "--key", help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption."
+    "--key",
+    help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption.",
 )
 @click.option(
     "--ssl/--no-ssl",
