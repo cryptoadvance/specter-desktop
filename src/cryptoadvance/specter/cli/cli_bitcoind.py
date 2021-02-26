@@ -31,49 +31,52 @@ class Echo:
 
 
 @click.command()
-@click.option("--debug/--no-debug", default=False, help="Turns on debug-logging")
-@click.option("--quiet/--no-quiet", default=False, help="as less output as possible")
+@click.option("--debug/--no-debug", default=False, help="Turns on debug logging.")
+@click.option("--quiet/--no-quiet", default=False, help="Output as little as possible.")
 @click.option(
-    "--nodocker", default=False, is_flag=True, help="use without docker (non-default)"
+    "--nodocker",
+    default=False,
+    is_flag=True,
+    help="Use without docker. (By default docker is used.)",
 )
 @click.option(
     "--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag"
 )
 @click.option(
     "--data-dir",
-    help="specify a (maybe not yet existing) datadir. Works only in --nodocker (Default:/tmp/bitcoind_plain_datadir) ",
+    help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
 )
 @click.option(
     "--mining/--no-mining",
     default=True,
-    help="Turns on mining (default). In tests it's useful to turn it off.",
+    help="Turns on mining (On by default). For testing it is useful to turn it off.",
 )
 @click.option(
     "--mining-period",
     default="15",
-    help="Every mining-period (in seconds), a block gets mined (default 15sec)",
+    help="Specify mining period (in seconds). Every N seconds a block gets mined. (Default is 15sec)",
 )
 @click.option(
     "--reset",
     is_flag=True,
     default=False,
-    help="Will kill the bitcoind. Datadir will get lost.",
+    help="Kill the bitcoind daemon. Datadir will get lost.",
 )
 @click.option(
     "--create-conn-json",
     is_flag=True,
     default=False,
-    help="Will create a small json-file btcd-conn.json with connection details.",
+    help="Create a small json-file named btcd-conn.json with connection details.",
 )
 @click.option(
     "--cleanuphard/--no-cleanuphard",
     default=False,
-    help="Will send a SIGKILL instead of SIGTERM (default) when CTRL-C. Mostly to speedup tests.",
+    help="Send signal SIGKILL instead of SIGTERM (default) when CTRL-C is pressed. Mostly to speed up tests.",
 )
 @click.option(
     "--config",
     default=None,
-    help="A class from the config.py which sets reasonable Defaults",
+    help="A class from the config.py which sets reasonable default values.",
 )
 def bitcoind(
     debug,
