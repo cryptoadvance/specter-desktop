@@ -258,7 +258,7 @@ class Wallet:
                 obj = self.rpc.listsinceblock()
         txs = obj["transactions"]
         last_block = obj["lastblock"]
-        addresses = [tx["address"] for tx in txs]
+        addresses = [tx["address"] for tx in txs if "address" in tx]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
         max_recv = self.address_index - 1
@@ -712,6 +712,25 @@ class Wallet:
             return tx_data
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
+
+    def is_tx_purged(self, txid):
+        # Is tx unconfirmed and no longer in the mempool?
+        try:
+            tx = self.rpc.gettransaction(txid)
+            return tx["confirmations"] == 0 and txid not in self.rpc.getrawmempool()
+        except Exception as e:
+            logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
+
+    def abandontransaction(self, txid):
+        # Sanity checks: tx must be unconfirmed and cannot be in the mempool
+        tx = self.rpc.gettransaction(txid)
+        if tx["confirmations"] != 0:
+            raise SpecterError("Cannot abandon a transaction that has a confirmation.")
+        elif txid in self.rpc.getrawmempool():
+            raise SpecterError(
+                "Cannot abandon a transaction that is still in the mempool."
+            )
+        self.rpc.abandontransaction(txid)
 
     def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
         delete_file(self._transactions.path)

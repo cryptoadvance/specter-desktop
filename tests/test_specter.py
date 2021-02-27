@@ -4,6 +4,7 @@ from cryptoadvance.specter.helpers import alias, generate_mnemonic
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.specter import get_rpc, Specter
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet_manager import WalletManager
 
 
@@ -44,13 +45,15 @@ def test_specter(specter_regtest_configured, caplog):
     assert json_return["chain"] == "regtest"
 
 
-def test_detect_purged_tx(
+def test_abandon_purged_tx(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
-    # Specter should detect that a tx with a low fee has been purged from the mempool
-    # and should be abandoned by the wallet. Test starts a new bitcoind with a restricted
-    # mempool to make it easier to spam the mempool and purge our target tx.
-    # Basic setup is copied and adapted from:
+    # Specter should support calling abandonedtransaction if a pending tx has been purged
+    # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
+    # easier to spam the mempool and purge our target tx.
+    # TODO: Similar test but for maxmempoolexpiry?
+
+    # Copied and adapted from:
     #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
     from conftest import instantiate_bitcoind_controller
     from bitcoin_core.test.functional.test_framework.util import (
@@ -61,6 +64,7 @@ def test_detect_purged_tx(
 
     caplog.set_level(logging.DEBUG)
 
+    # ==== Specter-specific: do custom setup ====
     # Instantiate a new bitcoind w/limited mempool. Use a different port to not interfere
     # with existing instance for other tests.
     bitcoind_controller = instantiate_bitcoind_controller(
@@ -76,14 +80,6 @@ def test_detect_purged_tx(
     bci = rpc.getblockchaininfo()
     assert bci["blocks"] == 100
 
-    txouts = gen_return_txouts()
-    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
-
-    logging.info("Check that mempoolminfee is minrelytxfee")
-    assert satoshi_round(rpc.getmempoolinfo()["minrelaytxfee"]) == Decimal("0.00001000")
-    assert satoshi_round(rpc.getmempoolinfo()["mempoolminfee"]) == Decimal("0.00001000")
-
-    # ==== Break from mempool_limit.py test to do custom Specter setup ====
     # Note: We can simplify utxo creation since we're running in regtest and can just
     # use generatetoaddress().
 
@@ -150,7 +146,14 @@ def test_detect_purged_tx(
     # update the wallet data
     wallet.get_balance()
 
-    # ==== Resume test from mempool_limit.py ====
+    # ==== Begin test from mempool_limit.py ====
+    txouts = gen_return_txouts()
+    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
+
+    logging.info("Check that mempoolminfee is minrelytxfee")
+    assert satoshi_round(rpc.getmempoolinfo()["minrelaytxfee"]) == Decimal("0.00001000")
+    assert satoshi_round(rpc.getmempoolinfo()["mempoolminfee"]) == Decimal("0.00001000")
+
     txids = []
     utxos = wallet.rpc.listunspent()
 
@@ -162,10 +165,16 @@ def test_detect_purged_tx(
     wallet.rpc.settxfee(str(relayfee))  # specifically fund this tx with low fee
     txF = wallet.rpc.fundrawtransaction(tx)
     wallet.rpc.settxfee(0)  # return to automatic fee selection
-    logging.info(txF)
     txFS = device.sign_raw_tx(txF["hex"], wallet)
     txid = wallet.rpc.sendrawtransaction(txFS["hex"])
 
+    # ==== Specter-specific: can't abandon a valid pending tx ====
+    try:
+        wallet.abandontransaction(txid)
+    except SpecterError as e:
+        assert "Cannot abandon" in str(e)
+
+    # ==== Resume test from mempool_limit.py ====
     relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
     base_fee = float(relayfee) * 100
     for i in range(3):
@@ -179,11 +188,31 @@ def test_detect_purged_tx(
     txdata = wallet.rpc.gettransaction(txid)
     assert txdata["confirmations"] == 0  # confirmation should still be 0
 
-    # Picking up with Specter-specific tests now that the tx has been purged
-    txs = wallet_manager.full_txlist()
-    assert txid in [tx["txid"] for tx in txs]
+    # ==== Specter-specific: Verify purge and abandon ====
+    assert wallet.is_tx_purged(txid)
+    wallet.abandontransaction(txid)
 
-    assert 1 == 0
+    # tx will still be in the wallet but marked "abandoned"
+    txdata = wallet.rpc.gettransaction(txid)
+    for detail in txdata["details"]:
+        if detail["category"] == "send":
+            assert detail["abandoned"]
+
+    # Can we now spend those same inputs?
+    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
+    outputs = {wallet.getnewaddress(): 0.0001}
+    tx = wallet.rpc.createrawtransaction(inputs, outputs)
+    wallet.rpc.settxfee(
+        str(relayfee * Decimal("3.0"))
+    )  # specifically fund this tx with high enough fee
+    txF = wallet.rpc.fundrawtransaction(tx)
+    wallet.rpc.settxfee(0)  # return to automatic fee selection
+    txFS = device.sign_raw_tx(txF["hex"], wallet)
+    txid = wallet.rpc.sendrawtransaction(txFS["hex"])
+
+    # Should have been accepted by the mempool
+    assert txid in wallet.rpc.getrawmempool()
+    assert wallet.get_balance()["untrusted_pending"] == 0.0001
 
     # Clean up
     bitcoind_controller.stop_bitcoind()
