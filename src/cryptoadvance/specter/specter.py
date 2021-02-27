@@ -67,9 +67,9 @@ def get_rpc(
     if rpc is None:
         # check if old rpc is still valid
         return old_rpc if old_rpc.test_connection() else None
-    # check if something have changed
-    # and return new rpc if so
-    if rpc.url == old_rpc.url:
+    # check if something has changed and return new rpc if so.
+    # RPC cookie will have a new password if bitcoind is restarted.
+    if rpc.url == old_rpc.url and rpc.password == old_rpc.password:
         return old_rpc
     else:
         logger.info("rpc config have changed.")
