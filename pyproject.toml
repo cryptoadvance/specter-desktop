@@ -4,7 +4,7 @@ exclude = '''
 # in the root of the project.
 ^/(
   (
-    | tests/bitcoin_core
-  )
+    tests/bitcoin_core
+  )/
 )
 '''
