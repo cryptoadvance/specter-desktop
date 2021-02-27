@@ -44,7 +44,7 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="module")
 
 
-def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=None):
+def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:

@@ -1,4 +1,5 @@
 import json, logging, pytest
+from decimal import Decimal
 from cryptoadvance.specter.helpers import alias, generate_mnemonic
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.rpc import BitcoinRPC
@@ -49,14 +50,24 @@ def test_detect_purged_tx(
     # Specter should detect that a tx with a low fee has been purged from the mempool
     # and should be abandoned by the wallet. Test starts a new bitcoind with a restricted
     # mempool to make it easier to spam the mempool and purge our target tx.
+    # Basic setup is copied and adapted from:
+    #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
     from conftest import instantiate_bitcoind_controller
+    from bitcoin_core.test.functional.test_framework.util import (
+        gen_return_txouts,
+        satoshi_round,
+        create_lots_of_big_transactions,
+    )
 
     caplog.set_level(logging.DEBUG)
 
     # Instantiate a new bitcoind w/limited mempool. Use a different port to not interfere
     # with existing instance for other tests.
     bitcoind_controller = instantiate_bitcoind_controller(
-        docker, request, rpcport=18998, extra_args="-maxmempool=5"
+        docker,
+        request,
+        rpcport=18998,
+        extra_args=["-acceptnonstdtxn=1", "-maxmempool=5", "-spendzeroconfchange=0"],
     )
     rpcconn = bitcoind_controller.rpcconn
     rpc = rpcconn.get_rpc()
@@ -64,6 +75,17 @@ def test_detect_purged_tx(
     assert rpc.ipaddress != None
     bci = rpc.getblockchaininfo()
     assert bci["blocks"] == 100
+
+    txouts = gen_return_txouts()
+    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
+
+    logging.info("Check that mempoolminfee is minrelytxfee")
+    assert satoshi_round(rpc.getmempoolinfo()["minrelaytxfee"]) == Decimal("0.00001000")
+    assert satoshi_round(rpc.getmempoolinfo()["mempoolminfee"]) == Decimal("0.00001000")
+
+    # ==== Break from mempool_limit.py test to do custom Specter setup ====
+    # Note: We can simplify utxo creation since we're running in regtest and can just
+    # use generatetoaddress().
 
     # Instantiate a new Specter instance to talk to this bitcoind
     config = {
@@ -117,8 +139,9 @@ def test_detect_purged_tx(
     )
 
     # Fund the wallet. Going to need a LOT of utxos to play with.
+    logging.info("Generating utxos to wallet")
     address = wallet.getnewaddress()
-    wallet.rpc.generatetoaddress(200, address)
+    wallet.rpc.generatetoaddress(91, address)
 
     # newly minted coins need 100 blocks to get spendable
     # let's mine another 100 blocks to get these coins spendable
@@ -127,53 +150,40 @@ def test_detect_purged_tx(
     # update the wallet data
     wallet.get_balance()
 
-    def generate_and_broadcast_psbt(recipient_address, amount, fee_rate, unspent):
-        selected_coins = [
-            ", ".join([unspent["txid"], str(unspent["vout"]), "%.8f" % amount])
-        ]
-        psbt = wallet.createpsbt(
-            addresses=[recipient_address],
-            amounts=[amount],
-            subtract_from=True,
-            fee_rate=fee_rate,  # sats/vB
-            selected_coins=selected_coins,
-            rbf=True,
-            existing_psbt=None,
-        )
-        txid = psbt["tx"]["txid"]
+    # ==== Resume test from mempool_limit.py ====
+    txids = []
+    utxos = wallet.rpc.listunspent()
 
-        # Sign the psbt with the hot wallet
-        b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
-        signed_psbt = device.sign_psbt(b64psbt, wallet, file_password=None)
+    logging.info("Create a mempool tx that will be evicted")
+    us0 = utxos.pop()
+    inputs = [{"txid": us0["txid"], "vout": us0["vout"]}]
+    outputs = {wallet.getnewaddress(): 0.0001}
+    tx = wallet.rpc.createrawtransaction(inputs, outputs)
+    wallet.rpc.settxfee(str(relayfee))  # specifically fund this tx with low fee
+    txF = wallet.rpc.fundrawtransaction(tx)
+    wallet.rpc.settxfee(0)  # return to automatic fee selection
+    logging.info(txF)
+    txFS = device.sign_raw_tx(txF["hex"], wallet)
+    txid = wallet.rpc.sendrawtransaction(txFS["hex"])
 
-        # Finalize and broadcast the signed psbt
-        combined = specter.combine([signed_psbt["psbt"]])
-        raw = specter.finalize(combined)
-        specter.broadcast(raw["hex"])
-        wallet.delete_pending_psbt(txid)
-
-    # Make an initial tx with a very low fee_rate
-    recipient_address = wallet.getnewaddress()
-    generate_and_broadcast_psbt(
-        recipient_address,
-        amount=5.0,
-        fee_rate=1.0,
-        unspent=wallet.rpc.listunspent(0)[0],
-    )
-
-    # Now we need to spam the mempool with more than 5MB worth of transactions!
-    spam_address = wallet.getnewaddress()  # Just keep sending to same addr
-    for index, unspent in enumerate(wallet.rpc.listunspent()):
-        if index == 0:
-            continue
-
-        generate_and_broadcast_psbt(
-            spam_address, amount=1.0, fee_rate=80.0, unspent=unspent
+    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
+    base_fee = float(relayfee) * 100
+    for i in range(3):
+        txids.append([])
+        txids[i] = create_lots_of_big_transactions(
+            wallet, txouts, utxos[30 * i : 30 * i + 30], 30, (i + 1) * base_fee
         )
 
-        if index % 10 == 0:
-            specter.check_node_info()
-            print(specter._info["mempool_info"])
+    logging.info("The tx should be evicted by now")
+    assert txid not in wallet.rpc.getrawmempool()
+    txdata = wallet.rpc.gettransaction(txid)
+    assert txdata["confirmations"] == 0  # confirmation should still be 0
+
+    # Picking up with Specter-specific tests now that the tx has been purged
+    txs = wallet_manager.full_txlist()
+    assert txid in [tx["txid"] for tx in txs]
+
+    assert 1 == 0
 
     # Clean up
     bitcoind_controller.stop_bitcoind()

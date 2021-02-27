@@ -84,7 +84,7 @@ class BitcoindController:
         self.rpcconn = Btcd_conn(rpcport=rpcport)
 
     def start_bitcoind(
-        self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=None
+        self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=[]
     ):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
@@ -116,7 +116,7 @@ class BitcoindController:
         """ wrapper for convenience """
         return self.rpcconn.get_rpc()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False):
+    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, extra_args=[]):
         raise Exception("This should not be used in the baseclass!")
 
     def check_existing(self):
@@ -195,7 +195,7 @@ class BitcoindController:
         run_docker=True,
         datadir=None,
         bitcoind_path="bitcoind",
-        extra_args=None,
+        extra_args=[],
     ):
         """ returns a bitcoind-command to run bitcoind """
         btcd_cmd = "{} ".format(bitcoind_path)
@@ -214,7 +214,7 @@ class BitcoindController:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += " -datadir={} ".format(datadir)
         if extra_args:
-            btcd_cmd += " {}".format(extra_args)
+            btcd_cmd += " {}".format(" ".join(extra_args))
         logger.debug("constructed bitcoind-command: %s", btcd_cmd)
         return btcd_cmd
 
@@ -227,9 +227,7 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(
-        self, cleanup_at_exit=True, cleanup_hard=False, extra_args=None
-    ):
+    def _start_bitcoind(self, cleanup_at_exit=True, cleanup_hard=False, extra_args=[]):
         if self.datadir == None:
             self.datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
@@ -305,7 +303,7 @@ class BitcoindDockerController(BitcoindController):
             btcd_container.stop()
             btcd_container.remove()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, extra_args=None):
+    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, extra_args=[]):
         if self.datadir != None:
             # ignored
             pass
