@@ -2,50 +2,72 @@ language: python
 python:
   - "3.8"
 os: linux
-dist: xenial
+dist: focal
 cache:
-    pip: true
-    ccache: true
-    directories:
-        - tests/bitcoin
+  pip: true
+  ccache: true
+  directories:
+    - tests/bitcoin
+  # cypress
+    - ~/.npm
+    - ./node_modules
+    - ~/.cache
+  override:
+    - npm ci
+    - npm run cy:verify
 
 addons:
-    apt:
-        sources:
-            - sourceline: 'ppa:bitcoin/bitcoin'
-        packages:
-            - libdb4.8-dev
-            - libdb4.8++-dev
-            - build-essential
-            - curl
-            - git
-            - libsdl2-dev
-            - libsdl2-image-dev
-            - gcc-arm-none-eabi
-            - libnewlib-arm-none-eabi
-            - libudev-dev
-            - libtool
-            - autotools-dev
-            - automake
-            - pkg-config
-            - bsdmainutils
-            - libssl-dev
-            - libevent-dev
-            - libboost-system-dev
-            - libboost-filesystem-dev
-            - libboost-chrono-dev
-            - libboost-test-dev
-            - libboost-thread-dev
-            - libusb-1.0-0-dev
-            - protobuf-compiler
-            - cython3
-            - ccache
+  apt:
+    packages:
+      - build-essential
+      - curl
+      - git
+      - libsdl2-dev
+      - libsdl2-image-dev
+      - gcc-arm-none-eabi
+      - libnewlib-arm-none-eabi
+      - libudev-dev
+      - libtool
+      - autotools-dev
+      - automake
+      - pkg-config
+      - bsdmainutils
+      - libssl-dev
+      - libevent-dev
+      - libboost-system-dev
+      - libboost-filesystem-dev
+      - libboost-chrono-dev
+      - libboost-test-dev
+      - libboost-thread-dev
+      - libusb-1.0-0-dev
+      - protobuf-compiler
+      - cython3
+      - ccache
+# From https://dev-notes.eu/2020/10/Build-Bitcoin-Core-in-Ubuntu/
+      - automake
+      - cmake
+      - curl
+      - g++-multilib 
+      - binutils-gold
+      - patch
+# For cypress
+      - nodejs
+
 
 before_install:
+  - npm ci
   - docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
   - set -o errexit; source ./tests/install_bitcoind.sh
+install:
+  - npm ci
 script: 
   - pip install -e .
   - pip install -r test_requirements.txt
-  - ./utils/test-cypress.sh --debug --skip-consistency-check run 
-  - pytest --cov=cryptoadvance 
+  - pytest --cov=cryptoadvance  
+  - ./utils/test-cypress.sh --debug run 
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+  - rm -f ./tests/bitcoin/config.log
+  - rm -f ./tests/bitcoin/contrib/db4/db-4.8.30.NC/build_unix/config.log
+  - rm -f ./tests/bitcoin/src/secp256k1/config.log
+  - rm -f ./tests/bitcoin/src/univalue/config.log

@@ -26,6 +26,7 @@ function check_consistency {
       sleep 5
       ps | grep python && (echo "please investigate or kill " && exit 1)
   fi
+  $(npm bin)/cypress verify
 }
 check_consistency
 
