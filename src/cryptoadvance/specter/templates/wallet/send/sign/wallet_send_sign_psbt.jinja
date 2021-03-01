@@ -120,16 +120,21 @@
 				</p>
 				<h2 class="tx_details_header">Inputs ({{psbt['tx']['vin'] | length}})</h2>
 				{% for input in psbt['tx']['vin'] %}
-					<p class="tx_info" style="text-align: left; background-color: #131a24;">
+					{% set tx = wallet.gettransaction(input['txid'], decode=true) %}
+					{% set bg_color = '#131a24' %}
+					{% if tx and tx.vout and tx.vout|length > input['vout'] and 'addresses' in tx.vout[input['vout']] and tx.vout[input['vout']].addresses|length > 0 %}
+						{% set address = tx.vout[input['vout']].addresses[0] %}
+						{% set bg_color = '#925d07' if wallet.is_address_mine(address) else bg_color %}
+					{% endif %}
+					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
 						<b>Transaction id:</b><br>
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
 						(Output #{{ input['vout'] }})<br>
-						{% set tx = wallet.gettransaction(input['txid'], decode=true) %}
 						{% if tx %}
-							{% if tx.vout and tx.vout|length > input['vout'] and 'addresses' in tx.vout[input['vout']] and tx.vout[input['vout']].addresses|length > 0 %}
+							{% if address %}
 								<b>Address:</b>
-								<address-label data-address="{{ tx.vout[input['vout']].addresses[0] }}" data-wallet="{{ wallet_alias }}"></address-label>
+								<address-label data-address="{{ address }}" data-wallet="{{ wallet_alias }}"></address-label>
 								<br>
 							{% endif %}
 							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
@@ -138,7 +143,9 @@
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
 				{% for output in psbt['tx']['vout'] %}
-					<p class="tx_info" style="text-align: left; background-color: #131a24;">
+					{% set address = output['scriptPubKey']['addresses'][0] %}
+					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
+					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
 						<b>Address:</b>
 						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
