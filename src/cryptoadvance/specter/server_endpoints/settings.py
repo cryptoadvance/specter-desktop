@@ -1,5 +1,5 @@
-import json, os, time, random, requests, secrets
-
+import json, os, time, random, requests, secrets, platform, tarfile, zipfile
+import pgpy
 from flask import (
     Flask,
     Blueprint,
@@ -23,6 +23,7 @@ from ..helpers import (
 from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..util.sha256sum import sha256sum
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -58,6 +59,7 @@ def bitcoin_core():
     protocol = "http"
     autodetect = rpc["autodetect"]
     datadir = rpc["datadir"]
+    external_node = rpc["external_node"]
     err = None
 
     if "protocol" in rpc:
@@ -65,14 +67,13 @@ def bitcoin_core():
     test = None
     if request.method == "POST":
         action = request.form["action"]
-        if current_user.is_admin:
-            autodetect = "autodetect" in request.form
-            if autodetect:
-                datadir = request.form["datadir"]
-            user = request.form["username"]
-            password = request.form["password"]
-            port = request.form["port"]
-            host = request.form["host"].rstrip("/")
+        autodetect = "autodetect" in request.form
+        if autodetect:
+            datadir = request.form["datadir"]
+        user = request.form["username"]
+        password = request.form["password"]
+        port = request.form["port"]
+        host = request.form["host"].rstrip("/")
 
         # protocol://host
         if "://" in host:
@@ -114,6 +115,109 @@ def bitcoin_core():
                 if not success:
                     flash("Failed connecting to the node", "error")
             app.specter.check()
+        # Internal Node actions
+        elif action == "useinternal":
+            app.specter.update_use_external_node(False)
+            external_node = False
+        elif action == "useexternal":
+            app.specter.update_use_external_node(True)
+            external_node = True
+        elif action == "downloadbitcoind":
+            BITCOIND_OS_SUFFIX = {
+                "Windows": "win64.zip",
+                "Linux": "x86_64-linux-gnu.tar.gz",
+                "Darwin": "osx64.tar.gz",
+            }
+            bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-0.21.0/bitcoin-0.21.0-{BITCOIND_OS_SUFFIX[platform.system()]}"
+            response = app.specter.requests_session().get(bitcoind_url, stream=True)
+            packed_name = os.path.join(
+                app.specter.data_folder,
+                f"bitcoind-{BITCOIND_OS_SUFFIX[platform.system()]}",
+            )
+            with open(packed_name, "wb") as f:
+                total_length = float(response.headers["content-length"])
+                downloaded = 0.0
+                for chunk in response.iter_content(chunk_size=4096):
+                    downloaded += len(chunk)
+                    f.write(chunk)
+            bitcoind_sha256sums_url = (
+                "https://bitcoincore.org/bin/bitcoin-core-0.21.0/SHA256SUMS.asc"
+            )
+            response = app.specter.requests_session().get(
+                bitcoind_sha256sums_url, stream=True
+            )
+            bitcoind_sha256sums_file = os.path.join(
+                app.specter.data_folder, "bitcoind-sha256sums.asc"
+            )
+            with open(bitcoind_sha256sums_file, "wb") as f:
+                total_length = float(response.headers["content-length"])
+                for chunk in response.iter_content(chunk_size=4096):
+                    f.write(chunk)
+            # gpg = gnupg.GPG()
+            with open(bitcoind_sha256sums_file, "r") as f:
+                signed_sums = f.read()
+                bitcoind_release_pgp_key, _ = pgpy.PGPKey.from_file(
+                    "/Users/benkaufman/Documents/Work/Bitcoin/Specter/specter-desktop/src/cryptoadvance/specter/static/bitcoin-release-pubkey.asc"
+                )
+                bitcoind_sha256sums_msg = pgpy.PGPMessage.from_file(
+                    bitcoind_sha256sums_file
+                )
+                if not bitcoind_release_pgp_key.verify(bitcoind_sha256sums_msg):
+                    raise Exception("Failed to verify Bitcoin Core PGP signature")
+                bitcoind_hash = sha256sum(packed_name)
+                if bitcoind_hash not in signed_sums:
+                    raise Exception(
+                        "Failed to verify bitcoind hash is in SHA265SUMS.asc"
+                    )
+
+            if packed_name.endswith("tar.gz"):
+                with tarfile.open(packed_name, "r:gz") as so:
+                    so.extractall(
+                        path=os.path.join(app.specter.data_folder, "bitcoin-binaries")
+                    )
+            else:
+                with zipfile.ZipFile(packed_name, "r") as zip_ref:
+                    zip_ref.extractall(
+                        os.path.join(app.specter.data_folder, "bitcoin-binaries")
+                    )
+            os.remove(packed_name)
+        elif action == "downloadprunednode":
+            response = app.specter.requests_session().get(
+                "https://prunednode.today/snapshot210224.zip", stream=True
+            )
+            with open(
+                os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"), "wb"
+            ) as f:
+                total_length = float(response.headers["content-length"])
+                downloaded = 0.0
+                for chunk in response.iter_content(chunk_size=4096):
+                    downloaded += len(chunk)
+                    f.write(chunk)
+            with zipfile.ZipFile(
+                os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"), "r"
+            ) as zip_ref:
+                zip_ref.extractall(
+                    os.path.expanduser(app.specter.config["rpc"]["datadir"])
+                )
+                # TODO: Use RPC auth instead.
+                with open(
+                    os.path.join(app.specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                    "a",
+                ) as file:
+                    file.write(f'\nrpcuser={app.specter.config["rpc"]["user"]}')
+                    file.write(f'\nrpcpassword={app.specter.config["rpc"]["password"]}')
+            os.remove(os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"))
+        elif action == "stopbitcoind":
+            app.specter.bitcoind.stop_bitcoind(pid=app.specter.config["bitcoind"])
+            app.specter.set_bitcoind_pid(False)
+            time.sleep(5)
+        elif action == "startbitcoind":
+            app.specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
+            )
+            app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+            time.sleep(15)
+    app.specter.check()
 
     return render_template(
         "settings/bitcoin_core_settings.jinja",
@@ -126,6 +230,96 @@ def bitcoin_core():
         host=host,
         protocol=protocol,
         specter=app.specter,
+        current_version=current_version,
+        bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
+        is_running=app.specter.bitcoind.check_existing(),
+        external_node=external_node,
+        error=err,
+        rand=rand,
+    )
+
+
+@settings_endpoint.route("/bitcoin_core_control", methods=["GET", "POST"])
+@login_required
+def bitcoin_core_control():
+    current_version = notify_upgrade(app, flash)
+    err = None
+
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "downloadbitcoind":
+            BITCOIND_OS_SUFFIX = {
+                "Windows": "win64.zip",
+                "Linux": "x86_64-linux-gnu.tar.gz",
+                "Darwin": "osx64.tar.gz",
+            }
+            bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-0.21.0/bitcoin-0.21.0-{BITCOIND_OS_SUFFIX[platform.system()]}"
+            response = app.specter.requests_session().get(bitcoind_url, stream=True)
+            packed_name = os.path.join(
+                app.specter.data_folder,
+                f"bitcoind-{BITCOIND_OS_SUFFIX[platform.system()]}",
+            )
+            with open(packed_name, "wb") as f:
+                total_length = float(response.headers["content-length"])
+                downloaded = 0.0
+                for chunk in response.iter_content(chunk_size=4096):
+                    downloaded += len(chunk)
+                    f.write(chunk)
+            if packed_name.endswith("tar.gz"):
+                with tarfile.open(packed_name, "r:gz") as so:
+                    so.extractall(
+                        path=os.path.join(app.specter.data_folder, "bitcoin-binaries")
+                    )
+            else:
+                with zipfile.ZipFile(packed_name, "r") as zip_ref:
+                    zip_ref.extractall(
+                        os.path.join(app.specter.data_folder, "bitcoin-binaries")
+                    )
+            os.remove(packed_name)
+        elif action == "downloadprunednode":
+            response = app.specter.requests_session().get(
+                "https://prunednode.today/snapshot210224.zip", stream=True
+            )
+            with open(
+                os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"), "wb"
+            ) as f:
+                total_length = float(response.headers["content-length"])
+                downloaded = 0.0
+                for chunk in response.iter_content(chunk_size=4096):
+                    downloaded += len(chunk)
+                    f.write(chunk)
+            with zipfile.ZipFile(
+                os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"), "r"
+            ) as zip_ref:
+                zip_ref.extractall(
+                    os.path.expanduser(app.specter.config["rpc"]["datadir"])
+                )
+                # TODO: Use RPC auth instead.
+                with open(
+                    os.path.join(app.specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                    "a",
+                ) as file:
+                    file.write(f'\nrpcuser={app.specter.config["rpc"]["user"]}')
+                    file.write(f'\nrpcpassword={app.specter.config["rpc"]["password"]}')
+            os.remove(os.path.join(app.specter.data_folder, "snapshot-prunednode.zip"))
+        elif action == "stopbitcoind":
+            app.specter.bitcoind.stop_bitcoind(pid=app.specter.config["bitcoind"])
+            app.specter.set_bitcoind_pid(False)
+            time.sleep(5)
+        elif action == "startbitcoind":
+            app.specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
+            )
+            app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+            time.sleep(15)
+
+    app.specter.check()
+
+    return render_template(
+        "settings/bitcoin_core_control.jinja",
+        specter=app.specter,
+        bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
+        is_running=app.specter.bitcoind.check_existing(),
         current_version=current_version,
         error=err,
         rand=rand,

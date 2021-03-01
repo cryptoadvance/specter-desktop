@@ -87,6 +87,7 @@ cryptography==3.3.2 \
     --hash=sha256:e18e6ab84dfb0ab997faf8cca25a86ff15dfea4027b986322026cc99e0a892da
     # via
     #   noiseprotocol
+    #   pgpy
     #   pyopenssl
 daemonize==2.5.0 \
     --hash=sha256:9b6b91311a9d934ff3f5f766666635ca280d3de8e7137e4cd7d3f052543b989f \
@@ -207,6 +208,10 @@ noiseprotocol==0.3.1 \
 pbkdf2==1.3 \
     --hash=sha256:ac6397369f128212c43064a2b4878038dab78dab41875364554aaf2a684e6979
     # via mnemonic
+pgpy==0.5.3 \
+    --hash=sha256:a49c269cedcaf82ac6999bcae5fd3f543ecb1c759f9d48a15ad8d8fa4ac03987 \
+    --hash=sha256:cba6fbbb44a896a8a4f5807b3d8d4943a8f7a6607be11587f4a27734c711c1dd
+    # via -r requirements.in
 protobuf==3.13.0 \
     --hash=sha256:0bba42f439bf45c0f600c3c5993666fcb88e8441d011fad80a11df6f324eef33 \
     --hash=sha256:1e834076dfef9e585815757a2c7e4560c7ccc5962b9d09f831214c693a91b463 \
@@ -243,6 +248,10 @@ psutil==5.7.3 \
 pyaes==1.6.1 \
     --hash=sha256:02c1b1405c38d3c370b085fb952dd8bea3fadcee6411ad99f312cc129c536d8f
     # via hwi
+pyasn1==0.4.8 \
+    --hash=sha256:39c7e2ec30515947ff4e87fb6f456dfc6e84857d34be479c9d4a4ba4bf46aa5d \
+    --hash=sha256:aef77c9fb94a3ac588e87841208bdec464471d9871bd5050a287cc9a475cd0ba
+    # via pgpy
 pycparser==2.20 \
     --hash=sha256:2d475327684562c3a96cc71adf7dc8c4f0565175cf86b6d7a404ff4c771f15f0 \
     --hash=sha256:7582ad22678f0fcd81102833f60ef8d0e57288b6b5fb00323d101be910e35705
@@ -279,6 +288,7 @@ six==1.12.0 \
     #   -r requirements.in
     #   cryptography
     #   flask-cors
+    #   pgpy
     #   protobuf
     #   pyopenssl
 stem==1.8.0 \

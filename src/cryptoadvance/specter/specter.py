@@ -6,11 +6,14 @@ import traceback
 import random
 import time
 import zipfile
+import platform
+import secrets
 import requests
 from io import BytesIO
 from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
-from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
+from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
+from .bitcoind import BitcoindPlainController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
@@ -113,6 +116,7 @@ class Specter:
                 "port": "",
                 "host": "localhost",  # localhost
                 "protocol": "http",  # https for the future
+                "external_node": True,
             },
             "auth": {
                 "method": "none",
@@ -135,12 +139,46 @@ class Specter:
             "alt_symbol": "BTC",
             "price_provider": "",
             "validate_merkle_proofs": False,
+            "bitcoind": False,
         }
 
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         try:
             self.check(check_all=True)
+            rpc_conf = next(
+                (conf for conf in detect_rpc_confs() if conf["port"] == 8332), None
+            )
+            if not rpc_conf:
+                if not self.config["rpc"]["user"]:
+                    self.update_rpc({"user": "bitcoin"})
+                if not self.config["rpc"]["password"]:
+                    self.update_rpc({"password": secrets.token_urlsafe(16)})
+                rpc_conf = {
+                    "user": self.config["rpc"]["user"],
+                    "password": self.config["rpc"]["password"],
+                }
+
+            self.bitcoind_path = os.path.join(
+                self.data_folder, "bitcoin-binaries/bitcoin-0.21.0/bin/bitcoind"
+            )
+
+            if platform.system() == "Windows":
+                self.bitcoind_path += ".exe"
+            self.bitcoind = BitcoindPlainController(
+                bitcoind_path=self.bitcoind_path,
+                rpcport=8332,
+                network="mainnet",
+                rpcuser=rpc_conf["user"],
+                rpcpassword=rpc_conf["password"],
+            )
+
+            if not self.config["rpc"].get("external_node", True):
+                self.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                )
+                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                time.sleep(15)
         except Exception as e:
             logger.error(e)
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -442,6 +480,17 @@ class Specter:
             self._save()
             self.check(check_all=True)
         return self.rpc is not None
+
+    def set_bitcoind_pid(self, pid):
+        """ set the control pid of the bitcoind daemon """
+        if self.config.get("bitcoind", False) != pid:
+            self.config["bitcoind"] = pid
+            self._save()
+
+    def update_use_external_node(self, use_external_node):
+        """ set whatever specter should connect to internal or external node """
+        self.config["rpc"]["external_node"] = use_external_node
+        self._save()
 
     def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """

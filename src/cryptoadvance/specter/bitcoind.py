@@ -80,8 +80,13 @@ class Btcd_conn:
 class BitcoindController:
     """ A kind of abstract class to simplify running a bitcoind with or without docker """
 
-    def __init__(self, rpcport=18443):
-        self.rpcconn = Btcd_conn(rpcport=rpcport)
+    def __init__(
+        self, rpcport=18443, network="regtest", rpcuser="bitcoin", rpcpassword="secret"
+    ):
+        self.rpcconn = Btcd_conn(
+            rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
+        )
+        self.network = network
 
     def start_bitcoind(
         self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=[]
@@ -103,7 +108,8 @@ class BitcoindController:
         )
 
         self.wait_for_bitcoind(self.rpcconn)
-        self.mine(block_count=100)
+        if self.network == "regtest":
+            self.mine(block_count=100)
         return self.rpcconn
 
     def version(self):
@@ -198,10 +204,12 @@ class BitcoindController:
         datadir=None,
         bitcoind_path="bitcoind",
         extra_args=[],
+        network="regtest",
     ):
         """ returns a bitcoind-command to run bitcoind """
-        btcd_cmd = "{} ".format(bitcoind_path)
-        btcd_cmd += " -regtest "
+        btcd_cmd = '"{}" '.format(bitcoind_path)
+        if network != "mainnet":
+            btcd_cmd += " -{} ".format(network)
         btcd_cmd += " -fallbackfee=0.0002 "
         btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(
             rpcconn.rpcport - 1, rpcconn.rpcport
@@ -222,10 +230,19 @@ class BitcoindController:
 
 
 class BitcoindPlainController(BitcoindController):
-    """ A class controlling the bicoind-process directly on the machine """
+    """ A class controlling the bitcoind-process directly on the machine """
 
-    def __init__(self, bitcoind_path="bitcoind", rpcport=18443):
-        super().__init__(rpcport=rpcport)
+    def __init__(
+        self,
+        bitcoind_path="bitcoind",
+        rpcport=18443,
+        network="regtest",
+        rpcuser="bitcoin",
+        rpcpassword="secret",
+    ):
+        super().__init__(
+            rpcport=rpcport, network=network, rpcuser=rpcuser, rpcpassword=rpcpassword
+        )
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
@@ -241,6 +258,7 @@ class BitcoindPlainController(BitcoindController):
             datadir=datadir,
             bitcoind_path=self.bitcoind_path,
             extra_args=extra_args,
+            network=self.network,
         )
         logger.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
