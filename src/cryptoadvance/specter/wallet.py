@@ -717,7 +717,12 @@ class Wallet:
         # Is tx unconfirmed and no longer in the mempool?
         try:
             tx = self.rpc.gettransaction(txid)
-            return tx["confirmations"] == 0 and txid not in self.rpc.getrawmempool()
+
+            # Do this quick test first to avoid the costlier rpc call
+            if tx["confirmations"] > 0:
+                return False
+
+            return txid not in self.rpc.getrawmempool()
         except Exception as e:
             logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
 

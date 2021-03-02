@@ -1053,8 +1053,8 @@ def decoderawtx(wallet_alias):
                 tx["blockheight"] = wallet.rpc.getblockheader(tx["blockhash"])["height"]
             ##################### Remove until here after dropping Core v0.19 support #####################
 
-            # Has this tx been purged from the mempool?
-            tx["is_purged"] = wallet.is_tx_purged(txid)
+            if tx["confirmations"] == 0:
+                tx["is_purged"] = wallet.is_tx_purged(txid)
 
             return {
                 "success": True,
