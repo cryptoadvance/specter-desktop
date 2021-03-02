@@ -71,10 +71,12 @@
                 if(tx.is_purged) {
                     rawtxHTML += `
                     <div class="warning">
-                        <p>This transaction could not be found in the mempool!</p>
-                        <p>As the bitcoin network fills up with pending transactions the mempool purges the unconfirmed transactions with the lowest fees. Transactions older than two weeks are also purged.</p>
-                        <p>A purged transaction will never complete. Abandoning this transaction will clear it from your wallet, making those funds spendable once again.</p>
+                        <p><b>This transaction (aka "tx") could not be found in your node's mempool!</b></p>
+                        <p style="text-align:left;">If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.</p>
+                        <p style="text-align:left;">A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.</p>
+                        <p style="text-align:left;">But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.</p>
 
+                        <br/><br/>
                         <form method="POST" action="${walletLink}history">
                             <input type="hidden" class="csrf-token" name="csrf_token" value="${csrf_token}"/>
                             <input type="hidden" name="action" value="abandon_tx"/>
