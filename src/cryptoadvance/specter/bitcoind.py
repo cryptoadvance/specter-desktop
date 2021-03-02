@@ -313,9 +313,7 @@ class BitcoindDockerController(BitcoindController):
         if datadir != None:
             # ignored
             pass
-        bitcoind_path = self.construct_bitcoind_cmd(
-            self.rpcconn, datadir=datadir, extra_args=extra_args
-        )
+        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, extra_args=extra_args)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports = {
