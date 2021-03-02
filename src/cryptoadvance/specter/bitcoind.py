@@ -234,6 +234,7 @@ class BitcoindPlainController(BitcoindController):
     ):
         if datadir == None:
             datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
+
         bitcoind_cmd = self.construct_bitcoind_cmd(
             self.rpcconn,
             run_docker=False,
@@ -248,40 +249,38 @@ class BitcoindPlainController(BitcoindController):
             "Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
         )
 
-        def cleanup_bitcoind(*args):
-            timeout = 50  # in secs
-            if cleanup_hard:
-                self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
-                logger.info(
-                    f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
-                )
-                shutil.rmtree(datadir, ignore_errors=True)
-            else:
-                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-                logger.info(
-                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-                )
-                # self.bitcoind_proc.wait() # doesn't have a timeout
-                procs = psutil.Process().children()
-                for p in procs:
-                    p.terminate()
-                _, alive = psutil.wait_procs(procs, timeout=timeout)
-                for p in alive:
-                    logger.info("bitcoind did not terminated in time, killing!")
-                    p.kill()
-
         if cleanup_at_exit:
             logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, cleanup_bitcoind)
+            signal.signal(signal.SIGINT, self.cleanup_bitcoind)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, cleanup_bitcoind)
+            signal.signal(signal.SIGTERM, self.cleanup_bitcoind)
+
+    def cleanup_bitcoind(self, cleanup_hard=None, datadir=None):
+        timeout = 50  # in secs
+        if cleanup_hard:
+            self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+            logger.info(
+                f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
+            )
+            shutil.rmtree(datadir, ignore_errors=True)
+        else:
+            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+            logger.info(
+                f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+            )
+            # self.bitcoind_proc.wait() # doesn't have a timeout
+            procs = psutil.Process().children()
+            for p in procs:
+                p.terminate()
+            _, alive = psutil.wait_procs(procs, timeout=timeout)
+            for p in alive:
+                logger.info("bitcoind did not terminated in time, killing!")
+                p.kill()
 
     def stop_bitcoind(self):
-        # not necessary as the cleanup_bitcoind() will do it automatically!
-        # ToDo: Implement it nevertheless
-        pass
+        self.cleanup_bitcoind()
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if if a
