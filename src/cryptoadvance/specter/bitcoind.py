@@ -94,12 +94,12 @@ class BitcoindController:
         if self.check_existing() != None:
             return self.check_existing()
 
-        # store datadir so we can reuse it on restarts
-        self.datadir = datadir
-
         logger.debug("Starting bitcoind")
         self._start_bitcoind(
-            cleanup_at_exit, cleanup_hard=cleanup_hard, extra_args=extra_args
+            cleanup_at_exit,
+            cleanup_hard=cleanup_hard,
+            datadir=datadir,
+            extra_args=extra_args,
         )
 
         self.wait_for_bitcoind(self.rpcconn)
@@ -116,7 +116,9 @@ class BitcoindController:
         """ wrapper for convenience """
         return self.rpcconn.get_rpc()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, extra_args=[]):
+    def _start_bitcoind(
+        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
         raise Exception("This should not be used in the baseclass!")
 
     def check_existing(self):
@@ -227,13 +229,15 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(self, cleanup_at_exit=True, cleanup_hard=False, extra_args=[]):
-        if self.datadir == None:
-            self.datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
+    def _start_bitcoind(
+        self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
+        if datadir == None:
+            datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
         bitcoind_cmd = self.construct_bitcoind_cmd(
             self.rpcconn,
             run_docker=False,
-            datadir=self.datadir,
+            datadir=datadir,
             bitcoind_path=self.bitcoind_path,
             extra_args=extra_args,
         )
@@ -249,9 +253,9 @@ class BitcoindPlainController(BitcoindController):
             if cleanup_hard:
                 self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
                 logger.info(
-                    f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {self.datadir}"
+                    f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
                 )
-                shutil.rmtree(self.datadir, ignore_errors=True)
+                shutil.rmtree(datadir, ignore_errors=True)
             else:
                 self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(
@@ -303,11 +307,15 @@ class BitcoindDockerController(BitcoindController):
             btcd_container.stop()
             btcd_container.remove()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, extra_args=[]):
-        if self.datadir != None:
+    def _start_bitcoind(
+        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
+        if datadir != None:
             # ignored
             pass
-        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, extra_args=extra_args)
+        bitcoind_path = self.construct_bitcoind_cmd(
+            self.rpcconn, datadir=datadir, extra_args=extra_args
+        )
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports = {
