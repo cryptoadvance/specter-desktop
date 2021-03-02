@@ -54,11 +54,11 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
     else:
         if os.path.isfile("tests/bitcoin/src/bitcoind"):
             bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/src/bitcoind"
+                bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
             )  # always prefer the self-compiled bitcoind if existing
         else:
-            bitcoind_controller = (
-                BitcoindPlainController()
+            bitcoind_controller = BitcoindPlainController(
+                rpcport=rpcport
             )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(
         cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args

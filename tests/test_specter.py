@@ -77,8 +77,6 @@ def test_abandon_purged_tx(
     rpc = rpcconn.get_rpc()
     assert rpc is not None
     assert rpc.ipaddress != None
-    bci = rpc.getblockchaininfo()
-    assert bci["blocks"] == 100
 
     # Note: Our utxo creation is simpler than mempool_limit.py's approach since we're
     # running in regtest and can just use generatetoaddress().
