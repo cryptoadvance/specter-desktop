@@ -48,19 +48,19 @@ def test_specter(specter_regtest_configured, caplog):
 def test_abandon_purged_tx(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
-    # Specter should support calling abandonedtransaction if a pending tx has been purged
+    # Specter should support calling abandontransaction if a pending tx has been purged
     # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
     # easier to spam the mempool and purge our target tx.
     # TODO: Similar test but for maxmempoolexpiry?
 
     # Copied and adapted from:
     #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
-    from conftest import instantiate_bitcoind_controller
     from bitcoin_core.test.functional.test_framework.util import (
         gen_return_txouts,
         satoshi_round,
         create_lots_of_big_transactions,
     )
+    from conftest import instantiate_bitcoind_controller
 
     caplog.set_level(logging.DEBUG)
 
@@ -80,8 +80,8 @@ def test_abandon_purged_tx(
     bci = rpc.getblockchaininfo()
     assert bci["blocks"] == 100
 
-    # Note: We can simplify utxo creation since we're running in regtest and can just
-    # use generatetoaddress().
+    # Note: Our utxo creation is simpler than mempool_limit.py's approach since we're
+    # running in regtest and can just use generatetoaddress().
 
     # Instantiate a new Specter instance to talk to this bitcoind
     config = {
@@ -175,6 +175,7 @@ def test_abandon_purged_tx(
         assert "Cannot abandon" in str(e)
 
     # ==== Resume test from mempool_limit.py ====
+    # Spam the mempool with big transactions!
     relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
     base_fee = float(relayfee) * 100
     for i in range(3):
@@ -199,12 +200,13 @@ def test_abandon_purged_tx(
             assert detail["abandoned"]
 
     # Can we now spend those same inputs?
-    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
     outputs = {wallet.getnewaddress(): 0.0001}
     tx = wallet.rpc.createrawtransaction(inputs, outputs)
-    wallet.rpc.settxfee(
-        str(relayfee * Decimal("3.0"))
-    )  # specifically fund this tx with high enough fee
+
+    # Fund this tx with a high enough fee
+    relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
+    wallet.rpc.settxfee(str(relayfee * Decimal("3.0")))
+
     txF = wallet.rpc.fundrawtransaction(tx)
     wallet.rpc.settxfee(0)  # return to automatic fee selection
     txFS = device.sign_raw_tx(txF["hex"], wallet)
