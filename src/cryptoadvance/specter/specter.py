@@ -151,9 +151,9 @@ class Specter:
             )
             if not rpc_conf:
                 if not self.config["rpc"]["user"]:
-                    self.update_rpc({"user": "bitcoin"})
+                    self.update_rpc(user="bitcoin")
                 if not self.config["rpc"]["password"]:
-                    self.update_rpc({"password": secrets.token_urlsafe(16)})
+                    self.update_rpc(password=secrets.token_urlsafe(16))
                 rpc_conf = {
                     "user": self.config["rpc"]["user"],
                     "password": self.config["rpc"]["password"],

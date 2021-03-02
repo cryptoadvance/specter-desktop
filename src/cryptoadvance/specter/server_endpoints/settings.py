@@ -1,5 +1,6 @@
-import json, os, time, random, requests, secrets, platform, tarfile, zipfile
+import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys
 import pgpy
+from pathlib import Path
 from flask import (
     Flask,
     Blueprint,
@@ -153,11 +154,12 @@ def bitcoin_core():
                 total_length = float(response.headers["content-length"])
                 for chunk in response.iter_content(chunk_size=4096):
                     f.write(chunk)
-            # gpg = gnupg.GPG()
             with open(bitcoind_sha256sums_file, "r") as f:
                 signed_sums = f.read()
                 bitcoind_release_pgp_key, _ = pgpy.PGPKey.from_file(
-                    "/Users/benkaufman/Documents/Work/Bitcoin/Specter/specter-desktop/src/cryptoadvance/specter/static/bitcoin-release-pubkey.asc"
+                    os.path.join(sys._MEIPASS, "static/bitcoin-release-pubkey.asc")
+                    if getattr(sys, "frozen", False)
+                    else Path(__file__).parent / "../static/bitcoin-release-pubkey.asc"
                 )
                 bitcoind_sha256sums_msg = pgpy.PGPMessage.from_file(
                     bitcoind_sha256sums_file
@@ -181,6 +183,15 @@ def bitcoin_core():
                         os.path.join(app.specter.data_folder, "bitcoin-binaries")
                     )
             os.remove(packed_name)
+            if not os.path.exists(app.specter.config["rpc"]["datadir"]):
+                os.makedirs(app.specter.config["rpc"]["datadir"])
+            with open(
+                os.path.join(app.specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                "w",
+            ) as file:
+                file.write(f'\nrpcuser={app.specter.config["rpc"]["user"]}')
+                file.write(f'\nrpcpassword={app.specter.config["rpc"]["password"]}')
+                file.write(f"\nserver=1")
         elif action == "downloadprunednode":
             response = app.specter.requests_session().get(
                 "https://prunednode.today/snapshot210224.zip", stream=True
