@@ -1256,6 +1256,7 @@ def addressinfo(wallet_alias):
                 "address": address,
                 "descriptor": descriptor,
                 "walletName": wallet.name,
+                "isMine": not address_info.is_external,
                 **address_info,
             }
     except Exception as e:
