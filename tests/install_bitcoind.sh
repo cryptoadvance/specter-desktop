@@ -1,3 +1,5 @@
+#!/bin/sh
+
 echo "    --> install_bitcoind.sh Start $(date)"
 START=$(date +%s.%N)
 # Clone bitcoind if it doesn't exist, or update it if it does
@@ -7,12 +9,7 @@ bitcoind_setup_needed=false
 if [ ! -d "./bitcoin/.git" ]; then
     echo "    --> cloning bitcoin"
     git clone https://github.com/bitcoin/bitcoin.git
-
     bitcoind_setup_needed=true
-#else
-    # do not unnecessarily fetch bitcoin as this affects the cache
-    #echo "    --> fetching bitcoin"
-    #git fetch
 fi
 
 cd bitcoin
