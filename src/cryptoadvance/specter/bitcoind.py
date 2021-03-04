@@ -164,25 +164,29 @@ class BitcoindController:
     def check_bitcoind(rpcconn):
         """ returns true if bitcoind is running on that address/port """
         try:
+            print("CHEKCING1")
             rpcconn.get_rpc()  # that call will also check the connection
             return True
-        except ConnectionRefusedError:
+        except ConnectionRefusedError as e:
+            print(f"CHEKCING2: {e}")
             return False
-        except TypeError:
+        except TypeError as e:
+            print(f"CHEKCING3: {e}")
             return False
-        except Exception:
+        except Exception as e:
+            print(f"CHEKCING4: {e}")
             return False
 
     @staticmethod
     def wait_for_bitcoind(rpcconn):
-        """ tries to reach the bitcoind via rpc. Will timeout after 10 seconds """
+        """ tries to reach the bitcoind via rpc. Will timeout after 30 seconds """
         i = 0
         while True:
             if BitcoindController.check_bitcoind(rpcconn):
                 break
             time.sleep(0.5)
             i = i + 1
-            if i > 20:
+            if i > 60:
                 raise Exception(
                     "Timeout while trying to reach bitcoind at rpcport {} !".format(
                         rpcconn

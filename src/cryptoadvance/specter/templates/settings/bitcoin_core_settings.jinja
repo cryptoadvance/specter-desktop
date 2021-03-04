@@ -18,45 +18,28 @@
 				<br><br>
 			{% endif %}
 			{% if bitcoind_exists %}
-			<div class="card">
-			<h2>Built in Bitcoin Node Status: {% if is_running %}Running{% else %}Down{% endif %}</h2>
-			{% if not external_node %}
-				<p>{% if is_running %}Stop{% else %}Start{% endif %} Bitcoin Core</p>
-				{% if is_running %}
-					<button type="submit" class="btn centered" name="action" value="stopbitcoind">Stop Bitcoin Core</button>
+				<h2>Built in Bitcoin Node Status: {% if is_running %}Running{% else %}Down{% endif %}</h2><br><br>
+				{% if not external_node %}
+					{% if is_running %}
+						<button type="submit" class="btn centered" name="action" value="stopbitcoind">Stop Bitcoin Core</button>
+					{% else %}
+						<button type="submit" class="btn centered" name="action" value="startbitcoind">Start Bitcoin Core</button>
+						<p class="warning">
+						If this is your first time starting the node, and you haven't used the QuickSync, your node will start with Initial Block Downloading (IBD) to sync with the network.<br>
+						This process of IBD syncing may take several days. If you'd like the QuickSync option, please click on it before starting your node, or if it's running, stop it and the click the QuickSync.<br>
+						<b>(Warning: QuickSync will override any existing data of your Bitcoin Node!)</b>
+						</p>
+					{% endif %}
 				{% else %}
-					<button type="submit" class="btn centered" name="action" value="startbitcoind">Start Bitcoin Core</button>
-					<p class="warning">
-					If this is your first time starting the node, and you haven't used the QuickSync, your node will start with Initial Block Downloading (IBD) to sync with the network.<br>
-					This process of IBD syncing may take several days. If you'd like the QuickSync option, please click on it before starting your node, or if it's running, stop it and the click the QuickSync.<br>
-					<b>(Warning: QuickSync will override any existing data of your Bitcoin Node!)</b>
-					</p>
+					<p>Please switch node type to start the built in node.</p>
 				{% endif %}
+				<br><br>
 			{% else %}
-				<p>Please switch node type to start the built in node.</p>
+				<div class="card">
+					<h1>Setup Bitcoin Core Node</h1><br>
+					<a href="{{url_for('node_setup_wizard', step=2)}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
+				</div>
 			{% endif %}
-			</div>
-			<br><br>
-			{% endif %}
-			<div class="card">
-			<h2>Setup a Bitcoin Node</h2>
-			<br>
-			<p>Click here to download and setup Bitcoin Core with Specter</p>
-			<button type="submit" class="btn centered" name="action" value="downloadbitcoind" {% if bitcoind_exists %}disabled style="background-color:#303c49;"{% endif %}>
-			Download Bitcoin Core&nbsp;&nbsp;{% if bitcoind_exists %}<img src="{{ url_for('static', filename='img/done_icon.svg') }}" style="width:20px;">{% endif %}
-			</button>
-			<br><br>
-			<h2>Optional - QuickSync</h2>
-			<p>
-			Click here to quick sync your Specter node by downloading a direct snapshot of the network. This will save the waiting for syncing the network by yourself.
-			</p>
-			<button type="submit" class="btn centered" name="action" value="downloadprunednode">QuickSync a Pruned Node</button>
-			<br>
-			<p class="warning">Please note: It is recommended to avoid the QuickSync for real use and instead let your node sync from scratch. This will probably take a few days, but then ensures you do not have to trust the snapshot provided by Specter.</p>
-			<br>
-			<br>
-			</div>
-			<br>
 		</div>
 		
 		<div id="external_node_setup_view" class="card" style="margin: 20px auto 120px;">
@@ -196,7 +179,7 @@
 {% block scripts %}
 <script>
 	document.addEventListener("DOMContentLoaded", function(){
-		setNodeTypeView("{{'external' if external_node else 'internal'}}")
+		setNodeTypeView("{{ node_view }}")
 		var autodetect = document.getElementById("autodetect");
 		if (autodetect != null) {
 			function toggleAutoDetectMode() {

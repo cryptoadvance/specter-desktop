@@ -140,7 +140,17 @@ class Specter:
             "price_provider": "",
             "validate_merkle_proofs": False,
             "bitcoind": False,
+            "bitcoind_setup": {
+                "stage_progress": -1,
+            },
         }
+
+        self.bitcoind_path = os.path.join(
+            self.data_folder, "bitcoin-binaries/bitcoin-0.21.0/bin/bitcoind"
+        )
+
+        if platform.system() == "Windows":
+            self.bitcoind_path += ".exe"
 
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
@@ -151,20 +161,16 @@ class Specter:
             )
             if not rpc_conf:
                 if not self.config["rpc"]["user"]:
-                    self.update_rpc(user="bitcoin")
+                    self.config["rpc"]["user"] = "bitcoin"
+                    self._save()
                 if not self.config["rpc"]["password"]:
-                    self.update_rpc(password=secrets.token_urlsafe(16))
+                    self.config["rpc"]["password"] = secrets.token_urlsafe(16)
+                    self._save()
                 rpc_conf = {
                     "user": self.config["rpc"]["user"],
                     "password": self.config["rpc"]["password"],
                 }
 
-            self.bitcoind_path = os.path.join(
-                self.data_folder, "bitcoin-binaries/bitcoin-0.21.0/bin/bitcoind"
-            )
-
-            if platform.system() == "Windows":
-                self.bitcoind_path += ".exe"
             self.bitcoind = BitcoindPlainController(
                 bitcoind_path=self.bitcoind_path,
                 rpcport=8332,
