@@ -12,11 +12,11 @@
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr>
         <td>
-            <input id="coin_{{ [txid, vout, '%.8f'|format(amount)] | join(', ') }}" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout, '%.8f'|format(amount)] | join(', ') }}" onchange='updateCoinSelect(this)' {% if selected %}checked{% endif %}>
+            <input id="coin_{{ [txid, vout] | join(', ') }}" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout] | join(', ') }}" onchange='updateCoinSelect(this, "{{ amount }}")' {% if selected %}checked{% endif %}>
             {% if selected %}
                 <script>
                     document.addEventListener("DOMContentLoaded", function(){
-                        updateCoinSelect(document.getElementById("coin_{{ [txid, vout, '%.8f'|format(amount)] | join(', ') }}"))
+                        updateCoinSelect(document.getElementById("coin_{{ [txid, vout] | join(', ') }}"), "{{ amount }}")
                     });
                 </script>
             {% endif %}

@@ -112,15 +112,9 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     unspents = wallet.rpc.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:
     selected_coins = [
-        "{},{},{}".format(
-            unspents[5]["txid"], unspents[5]["vout"], unspents[5]["amount"]
-        ),
-        "{},{},{}".format(
-            unspents[9]["txid"], unspents[9]["vout"], unspents[9]["amount"]
-        ),
-        "{},{},{}".format(
-            unspents[12]["txid"], unspents[12]["vout"], unspents[12]["amount"]
-        ),
+        "{},{}".format(unspents[5]["txid"], unspents[5]["vout"]),
+        "{},{}".format(unspents[9]["txid"], unspents[9]["vout"]),
+        "{},{}".format(unspents[12]["txid"], unspents[12]["vout"]),
     ]
     selected_coins_amount_sum = (
         unspents[5]["amount"] + unspents[9]["amount"] + unspents[12]["amount"]

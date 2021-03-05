@@ -565,9 +565,12 @@ def send_new(wallet_alias):
     fee_rate = 0.0
     fee_rate_blocks = 6
     rbf = True
+    rbf_utxo = []
+    rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
     if request.method == "POST":
         action = request.form.get("action")
+        rbf_tx_id = request.form.get("rbf_tx_id", "")
         if action == "createpsbt":
             i = 0
             addresses = []
@@ -629,6 +632,7 @@ def send_new(wallet_alias):
                     rbf=rbf,
                     selected_coins=selected_coins,
                     readonly="estimate_fee" in request.form,
+                    rbf_edit_mode=(rbf_tx_id != ""),
                 )
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
@@ -660,7 +664,7 @@ def send_new(wallet_alias):
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
                 rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.send_rbf_tx(rbf_tx_id, rbf_fee_rate)
+                psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -670,6 +674,20 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
+            except Exception as e:
+                flash("Failed to perform RBF. Error: %s" % e, "error")
+        elif action == "rbf_edit":
+            try:
+                decoded_tx = wallet.decode_tx(rbf_tx_id)
+                addresses = decoded_tx["addresses"]
+                amounts = decoded_tx["amounts"]
+                selected_coins = [
+                    f"{utxo['txid']}, {utxo['vout']}"
+                    for utxo in decoded_tx["used_utxo"]
+                ]
+                fee_rate = float(request.form["rbf_fee_rate"])
+                fee_options = "manual"
+                rbf = True
             except Exception as e:
                 flash("Failed to perform RBF. Error: %s" % e, "error")
         elif action == "signhotwallet":
@@ -708,6 +726,13 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
+
+    if rbf_tx_id:
+        try:
+            rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
+        except Exception as e:
+            flash("Failed to get RBF coins. Error: %s" % e, "error")
+
     show_advanced_settings = (
         ui_option != "ui"
         or subtract
@@ -730,6 +755,8 @@ def send_new(wallet_alias):
         rbf=rbf,
         selected_coins=selected_coins,
         show_advanced_settings=show_advanced_settings,
+        rbf_utxo=rbf_utxo,
+        rbf_tx_id=rbf_tx_id,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
