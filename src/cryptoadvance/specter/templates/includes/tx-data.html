@@ -77,7 +77,7 @@
             let tx = jsonResponse.tx;
             let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
             let rawtxHTML = "";
-            if(!tx.is_purged) {
+            if(tx.is_purged) {
                 rawtxHTML += `
                 <div class="warning">
                     <p><b>This transaction (aka "tx") could not be found in your node's mempool!</b></p>
