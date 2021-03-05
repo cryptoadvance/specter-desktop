@@ -119,6 +119,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                             "stage_progress"
                         ] = new_progress
                         specter._save()
+
             specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
             specter._save()
             prunednode_sha256sums_url = (

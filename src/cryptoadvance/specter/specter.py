@@ -157,7 +157,14 @@ class Specter:
         try:
             self.check(check_all=True)
             rpc_conf = next(
-                (conf for conf in detect_rpc_confs() if conf["port"] == 8332), None
+                (
+                    conf
+                    for conf in detect_rpc_confs(
+                        datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                    )
+                    if conf["port"] == 8332
+                ),
+                None,
             )
             if not rpc_conf:
                 if not self.config["rpc"]["user"]:
