@@ -7,6 +7,8 @@ from cryptoadvance.specter.bitcoind import fetch_wallet_addresses_for_mining
 
 
 def test_bitcoinddocker_running(caplog, docker, request):
+    # TODO: Refactor this to use conftest.instantiate_bitcoind_controller
+    # to reduce redundant code?
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     requested_version = request.config.getoption("--bitcoind-version")
