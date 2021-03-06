@@ -1238,6 +1238,7 @@ class Wallet:
         readonly=False,
         rbf=True,
         existing_psbt=None,
+        rbf_edit_mode=False,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -1249,17 +1250,20 @@ class Wallet:
         extra_inputs = []
 
         if not existing_psbt:
-            if self.full_available_balance < sum(amounts):
-                raise SpecterError(
-                    "The wallet does not have sufficient funds to make the transaction."
-                )
+            if not rbf_edit_mode:
+                if self.full_available_balance < sum(amounts):
+                    raise SpecterError(
+                        "The wallet does not have sufficient funds to make the transaction."
+                    )
 
             if selected_coins != []:
                 still_needed = sum(amounts)
                 for coin in selected_coins:
                     coin_txid = coin.split(",")[0]
                     coin_vout = int(coin.split(",")[1])
-                    coin_amount = float(coin.split(",")[2])
+                    coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
+                        coin_vout
+                    ]["value"]
                     extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
                     still_needed -= coin_amount
                     if still_needed < 0:
@@ -1360,7 +1364,63 @@ class Wallet:
 
         return psbt
 
-    def send_rbf_tx(self, txid, fee_rate):
+    def get_rbf_utxo(self, rbf_tx_id):
+        decoded_tx = self.decode_tx(rbf_tx_id)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        rbf_utxo = [
+            {
+                "txid": tx["txid"],
+                "vout": tx["vout"],
+                "details": self.gettransaction(tx["txid"], decode=True)["vout"][
+                    tx["vout"]
+                ],
+            }
+            for tx in decoded_tx["used_utxo"]
+        ]
+        return [
+            {
+                "txid": utxo["txid"],
+                "vout": utxo["vout"],
+                "amount": utxo["details"]["value"],
+                "address": utxo["details"]["addresses"][0],
+                "label": self.getlabel(utxo["details"]["addresses"][0]),
+            }
+            for utxo in rbf_utxo
+        ]
+
+    def decode_tx(self, txid):
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        return {
+            "addresses": [
+                vout["scriptPubKey"]["addresses"][0]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
+            ],
+            "amounts": [
+                vout["value"]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
+            ],
+            "used_utxo": [
+                {"txid": vin["txid"], "vout": vin["vout"]} for vin in psbt["tx"]["vin"]
+            ],
+        }
+
+    def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
         raw_psbt = self.rpc.utxoupdatepsbt(
             self.rpc.converttopsbt(raw_tx, True),
