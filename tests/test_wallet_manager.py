@@ -1,4 +1,5 @@
 import json, os
+from conftest import instantiate_bitcoind_controller
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
@@ -6,11 +7,16 @@ from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.wallet_manager import WalletManager
 
 
-def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
+def test_WalletManager(docker, request, devices_filled_data_folder, device_manager):
+    # Instantiate a fresh bitcoind instance to isolate this test.
+    bitcoind_controller = instantiate_bitcoind_controller(
+        docker, request, rpcport=18998
+    )
+
     wm = WalletManager(
         200100,
         devices_filled_data_folder,
-        bitcoin_regtest.get_rpc(),
+        bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
     )
@@ -71,12 +77,20 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert not os.path.exists(wallet_fullpath)
     assert len(wm.wallets) == 1
 
+    # cleanup
+    bitcoind_controller.stop_bitcoind()
 
-def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
+
+def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_manager):
+    # Instantiate a fresh bitcoind instance to isolate this test.
+    bitcoind_controller = instantiate_bitcoind_controller(
+        docker, request, rpcport=18998
+    )
+
     wm = WalletManager(
         200100,
         devices_filled_data_folder,
-        bitcoin_regtest.get_rpc(),
+        bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
     )
@@ -159,6 +173,9 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     assert wallet.locked_amount == 0
     assert len(wallet.rpc.listlockunspent()) == 0
     assert wallet.full_available_balance == wallet.fullbalance
+
+    # cleanup
+    bitcoind_controller.stop_bitcoind()
 
 
 def test_wallet_sortedmulti(

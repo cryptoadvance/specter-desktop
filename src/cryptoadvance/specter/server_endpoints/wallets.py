@@ -474,6 +474,12 @@ def history(wallet_alias):
         if action == "freezeutxo":
             wallet.toggle_freeze_utxo(request.form.getlist("selected_utxo"))
             tx_list_type = "utxo"
+        elif action == "abandon_tx":
+            txid = request.form["txid"]
+            try:
+                wallet.abandontransaction(txid)
+            except SpecterError as e:
+                flash(str(e), "error")
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -1073,6 +1079,10 @@ def decoderawtx(wallet_alias):
             if "blockhash" in tx and "blockheight" not in tx:
                 tx["blockheight"] = wallet.rpc.getblockheader(tx["blockhash"])["height"]
             ##################### Remove until here after dropping Core v0.19 support #####################
+
+            if tx["confirmations"] == 0:
+                tx["is_purged"] = wallet.is_tx_purged(txid)
+
             return {
                 "success": True,
                 "tx": tx,
