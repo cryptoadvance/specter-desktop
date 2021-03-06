@@ -9,7 +9,8 @@ from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
 from .persistence import write_json_file, delete_file
-from hwilib.serializations import PSBT, CTransaction
+from hwilib.tx import CTransaction
+from hwilib.psbt import PSBT
 from io import BytesIO
 from .specter_error import SpecterError
 import threading

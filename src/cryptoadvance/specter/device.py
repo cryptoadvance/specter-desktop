@@ -112,8 +112,6 @@ class Device:
         return "" in self.key_types(network)
 
     def no_key_found_reason(self, wallet_type, network="main"):
-        if wallet_type == "multisig" and self.device_type == "bitbox02":
-            return "BitBox02 multisig is not yet supported. Stay tuned for future versions."
         if self.has_key_types(wallet_type, network=network):
             return ""
         reverse_network = "main" if is_testnet(network) else "test"

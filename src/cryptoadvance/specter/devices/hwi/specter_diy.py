@@ -1,6 +1,6 @@
 # Specter interaction script
 from typing import Dict, Optional, Union
-from hwilib.serializations import PSBT
+from hwilib.psbt import PSBT
 
 from hwilib.hwwclient import HardwareWalletClient
 from hwilib.errors import (
@@ -10,8 +10,7 @@ from hwilib.errors import (
     DeviceFailureError,
     UnavailableActionError,
 )
-from hwilib.base58 import xpub_main_2_test
-from hwilib import base58
+from .base58 import xpub_test_2_main, xpub_main_2_test
 from binascii import b2a_base64
 
 import serial
@@ -290,13 +289,6 @@ def enumerate(password=""):
 
 
 ############# Helper functions and base classes ##############
-
-
-def xpub_test_2_main(xpub: str) -> str:
-    data = base58.decode(xpub)
-    main_data = b"\x04\x88\xb2\x1e" + data[4:-4]
-    checksum = base58.hash256(main_data)[0:4]
-    return base58.encode(main_data + checksum)
 
 
 def is_micropython(port):
