@@ -71,6 +71,9 @@ class BaseConfig(object):
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
+    )
 
 
 class TestConfig(BaseConfig):
