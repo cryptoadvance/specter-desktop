@@ -2,12 +2,12 @@
     <h1>Export Wallet</h1>
     <h2>Scan this with your wallet software</h2>
     <br>
-    <qr-code value='{{ wallet.account_map }}' width="400"></qr-code>
+    <qr-code value='{{ wallet.account_map|safe }}' width="400"></qr-code>
     <br>
     <h2>Import this JSON file</h2>
     <a download="{{ wallet.name }}.json" class="btn centered padded" id="export_wallet_file">Save wallet file</a>
 <pre id="account_map" style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; text-align: left;">
-{{ wallet.account_map }}
+{{ wallet.account_map|safe }}
 </pre>
     <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>
     <br />
@@ -24,7 +24,7 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-    document.getElementById('export_wallet_file').href = 'data:text/json,' + encodeURIComponent('{{ wallet.account_map }}');
+    document.getElementById('export_wallet_file').href = 'data:text/json,' + encodeURIComponent('{{ wallet.account_map|safe }}');
 });
 document.addEventListener("DOMContentLoaded", function(){
     document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');

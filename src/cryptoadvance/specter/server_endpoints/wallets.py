@@ -119,12 +119,14 @@ def new_wallet(wallet_type):
         if action == "importwallet":
             try:
                 wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
+                print(json.dumps(wallet_data, indent=2))
                 (
                     wallet_name,
                     recv_descriptor,
                     cosigners_types,
                 ) = parse_wallet_data_import(wallet_data)
-            except Exception:
+            except Exception as e:
+                print(e)
                 flash("Unsupported wallet import format", "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
             # get min of the two
@@ -212,16 +214,16 @@ def new_wallet(wallet_type):
                             descriptor.base_key[i],
                         )
                     )
-                    unknown_cosigners.append(desc_key)
+                    unknown_cosigners.append((desc_key, cosigners_types[i]["label"]))
                     if len(unknown_cosigners) > len(cosigners_types):
                         unknown_cosigners_types.append("other")
                     else:
-                        unknown_cosigners_types.append(cosigners_types[i])
+                        unknown_cosigners_types.append(cosigners_types[i]["type"])
             wallet_type = "multisig" if sigs_total > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
                 wallet_name = request.form["wallet_name"]
-                for i, unknown_cosigner in enumerate(unknown_cosigners):
+                for i, (unknown_cosigner, label) in enumerate(unknown_cosigners):
                     unknown_cosigner_name = request.form[
                         "unknown_cosigner_{}_name".format(i)
                     ]

@@ -924,15 +924,13 @@ class Wallet:
 
     @property
     def account_map(self):
-        return (
-            '{ "label": "'
-            + self.name.replace("'", "\\'")
-            + '", "blockheight": '
-            + str(self.blockheight)
-            + ', "descriptor": "'
-            + self.recv_descriptor.replace("/", "\\/")
-            + '" }'
-        )
+        account_map_dict = {
+            "label": self.name.replace("'", "_").replace('"', "_"),
+            "blockheight": self.blockheight,
+            "descriptor": self.recv_descriptor.replace("/", "\\/"),
+            "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
+        }
+        return json.dumps(account_map_dict)
 
     def getnewaddress(self, change=False, save=True):
         if change:

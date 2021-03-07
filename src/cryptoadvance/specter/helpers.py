@@ -256,7 +256,7 @@ def parse_wallet_data_import(wallet_data):
             xpubs += "[{}]{}/0/*,".format(
                 d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
             )
-            cosigners_types.append(d["hw_type"])
+            cosigners_types.append({"type": d["hw_type"], "label": None})
             i += 1
         xpubs = xpubs.rstrip(",")
         if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
@@ -288,8 +288,12 @@ def parse_wallet_data_import(wallet_data):
                 wallet_data["keystore"]["xpub"],
             ),
         )
-        cosigners_types = [wallet_data["keystore"]["hw_type"]]
+        cosigners_types = [{"type": wallet_data["keystore"]["hw_type"], "label": None}]
     else:
+        # Richer export data to reinitialize device types.
+        if "devices" in wallet_data:
+            cosigners_types = wallet_data["devices"]
+
         wallet_name = wallet_data.get("label", "Imported Wallet")
         recv_descriptor = wallet_data.get("descriptor", None)
     return (wallet_name, recv_descriptor, cosigners_types)
