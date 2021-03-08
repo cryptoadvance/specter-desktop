@@ -129,6 +129,9 @@ def setup_bitcoind():
         not os.path.isfile(app.specter.bitcoind_path)
         and bitcoind_setup_status["stage_progress"] == -1
     ):
+        app.specter.config["rpc"]["datadir"] = request.form.get(
+            "bitcoin_core_datadir", app.specter.config["rpc"]["datadir"]
+        )
         app.specter.config["bitcoind_setup"]["stage_progress"] = 0
         app.specter._save()
         t = threading.Thread(

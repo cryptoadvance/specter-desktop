@@ -32,12 +32,22 @@
     </div>
     <br><br>
     <div class="card center hidden" id="step2">
-        <h1><u>Step #2</u><br>Donwload and setup Bitcoin Core</h1>
+        <h1><u>Step #2</u><br>Download and setup Bitcoin Core</h1>
         <p>This should take between a few seconds to a few minutes, depending on your internet connection...</p>
         <p class="hidden warning" id="step2-helper-text">Here, Specter will download the Bitcoin Core release software, verify signatures to ensure download files can be trusted, and prepare basic configurations of your new Bitcoin Core node.</p>
         <div class="row center">
             <p class="explorer-link" id="step2-helper" onclick="toggleHelper('step2')">Unsure? Click here for more info!</p>
             <p class="explorer-link hidden" id="step2-support">Still need help?</p>
+        </div><br>
+        <span id="toggle_advanced_2" style="cursor: pointer;" onclick="toggleAdvanced(2)">Advanced &#9654;</span>
+        <br>
+        <br>
+        <div id="advanced_settings_2" class="card hidden">
+            <h2 style="text-decoration: underline;">Advanced configurations</h2><br>
+            <p style="text-align: left;">
+            Bitcoin Core data directory path:<br>
+            <input type="text" id="bitcoin_core_datadir" name="bitcoin_core_datadir" type="text" value="{{ specter.config.rpc.datadir }}">
+            </p>
         </div>
         <br><br>
         <div class="row">
@@ -108,6 +118,7 @@
         document.addEventListener("DOMContentLoaded", function(){
             showStep(currentStep);
         });
+
         function showStep(step) {
             currentStep = step;
             document.getElementById('step1').classList.add('hidden');
@@ -116,6 +127,7 @@
             document.getElementById('step4').classList.add('hidden');
             document.getElementById(`step${step}`).classList.remove('hidden');
         }
+
         function toggleHelper(step) {
             let helper = document.getElementById(step + "-helper");
             let helperText = document.getElementById(step + "-helper-text");
@@ -135,6 +147,18 @@
             }
         }
 
+        function toggleAdvanced(step) {
+            let advancedButton = document.getElementById(`toggle_advanced_${step}`);
+            let advancedSettings = document.getElementById(`advanced_settings_${step}`);
+            if (advancedSettings.classList.contains("hidden")) {
+                advancedSettings.classList.remove("hidden");
+                advancedButton.innerHTML = 'Advanced &#9660;';
+            } else {
+                advancedSettings.classList.add("hidden");
+                advancedButton.innerHTML = 'Advanced &#9654;';
+            }
+        }
+
         function toggleNodeTypeSelect() {
             let nodeTypeDiv = document.getElementById('select-node-type-div');
             if (document.getElementById('quicksync').checked) {
@@ -148,6 +172,7 @@
             let url = "{{ url_for('setup_bitcoind') }}"
             var formData = new FormData();
             formData.append('csrf_token', '{{ csrf_token() }}');
+            formData.append('bitcoin_core_datadir', document.getElementById('bitcoin_core_datadir').value);
             try {
                 const response = await fetch(
                     url,

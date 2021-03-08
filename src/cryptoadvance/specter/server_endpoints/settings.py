@@ -131,11 +131,15 @@ def bitcoin_core():
         elif action == "stopbitcoind":
             node_view = "internal"
             try:
-                app.specter.bitcoind.stop_bitcoind(pid=app.specter.config["bitcoind"])
+                app.specter.bitcoind.stop_bitcoind()
                 app.specter.set_bitcoind_pid(False)
                 time.sleep(5)
-            except Exception as e:
-                flash(f"Failed to stop Bitcoin Core {e}", "error")
+            except Exception:
+                try:
+                    flash("Stopping Bitcoin Core, this might take a few moments.")
+                    app.specter.rpc.stop()
+                except Exception as e:
+                    flash(f"Failed to stop Bitcoin Core {e}", "error")
         elif action == "startbitcoind":
             node_view = "internal"
             app.specter.bitcoind.start_bitcoind(

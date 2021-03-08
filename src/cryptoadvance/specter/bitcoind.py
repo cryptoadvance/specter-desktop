@@ -164,17 +164,14 @@ class BitcoindController:
     def check_bitcoind(rpcconn):
         """ returns true if bitcoind is running on that address/port """
         try:
-            print("CHEKCING1")
             rpcconn.get_rpc()  # that call will also check the connection
             return True
         except ConnectionRefusedError as e:
-            print(f"CHEKCING2: {e}")
             return False
         except TypeError as e:
-            print(f"CHEKCING3: {e}")
             return False
         except Exception as e:
-            print(f"CHEKCING4: {e}")
+            print(f"couldn't reach bitcoind - message returned: {e}")
             return False
 
     @staticmethod
