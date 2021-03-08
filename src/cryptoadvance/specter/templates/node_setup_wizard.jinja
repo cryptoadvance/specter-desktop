@@ -18,8 +18,8 @@
         {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 80px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 80px;"/>&nbsp;{{ bitcoin_svg('main', 80) }}<br>
         <br>Would you like to setup a new Bitcoin node or connect to an existing one?</h1>
-        <p class="hidden warning" id="step1-helper-text">If you have an existing Bitcoin Core node you would like to use, either running locally on this machine or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.<br><br>
-        Don't have a node? Specter can help you set one up! This wizard will help you get it up and running!</p>
+        <p class="hidden warning" id="step1-helper-text">If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.<br><br>
+        Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!</p>
         <div class="row center">
             <p class="explorer-link" id="step1-helper" onclick="toggleHelper('step1')">Unsure? Click here for more info!</p>
             <a class="explorer-link hidden" id="step1-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
@@ -32,12 +32,12 @@
     </div>
     <br><br>
     <div class="card center hidden" id="step2">
-        <h1><u>Step #2</u><br>Download and setup Bitcoin Core</h1>
+        <h1>Download and setup Bitcoin Core</h1>
         <p>This should take between a few seconds to a few minutes, depending on your internet connection...</p>
         <p class="hidden warning" id="step2-helper-text">Here, Specter will download the Bitcoin Core release software, verify signatures to ensure download files can be trusted, and prepare basic configurations of your new Bitcoin Core node.</p>
         <div class="row center">
             <p class="explorer-link" id="step2-helper" onclick="toggleHelper('step2')">Unsure? Click here for more info!</p>
-            <p class="explorer-link hidden" id="step2-support">Still need help?</p>
+            <a class="explorer-link hidden" id="step2-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
         </div><br>
         <span id="toggle_advanced_2" style="cursor: pointer;" onclick="toggleAdvanced(2)">Advanced &#9654;</span>
         <br>
@@ -56,14 +56,16 @@
     </div>
     <br><br>
     <div class="card center hidden" id="step3">
-        <h1><u>Step #3</u><br>Configue your node</h1>
+        <h1>Configue your node</h1>
         <p>QuickSync?&nbsp;&nbsp;
             <label class="switch">
                 <input type="checkbox" name="quicksync" id="quicksync" onchange="toggleNodeTypeSelect()" checked>
                 <span class="slider"></span>
             </label>&nbsp;&nbsp;
             <tool-tip title="What is QuickSync?">
-                QuickSync will set up your new node from a...
+                QuickSync will set up your new node from a trusted state of the blockchain.<br>
+                This means all block validation will be skipped until the most recent block in the snapshot.<br>
+                Later blocks will be normally validated like with a regular full node.
             </tool-tip>
         </p>
         <div class="hidden" id="select-node-type-div">
@@ -86,16 +88,17 @@
                 </label>
             </div>
         </div>
-        <div class="card hidden">
-            <h2 style="text-decoration: underline;">Advanced configurations</h2><br>
-            <p>
-            Bitcoin Core data directory path:<br>
-            <input type="text" id="datadir" name="datadir" type="text" value="{{ specter.config.rpc.datadir }}">
-            </p>
-        </div>
+        <p class="hidden warning" id="step3-helper-text">
+            Now that you have Bitcoin Core installed, your next step will be to sync with the network.<br><br>
+            Specter allows you to choose between normal syncing (IBD) - which will download and validate the entire history of the blockchain, or downloading a trusted snapshot of the current state of the network.<br><br>
+            This snapshot is produced and signed by Specter team - which means you will be trusting it to get the present state of the blockchain, instead of verifying the history yourself.<br><br>
+            It takes about 5GB to download and will setup a fully synced pruned node for you to use.
+            You can also disable the QuickSync option, and choose between setting up an archival node (which keeps the entire history) or a pruned node.<br><br>
+            <b>Please note: it is recommended to use a full archival node, or if storage is a constraint, a pruned node synced from scratch. The option for QuickSync is useful for getting started quickly, but is not recommended in the long term or when using Specter with large amounts.</b>
+        </p>
         <div class="row center">
             <p class="explorer-link" id="step3-helper" onclick="toggleHelper('step3')">Unsure? Click here for more info!</p>
-            <p class="explorer-link hidden" id="step3-support">Still need help?</p>
+            <a class="explorer-link hidden" id="step3-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
         </div>
         <br><br>
         <div class="row">
@@ -104,7 +107,8 @@
     </div>
     <br><br>
     <div class="card center hidden" id="step4">
-        <h1>Setup Complete! Your new node is up and running!</h1><br>
+        <h1>Setup Completed Successfully!</h1>
+        <p>Your new node is up and running!</p><br>
         <a href="{{url_for('about')}}" class="btn wizard-btn">Done</a>
     </div>
     <h1 id="stage-progress-details" class="hidden" style="margin: auto;"></h1>
