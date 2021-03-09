@@ -585,7 +585,6 @@ class Specter:
 
     def update_tor_controller(self):
         try:
-            print("HHHHHHHHH!!!!!!!!")
             tor_control_address = urlparse(self.proxy_url).netloc.split(":")[0]
             if tor_control_address == "localhost":
                 tor_control_address = "127.0.0.1"
