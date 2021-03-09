@@ -22,7 +22,9 @@ from ..util.bitcoind_setup_tasks import (
     setup_bitcoind_thread,
     setup_bitcoind_directory_thread,
 )
-
+from ..util.tor_setup_tasks import (
+    setup_tor_thread,
+)
 from pathlib import Path
 
 env_path = Path(".") / ".flaskenv"
@@ -172,6 +174,30 @@ def setup_bitcoind_directory():
     return {"success": "Starting Bitcoin Core setup!"}
 
 
+@app.route("/setup_tor", methods=["POST"])
+@login_required
+def setup_tor():
+    tor_setup_status = app.specter.config.get(
+        "torbrowser_setup", {"stage_progress": -1}
+    )
+    if (
+        not os.path.isfile(app.specter.torbrowser_path)
+        and tor_setup_status["stage_progress"] == -1
+    ):
+        app.specter.config["torbrowser_setup"]["stage_progress"] = 0
+        app.specter._save()
+        t = threading.Thread(
+            target=setup_tor_thread,
+            args=(app.specter,),
+        )
+        t.start()
+    elif os.path.isfile(app.specter.torbrowser_path):
+        return {"error": "tor is already installed"}
+    elif tor_setup_status["stage_progress"] != -1:
+        return {"error": "tor installation is still under progress"}
+    return {"success": "Starting Tor setup!"}
+
+
 @app.route("/get_node_setup_status")
 @login_required
 @app.csrf.exempt
@@ -180,6 +206,20 @@ def get_node_setup_status():
         "bitcoind_setup",
         {
             "installed": os.path.isfile(app.specter.bitcoind_path),
+            "stage_progress": -1,
+            "stage": "none",
+        },
+    )
+
+
+@app.route("/get_tor_setup_status")
+@login_required
+@app.csrf.exempt
+def get_tor_setup_status():
+    return app.specter.config.get(
+        "torbrowser_setup",
+        {
+            "installed": os.path.isfile(app.specter.torbrowser_path),
             "stage_progress": -1,
             "stage": "none",
         },

@@ -321,7 +321,7 @@ def tor():
                 else:
                     flash("Failed to make test request over Tor.", "error")
             except Exception as e:
-                flash("Failed to make test request over Tor. Error: %s" % e, "error")
+                flash("Failed to make test request over Tor.\nError: %s" % e, "error")
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
@@ -366,6 +366,8 @@ def tor():
         only_tor=only_tor,
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
+        torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),
+        torbrowser_running=app.specter.tor_daemon.is_running(),
         specter=app.specter,
         current_version=current_version,
         rand=rand,

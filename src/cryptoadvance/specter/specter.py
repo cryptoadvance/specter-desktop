@@ -14,6 +14,7 @@ from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
 from .bitcoind import BitcoindPlainController
+from .tor_daemon import TorDaemonController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
@@ -143,7 +144,17 @@ class Specter:
             "bitcoind_setup": {
                 "stage_progress": -1,
             },
+            "torbrowser_setup": {
+                "stage_progress": -1,
+            },
         }
+
+        if platform.system() == "Darwin":
+            self.torbrowser_path = os.path.join(
+                self.data_folder, "tor-binaries/tor.real"
+            )
+        else:
+            self.torbrowser_path = os.path.join(self.data_folder, "tor-binaries/tor")
 
         self.bitcoind_path = os.path.join(
             self.data_folder, "bitcoin-binaries/bitcoin-0.21.0/bin/bitcoind"
@@ -185,6 +196,13 @@ class Specter:
                 rpcuser=rpc_conf["user"],
                 rpcpassword=rpc_conf["password"],
             )
+
+            self.tor_daemon = TorDaemonController(
+                tor_daemon_path=self.torbrowser_path,
+            )
+
+            if os.path.isfile(self.torbrowser_path):
+                self.tor_daemon.start_tor_daemon()
 
             if not self.config["rpc"].get("external_node", True):
                 self.bitcoind.start_bitcoind(
