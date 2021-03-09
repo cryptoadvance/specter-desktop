@@ -108,12 +108,14 @@ def about():
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
 
-@app.route("/node_setup_wizard/", defaults={"step": 1}, methods=["GET", "POST"])
+@app.route("/node_setup_wizard/", defaults={"step": 0}, methods=["GET", "POST"])
 @app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
 @login_required
 def node_setup_wizard(step):
     app.specter.config["bitcoind_setup"]["stage"] = ""
     app.specter.config["bitcoind_setup"]["stage_progress"] = -1
+    app.specter.config["torbrowser_setup"]["stage"] = ""
+    app.specter.config["torbrowser_setup"]["stage_progress"] = -1
     app.specter._save()
 
     return render_template(

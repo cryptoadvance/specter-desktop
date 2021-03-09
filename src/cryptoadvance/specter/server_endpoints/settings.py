@@ -292,6 +292,9 @@ def tor():
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
         return redirect("")
+    app.specter.config["torbrowser_setup"]["stage"] = ""
+    app.specter.config["torbrowser_setup"]["stage_progress"] = -1
+    app.specter._save()
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
