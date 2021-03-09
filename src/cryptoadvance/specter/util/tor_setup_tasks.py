@@ -1,4 +1,4 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil
+import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
@@ -19,7 +19,7 @@ def setup_tor_thread(specter=None):
         specter.config["torbrowser_setup"]["stage"] = "Starting Tor setup process..."
         specter._save()
         TOR_OS_SUFFIX = {
-            "Windows": "torbrowser-install-win64-10.0.12_en-US.exe",
+            "Windows": "tor-win64-0.4.5.6.zip",
             "Linux": "tor-browser-linux64-10.0.12_en-US.tar.xz",
             "Darwin": "TorBrowser-10.0.12-osx64_en-US.dmg",
         }
@@ -68,7 +68,7 @@ def setup_tor_thread(specter=None):
             if not torbrowser_release_pgp_key.verify(signed_data, torbrowser_file_sig):
                 raise Exception("Failed to verify Tor PGP signature")
 
-        # TODO: Unpack file for each OS
+        os.makedirs(os.path.join(specter.data_folder, "tor-binaries"), exist_ok=True)
         if packed_name.endswith(".dmg"):
             result = subprocess.run(
                 [f'hdiutil attach "{packed_name}"'], shell=True, capture_output=True
@@ -79,15 +79,43 @@ def setup_tor_thread(specter=None):
             torbrowser_source_path = os.path.join(
                 "/Volumes", "Tor Browser", "Tor Browser.app", "Contents", "MacOS", "Tor"
             )
-            os.makedirs(
-                os.path.join(specter.data_folder, "tor-binaries"), exist_ok=True
-            )
             copytree(
                 src=torbrowser_source_path,
                 dst=os.path.join(specter.data_folder, "tor-binaries"),
             )
             disk_image_path = "/Volumes/Tor\ Browser"
             subprocess.run([f"hdiutil detach {disk_image_path}"], shell=True)
+        elif packed_name.endswith(".zip"):
+            with zipfile.ZipFile(packed_name) as zip_file:
+                for file in zip_file.filelist:
+                    if file.filename.endswith("dll") or file.filename.endswith("exe"):
+                        destination_exe = os.path.join(
+                            os.path.join(specter.data_folder, "tor-binaries"),
+                            file.filename.split("/")[-1],
+                        )
+                        with zip_file.open(file.filename) as zf, open(
+                            destination_exe, "wb"
+                        ) as f:
+                            shutil.copyfileobj(zf, f)
+        elif packed_name.endswith(".tar.xz"):
+            with tarfile.open(packed_name) as tar:
+                tor_files = [
+                    "libcrypto.so.1.1",
+                    "libevent-2.1.so.7",
+                    "libssl.so.1.1",
+                    "tor",
+                ]
+                for tor_file in tor_files:
+                    file_name = "tor-browser_en-US/Browser/TorBrowser/Tor/" + tor_file
+                    destination_file = os.path.join(
+                        os.path.join(specter.data_folder, "tor-binaries"), tor_file
+                    )
+                    extracted_file = tar.extractfile(file_name)
+                    with open(destination_file, "wb") as f:
+                        shutil.copyfileobj(extracted_file, f)
+                        if tor_file == "tor":
+                            st = os.stat(destination_file)
+                            os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
         os.remove(packed_name)
         specter.tor_daemon.start_tor_daemon()
     except Exception:

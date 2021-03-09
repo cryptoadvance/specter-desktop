@@ -153,6 +153,10 @@ class Specter:
             self.torbrowser_path = os.path.join(
                 self.data_folder, "tor-binaries/tor.real"
             )
+        elif platform.system() == "Windows":
+            self.torbrowser_path = os.path.join(
+                self.data_folder, "tor-binaries/tor.exe"
+            )
         else:
             self.torbrowser_path = os.path.join(self.data_folder, "tor-binaries/tor")
 
