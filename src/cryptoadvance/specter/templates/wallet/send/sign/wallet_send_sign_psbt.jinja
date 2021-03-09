@@ -105,7 +105,6 @@
 				<br>
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
-					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
 					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>Fee rate:</b>
 					{% if 'tx_full_size' in psbt %}
