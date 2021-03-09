@@ -201,14 +201,17 @@ def server(
             tor_control_address = urlparse(app.specter.proxy_url).netloc.split(":")[0]
             if tor_control_address == "localhost":
                 tor_control_address = "127.0.0.1"
-            app.controller = Controller.from_port(
+            app.specter.tor_controller = Controller.from_port(
                 address=tor_control_address,
                 port=int(app.specter.tor_control_port)
                 if app.specter.tor_control_port
                 else "default",
             )
+            app.specter.authenticate(
+                password=app.specter.config.get("torrc_password", "")
+            )
         except Exception:
-            app.controller = None
+            app.specter.tor_controller = None
         try:
             # if we have certificates
             if "ssl_context" in kwargs:
@@ -245,8 +248,8 @@ def server(
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:
-            if app.controller is not None:
-                app.controller.close()
+            if app.specter.tor_controller is not None:
+                app.specter.tor_controller.close()
 
     # check if we should run a daemon or not
     if daemon or restart:

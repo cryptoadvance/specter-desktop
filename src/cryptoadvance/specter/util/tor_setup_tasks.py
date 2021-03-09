@@ -117,7 +117,17 @@ def setup_tor_thread(specter=None):
                             st = os.stat(destination_file)
                             os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
         os.remove(packed_name)
+        if "torrc_password" not in specter.config:
+            specter.config["torrc_password"] = secrets.token_urlsafe(16)
+            specter._save()
+        with open(os.path.join(specter.data_folder, "torrc"), "w") as file:
+            file.write("ControlPort 9051")
+            file.write(
+                f"\nHashedControlPassword {specter.tor_daemon.get_hashed_password(specter.config['torrc_password'])}"
+            )
+
         specter.tor_daemon.start_tor_daemon()
+        specter.update_tor_controller()
     except Exception:
         pass
     finally:

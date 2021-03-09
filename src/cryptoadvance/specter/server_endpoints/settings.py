@@ -295,6 +295,8 @@ def tor():
     app.specter.config["torbrowser_setup"]["stage"] = ""
     app.specter.config["torbrowser_setup"]["stage_progress"] = -1
     app.specter._save()
+    if not app.specter.tor_controller:
+        app.specter.update_tor_controller()
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
@@ -337,7 +339,7 @@ def tor():
                     if hasattr(current_user, "is_admin") and current_user.is_admin:
                         try:
                             current_hidden_services = (
-                                app.controller.list_ephemeral_hidden_services()
+                                app.specter.tor_controller.list_ephemeral_hidden_services()
                             )
                         except Exception:
                             current_hidden_services = []

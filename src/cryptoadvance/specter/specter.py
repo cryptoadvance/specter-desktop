@@ -25,6 +25,8 @@ from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.price_providers import update_price
 import threading
+from urllib.parse import urlparse
+from stem.control import Controller
 
 logger = logging.getLogger(__name__)
 
@@ -203,6 +205,7 @@ class Specter:
 
             self.tor_daemon = TorDaemonController(
                 tor_daemon_path=self.torbrowser_path,
+                tor_config_path=os.path.join(self.data_folder, "torrc"),
             )
 
             if os.path.isfile(self.torbrowser_path):
@@ -223,6 +226,7 @@ class Specter:
         )
         if self.price_check and self.price_provider:
             self.price_checker.start()
+        self.update_tor_controller()
 
     def check(self, user=None, check_all=False):
         """
@@ -577,6 +581,24 @@ class Specter:
         if self.config["tor_control_port"] != tor_control_port:
             self.config["tor_control_port"] = tor_control_port
             self._save()
+            self.update_tor_controller()
+
+    def update_tor_controller(self):
+        try:
+            print("HHHHHHHHH!!!!!!!!")
+            tor_control_address = urlparse(self.proxy_url).netloc.split(":")[0]
+            if tor_control_address == "localhost":
+                tor_control_address = "127.0.0.1"
+            self.tor_controller = Controller.from_port(
+                address=tor_control_address,
+                port=int(self.tor_control_port) if self.tor_control_port else "default",
+            )
+            self.tor_controller.authenticate(
+                password=self.config.get("torrc_password", "")
+            )
+        except Exception as e:
+            logger.warning(f"Failed to connect to Tor control port. Error: {e}")
+            self.tor_controller = None
 
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """
