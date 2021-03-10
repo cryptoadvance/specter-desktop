@@ -12,7 +12,6 @@ import tempfile
 import time
 import json
 
-import docker
 
 from .util.shell import which
 from .rpc import RpcError
@@ -315,6 +314,8 @@ class BitcoindDockerController(BitcoindController):
     """ A class specifically controlling a docker-based bitcoind-container """
 
     def __init__(self, rpcport=18443, docker_tag="latest"):
+        import docker
+
         self.btcd_container = None
         super().__init__(rpcport=rpcport)
         self.docker_tag = docker_tag
