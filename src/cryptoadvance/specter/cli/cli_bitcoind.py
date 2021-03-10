@@ -159,7 +159,7 @@ def bitcoind(
         Path(config_obj["BTCD_REGTEST_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
     else:
         echo("starting container")
-        from ..bitcoind import BitcoindDockerController
+        from ..bitcoind_docker import BitcoindDockerController
 
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
