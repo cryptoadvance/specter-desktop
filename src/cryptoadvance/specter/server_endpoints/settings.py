@@ -296,8 +296,6 @@ def tor():
     app.specter.config["torbrowser_setup"]["stage"] = ""
     app.specter.config["torbrowser_setup"]["stage_progress"] = -1
     app.specter._save()
-    if not app.specter.tor_controller:
-        app.specter.update_tor_controller()
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor

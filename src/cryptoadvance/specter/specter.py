@@ -27,6 +27,7 @@ from .util.price_providers import update_price
 import threading
 from urllib.parse import urlparse
 from stem.control import Controller
+from .specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -588,16 +589,27 @@ class Specter:
             tor_control_address = urlparse(self.proxy_url).netloc.split(":")[0]
             if tor_control_address == "localhost":
                 tor_control_address = "127.0.0.1"
-            self.tor_controller = Controller.from_port(
+            self._tor_controller = Controller.from_port(
                 address=tor_control_address,
                 port=int(self.tor_control_port) if self.tor_control_port else "default",
             )
-            self.tor_controller.authenticate(
+            self._tor_controller.authenticate(
                 password=self.config.get("torrc_password", "")
             )
         except Exception as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
-            self.tor_controller = None
+            self._tor_controller = None
+
+    @property
+    def tor_controller(self):
+        if self._tor_controller:
+            return self._tor_controller
+        self.update_tor_controller()
+        if self._tor_controller:
+            return self._tor_controller
+        raise SpecterError(
+            "Failed to connect to the Tor daemon. Make sure ControlPort is properly configured."
+        )
 
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """

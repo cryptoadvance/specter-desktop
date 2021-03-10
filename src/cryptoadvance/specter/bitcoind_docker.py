@@ -104,7 +104,8 @@ class BitcoindDockerController(BitcoindController):
                 raise Exception("Ambigious Container running")
         return None
 
-    def search_bitcoind_container(self, all=False):
+    @staticmethod
+    def search_bitcoind_container(all=False):
         """ returns a list of containers which are running bitcoind """
         d_client = docker.from_env()
         return [
@@ -113,20 +114,23 @@ class BitcoindDockerController(BitcoindController):
             if (c.attrs["Config"].get("Cmd") or [""])[0] == "bitcoind"
         ]
 
-    def detect_bitcoind_container(self, with_rpcport):
+    @staticmethod
+    def detect_bitcoind_container(with_rpcport):
         """checks all the containers for a bitcoind one, parses the arguments and initializes
         the object accordingly
         returns rpcconn, btcd_container
         """
         d_client = docker.from_env()
-        potential_btcd_containers = self.search_bitcoind_container()
+        potential_btcd_containers = BitcoindDockerController.search_bitcoind_container()
         if len(potential_btcd_containers) == 0:
             logger.debug(
                 "could not detect container. Candidates: {}".format(
                     d_client.containers.list()
                 )
             )
-            all_candidates = self.search_bitcoind_container(all=True)
+            all_candidates = BitcoindDockerController.search_bitcoind_container(
+                all=True
+            )
             logger.debug(
                 "could not detect container. All Candidates: {}".format(all_candidates)
             )
