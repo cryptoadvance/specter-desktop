@@ -98,7 +98,7 @@ def bitcoind(
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
 
-    from ..bitcoind import BitcoindDockerController, BitcoindPlainController
+    from ..bitcoind import BitcoindPlainController
 
     if config is None:
         config = DEFAULT_CONFIG
@@ -159,6 +159,8 @@ def bitcoind(
         Path(config_obj["BTCD_REGTEST_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
     else:
         echo("starting container")
+        from ..bitcoind import BitcoindDockerController
+
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
         my_bitcoind.start_bitcoind(

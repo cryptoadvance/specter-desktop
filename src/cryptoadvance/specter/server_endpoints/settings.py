@@ -25,6 +25,7 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
+from ..util.error_handling import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -341,7 +342,8 @@ def tor():
                             current_hidden_services = (
                                 app.specter.tor_controller.list_ephemeral_hidden_services()
                             )
-                        except Exception:
+                        except Exception as e:
+                            handle_exception(e)
                             current_hidden_services = []
                         if len(current_hidden_services) != 0:
                             stop_hidden_services(app)
@@ -353,6 +355,7 @@ def tor():
                                 app.specter.toggle_tor_status()
                                 flash("Tor hidden service turn on successfully", "info")
                             except Exception as e:
+                                handle_exception(e)
                                 flash(
                                     "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
                                         e
