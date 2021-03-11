@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import time
 import json
+import platform
 
 
 from .util.shell import which
@@ -261,7 +262,10 @@ class BitcoindPlainController(BitcoindController):
         )
         logger.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
-        self.bitcoind_proc = subprocess.Popen("exec " + bitcoind_cmd, shell=True)
+        self.bitcoind_proc = subprocess.Popen(
+            ("exec " if platform.system() != "Windows" else "") + bitcoind_cmd,
+            shell=True,
+        )
         logger.debug(
             "Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
         )
