@@ -1,5 +1,4 @@
-""" Stuff to control a bitcoind-instance. Either directly by access to a bitcoind-executable or
-    via docker.
+""" Stuff to control a bitcoind-instance.
 """
 import atexit
 import logging

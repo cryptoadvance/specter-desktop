@@ -3,6 +3,7 @@ import os
 from cryptoadvance.specter.util.shell import which
 from cryptoadvance.specter.bitcoind import BitcoindPlainController
 from cryptoadvance.specter.bitcoind import fetch_wallet_addresses_for_mining
+from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
 
 
 def test_bitcoinddocker_running(caplog, docker, request):
