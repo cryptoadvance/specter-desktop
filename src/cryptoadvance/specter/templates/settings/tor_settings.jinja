@@ -14,8 +14,17 @@
 				<h2>Specer built-in Tor</h2><br>
 				{% if torbrowser_installed %}
 					<h2><b>Status: {% if torbrowser_running %}Running{% else %}Down{% endif %}</b></h2>
+					<br>
+					<div class="row">
+						<button type="submit" class="btn" name="action" value="uninstalltor">Uninstall Tor</button>&nbsp;&nbsp;
+						{% if torbrowser_running %}
+							<button type="submit" class="btn" name="action" value="stoptor">Stop Tor</button>
+						{% else %}
+							<button type="submit" class="btn" name="action" value="starttor">Start Tor</button>
+						{% endif %}
+					</div>
 				{% else %}
-					<button type="button" class="btn wizard-btn centered" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor!</button>
+					<button type="button" class="btn centered" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor!</button>
 				{% endif %}
 			</div>
 			<br><br>

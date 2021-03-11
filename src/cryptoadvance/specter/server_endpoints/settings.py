@@ -1,4 +1,4 @@
-import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys
+import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys, shutil
 import pgpy
 from pathlib import Path
 from flask import (
@@ -311,6 +311,26 @@ def tor():
             app.specter.update_only_tor(only_tor, current_user)
             app.specter.update_tor_control_port(tor_control_port, current_user)
             app.specter.check()
+        elif action == "starttor":
+            try:
+                app.specter.tor_daemon.start_tor_daemon()
+            except Exception as e:
+                flash(f"Failed to start Tor, error: {e}", "error")
+        elif action == "stoptor":
+            try:
+                app.specter.tor_daemon.stop_tor_daemon()
+                time.sleep(1)
+            except Exception as e:
+                flash(f"Failed to stop Tor, error: {e}", "error")
+        elif action == "uninstalltor":
+            try:
+                if app.specter.tor_daemon.is_running():
+                    app.specter.tor_daemon.stop_tor_daemon()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
+                os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                flash(f"Tor uninstalled successfully")
+            except Exception as e:
+                flash(f"Failed to stop Tor, error: {e}", "error")
         elif action == "test_tor":
             try:
                 requests_session = requests.Session()

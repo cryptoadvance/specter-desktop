@@ -220,6 +220,7 @@ class Specter:
                 time.sleep(15)
         except Exception as e:
             logger.error(e)
+        self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
         self.price_checker = Checker(
@@ -227,7 +228,6 @@ class Specter:
         )
         if self.price_check and self.price_provider:
             self.price_checker.start()
-        self.update_tor_controller()
 
     def check(self, user=None, check_all=False):
         """
