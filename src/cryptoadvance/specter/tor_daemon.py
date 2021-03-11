@@ -19,9 +19,9 @@ class TorDaemonController:
     def start_tor_daemon(self, cleanup_at_exit=True):
         if self.tor_daemon_proc != None:
             return self.tor_daemon_proc
-        # exec will prevent creating a child-process and will make tor_daemon_proc.terminate() work as expected
+
         self.tor_daemon_proc = subprocess.Popen(
-            f'exec "{self.tor_daemon_path}" --defaults-torrc {self.tor_config_path}',
+            f'"{self.tor_daemon_path}" --defaults-torrc {self.tor_config_path}',
             shell=True,
         )
         logger.debug(
@@ -31,9 +31,9 @@ class TorDaemonController:
     def get_hashed_password(self, password):
         if self.tor_daemon_proc != None:
             return self.tor_daemon_proc
-        # exec will prevent creating a child-process and will make tor_daemon_proc.terminate() work as expected
+
         p = subprocess.Popen(
-            f'exec "{self.tor_daemon_path}" --hash-password {password}',
+            f'"{self.tor_daemon_path}" --hash-password {password}',
             shell=True,
             stdout=subprocess.PIPE,
         )
