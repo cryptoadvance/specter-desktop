@@ -97,7 +97,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
     try:
         if quicksync:
             response = specter.requests_session().get(
-                "https://prunednode.today/snapshot210224.zip", stream=True
+                "https://prunednode.today/latest.zip", stream=True
             )
             with open(
                 os.path.join(specter.data_folder, "snapshot-prunednode.zip"), "wb"
@@ -122,9 +122,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
             specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
             specter._save()
-            prunednode_sha256sums_url = (
-                "https://prunednode.today/snapshot210224.signed.txt"
-            )
+            prunednode_sha256sums_url = "https://prunednode.today/latest.signed.txt"
             response = specter.requests_session().get(
                 prunednode_sha256sums_url, stream=True
             )

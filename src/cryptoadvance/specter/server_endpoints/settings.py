@@ -317,7 +317,8 @@ def tor():
                 requests_session.proxies["http"] = proxy_url
                 requests_session.proxies["https"] = proxy_url
                 res = requests_session.get(
-                    "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website
+                    # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
+                    "https://protonirockerxow.onion",  # Proton mail onion website
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
