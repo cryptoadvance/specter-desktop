@@ -1,6 +1,8 @@
 import logging
 import subprocess
 import platform
+import os
+import signal
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +46,6 @@ class TorDaemonController:
 
     def stop_tor_daemon(self):
         if self.tor_daemon_proc:
-            self.tor_daemon_proc.terminate()
             if platform.system() == "Windows":
-                subprocess.call(
-                    ["taskkill", "/F", "/T", "/PID", str(self.tor_daemon_proc.pid)]
-                )
+                subprocess.run("Taskkill /IM tor.exe /F")
+            self.tor_daemon_proc.terminate()

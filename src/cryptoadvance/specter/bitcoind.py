@@ -300,9 +300,7 @@ class BitcoindPlainController(BitcoindController):
                 logger.info("bitcoind did not terminated in time, killing!")
                 p.kill()
         if platform.system() == "Windows":
-            subprocess.call(
-                ["taskkill", "/F", "/T", "/PID", str(self.bitcoind_proc.pid)]
-            )
+            subprocess.run("Taskkill /IM bitcoind.exe /F")
 
     def stop_bitcoind(self):
         self.cleanup_bitcoind()

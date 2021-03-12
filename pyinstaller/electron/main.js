@@ -264,9 +264,11 @@ function startSpecterd(specterdPath) {
     specterdArgs = specterdArgs.concat(specterdExtraArgs)
   }
   specterdProcess = spawn(specterdPath, specterdArgs);
-  specterdProcess.stdout.on('data', (_) => {
-    if (mainWindow) {
-      createWindow(appSettings.specterURL)
+  specterdProcess.stdout.on('data', (data) => {
+    if(data.toString().includes('Serving Flask app "cryptoadvance.specter.server"')) {
+      if (mainWindow) {
+        createWindow(appSettings.specterURL)
+      }
     }
   });
   specterdProcess.stderr.on('data', function(_) {
@@ -285,6 +287,13 @@ function startSpecterd(specterdPath) {
     console.log(`child process exited with code ${code}`);
   });
 }
+
+app.on('window-all-closed', function(){
+  if(platformName == 'win64') {
+    quitSpecterd()
+    app.quit()
+  }
+});
 
 app.on('before-quit', () => {
   if (!quitted) {

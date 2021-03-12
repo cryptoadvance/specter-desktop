@@ -6,7 +6,6 @@ import hmac
 import json
 import logging
 import os
-import psutil
 import six
 import subprocess
 import sys
