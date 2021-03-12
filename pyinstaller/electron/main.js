@@ -169,8 +169,13 @@ function initMainWindow(specterURL) {
   });
 
   mainWindow.on('close', function (event) {
-      event.preventDefault();
-      mainWindow.hide();
+      if(platformName == 'win64') {
+        quitSpecterd()
+        app.quit()
+      } else {
+        event.preventDefault();
+        mainWindow.hide();
+      }
   });
 
   mainWindow.webContents.on("did-fail-load", function() {
