@@ -24,9 +24,7 @@ function check_consistency {
   fi
 }
 
-if [[ "$*" != *skip-consistency-check* ]]; then
-  check_consistency
-fi
+check_consistency
 
 function sub_default {
     cat << EOF
@@ -313,9 +311,6 @@ function parse_and_execute() {
       ;;
     --docker)
       DOCKER=true
-      shift
-      ;;
-    --skip-consistency-check)
       shift
       ;;
     *)
