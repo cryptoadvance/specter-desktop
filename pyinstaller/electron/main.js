@@ -325,7 +325,8 @@ function quitSpecterd() {
   if (specterdProcess) {
     try {
       if (platformName == 'win64') {
-        exec('taskkill -F -T -PID ' + specterdProcess.pid);
+        exec('taskkill /F /T /PID ' + specterdProcess.pid);
+        exec('taskkill /IM specterd.exe ');
         process.kill(-specterdProcess.pid)
       }
       specterdProcess.kill('SIGINT')
