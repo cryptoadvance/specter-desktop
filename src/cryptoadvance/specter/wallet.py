@@ -258,7 +258,7 @@ class Wallet:
                 obj = self.rpc.listsinceblock()
         txs = obj["transactions"]
         last_block = obj["lastblock"]
-        addresses = [tx["address"] for tx in txs]
+        addresses = [tx["address"] for tx in txs if "address" in tx]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
         max_recv = self.address_index - 1
@@ -713,6 +713,30 @@ class Wallet:
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
+    def is_tx_purged(self, txid):
+        # Is tx unconfirmed and no longer in the mempool?
+        try:
+            tx = self.rpc.gettransaction(txid)
+
+            # Do this quick test first to avoid the costlier rpc call
+            if tx["confirmations"] > 0:
+                return False
+
+            return txid not in self.rpc.getrawmempool()
+        except Exception as e:
+            logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
+
+    def abandontransaction(self, txid):
+        # Sanity checks: tx must be unconfirmed and cannot be in the mempool
+        tx = self.rpc.gettransaction(txid)
+        if tx["confirmations"] != 0:
+            raise SpecterError("Cannot abandon a transaction that has a confirmation.")
+        elif txid in self.rpc.getrawmempool():
+            raise SpecterError(
+                "Cannot abandon a transaction that is still in the mempool."
+            )
+        self.rpc.abandontransaction(txid)
+
     def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
         delete_file(self._transactions.path)
         self.fetch_transactions()
@@ -962,6 +986,10 @@ class Wallet:
         except:
             return None
 
+    def is_address_mine(self, address):
+        addrinfo = self.get_address_info(address)
+        return addrinfo and not addrinfo.is_external
+
     def get_electrum_file(self):
         """ Exports the wallet data as Electrum JSON format """
         electrum_devices = [
@@ -1210,6 +1238,7 @@ class Wallet:
         readonly=False,
         rbf=True,
         existing_psbt=None,
+        rbf_edit_mode=False,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -1221,17 +1250,20 @@ class Wallet:
         extra_inputs = []
 
         if not existing_psbt:
-            if self.full_available_balance < sum(amounts):
-                raise SpecterError(
-                    "The wallet does not have sufficient funds to make the transaction."
-                )
+            if not rbf_edit_mode:
+                if self.full_available_balance < sum(amounts):
+                    raise SpecterError(
+                        "The wallet does not have sufficient funds to make the transaction."
+                    )
 
             if selected_coins != []:
                 still_needed = sum(amounts)
                 for coin in selected_coins:
                     coin_txid = coin.split(",")[0]
                     coin_vout = int(coin.split(",")[1])
-                    coin_amount = float(coin.split(",")[2])
+                    coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
+                        coin_vout
+                    ]["value"]
                     extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
                     still_needed -= coin_amount
                     if still_needed < 0:
@@ -1332,7 +1364,63 @@ class Wallet:
 
         return psbt
 
-    def send_rbf_tx(self, txid, fee_rate):
+    def get_rbf_utxo(self, rbf_tx_id):
+        decoded_tx = self.decode_tx(rbf_tx_id)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        rbf_utxo = [
+            {
+                "txid": tx["txid"],
+                "vout": tx["vout"],
+                "details": self.gettransaction(tx["txid"], decode=True)["vout"][
+                    tx["vout"]
+                ],
+            }
+            for tx in decoded_tx["used_utxo"]
+        ]
+        return [
+            {
+                "txid": utxo["txid"],
+                "vout": utxo["vout"],
+                "amount": utxo["details"]["value"],
+                "address": utxo["details"]["addresses"][0],
+                "label": self.getlabel(utxo["details"]["addresses"][0]),
+            }
+            for utxo in rbf_utxo
+        ]
+
+    def decode_tx(self, txid):
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        return {
+            "addresses": [
+                vout["scriptPubKey"]["addresses"][0]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
+            ],
+            "amounts": [
+                vout["value"]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                or not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                ).change
+            ],
+            "used_utxo": [
+                {"txid": vin["txid"], "vout": vin["vout"]} for vin in psbt["tx"]["vin"]
+            ],
+        }
+
+    def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
         raw_psbt = self.rpc.utxoupdatepsbt(
             self.rpc.converttopsbt(raw_tx, True),

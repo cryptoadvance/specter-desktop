@@ -131,7 +131,7 @@
                 this.confirmations.innerHTML = `Unconfirmed`;
             }
 
-            if (this.tx.category == "send" && this.tx["bip125-replaceable"] == "yes") {
+            if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes") {
                 this.rbf.classList.remove('hidden');
                 this.rbf.onclick = () => {
                     let txDataPopup = document.getElementById('tx-popup');
@@ -151,8 +151,26 @@
                     <br>
                     <br>
                     <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>
+                    <br>
+			        <span class="toggle_advanced_rbf" style="cursor: pointer;">Advanced {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+                    <div class="advanced_rbf hidden warning">
+                        <p style="max-width: 400px;">If you would like further customization, you can click here to fully edit the transaction.<br>(advanced, not recommended for new users)</p>
+                        <button type="submit" name="action" value="rbf_edit" class="btn centered">Edit the transaction (advanced)</button>
+                    </div>
                     </form>
                     `;
+                    txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
+                        let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
+                        let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
+                        if (advancedSettings.classList.contains('hidden')) {
+                            advancedSettings.classList.remove('hidden')
+                            advancedButton.innerHTML = 'Advanced &#9660;';
+                        } else {
+                            advancedSettings.classList.add('hidden')
+                            advancedButton.innerHTML = 'Advanced &#9654;';
+                        }
+                    }
+
                     showPageOverlay('tx-popup');
                 }
             } else {

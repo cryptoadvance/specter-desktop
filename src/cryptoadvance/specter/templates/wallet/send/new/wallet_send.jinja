@@ -25,6 +25,7 @@
 
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<h1 class="padded">Create Transaction</h1>
 		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
 			{% if specter.unit == 'sat' %}
@@ -253,6 +254,10 @@
 		}
 
 		function isAboveWalletBalance(unit, amount) {
+			// TODO: Currently check is disabled for RBF for simplicity, should add it back for RBF
+			if ("{{rbf_tx_id}}") {
+				return false;
+			}
 			return (unit == 'sat' ? amount / 1e8 : parseFloat(amount.toFixed(8))) > parseFloat(parseFloat('{{ wallet.full_available_balance }}').toFixed(8));
 		}
 
@@ -400,15 +405,15 @@
 
 		function toggleAdvanced() {
 			let advancedButton = document.getElementById('toggle_advanced');
-			let advancedSettigns = document.getElementById('advanced_settings');
-			if (advancedSettigns.style.display === 'block') {
-				advancedSettigns.style.display = 'none';
+			let advancedSettings = document.getElementById('advanced_settings');
+			if (advancedSettings.style.display === 'block') {
+				advancedSettings.style.display = 'none';
 				advancedButton.innerHTML = 'Advanced &#9654;';
 				if (isCoinSelectionActive()) {
 					toggleExpand();
 				}
 			} else {
-				advancedSettigns.style.display = 'block';
+				advancedSettings.style.display = 'block';
 				advancedButton.innerHTML = 'Advanced &#9660;';
 			}
 		}

@@ -1,6 +1,6 @@
 <div>
     {% from 'wallet/send/new/components/coin_selection_table.jinja' import coin_selection_table %}
-    {{ coin_selection_table(wallet.utxo, specter.explorer, selected_coins) }}
+    {{ coin_selection_table(wallet.utxo + rbf_utxo, specter.explorer, selected_coins, rbf_tx_id) }}
     <br>
 </div>
 
@@ -22,8 +22,8 @@
         validateForm();
     }
 
-    function updateCoinSelect(coin) {
-        let coinAmount = parseFloat(coin.value.split(', ')[2]);
+    function updateCoinSelect(coin, amount) {
+        let coinAmount = parseFloat(amount);
         if (coin.checked) {
             coinSelectAmount += coinAmount;
         } else {
