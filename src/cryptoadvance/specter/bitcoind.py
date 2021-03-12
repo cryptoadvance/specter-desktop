@@ -101,9 +101,9 @@ class BitcoindController:
             datadir=datadir,
             extra_args=extra_args,
         )
+
         self.wait_for_bitcoind(self.rpcconn)
         self.mine(block_count=100)
-        logger.info("bitcoind successfully started")
         return self.rpcconn
 
     def version(self):
@@ -155,36 +155,28 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn, raise_exception=False):
+    def check_bitcoind(rpcconn):
         """ returns true if bitcoind is running on that address/port """
         try:
             rpcconn.get_rpc()  # that call will also check the connection
-            logger.debug("check_bitcoind ran successfully")
             return True
-        except Exception as e:
-            if raise_exception:
-                logger.debug("check_bitcoind: Raising exception ...")
-                raise e
-            else:
-                logger.debug("check_bitcoind:  returning False")
-                return False
+        except ConnectionRefusedError:
+            return False
+        except TypeError:
+            return False
+        except Exception:
+            return False
 
     @staticmethod
     def wait_for_bitcoind(rpcconn):
         """ tries to reach the bitcoind via rpc. Will timeout after 10 seconds """
-        logger.debug("Starting to wait for bitcoind ...")
         i = 0
         while True:
-            logger.debug(f"timeout in {20-i}")
             if BitcoindController.check_bitcoind(rpcconn):
-                logger.debug(f"leaving loop!")
                 break
             time.sleep(0.5)
             i = i + 1
             if i > 20:
-                logger.debug(f"Timeout reached waiting for bitcoind: {rpcconn}")
-                logger.error("Raising Exception")
-                BitcoindController.check_bitcoind(rpcconn, raise_exception=True)
                 raise Exception(
                     "Timeout while trying to reach bitcoind at rpcport {} !".format(
                         rpcconn
@@ -365,8 +357,6 @@ class BitcoindDockerController(BitcoindController):
             )
         else:
             self.rpcconn = rpcconn
-        time.sleep(10)
-        self.dump_logs()
         return
 
     def stop_bitcoind(self):
@@ -454,7 +444,6 @@ class BitcoindDockerController(BitcoindController):
             if "CI" in os.environ:  # this is a predefined variable in gitlab
                 # This works on Linux (direct docker) and gitlab-CI but not on MAC
                 ipaddress = btcd_container.attrs["NetworkSettings"]["IPAddress"]
-                logger.debug(f"CI detected. Setting ip-address to {ipaddress}")
             else:
                 # This works on most machines but not on gitlab-CI
                 ipaddress = "127.0.0.1"
@@ -482,12 +471,6 @@ class BitcoindDockerController(BitcoindController):
             i = i + 1
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
-
-    def dump_logs(self):
-        """ Simply spitsout the container logs to stdout """
-        logger.info("-----------------Docker-Logs-Start-----------------")
-        logger.info(self.btcd_container.logs())
-        logger.info("-----------------Docker-Logs-End-------------------")
 
 
 def fetch_wallet_addresses_for_mining(data_folder):
