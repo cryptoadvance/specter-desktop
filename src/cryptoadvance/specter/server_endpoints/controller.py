@@ -80,6 +80,9 @@ def inject_debug():
 @app.route("/")
 @login_required
 def index():
+    if request.args.get("mode"):
+        if request.args.get("mode") == "remote":
+            pass
     notify_upgrade(app, flash)
     if len(app.specter.wallet_manager.wallets) > 0:
         return redirect(

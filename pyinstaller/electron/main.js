@@ -104,7 +104,7 @@ function createWindow (specterURL) {
 
   updateSpecterdStatus('Specter is running...')
 
-  mainWindow.loadURL(specterURL)
+  mainWindow.loadURL(specterURL + '?mode=remote')
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 }

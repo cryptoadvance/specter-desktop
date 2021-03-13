@@ -35,6 +35,9 @@
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
 						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
 					</a>
+					<a class="settings-bar-btn" href="{{ url_for('about') }}" title="About and help">
+						<img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 22px;"/>
+					</a>
 					{% if specter.config.auth.method != "none" %}
 						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}">
 							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
@@ -71,6 +74,21 @@
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
 					<br><br><br>
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
+					{% if ('://localhost:' in url_for('index', _external=True) or '://127.0.0.1:' in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
+						<div style="margin: auto; display: block;">
+							<div class="card" style="margin: auto;padding: 5px 10px 15px;">
+								<div class="row">
+									<img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/>
+									<p style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">Using Specter from a remote machine?</p>
+								</div>
+								<p style="margin-left: 30px; margin-top: -10px; margin-right: 20px; text-align: left;">If you run Specter on a remote machine, such as an Umbrel or a myNode, you need to update Specter USB settings to connect hardware wallets via USB.</p>
+								<a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
+									<h4>Click here to update your settings</h4>
+								</a>
+							</div>
+							<br>
+						</div>
+					{% endif %}
 					<table>
 						<tbody>
 							<tr>

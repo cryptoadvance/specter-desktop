@@ -1,52 +1,122 @@
 {% extends "base.jinja" %}
 {% block main %}
-		<h1 id="title" class="settings-title">HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
-		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('hwi', current_user) }}
-
-		<div class="card" style="margin: 20px auto;">
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
-						If you connect the USB directly to the machine on which you are running Specter, leave the default value here (/hwi/api/).<br><br>
-						If you are using Specter from a remote device, you will need to first run Specter locally in a HWIBridge mode.<br><br>
-						Then update this setting here to the URL you are running HWIBridge on (default: http://127.0.0.1:25441/hwi/api/).
-					</span>
-				</p>
+	{% include "includes/hwi/hwi.jinja" %}
+	<h1 id="title" class="settings-title">HWI Bridge settings - Specter Desktop {{ current_version }}</h1>
+	{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+	{{ settings_menu('hwi', current_user) }}
+	<br>
+	<h1>Hardware Devices Bridge</h1>
+	<p class="note center">The hardware devices bridge allows Specter to communicate<br>with your hardware devices over USB.</p>
+	<br>
+	<div class="hidden" id="remote-warning">
+		<div class="card" style="padding: 5px 10px 15px;">
+			<div class="row">
+				<img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/>
+				<p style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">Before changing these settings:</p>
 			</div>
+			<p style="margin-left: 30px; margin-top: -10px;">If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely.</p>
+			<img src="{{ url_for('static', filename='img/preferences_tab_screenshot.png')}}" width="400px;" style="margin: auto; border: 0px solid #000; display: block;"/>
+		</div>
+		<br>
+	</div>
+	<br>
+	<label class="card" style="padding: 20px 10px 5px;">
+		<div class="row">
+			<input type="radio" name="hwibridge" value="local" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
+			<h2 style="text-align: left; margin-left: 10px;">Local USB connection</h2>
+		</div>
+		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">Select this if you run Specter on this compter</p>
+	</label>
+	<br>
+	<label class="card" style="padding: 20px 10px 5px;">
+		<div class="row">
+			<input type="radio" name="hwibridge" value="remote" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == 'http://127.0.0.1:25441/hwi/api/' %} checked {% endif %}/>
+			<h2 style="text-align: left; margin-left: 10px;">Remote Specter USB connection</h2>
+		</div>
+		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">Select this if you run Specter on a different machine</p>
+	</label>
+	<br>
+	<label class="card" style="padding: 20px 10px 5px;">
+		<div class="row">
+			<input type="radio" name="hwibridge" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url != 'http://127.0.0.1:25441/hwi/api/' and specter.hwi_bridge_url != '/hwi/api/' %} checked {% endif %}/>
+			<h2 style="text-align: left; margin-left: 10px;">Advanced configurations</h2>
+		</div>
+		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">Select this if you would like to configure manually (experts only)</p>
+	</label>
+	<style>
+		ol,li {
+			margin: 0;
+			padding: 0;
+		}
+
+		ol {
+			counter-reset: counter;
+			display: table;
+		}
+
+		li {
+			list-style: none;
+			counter-increment: counter;
+			display: table-row;
+		}
+
+		li::before {
+			content: counter(counter) ".";
+			display: table-cell;
+			text-align: right;
+			padding-right: .3em;
+		}
+	</style>
+	<form action="?" method="POST">
+	<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+	<div class="hidden" id="remote-hwi-bridge-config"></div>
+	<div class="hidden" id="custom-hwi-bridge-config">
+		<br>
+		<div class="card" style="margin: 20px auto;">
 			HWI Bridge URL:
 			<br>
-			<form action="?" method="POST">
-				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+			
 				<div class="row break-row-mobile">
-					<input type="text" name="hwi_bridge_url" value="{{ specter.hwi_bridge_url }}">
-					&nbsp;<input type="submit" class="btn" style="width: 200px" value="Save"/>
+					<input type="text" name="hwi_bridge_url" id="hwi_bridge_url" value="{{ specter.hwi_bridge_url }}">
 				</div>
-			</form>
 		</div>
-		<h1 style="margin-bottom: 0">Whitelist settings
-		<div class="tool-tip" style="font-size: 0.7em">
-			<i class="tool-tip__icon">i</i>
-			<p class="tool-tip__info">
-				<span class="info">
-					<span class="info__title">HWI Bridge: Connect USB devices with Specter<br><br></span>
-					This page is loaded from the HWI bridge server you defined above.<br><br>
-					To communicate with hardware wallets on your computer you need to make sure Specter domain is whitelisted.<br><br>
-					Add whitelist Specter domain to this whitelist.<br><br>
-					If the page is not loading - something is wrong with your configuration. Maybe wrong url?
-				</span>
-			</p>
-		</div>
-		</h1>
-		<span class="note" style="text-align: center;margin: 0; padding: 0; margin-bottom: 20px; line-height: 1;">
-			<br>Whitelist Specter domain name ( <code alt="Click to copy" id="url" style="text-decoration: underline; display:inline-block; margin: 0; height: auto;" onclick="copyText(this.innerHTML, 'Copied URL: '+this.innerHTML);"></code> ) here:
-		</span>
-		<script type="text/javascript">
-			let url = window.location.href;
-			let arr = url.split("/");
-			document.getElementById("url").innerHTML = arr[0] + "//" + arr[2]+"/";
-		</script>
-		<iframe src='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' style="min-height: 550px; width: 100%; margin: 0px;" frameBorder="0"></iframe>
+	</div>
+	<br>
+	<button type="submit" class="btn" value="update_hwi" style="width: 580px;">Save Changes</button>
+	</form>
+	<br>
+	<p style="text-align: left; width: 580px;">You might also need to allow Specter to communicate with the device bridge.<br></p>
+	<ol style="text-align: left; width: 580px;line-height:2;">
+		<li>Access the device bridge settings. <a href='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' target="_blank" style="color: #fff;">Click here</a>.</li>
+		<li>Add the domain {{ url_for('index', _external=True) }} <span style="text-decoration: underline; cursor: pointer;" onclick="copyText('{{ url_for('index', _external=True) }}', 'Copied Specter URL')">(copy)</span> to the whitelist there.<br>Save the changes and close the window.</li>
+		<li>Connect your hardware wallet to your computer and test if Specter manage to reach it:&nbsp;&nbsp; <button class="btn" type="button" style="display: inline; width: 140px; margin-top:5px;" onclick="testHWIConnection()">Test connection!</button></li>
+	</ol>
+
+	<div style="height: 100%"></div>
+	<br>
+	<script>
+		async function testHWIConnection() {
+			if (await enumerate()) {
+				showNotification('Device detected successfully! USB connections configured correctly!');
+			} else {
+				showError('Failed to detect devices');
+			}
+		}
+		function switchHWIBridgeConfView(viewType) {
+			document.getElementById('custom-hwi-bridge-config').classList.add('hidden')
+			document.getElementById('remote-hwi-bridge-config').classList.add('hidden')
+			document.getElementById('remote-warning').classList.remove('hidden')
+			let bridgeUrl = document.getElementById('hwi_bridge_url')
+			if (viewType == 'custom') {
+				document.getElementById('custom-hwi-bridge-config').classList.remove('hidden')
+				bridgeUrl.value = '{{ specter.hwi_bridge_url }}';
+			} else if (viewType == 'remote') {
+				document.getElementById('remote-hwi-bridge-config').classList.remove('hidden')
+				bridgeUrl.value = 'http://127.0.0.1:25441/hwi/api';
+			} else {
+				document.getElementById('remote-warning').classList.add('hidden')
+				bridgeUrl.value = '/hwi/api';
+			}
+		}
+	</script>
 {% endblock %}
