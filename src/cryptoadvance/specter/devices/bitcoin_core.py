@@ -144,7 +144,7 @@ class BitcoinCore(Device):
     def create_psbts(self, base64_psbt, wallet):
         return {"core": base64_psbt}
 
-    def sign_psbt(self, base64_psbt, wallet, file_password):
+    def sign_psbt(self, base64_psbt, wallet, file_password=None):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
         rpc = wallet.manager.rpc.wallet(
@@ -160,6 +160,19 @@ class BitcoinCore(Device):
         if file_password:
             rpc.walletlock()
         return signed_psbt
+
+    def sign_raw_tx(self, raw_tx, wallet, file_password=None):
+        # Load the wallet if not loaded
+        self._load_wallet(wallet.manager)
+        rpc = wallet.manager.rpc.wallet(
+            os.path.join(wallet.manager.rpc_path + "_hotstorage", self.alias)
+        )
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
+        signed_tx = rpc.signrawtransactionwithwallet(raw_tx)
+        if file_password:
+            rpc.walletlock()
+        return signed_tx
 
     def delete(
         self, wallet_manager, bitcoin_datadir=get_default_datadir(), chain="main"

@@ -23,7 +23,7 @@
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
-  - [Devices? Wallets? Where ist the difference?](#devices-wallets-where-ist-the-difference)
+  - [Devices? Wallets? What is the difference?](#devices-wallets-what-is-the-difference)
   - [*What do I need to do in order to create a multisig wallet?*](#what-do-i-need-to-do-in-order-to-create-a-multisig-wallet)
   - [*Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*](#is-my-understanding-correct-that-specter-desktop-does-not-hold-any-keys-and-you-need-to-create-a-multisig-wallet-in-order-to-sign-transactions-and-send-funds)
   - [*How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*](#how-would-one-sign-with-electrum-do-i-need-to-create-multisig-wallet-in-electrum-first-or-can-i-create-it-with-specter-desktop)
@@ -33,7 +33,7 @@
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
   - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
-  - [I forgot my password, how can i reset it?](#i-forgot-my-password-how-can-i-reset-it)
+  - [I forgot my password, how can I reset it?](#i-forgot-my-password-how-can-i-reset-it)
 - [BACKING UP FUNDS](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-access-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
   - [*To recover a multisig that was built on specter (eg: 2 of 3 with ColdCard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
@@ -194,9 +194,9 @@ It depends on your setup, and can be customized accordingly.
 
 Specter-desktop makes many requests to Bitcoin Core RPC, so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default Bitcoin Core RPC is connecting over HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md) to fix that.
 
-If you use hardware wallets and they are usb-conneced to specter-desktop then you should take these precautions, but if they are air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
+If you use hardware wallets and they are usb-connected to specter-desktop then you should take these precautions, but if they are air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
 
-## Devices? Wallets? Where ist the difference?
+## Devices? Wallets? What is the difference?
 
 The logic is that devices store keys, and you can combine these keys in different wallets like multisig or singlesig. So the same device can be used for a nested segwit wallet, native segwit, and many multisig wallets.
 The only requirement is that all cosigners in multisig wallets should be different devices.
@@ -204,7 +204,7 @@ For some devices it makes sense to import keys, for example for another passphra
 
 ## *What do I need to do in order to create a multisig wallet?*
 
-XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, etc.) in order to create a multistig setup, but don't worry it's in watch-only mode and it's your own full node! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
+XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, etc.) in order to create a multisig setup, but don't worry it's in watch-only mode and it's your own full node! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
 
 ## *Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*
 
@@ -248,7 +248,7 @@ This feature is optional and not needed for the wallet to function. It's only us
 Technically, you can use any block explorer but that's not what you want to do, unless you want to try out the feature.
 Simply fill in https://blockstream.info/ to use that block explorer, but you will leak privacy doing that.
 
-## I forgot my password, how can i reset it?
+## I forgot my password, how can I reset it?
 
 Check the .specter-folder in your home folder (or on your mynode/raspiblitz/...). There is a file called `config.json` in there which has a line like this:
 ```
