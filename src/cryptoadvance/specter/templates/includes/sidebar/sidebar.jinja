@@ -114,7 +114,7 @@
                 </a>
             {% endif %}
         </div>
-        <span id="wallets-loading-indicator" class="note grow {% if not specter.wallet_manager.is_loading %}hidden{% endif %}" style="text-align: left; margin-left: 20px; margin-top: 5px;"><img height="16px" class="spinning" id="wallet-manager-loader" style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" /> Updating wallets data...</span>
+        <span id="wallets-loading-indicator" class="note grow {% if not specter.wallet_manager.is_loading or not specter.chain %}hidden{% endif %}" style="text-align: left; margin-left: 20px; margin-top: 5px;"><img height="16px" class="spinning" id="wallet-manager-loader" style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" /> Updating wallets data...</span>
         {% set loading_wallets = [] %}
         {% for wallet in specter.wallet_manager.wallets_update_list if wallet not in specter.wallet_manager.wallets_names %}
             {% set loading_wallets = loading_wallets.append(specter.wallet_manager.wallets_update_list[wallet]) %}
@@ -212,6 +212,10 @@
             for (wallet of result.loaded_wallets) {
                 document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
                 document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'flex';
+            }
+            for (wallet of result.failed_load_wallets) {
+                document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
+                document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'none';
             }
         } catch(e) {
             console.log('Caught error:', e);

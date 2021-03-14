@@ -116,6 +116,9 @@ def wallets_loading():
             app.specter.wallet_manager.wallets[wallet].alias
             for wallet in app.specter.wallet_manager.wallets
         ],
+        "failed_load_wallets": [
+            wallet["alias"] for wallet in app.specter.wallet_manager.failed_load_wallets
+        ],
     }
 
 
