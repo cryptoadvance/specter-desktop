@@ -521,6 +521,10 @@ class Wallet:
         return len(self.keys) > 1
 
     @property
+    def keys_count(self):
+        return len(self.keys)
+
+    @property
     def locked_amount(self):
         amount = 0
         for psbt in self.pending_psbts:

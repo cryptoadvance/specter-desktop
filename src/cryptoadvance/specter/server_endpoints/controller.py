@@ -107,6 +107,18 @@ def about():
 ################ Utils ####################
 
 
+@app.route("/wallets_loading/", methods=["GET", "POST"])
+@login_required
+def wallets_loading():
+    return {
+        "is_loading": app.specter.wallet_manager.is_loading,
+        "loaded_wallets": [
+            app.specter.wallet_manager.wallets[wallet].alias
+            for wallet in app.specter.wallet_manager.wallets
+        ],
+    }
+
+
 @app.route("/generatemnemonic/", methods=["GET", "POST"])
 @login_required
 def generatemnemonic():

@@ -11,6 +11,15 @@
         text-decoration: underline;
         color: #fff;
     }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% {  transform: rotate(359deg); }
+    }
+    .spinning {
+        animation: spin 2s linear infinite;
+    }
+
 </style>
 <div id="side-content">
     <nav class="side">
@@ -105,11 +114,16 @@
                 </a>
             {% endif %}
         </div>
+        <span id="wallets-loading-indicator" class="note grow {% if not specter.wallet_manager.is_loading %}hidden{% endif %}" style="text-align: left; margin-left: 20px; margin-top: 5px;"><img height="16px" class="spinning" id="wallet-manager-loader" style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" /> Updating wallets data...</span>
+        {% set loading_wallets = [] %}
+        {% for wallet in specter.wallet_manager.wallets_update_list if wallet not in specter.wallet_manager.wallets_names %}
+            {% set loading_wallets = loading_wallets.append(specter.wallet_manager.wallets_update_list[wallet]) %}
+        {% endfor %}
         {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
             {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
             <div id="wallets_list">
-            {% for wallet in specter.wallet_manager.wallets_names %}
-                {{ sidebar_wallet_list_item(specter.wallet_manager.wallets[wallet], wallet_alias, specter.info.chain) }}
+            {% for wallet in ((specter.wallet_manager.wallets.values()|list) + loading_wallets) | sort(attribute='name') %}
+                {{ sidebar_wallet_list_item(wallet, wallet_alias, specter.info.chain, loading=(wallet in loading_wallets)) }}
             {% endfor %}
             </div>
         {% endif %}
@@ -179,6 +193,32 @@
     </nav>
 </div>
 <script>
+
+    async function updateWalletsLoadingData() {
+        try {
+            let url="{{ url_for('wallets_loading') }}"
+            const response = await fetch(
+                url,
+                {
+                    method: 'GET'
+                }
+            );
+            let result = await response.json();
+            if (result.is_loading) {
+                setTimeout(updateWalletsLoadingData, 1000);
+            } else {
+                document.getElementById("wallets-loading-indicator").classList.add("hidden");
+            }
+            for (wallet of result.loaded_wallets) {
+                document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
+                document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'flex';
+            }
+        } catch(e) {
+            console.log('Caught error:', e);
+            return { success: false, error: e };
+        }
+    }
+
     function toggleList(type) {
         let titleButton = document.getElementById('toggle_' + type + '_list');
         let list = document.getElementById(type + '_list');
@@ -207,5 +247,9 @@
                 toggleList('wallets');
             });
         }
+
+        {% if specter.wallet_manager.is_loading %}
+            updateWalletsLoadingData();
+        {% endif %}
     });
 </script>
