@@ -402,7 +402,7 @@
             this.composeTxBtn.onclick = () => {
                 for (let tx of this.selectedRows) {
                     this.composeTxForm.innerHTML += `
-                        <input type="checkbox" checked class="hidden" name="coinselect" value="${tx.txid}, ${tx.vout}, ${tx.amount}">
+                        <input type="checkbox" checked class="hidden" name="coinselect" value="${tx.txid}, ${tx.vout}">
                     `
                 }
                 this.composeTxForm.action = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);

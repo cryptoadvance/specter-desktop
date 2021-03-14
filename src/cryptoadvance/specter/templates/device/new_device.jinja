@@ -100,7 +100,7 @@
             <div {% if not existing_device or existing_device.hot_wallet %}id="step2" class="hidden"{% else %}id="step1"{% endif %}>
                 <h1 style="font-size: 1.8em;">Upload Keys</h1>
                 {% if not existing_device %}
-                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" required/></h2>
+                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" id="device_name" required/></h2>
                     <br>
                 {% endif %}
                 <div id="coldcard-instructions">
