@@ -88,21 +88,24 @@ class WalletManager:
                 self.wallets_update_list[wallet_name]["keys_count"] = len(
                     wallets_files[wallet]["keys"]
                 )
-        t = threading.Thread(
-            target=self._update,
-            args=(
-                data_folder,
-                rpc,
-                chain,
-            ),
-        )
-        t.start()
+            # remove irrelevant wallets
+            for k in list(self.wallets.keys()):
+                if k not in self.wallets_update_list:
+                    self.wallets.pop(k)
+            t = threading.Thread(
+                target=self._update,
+                args=(
+                    data_folder,
+                    rpc,
+                    chain,
+                ),
+            )
+            t.start()
 
     def _update(self, data_folder=None, rpc=None, chain=None):
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
-        keep_wallets = []
         self.failed_load_wallets = []
         try:
             if self.wallets_update_list:
@@ -226,7 +229,6 @@ class WalletManager:
                                 "Wallet already in Specter, updating wallet: %s"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
-                            keep_wallets.append(wallet_name)
                             self.wallets[wallet_name].update()
                             logger.debug(
                                 "Finished updating wallet:  %s"
@@ -236,10 +238,6 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        # remove irrelevant wallets
-        for k in existing_names:
-            if k not in keep_wallets:
-                self.wallets.pop(k)
         logger.debug("Done updating wallet manager")
         self.wallets_update_list = {}
         self.is_loading = False
