@@ -33,13 +33,22 @@
         }
     </style>
     <div id="device_setup_wizard" style="width: 100%;" onsubmit="showPacman();">
-        <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
+        <h1 style="font-size: 2em;">
+            {% if convert_to_hot_wallet %}
+                Convert to Hot Wallet
+            {% else %}
+                Add {% if existing_device %}Keys{% else %}Device{% endif %}
+            {% endif %}
+        </h1><br>
         <form id="form" action="{{ url_for('devices_endpoint.new_device') }}" method="POST" class="card center" style="width: auto; margin: 40px;">
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
+            {% if convert_to_hot_wallet %}
+                <input type="hidden" name="convert_to_hot_wallet" value="1">
+            {% endif %}
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div {% if not existing_device %}id="step1"{% else %}class="hidden"{% endif %}>
+            <div {% if not existing_device and not convert_to_hot_wallet %}id="step1"{% else %}class="hidden"{% endif %}>
                 <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
                 <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
                 <div id="devices_list" class="row overflow">
@@ -56,7 +65,14 @@
                 <a class="note center" style="text-decoration: underline; cursor: pointer;" href="{{ url_for('devices_endpoint.new_device_manual') }}">Manual configuration</a>
 
             </div>
-            <div {% if not existing_device %}id="step2-hot-wallet" class="hidden"{% elif existing_device.hot_wallet %}id="step1"{% else %}class="hidden"{% endif %}>
+            <div
+                {% if not existing_device and not convert_to_hot_wallet %}
+                    id="step2-hot-wallet" class="hidden"
+                {% elif existing_device.hot_wallet or convert_to_hot_wallet %}
+                    id="step1"
+                {% else %}
+                    class="hidden"
+                {% endif %}>
                 <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
                     <br>
                     <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
@@ -64,43 +80,50 @@
                         This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
                         Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
                     </p>
-                    <p>Enter you mnemonic here or use the randomly generated one:</p>
-                    <p><b>Make sure to backup these words!</b></p>
-                    {% set wordslist = mnemonic.split(' ') %}
-                    <nav class="row">
-                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
-                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
-                    </nav>
-                    <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
-                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
-                    <div id="generated_mnemonic">
-                        <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
-                            <fieldset style="border:none; display: inline;"> 
-                                <select name="strength" id="strength">
-                                    <option value="128">12 words</option>
-                                    <option value="256">24 words</option>
-                                </select>
-                            </fieldset>
-                            <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">Generate New Mnemonic</button>
+                    {% if not convert_to_hot_wallet %}
+                        <p>Enter you mnemonic here or use the randomly generated one:</p>
+                        <p><b>Make sure to backup these words!</b></p>
+                        {% set wordslist = mnemonic.split(' ') %}
+                        <nav class="row">
+                            <button type="button" id="generate_mnemonic_btn" class="btn radio left {% if mnemonic %}checked{% endif %}" onclick="setMnemonicView('generate')"> Generate </button>
+                            <button type="button" id="import_mnemonic_btn" class="btn radio right {% if convert_to_hot_wallet %}checked{% endif %}" onclick="setMnemonicView('import')"> Import </button>
+                        </nav>
+                        <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+                        <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
+                        <div id="generated_mnemonic">
+                            <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
+                                <fieldset style="border:none; display: inline;"> 
+                                    <select name="strength" id="strength">
+                                        <option value="128">12 words</option>
+                                        <option value="256">24 words</option>
+                                    </select>
+                                </fieldset>
+                                <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">Generate New Mnemonic</button>
+                            </div>
+                            <br>
+                            <table id="mnemonic_table">
+                                {% for i in range(wordslist|length // 4) %}
+                                    <tr>
+                                        <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
+                                        <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
+                                        <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
+                                        <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
                         </div>
-                        <br>
-                        <table id="mnemonic_table">
-                            {% for i in range(wordslist|length // 4) %}
-                                <tr>
-                                    <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
-                                    <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
-                                    <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
-                                    <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
-                                </tr>
-                            {% endfor %}
-                        </table>
+                    {% else %}
+                        <p>Enter your mnemonic here:</p>
+                        <input id="mnemonic_value" type="hidden" name="mnemonic" />
+                        <textarea id="import_mnemonic" id="txt" placeholder="Enter your mnemonic here"></textarea>
+                    {% endif %}
                     </div>
                 </div>
             </div>
-            <div {% if not existing_device or existing_device.hot_wallet %}id="step2" class="hidden"{% else %}id="step1"{% endif %}>
+            <div {% if not existing_device or existing_device.hot_wallet or convert_to_hot_wallet %}id="step2" class="hidden"{% else %}id="step1"{% endif %}>
                 <h1 style="font-size: 1.8em;">Upload Keys</h1>
                 {% if not existing_device %}
-                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" required/></h2>
+                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" required {% if convert_to_hot_wallet %}value="{{ device_name }}"{% endif %} /></h2>
                     <br>
                 {% endif %}
                 <div id="coldcard-instructions">
@@ -344,6 +367,10 @@
 
         document.addEventListener("DOMContentLoaded", function(){
             setupXpubsTable();
+
+            {% if convert_to_hot_wallet %}
+                setMnemonicView("import");
+            {% endif %}
         });
 
         function setMnemonicView(view) {
@@ -359,10 +386,12 @@
                 importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
                 mnemonicValue.value = '{{ mnemonic }}'
             } else {
-                generatedMnemonic.style.display = 'none';
+                {% if mnemonic %}
+                    generatedMnemonic.style.display = 'none';
+                    generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                    importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                {% endif %}
                 importMnemonic.style.display = 'block';
-                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
-                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
                 mnemonicValue.value = importMnemonic.value;
                 importMnemonic.addEventListener("input", function() {
                     mnemonicValue.value = importMnemonic.value;
@@ -414,8 +443,8 @@
         let currentStep = 1;
         let totalSteps = parseInt('{{ 1 if existing_device and not existing_device.hot_wallet else 2 }}');
         let stepsCompleted = [];
-        {% if existing_device %}
-            {% if existing_device.hot_wallet %}
+        {% if existing_device or convert_to_hot_wallet %}
+            {% if existing_device.hot_wallet or convert_to_hot_wallet %}
                 setStepCompleted(1);
             {% else %}
                 nextStep();
@@ -445,22 +474,30 @@
                          'data-hwi': "{{existing_device.hwi_support}}",
                          'data-device-name': "{{ existing_device.name }}"
                     }
-                {% else %}
-                var devices = document.getElementsByName('devices');
-                let device;
-                for (var i = 0, length = devices.length; i < length; i++) {
-                    if (devices[i].checked) {
-                        device = devices[i];
-                        break;
+                {% elif convert_to_hot_wallet %}
+                    let device = {
+                        value: "bitcoincore",
+                         'data-qrcode': "False",
+                         'data-sdcard': "False",
+                         'data-hwi': "False",
+                         'data-device-name': "{{ device_name }}"
                     }
-                }
-                device = {
-                    value: device.value,
-                    'data-qrcode': device.getAttribute('data-qrcode'),
-                    'data-sdcard': device.getAttribute('data-sdcard'),
-                    'data-hwi': device.getAttribute('data-hwi'),
-                    'data-device-name': device.getAttribute('data-device-name')
-                }
+                {% else %}
+                    var devices = document.getElementsByName('devices');
+                    let device;
+                    for (var i = 0, length = devices.length; i < length; i++) {
+                        if (devices[i].checked) {
+                            device = devices[i];
+                            break;
+                        }
+                    }
+                    device = {
+                        value: device.value,
+                        'data-qrcode': device.getAttribute('data-qrcode'),
+                        'data-sdcard': device.getAttribute('data-sdcard'),
+                        'data-hwi': device.getAttribute('data-hwi'),
+                        'data-device-name': device.getAttribute('data-device-name')
+                    }
                 {% endif %}
 
                 if (device.value == 'bitcoincore') {
@@ -469,7 +506,7 @@
                         document.getElementById('step2-hot-wallet').id = 'step2';
                     }
                     document.getElementById('toggle_advanced_xpubs').style.display = 'block';
-                    totalSteps = parseInt('{{ 2 if existing_device else 3 }}');
+                    totalSteps = parseInt('{{ 2 if existing_device or convert_to_hot_wallet else 3 }}');
                 } else {
                     if (document.getElementById('step3')) {
                         document.getElementById('step3').id = 'step2';
@@ -478,8 +515,6 @@
                     document.getElementById('toggle_advanced_xpubs').style.display = 'none';
                     totalSteps = parseInt('{{ 1 if existing_device else 2 }}');
                 }
-
-                
 
                 // Update connect methods for step 2
                 if (device['data-hwi'] == 'True') {
@@ -536,10 +571,12 @@
                 document.getElementById('wizard-previous').classList.remove('hidden');
                 document.getElementById(`step${currentStep}`).classList.add('hidden');
                 document.getElementById(`step${currentStep + 1}`).classList.remove('hidden');
-                if (!document.getElementById('step3')) { // Only bitcoin core hot wallet
-                    document.getElementById('wizard-next').setAttribute('disabled', 'true');
-                }
-                currentStep++;   
+                {% if not convert_to_hot_wallet %}
+                    if (!document.getElementById('step3')) { // Only bitcoin core hot wallet
+                        document.getElementById('wizard-next').setAttribute('disabled', 'true');
+                    }
+                {% endif %}
+                currentStep++;
             }
 
             if (currentStep in stepsCompleted) {
@@ -555,14 +592,18 @@
 
                 var devices = document.getElementsByName('devices');
 
-                for (var i = 0, length = devices.length; i < length; i++) {
-                    if (devices[i].checked) {
-                        deviceName = devices[i]['data-device-name'];
-                        deviceType = devices[i].value;
-                        setupXpubsTable(deviceType);
-                        break;
+                {% if convert_to_hot_wallet %}
+                    setupXpubsTable("bitcoincore");
+                {% else %}
+                    for (var i = 0, length = devices.length; i < length; i++) {
+                        if (devices[i].checked) {
+                            deviceName = devices[i]['data-device-name'];
+                            deviceType = devices[i].value;
+                            setupXpubsTable(deviceType);
+                            break;
+                        }
                     }
-                }
+                {% endif %}
                 if (deviceType == 'other' || deviceType == 'electrum') {
                     xpubsEditable = true;
                 } else {

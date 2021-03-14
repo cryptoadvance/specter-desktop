@@ -266,6 +266,21 @@ class Descriptor:
     def is_multisig(self):
         return bool(self.multisig_N)
 
+    @property
+    def address_type(self):
+        if self.wpkh:
+            return "wpkh"
+        elif self.wsh:
+            return "wsh"
+        elif self.sh_wpkh:
+            return "sh-wpkh"
+        elif self.sh_wsh:
+            return "sh-wsh"
+        elif self.sh:
+            return "sh-wsh"
+        else:
+            return "pkh"
+
     def derive(self, idx, keep_xpubs=False):
         """
         Derives a descriptor with index idx up to the pubkeys.
@@ -413,6 +428,62 @@ class Descriptor:
             base = origin + self.base_key + path_suffix
 
         return AddChecksum(descriptor_open + base + descriptor_close)
+
+    def parse_signers(self, devices, cosigners_types):
+        from cryptoadvance.specter.key import Key
+        from cryptoadvance.specter.devices import DeviceTypes
+
+        keys = []
+        cosigners = []
+        unknown_cosigners = []
+        unknown_cosigners_types = []
+        sigs_total = self.multisig_N
+        if sigs_total == None:
+            sigs_total = 1
+            sigs_required = 1
+            self.origin_fingerprint = [self.origin_fingerprint]
+            self.origin_path = [self.origin_path]
+            self.base_key = [self.base_key]
+        for i in range(sigs_total):
+            cosigner_found = False
+            for device in devices:
+                cosigner = devices[device]
+                if self.origin_fingerprint[i] is None:
+                    self.origin_fingerprint[i] = ""
+                if self.origin_path[i] is None:
+                    self.origin_path[i] = self.origin_fingerprint[i]
+                for key in cosigner.keys:
+                    if key.fingerprint + key.derivation.replace(
+                        "m", ""
+                    ) == self.origin_fingerprint[i] + self.origin_path[i].replace(
+                        "'", "h"
+                    ):
+                        keys.append(key)
+                        cosigners.append(cosigner)
+                        cosigner_found = True
+                        break
+                if cosigner_found:
+                    break
+            if not cosigner_found:
+                print(self.origin_fingerprint[i])
+                desc_key = Key.parse_xpub(
+                    "[{}{}]{}".format(
+                        self.origin_fingerprint[i],
+                        self.origin_path[i],
+                        self.base_key[i],
+                    )
+                )
+                unknown_cosigners.append((desc_key, cosigners_types[i]["label"]))
+                if len(unknown_cosigners) > len(cosigners_types):
+                    unknown_cosigners_types.append("other")
+                else:
+                    if cosigners_types[i]["type"] == DeviceTypes.BITCOINCORE:
+                        # Unintialized Bitcoin Core wallets are inherently watch only
+                        # until mnemonic seed is added.
+                        cosigners_types[i]["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
+                    unknown_cosigners_types.append(cosigners_types[i]["type"])
+
+        return (keys, cosigners, unknown_cosigners, unknown_cosigners_types)
 
 
 def sort_descriptor(descriptor, index=None):

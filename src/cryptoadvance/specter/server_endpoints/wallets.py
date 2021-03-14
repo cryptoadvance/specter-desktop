@@ -26,6 +26,7 @@ from ..helpers import (
     is_testnet,
     parse_wallet_data_import,
 )
+from ..devices import DeviceTypes
 from ..persistence import delete_file
 from ..key import Key
 from ..specter import Specter
@@ -129,22 +130,6 @@ def new_wallet(wallet_type):
                 print(e)
                 flash("Unsupported wallet import format", "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            # get min of the two
-            # if the node is still syncing
-            # and the first block with tx is not there yet
-            startblock = min(
-                wallet_data.get("blockheight", app.specter.info.get("blocks", 0)),
-                app.specter.info.get("blocks", 0),
-            )
-            # check if pruned
-            if app.specter.info.get("pruned", False):
-                newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
-                if newstartblock > startblock:
-                    flash(
-                        f"Using pruned node - we will only rescan from block {newstartblock}",
-                        "error",
-                    )
-                    startblock = newstartblock
             try:
                 descriptor = Descriptor.parse(
                     AddChecksum(recv_descriptor.split("#")[0]),
@@ -162,63 +147,16 @@ def new_wallet(wallet_type):
 
             sigs_total = descriptor.multisig_N
             sigs_required = descriptor.multisig_M
-            if descriptor.wpkh:
-                address_type = "wpkh"
-            elif descriptor.wsh:
-                address_type = "wsh"
-            elif descriptor.sh_wpkh:
-                address_type = "sh-wpkh"
-            elif descriptor.sh_wsh:
-                address_type = "sh-wsh"
-            elif descriptor.sh:
-                address_type = "sh-wsh"
-            else:
-                address_type = "pkh"
-            keys = []
-            cosigners = []
-            unknown_cosigners = []
-            unknown_cosigners_types = []
-            if sigs_total == None:
-                sigs_total = 1
-                sigs_required = 1
-                descriptor.origin_fingerprint = [descriptor.origin_fingerprint]
-                descriptor.origin_path = [descriptor.origin_path]
-                descriptor.base_key = [descriptor.base_key]
-            for i in range(sigs_total):
-                cosigner_found = False
-                for device in app.specter.device_manager.devices:
-                    cosigner = app.specter.device_manager.devices[device]
-                    if descriptor.origin_fingerprint[i] is None:
-                        descriptor.origin_fingerprint[i] = ""
-                    if descriptor.origin_path[i] is None:
-                        descriptor.origin_path[i] = descriptor.origin_fingerprint[i]
-                    for key in cosigner.keys:
-                        if key.fingerprint + key.derivation.replace(
-                            "m", ""
-                        ) == descriptor.origin_fingerprint[i] + descriptor.origin_path[
-                            i
-                        ].replace(
-                            "'", "h"
-                        ):
-                            keys.append(key)
-                            cosigners.append(cosigner)
-                            cosigner_found = True
-                            break
-                    if cosigner_found:
-                        break
-                if not cosigner_found:
-                    desc_key = Key.parse_xpub(
-                        "[{}{}]{}".format(
-                            descriptor.origin_fingerprint[i],
-                            descriptor.origin_path[i],
-                            descriptor.base_key[i],
-                        )
-                    )
-                    unknown_cosigners.append((desc_key, cosigners_types[i]["label"]))
-                    if len(unknown_cosigners) > len(cosigners_types):
-                        unknown_cosigners_types.append("other")
-                    else:
-                        unknown_cosigners_types.append(cosigners_types[i]["type"])
+
+            (
+                keys,
+                cosigners,
+                unknown_cosigners,
+                unknown_cosigners_types,
+            ) = descriptor.parse_signers(
+                app.specter.device_manager.devices, cosigners_types
+            )
+
             wallet_type = "multisig" if sigs_total > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
@@ -239,7 +177,11 @@ def new_wallet(wallet_type):
                     cosigners.append(device)
                 try:
                     wallet = app.specter.wallet_manager.create_wallet(
-                        wallet_name, sigs_required, address_type, keys, cosigners
+                        name=wallet_name,
+                        sigs_required=descriptor.multisig_M,
+                        key_type=descriptor.address_type,
+                        keys=keys,
+                        devices=cosigners,
                     )
                 except Exception as e:
                     flash("Failed to create wallet: %r" % e, "error")
@@ -249,6 +191,26 @@ def new_wallet(wallet_type):
                 wallet.import_labels(wallet_data.get("labels", {}))
                 flash("Wallet imported successfully", "info")
                 try:
+                    # get min of the two
+                    # if the node is still syncing
+                    # and the first block with tx is not there yet
+                    startblock = min(
+                        wallet_data.get(
+                            "blockheight", app.specter.info.get("blocks", 0)
+                        ),
+                        app.specter.info.get("blocks", 0),
+                    )
+                    # check if pruned
+                    if app.specter.info.get("pruned", False):
+                        newstartblock = max(
+                            startblock, app.specter.info.get("pruneheight", 0)
+                        )
+                        if newstartblock > startblock:
+                            flash(
+                                f"Using pruned node - we will only rescan from block {newstartblock}",
+                                "error",
+                            )
+                            startblock = newstartblock
                     wallet.rpc.rescanblockchain(startblock, timeout=1)
                     app.logger.info("Rescanning Blockchain ...")
                 except requests.exceptions.ReadTimeout:

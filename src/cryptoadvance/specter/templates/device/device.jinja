@@ -61,6 +61,12 @@
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
 		<br>
+		{% if device.device_type == "bitcoincore_watchonly" %}
+			<form action="./" method="POST">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<button id="convert_to_hot_wallet" type="submit" name="action" value="convert_to_hot_wallet" class="btn centered">Convert to hot wallet</button>
+			</form>			
+		{% endif %}
 		{% if device.hwi_support %}
 			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign message on device</button>
 			<div id="message-signing" class="hidden" style="text-align: left;">

@@ -25,7 +25,7 @@ def test_get_rpc(specter_regtest_configured):
         "host": "localhost",
         "protocol": "http",
     }
-    print("rpc_config_data: {}".format(rpc_config_data))
+    logging.debug("rpc_config_data: {}".format(rpc_config_data))
     rpc = get_rpc(rpc_config_data)
     assert rpc.getblockchaininfo()
     assert isinstance(rpc, BitcoinRPC)

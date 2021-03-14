@@ -1,4 +1,6 @@
-import copy, random
+import copy
+import json
+import random
 
 from flask import (
     Flask,
@@ -13,6 +15,7 @@ from flask import (
 from flask_login import login_required, current_user
 from flask import current_app as app
 from mnemonic import Mnemonic
+from ..devices import DeviceTypes
 from ..helpers import is_testnet, generate_mnemonic
 from ..key import Key
 from ..wallet_manager import purposes
@@ -30,14 +33,19 @@ devices_endpoint = Blueprint("devices_endpoint", __name__)
 @login_required
 def new_device():
     err = None
-    strength = 128
-    mnemonic = generate_mnemonic(strength=strength)
     if request.method == "POST":
-        if request.form.get("existing_device"):
+        print(json.dumps(request.form, indent=2))
+        if "existing_device" in request.form:
             device = app.specter.device_manager.get_by_alias(
                 request.form.get("existing_device")
             )
             device_type = device.device_type
+        elif "convert_to_hot_wallet" in request.form:
+            device = app.specter.device_manager.get_by_name(
+                request.form.get("device_name")
+            )
+            # The udpated watch-only device will now be hot
+            device_type = DeviceTypes.BITCOINCORE
         else:
             device_type = request.form.get("devices")
             device_name = request.form.get("device_name", "")
@@ -46,7 +54,7 @@ def new_device():
             elif device_name in app.specter.device_manager.devices_names:
                 err = "Device with this name already exists"
         xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
-        if device_type != "bitcoincore":
+        if device_type != DeviceTypes.BITCOINCORE:
             keys = []
             for i in range(0, xpubs_rows_count):
                 purpose = request.form.get(
@@ -102,11 +110,14 @@ def new_device():
                     paths.append(path)
                     keys_purposes.append(purpose)
             if not paths:
-                err = "No paths were specified, please provide at lease one."
+                err = "No paths were specified, please provide at least one."
             if err is None:
                 passphrase = request.form["passphrase"]
                 file_password = request.form["file_password"]
-                if request.form.get("existing_device"):
+                if (
+                    "existing_device" in request.form
+                    or "convert_to_hot_wallet" in request.form
+                ):
                     device.add_hot_wallet_keys(
                         mnemonic,
                         passphrase,
@@ -142,9 +153,11 @@ def new_device():
                 )
             else:
                 flash(err, "error")
+
+    strength = 128
     return render_template(
         "device/new_device.jinja",
-        mnemonic=mnemonic,
+        mnemonic=generate_mnemonic(strength=strength),
         strength=strength,
         specter=app.specter,
         rand=rand,
@@ -299,6 +312,23 @@ def device(device_alias):
                 device_alias=device_alias,
                 specter=app.specter,
                 rand=rand,
+            )
+        elif action == "convert_to_hot_wallet":
+            # Engage the hot wallet flow as if it was a new hot wallet. But when the
+            # keys are submitted, Specter will internally update and replace the current
+            # watch-only "device".
+            if device.device_type != DeviceTypes.BITCOINCORE_WATCHONLY:
+                raise Exception(
+                    "Can only convert a Bitcoin Core watch-only wallet to a hot wallet"
+                )
+            return render_template(
+                "device/new_device.jinja",
+                mnemonic="",
+                existing_device=None,
+                device_alias=None,
+                device_name=device.name,
+                specter=app.specter,
+                convert_to_hot_wallet=True,
             )
         elif action == "morekeys":
             if device.hot_wallet:

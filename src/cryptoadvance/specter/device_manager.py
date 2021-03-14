@@ -73,6 +73,12 @@ class DeviceManager:
         self.update()  # reload files
         return device
 
+    def get_by_name(self, device_name):
+        if device_name in self.devices:
+            return self.devices[device_name]
+        else:
+            return None
+
     def get_by_alias(self, device_alias):
         for device_name in self.devices:
             if self.devices[device_name].alias == device_alias:
