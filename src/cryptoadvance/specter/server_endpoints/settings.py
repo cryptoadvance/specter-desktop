@@ -135,6 +135,7 @@ def bitcoin_core():
                 app.specter.bitcoind.stop_bitcoind()
                 app.specter.set_bitcoind_pid(False)
                 time.sleep(5)
+                flash("Specter stopped Bitcoin Core successfully")
             except Exception:
                 try:
                     flash("Stopping Bitcoin Core, this might take a few moments.")
@@ -148,6 +149,8 @@ def bitcoin_core():
             )
             app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
             time.sleep(15)
+            flash("Specter has started Bitcoin Core")
+
     app.specter.check()
 
     return render_template(
@@ -314,12 +317,14 @@ def tor():
         elif action == "starttor":
             try:
                 app.specter.tor_daemon.start_tor_daemon()
+                flash("Specter has started Tor")
             except Exception as e:
                 flash(f"Failed to start Tor, error: {e}", "error")
         elif action == "stoptor":
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
+                flash("Specter stopped Tor successfully")
             except Exception as e:
                 flash(f"Failed to stop Tor, error: {e}", "error")
         elif action == "uninstalltor":

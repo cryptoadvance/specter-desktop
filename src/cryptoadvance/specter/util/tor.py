@@ -1,5 +1,13 @@
-import os
+import os, platform
 from stem.control import Controller
+
+
+def get_tor_daemon_suffix():
+    if platform.system() == "Darwin":
+        return ".real"
+    elif platform.system() == "Windows":
+        return ".exe"
+    return ""
 
 
 def start_hidden_service(app):

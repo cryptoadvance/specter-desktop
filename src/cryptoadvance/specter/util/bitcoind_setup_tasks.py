@@ -57,16 +57,17 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             if bitcoind_hash not in signed_sums:
                 raise Exception("Failed to verify bitcoind hash is in SHA265SUMS.asc")
 
+        bitcoin_binaries_folder = os.path.join(specter.data_folder, "bitcoin-binaries")
         if packed_name.endswith("tar.gz"):
             with tarfile.open(packed_name, "r:gz") as so:
-                so.extractall(
-                    path=os.path.join(specter.data_folder, "bitcoin-binaries")
-                )
+                so.extractall(specter.data_folder)
         else:
             with zipfile.ZipFile(packed_name, "r") as zip_ref:
-                zip_ref.extractall(
-                    os.path.join(specter.data_folder, "bitcoin-binaries")
-                )
+                zip_ref.extractall(specter.data_folder)
+        os.rename(
+            os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
+            bitcoin_binaries_folder,
+        )
         os.remove(packed_name)
         specter.config["rpc"]["user"] = "bitcoin"
         specter.config["rpc"]["password"] = secrets.token_urlsafe(16)

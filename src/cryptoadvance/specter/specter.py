@@ -24,6 +24,7 @@ from .user_manager import UserManager
 from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.price_providers import update_price
+from .util.tor import get_tor_daemon_suffix
 import threading
 from urllib.parse import urlparse
 from stem.control import Controller
@@ -153,19 +154,12 @@ class Specter:
             },
         }
 
-        if platform.system() == "Darwin":
-            self.torbrowser_path = os.path.join(
-                self.data_folder, "tor-binaries/tor.real"
-            )
-        elif platform.system() == "Windows":
-            self.torbrowser_path = os.path.join(
-                self.data_folder, "tor-binaries/tor.exe"
-            )
-        else:
-            self.torbrowser_path = os.path.join(self.data_folder, "tor-binaries/tor")
+        self.torbrowser_path = os.path.join(
+            self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
+        )
 
         self.bitcoind_path = os.path.join(
-            self.data_folder, "bitcoin-binaries/bitcoin-0.21.0/bin/bitcoind"
+            self.data_folder, "bitcoin-binaries/bin/bitcoind"
         )
 
         if platform.system() == "Windows":
