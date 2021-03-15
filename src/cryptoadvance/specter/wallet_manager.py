@@ -43,6 +43,7 @@ class WalletManager:
         chain,
         device_manager,
         path="specter",
+        allow_threading=True,
     ):
         self.data_folder = data_folder
         self.chain = chain
@@ -54,6 +55,7 @@ class WalletManager:
         self.wallets_update_list = []
         self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
+        self.allow_threading = allow_threading
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):
@@ -92,15 +94,18 @@ class WalletManager:
             for k in list(self.wallets.keys()):
                 if k not in self.wallets_update_list:
                     self.wallets.pop(k)
-            t = threading.Thread(
-                target=self._update,
-                args=(
-                    data_folder,
-                    rpc,
-                    chain,
-                ),
-            )
-            t.start()
+            if self.allow_threading:
+                t = threading.Thread(
+                    target=self._update,
+                    args=(
+                        data_folder,
+                        rpc,
+                        chain,
+                    ),
+                )
+                t.start()
+            else:
+                self._update(data_folder, rpc, chain)
 
     def _update(self, data_folder=None, rpc=None, chain=None):
         # list of wallets in the dict

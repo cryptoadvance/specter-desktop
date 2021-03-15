@@ -1,4 +1,4 @@
-import json, os, time
+import json, os
 from conftest import instantiate_bitcoind_controller
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
@@ -19,16 +19,13 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
         bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
-    while wm.is_loading:
-        time.sleep(1)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
     assert device != None
     # Lets's create a wallet with the WalletManager
     wm.create_wallet("a_test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    while wm.is_loading:
-        time.sleep(1)
     # The wallet-name gets its filename and therefore its alias
     wallet = wm.wallets["a_test_wallet"]
     assert wallet != None
@@ -37,8 +34,6 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
     # this is a sum of both
     assert wallet.fullbalance == 0
     address = wallet.getnewaddress()
-    while wm.is_loading:
-        time.sleep(1)
     # newly minted coins need 100 blocks to get spendable
     wallet.rpc.generatetoaddress(1, address)
     # let's mine another 100 blocks to get these coins spendable
@@ -57,15 +52,11 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
         [device.keys[7], second_device.keys[0]],
         [device, second_device],
     )
-    while wm.is_loading:
-        time.sleep(1)
 
     assert len(wm.wallets) == 2
     assert multisig_wallet != None
     assert multisig_wallet.fullbalance == 0
     multisig_address = multisig_wallet.getnewaddress()
-    while wm.is_loading:
-        time.sleep(1)
     multisig_wallet.rpc.generatetoaddress(1, multisig_address)
     multisig_wallet.rpc.generatetoaddress(100, random_address)
     # update balance
@@ -76,8 +67,6 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
 
     # You can rename a wallet using the wallet manager using `rename_wallet`, passing the wallet object and the new name to assign to it
     wm.rename_wallet(multisig_wallet, "new_name_test_wallet")
-    while wm.is_loading:
-        time.sleep(1)
     assert multisig_wallet.name == "new_name_test_wallet"
     assert wm.wallets_names == ["a_test_wallet", "new_name_test_wallet"]
 
@@ -86,8 +75,6 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
     wallet_fullpath = multisig_wallet.fullpath
     assert os.path.exists(wallet_fullpath)
     wm.delete_wallet(multisig_wallet)
-    while wm.is_loading:
-        time.sleep(1)
     assert not os.path.exists(wallet_fullpath)
     assert len(wm.wallets) == 1
 
@@ -107,9 +94,8 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
-    while wm.is_loading:
-        time.sleep(1)
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
     key = Key.from_json(
@@ -122,18 +108,12 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         }
     )
     wallet = wm.create_wallet("a_second_test_wallet", 1, "wpkh", [key], [device])
-    while wm.is_loading:
-        time.sleep(1)
     # Let's fund the wallet with ... let's say 40 blocks a 50 coins each --> 200 coins
     address = wallet.getnewaddress()
-    while wm.is_loading:
-        time.sleep(1)
     assert address == "bcrt1qtnrv2jpygx2ef3zqfjhqplnycxak2m6ljnhq6z"
     wallet.rpc.generatetoaddress(20, address)
     # in two addresses
     address = wallet.getnewaddress()
-    while wm.is_loading:
-        time.sleep(1)
     wallet.rpc.generatetoaddress(20, address)
     # newly minted coins need 100 blocks to get spendable
     # let's mine another 100 blocks to get these coins spendable
@@ -166,8 +146,6 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         10,
         selected_coins=selected_coins,
     )
-    while wm.is_loading:
-        time.sleep(1)
     assert len(psbt["tx"]["vin"]) == 3
     psbt_txs = [tx["txid"] for tx in psbt["tx"]["vin"]]
     for coin in selected_coins:
@@ -187,8 +165,6 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
     except SpecterError as e:
         pass
 
-    while wm.is_loading:
-        time.sleep(1)
     assert wallet.locked_amount == selected_coins_amount_sum
     assert len(wallet.rpc.listlockunspent()) == 3
     assert (
@@ -196,8 +172,6 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
     )
 
     wallet.delete_pending_psbt(psbt["tx"]["txid"])
-    while wm.is_loading:
-        time.sleep(1)
     assert wallet.locked_amount == 0
     assert len(wallet.rpc.listlockunspent()) == 0
     assert wallet.full_available_balance == wallet.fullbalance
@@ -215,6 +189,7 @@ def test_wallet_sortedmulti(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -269,6 +244,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -329,6 +305,7 @@ def test_wallet_change_addresses(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
