@@ -233,8 +233,12 @@ def server(
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:
-            if app.specter.tor_controller is not None:
-                app.specter.tor_controller.close()
+            try:
+                if app.specter.tor_controller is not None:
+                    app.specter.tor_controller.close()
+            except SpecterError as se:
+                # no reason to break startup here
+                pass    
 
     # check if we should run a daemon or not
     if daemon or restart:
