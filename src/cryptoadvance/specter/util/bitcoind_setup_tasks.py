@@ -3,50 +3,44 @@ from ..bitcoind import BitcoindPlainController
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
+import logging
+from .file_download import download_file
+
+logger = logging.getLogger(__name__)
 
 
-def setup_bitcoind_thread(specter=None):
+def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
     try:
         BITCOIND_OS_SUFFIX = {
             "Windows": "win64.zip",
             "Linux": "x86_64-linux-gnu.tar.gz",
             "Darwin": "osx64.tar.gz",
         }
-        bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-0.21.0/bitcoin-0.21.0-{BITCOIND_OS_SUFFIX[platform.system()]}"
-        response = specter.requests_session().get(bitcoind_url, stream=True)
+        bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}"
         packed_name = os.path.join(
             specter.data_folder,
             f"bitcoind-{BITCOIND_OS_SUFFIX[platform.system()]}",
         )
-        with open(packed_name, "wb") as f:
-            total_length = float(response.headers["content-length"])
-            downloaded = 0.0
-            old_progress = 0
-            specter.config["bitcoind_setup"][
-                "stage"
-            ] = "Downloading Bitcoin Core release files..."
-            specter._save()
-            for chunk in response.iter_content(chunk_size=4096):
-                downloaded += len(chunk)
-                f.write(chunk)
-                new_progress = int((downloaded / total_length) * 10000) / 100
-                if new_progress > old_progress:
-                    old_progress = new_progress
-                    specter.config["bitcoind_setup"]["stage_progress"] = new_progress
-                    specter._save()
-        specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
-        specter._save()
-        bitcoind_sha256sums_url = (
-            "https://bitcoincore.org/bin/bitcoin-core-0.21.0/SHA256SUMS.asc"
+        download_file(
+            specter,
+            bitcoind_url,
+            packed_name,
+            "bitcoind",
+            "Downloading Bitcoin Core release files...",
         )
-        response = specter.requests_session().get(bitcoind_sha256sums_url, stream=True)
+        bitcoind_sha256sums_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/SHA256SUMS.asc"
         bitcoind_sha256sums_file = os.path.join(
             specter.data_folder, "bitcoind-sha256sums.asc"
         )
-        with open(bitcoind_sha256sums_file, "wb") as f:
-            total_length = float(response.headers["content-length"])
-            for chunk in response.iter_content(chunk_size=4096):
-                f.write(chunk)
+        download_file(
+            specter,
+            bitcoind_sha256sums_url,
+            bitcoind_sha256sums_file,
+            "bitcoind",
+            "Downloading Bitcoin Core signatures...",
+        )
+        specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
+        specter._save()
         with open(bitcoind_sha256sums_file, "r") as f:
             signed_sums = f.read()
             bitcoind_release_pgp_key, _ = pgpy.PGPKey.from_file(
@@ -86,8 +80,12 @@ def setup_bitcoind_thread(specter=None):
             file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
             file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
             file.write(f"\nserver=1")
-    except Exception:
-        pass
+        specter.config["bitcoind_internal_version"] = internal_bitcoind_version
+        specter._save()
+    except Exception as e:
+        logger.error(f"Failed to install Bitcoin Core. Error: {e}")
+        specter.config["bitcoind_setup"]["error"] = str(e)
+        specter._save()
     finally:
         specter.config["bitcoind_setup"]["stage_progress"] = -1
         specter._save()
@@ -96,43 +94,28 @@ def setup_bitcoind_thread(specter=None):
 def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
     try:
         if quicksync:
-            response = specter.requests_session().get(
-                "https://prunednode.today/latest.zip", stream=True
-            )
-            with open(
-                os.path.join(specter.data_folder, "snapshot-prunednode.zip"), "wb"
-            ) as f:
-                total_length = float(response.headers["content-length"])
-                downloaded = 0.0
-                old_progress = 0
-                specter.config["bitcoind_setup"][
-                    "stage"
-                ] = "Downloading QuickSync files..."
-                specter._save()
-                for chunk in response.iter_content(chunk_size=4096):
-                    downloaded += len(chunk)
-                    f.write(chunk)
-                    new_progress = int((downloaded / total_length) * 10000) / 100
-                    if new_progress > old_progress:
-                        old_progress = new_progress
-                        specter.config["bitcoind_setup"][
-                            "stage_progress"
-                        ] = new_progress
-                        specter._save()
-
-            specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
-            specter._save()
-            prunednode_sha256sums_url = "https://prunednode.today/latest.signed.txt"
-            response = specter.requests_session().get(
-                prunednode_sha256sums_url, stream=True
+            prunednode_file = os.path.join(
+                os.path.join(specter.data_folder, "snapshot-prunednode.zip")
             )
             prunednode_sha256sums_file = os.path.join(
                 specter.data_folder, "prunednode-sha256sums.asc"
             )
-            with open(prunednode_sha256sums_file, "wb") as f:
-                total_length = float(response.headers["content-length"])
-                for chunk in response.iter_content(chunk_size=4096):
-                    f.write(chunk)
+            download_file(
+                specter,
+                "https://prunednode.today/latest.zip",
+                prunednode_file,
+                "bitcoind",
+                "Downloading QuickSync files...",
+            )
+            download_file(
+                specter,
+                "https://prunednode.today/latest.signed.txt",
+                prunednode_sha256sums_file,
+                "bitcoind",
+                "Downloading Quicksync signature...",
+            )
+            specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
+            specter._save()
             with open(prunednode_sha256sums_file, "r") as f:
                 signed_sums = f.read()
                 prunednode_release_pgp_key, _ = pgpy.PGPKey.from_file(
@@ -148,20 +131,16 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 )
                 if not prunednode_release_pgp_key.verify(prunednode_sha256sums_msg):
                     raise Exception("Failed to verify prunednode.today PGP signature")
-                prunednode_hash = sha256sum(
-                    os.path.join(specter.data_folder, "snapshot-prunednode.zip")
-                )
+                prunednode_hash = sha256sum(prunednode_file)
                 if prunednode_hash not in signed_sums:
                     raise Exception(
                         "Failed to verify prunednode.today hash is in SHA265SUMS.asc"
                     )
-                with zipfile.ZipFile(
-                    os.path.join(specter.data_folder, "snapshot-prunednode.zip"), "r"
-                ) as zip_ref:
+                with zipfile.ZipFile(prunednode_file, "r") as zip_ref:
                     zip_ref.extractall(
                         os.path.expanduser(specter.config["rpc"]["datadir"])
                     )
-                os.remove(os.path.join(specter.data_folder, "snapshot-prunednode.zip"))
+                os.remove(prunednode_file)
                 with open(
                     os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
                     "a",
@@ -206,7 +185,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             specter._save()
         specter.check()
     except Exception as e:
-        raise e
+        logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
+        specter.config["bitcoind_setup"]["error"] = str(e)
+        specter._save()
     finally:
         specter.config["bitcoind_setup"]["stage_progress"] = -1
         specter._save()

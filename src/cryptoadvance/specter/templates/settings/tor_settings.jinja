@@ -139,6 +139,12 @@
                     );
                     let result = await response.json();
                     let stage = result.stage;
+                    if (result.error) {
+                        showError('Encountered an error:' + result.error);
+                        document.getElementById('stage-progress-details').classList.add('hidden');
+                        hidePageOverlay('stage-progress-details');
+                        return;
+                    }
                     let progress = parseFloat(result.stage_progress);
                     if (progress == -1) {
                         showNotification('Finished successfully');

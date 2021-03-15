@@ -144,6 +144,7 @@ class Specter:
             "price_provider": "",
             "validate_merkle_proofs": False,
             "bitcoind": False,
+            "bitcoind_internal_version": "",
             "bitcoind_setup": {
                 "stage_progress": -1,
             },

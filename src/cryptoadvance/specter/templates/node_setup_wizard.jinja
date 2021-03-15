@@ -47,7 +47,6 @@
             <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor!</button>
         </div>
     </div>
-    <br><br>
     <div class="card center hidden" id="step2">
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Would you like to setup a new Bitcoin node or connect to an existing one?</h1>
@@ -63,7 +62,6 @@
             <button type="button" class="btn wizard-btn action" onclick="showStep(3)">Setup a new node</button>
         </div>
     </div>
-    <br><br>
     <div class="card center hidden" id="step3">
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Download and setup Bitcoin Core</h1>
@@ -88,7 +86,6 @@
             <button type="button" class="btn wizard-btn action" id="setup-bitcoind-button" onclick="setupBitcoind()">Start the Setup!</button>
         </div>
     </div>
-    <br><br>
     <div class="card center hidden" id="step4">
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Configue your node</h1>
@@ -140,12 +137,13 @@
             <button type="button" class="btn wizard-btn action" id="setup-bitcoind-dir-button" onclick="setupBitcoindDirectory()">Start Syncing!</button>
         </div>
     </div>
-    <br><br>
     <div class="card center hidden" id="step5">
         <h1>Setup Completed Successfully!</h1>
         <p>Your new node is up and running!</p><br>
         <a href="{{url_for('about')}}" class="btn wizard-btn">Done</a>
     </div>
+    <br>
+    <button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('stage-progress-details');">View Progress</button>
     <h1 id="stage-progress-details" class="hidden" style="margin: auto;"></h1>
     <br><br>
 {% endblock %}
@@ -329,12 +327,19 @@
                         }
                     );
                     let result = await response.json();
+                    if (result.error) {
+                        showError('Encountered an error:' + result.error);
+                        document.getElementById('stage-progress-details').classList.add('hidden');
+                        hidePageOverlay('stage-progress-details');
+                        return;
+                    }
                     let stage = result.stage;
                     let progress = parseFloat(result.stage_progress);
                     if (progress == -1) {
                         showNotification('Finished successfully');
                         showStep(++currentStep);
                         document.getElementById('stage-progress-details').classList.add('hidden');
+                        document.getElementById('show-progress-details').classList.add('hidden');
                         hidePageOverlay('stage-progress-details');
                         return;
                     }
@@ -349,8 +354,10 @@
                 }
             }
             document.getElementById('stage-progress-details').classList.remove('hidden');
+            document.getElementById('show-progress-details').classList.remove('hidden');
             showPageOverlay('stage-progress-details');
             document.getElementById('stage-progress-details').innerHTML = 'Stating up...';
+            
             setTimeout(fetchStageProgress, 1000);
         }
     </script>

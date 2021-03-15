@@ -112,8 +112,10 @@ def about():
 @app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
 @login_required
 def node_setup_wizard(step):
+    app.specter.config["bitcoind_setup"]["error"] = ""
     app.specter.config["bitcoind_setup"]["stage"] = ""
     app.specter.config["bitcoind_setup"]["stage_progress"] = -1
+    app.specter.config["torbrowser_setup"]["error"] = ""
     app.specter.config["torbrowser_setup"]["stage"] = ""
     app.specter.config["torbrowser_setup"]["stage_progress"] = -1
     app.specter._save()
@@ -137,10 +139,11 @@ def setup_bitcoind():
             "bitcoin_core_datadir", app.specter.config["rpc"]["datadir"]
         )
         app.specter.config["bitcoind_setup"]["stage_progress"] = 0
+        app.specter.config["bitcoind_setup"]["error"] = ""
         app.specter._save()
         t = threading.Thread(
             target=setup_bitcoind_thread,
-            args=(app.specter,),
+            args=(app.specter, app.config["INTERNAL_BITCOIND_VERSION"]),
         )
         t.start()
     elif os.path.isfile(app.specter.bitcoind_path):
@@ -161,6 +164,7 @@ def setup_bitcoind_directory():
         and bitcoind_setup_status["stage_progress"] == -1
     ):
         app.specter.config["bitcoind_setup"]["stage_progress"] = 0
+        app.specter.config["bitcoind_setup"]["error"] = ""
         app.specter._save()
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"
@@ -187,6 +191,7 @@ def setup_tor():
         and tor_setup_status["stage_progress"] == -1
     ):
         app.specter.config["torbrowser_setup"]["stage_progress"] = 0
+        app.specter.config["torbrowser_setup"]["error"] = ""
         app.specter._save()
         t = threading.Thread(
             target=setup_tor_thread,
@@ -210,6 +215,7 @@ def get_node_setup_status():
             "installed": os.path.isfile(app.specter.bitcoind_path),
             "stage_progress": -1,
             "stage": "none",
+            "error": "",
         },
     )
 
@@ -224,6 +230,7 @@ def get_tor_setup_status():
             "installed": os.path.isfile(app.specter.torbrowser_path),
             "stage_progress": -1,
             "stage": "none",
+            "error": "",
         },
     )
 

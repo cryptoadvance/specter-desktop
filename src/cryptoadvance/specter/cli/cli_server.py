@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from ..server import create_app, init_app
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +239,7 @@ def server(
                     app.specter.tor_controller.close()
             except SpecterError as se:
                 # no reason to break startup here
-                pass    
+                logger.error("Could not initialize tor-system")
 
     # check if we should run a daemon or not
     if daemon or restart:

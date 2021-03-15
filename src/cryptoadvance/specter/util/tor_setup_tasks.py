@@ -1,7 +1,10 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile
+import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
+from .file_download import download_file
+
+logger = logging.getLogger(__name__)
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -25,38 +28,30 @@ def setup_tor_thread(specter=None):
         }
 
         torbrowser_url = f"https://www.torproject.org/dist/torbrowser/10.0.12/{TOR_OS_SUFFIX[platform.system()]}"
-        response = specter.requests_session().get(torbrowser_url, stream=True)
         packed_name = os.path.join(
             specter.data_folder,
             TOR_OS_SUFFIX[platform.system()],
         )
-        with open(packed_name, "wb") as f:
-            total_length = float(response.headers["content-length"])
-            downloaded = 0.0
-            old_progress = 0
-            specter.config["torbrowser_setup"][
-                "stage"
-            ] = "Downloading Tor release files..."
-            specter._save()
-            for chunk in response.iter_content(chunk_size=4096):
-                downloaded += len(chunk)
-                f.write(chunk)
-                new_progress = int((downloaded / total_length) * 10000) / 100
-                if new_progress > old_progress:
-                    old_progress = new_progress
-                    specter.config["torbrowser_setup"]["stage_progress"] = new_progress
-                    specter._save()
-        specter.config["torbrowser_setup"]["stage"] = "Verifying signatures..."
-        specter._save()
         torbrowser_signed_url = f"https://www.torproject.org/dist/torbrowser/10.0.12/{TOR_OS_SUFFIX[platform.system()]}.asc"
-        response = specter.requests_session().get(torbrowser_signed_url, stream=True)
         torbrowser_signed_file = os.path.join(
             specter.data_folder, f"{TOR_OS_SUFFIX[platform.system()]}.asc"
         )
-        with open(torbrowser_signed_file, "wb") as f:
-            total_length = float(response.headers["content-length"])
-            for chunk in response.iter_content(chunk_size=4096):
-                f.write(chunk)
+        download_file(
+            specter,
+            torbrowser_url,
+            packed_name,
+            "torbrowser",
+            "Downloading Tor release files...",
+        )
+        download_file(
+            specter,
+            torbrowser_signed_url,
+            torbrowser_signed_file,
+            "torbrowser",
+            "Downloading Tor signatures...",
+        )
+        specter.config["torbrowser_setup"]["stage"] = "Verifying signatures..."
+        specter._save()
         torbrowser_release_pgp_key, _ = pgpy.PGPKey.from_file(
             os.path.join(sys._MEIPASS, "static/torbrowser-release-pubkey.asc")
             if getattr(sys, "frozen", False)
@@ -128,8 +123,10 @@ def setup_tor_thread(specter=None):
 
         specter.tor_daemon.start_tor_daemon()
         specter.update_tor_controller()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"Failed to install Tor. Error: {e}")
+        specter.config["torbrowser_setup"]["error"] = str(e)
+        specter._save()
     finally:
         specter.config["torbrowser_setup"]["stage_progress"] = -1
         specter._save()
