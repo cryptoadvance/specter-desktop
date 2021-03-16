@@ -165,6 +165,8 @@ class Specter:
         if platform.system() == "Windows":
             self.bitcoind_path += ".exe"
 
+        self._bitcoind = None
+        self._tor_daemon = None
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         try:
@@ -186,23 +188,6 @@ class Specter:
                 if not self.config["rpc"]["password"]:
                     self.config["rpc"]["password"] = secrets.token_urlsafe(16)
                     self._save()
-                rpc_conf = {
-                    "user": self.config["rpc"]["user"],
-                    "password": self.config["rpc"]["password"],
-                }
-
-            self.bitcoind = BitcoindPlainController(
-                bitcoind_path=self.bitcoind_path,
-                rpcport=8332,
-                network="mainnet",
-                rpcuser=rpc_conf["user"],
-                rpcpassword=rpc_conf["password"],
-            )
-
-            self.tor_daemon = TorDaemonController(
-                tor_daemon_path=self.torbrowser_path,
-                tor_config_path=os.path.join(self.data_folder, "torrc"),
-            )
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
@@ -594,6 +579,43 @@ class Specter:
         except Exception as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None
+
+    @property
+    def tor_daemon(self):
+        if os.path.isfile(self.torbrowser_path) and os.path.join(
+            self.data_folder, "torrc"
+        ):
+            if not self._tor_daemon:
+                self._tor_daemon = TorDaemonController(
+                    tor_daemon_path=self.torbrowser_path,
+                    tor_config_path=os.path.join(self.data_folder, "torrc"),
+                )
+            return self._tor_daemon
+        raise SpecterError(
+            "Tor daemon files missing. Make sure Tor is installed within Specter"
+        )
+
+    @property
+    def bitcoind(self):
+        if os.path.isfile(self.bitcoind_path):
+            if not self._bitcoind:
+                self._bitcoind = BitcoindPlainController(
+                    bitcoind_path=self.bitcoind_path,
+                    rpcport=8332,
+                    network="mainnet",
+                    rpcuser=self.config["rpc"]["user"],
+                    rpcpassword=self.config["rpc"]["password"],
+                )
+            return self._bitcoind
+        raise SpecterError(
+            "Bitcoin Core files missing. Make sure Bitcoin Core is installed within Specter"
+        )
+
+    def is_tor_dameon_running(self):
+        return self._tor_daemon and self._tor_daemon.is_running()
+
+    def is_bitcoind_running(self):
+        return self._bitcoind and self._bitcoind.check_existing()
 
     @property
     def tor_controller(self):

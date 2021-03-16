@@ -166,7 +166,7 @@ def bitcoin_core():
         specter=app.specter,
         current_version=current_version,
         bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
-        is_running=app.specter.bitcoind.check_existing(),
+        is_running=app.specter.is_bitcoind_running(),
         node_view=node_view,
         external_node=external_node,
         error=err,
@@ -329,7 +329,7 @@ def tor():
                 flash(f"Failed to stop Tor, error: {e}", "error")
         elif action == "uninstalltor":
             try:
-                if app.specter.tor_daemon.is_running():
+                if app.specter.is_tor_dameon_running():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
@@ -399,7 +399,7 @@ def tor():
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
         torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),
-        torbrowser_running=app.specter.tor_daemon.is_running(),
+        torbrowser_running=app.specter.is_tor_dameon_running,
         specter=app.specter,
         current_version=current_version,
         rand=rand,
