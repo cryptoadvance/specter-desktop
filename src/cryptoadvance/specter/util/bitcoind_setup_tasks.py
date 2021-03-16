@@ -81,6 +81,11 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
             file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
             file.write(f"\nserver=1")
+            file.write(f"\nlisten=1")
+            file.write(f"\nproxy=127.0.0.1:9050")
+            file.write(f"\nbind=127.0.0.1")
+            file.write(f"\ntorcontrol=127.0.0.1:9051")
+            file.write(f"\ntorpassword={specter.config['torrc_password']}")
         specter.config["bitcoind_internal_version"] = internal_bitcoind_version
         specter._save()
     except Exception as e:
