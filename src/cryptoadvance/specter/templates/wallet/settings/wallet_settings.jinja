@@ -227,7 +227,7 @@
 					<div id="utxo-explorer">
 						<br>
 						Block explorer URL:
-						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+						{% include "components/explorer_select.jinja" %}
 						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
 							&#9432;<br>Careful with block explorers!<br>
 							This may have privacy implication!<br>

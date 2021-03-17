@@ -137,11 +137,18 @@ def bitcoin_core():
 def general():
     current_version = notify_upgrade(app, flash)
     explorer = app.specter.explorer
+    fee_estimator = (app.specter.fee_estimator,)
+    fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
         explorer = request.form["explorer"]
+        if explorer == "custom":
+            explorer = request.form["custom_explorer"]
+        fee_estimator = request.form["fee_estimator"]
+        fee_estimator_custom_url = request.form["fee_estimator_custom_url"]
+        print(fee_estimator)
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
@@ -156,6 +163,11 @@ def general():
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
+            )
+            app.specter.update_fee_estimator(
+                fee_estimator=fee_estimator,
+                custom_url=fee_estimator_custom_url,
+                user=current_user,
             )
             app.specter.check()
         elif action == "restore":
@@ -232,6 +244,8 @@ This may take a few hours to complete.",
     return render_template(
         "settings/general_settings.jinja",
         explorer=explorer,
+        fee_estimator=fee_estimator,
+        fee_estimator_custom_url=fee_estimator_custom_url,
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,

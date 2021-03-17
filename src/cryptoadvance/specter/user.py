@@ -100,6 +100,12 @@ class User(UserMixin):
         self.config["explorers"][specter.chain] = explorer
         self.save_info(specter)
 
+    def set_fee_estimator(self, specter, fee_estimator, custom_url):
+        self.config["fee_estimator"] = fee_estimator
+        if fee_estimator == "custom":
+            self.config["fee_estimator_custom_url"] = custom_url
+        self.save_info(specter)
+
     def set_hwi_bridge_url(self, specter, url):
         self.config["hwi_bridge_url"] = url
         self.save_info(specter)

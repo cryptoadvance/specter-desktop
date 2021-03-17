@@ -135,6 +135,8 @@ class Specter:
             "alt_symbol": "BTC",
             "price_provider": "",
             "validate_merkle_proofs": False,
+            "fee_estimator": "mempool",
+            "fee_estimator_custom_url": "",
         }
 
         # health check: loads config, tests rpc
@@ -471,6 +473,23 @@ class Specter:
         else:
             user.set_explorer(self, explorer)
 
+    def update_fee_estimator(self, fee_estimator, custom_url, user):
+        """ update the fee estimator option and its url if custom """
+        user = self.user_manager.get_user(user)
+        fee_estimator_options = ["mempool", "bitcoin_core", "custom"]
+        # we don't know what chain to change
+        if fee_estimator not in fee_estimator_options:
+            return
+
+        # update the urls in the app config
+        if user.id == "admin":
+            self.config["fee_estimator"] = fee_estimator
+            if fee_estimator == "custom":
+                self.config["fee_estimator_custom_url"] = custom_url
+            self._save()
+        else:
+            user.set_fee_estimator(self, fee_estimator, custom_url)
+
     def update_proxy_url(self, proxy_url, user):
         """ update the Tor proxy url """
         if self.config["proxy_url"] != proxy_url:
@@ -621,19 +640,22 @@ class Specter:
     def get_default_explorer(self):
         """
         Returns a blockexplorer url:
-        user-defined if it's set, otherwise
-        blockstream.info for main and testnet,
-        bc-2.jp for signet
+        user-defined if it's set, otherwise mempool.space
+        will be used by default
         """
         # not None or ""
         if self.explorer:
             return self.explorer
         if self.chain == "main":
-            return "https://blockstream.info/"
+            return "https://mempool.space/"
         elif self.chain == "test":
-            return "https://blockstream.info/testnet/"
+            return "https://mempool.space/testnet/"
         elif self.chain == "signet":
-            return "https://explorer.bc-2.jp/"
+            return "https://mempool.space/signet"
+
+    @property
+    def fee_estimator(self):
+        return self.config.get("fee_estimator", "mempool")
 
     @property
     def is_running(self):
