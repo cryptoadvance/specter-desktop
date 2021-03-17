@@ -67,6 +67,16 @@ class BaseConfig(object):
         os.getenv("SPECTER_SSL_CERT_SERIAL_NUMBER", random.randrange(1, 100000))
     )
 
+    # Block explorers URLs
+    MEMPOOL_SPACE = "https://mempool.space/"
+    MEMPOOL_SPACE_ONION = (
+        "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/"
+    )
+    BLOCKSTREAM_INFO = "https://blockstream.info/"
+    BLOCKSTREAM_INFO_ONION = (
+        "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/"
+    )
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key

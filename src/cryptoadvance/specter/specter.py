@@ -21,6 +21,7 @@ from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.price_providers import update_price
 import threading
+from .specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -471,24 +472,23 @@ class Specter:
                 self.config["explorers"][self.chain] = explorer
             self._save()
         else:
-            user.set_explorer(self, explorer)
+            user.set_explorer(explorer)
 
     def update_fee_estimator(self, fee_estimator, custom_url, user):
         """ update the fee estimator option and its url if custom """
         user = self.user_manager.get_user(user)
         fee_estimator_options = ["mempool", "bitcoin_core", "custom"]
-        # we don't know what chain to change
-        if fee_estimator not in fee_estimator_options:
-            return
 
-        # update the urls in the app config
+        if fee_estimator not in fee_estimator_options:
+            raise SpecterError("Invalid fee estimator option specified.")
+
         if user.id == "admin":
             self.config["fee_estimator"] = fee_estimator
             if fee_estimator == "custom":
                 self.config["fee_estimator_custom_url"] = custom_url
             self._save()
         else:
-            user.set_fee_estimator(self, fee_estimator, custom_url)
+            user.set_fee_estimator(fee_estimator, custom_url)
 
     def update_proxy_url(self, proxy_url, user):
         """ update the Tor proxy url """
@@ -534,21 +534,21 @@ class Specter:
             self.config["hwi_bridge_url"] = url
             self._save()
         else:
-            user.set_hwi_bridge_url(self, url)
+            user.set_hwi_bridge_url(url)
 
     def update_unit(self, unit, user):
         if user.is_admin:
             self.config["unit"] = unit
             self._save()
         else:
-            user.set_unit(self, unit)
+            user.set_unit(unit)
 
     def update_price_check_setting(self, price_check_bool, user):
         if user.is_admin:
             self.config["price_check"] = price_check_bool
             self._save()
         else:
-            user.set_price_check(self, price_check_bool)
+            user.set_price_check(price_check_bool)
         if price_check_bool and (self.price_provider and self.user == user):
             self.price_checker.start()
         else:
@@ -559,7 +559,7 @@ class Specter:
             self.config["price_provider"] = price_provider
             self._save()
         else:
-            user.set_price_provider(self, price_provider)
+            user.set_price_provider(price_provider)
 
     def update_alt_rate(self, alt_rate, user):
         alt_rate = round(float(alt_rate), 2)
@@ -567,14 +567,14 @@ class Specter:
             self.config["alt_rate"] = alt_rate
             self._save()
         else:
-            user.set_alt_rate(self, alt_rate)
+            user.set_alt_rate(alt_rate)
 
     def update_alt_symbol(self, alt_symbol, user):
         if user.is_admin:
             self.config["alt_symbol"] = alt_symbol
             self._save()
         else:
-            user.set_alt_symbol(self, alt_symbol)
+            user.set_alt_symbol(alt_symbol)
 
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:

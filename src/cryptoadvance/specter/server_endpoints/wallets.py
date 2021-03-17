@@ -575,7 +575,7 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
-    fee_estimation_data = get_fees(app.specter)
+    fee_estimation_data = get_fees(app.specter, app.config)
     fee_rate = fee_estimation_data["hourFee"]
 
     if request.method == "POST":

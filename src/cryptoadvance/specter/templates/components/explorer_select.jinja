@@ -2,15 +2,15 @@
     'signet' if specter.chain == 'signet' else 'testnet'
 )%}
 <select name="explorer" id="explorer" onchange="updateExplorer()">
-    <option value="https://mempool.space/" {% if specter.explorer == "https://mempool.space/" + chain_name %}selected{% endif%}>Mempool.space</option>
-    <option value="http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/{{ chain_name }}" {% if specter.explorer == "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/" + chain_name %}selected{% endif%}>Mempool.space Tor hidden service</option>
-    <option value="https://blockstream.info/{{ chain_name }}" {% if specter.explorer == "https://blockstream.info/" + chain_name %}selected{% endif%}>Blockstream.info</option>
-    <option value="http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/{{ chain_name }}" {% if specter.explorer == "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/" + chain_name %}selected{% endif%}>Blockstream.info Tor hidden service</option>
+    <option value="{{config['MEMPOOL_SPACE'] + chain_name}}" {% if specter.explorer == config['MEMPOOL_SPACE'] + chain_name %}selected{% endif%}>Mempool.space</option>
+    <option value="{{config['MEMPOOL_SPACE_ONION'] + chain_name}}" {% if specter.explorer == config['MEMPOOL_SPACE_ONION'] + chain_name %}selected{% endif%}>Mempool.space Tor hidden service</option>
+    <option value="{{config['BLOCKSTREAM_INFO'] + chain_name}}" {% if specter.explorer == config['BLOCKSTREAM_INFO'] + chain_name %}selected{% endif%}>Blockstream.info</option>
+    <option value="{{config['BLOCKSTREAM_INFO_ONION'] + chain_name}}" {% if specter.explorer == config['BLOCKSTREAM_INFO_ONION'] + chain_name %}selected{% endif%}>Blockstream.info Tor hidden service</option>
     <option value="custom" 
-    {% if specter.explorer != "https://mempool.space/" + chain_name
-    and specter.explorer != "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/" + chain_name
-    and specter.explorer != "https://blockstream.info/" + chain_name
-    and specter.explorer != "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/" + chain_name %}
+    {% if specter.explorer != config['MEMPOOL_SPACE'] + chain_name
+    and specter.explorer != config['MEMPOOL_SPACE_ONION'] + chain_name
+    and specter.explorer != config['BLOCKSTREAM_INFO'] + chain_name
+    and specter.explorer != config['BLOCKSTREAM_INFO_ONION'] + chain_name %}
     selected{%endif%} id="explorer-custom-option">Custom</option>
 </select>
 <br>

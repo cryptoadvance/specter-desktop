@@ -1,22 +1,32 @@
-def get_fees(specter):
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_fees(specter, config):
     if specter.fee_estimator == "mempool":
         # Try first with Tor hidden service
         try:
             requests_session = specter.requests_session(force_tor=True)
             return requests_session.get(
-                "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/api/v1/fees/recommended"
+                f"{config['MEMPOOL_SPACE_ONION']}api/v1/fees/recommended"
             ).json()
             return
-        except Exception:
+        except Exception as e:
             # Try without Tor if failed, or fall back to Bitcoin Core if only Tor is on
+            logger.warning(
+                f"Failed to fetch fee estimation from mempool.space Tor hidden service. Using Bitcoin Core instead. Error: {e}"
+            )  # Falling back to Bitcoin Core
             if not specter.only_tor:
                 try:
                     requests_session = specter.requests_session(force_tor=False)
                     return requests_session.get(
-                        "https://mempool.space/api/v1/fees/recommended"
+                        f"{config['MEMPOOL_SPACE']}api/v1/fees/recommended"
                     ).json()
-                except Exception:
-                    pass  # Falling back to Bitcoin Core
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to fetch fee estimation from mempool.space. Using Bitcoin Core instead. Error: {e}"
+                    )  # Falling back to Bitcoin Core
     elif specter.fee_estimator == "custom":
         try:
             if specter.config["fee_estimator_custom_url"].endswith("/"):
@@ -33,8 +43,10 @@ def get_fees(specter):
                 force_tor=".onion/" in custom_url
             )
             return requests_session.get(custom_url).json()
-        except Exception:
-            pass  # Falling back to Bitcoin Core
+        except Exception as e:
+            logger.warning(
+                f"Failed to fetch fee estimation from custom provider. Using Bitcoin Core instead. Error: {e}"
+            )  # Falling back to Bitcoin Core
 
     return {
         "fastestFee": int((float(specter.estimatesmartfee(1)["feerate"]) / 1000) * 1e8),

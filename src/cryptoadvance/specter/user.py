@@ -33,12 +33,13 @@ def verify_password(stored_password, provided_password):
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password, config, is_admin=False):
+    def __init__(self, id, username, password, config, specter, is_admin=False):
         self.id = id
         self.username = username
         self.password = password
         self.config = config
         self.is_admin = is_admin
+        self.specter = specter
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
@@ -50,7 +51,7 @@ class User(UserMixin):
         return f"_{self.id}"
 
     @classmethod
-    def from_json(cls, user_dict):
+    def from_json(cls, user_dict, specter):
         # TODO: Unify admin in backwards compatible way
         try:
             if not user_dict["is_admin"]:
@@ -59,6 +60,7 @@ class User(UserMixin):
                     user_dict["username"],
                     user_dict["password"],
                     user_dict["config"],
+                    specter,
                 )
             else:
                 return cls(
@@ -66,6 +68,7 @@ class User(UserMixin):
                     user_dict["username"],
                     user_dict["password"],
                     {},
+                    specter,
                     is_admin=True,
                 )
         except:
@@ -83,56 +86,56 @@ class User(UserMixin):
             user_dict["config"] = self.config
         return user_dict
 
-    def save_info(self, specter, delete=False):
+    def save_info(self, delete=False):
         if self.manager is None:
-            self.manager = specter.user_manager
+            self.manager = self.specter.user_manager
         users = self.manager.users
         existing = self in users
 
         # update specter users
         if not existing and not delete:
-            specter.add_user(self)
+            self.specter.add_user(self)
         if existing and delete:
-            specter.delete_user(self)
+            self.specter.delete_user(self)
         self.manager.save()
 
-    def set_explorer(self, specter, explorer):
-        self.config["explorers"][specter.chain] = explorer
-        self.save_info(specter)
+    def set_explorer(self, explorer):
+        self.config["explorers"][self.specter.chain] = explorer
+        self.save_info()
 
-    def set_fee_estimator(self, specter, fee_estimator, custom_url):
+    def set_fee_estimator(self, fee_estimator, custom_url):
         self.config["fee_estimator"] = fee_estimator
         if fee_estimator == "custom":
             self.config["fee_estimator_custom_url"] = custom_url
-        self.save_info(specter)
+        self.save_info()
 
-    def set_hwi_bridge_url(self, specter, url):
+    def set_hwi_bridge_url(self, url):
         self.config["hwi_bridge_url"] = url
-        self.save_info(specter)
+        self.save_info()
 
-    def set_unit(self, specter, unit):
+    def set_unit(self, unit):
         self.config["unit"] = unit
-        self.save_info(specter)
+        self.save_info()
 
-    def set_price_check(self, specter, price_check_bool):
+    def set_price_check(self, price_check_bool):
         self.config["price_check"] = price_check_bool
-        self.save_info(specter)
+        self.save_info()
 
-    def set_price_provider(self, specter, price_provider):
+    def set_price_provider(self, price_provider):
         self.config["price_provider"] = price_provider
-        self.save_info(specter)
+        self.save_info()
 
-    def set_alt_rate(self, specter, alt_rate):
+    def set_alt_rate(self, alt_rate):
         self.config["alt_rate"] = alt_rate
-        self.save_info(specter)
+        self.save_info()
 
-    def set_alt_symbol(self, specter, alt_symbol):
+    def set_alt_symbol(self, alt_symbol):
         self.config["alt_symbol"] = alt_symbol
-        self.save_info(specter)
+        self.save_info()
 
-    def delete(self, specter):
+    def delete(self):
         # we delete wallet manager and device manager in save_info
-        self.save_info(specter, delete=True)
+        self.save_info(delete=True)
 
     def __eq__(self, other):
         if isinstance(other, str):
