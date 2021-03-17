@@ -64,6 +64,8 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
             action="restore",
             explorer="",
             unit="btc",
+            fee_estimator="mempool",
+            fee_estimator_custom_url="",
             loglevel="debug",
             restoredevices=restore_devices,
             restorewallets=restore_wallets,

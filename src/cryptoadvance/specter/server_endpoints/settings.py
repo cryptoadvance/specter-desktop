@@ -137,7 +137,7 @@ def bitcoin_core():
 def general():
     current_version = notify_upgrade(app, flash)
     explorer = app.specter.explorer
-    fee_estimator = (app.specter.fee_estimator,)
+    fee_estimator = app.specter.fee_estimator
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
@@ -148,7 +148,6 @@ def general():
             explorer = request.form["custom_explorer"]
         fee_estimator = request.form["fee_estimator"]
         fee_estimator_custom_url = request.form["fee_estimator_custom_url"]
-        print(fee_estimator)
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
