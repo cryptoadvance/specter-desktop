@@ -95,8 +95,8 @@
                 <span class="slider"></span>
             </label>&nbsp;&nbsp;
             <tool-tip title="What is QuickSync?">
-                QuickSync will set up your new node from a trusted state of the blockchain.<br>
-                This means all block validation will be skipped until the most recent block in the snapshot.<br>
+                QuickSync will set up your new node from a trusted state of the blockchain.<br><br>
+                This means all block validation will be skipped until the most recent block in the snapshot.<br><br>
                 Later blocks will be normally validated like with a regular full node.
             </tool-tip>
         </p>
@@ -138,9 +138,10 @@
         </div>
     </div>
     <div class="card center hidden" id="step5">
-        <h1>Setup Completed Successfully!</h1>
+        <img style="width: 100px;" src="{{ url_for('static', filename='img/party.png') }}"/><br><br>
+        <h1 style="font-size: 1.8em;">Setup Completed Successfully!</h1>
         <p>Your new node is up and running!</p><br>
-        <a href="{{url_for('about')}}" class="btn wizard-btn">Done</a>
+        <a href="{{url_for('about')}}" class="btn wizard-btn action">Done</a>
     </div>
     <br>
     <button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('stage-progress-details');">View Progress</button>
