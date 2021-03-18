@@ -88,6 +88,8 @@ def inject_debug():
 def index():
     notify_upgrade(app, flash)
     if len(app.specter.wallet_manager.wallets) > 0:
+        if len(app.specter.wallet_manager.wallets) > 1:
+            return redirect(url_for("wallets_endpoint.wallets_overview"))
         return redirect(
             url_for(
                 "wallets_endpoint.wallet",
