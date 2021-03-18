@@ -183,6 +183,10 @@ After following [these steps](https://github.com/cryptoadvance/specter-desktop#h
 You should be able to view it in a browser at: 127.0.0.1:25441/
 If not, see [Troubleshoot](https://github.com/cryptoadvance/specter-desktop/new/master/docs#troubleshoot)
 
+## *How do i verify the signatures of the binaries?*
+
+There is a generic video about it from kryptokids [here](https://www.youtube.com/watch?v=S257nUqs13A). This is for linux but it's probably also a good starting-point for doing it on other OSes. Heavily interested to have more specific videos to be linked here.
+
 ## *What types of ways can I run specter-desktop?*
 
 There are many ways how to run Specter:
