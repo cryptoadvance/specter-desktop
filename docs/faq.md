@@ -22,6 +22,7 @@
   - [*Does Specter have coin control?*](#does-specter-have-coin-control)
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
+  - [*How do i verify the signatures of the binaries?*](#how-do-i-verify-the-signatures-of-the-binaries)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
   - [Devices? Wallets? What is the difference?](#devices-wallets-what-is-the-difference)
   - [*What do I need to do in order to create a multisig wallet?*](#what-do-i-need-to-do-in-order-to-create-a-multisig-wallet)
