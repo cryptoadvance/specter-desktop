@@ -61,7 +61,7 @@
                                 Currency:
                             </td>
                             <td style="padding-bottom: 0px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline;"> 
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
                                         <optgroup label="Fiat currencies" id="fiat_currency">
                                             <option value="usd" selected>$ (USD)</option>
@@ -90,11 +90,11 @@
                             </td>
                         </tr>
                         <tr style="background: none;">
-                            <td style="padding-top: 10px; padding-bottom: 10px; padding-right: 15px; border: none; text-align: right;">
+                            <td style="padding-top: 10px; padding-bottom: 0px; padding-right: 15px; border: none; text-align: right;">
                                 <p>Provider:</p>
                             </td>
-                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline;"> 
+                            <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider" id="price_provider">
                                         <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
                                         <option data-currency-type="usd" value="coindesk" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
@@ -154,11 +154,11 @@
                             </td>
                         </tr>
                         <tr style="background: none;" class="hidden" id="weight_unit_row">
-                            <td style="padding-bottom: 0px; border: none; text-align: right;">
+                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: right;">
                                 Weight Unit:
                             </td>
-                            <td style="padding-bottom: 0px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline;"> 
+                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="weight_unit" id="weight_unit">
                                         <option value="oz" {% if specter.weight_unit == 'oz' %}selected{% endif %}>Oz.</option>
                                         <option value="gram" {% if specter.weight_unit == 'gram' %}selected{% endif %}>Gram</option>
