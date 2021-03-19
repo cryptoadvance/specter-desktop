@@ -44,6 +44,13 @@ rand = random.randint(0, 1e32)  # to force style refresh
 wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 
 
+def handle_wallet_error(func_name, error):
+    flash(f"SpecterError while {func_name}: {error}", "error")
+    app.logger.error(f"SpecterError while {func_name}: {error}")
+    app.specter.wallet_manager.update()
+    return redirect(url_for("about"))
+
+
 def check_wallet(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -54,12 +61,7 @@ def check_wallet(func):
                 wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
                 wallet.get_info()
             except SpecterError as se:
-                flash(f"SpecterError while {func.__name__}: {se}", "error")
-                app.logger.error(f"SpecterError while {func.__name__}: {se}")
-                app.specter.wallet_manager.update()
-                if func.__name__ in ["combine"]:
-                    return f"SpecterError while {func.__name__}: {se}", 500
-                return redirect("/")
+                return handle_wallet_error(func.__name__, se)
         return func(*args, **kwargs)
 
     return wrapper
@@ -73,8 +75,11 @@ def check_wallet(func):
 def wallets_overview():
     app.specter.check_blockheight()
     for wallet in app.specter.wallet_manager.wallets.values():
-        wallet.get_balance()
-        wallet.check_utxo()
+        try:
+            wallet.get_balance()
+            wallet.check_utxo()
+        except Exception as e:
+            return handle_wallet_error("wallets_overview", e)
     return render_template(
         "wallet/wallets_overview.jinja",
         specter=app.specter,
@@ -499,9 +504,12 @@ def history(wallet_alias):
                 flash(str(e), "error")
 
     # update balances in the wallet
-    app.specter.check_blockheight()
-    wallet.get_balance()
-    wallet.check_utxo()
+    try:
+        app.specter.check_blockheight()
+        wallet.get_balance()
+        wallet.check_utxo()
+    except Exception as e:
+        return handle_wallet_error("history", e)
 
     return render_template(
         "wallet/history/wallet_history.jinja",
@@ -561,10 +569,13 @@ def send(wallet_alias):
 @check_wallet
 def send_new(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    # update balances in the wallet
-    wallet.get_balance()
-    # update utxo list for coin selection
-    wallet.check_utxo()
+    try:
+        # update balances in the wallet
+        wallet.get_balance()
+        # update utxo list for coin selection
+        wallet.check_utxo()
+    except Exception as e:
+        return handle_wallet_error("send_new", e)
     psbt = None
     addresses = [""]
     labels = [""]
@@ -866,10 +877,14 @@ def addresses(wallet_alias):
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    # update balances in the wallet
-    app.specter.check_blockheight()
-    wallet.get_balance()
-    wallet.check_utxo()
+
+    try:
+        # update balances in the wallet
+        app.specter.check_blockheight()
+        wallet.get_balance()
+        wallet.check_utxo()
+    except Exception as e:
+        return handle_wallet_error("addresses", e)
 
     return render_template(
         "wallet/addresses/wallet_addresses.jinja",
