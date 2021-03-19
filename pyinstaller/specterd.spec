@@ -2,8 +2,10 @@
 import platform
 import subprocess
 import mnemonic, os
+import embit
 
 mnemonic_path = os.path.join(mnemonic.__path__[0], "wordlist")
+embit_libsecp_binary = embit.util.ctypes_secp256k1._find_library()
 
 block_cipher = None
 
@@ -35,6 +37,7 @@ a = Analysis(['specterd.py'],
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
                     ('../src/cryptoadvance/specter/static', 'static'),
                     (mnemonic_path, 'mnemonic/wordlist'),
+                    (embit_libsecp_binary, 'embit/util/prebuilt'),
                     ("version.txt", "."),
              ],
              hiddenimports=[
