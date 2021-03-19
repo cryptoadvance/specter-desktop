@@ -67,18 +67,6 @@ let webPreferences = {
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
-try {
-  require(
-    '@deadcanaries/granax')({}, { 
-        'SocksPort': 9050,
-        'ControlPort': 9051 
-    }).on('error', function () {
-      // Tor is probably running, ignore...
-    }) 
-} catch(e) {
-  // Tor is probably running, ignore...
-}
-
 let platformName = ''
 switch (process.platform) {
   case 'darwin':
@@ -181,8 +169,13 @@ function initMainWindow(specterURL) {
   });
 
   mainWindow.on('close', function (event) {
-      event.preventDefault();
-      mainWindow.hide();
+      if(platformName == 'win64') {
+        quitSpecterd()
+        app.quit()
+      } else {
+        event.preventDefault();
+        mainWindow.hide();
+      }
   });
 
   mainWindow.webContents.on("did-fail-load", function() {
@@ -276,9 +269,11 @@ function startSpecterd(specterdPath) {
     specterdArgs = specterdArgs.concat(specterdExtraArgs)
   }
   specterdProcess = spawn(specterdPath, specterdArgs);
-  specterdProcess.stdout.on('data', (_) => {
-    if (mainWindow) {
-      createWindow(appSettings.specterURL)
+  specterdProcess.stdout.on('data', (data) => {
+    if(data.toString().includes('Serving Flask app "cryptoadvance.specter.server"')) {
+      if (mainWindow) {
+        createWindow(appSettings.specterURL)
+      }
     }
   });
   specterdProcess.stderr.on('data', function(_) {
@@ -297,6 +292,13 @@ function startSpecterd(specterdPath) {
     console.log(`child process exited with code ${code}`);
   });
 }
+
+app.on('window-all-closed', function(){
+  if(platformName == 'win64') {
+    quitSpecterd()
+    app.quit()
+  }
+});
 
 app.on('before-quit', () => {
   if (!quitted) {
@@ -337,7 +339,8 @@ function quitSpecterd() {
   if (specterdProcess) {
     try {
       if (platformName == 'win64') {
-        exec('taskkill -F -T -PID ' + specterdProcess.pid);
+        exec('taskkill /F /T /PID ' + specterdProcess.pid);
+        exec('taskkill /IM specterd.exe ');
         process.kill(-specterdProcess.pid)
       }
       specterdProcess.kill('SIGINT')
