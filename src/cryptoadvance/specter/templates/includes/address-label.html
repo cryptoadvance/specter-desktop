@@ -225,9 +225,9 @@
                 if (jsonResponse.label) {
                     self.label.innerText = jsonResponse.label;
                 }
-                return
-            };
-            showError('Failed to fetch address label data.')
+                return;
+            }
+            showError('Failed to fetch address label data.');
         } catch(e) {
             console.log("Caught error: ", e);
             showError(e);

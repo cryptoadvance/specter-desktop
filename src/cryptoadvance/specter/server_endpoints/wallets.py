@@ -119,7 +119,9 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             try:
-                wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
+                wallet_data = json.loads(
+                    request.form["wallet_data"].replace("\\'", "").replace("'", "h")
+                )
                 (
                     wallet_name,
                     recv_descriptor,
