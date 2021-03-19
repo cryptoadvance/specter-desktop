@@ -786,10 +786,6 @@ class Specter:
         return self.rpc.estimatesmartfee(blocks)
 
     @property
-    def fee_estimator(self):
-        return self.config.get("fee_estimator", "mempool")
-
-    @property
     def is_running(self):
         return self._is_running
 
@@ -832,6 +828,10 @@ class Specter:
     @property
     def explorer_id(self):
         return self.user_config.get("explorer_id", {}).get(self.chain, "CUSTOM")
+
+    @property
+    def fee_estimator(self):
+        return self.user_config.get("fee_estimator", "mempool")
 
     @property
     def proxy_url(self):
