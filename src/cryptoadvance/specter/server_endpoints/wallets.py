@@ -1,24 +1,25 @@
-import ast, csv, json, os, time, base64, random, requests, logging
-from io import StringIO
-from werkzeug.wrappers import Response
+import ast
+import base64
+import csv
+import json
+import logging
+import os
+import random
+import time
+from binascii import b2a_base64
 from datetime import datetime
-from numbers import Number
+from functools import wraps
+from io import StringIO
 from math import isnan
-from ..util.tx import decoderawtransaction
-from ..util.price_providers import get_price_at
+from numbers import Number
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_login import login_required, current_user
-from ..util.descriptor import AddChecksum, Descriptor
+import requests
+from flask import Blueprint, Flask
+from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from werkzeug.wrappers import Response
+
 from ..helpers import (
     bcur2base64,
     get_devices_with_keys_by_type,
@@ -26,21 +27,42 @@ from ..helpers import (
     is_testnet,
     parse_wallet_data_import,
 )
-from ..persistence import delete_file
 from ..key import Key
+from ..persistence import delete_file
+from ..rpc import RpcError
 from ..specter import Specter
 from ..specter_error import SpecterError
-from ..wallet_manager import purposes
-from ..rpc import RpcError
-from binascii import b2a_base64
 from ..util.base43 import b43_decode
-
-from flask import current_app as app
+from ..util.descriptor import AddChecksum, Descriptor
+from ..util.price_providers import get_price_at
+from ..util.tx import decoderawtransaction
+from ..wallet_manager import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 wallets_endpoint = Blueprint("wallets_endpoint", __name__)
+
+
+def check_wallet(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        """checks the wallet for healthyness A wrapper function"""
+        if kwargs["wallet_alias"]:
+            wallet_alias = kwargs["wallet_alias"]
+            try:
+                wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+                wallet.get_info()
+            except SpecterError as se:
+                flash(f"SpecterError while {func.__name__}: {se}", "error")
+                app.logger.error(f"SpecterError while {func.__name__}: {se}")
+                app.specter.wallet_manager.update()
+                if func.__name__ in ["combine"]:
+                    return f"SpecterError while {func.__name__}: {se}", 500
+                return redirect("/")
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 ################## Wallet overview #######################
@@ -447,12 +469,9 @@ def new_wallet(wallet_type):
 ###### Wallet index page ######
 @wallets_endpoint.route("/wallet/<wallet_alias>/")
 @login_required
+@check_wallet
 def wallet(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if wallet.fullbalance > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
@@ -462,13 +481,9 @@ def wallet(wallet_alias):
 ###### Wallet transaction history ######
 @wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def history(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_tx: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     tx_list_type = "txlist"
 
     if request.method == "POST":
@@ -503,12 +518,9 @@ def history(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/receive/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def receive(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "newaddress":
@@ -533,12 +545,9 @@ def receive(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/send")
 @login_required
+@check_wallet
 def send(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if len(wallet.pending_psbts) > 0:
         return redirect(
             url_for("wallets_endpoint.send_pending", wallet_alias=wallet_alias)
@@ -549,12 +558,9 @@ def send(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/new", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def send_new(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
     wallet.get_balance()
     # update utxo list for coin selection
@@ -775,12 +781,9 @@ def send_new(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/pending/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def send_pending(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_sendpending: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "deletepsbt":
@@ -819,12 +822,9 @@ def send_pending(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def import_psbt(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "importpsbt":
@@ -860,17 +860,12 @@ def import_psbt(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
+@check_wallet
 def addresses(wallet_alias):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
-
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
     app.specter.check_blockheight()
     wallet.get_balance()
@@ -890,13 +885,10 @@ def addresses(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def settings(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form["action"]
         if action == "rescanblockchain":
@@ -981,13 +973,10 @@ def settings(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
+@check_wallet
 def combine(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # only post requests
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while combine: %s" % se)
-        return "SpecterError while combine: %s" % se, 500
     # FIXME: ugly...
     txid = request.form.get("txid")
     psbts = [request.form.get("psbt0").strip(), request.form.get("psbt1").strip()]
@@ -1042,12 +1031,9 @@ def combine(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/broadcast/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def broadcast(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while broadcast: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         tx = request.form.get("tx")
         res = wallet.rpc.testmempoolaccept([tx])[0]

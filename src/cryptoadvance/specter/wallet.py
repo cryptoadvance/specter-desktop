@@ -403,8 +403,8 @@ class Wallet:
     def get_info(self):
         try:
             self.info = self.rpc.getwalletinfo()
-        except Exception:
-            self.info = {}
+        except Exception as e:
+            raise SpecterError(e)
         return self.info
 
     def check_utxo(self):
@@ -439,8 +439,8 @@ class Wallet:
                     pass
             self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
-            logger.error(f"Failed to load utxos, {e}")
             self.full_utxo = []
+            raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
         self.fetch_transactions()
