@@ -62,7 +62,8 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
         "/settings/general",
         data=dict(
             action="restore",
-            explorer="",
+            explorer="CUSTOM",
+            custom_explorer="",
             unit="btc",
             fee_estimator="mempool",
             fee_estimator_custom_url="",

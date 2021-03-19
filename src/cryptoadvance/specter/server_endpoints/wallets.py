@@ -394,9 +394,12 @@ def new_wallet(wallet_type):
                 if "utxo" in request.form.get("full_rescan_option"):
                     explorer = None
                     if "use_explorer" in request.form:
-                        explorer = request.form["explorer"]
-                        if explorer == "custom":
+                        if request.form["explorer"] == "CUSTOM":
                             explorer = request.form["custom_explorer"]
+                        else:
+                            explorer = app.config["EXPLORERS_LIST"][
+                                request.form["explorer"]
+                            ]["url"]
                     wallet.rescanutxo(
                         explorer,
                         app.specter.requests_session(explorer),
@@ -925,9 +928,12 @@ def settings(wallet_alias):
         elif action == "rescanutxo":
             explorer = None
             if "use_explorer" in request.form:
-                explorer = request.form["explorer"]
-                if explorer == "custom":
+                if request.form["explorer"] == "CUSTOM":
                     explorer = request.form["custom_explorer"]
+                else:
+                    explorer = app.config["EXPLORERS_LIST"][request.form["explorer"]][
+                        "url"
+                    ]
 
             wallet.rescanutxo(
                 explorer, app.specter.requests_session(explorer), app.specter.only_tor
