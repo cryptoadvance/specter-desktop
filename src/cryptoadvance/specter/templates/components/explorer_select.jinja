@@ -1,23 +1,13 @@
-{% set chain_name = '' if (specter.chain == 'main' or specter.chain == 'regtest') else (
-    'signet' if specter.chain == 'signet' else 'testnet'
-)%}
 <select name="explorer" id="explorer" onchange="updateExplorer()">
-    <option value="{{config['MEMPOOL_SPACE'] + chain_name}}" {% if specter.explorer == config['MEMPOOL_SPACE'] + chain_name %}selected{% endif%}>Mempool.space</option>
-    <option value="{{config['MEMPOOL_SPACE_ONION'] + chain_name}}" {% if specter.explorer == config['MEMPOOL_SPACE_ONION'] + chain_name %}selected{% endif%}>Mempool.space Tor hidden service</option>
-    <option value="{{config['BLOCKSTREAM_INFO'] + chain_name}}" {% if specter.explorer == config['BLOCKSTREAM_INFO'] + chain_name %}selected{% endif%}>Blockstream.info</option>
-    <option value="{{config['BLOCKSTREAM_INFO_ONION'] + chain_name}}" {% if specter.explorer == config['BLOCKSTREAM_INFO_ONION'] + chain_name %}selected{% endif%}>Blockstream.info Tor hidden service</option>
-    <option value="custom" 
-    {% if specter.explorer != config['MEMPOOL_SPACE'] + chain_name
-    and specter.explorer != config['MEMPOOL_SPACE_ONION'] + chain_name
-    and specter.explorer != config['BLOCKSTREAM_INFO'] + chain_name
-    and specter.explorer != config['BLOCKSTREAM_INFO_ONION'] + chain_name %}
-    selected{%endif%} id="explorer-custom-option">Custom</option>
+    {% for explorer in config['EXPLORERS_LIST'] %}
+        <option value="{{explorer}}" {% if specter.explorer_id == explorer %}selected{% endif%}>{{config['EXPLORERS_LIST'][explorer].name}}</option>
+    {% endfor %}
 </select>
 <br>
 <input type="text" name="custom_explorer" id="custom-explorer" value="{{ specter.explorer }}" class="hidden" placeholder="Block explorer url" style="margin-top: 15px;"/>
 <script>
     function updateExplorer() {
-        if (document.getElementById('explorer').value == "custom") {
+        if (document.getElementById('explorer').value == "CUSTOM") {
             document.getElementById('custom-explorer').classList.remove('hidden');
         } else {
             document.getElementById('custom-explorer').classList.add('hidden');

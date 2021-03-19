@@ -99,8 +99,20 @@ class User(UserMixin):
             self.specter.delete_user(self)
         self.manager.save()
 
-    def set_explorer(self, explorer):
+    def set_explorer(self, explorer_id, explorer):
+        if "explorers" not in self.config:
+            self.config["explorers"] = (
+                {"main": "", "test": "", "regtest": "", "signet": ""},
+            )
         self.config["explorers"][self.specter.chain] = explorer
+        if "explorer_id" not in self.config:
+            self.config["explorer_id"] = {
+                "main": "CUSTOM",
+                "test": "CUSTOM",
+                "regtest": "CUSTOM",
+                "signet": "CUSTOM",
+            }
+        self.config["explorer_id"][self.specter.chain] = explorer_id
         self.save_info()
 
     def set_fee_estimator(self, fee_estimator, custom_url):

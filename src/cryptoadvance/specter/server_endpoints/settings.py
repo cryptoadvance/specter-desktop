@@ -178,16 +178,18 @@ def bitcoin_core():
 @login_required
 def general():
     current_version = notify_upgrade(app, flash)
-    explorer = app.specter.explorer
+    explorer_id = app.specter.explorer_id
+    explorer = ""
     fee_estimator = app.specter.fee_estimator
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
-        explorer = request.form["explorer"]
-        if explorer == "custom":
-            explorer = request.form["custom_explorer"]
+        explorer_id = request.form["explorer"]
+        explorer_data = app.config["EXPLORERS_LIST"][explorer_id]
+        if explorer_id == "CUSTOM":
+            explorer_data["url"] = request.form["custom_explorer"]
         fee_estimator = request.form["fee_estimator"]
         fee_estimator_custom_url = request.form["fee_estimator_custom_url"]
         unit = request.form["unit"]
@@ -200,7 +202,7 @@ def general():
             if current_user.is_admin:
                 set_loglevel(app, loglevel)
 
-            app.specter.update_explorer(explorer, current_user)
+            app.specter.update_explorer(explorer_id, explorer_data, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
@@ -284,7 +286,6 @@ This may take a few hours to complete.",
 
     return render_template(
         "settings/general_settings.jinja",
-        explorer=explorer,
         fee_estimator=fee_estimator,
         fee_estimator_custom_url=fee_estimator_custom_url,
         loglevel=loglevel,

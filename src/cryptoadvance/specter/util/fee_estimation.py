@@ -9,7 +9,7 @@ def get_fees(specter, config):
         try:
             requests_session = specter.requests_session(force_tor=True)
             return requests_session.get(
-                f"{config['MEMPOOL_SPACE_ONION']}api/v1/fees/recommended"
+                f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE_ONION']['url']}api/v1/fees/recommended"
             ).json()
             return
         except Exception as e:
@@ -21,7 +21,7 @@ def get_fees(specter, config):
                 try:
                     requests_session = specter.requests_session(force_tor=False)
                     return requests_session.get(
-                        f"{config['MEMPOOL_SPACE']}api/v1/fees/recommended"
+                        f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE']['url']}api/v1/fees/recommended"
                     ).json()
                 except Exception as e:
                     logger.warning(
