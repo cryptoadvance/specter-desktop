@@ -57,7 +57,7 @@ def check_wallet(func):
                 flash(f"SpecterError while {func.__name__}: {se}", "error")
                 app.logger.error(f"SpecterError while {func.__name__}: {se}")
                 app.specter.wallet_manager.update()
-                if func.__name__ in ["combine", "broadcast"]:
+                if func.__name__ in ["combine"]:
                     return f"SpecterError while {func.__name__}: {se}", 500
                 return redirect("/")
         return func(*args, **kwargs)
