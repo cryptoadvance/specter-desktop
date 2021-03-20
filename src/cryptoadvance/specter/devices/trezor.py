@@ -1,5 +1,5 @@
 from .hwi_device import HWIDevice
-
+from .hwi.trezor import TrezorClient
 
 class Trezor(HWIDevice):
     device_type = "trezor"
@@ -11,3 +11,7 @@ class Trezor(HWIDevice):
 
     def __init__(self, name, alias, keys, fullpath, manager):
         HWIDevice.__init__(self, name, alias, keys, fullpath, manager)
+
+    @classmethod
+    def get_client(cls, *args, **kwargs):
+        return TrezorClient(*args, **kwargs)
