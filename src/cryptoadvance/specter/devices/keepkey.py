@@ -1,4 +1,5 @@
 from .hwi_device import HWIDevice
+from .hwi.keepkey import KeepkeyClient
 
 
 class Keepkey(HWIDevice):
@@ -11,3 +12,7 @@ class Keepkey(HWIDevice):
 
     def __init__(self, name, alias, keys, fullpath, manager):
         HWIDevice.__init__(self, name, alias, keys, fullpath, manager)
+
+    @classmethod
+    def get_client(cls, *args, **kwargs):
+        return KeepkeyClient(*args, **kwargs)
