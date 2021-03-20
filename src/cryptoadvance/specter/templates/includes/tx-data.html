@@ -5,12 +5,12 @@
             text-align: left;
         }
         .tx_info {
-			padding: 1em;
-			border: 1px solid #506072;
-			border-radius: 4px;
-			text-align: center;
-			margin-bottom: 2em;
-		}
+            padding: 1em;
+            border: 1px solid #506072;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 2em;
+        }
     </style>
     <div class="tx-data">
         <h2>Transaction details</h2><br>
@@ -76,7 +76,26 @@
             let walletName = jsonResponse.walletName;
             let tx = jsonResponse.tx;
             let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-            let rawtxHTML = `
+            let rawtxHTML = "";
+            if(tx.is_purged) {
+                rawtxHTML += `
+                <div class="warning">
+                    <p><b>This transaction (aka "tx") could not be found in your node's mempool!</b></p>
+                    <p style="text-align:left;">If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.</p>
+                    <p style="text-align:left;">A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.</p>
+                    <p style="text-align:left;">But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.</p>
+
+                    <br/><br/>
+                    <form method="POST" action="${walletLink}history/">
+                        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="abandon_tx"/>
+                        <input type="hidden" name="txid" value="${self.txid}"/>
+                        <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">Abandon transaction</button>
+                    </form>
+                </div>
+                `;
+            }
+            rawtxHTML += `
             <table class="tx-data-table">
             <tbody>
             <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>

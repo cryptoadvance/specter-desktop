@@ -1,5 +1,6 @@
-import json, os, time, random, requests, secrets
-
+import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys, shutil
+import pgpy
+from pathlib import Path
 from flask import (
     Flask,
     Blueprint,
@@ -23,6 +24,8 @@ from ..helpers import (
 from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..util.sha256sum import sha256sum
+from ..util.error_handling import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -58,6 +61,8 @@ def bitcoin_core():
     protocol = "http"
     autodetect = rpc["autodetect"]
     datadir = rpc["datadir"]
+    external_node = rpc["external_node"]
+    node_view = "external" if external_node else "internal"
     err = None
 
     if "protocol" in rpc:
@@ -65,14 +70,13 @@ def bitcoin_core():
     test = None
     if request.method == "POST":
         action = request.form["action"]
-        if current_user.is_admin:
-            autodetect = "autodetect" in request.form
-            if autodetect:
-                datadir = request.form["datadir"]
-            user = request.form["username"]
-            password = request.form["password"]
-            port = request.form["port"]
-            host = request.form["host"].rstrip("/")
+        autodetect = "autodetect" in request.form
+        if autodetect:
+            datadir = request.form["datadir"]
+        user = request.form["username"]
+        password = request.form["password"]
+        port = request.form["port"]
+        host = request.form["host"].rstrip("/")
 
         # protocol://host
         if "://" in host:
@@ -93,6 +97,7 @@ def bitcoin_core():
                 autodetect=autodetect,
                 datadir=datadir,
             )
+            node_view = "external"
 
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
@@ -102,6 +107,7 @@ def bitcoin_core():
                     flash("Test passed", "info")
         elif action == "save":
             if current_user.is_admin:
+                node_view = "external"
                 success = app.specter.update_rpc(
                     user=user,
                     password=password,
@@ -114,6 +120,38 @@ def bitcoin_core():
                 if not success:
                     flash("Failed connecting to the node", "error")
             app.specter.check()
+        # Internal Node actions
+        elif action == "useinternal":
+            app.specter.update_use_external_node(False)
+            external_node = False
+            node_view = "internal"
+        elif action == "useexternal":
+            app.specter.update_use_external_node(True)
+            external_node = True
+            node_view = "external"
+        elif action == "stopbitcoind":
+            node_view = "internal"
+            try:
+                app.specter.bitcoind.stop_bitcoind()
+                app.specter.set_bitcoind_pid(False)
+                time.sleep(5)
+                flash("Specter stopped Bitcoin Core successfully")
+            except Exception:
+                try:
+                    flash("Stopping Bitcoin Core, this might take a few moments.")
+                    app.specter.rpc.stop()
+                except Exception as e:
+                    flash(f"Failed to stop Bitcoin Core {e}", "error")
+        elif action == "startbitcoind":
+            node_view = "internal"
+            app.specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
+            )
+            app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+            time.sleep(15)
+            flash("Specter has started Bitcoin Core")
+
+    app.specter.check()
 
     return render_template(
         "settings/bitcoin_core_settings.jinja",
@@ -127,6 +165,10 @@ def bitcoin_core():
         protocol=protocol,
         specter=app.specter,
         current_version=current_version,
+        bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
+        is_running=app.specter.is_bitcoind_running(),
+        node_view=node_view,
+        external_node=external_node,
         error=err,
         rand=rand,
     )
@@ -254,6 +296,9 @@ def tor():
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
         return redirect("")
+    app.specter.config["torbrowser_setup"]["stage"] = ""
+    app.specter.config["torbrowser_setup"]["stage_progress"] = -1
+    app.specter._save()
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
@@ -269,13 +314,36 @@ def tor():
             app.specter.update_only_tor(only_tor, current_user)
             app.specter.update_tor_control_port(tor_control_port, current_user)
             app.specter.check()
+        elif action == "starttor":
+            try:
+                app.specter.tor_daemon.start_tor_daemon()
+                flash("Specter has started Tor")
+            except Exception as e:
+                flash(f"Failed to start Tor, error: {e}", "error")
+        elif action == "stoptor":
+            try:
+                app.specter.tor_daemon.stop_tor_daemon()
+                time.sleep(1)
+                flash("Specter stopped Tor successfully")
+            except Exception as e:
+                flash(f"Failed to stop Tor, error: {e}", "error")
+        elif action == "uninstalltor":
+            try:
+                if app.specter.is_tor_dameon_running():
+                    app.specter.tor_daemon.stop_tor_daemon()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
+                os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                flash(f"Tor uninstalled successfully")
+            except Exception as e:
+                flash(f"Failed to stop Tor, error: {e}", "error")
         elif action == "test_tor":
             try:
                 requests_session = requests.Session()
                 requests_session.proxies["http"] = proxy_url
                 requests_session.proxies["https"] = proxy_url
                 res = requests_session.get(
-                    "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website
+                    # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
+                    "https://protonirockerxow.onion",  # Proton mail onion website
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
@@ -283,7 +351,7 @@ def tor():
                 else:
                     flash("Failed to make test request over Tor.", "error")
             except Exception as e:
-                flash("Failed to make test request over Tor. Error: %s" % e, "error")
+                flash("Failed to make test request over Tor.\nError: %s" % e, "error")
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
@@ -296,9 +364,10 @@ def tor():
                     if hasattr(current_user, "is_admin") and current_user.is_admin:
                         try:
                             current_hidden_services = (
-                                app.controller.list_ephemeral_hidden_services()
+                                app.specter.tor_controller.list_ephemeral_hidden_services()
                             )
-                        except Exception:
+                        except Exception as e:
+                            handle_exception(e)
                             current_hidden_services = []
                         if len(current_hidden_services) != 0:
                             stop_hidden_services(app)
@@ -310,6 +379,7 @@ def tor():
                                 app.specter.toggle_tor_status()
                                 flash("Tor hidden service turn on successfully", "info")
                             except Exception as e:
+                                handle_exception(e)
                                 flash(
                                     "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
                                         e
@@ -328,6 +398,8 @@ def tor():
         only_tor=only_tor,
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
+        torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),
+        torbrowser_running=app.specter.is_tor_dameon_running,
         specter=app.specter,
         current_version=current_version,
         rand=rand,

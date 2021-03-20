@@ -25,6 +25,7 @@
 
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<h1 class="padded">Create Transaction</h1>
 		<p class="center">Available Funds: {{wallet.full_available_balance | btcunitamount}}
 			{% if specter.unit == 'sat' %}
@@ -132,7 +133,7 @@
 				</div>
 				<br>
 				Address label (optional):<br>
-				<input type="text" id="label" name="label_${i}" value="${label}">
+				<input type="text" id="label_${i}" name="label_${i}" value="${label}">
 				<br><br>
 				Amount:<br>
 				<input style="width: 200px" type="number" name="amount_${i}" oninput="calculateConvertedUnit(${i})" id="amount_${i}" min=0 step="${step}" autocomplete="off" value="${amount}">
@@ -140,7 +141,7 @@
 				<div class="mobile-only" style="margin-top: 10px;"></div>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="sat" onchange="toggleUnit(this, ${i})" ${satChecked}>sat</label>
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${i}" value="btc" onchange="toggleUnit(this, ${i})" ${btcChecked}>BTC</label>
-				<span class="note max-btn" style="margin-left: 5px;" onclick="setMaxAmount(${i})">(send max)</span>
+				<span class="note max-btn" style="margin-left: 5px;" id="send_max_${i}" onclick="setMaxAmount(${i})">(send max)</span>
 				<div>
 					<span class="note" id="converted_unit_amount_${i}">-</span> <span class="note" id="converted_unit_label_${i}">${convertedUnit}</span> <span class="note" id="converted_unit_alt_${i}"></span>
 				</div>
@@ -253,6 +254,10 @@
 		}
 
 		function isAboveWalletBalance(unit, amount) {
+			// TODO: Currently check is disabled for RBF for simplicity, should add it back for RBF
+			if ("{{rbf_tx_id}}") {
+				return false;
+			}
 			return (unit == 'sat' ? amount / 1e8 : parseFloat(amount.toFixed(8))) > parseFloat(parseFloat('{{ wallet.full_available_balance }}').toFixed(8));
 		}
 
@@ -400,15 +405,15 @@
 
 		function toggleAdvanced() {
 			let advancedButton = document.getElementById('toggle_advanced');
-			let advancedSettigns = document.getElementById('advanced_settings');
-			if (advancedSettigns.style.display === 'block') {
-				advancedSettigns.style.display = 'none';
+			let advancedSettings = document.getElementById('advanced_settings');
+			if (advancedSettings.style.display === 'block') {
+				advancedSettings.style.display = 'none';
 				advancedButton.innerHTML = 'Advanced &#9654;';
 				if (isCoinSelectionActive()) {
 					toggleExpand();
 				}
 			} else {
-				advancedSettigns.style.display = 'block';
+				advancedSettings.style.display = 'block';
 				advancedButton.innerHTML = 'Advanced &#9660;';
 			}
 		}

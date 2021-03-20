@@ -10,9 +10,9 @@ import time
 import pytest
 import docker
 from cryptoadvance.specter.bitcoind import (
-    BitcoindDockerController,
     BitcoindPlainController,
 )
+from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
 from cryptoadvance.specter.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
@@ -44,24 +44,27 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="module")
 
 
-@pytest.fixture(scope="module")
-def bitcoin_regtest(docker, request):
+def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
+        from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
+
         bitcoind_controller = BitcoindDockerController(
-            rpcport=18543, docker_tag=requested_version
+            rpcport=rpcport, docker_tag=requested_version
         )
     else:
         if os.path.isfile("tests/bitcoin/src/bitcoind"):
             bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/src/bitcoind"
+                bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
             )  # always prefer the self-compiled bitcoind if existing
         else:
-            bitcoind_controller = (
-                BitcoindPlainController()
+            bitcoind_controller = BitcoindPlainController(
+                rpcport=rpcport
             )  # Alternatively take the one on the path for now
-    bitcoind_controller.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
+    bitcoind_controller.start_bitcoind(
+        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+    )
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
     assert (
@@ -70,6 +73,11 @@ def bitcoin_regtest(docker, request):
         % (running_version, requested_version),
     )
     return bitcoind_controller
+
+
+@pytest.fixture(scope="module")
+def bitcoin_regtest(docker, request):
+    return instantiate_bitcoind_controller(docker, request, extra_args=None)
 
 
 @pytest.fixture

@@ -1,16 +1,26 @@
-import os
+import os, platform
 from stem.control import Controller
 
 
+def get_tor_daemon_suffix():
+    if platform.system() == "Darwin":
+        return ".real"
+    elif platform.system() == "Windows":
+        return ".exe"
+    return ""
+
+
 def start_hidden_service(app):
-    app.controller.reconnect()
+    app.specter.tor_controller.authenticate(
+        password=app.specter.config.get("torrc_password", "")
+    )
     key_path = os.path.abspath(
         os.path.join(app.specter.data_folder, ".tor_service_key")
     )
     app.tor_service_id = None
 
     if not os.path.exists(key_path):
-        service = app.controller.create_ephemeral_hidden_service(
+        service = app.specter.tor_controller.create_ephemeral_hidden_service(
             {app.tor_port: app.port}, await_publication=True
         )
         app.tor_service_id = service.service_id
@@ -25,7 +35,7 @@ def start_hidden_service(app):
         with open(key_path) as key_file:
             key_type, key_content = key_file.read().split(":", 1)
 
-        service = app.controller.create_ephemeral_hidden_service(
+        service = app.specter.tor_controller.create_ephemeral_hidden_service(
             {app.tor_port: app.port},
             key_type=key_type,
             key_content=key_content,
@@ -62,13 +72,15 @@ def start_hidden_service(app):
 
 def stop_hidden_services(app):
     try:
-        app.controller.reconnect()
-        hidden_services = app.controller.list_ephemeral_hidden_services()
+        app.specter.tor_controller.authenticate(
+            password=app.specter.config.get("torrc_password", "")
+        )
+        hidden_services = app.specter.tor_controller.list_ephemeral_hidden_services()
         print(" * Shutting down our hidden service")
         for tor_service_id in hidden_services:
-            app.controller.remove_ephemeral_hidden_service(tor_service_id)
+            app.specter.tor_controller.remove_ephemeral_hidden_service(tor_service_id)
         # Sanity
-        if len(app.controller.list_ephemeral_hidden_services()) != 0:
+        if len(app.specter.tor_controller.list_ephemeral_hidden_services()) != 0:
             print(" * Failed to shut down our hidden services...")
         else:
             print(" * Hidden services were shut down successfully")

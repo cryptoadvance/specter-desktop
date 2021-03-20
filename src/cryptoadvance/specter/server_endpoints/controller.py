@@ -1,4 +1,4 @@
-import random, traceback, socket
+import random, traceback, socket, threading, os
 from datetime import datetime
 from binascii import unhexlify
 from flask import make_response
@@ -18,7 +18,13 @@ from ..helpers import (
 from ..specter import Specter
 from ..specter_error import SpecterError
 from ..util.tor import start_hidden_service, stop_hidden_services
-
+from ..util.bitcoind_setup_tasks import (
+    setup_bitcoind_thread,
+    setup_bitcoind_directory_thread,
+)
+from ..util.tor_setup_tasks import (
+    setup_tor_thread,
+)
 from pathlib import Path
 
 env_path = Path(".") / ".flaskenv"
@@ -82,6 +88,8 @@ def inject_debug():
 def index():
     notify_upgrade(app, flash)
     if len(app.specter.wallet_manager.wallets) > 0:
+        if len(app.specter.wallet_manager.wallets) > 1:
+            return redirect(url_for("wallets_endpoint.wallets_overview"))
         return redirect(
             url_for(
                 "wallets_endpoint.wallet",
@@ -100,6 +108,133 @@ def about():
     notify_upgrade(app, flash)
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
+
+
+@app.route("/node_setup_wizard/", defaults={"step": 0}, methods=["GET", "POST"])
+@app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
+@login_required
+def node_setup_wizard(step):
+    app.specter.config["bitcoind_setup"]["error"] = ""
+    app.specter.config["bitcoind_setup"]["stage"] = ""
+    app.specter.config["bitcoind_setup"]["stage_progress"] = -1
+    app.specter.config["torbrowser_setup"]["error"] = ""
+    app.specter.config["torbrowser_setup"]["stage"] = ""
+    app.specter.config["torbrowser_setup"]["stage_progress"] = -1
+    app.specter._save()
+
+    return render_template(
+        "node_setup_wizard.jinja", step=step, specter=app.specter, rand=rand
+    )
+
+
+@app.route("/setup_bitcoind", methods=["POST"])
+@login_required
+def setup_bitcoind():
+    bitcoind_setup_status = app.specter.config.get(
+        "bitcoind_setup", {"stage_progress": -1}
+    )
+    if (
+        not os.path.isfile(app.specter.bitcoind_path)
+        and bitcoind_setup_status["stage_progress"] == -1
+    ):
+        app.specter.config["rpc"]["datadir"] = request.form.get(
+            "bitcoin_core_datadir", app.specter.config["rpc"]["datadir"]
+        )
+        app.specter.config["bitcoind_setup"]["stage_progress"] = 0
+        app.specter.config["bitcoind_setup"]["error"] = ""
+        app.specter._save()
+        t = threading.Thread(
+            target=setup_bitcoind_thread,
+            args=(app.specter, app.config["INTERNAL_BITCOIND_VERSION"]),
+        )
+        t.start()
+    elif os.path.isfile(app.specter.bitcoind_path):
+        return {"error": "bitcoind already installed"}
+    elif bitcoind_setup_status["stage_progress"] != -1:
+        return {"error": "bitcoind installation is still under progress"}
+    return {"success": "Starting Bitcoin Core setup!"}
+
+
+@app.route("/setup_bitcoind_directory", methods=["POST"])
+@login_required
+def setup_bitcoind_directory():
+    bitcoind_setup_status = app.specter.config.get(
+        "bitcoind_setup", {"stage_progress": -1}
+    )
+    if (
+        os.path.isfile(app.specter.bitcoind_path)
+        and bitcoind_setup_status["stage_progress"] == -1
+    ):
+        app.specter.config["bitcoind_setup"]["stage_progress"] = 0
+        app.specter.config["bitcoind_setup"]["error"] = ""
+        app.specter._save()
+        quicksync = request.form["quicksync"] == "true"
+        pruned = request.form["nodetype"] == "pruned"
+        t = threading.Thread(
+            target=setup_bitcoind_directory_thread,
+            args=(app.specter, quicksync, pruned),
+        )
+        t.start()
+    elif not os.path.isfile(app.specter.bitcoind_path):
+        return {"error": "bitcoind in not installed but required for this step"}
+    elif bitcoind_setup_status["stage_progress"] != -1:
+        return {"error": "bitcoind installation is still under progress"}
+    return {"success": "Starting Bitcoin Core setup!"}
+
+
+@app.route("/setup_tor", methods=["POST"])
+@login_required
+def setup_tor():
+    tor_setup_status = app.specter.config.get(
+        "torbrowser_setup", {"stage_progress": -1}
+    )
+    if (
+        not os.path.isfile(app.specter.torbrowser_path)
+        and tor_setup_status["stage_progress"] == -1
+    ):
+        app.specter.config["torbrowser_setup"]["stage_progress"] = 0
+        app.specter.config["torbrowser_setup"]["error"] = ""
+        app.specter._save()
+        t = threading.Thread(
+            target=setup_tor_thread,
+            args=(app.specter,),
+        )
+        t.start()
+    elif os.path.isfile(app.specter.torbrowser_path):
+        return {"error": "tor is already installed"}
+    elif tor_setup_status["stage_progress"] != -1:
+        return {"error": "tor installation is still under progress"}
+    return {"success": "Starting Tor setup!"}
+
+
+@app.route("/get_node_setup_status")
+@login_required
+@app.csrf.exempt
+def get_node_setup_status():
+    return app.specter.config.get(
+        "bitcoind_setup",
+        {
+            "installed": os.path.isfile(app.specter.bitcoind_path),
+            "stage_progress": -1,
+            "stage": "none",
+            "error": "",
+        },
+    )
+
+
+@app.route("/get_tor_setup_status")
+@login_required
+@app.csrf.exempt
+def get_tor_setup_status():
+    return app.specter.config.get(
+        "torbrowser_setup",
+        {
+            "installed": os.path.isfile(app.specter.torbrowser_path),
+            "stage_progress": -1,
+            "stage": "none",
+            "error": "",
+        },
+    )
 
 
 # TODO: Move all these below to REST API
