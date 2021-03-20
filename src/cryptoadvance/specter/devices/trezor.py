@@ -1,6 +1,7 @@
 from .hwi_device import HWIDevice
 from .hwi.trezor import TrezorClient
 
+
 class Trezor(HWIDevice):
     device_type = "trezor"
     name = "Trezor"
