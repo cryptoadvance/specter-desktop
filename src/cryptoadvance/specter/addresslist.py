@@ -186,8 +186,8 @@ class AddressList(dict):
 
     def max_used_index(self, change=False):
         return max(
-            0,
-            0,
+            -1,
+            -1,
             *[
                 addr.index
                 for addr in self.values()
