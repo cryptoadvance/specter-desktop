@@ -24,6 +24,7 @@ describe('Send transactions from wallets', () => {
         cy.task("node:mine")
         cy.get('#btn_continue').click()
         cy.get('#btn_transactions').click()
+        cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
         cy.get('#fullbalance_amount')
         .should(($div) => {
             const n = parseFloat($div.text())
@@ -70,6 +71,8 @@ describe('Send transactions from wallets', () => {
         // Send transaction
         cy.task("node:mine")
         cy.get('#btn_transactions').click()
+        cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
+        cy.reload()
         cy.get('#fullbalance_amount')
         .should(($div) => {
             const n = parseFloat($div.text())
