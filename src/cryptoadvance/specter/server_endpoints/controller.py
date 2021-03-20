@@ -43,6 +43,7 @@ from .devices import devices_endpoint
 from .price import price_endpoint
 from .settings import settings_endpoint
 from .wallets import wallets_endpoint
+from ..rpc import RpcError
 
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
@@ -52,9 +53,34 @@ app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
-########## exception handler ##############
+########## exception handlers ##############
+@app.errorhandler(RpcError)
+def server_rpc_error(rpce):
+    """ Specific EpecterErrors get passed on to the User as flash """
+    message = f"BitcoinCore RpcError: {str(se)}"
+    if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
+        message = message + "Specter reloaded all Wallets, please try again.", "error"
+    try:
+        app.specter.wallet_manager.update()
+    except SpecterError as se:
+        flash(str(se), "error")
+    return redirect(url_for("about"))
+
+
+@app.errorhandler(SpecterError)
+def server_specter_error(se):
+    """ Specific EpecterErrors get passed on to the User as flash """
+    flash(str(se), "error")
+    try:
+        app.specter.wallet_manager.update()
+    except SpecterError as se:
+        flash(str(se), "error")
+    return redirect(url_for("about"))
+
+
 @app.errorhandler(Exception)
 def server_error(e):
+    """ Unspecific Exceptions get a 500 Error-Page """
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
