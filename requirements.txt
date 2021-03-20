@@ -99,8 +99,8 @@ ecdsa==0.13.3 \
     # via
     #   bitbox02
     #   hwi
-embit==0.1.2 \
-    --hash=sha256:d88e74eafdd26280c298bb572ac28e7913abbc2c91e99df0ebb9139c626bc4d3
+embit==0.1.3 \
+    --hash=sha256:1ecc0196ffc22fdc2307ab1e303e10ce7ac5bedb3732c7a18292e76b28ece12c
     # via -r requirements.in
 flask-cors==3.0.8 \
     --hash=sha256:72170423eb4612f0847318afff8c247b38bd516b7737adfc10d1c2cdbb382d16 \
