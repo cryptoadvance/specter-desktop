@@ -1,24 +1,25 @@
-import ast, csv, json, os, time, base64, random, requests, logging
-from io import StringIO
-from werkzeug.wrappers import Response
+import ast
+import base64
+import csv
+import json
+import logging
+import os
+import random
+import time
+from binascii import b2a_base64
 from datetime import datetime
-from numbers import Number
+from functools import wraps
+from io import StringIO
 from math import isnan
-from ..util.tx import decoderawtransaction
-from ..util.price_providers import get_price_at
+from numbers import Number
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_login import login_required, current_user
-from ..util.descriptor import AddChecksum, Descriptor
+import requests
+from flask import Blueprint, Flask
+from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from werkzeug.wrappers import Response
+
 from ..helpers import (
     bcur2base64,
     get_devices_with_keys_by_type,
@@ -26,21 +27,42 @@ from ..helpers import (
     is_testnet,
     parse_wallet_data_import,
 )
-from ..persistence import delete_file
 from ..key import Key
-from ..specter import Specter
-from ..specter_error import SpecterError
-from ..wallet_manager import purposes
+from ..persistence import delete_file
 from ..rpc import RpcError
-from binascii import b2a_base64
+from ..specter import Specter
+from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
-
-from flask import current_app as app
+from ..util.descriptor import AddChecksum, Descriptor
+from ..util.price_providers import get_price_at
+from ..util.tx import decoderawtransaction
+from ..wallet_manager import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 wallets_endpoint = Blueprint("wallets_endpoint", __name__)
+
+
+def handle_wallet_error(func_name, error):
+    flash(f"SpecterError while {func_name}: {error}", "error")
+    app.logger.error(f"SpecterError while {func_name}: {error}")
+    app.specter.wallet_manager.update()
+    return redirect(url_for("about"))
+
+
+def check_wallet(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        """checks the wallet for healthyness A wrapper function"""
+        if kwargs["wallet_alias"]:
+            wallet_alias = kwargs["wallet_alias"]
+            print("--------------------checking wallet")
+            wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+            wallet.get_info()
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 ################## Wallet overview #######################
@@ -53,6 +75,7 @@ def wallets_overview():
     for wallet in app.specter.wallet_manager.wallets.values():
         wallet.get_balance()
         wallet.check_utxo()
+
     return render_template(
         "wallet/wallets_overview.jinja",
         specter=app.specter,
@@ -80,6 +103,7 @@ def failed_wallets():
                 delete_file(fullpath.replace(".json", "_txs.csv"))
                 app.specter.wallet_manager.update()
             except Exception as e:
+
                 flash(f"Failed to delete failed wallet: {str(e)}", "error")
     return redirect("/")
 
@@ -118,14 +142,16 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             try:
-                wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
+                wallet_data = json.loads(
+                    request.form["wallet_data"].replace("\\'", "").replace("'", "h")
+                )
                 (
                     wallet_name,
                     recv_descriptor,
                     cosigners_types,
                 ) = parse_wallet_data_import(wallet_data)
-            except Exception:
-                flash("Unsupported wallet import format", "error")
+            except Exception as e:
+                flash(f"Unsupported wallet import format:{e}", "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
             # get min of the two
             # if the node is still syncing
@@ -369,8 +395,8 @@ def new_wallet(wallet_type):
                 wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
-            except Exception:
-                err = "Failed to create wallet..."
+            except Exception as e:
+                err = f"Failed to create wallet. Error: {e}"
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
                     cosigners=cosigners,
@@ -446,11 +472,7 @@ def new_wallet(wallet_type):
 @wallets_endpoint.route("/wallet/<wallet_alias>/")
 @login_required
 def wallet(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if wallet.fullbalance > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
@@ -461,12 +483,7 @@ def wallet(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_tx: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     tx_list_type = "txlist"
 
     if request.method == "POST":
@@ -501,12 +518,9 @@ def history(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/receive/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def receive(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "newaddress":
@@ -532,11 +546,7 @@ def receive(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send")
 @login_required
 def send(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if len(wallet.pending_psbts) > 0:
         return redirect(
             url_for("wallets_endpoint.send_pending", wallet_alias=wallet_alias)
@@ -548,11 +558,7 @@ def send(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/new", methods=["GET", "POST"])
 @login_required
 def send_new(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
     wallet.get_balance()
     # update utxo list for coin selection
@@ -774,11 +780,7 @@ def send_new(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/pending/", methods=["GET", "POST"])
 @login_required
 def send_pending(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_sendpending: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "deletepsbt":
@@ -818,11 +820,7 @@ def send_pending(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
 def import_psbt(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "importpsbt":
@@ -862,12 +860,7 @@ def addresses(wallet_alias):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
-
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -889,12 +882,8 @@ def addresses(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/", methods=["GET", "POST"])
 @login_required
 def settings(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form["action"]
         if action == "rescanblockchain":
@@ -980,12 +969,8 @@ def settings(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # only post requests
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while combine: %s" % se)
-        return "SpecterError while combine: %s" % se, 500
     # FIXME: ugly...
     txid = request.form.get("txid")
     psbts = [request.form.get("psbt0").strip(), request.form.get("psbt1").strip()]
@@ -1041,11 +1026,7 @@ def combine(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/broadcast/", methods=["GET", "POST"])
 @login_required
 def broadcast(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while broadcast: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         tx = request.form.get("tx")
         res = wallet.rpc.testmempoolaccept([tx])[0]
@@ -1115,127 +1096,100 @@ def rescan_progress(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
 @login_required
 def get_label(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form.get("address", "")
-        label = wallet.getlabel(address)
-        return {
-            "address": address,
-            "label": label,
-        }
-    except Exception as e:
-        logging.exception(e)
-        return "Error while get_label: %s" % e, 500
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    address = request.form.get("address", "")
+    label = wallet.getlabel(address)
+    return {
+        "address": address,
+        "label": label,
+    }
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
 @login_required
 def set_label(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form["address"]
-        label = request.form["label"]
-        wallet.setlabel(address, label)
-        return {"success": True}
-    except Exception as e:
-        logging.exception(e)
-        return "Error while set_label: %s" % e, 500
+
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    address = request.form["address"]
+    label = request.form["label"]
+    wallet.setlabel(address, label)
+    return {"success": True}
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
 @login_required
 @app.csrf.exempt
 def txlist(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = wallet.txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting txlist: %s" % e, 500
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = wallet.txlist(
+        fetch_transactions=fetch_transactions,
+        validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
+        current_blockheight=app.specter.info["blocks"],
+    )
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
 @login_required
 @app.csrf.exempt
 def utxo_list(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        txlist = wallet.full_utxo
-        for tx in txlist:
-            if not tx.get("label", None):
-                tx["label"] = wallet.getlabel(tx["address"])
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting utxo list: %s" % e, 500
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    txlist = wallet.full_utxo
+    for tx in txlist:
+        if not tx.get("label", None):
+            tx["label"] = wallet.getlabel(tx["address"])
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
 @login_required
 @app.csrf.exempt
 def wallets_overview_txlist():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full txlist: %s" % e, 500
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = app.specter.wallet_manager.full_txlist(
+        fetch_transactions=fetch_transactions,
+        validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
+        current_blockheight=app.specter.info["blocks"],
+    )
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
 @login_required
 @app.csrf.exempt
 def wallets_overview_utxo_list():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_utxo()
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full utxo list: %s" % e, 500
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = app.specter.wallet_manager.full_utxo()
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
@@ -1253,29 +1207,24 @@ def addresses_list(wallet_alias):
                 (index, address, label, used, utxo, amount)
         sortdir: 'asc' (ascending) or 'desc' (descending) order
         addressType: the current tab address type ('receive' or 'change')"""
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        address_type = request.form.get("addressType", "receive")
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    address_type = request.form.get("addressType", "receive")
 
-        addresses_list = wallet.addresses_info(address_type == "change")
+    addresses_list = wallet.addresses_info(address_type == "change")
 
-        result = process_addresses_list(
-            addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
-        )
+    result = process_addresses_list(
+        addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
+    )
 
-        return {
-            "addressesList": json.dumps(result["addressesList"]),
-            "pageCount": result["pageCount"],
-        }
-
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting addresses_list: %s" % e, 500
+    return {
+        "addressesList": json.dumps(result["addressesList"]),
+        "pageCount": result["pageCount"],
+    }
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addressinfo/", methods=["POST"])
@@ -1297,6 +1246,7 @@ def addressinfo(wallet_alias):
                 **address_info,
             }
     except Exception as e:
+
         app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
     return {"success": False}
 
@@ -1368,35 +1318,29 @@ def addresses_list_csv(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/transactions.csv")
 @login_required
 def tx_history_csv(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
-        txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
-        search = request.args.get("search", None)
-        sortby = request.args.get("sortby", "time")
-        sortdir = request.args.get("sortdir", "desc")
-        txlist = json.loads(
-            process_txlist(
-                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
-            )["txlist"]
-        )
-        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+    txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
+    search = request.args.get("search", None)
+    sortby = request.args.get("sortby", "time")
+    sortdir = request.args.get("sortdir", "desc")
+    txlist = json.loads(
+        process_txlist(
+            txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+        )["txlist"]
+    )
+    includePricesHistory = request.args.get("exportPrices", "false") == "true"
 
-        # stream the response as the data is generated
-        response = Response(
-            txlist_to_csv(
-                wallet, txlist, app.specter, current_user, includePricesHistory
-            ),
-            mimetype="text/csv",
-        )
-        # add a filename
-        response.headers.set(
-            "Content-Disposition", "attachment", filename="transactions.csv"
-        )
-        return response
-    except Exception as e:
-        logging.exception(e)
-        return "Failed to export wallet history. Error: %s" % e, 500
+    # stream the response as the data is generated
+    response = Response(
+        txlist_to_csv(wallet, txlist, app.specter, current_user, includePricesHistory),
+        mimetype="text/csv",
+    )
+    # add a filename
+    response.headers.set(
+        "Content-Disposition", "attachment", filename="transactions.csv"
+    )
+    return response
 
 
 # Export wallet UTXO list

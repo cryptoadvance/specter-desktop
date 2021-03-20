@@ -34,7 +34,7 @@
 
 Install dependencies:
 
-* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
+* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
 * macOS: `brew install libusb`
 
 Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv`, .e.g `virtualenv --python3.8 .env`.

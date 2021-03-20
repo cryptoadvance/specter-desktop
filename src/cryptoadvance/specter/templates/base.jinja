@@ -72,7 +72,11 @@
 					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
-					<br><br><br>
+					<br><br>
+					{% if not specter.chain %}
+					<a href="{{ url_for('node_setup_wizard') }}" class="btn action centered" style="max-width: 200px;">Get started!</a>
+					<br><br>
+					{% else %}
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
 					{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
 						<div style="margin: auto; display: block;">
@@ -96,8 +100,8 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('settings_endpoint.settings') }}">
-										<h2>Connect Specter to your Bitcoin Core node.</h2>
+									<a href="{{ url_for('node_setup_wizard') }}">
+										<h2>Connect Specter with Bitcoin Core node.</h2>
 									</a>
 								</td>
 								<td style="text-align: left;">
@@ -193,6 +197,7 @@
 						</tbody>
 					</table>
 					<br>
+					{% endif %}
 					Having issues? Try reading <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">the FAQ</a><br><br>
 					Still having issues?<br>
 					Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on the GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>

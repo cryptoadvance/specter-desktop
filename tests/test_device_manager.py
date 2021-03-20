@@ -112,6 +112,7 @@ def test_device_wallets(bitcoin_regtest, devices_filled_data_folder, device_mana
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     assert len(device.wallets(wm)) == 0

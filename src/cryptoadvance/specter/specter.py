@@ -6,11 +6,15 @@ import traceback
 import random
 import time
 import zipfile
+import platform
+import secrets
 import requests
 from io import BytesIO
 from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
-from .rpc import autodetect_rpc_confs, get_default_datadir, RpcError
+from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
+from .bitcoind import BitcoindPlainController
+from .tor_daemon import TorDaemonController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
@@ -20,7 +24,11 @@ from .user_manager import UserManager
 from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.price_providers import update_price
+from .util.tor import get_tor_daemon_suffix
 import threading
+from urllib.parse import urlparse
+from stem.control import Controller
+from .specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +121,7 @@ class Specter:
                 "port": "",
                 "host": "localhost",  # localhost
                 "protocol": "http",  # https for the future
+                "external_node": True,
             },
             "auth": {
                 "method": "none",
@@ -135,14 +144,63 @@ class Specter:
             "alt_symbol": "BTC",
             "price_provider": "",
             "validate_merkle_proofs": False,
+            "bitcoind": False,
+            "bitcoind_internal_version": "",
+            "bitcoind_setup": {
+                "stage_progress": -1,
+            },
+            "torbrowser_setup": {
+                "stage_progress": -1,
+            },
         }
 
+        self.torbrowser_path = os.path.join(
+            self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
+        )
+
+        self.bitcoind_path = os.path.join(
+            self.data_folder, "bitcoin-binaries/bin/bitcoind"
+        )
+
+        if platform.system() == "Windows":
+            self.bitcoind_path += ".exe"
+
+        self._bitcoind = None
+        self._tor_daemon = None
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         try:
             self.check(check_all=True)
+            rpc_conf = next(
+                (
+                    conf
+                    for conf in detect_rpc_confs(
+                        datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                    )
+                    if conf["port"] == 8332
+                ),
+                None,
+            )
+            if not rpc_conf:
+                if not self.config["rpc"]["user"]:
+                    self.config["rpc"]["user"] = "bitcoin"
+                    self._save()
+                if not self.config["rpc"]["password"]:
+                    self.config["rpc"]["password"] = secrets.token_urlsafe(16)
+                    self._save()
+
+            if os.path.isfile(self.torbrowser_path):
+                self.tor_daemon.start_tor_daemon()
+
+            if not self.config["rpc"].get("external_node", True):
+                self.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                )
+                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                time.sleep(15)
         except Exception as e:
             logger.error(e)
+        self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
         self.price_checker = Checker(
@@ -263,7 +321,7 @@ class Specter:
         wallet_manager = user.wallet_manager
         if (
             wallet_manager is None
-            or wallet_manager.data_folder != self.data_folder
+            or wallet_manager.data_folder != wallets_folder
             or wallet_manager.rpc_path != wallets_rpcpath
             or wallet_manager.chain != self.chain
         ):
@@ -443,6 +501,17 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
+    def set_bitcoind_pid(self, pid):
+        """ set the control pid of the bitcoind daemon """
+        if self.config.get("bitcoind", False) != pid:
+            self.config["bitcoind"] = pid
+            self._save()
+
+    def update_use_external_node(self, use_external_node):
+        """ set whatever specter should connect to internal or external node """
+        self.config["rpc"]["external_node"] = use_external_node
+        self._save()
+
     def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
         auth = self.config["auth"]
@@ -493,6 +562,71 @@ class Specter:
         if self.config["tor_control_port"] != tor_control_port:
             self.config["tor_control_port"] = tor_control_port
             self._save()
+            self.update_tor_controller()
+
+    def update_tor_controller(self):
+        try:
+            tor_control_address = urlparse(self.proxy_url).netloc.split(":")[0]
+            if tor_control_address == "localhost":
+                tor_control_address = "127.0.0.1"
+            self._tor_controller = Controller.from_port(
+                address=tor_control_address,
+                port=int(self.tor_control_port) if self.tor_control_port else "default",
+            )
+            self._tor_controller.authenticate(
+                password=self.config.get("torrc_password", "")
+            )
+        except Exception as e:
+            logger.warning(f"Failed to connect to Tor control port. Error: {e}")
+            self._tor_controller = None
+
+    @property
+    def tor_daemon(self):
+        if os.path.isfile(self.torbrowser_path) and os.path.join(
+            self.data_folder, "torrc"
+        ):
+            if not self._tor_daemon:
+                self._tor_daemon = TorDaemonController(
+                    tor_daemon_path=self.torbrowser_path,
+                    tor_config_path=os.path.join(self.data_folder, "torrc"),
+                )
+            return self._tor_daemon
+        raise SpecterError(
+            "Tor daemon files missing. Make sure Tor is installed within Specter"
+        )
+
+    @property
+    def bitcoind(self):
+        if os.path.isfile(self.bitcoind_path):
+            if not self._bitcoind:
+                self._bitcoind = BitcoindPlainController(
+                    bitcoind_path=self.bitcoind_path,
+                    rpcport=8332,
+                    network="mainnet",
+                    rpcuser=self.config["rpc"]["user"],
+                    rpcpassword=self.config["rpc"]["password"],
+                )
+            return self._bitcoind
+        raise SpecterError(
+            "Bitcoin Core files missing. Make sure Bitcoin Core is installed within Specter"
+        )
+
+    def is_tor_dameon_running(self):
+        return self._tor_daemon and self._tor_daemon.is_running()
+
+    def is_bitcoind_running(self):
+        return self._bitcoind and self._bitcoind.check_existing()
+
+    @property
+    def tor_controller(self):
+        if self._tor_controller:
+            return self._tor_controller
+        self.update_tor_controller()
+        if self._tor_controller:
+            return self._tor_controller
+        raise SpecterError(
+            "Failed to connect to the Tor daemon. Make sure ControlPort is properly configured."
+        )
 
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """
