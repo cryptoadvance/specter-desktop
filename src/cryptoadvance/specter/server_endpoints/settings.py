@@ -25,7 +25,7 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
-from ..util.error_handling import handle_exception
+from ..specter_error import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
