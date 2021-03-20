@@ -395,8 +395,8 @@ def new_wallet(wallet_type):
                 wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
-            except Exception:
-                err = "Failed to create wallet..."
+            except Exception as e:
+                err = f"Failed to create wallet. Error: {e}"
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
                     cosigners=cosigners,

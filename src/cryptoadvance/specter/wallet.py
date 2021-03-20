@@ -133,12 +133,32 @@ class Wallet:
         """Load transactions from Bitcoin Core"""
         arr = []
         idx = 0
+        # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
+        # Until v0.21, it listed there consolidations to a receive address, but not change address
+        # Since v0.21, it does not list there consolidations at all
+        # Therefore we need to check here if a transaction might got confirmed
+        # NOTE: This might be a problem in case of re-org...
+        # More details: https://github.com/cryptoadvance/specter-desktop/issues/996
+        unconfirmed_selftransfers = [
+            txid
+            for txid in self._transactions
+            if self._transactions[txid].get("category", "") == "selftransfer"
+            and not self._transactions[txid].get("blockhash", None)
+        ]
+        unconfirmed_selftransfers_txs = []
+        if unconfirmed_selftransfers:
+            unconfirmed_selftransfers_txs = self.rpc.multi(
+                [("gettransaction", txid) for txid in unconfirmed_selftransfers]
+            )
         while True:
-            res = self.rpc.listtransactions(
-                "*",
-                LISTTRANSACTIONS_BATCH_SIZE,
-                LISTTRANSACTIONS_BATCH_SIZE * idx,
-                True,
+            res = (
+                self.rpc.listtransactions(
+                    "*",
+                    LISTTRANSACTIONS_BATCH_SIZE,
+                    LISTTRANSACTIONS_BATCH_SIZE * idx,
+                    True,
+                )
+                + [tx["result"] for tx in unconfirmed_selftransfers_txs]
             )
             res = [
                 tx
