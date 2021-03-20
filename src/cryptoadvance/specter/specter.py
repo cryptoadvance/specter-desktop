@@ -321,7 +321,7 @@ class Specter:
         wallet_manager = user.wallet_manager
         if (
             wallet_manager is None
-            or wallet_manager.data_folder != self.data_folder
+            or wallet_manager.data_folder != wallets_folder
             or wallet_manager.rpc_path != wallets_rpcpath
             or wallet_manager.chain != self.chain
         ):
