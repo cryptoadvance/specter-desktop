@@ -179,15 +179,15 @@ class AddressList(dict):
 
     def max_index(self, change=False):
         return max(
-            -1,
-            -1,
+            0,
+            0,
             *[addr.index for addr in self.values() if addr.change == change],
         )
 
     def max_used_index(self, change=False):
         return max(
-            -1,
-            -1,
+            0,
+            0,
             *[
                 addr.index
                 for addr in self.values()
