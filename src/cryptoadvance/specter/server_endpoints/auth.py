@@ -131,7 +131,7 @@ def register():
                 "hwi_bridge_url": "/hwi/api/",
             }
             password_hash = hash_password(password)
-            user = User(user_id, username, password_hash, config)
+            user = User(user_id, username, password_hash, config, app.specter)
             app.specter.add_user(user)
             flash(
                 "You have registered successfully, \

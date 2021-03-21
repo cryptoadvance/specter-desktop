@@ -1,0 +1,19 @@
+<select name="explorer" id="explorer" onchange="updateExplorer()">
+    {% for explorer in config['EXPLORERS_LIST'] %}
+        <option value="{{explorer}}" {% if specter.explorer_id == explorer %}selected{% endif%}>{{config['EXPLORERS_LIST'][explorer].name}}</option>
+    {% endfor %}
+</select>
+<br>
+<input type="text" name="custom_explorer" id="custom-explorer" value="{{ specter.explorer }}" class="hidden" placeholder="Block explorer url" style="margin-top: 15px;"/>
+<script>
+    function updateExplorer() {
+        if (document.getElementById('explorer').value == "CUSTOM") {
+            document.getElementById('custom-explorer').classList.remove('hidden');
+        } else {
+            document.getElementById('custom-explorer').classList.add('hidden');
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function(){
+        updateExplorer();
+    });
+</script>
