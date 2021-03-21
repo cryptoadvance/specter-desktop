@@ -1,4 +1,4 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
+import os, time, requests, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
@@ -118,8 +118,7 @@ def setup_tor_thread(specter=None):
                             os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
         os.remove(packed_name)
         if "torrc_password" not in specter.config:
-            specter.config["torrc_password"] = secrets.token_urlsafe(16)
-            specter._save()
+            specter.generate_torrc_password()
         with open(os.path.join(specter.data_folder, "torrc"), "w") as file:
             file.write("ControlPort 9051")
             file.write(
