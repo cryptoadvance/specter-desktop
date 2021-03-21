@@ -194,7 +194,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             specter._save()
         specter.check()
     except Exception as e:
-        logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
+        logger.exception(f"Failed to setup Bitcoin Core. Error: {e}")
         specter.config["bitcoind_setup"]["error"] = str(e)
         specter._save()
     finally:
