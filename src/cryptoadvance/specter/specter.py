@@ -576,6 +576,7 @@ class Specter:
             if "torrc_password" not in self.config:
                 # Will be missing if the user did not go through the built-in Tor setup
                 self.config["torrc_password"] = secrets.token_urlsafe(16)
+                self._save()
                 logger.info("Generated torrc_password")
             else:
                 self._tor_controller.authenticate(
