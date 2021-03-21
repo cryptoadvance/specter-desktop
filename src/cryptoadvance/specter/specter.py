@@ -715,7 +715,7 @@ class Specter:
             self.config["weight_unit"] = weight_unit
             self._save()
         else:
-            user.set_weight_unit(self, weight_unit)
+            user.set_weight_unit(weight_unit)
 
     def update_alt_rate(self, alt_rate, user):
         alt_rate = round(float(alt_rate), 2)
