@@ -44,17 +44,17 @@ $ tor --hash-password your_torrc_password
 16:6FB92F9B361D347060D6D2E95E810604DC55A22D38492F28C51F2AACDF
 ```
 
-Copy the `16:...` hashed value and save it for the next step
+Copy the `16:...` hashed password and save it for the next step
 
 #### Edit `torrc`
-Update your `torrc` config file (usually `/etc/tor/torrc`; Mac OS homebrew: `/usr/local/etc/tor/torrc` or `/opt/homebrew/etc/tor/torrc`) and uncomment the `ControlPort` line.
+Update your `torrc` config file (usually `/etc/tor/torrc`; Mac OS homebrew: `/usr/local/etc/tor/torrc` or `/opt/homebrew/etc/tor/torrc`) and uncomment the `ControlPort` and `HashedControlPassword` lines. Paste in your `16:...` hashed password here:
 ```sh
 ## The port on which Tor will listen for local connections from Tor
 ## controller applications, as documented in control-spec.txt.
 ControlPort 9051
 ## If you enable the controlport, be sure to enable one of these
 ## authentication methods, to prevent attackers from accessing it.
-HashedControlPassword your_hashed_value_from_above
+HashedControlPassword your_hashed_password
 ```
 
 Restart the Tor service:
