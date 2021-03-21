@@ -36,16 +36,28 @@ Install dependencies:
 
 * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
 * macOS: `brew install libusb`
+* Windows:
+    * python3: running `python3` in the command line should open the installer in the Microsoft Store. Currently defaults to python 3.9. Search for python 3.8 and install that instead.
+    * [Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/): Be sure to select Visual C++ during installation.
+    * [libusb-1.0.dll](https://libusb.info): Use [7-Zip](https://7-zip.org) to decompress the .7z file. Copy `libusb-1.0.dll` from `VS2019/MS64/dll` to your `/Windows/System32` directory.
 
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv`, .e.g `virtualenv --python3.8 .env`.
+    Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
+pip3 install virtualenv
 virtualenv --python=python3 .env 
 source .env/bin/activate
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e .
+```
+
+_note: invoking commands in the Windows command line may be slightly different:_
+```
+python -m virtualenv --python=python3 .env
+.env\Scripts\activate
+python -m cryptoadvance.specter server  --config DevelopmentConfig
 ```
 
 Run the server:
