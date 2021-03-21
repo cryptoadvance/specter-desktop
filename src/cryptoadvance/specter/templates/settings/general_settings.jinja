@@ -55,7 +55,7 @@
 			</select>
 			<br><br>
 			Block explorer URL ({{ specter.chain }}):<br>
-			<input type="text" name="explorer" value="{{ explorer }}">
+			{% include "components/explorer_select.jinja" %}
 			<div class="warning">
 				&#9432;<br>
 				Specter does not use the block explorer to get any data whatsoever.
@@ -63,6 +63,13 @@
 				All data Specter uses comes directly from your own connected full node.
 			</div>
 			<br>
+			Fees estimation source:<br>
+			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="mempool" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="mempool" %}checked{% endif %}>Mempool.space</label><br>
+			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  name="fee_estimator" value="bitcoin_core" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="bitcoin_core" %}checked{% endif %}>Bitcoin Core</label><br>
+			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="custom" onclick="updateFeeEstimator()" id="fee_estimator_custom_option" {% if specter.fee_estimator=="custom" %}checked{% endif %}>Self hosted mempool.space</label>
+			<br>
+			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
+			<br><br>
 			{% if current_user.is_admin %}
 			Log Level:<br>
 			<select name="loglevel">
@@ -94,8 +101,15 @@
 {% endblock %}
 {% block scripts %}
 	<script type="text/javascript">
-
+	function updateFeeEstimator() {
+			if (document.getElementById('fee_estimator_custom_option').checked) {
+				document.getElementById('fee_estimator_custom_url').classList.remove('hidden');
+			} else {
+				document.getElementById('fee_estimator_custom_url').classList.add('hidden');
+			}
+		}
 		document.addEventListener("DOMContentLoaded", function(){
+			updateFeeEstimator();
 			var el = document.getElementById("file");
 
 			if (el != null) {

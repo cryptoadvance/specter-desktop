@@ -188,6 +188,7 @@
         self.explorerLink.style.removeProperty('text-decoration')
         if (self.explorer) {
             self.explorerLink.href = `${ self.explorer }address/${ self.address }`
+            self.explorerLink.onclick = () => {return true;}
         } else {
             self.explorerLink.onclick = () => {
                 copyText(self.address, `Copied address: ${ self.address }`);
@@ -198,11 +199,7 @@
     function disableExplorerLink(self) {
         self.explorerLink.classList.remove('explorer-link');
         self.explorerLink.style['text-decoration'] = 'none';
-        if (self.explorer) {
-            self.explorerLink.href = `javascript: void(0)`
-        } else {
-            self.explorerLink.onclick = () => {}
-        }
+        self.explorerLink.onclick = () => {return false;}
     }
         
 
