@@ -89,6 +89,7 @@ class BitcoindController:
             self.network = network
         except Exception as e:
             logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
+            raise e
 
     def start_bitcoind(
         self,
@@ -262,6 +263,7 @@ class BitcoindPlainController(BitcoindController):
             logger.exception(
                 f"Failed to instantiate BitcoindPlainController. Error: {e}"
             )
+            raise e
 
     def _start_bitcoind(
         self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
