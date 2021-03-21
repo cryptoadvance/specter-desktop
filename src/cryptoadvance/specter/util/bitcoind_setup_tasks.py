@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
     try:
         # There is no bitcoind binary for Raspberry Pi 4 (armv7l)
-        if platform.node() == "Linux" and "armv" in platform.machine():
+        if platform.system() == "Linux" and "armv" in platform.machine():
             raise Exception(
                 "Linux ARM devices (e.g. Raspberry Pi) must manually install Bitcoin Core"
             )
