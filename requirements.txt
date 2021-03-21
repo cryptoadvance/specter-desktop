@@ -8,12 +8,10 @@ base58==2.0.1 \
     --hash=sha256:365c9561d9babac1b5f18ee797508cd54937a724b6e419a130abad69cec5ca79 \
     --hash=sha256:447adc750d6b642987ffc6d397ecd15a799852d5f6a1d308d384500243825058
     # via bitbox02
-bitbox02==4.1.0 \
-    --hash=sha256:1af95952d67b74c80ccc0588e0aee983c764960da637bd24bc41a1cb89d5e127 \
-    --hash=sha256:73a35594162f32897dd2b1880f0cfaa42922acd1c2d7f4cf3d94b8333329c931
-    # via
-    #   -r requirements.in
-    #   hwi
+bitbox02==5.3.0 \
+    --hash=sha256:797e6904d431f6d2ef711f169e7ce8fffc125cc8c5b3efb8187fd451f45635e1 \
+    --hash=sha256:fe0e8aeb9b32fd7d76bb3e9838895973a74dfd532a8fb8ac174a1a60214aee26
+    # via hwi
 certifi==2019.9.11 \
     --hash=sha256:e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50 \
     --hash=sha256:fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef
@@ -93,9 +91,9 @@ daemonize==2.5.0 \
     --hash=sha256:9b6b91311a9d934ff3f5f766666635ca280d3de8e7137e4cd7d3f052543b989f \
     --hash=sha256:dd026e4ff8d22cb016ed2130bc738b7d4b1da597ef93c074d2adb9e4dea08bc3
     # via -r requirements.in
-ecdsa==0.13.3 \
-    --hash=sha256:163c80b064a763ea733870feb96f9dd9b92216cfcacd374837af18e4e8ec3d4d \
-    --hash=sha256:9814e700890991abeceeb2242586024d4758c8fc18445b194a49bd62d85861db
+ecdsa==0.16.1 \
+    --hash=sha256:881fa5e12bb992972d3d1b3d4dfbe149ab76a89f13da02daa5ea1ec7dea6e747 \
+    --hash=sha256:cfc046a2ddd425adbd1a78b3c46f0d1325c657811c0f45ecc3a0a6236c1e50ff
     # via
     #   bitbox02
     #   hwi
@@ -137,9 +135,9 @@ hidapi==0.7.99.post21 \
     # via
     #   bitbox02
     #   hwi
-hwi==1.2.0 \
-    --hash=sha256:145ba6a73a3857eb4f4be31f303e6df86250072023931386cc12dc7dbadff74d \
-    --hash=sha256:a591c443b4d8f72141d1217f4ed57f2a4037a5c0428626975612de526c096ee6
+hwi==2.0.0 \
+    --hash=sha256:412816987380a4f5b1c16c3fade5ee07390482e4a5a40263df6af292ccb1d8cb \
+    --hash=sha256:6cb9edbecf59a0071f1b57ee0f116dc90922ece4d8a280524238065f46b55a65
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
@@ -287,6 +285,7 @@ six==1.12.0 \
     # via
     #   -r requirements.in
     #   cryptography
+    #   ecdsa
     #   flask-cors
     #   pgpy
     #   protobuf
