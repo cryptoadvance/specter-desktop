@@ -19,6 +19,11 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 def setup_tor_thread(specter=None):
     try:
+        # There is no Tor Browser binary for Raspberry Pi 4 (armv7l)
+        if platform.node() == "Linux" and "armv" in platform.machine():
+            raise Exception(
+                "Linux ARM devices (e.g. Raspberry Pi) must manually install Tor"
+            )
         specter.config["torbrowser_setup"]["stage"] = "Starting Tor setup process..."
         specter._save()
         TOR_OS_SUFFIX = {

@@ -152,6 +152,7 @@ class Specter:
             "torbrowser_setup": {
                 "stage_progress": -1,
             },
+            "torrc_password": secrets.token_urlsafe(16),
         }
 
         self.torbrowser_path = os.path.join(
