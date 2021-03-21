@@ -565,6 +565,11 @@ class Specter:
             self.update_tor_controller()
 
     def update_tor_controller(self):
+        if "torrc_password" not in self.config:
+            # Will be missing if the user did not go through the built-in Tor setup
+            self.config["torrc_password"] = secrets.token_urlsafe(16)
+            self._save()
+            logger.info(f"Generated torrc_password in {self.config_fname}")
         try:
             tor_control_address = urlparse(self.proxy_url).netloc.split(":")[0]
             if tor_control_address == "localhost":
@@ -573,15 +578,9 @@ class Specter:
                 address=tor_control_address,
                 port=int(self.tor_control_port) if self.tor_control_port else "default",
             )
-            if "torrc_password" not in self.config:
-                # Will be missing if the user did not go through the built-in Tor setup
-                self.config["torrc_password"] = secrets.token_urlsafe(16)
-                self._save()
-                logger.info("Generated torrc_password")
-            else:
-                self._tor_controller.authenticate(
-                    password=self.config.get("torrc_password", "")
-                )
+            self._tor_controller.authenticate(
+                password=self.config.get("torrc_password", "")
+            )
         except Exception as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None

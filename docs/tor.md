@@ -19,6 +19,7 @@ To set this up, you'll just need to go to Specter's Settings -> Tor tab, then se
 ### Install Tor service
 Alternatively, you can setup the Tor service. Install Tor on the same server that you'll be running Specter Desktop:
 * [Debian / Ubuntu](https://2019.www.torproject.org/docs/debian.html.en)
+* Raspberry Pi OS: `sudo apt install tor`
 * [macOS](https://2019.www.torproject.org/docs/tor-doc-osx.html.en)
 
 ### Configure Specter Desktop for Remote Instance
@@ -33,19 +34,27 @@ If you're using Specter Desktop on a remote machine and would like to connect to
 
 After saving, Specter will shutdown. Start it again and you should be able to connect to your remote Specter server.
 
-### Configure Tor port
-Update your `torrc` config file (usually `/etc/tor/torrc` or `/usr/local/etc/tor/torrc` on macOS Homebrew installs) and uncomment the `ControlPort` line.
+### Configure Tor
+#### Hash Specter's `torrc_password`
+First you'll need to copy your `torrc_password` from the Specter `config.json` (found in `~/.specter` by default).
+
+Then hash the password using Tor's built-in command:
+```
+$ tor --hash-password your_torrc_password
+16:6FB92F9B361D347060D6D2E95E810604DC55A22D38492F28C51F2AACDF
+```
+
+Copy the `16:...` hashed value and save it for the next step
+
+#### Edit `torrc`
+Update your `torrc` config file (usually `/etc/tor/torrc`; Mac OS homebrew: `/usr/local/etc/tor/torrc` or `/opt/homebrew/etc/tor/torrc`) and uncomment the `ControlPort` line.
 ```sh
 ## The port on which Tor will listen for local connections from Tor
 ## controller applications, as documented in control-spec.txt.
 ControlPort 9051
-```
-
-You may also need to add the following lines in the `torrc` file:
-
-```sh
-CookieAuthentication 1
-CookieAuthFileGroupReadable 1
+## If you enable the controlport, be sure to enable one of these
+## authentication methods, to prevent attackers from accessing it.
+HashedControlPassword your_hashed_value_from_above
 ```
 
 Restart the Tor service:
