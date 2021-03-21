@@ -130,6 +130,12 @@ class Specter:
                 "registration_link_timeout": 1,
             },
             "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
+            "explorer_id": {
+                "main": "CUSTOM",
+                "test": "CUSTOM",
+                "regtest": "CUSTOM",
+                "signet": "CUSTOM",
+            },
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
@@ -144,6 +150,8 @@ class Specter:
             "alt_symbol": "BTC",
             "price_provider": "",
             "validate_merkle_proofs": False,
+            "fee_estimator": "mempool",
+            "fee_estimator_custom_url": "",
             "bitcoind": False,
             "bitcoind_internal_version": "",
             "bitcoind_setup": {
@@ -523,22 +531,47 @@ class Specter:
             auth["registration_link_timeout"] = registration_link_timeout
         self._save()
 
-    def update_explorer(self, explorer, user):
+    def update_explorer(self, explorer_id, explorer_data, user):
         """ update the block explorers urls """
         user = self.user_manager.get_user(user)
         # we don't know what chain to change
         if not self.chain:
             return
-        if explorer and not explorer.endswith("/"):
-            # make sure the urls end with a "/"
-            explorer += "/"
+
+        if explorer_id == "CUSTOM":
+            if explorer_data["url"] and not explorer_data["url"].endswith("/"):
+                # make sure the urls end with a "/"
+                explorer_data["url"] += "/"
+        else:
+            chain_name = (
+                ""
+                if (self.chain == "main" or self.chain == "regtest")
+                else ("signet/" if self.chain == "signet" else "testnet/")
+            )
+            explorer_data["url"] += chain_name
         # update the urls in the app config
         if user.id == "admin":
-            if self.config["explorers"][self.chain] != explorer:
-                self.config["explorers"][self.chain] = explorer
+            self.config["explorers"][self.chain] = explorer_data["url"]
+            self.config["explorer_id"][self.chain] = explorer_id
             self._save()
         else:
-            user.set_explorer(self, explorer)
+            user.set_explorer(explorer_id, explorer_data["url"])
+
+    def update_fee_estimator(self, fee_estimator, custom_url, user):
+        """ update the fee estimator option and its url if custom """
+        user = self.user_manager.get_user(user)
+        fee_estimator_options = ["mempool", "bitcoin_core", "custom"]
+
+        if fee_estimator not in fee_estimator_options:
+            raise SpecterError("Invalid fee estimator option specified.")
+
+        if user.id == "admin":
+            self.config["fee_estimator"] = fee_estimator
+            if fee_estimator == "custom":
+                self.config["fee_estimator_custom_url"] = custom_url
+            self._save()
+        else:
+            user.set_fee_estimator(fee_estimator, custom_url)
 
     def update_proxy_url(self, proxy_url, user):
         """ update the Tor proxy url """
@@ -658,21 +691,21 @@ class Specter:
             self.config["hwi_bridge_url"] = url
             self._save()
         else:
-            user.set_hwi_bridge_url(self, url)
+            user.set_hwi_bridge_url(url)
 
     def update_unit(self, unit, user):
         if user.is_admin:
             self.config["unit"] = unit
             self._save()
         else:
-            user.set_unit(self, unit)
+            user.set_unit(unit)
 
     def update_price_check_setting(self, price_check_bool, user):
         if user.is_admin:
             self.config["price_check"] = price_check_bool
             self._save()
         else:
-            user.set_price_check(self, price_check_bool)
+            user.set_price_check(price_check_bool)
         if price_check_bool and (self.price_provider and self.user == user):
             self.price_checker.start()
         else:
@@ -683,7 +716,7 @@ class Specter:
             self.config["price_provider"] = price_provider
             self._save()
         else:
-            user.set_price_provider(self, price_provider)
+            user.set_price_provider(price_provider)
 
     def update_alt_rate(self, alt_rate, user):
         alt_rate = round(float(alt_rate), 2)
@@ -691,14 +724,14 @@ class Specter:
             self.config["alt_rate"] = alt_rate
             self._save()
         else:
-            user.set_alt_rate(self, alt_rate)
+            user.set_alt_rate(alt_rate)
 
     def update_alt_symbol(self, alt_symbol, user):
         if user.is_admin:
             self.config["alt_symbol"] = alt_symbol
             self._save()
         else:
-            user.set_alt_symbol(self, alt_symbol)
+            user.set_alt_symbol(alt_symbol)
 
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
@@ -761,23 +794,6 @@ class Specter:
     def estimatesmartfee(self, blocks):
         return self.rpc.estimatesmartfee(blocks)
 
-    def get_default_explorer(self):
-        """
-        Returns a blockexplorer url:
-        user-defined if it's set, otherwise
-        blockstream.info for main and testnet,
-        bc-2.jp for signet
-        """
-        # not None or ""
-        if self.explorer:
-            return self.explorer
-        if self.chain == "main":
-            return "https://blockstream.info/"
-        elif self.chain == "test":
-            return "https://blockstream.info/testnet/"
-        elif self.chain == "signet":
-            return "https://explorer.bc-2.jp/"
-
     @property
     def is_running(self):
         return self._is_running
@@ -817,6 +833,14 @@ class Specter:
     @property
     def explorer(self):
         return self.user_config.get("explorers", {}).get(self.chain, "")
+
+    @property
+    def explorer_id(self):
+        return self.user_config.get("explorer_id", {}).get(self.chain, "CUSTOM")
+
+    @property
+    def fee_estimator(self):
+        return self.user_config.get("fee_estimator", "mempool")
 
     @property
     def proxy_url(self):

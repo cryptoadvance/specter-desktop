@@ -76,7 +76,7 @@
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
 				</div><br>
-				{% with subtract=subtract, subtract_from=subtract_from, fee_options=fee_options, fee_rate=fee_rate, fee_rate_blocks=fee_rate_blocks, rbf=rbf %}
+				{% with subtract=subtract, subtract_from=subtract_from, fee_options=fee_options, fee_rate=fee_rate, rbf=rbf %}
 					{% include "wallet/send/new/components/fee_selection.jinja" %}
 				{% endwith %}
 				<br>
