@@ -25,7 +25,7 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
-from ..util.error_handling import handle_exception
+from ..specter_error import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -178,12 +178,20 @@ def bitcoin_core():
 @login_required
 def general():
     current_version = notify_upgrade(app, flash)
-    explorer = app.specter.explorer
+    explorer_id = app.specter.explorer_id
+    explorer = ""
+    fee_estimator = app.specter.fee_estimator
+    fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
-        explorer = request.form["explorer"]
+        explorer_id = request.form["explorer"]
+        explorer_data = app.config["EXPLORERS_LIST"][explorer_id]
+        if explorer_id == "CUSTOM":
+            explorer_data["url"] = request.form["custom_explorer"]
+        fee_estimator = request.form["fee_estimator"]
+        fee_estimator_custom_url = request.form["fee_estimator_custom_url"]
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
 
@@ -194,10 +202,15 @@ def general():
             if current_user.is_admin:
                 set_loglevel(app, loglevel)
 
-            app.specter.update_explorer(explorer, current_user)
+            app.specter.update_explorer(explorer_id, explorer_data, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
+            )
+            app.specter.update_fee_estimator(
+                fee_estimator=fee_estimator,
+                custom_url=fee_estimator_custom_url,
+                user=current_user,
             )
             app.specter.check()
         elif action == "restore":
@@ -273,7 +286,8 @@ This may take a few hours to complete.",
 
     return render_template(
         "settings/general_settings.jinja",
-        explorer=explorer,
+        fee_estimator=fee_estimator,
+        fee_estimator_custom_url=fee_estimator_custom_url,
         loglevel=loglevel,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs") is True,
         unit=unit,
@@ -469,7 +483,7 @@ def auth():
                             rand=rand,
                         )
                     current_user.password = hash_password(specter_password)
-                current_user.save_info(app.specter)
+                current_user.save_info()
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
@@ -495,7 +509,7 @@ def auth():
                                 )
 
                             current_user.password = hash_password(new_password)
-                            current_user.save_info(app.specter)
+                            current_user.save_info()
                     if method == "usernamepassword":
                         users = [
                             user

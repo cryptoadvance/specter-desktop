@@ -1,8 +1,14 @@
-# Specter interaction script
-from typing import Dict, Optional, Union
-from hwilib.serializations import PSBT
+"""
+Hardware Wallet Client Interface
+********************************
 
-from hwilib.hwwclient import HardwareWalletClient
+The :class:`SpecterClient` is the class to communicate with Specter-DIY hardware wallet.
+"""
+
+import serial
+import serial.tools.list_ports
+import socket, time
+from hwilib.hwwclient import *
 from hwilib.errors import (
     ActionCanceledError,
     BadArgumentError,
@@ -10,14 +16,10 @@ from hwilib.errors import (
     DeviceFailureError,
     UnavailableActionError,
 )
-from hwilib.base58 import xpub_main_2_test
-from hwilib import base58
-from binascii import b2a_base64
+import hashlib
+from binascii import a2b_base64, b2a_base64
 
-import serial
-import serial.tools.list_ports
-import socket
-import time
+py_enumerate = enumerate
 
 
 class SpecterClient(HardwareWalletClient):
@@ -31,6 +33,13 @@ class SpecterClient(HardwareWalletClient):
     TIMEOUT = 3
 
     def __init__(self, path: str, password: str = "", expert: bool = False) -> None:
+        """
+        :param path: Path to the device as returned by :func:`~hwilib.commands.enumerate`
+        :param password: A password/passphrase to use with the device.
+            Typically a BIP 39 passphrase, but not always.
+            See device specific documentation for further details.
+        :param expert: Whether to return additional information intended for experts.
+        """
         super().__init__(path, password, expert)
         self.simulator = ":" in path
         if self.simulator:
@@ -49,45 +58,66 @@ class SpecterClient(HardwareWalletClient):
             raise BadArgumentError(res[7:])
         return res
 
-    def get_master_fingerprint_hex(self) -> str:
-        """Return the master public key fingerprint as hex-string."""
-        return self.query("fingerprint", timeout=self.TIMEOUT)
+    def get_master_fingerprint(self) -> bytes:
+        """
+        Get the master public key fingerprint as bytes.
 
-    def get_pubkey_at_path(self, bip32_path: str) -> Dict[str, str]:
-        """Return the public key at the BIP32 derivation path.
+        Retrieves the fingerprint of the master public key of a device.
+        Typically implemented by fetching the extended public key at "m/0h"
+        and extracting the parent fingerprint from it.
 
-        Return {"xpub": <xpub string>}.
+        :return: The fingerprint as bytes
+        """
+        return bytes.fromhex(self.query("fingerprint", timeout=self.TIMEOUT))
+
+    def get_pubkey_at_path(self, bip32_path: str) -> ExtendedKey:
+        """
+        Get the public key at the BIP 32 derivation path.
+
+        :param bip32_path: The BIP 32 derivation path
+        :return: The extended public key
         """
         # this should be fast
         xpub = self.query("xpub %s" % bip32_path, timeout=self.TIMEOUT)
+        hd = ExtendedKey.deserialize(xpub)
         # Specter returns xpub with a prefix
         # for a network currently selected on the device
-        if self.is_testnet:
-            return {"xpub": xpub_main_2_test(xpub)}
-        else:
-            return {"xpub": xpub_test_2_main(xpub)}
+        hd.version = (
+            b"\x04\x88\xb2\x1e" if self.chain == Chain.MAIN else b"\x04\x35\x87\xcf"
+        )
+        return hd
 
-    def sign_tx(self, psbt: PSBT) -> Dict[str, str]:
-        """Sign a partially signed bitcoin transaction (PSBT).
-
-        Return {"psbt": <base64 psbt string>}.
+    def sign_tx(self, psbt: PSBT) -> PSBT:
         """
-        # this one can hang for quite some time
-        signed_tx = self.query("sign %s" % psbt.serialize())
-        return {"psbt": signed_tx}
+        Sign a partially signed bitcoin transaction (PSBT).
 
-    def sign_message(
-        self, message: Union[str, bytes], bip32_path: str
-    ) -> Dict[str, str]:
-        """Sign a message (bitcoin message signing).
-        Sign the message according to the bitcoin message signing standard.
-        Retrieve the signing key at the specified BIP32 derivation path.
-        Return {"signature": <base64 signature string>}.
+        :param psbt: The PSBT to sign
+        :return: The PSBT after being processed by the hardware wallet
+        """
+        response = self.query("sign %s" % psbt.serialize())
+        signed_psbt = PSBT()
+        signed_psbt.deserialize(response)
+        # adding partial sigs to initial tx
+        for i in range(len(psbt.inputs)):
+            for k in signed_psbt.inputs[i].partial_sigs:
+                psbt.inputs[i].partial_sigs[k] = signed_psbt.inputs[i].partial_sigs[k]
+        return psbt
+
+    def sign_message(self, message: Union[str, bytes], bip32_path: str) -> str:
+        """
+        Sign a message (bitcoin message signing).
+
+        Signs a message using the legacy Bitcoin Core signed message format.
+        The message is signed with the key at the given path.
+
+        :param message: The message to be signed. First encoded as bytes if not already.
+        :param bip32_path: The BIP 32 derivation for the key to sign the message with.
+        :return: The signature
         """
         # convert message to bytes
         msg = message
-        if not isinstance(message, bytes):
-            msg = message.encode()
+        if isinstance(message, str):
+            msg = message.encode("utf-8")
         # check if ascii - we only support ascii characters display
         try:
             msg.decode("ascii")
@@ -102,138 +132,69 @@ class SpecterClient(HardwareWalletClient):
         if fmt == "base64":
             msg = b2a_base64(msg).strip()
         sig = self.query(f"signmessage {bip32_path} {fmt}:{msg.decode()}")
-        return {"signature": sig}
+        return sig
 
-    def display_address(
+    def display_singlesig_address(
         self,
         bip32_path: str,
-        p2sh_p2wpkh: bool,
-        bech32: bool,
-        redeem_script: Optional[str] = None,
-        descriptor: Optional[str] = None,
-    ) -> Dict[str, str]:
-        """Display and return the address of specified type.
-
-        redeem_script is a hex-string.
-
-        Retrieve the public key at the specified BIP32 derivation path.
-
-        Return {"address": <base58 or bech32 address string>}.
+        addr_type: AddressType,
+    ) -> str:
         """
-        script_type = "pkh" if redeem_script is None else "sh"
-        if p2sh_p2wpkh:
-            script_type = f"sh-w{script_type}"
-        elif bech32:
-            script_type = f"w{script_type}"
+        Display and return the single sig address of specified type
+        at the given derivation path.
+
+        :param bip32_path: The BIP 32 derivation path to get the address for
+        :param addr_type: The address type
+        :return: The retrieved address also being shown by the device
+        """
+        if addr_type == AddressType.LEGACY:
+            script_type = "pkh"
+        elif addr_type == AddressType.SH_WIT:
+            script_type = "sh-wpkh"
+        elif addr_type == AddressType.WIT:
+            script_type = "wpkh"
+        else:
+            raise BadArgumentError("Invalid address type")
         # prepare a request of the form like
         # `showaddr sh-wsh m/1h/2h/3 descriptor`
         request = f"showaddr {script_type} {bip32_path}"
-        if redeem_script is not None:
-            request += f" {redeem_script}"
         address = self.query(request)
-        return {"address": address}
+        return address
 
-    def wipe_device(self) -> Dict[str, Union[bool, str, int]]:
-        """Wipe the HID device.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
+    def display_multisig_address(
+        self,
+        addr_type: AddressType,
+        multisig: MultisigDescriptor,
+    ) -> str:
         """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
+        Display and return the multisig address of specified type given the descriptor.
 
-    def setup_device(
-        self, label: str = "", passphrase: str = ""
-    ) -> Dict[str, Union[bool, str, int]]:
-        """Setup the HID device.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": str, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
+        :param addr_type: The address type
+        :param multisig: A :class:`~hwilib.descriptor.MultisigDescriptor` that describes the multisig to display.
+        :return: The retrieved address also being shown by the device
         """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
+        # prepare a request of the form like
+        # `showaddr sh-wsh m/1h/2h/3 descriptor`
+        if addr_type == AddressType.LEGACY:
+            script_type = "sh"
+        elif addr_type == AddressType.SH_WIT:
+            script_type = "sh-wsh"
+        elif addr_type == AddressType.WIT:
+            script_type = "wsh"
+        else:
+            raise BadArgumentError("Invalid address type")
+
+        script, *_ = multisig.expand(0)
+        bip32_path = (
+            multisig.pubkeys[0].origin.to_string() + multisig.pubkeys[0].deriv_path
         )
-
-    def restore_device(
-        self, label: str = "", word_count: int = 24
-    ) -> Dict[str, Union[bool, str, int]]:
-        """Restore the HID device from mnemonic.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
-        """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
-
-    def backup_device(
-        self, label: str = "", passphrase: str = ""
-    ) -> Dict[str, Union[bool, str, int]]:
-        """Backup the HID device.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
-        """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
+        request = f"showaddr {script_type} {bip32_path} {script.hex()}"
+        address = self.query(request)
+        return address
 
     def close(self) -> None:
-        """Close the device."""
-        # nothing to do here - we close on every query
+        # nothing to do for DIY
         pass
-
-    def prompt_pin(self) -> Dict[str, Union[bool, str, int]]:
-        """Prompt for PIN.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
-        """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
-
-    def send_pin(self) -> Dict[str, Union[bool, str, int]]:
-        """Send PIN.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
-        """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
-
-    def toggle_passphrase(self) -> Dict[str, Union[bool, str, int]]:
-        """Toggle passphrase.
-
-        Must return a dictionary with the "success" key,
-        possibly including also "error" and "code", e.g.:
-        {"success": bool, "error": srt, "code": int}.
-
-        Raise UnavailableActionError if appropriate for the device.
-        """
-        raise NotImplementedError(
-            "The SpecterClient class " "does not implement this method"
-        )
 
     ############ extra functions Specter supports ############
 
@@ -244,8 +205,7 @@ class SpecterClient(HardwareWalletClient):
         return bytes.fromhex(res)
 
     def import_wallet(self, name: str, descriptor: str):
-        # TODO: implement
-        pass
+        self.query("addwallet {name} {descriptor}")
 
 
 def enumerate(password=""):
@@ -267,36 +227,30 @@ def enumerate(password=""):
         s.connect(("127.0.0.1", 8789))
         s.close()
         ports.append("127.0.0.1:8789")
-    except:
+    except Exception as e:
+        print(e)
         pass
 
     for port in ports:
         # for every port try to get a fingerprint
         try:
             path = port
-            data = {
-                "type": "specter",
-                "model": "specter-diy",
-                "path": path,
-                "needs_passphrase": False,
-            }
-            client = SpecterClient(path)
-            data["fingerprint"] = client.get_master_fingerprint_hex()
+            data: Dict[str, Any] = {}
+            data["type"] = "specter"
+            data["model"] = "specter-diy"
+            data["path"] = path
+            data["needs_pin_sent"] = False
+            data["needs_passphrase_sent"] = False
+            client = SpecterClient(path, "", False)
+            data["fingerprint"] = client.get_master_fingerprint().hex()
             client.close()
             results.append(data)
-        except:
-            pass
+        except Exception as e:
+            print(e)
     return results
 
 
 ############# Helper functions and base classes ##############
-
-
-def xpub_test_2_main(xpub: str) -> str:
-    data = base58.decode(xpub)
-    main_data = b"\x04\x88\xb2\x1e" + data[4:-4]
-    checksum = base58.hash256(main_data)[0:4]
-    return base58.encode(main_data + checksum)
 
 
 def is_micropython(port):
@@ -308,7 +262,7 @@ class SpecterBase:
 
     EOL = b"\r\n"
     ACK = b"ACK"
-    ACK_TIMOUT = 1
+    ACK_TIMOUT = 3
 
     def prepare_cmd(self, data):
         """
@@ -396,3 +350,50 @@ class SpecterSimulator(SpecterBase):
         res = self.read_until(s, self.EOL, timeout)[: -len(self.EOL)]
         s.close()
         return res.decode()
+
+
+###### test for communication ######
+
+if __name__ == "__main__":
+    import sys
+
+    devices = enumerate()
+    if len(devices) == 0:
+        print("No devices found")
+        sys.exit()
+    inp = 0
+    if len(devices) > 1:
+        print("Found %d devices." % len(devices))
+        for i, dev in py_enumerate(devices):
+            print(f"[{i}] {dev['path']} - {dev['fingerprint']}")
+        inp = -1
+        while True:
+            inp = int(input("Enter the device number to use: "))
+            if inp >= len(devices) or inp < 0:
+                print("Meh... Try again.")
+                continue
+            break
+    dev = SpecterClient(devices[inp]["path"])
+    if len(sys.argv) == 1:
+        mfp = dev.get_master_fingerprint().hex()
+        derivation = "m/84h/0h/0h"
+        xpub = dev.get_pubkey_at_path(derivation).to_string()
+        print(f"Device fingerprint: {mfp}")
+        print(f"Segwit xpub: {xpub}")
+        print(f"Full key: [{mfp}{derivation[1:]}]{xpub}")
+    else:
+        if "-i" not in sys.argv:
+            cmd = " ".join(sys.argv[1:])
+            print("Running command:", cmd)
+            print(dev.query(cmd))
+        else:
+            cmd = ""
+            print("Interactive mode! Enter `quit` to exit.")
+            while inp != "quit":
+                cmd = input("Enter command to run: ")
+                if cmd == "quit":
+                    sys.exit(0)
+                try:
+                    print(dev.query(cmd))
+                except Exception as e:
+                    print("Error:", e)

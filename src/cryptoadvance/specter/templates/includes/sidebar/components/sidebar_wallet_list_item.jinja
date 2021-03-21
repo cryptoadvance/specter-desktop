@@ -4,19 +4,27 @@
     - wallet: Wallet object of the item.
     - wallet_alias: Active wallet alias.
     - chain: Chain name specter is connected to. Options: 'main', 'test', 'regtest', 'signet'.
+    - loading: Boolean indicating if the wallet is loaded in Specter already or not.
  #}
-{% macro sidebar_wallet_list_item(wallet, wallet_alias, chain) -%}
-    <a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}">
+{% macro sidebar_wallet_list_item(wallet, wallet_alias, chain, loading=false) -%}
+    <a id="{{wallet.alias}}-sidebar-list-item" href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}" style="{%if loading%}display: none;{%endif%}">
         {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
         <div class="grow">
             {{ wallet.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys|length }} Multisig{% else %}Single Key{% endif %}</span>
+            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} Multisig{% else %}Single Key{% endif %}</span>
             {% if wallet.rescan_progress %}
                 <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;">
                 <br>
                 <span class="note" style="font-size: 0.7em;">Rescanning blockchain: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span>
                 </span>
             {% endif %}
+        </div>
+    </a>
+    <a class="item" style="{%if not loading%}display: none;{%endif%}" id="{{wallet.alias}}-sidebar-loading-placeholder">
+        <img height="38px" class="spinning" spinning src="{{ url_for('static', filename='img/refresh.svg') }}" />
+        <div class="grow">
+            {{ wallet.name }}<br>
+            <span class="note" style="font-size: 0.75em;">Loading wallet...</span>
         </div>
     </a>
     {% if wallet.rescan_progress %}
