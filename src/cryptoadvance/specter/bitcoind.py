@@ -82,10 +82,13 @@ class BitcoindController:
     def __init__(
         self, rpcport=18443, network="regtest", rpcuser="bitcoin", rpcpassword="secret"
     ):
-        self.rpcconn = Btcd_conn(
-            rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
-        )
-        self.network = network
+        try:
+            self.rpcconn = Btcd_conn(
+                rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
+            )
+            self.network = network
+        except Exception as e:
+            logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
 
     def start_bitcoind(
         self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=[]
@@ -240,11 +243,19 @@ class BitcoindPlainController(BitcoindController):
         rpcuser="bitcoin",
         rpcpassword="secret",
     ):
-        super().__init__(
-            rpcport=rpcport, network=network, rpcuser=rpcuser, rpcpassword=rpcpassword
-        )
-        self.bitcoind_path = bitcoind_path
-        self.rpcconn.ipaddress = "localhost"
+        try:
+            super().__init__(
+                rpcport=rpcport,
+                network=network,
+                rpcuser=rpcuser,
+                rpcpassword=rpcpassword,
+            )
+            self.bitcoind_path = bitcoind_path
+            self.rpcconn.ipaddress = "localhost"
+        except Exception as e:
+            logger.exception(
+                f"Failed to instantiate BitcoindPlainController. Error: {e}"
+            )
 
     def _start_bitcoind(
         self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
