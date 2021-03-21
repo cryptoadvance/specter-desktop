@@ -168,13 +168,8 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
         specter.config["bitcoind_setup"]["stage"] = "Starting up Bitcoin Core..."
         specter._save()
-        specter.bitcoind = BitcoindPlainController(
-            bitcoind_path=specter.bitcoind_path,
-            rpcport=8332,
-            network="mainnet",
-            rpcuser=specter.config["rpc"]["user"],
-            rpcpassword=specter.config["rpc"]["password"],
-        )
+
+        # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         specter.bitcoind.start_bitcoind(
             datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
         )
