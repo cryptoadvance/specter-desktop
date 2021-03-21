@@ -18,7 +18,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         }
         # ARM Linux devices (e.g. Raspberry Pi 4 == armv7l) need ARM binary
         if platform.system() == "Linux" and "armv" in platform.machine():
-            BITCOIND_OS_SUFFIX["Linux"] = ("arm-linux-gnueabihf.tar.gz",)
+            BITCOIND_OS_SUFFIX["Linux"] = "arm-linux-gnueabihf.tar.gz"
         bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}"
         packed_name = os.path.join(
             specter.data_folder,
