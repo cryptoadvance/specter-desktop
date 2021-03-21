@@ -293,8 +293,7 @@ def generatemnemonic():
 @app.route("/get_fee/<blocks>")
 @login_required
 def fees(blocks):
-    res = app.specter.estimatesmartfee(int(blocks))
-    return res
+    return app.specter.estimatesmartfee(int(blocks))
 
 
 @app.route("/get_txout_set_info")

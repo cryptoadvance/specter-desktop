@@ -34,6 +34,7 @@ from ..specter import Specter
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
 from ..util.descriptor import AddChecksum, Descriptor
+from ..util.fee_estimation import get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from ..wallet_manager import purposes
@@ -417,7 +418,12 @@ def new_wallet(wallet_type):
                 if "utxo" in request.form.get("full_rescan_option"):
                     explorer = None
                     if "use_explorer" in request.form:
-                        explorer = request.form["explorer_url"]
+                        if request.form["explorer"] == "CUSTOM":
+                            explorer = request.form["custom_explorer"]
+                        else:
+                            explorer = app.config["EXPLORERS_LIST"][
+                                request.form["explorer"]
+                            ]["url"]
                     wallet.rescanutxo(
                         explorer,
                         app.specter.requests_session(explorer),
@@ -574,12 +580,13 @@ def send_new(wallet_alias):
     subtract = False
     subtract_from = 1
     fee_options = "dynamic"
-    fee_rate = 0.0
-    fee_rate_blocks = 6
     rbf = True
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
+    fee_estimation_data = get_fees(app.specter, app.config)
+    fee_rate = fee_estimation_data["hourFee"]
+
     if request.method == "POST":
         action = request.form.get("action")
         rbf_tx_id = request.form.get("rbf_tx_id", "")
@@ -627,7 +634,6 @@ def send_new(wallet_alias):
             if fee_options:
                 if "dynamic" in fee_options:
                     fee_rate = float(request.form.get("fee_rate_dynamic"))
-                    fee_rate_blocks = int(request.form.get("fee_rate_blocks"))
                 else:
                     if request.form.get("fee_rate"):
                         fee_rate = float(request.form.get("fee_rate"))
@@ -749,10 +755,11 @@ def send_new(wallet_alias):
         ui_option != "ui"
         or subtract
         or fee_options != "dynamic"
-        or fee_rate_blocks != 6
+        or fee_estimation_data["hourFee"] != fee_rate
         or not rbf
         or selected_coins
     )
+
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
@@ -763,12 +770,13 @@ def send_new(wallet_alias):
         subtract_from=subtract_from,
         fee_options=fee_options,
         fee_rate=fee_rate,
-        fee_rate_blocks=fee_rate_blocks,
         rbf=rbf,
         selected_coins=selected_coins,
         show_advanced_settings=show_advanced_settings,
         rbf_utxo=rbf_utxo,
         rbf_tx_id=rbf_tx_id,
+        fee_estimation=fee_rate,
+        fee_estimation_data=fee_estimation_data,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
@@ -907,7 +915,13 @@ def settings(wallet_alias):
         elif action == "rescanutxo":
             explorer = None
             if "use_explorer" in request.form:
-                explorer = request.form["explorer_url"]
+                if request.form["explorer"] == "CUSTOM":
+                    explorer = request.form["custom_explorer"]
+                else:
+                    explorer = app.config["EXPLORERS_LIST"][request.form["explorer"]][
+                        "url"
+                    ]
+
             wallet.rescanutxo(
                 explorer, app.specter.requests_session(explorer), app.specter.only_tor
             )
@@ -941,25 +955,15 @@ def settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-        return render_template(
-            "wallet/settings/wallet_settings.jinja",
-            purposes=purposes,
-            wallet_alias=wallet_alias,
-            wallet=wallet,
-            specter=app.specter,
-            rand=rand,
-            error=error,
-        )
-    else:
-        return render_template(
-            "wallet/settings/wallet_settings.jinja",
-            purposes=purposes,
-            wallet_alias=wallet_alias,
-            wallet=wallet,
-            specter=app.specter,
-            rand=rand,
-            error=error,
-        )
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        error=error,
+    )
 
 
 ################## Wallet util endpoints #######################
