@@ -102,9 +102,6 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
 
 def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
     try:
-        # Ensure the bitcoind datadir exists
-        Path(specter.config["rpc"]["datadir"]).mkdir(parents=True, exist_ok=True)
-
         if quicksync:
             prunednode_file = os.path.join(
                 os.path.join(specter.data_folder, "snapshot-prunednode.zip")
