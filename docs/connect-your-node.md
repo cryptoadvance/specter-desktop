@@ -7,7 +7,8 @@ Specter is a very flexible tool and can be used in a lot of different setups. Th
 If you want to use Specter with a node on your Windows machine:
 * Ministry of Nodes [explains](https://www.youtube.com/watch?v=4koKF2MDXtk)
 
-The installation on the Raspiblitz is quite simple as there is an installation option in the ssh-menu. Pretty straightforward, however, we're not aware of any video walk-through for that. Ping us or make a PR if you're aware of anything for that.
+The installation on the Raspiblitz is quite simple as there is an installation option in the ssh-menu. 
+There is also a walk-through on [how to connect the Specter Desktop App with the RaspiBlitz](https://d11n.net/connect-specter-desktor-with-raspiblitz.html).
 
 # General thoughts
 But let's approach the connection issue more generically. We assume here, that you want to setup everything in your local network. Every computer needs an IP address in your network. So either, Bitcoin Core is running on the same computer as Specter or on two different ones. But both should have private IP addresses - e.g. (most popular) 192.198.X.Y.
