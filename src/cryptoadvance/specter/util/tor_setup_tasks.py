@@ -1,4 +1,4 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
+import os, time, requests, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
@@ -19,6 +19,11 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 def setup_tor_thread(specter=None):
     try:
+        # There is no Tor Browser binary for Raspberry Pi 4 (armv7l)
+        if platform.system() == "Linux" and "armv" in platform.machine():
+            raise Exception(
+                "Linux ARM devices (e.g. Raspberry Pi) must manually install Tor"
+            )
         specter.config["torbrowser_setup"]["stage"] = "Starting Tor setup process..."
         specter._save()
         TOR_OS_SUFFIX = {
@@ -113,8 +118,7 @@ def setup_tor_thread(specter=None):
                             os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
         os.remove(packed_name)
         if "torrc_password" not in specter.config:
-            specter.config["torrc_password"] = secrets.token_urlsafe(16)
-            specter._save()
+            specter.generate_torrc_password()
         with open(os.path.join(specter.data_folder, "torrc"), "w") as file:
             file.write("ControlPort 9051")
             file.write(
