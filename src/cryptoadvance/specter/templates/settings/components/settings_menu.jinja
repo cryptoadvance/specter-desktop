@@ -13,7 +13,7 @@
 		{% endif %}
 		{{ settings_menu_item('general', 'General', active_menuitem, isLeft=(not current_user.is_admin)) }}
 		{{ settings_menu_item('auth', 'Authentication', active_menuitem, isRight=false) }}
-		{{ settings_menu_item('hwi', 'HWI Bridge', active_menuitem, isRight=(not current_user.is_admin)) }}
+		{{ settings_menu_item('hwi', 'USB Devices', active_menuitem, isRight=(not current_user.is_admin)) }}
 		{% if current_user.is_admin %}
 			{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
 		{% endif %}

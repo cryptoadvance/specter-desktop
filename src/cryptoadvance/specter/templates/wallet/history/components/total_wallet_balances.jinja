@@ -25,7 +25,7 @@
         <span id="wallet_rescan_data" style="display: contents;">
             <h2>Rescanning blockchain: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"] if specter.utxorescanwallet == wallet.alias else wallet.rescan_progress * 100) }}</span>%</h2>
             <span class="warning">
-                &#9432;<br>
+                <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
                 Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
             </span>
         </span>

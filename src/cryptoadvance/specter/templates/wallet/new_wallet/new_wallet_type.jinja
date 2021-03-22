@@ -13,7 +13,7 @@
 						After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.
 						<br>
 						{% if specter.info["pruned"] %}
-							<span class="warning" style="display: inline-block;">&#9432;<br>
+							<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
 								Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
 							</span>
 						{% endif %}
@@ -43,7 +43,7 @@
 					Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.
 					<br>
 					{% if specter.info["pruned"] %}
-						<span class="warning" style="display: inline-block;">&#9432;<br>
+						<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
 							Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
 						</span>
 					{% endif %}
