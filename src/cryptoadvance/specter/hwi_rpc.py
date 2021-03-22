@@ -245,7 +245,9 @@ class HWIBridge(JSONRPC):
             else:
                 client.chain = Chain.argparse(chain)
 
-            network = networks.NETWORKS["test" if str(client.chain) else "main"]
+            network = networks.NETWORKS[
+                "test" if client.chain != Chain.MAIN else "main"
+            ]
 
             master_fpr = client.get_master_fingerprint().hex()
 
@@ -264,7 +266,7 @@ class HWIBridge(JSONRPC):
     @locked(hwilock)
     def display_address(
         self,
-        descriptor="",
+        descriptor={},
         device_type=None,
         path=None,
         fingerprint=None,
@@ -283,13 +285,9 @@ class HWIBridge(JSONRPC):
         ) as client:
             if descriptor.get("xpubs_descriptor", None):
                 try:
-                    # fix the sortedmulti bug in HWI descriptor parsing
-                    desc = AddChecksum(
-                        descriptor["xpubs_descriptor"]
-                        .replace("sortedmulti", "multi")
-                        .split("#")[0]
+                    status = hwi_commands.displayaddress(
+                        client, desc=descriptor["xpubs_descriptor"]
                     )
-                    status = hwi_commands.displayaddress(client, desc=desc)
                 except Exception:
                     status = hwi_commands.displayaddress(
                         client, desc=descriptor.get("descriptor", "")
