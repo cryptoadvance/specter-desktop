@@ -82,18 +82,28 @@ class BitcoindController:
     def __init__(
         self, rpcport=18443, network="regtest", rpcuser="bitcoin", rpcpassword="secret"
     ):
-        self.rpcconn = Btcd_conn(
-            rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
-        )
-        self.network = network
+        try:
+            self.rpcconn = Btcd_conn(
+                rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
+            )
+            self.network = network
+        except Exception as e:
+            logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
+            raise e
 
     def start_bitcoind(
-        self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit=False,
+        cleanup_hard=False,
+        datadir=None,
+        extra_args=[],
+        timeout=30,
     ):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
         developing locally against a different regtest-instance
-        if bitcoind_path == docker, it'll run bitcoind via docker
+        if bitcoind_path == docker, it'll run bitcoind via docker.
+        Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
             return self.check_existing()
@@ -106,7 +116,7 @@ class BitcoindController:
             extra_args=extra_args,
         )
 
-        self.wait_for_bitcoind(self.rpcconn)
+        self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
         if self.network == "regtest":
             self.mine(block_count=100)
         return self.rpcconn
@@ -174,15 +184,15 @@ class BitcoindController:
             return False
 
     @staticmethod
-    def wait_for_bitcoind(rpcconn):
-        """ tries to reach the bitcoind via rpc. Will timeout after 30 seconds """
+    def wait_for_bitcoind(rpcconn, timeout=30):
+        """ tries to reach the bitcoind via rpc. Timeout after n seconds """
         i = 0
         while True:
             if BitcoindController.check_bitcoind(rpcconn):
                 break
             time.sleep(0.5)
             i = i + 1
-            if i > 60:
+            if i > (2 * timeout):
                 raise Exception(
                     "Timeout while trying to reach bitcoind at rpcport {} !".format(
                         rpcconn
@@ -240,11 +250,20 @@ class BitcoindPlainController(BitcoindController):
         rpcuser="bitcoin",
         rpcpassword="secret",
     ):
-        super().__init__(
-            rpcport=rpcport, network=network, rpcuser=rpcuser, rpcpassword=rpcpassword
-        )
-        self.bitcoind_path = bitcoind_path
-        self.rpcconn.ipaddress = "localhost"
+        try:
+            super().__init__(
+                rpcport=rpcport,
+                network=network,
+                rpcuser=rpcuser,
+                rpcpassword=rpcpassword,
+            )
+            self.bitcoind_path = bitcoind_path
+            self.rpcconn.ipaddress = "localhost"
+        except Exception as e:
+            logger.exception(
+                f"Failed to instantiate BitcoindPlainController. Error: {e}"
+            )
+            raise e
 
     def _start_bitcoind(
         self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
