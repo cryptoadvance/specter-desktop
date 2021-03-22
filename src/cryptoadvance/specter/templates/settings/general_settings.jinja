@@ -71,7 +71,12 @@
 			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
 			<br><br>
 			{% if current_user.is_admin %}
-			Log Level:<br>
+			Log Level:
+			<tool-tip title="Logging" style="float: right;">
+				Specter-Desktop created a Logfile in <code>{{ config.SPECTER_LOGFILE}}</code>. The Debug-Level will
+				create a lot of data, so make sure to avoid that if you don't have a reason.
+			</tool-tip>
+			<br>
 			<select name="loglevel">
 				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
 				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
@@ -81,9 +86,7 @@
 			{% endif %}
 
 			Validate Merkle Proofs:
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-			    {% include "includes/merkletooltip.html" %}
-			</div>
+			{% include "includes/merkletooltip.html" %}
 			<div class="note">
 			    Cannot enable when using a pruned bitcoin node
 			</div>

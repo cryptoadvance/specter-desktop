@@ -38,6 +38,13 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    # Logging
+    # SPECTER_LOGFILE will get created dynamically in server.py
+    # using:
+    SPECTER_LOGFORMAT = os.getenv(
+        "SPECTER_LOGFORMAT", "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
+
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
