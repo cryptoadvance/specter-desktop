@@ -4,6 +4,11 @@
 
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
+    - [Install dependencies:](#install-dependencies)
+      - [Ubuntu/Debian](#ubuntudebian)
+      - [macOS](#macos)
+      - [Windows](#windows)
+    - [Set up virtualenv](#set-up-virtualenv)
   - [How to run the tests](#how-to-run-the-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
