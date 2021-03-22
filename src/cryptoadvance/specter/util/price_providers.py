@@ -3,6 +3,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+OZ_TO_G = 28.3495231
+
 
 def update_price(specter, current_user):
     success, price, symbol = get_price_at(specter, current_user, timestamp="now")
@@ -24,15 +26,66 @@ def get_price_at(specter, current_user, timestamp="now"):
             requests_session = specter.requests_session(
                 force_tor=("spotbit" in specter.price_provider)
             )
-            if specter.price_provider.startswith("bitstamp"):
-                currency = "usd"
+            currency = "usd"
+            currency_symbol = "$"
+            weight_unit_convertible = False
+            if specter.price_provider.endswith("_eur"):
+                currency = "eur"
+                currency_symbol = "€"
+            elif specter.price_provider.endswith("_gbp"):
+                currency = "gbp"
+                currency_symbol = "£"
+            elif specter.price_provider.endswith("_chf"):
+                currency = "chf"
+                currency_symbol = " Fr."
+            elif specter.price_provider.endswith("_aud"):
+                currency = "aud"
                 currency_symbol = "$"
-                if specter.price_provider.endswith("_eur"):
-                    currency = "eur"
-                    currency_symbol = "€"
-                elif specter.price_provider.endswith("_gbp"):
-                    currency = "gbp"
-                    currency_symbol = "£"
+            elif specter.price_provider.endswith("_cad"):
+                currency = "cad"
+                currency_symbol = "$"
+            elif specter.price_provider.endswith("_nzd"):
+                currency = "nzd"
+                currency_symbol = "$"
+            elif specter.price_provider.endswith("_hkd"):
+                currency = "hkd"
+                currency_symbol = "$"
+            elif specter.price_provider.endswith("_jpy"):
+                currency = "jpy"
+                currency_symbol = "¥"
+            elif specter.price_provider.endswith("_rub"):
+                currency = "rub"
+                currency_symbol = "₽"
+            elif specter.price_provider.endswith("_ils"):
+                currency = "ils"
+                currency_symbol = "₪"
+            elif specter.price_provider.endswith("_jod"):
+                currency = "jod"
+                currency_symbol = "د.ا"
+            elif specter.price_provider.endswith("_twd"):
+                currency = "twd"
+                currency_symbol = "$"
+            elif specter.price_provider.endswith("_brl"):
+                currency = "brl"
+                currency_symbol = " BRL"
+            elif specter.price_provider.endswith("_xau"):
+                currency = "xau"
+                currency_symbol = " oz. "
+                weight_unit_convertible = True
+            elif specter.price_provider.endswith("_xag"):
+                currency = "xag"
+                currency_symbol = " oz. "
+                weight_unit_convertible = True
+            elif specter.price_provider.endswith("_xpt"):
+                currency = "xpt"
+                currency_symbol = " oz. "
+                weight_unit_convertible = True
+            elif specter.price_provider.endswith("_xpd"):
+                currency = "xpd"
+                currency_symbol = " oz. "
+                weight_unit_convertible = True
+
+            if specter.price_provider.startswith("bitstamp"):
                 if timestamp == "now":
                     price = requests_session.get(
                         "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency)
@@ -43,33 +96,15 @@ def get_price_at(specter, current_user, timestamp="now"):
                             currency, timestamp
                         )
                     ).json()["data"]["ohlc"][0]["close"]
-                return (True, price, currency_symbol)
-            if specter.price_provider == "coindesk_eur":
+            elif specter.price_provider.startswith("coindesk"):
                 if timestamp == "now":
                     price = requests_session.get(
-                        "https://api.coindesk.com/v1/bpi/currentprice/EUR.json"
-                    ).json()["bpi"]["EUR"]["rate_float"]
+                        f"https://api.coindesk.com/v1/bpi/currentprice/{currency.upper()}.json"
+                    ).json()["bpi"][currency.upper()]["rate_float"]
                 else:
                     return False, 0, ""
-                return (True, price, "€")
-            if specter.price_provider == "coindesk_gbp":
-                if timestamp == "now":
-                    price = requests_session.get(
-                        "https://api.coindesk.com/v1/bpi/currentprice/GBP.json"
-                    ).json()["bpi"]["GBP"]["rate_float"]
-                else:
-                    return False, 0, ""
-                return (True, price, "£")
-            if specter.price_provider.startswith("spotbit"):
-                currency = "usd"
-                currency_symbol = "$"
-                if specter.price_provider.endswith("_eur"):
-                    currency = "eur"
-                    currency_symbol = "€"
-                elif specter.price_provider.endswith("_gbp"):
-                    currency = "gbp"
-                    currency_symbol = "£"
-                exchange = specter.price_provider.split("spotbit_")[1]
+            elif specter.price_provider.startswith("spotbit"):
+                exchange = specter.price_provider.split("spotbit_")[1].split("_")[0]
                 if timestamp == "now":
                     price = requests_session.get(
                         "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
@@ -85,7 +120,15 @@ def get_price_at(specter, current_user, timestamp="now"):
                             (timestamp + 121) * 1000,
                         )
                     ).json()["data"][0][7]
-                return (True, price, currency_symbol)
+            if weight_unit_convertible:
+                if specter.weight_unit == "gram":
+                    price = price * OZ_TO_G
+                    currency_symbol = " g."
+                elif specter.weight_unit == "kg":
+                    price = price * OZ_TO_G / 1000
+                    currency_symbol = " kg"
+
+            return (True, price, currency_symbol)
     except Exception as e:
         logger.warning(
             "Failed to get price data from: {}. Exception: {}".format(
