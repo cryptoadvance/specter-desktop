@@ -170,13 +170,8 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         specter._save()
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
-        timeout = 30
-        if platform.system() == "Linux" and "armv" in platform.machine():
-            # Raspberry Pi will need more time to spin up bitcoind
-            timeout = 60
         specter.bitcoind.start_bitcoind(
-            datadir=os.path.expanduser(specter.config["rpc"]["datadir"]),
-            timeout=timeout,
+            datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
         )
         specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
         specter.update_use_external_node(False)
