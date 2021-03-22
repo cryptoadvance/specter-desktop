@@ -97,7 +97,7 @@ class BitcoindController:
         cleanup_hard=False,
         datadir=None,
         extra_args=[],
-        timeout=30,
+        timeout=60,
     ):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
@@ -184,7 +184,7 @@ class BitcoindController:
             return False
 
     @staticmethod
-    def wait_for_bitcoind(rpcconn, timeout=30):
+    def wait_for_bitcoind(rpcconn, timeout=60):
         """ tries to reach the bitcoind via rpc. Timeout after n seconds """
         i = 0
         while True:
