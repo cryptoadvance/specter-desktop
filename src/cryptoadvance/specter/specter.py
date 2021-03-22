@@ -149,6 +149,7 @@ class Specter:
             "alt_rate": 1,
             "alt_symbol": "BTC",
             "price_provider": "",
+            "weight_unit": "oz",
             "validate_merkle_proofs": False,
             "fee_estimator": "mempool",
             "fee_estimator_custom_url": "",
@@ -718,6 +719,13 @@ class Specter:
         else:
             user.set_price_provider(price_provider)
 
+    def update_weight_unit(self, weight_unit, user):
+        if user.is_admin:
+            self.config["weight_unit"] = weight_unit
+            self._save()
+        else:
+            user.set_weight_unit(weight_unit)
+
     def update_alt_rate(self, alt_rate, user):
         alt_rate = round(float(alt_rate), 2)
         if user.is_admin:
@@ -869,6 +877,10 @@ class Specter:
     @property
     def price_provider(self):
         return self.user_config.get("price_provider", False)
+
+    @property
+    def weight_unit(self):
+        return self.user_config.get("weight_unit", "oz")
 
     @property
     def alt_rate(self):
