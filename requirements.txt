@@ -153,9 +153,9 @@ itsdangerous==1.1.0 \
     # via
     #   flask
     #   flask-wtf
-jinja2==2.11.2 \
-    --hash=sha256:89aab215427ef59c34ad58735269eb58b1a5808103067f7bb9d5836c651b3bb0 \
-    --hash=sha256:f0a4641d3cf955324a89c04f3d94663aa4d638abe8f733ecd3582848e1c37035
+jinja2==2.11.3 \
+    --hash=sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419 \
+    --hash=sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6
     # via flask
 libusb1==1.8 \
     --hash=sha256:240f65ac70ba3fab77749ec84a412e4e89624804cb80d6c9d394eef5af8878d6

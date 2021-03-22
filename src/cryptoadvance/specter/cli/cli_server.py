@@ -142,7 +142,7 @@ def server(
         app.config["SPECTER_LOGFILE"] = os.path.join(
             app.specter.data_folder, "specter.log"
         )
-        fh = logging.FileHandler(app.specter.data_folder)
+        fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
         formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)

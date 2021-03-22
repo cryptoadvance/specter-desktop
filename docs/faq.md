@@ -4,6 +4,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Frequently Asked Questions](#frequently-asked-questions)
 - [ABOUT THE PROJECT](#about-the-project)
   - [*Why the name Specter?*](#why-the-name-specter)
 - [GENERAL QUESTIONS](#general-questions)
@@ -22,6 +23,7 @@
   - [*Does Specter have coin control?*](#does-specter-have-coin-control)
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
+  - [*How do i verify the signatures of the binaries?*](#how-do-i-verify-the-signatures-of-the-binaries)
   - [*Where do i find the logs?*](#where-do-i-find-the-logs)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
   - [Devices? Wallets? What is the difference?](#devices-wallets-what-is-the-difference)
@@ -182,6 +184,10 @@ Yes, Specter supports coin control. Go to "Send". Open the "Advanced" features -
 After following [these steps](https://github.com/cryptoadvance/specter-desktop#how-to-run) 
 You should be able to view it in a browser at: 127.0.0.1:25441/
 If not, see [Troubleshoot](https://github.com/cryptoadvance/specter-desktop/new/master/docs#troubleshoot)
+
+## *How do i verify the signatures of the binaries?*
+
+There is a great tutorial [here](https://bitcoiner.guide/verifysoftware/) explaining it for specter-desktop. A more generic video from kryptokids is [here](https://www.youtube.com/watch?v=S257nUqs13A).
 
 ## *Where do i find the logs?*
 
