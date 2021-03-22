@@ -22,37 +22,11 @@ class ColdCard(SDCardDevice):
     def __init__(self, name, alias, keys, fullpath, manager):
         SDCardDevice.__init__(self, name, alias, keys, fullpath, manager)
 
-    def replace_derivations(self, wallet, psbts):
-        # cc wants everyone to use the same derivation
-        fgp = None
-        derivation = None
-        for k in wallet.keys:
-            if k in self.keys and k.fingerprint and k.derivation:
-                fgp = k.fingerprint
-                derivation = k.derivation
-                break
-        if not fgp:
-            return
-        path = bip32.parse_path(derivation)
-        for kk in list(psbts.keys()):
-            psbt = PSBT.parse(a2b_base64(psbts[kk]))
-            for xpub in psbt.xpubs:
-                psbt.xpubs[xpub].derivation = list(path)
-            # remove partial signatures from device psbt
-            for scope in psbt.inputs:
-                scope.partial_sigs = OrderedDict()
-            for scope in psbt.inputs + psbt.outputs:
-                for k in list(scope.bip32_derivations.keys()):
-                    original = scope.bip32_derivations[k].derivation
-                    scope.bip32_derivations[k].derivation = path + original[-2:]
-            psbts[kk] = b2a_base64(psbt.serialize()).decode().strip()
-
     def create_psbts(self, base64_psbt, wallet):
         psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
         psbts["sdcard"] = wallet.fill_psbt(
             psbts["sdcard"], non_witness=False, xpubs=True
         )
-        self.replace_derivations(wallet, psbts)
         return psbts
 
     def export_wallet(self, wallet):

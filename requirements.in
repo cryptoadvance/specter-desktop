@@ -5,8 +5,7 @@ daemonize==2.5.0
 Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-Login==0.5.0
-hwi==1.2.0
-bitbox02==4.1.0
+hwi==2.0.0
 importlib_metadata==2.0.0
 pyserial==3.4
 python-dotenv==0.13.0

@@ -152,13 +152,13 @@
         return result;
     }
 
-    async function getXpub(device, derivation="", passphrase=""){
+    async function getXpub(device, derivation="", passphrase="", chain=""){
         // detect device
         showHWIProgress("Extracting public key...<br><span style='font-size: 0.8em;'>Derivation: " + derivation + "</span>", 
             `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
         let result = [];
         try {
-            result = await hwi.getXpub(device, derivation, passphrase);
+            result = await hwi.getXpub(device, derivation, passphrase, chain);
         } catch (error) {
             handleHWIError(error);
             return null;

@@ -2,7 +2,7 @@ import hashlib
 
 # from ..device import Device
 from .coldcard import ColdCard
-from hwilib.serializations import PSBT
+from hwilib.psbt import PSBT
 from binascii import a2b_base64
 from ..util import bcur
 from ..util.base43 import b43_encode
