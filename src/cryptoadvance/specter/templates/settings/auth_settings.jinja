@@ -2,7 +2,7 @@
 {% block main %}
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<h1 id="title" class="settings-title">Authentication settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}
 		<div class="card" style="margin: 20px auto;">

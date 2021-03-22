@@ -229,7 +229,7 @@
 						Block explorer URL:
 						{% include "components/explorer_select.jinja" %}
 						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							&#9432;<br>Careful with block explorers!<br>
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Careful with block explorers!<br>
 							This may have privacy implication!<br>
 							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
 							"They" will know what transactions you are interested in.

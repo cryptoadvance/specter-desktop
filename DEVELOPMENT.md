@@ -4,6 +4,11 @@
 
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
+    - [Install dependencies:](#install-dependencies)
+      - [Ubuntu/Debian](#ubuntudebian)
+      - [macOS](#macos)
+      - [Windows](#windows)
+    - [Set up virtualenv](#set-up-virtualenv)
   - [How to run the tests](#how-to-run-the-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
@@ -32,20 +37,54 @@
 
 ## How to run the Application
 
-Install dependencies:
+### Install dependencies:
 
-* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
-* macOS: `brew install libusb`
+#### Ubuntu/Debian
+`sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
 
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv`, .e.g `virtualenv --python3.8 .env`.
+#### macOS
+`brew install libusb`
+
+#### Windows
+* Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
+
+    _Do NOT install python from the Microsoft Store! It runs in a different execution environment that creates enormous headaches!_
+
+    Confirm your installation in Windows PowerShell:
+    ```
+    python --version
+    ```
+
+* Must have [Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/) installed. Be sure to select Visual C++ during installation.
+
+* Download [libusb-1.0.dll](https://libusb.info). Use [7-Zip](https://7-zip.org) to decompress the .7z file. Copy `libusb-1.0.dll` from `VS2019/MS64/dll` to your `/Windows/System32` directory.
+
+* Configure Windows PowerShell to run scripts. See: [About Execution Policies](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1). In a PowerShell window run:
+    ```
+    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+    ```
+
+
+### Set up virtualenv
+Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
+pip3 install virtualenv
 virtualenv --python=python3 .env 
 source .env/bin/activate
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e .
+```
+
+_note: invoking commands in the Windows PowerShell is slightly different:_
+```
+# use 'python' instead of 'python3'
+virtualenv --python=python .env
+
+# activating virtualenv
+.env\Scripts\activate
 ```
 
 Run the server:
@@ -54,6 +93,7 @@ Run the server:
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
+
 
 ## How to run the tests
 _TODO: Need more thorough tests!_

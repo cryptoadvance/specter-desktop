@@ -78,7 +78,22 @@
 					<br><br>
 					{% else %}
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
-					<table>
+					{# {% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %} #}
+						<div style="margin: auto; display: block;">
+							<div class="card" style="margin: auto;padding: 5px 10px 15px; width: 90%;">
+								<div class="row">
+									<img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/>
+									<p style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">Using Specter from a remote machine?</p>
+								</div>
+								<p style="margin-left: 30px; margin-top: -10px; margin-right: 20px; text-align: left;">If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB.</p>
+								<a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
+									<h4>Update your settings</h4>
+								</a>
+							</div>
+							<br>
+						</div>
+					{# {% endif %} #}
+					<table style="width: 90%; margin: auto;">
 						<tbody>
 							<tr>
 								<td>

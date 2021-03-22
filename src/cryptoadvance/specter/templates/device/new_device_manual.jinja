@@ -18,7 +18,7 @@
 				</div>
 				<br>
 				{% include "device/components/device_type.jinja" %}
-				<p class="warning hidden" id="type_reminder">&#9432;<br>Please make sure to choose the device type before continuing</p>
+				<p class="warning hidden" id="type_reminder"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Please make sure to choose the device type before continuing</p>
 				<div id="toggle_passphrase_container" class="hidden">
 					<p>Device Management:</p>
 					<div class="row">

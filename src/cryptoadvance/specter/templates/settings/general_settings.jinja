@@ -2,7 +2,7 @@
 {% block main %}
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<h1 id="title" class="settings-title">General settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
@@ -57,7 +57,7 @@
 			Block explorer URL ({{ specter.chain }}):<br>
 			{% include "components/explorer_select.jinja" %}
 			<div class="warning">
-				&#9432;<br>
+				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
 				Specter does not use the block explorer to get any data whatsoever.
 				This setting is only to allow opening transactions and addresses in a block explorer directly from Specter.
 				All data Specter uses comes directly from your own connected full node.

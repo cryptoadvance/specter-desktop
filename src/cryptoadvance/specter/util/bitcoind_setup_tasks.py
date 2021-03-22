@@ -16,6 +16,9 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             "Linux": "x86_64-linux-gnu.tar.gz",
             "Darwin": "osx64.tar.gz",
         }
+        # ARM Linux devices (e.g. Raspberry Pi 4 == armv7l) need ARM binary
+        if platform.system() == "Linux" and "armv" in platform.machine():
+            BITCOIND_OS_SUFFIX["Linux"] = "arm-linux-gnueabihf.tar.gz"
         bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}"
         packed_name = os.path.join(
             specter.data_folder,
@@ -165,15 +168,15 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
         specter.config["bitcoind_setup"]["stage"] = "Starting up Bitcoin Core..."
         specter._save()
-        specter.bitcoind = BitcoindPlainController(
-            bitcoind_path=specter.bitcoind_path,
-            rpcport=8332,
-            network="mainnet",
-            rpcuser=specter.config["rpc"]["user"],
-            rpcpassword=specter.config["rpc"]["password"],
-        )
+
+        # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
+        timeout = 30
+        if platform.system() == "Linux" and "armv" in platform.machine():
+            # Raspberry Pi will need more time to spin up bitcoind
+            timeout = 60
         specter.bitcoind.start_bitcoind(
-            datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+            datadir=os.path.expanduser(specter.config["rpc"]["datadir"]),
+            timeout=timeout,
         )
         specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
         specter.update_use_external_node(False)
@@ -191,7 +194,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             specter._save()
         specter.check()
     except Exception as e:
-        logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
+        logger.exception(f"Failed to setup Bitcoin Core. Error: {e}")
         specter.config["bitcoind_setup"]["error"] = str(e)
         specter._save()
     finally:
