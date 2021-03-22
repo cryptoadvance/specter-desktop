@@ -135,6 +135,15 @@ def server(
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
 
+    # again logging: Creating a logfile in SPECTER_DATA_FOLDER (which needs to exist)
+    app.config["SPECTER_LOGFILE"] = os.path.join(
+        app.config["SPECTER_DATA_FOLDER"], "specter.log"
+    )
+    fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+    formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
+    fh.setFormatter(formatter)
+    logging.getLogger().addHandler(fh)
+
     # This stuff here is deprecated
     # When we remove it, we should imho keep the pid_file thing which can be very useful!
     # we will store our daemon PID here

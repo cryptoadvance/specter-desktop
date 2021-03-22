@@ -71,7 +71,12 @@
 			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
 			<br><br>
 			{% if current_user.is_admin %}
-			Log Level:<br>
+			Log Level:
+			<tool-tip title="Logging" style="float: right;">
+				Specter-Desktop created a Logfile in <code>{{ config.SPECTER_LOGFILE}}</code>. The Debug-Level will
+				create a lot of data, so make sure to avoid that if you don't have a reason.
+			</tool-tip>
+			<br>
 			<select name="loglevel">
 				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
 				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
@@ -81,9 +86,11 @@
 			{% endif %}
 
 			Validate Merkle Proofs:
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-			    {% include "includes/merkletooltip.html" %}
-			</div>
+			<tool-tip title="Merkle Proof Validation" style="float: right;">
+				Specter-Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.<br><br>
+				However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain!
+				If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well.
+			</tool-tip>
 			<div class="note">
 			    Cannot enable when using a pruned bitcoin node
 			</div>
