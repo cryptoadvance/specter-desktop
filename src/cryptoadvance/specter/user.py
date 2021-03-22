@@ -137,6 +137,10 @@ class User(UserMixin):
         self.config["price_provider"] = price_provider
         self.save_info()
 
+    def set_weight_unit(self, weight_unit):
+        self.config["weight_unit"] = weight_unit
+        self.save_info()
+
     def set_alt_rate(self, alt_rate):
         self.config["alt_rate"] = alt_rate
         self.save_info()
