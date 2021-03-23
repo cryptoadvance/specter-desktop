@@ -4,13 +4,13 @@ from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes
-from embit import base58
+from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
 from .persistence import write_json_file, delete_file
 from hwilib.tx import CTransaction
-from hwilib.psbt import PSBT
+from hwilib.psbt import PSBT, KeyOriginInfo
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
@@ -1512,17 +1512,18 @@ class Wallet:
             # for multisig add xpub fields
             if len(self.keys) > 1:
                 for k in self.keys:
-                    key = b"\x01" + base58.decode_check(k.xpub)
+                    key = base58.decode_check(k.xpub)
                     if k.fingerprint != "":
                         fingerprint = bytes.fromhex(k.fingerprint)
                     else:
                         fingerprint = get_xpub_fingerprint(k.xpub)
                     if k.derivation != "":
-                        der = der_to_bytes(k.derivation)
+                        der = bip32.parse_path(k.derivation)
                     else:
-                        der = b""
-                    value = fingerprint + der
-                    psbt.unknown[key] = value
+                        der = []
+                    psbt.xpub[key] = KeyOriginInfo(fingerprint, der)
+        else:
+            psbt.xpub = {}
         return psbt.serialize()
 
     def get_signed_devices(self, decodedpsbt):
