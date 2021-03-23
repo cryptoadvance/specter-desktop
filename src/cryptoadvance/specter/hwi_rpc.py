@@ -233,7 +233,7 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            if not chain:
+            if not chain or chain == "None":
                 try:
                     client.chain = (
                         Chain.TEST
