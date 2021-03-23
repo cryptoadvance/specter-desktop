@@ -7,6 +7,7 @@
 - Bugfix: auto-escaping of wallet.account_map json in pdf backup #976 (djpnewton)
 - Bugfix: typo #1008 (Jan Rothen)
 - Bugfix: HWI2 integration issues #1045 (benk10)
+- Bugfix: misc Fixes for pre-release, mainly proper tor shutdown (#1048) (benk10)
 - Chore: Bump jinja2 from 2.11.2 to 2.11.3 #1033 (dependabot[bot])
 - Chore: Some more Cypress tests #970 (benk10)
 - Chore: Re-applying config change to pass Black formatting #1003 (kdmukai)
