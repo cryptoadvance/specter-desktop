@@ -50,7 +50,9 @@ class Specter(SDCardDevice):
             inp.partial_sigs = {}
         psbts["qrcode"] = b2a_base64(qr_psbt.serialize()).strip().decode()
         # we can add xpubs to SD card, but non_witness can be too large for MCU
-        psbts["sdcard"] = wallet.fill_psbt(psbts["qrcode"], non_witness=False, xpubs=True)
+        psbts["sdcard"] = wallet.fill_psbt(
+            psbts["qrcode"], non_witness=False, xpubs=True
+        )
         return psbts
 
     def export_wallet(self, wallet):
