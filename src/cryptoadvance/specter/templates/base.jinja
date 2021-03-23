@@ -78,7 +78,7 @@
 					<br><br>
 					{% else %}
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
-					{# {% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %} #}
+					{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
 						<div style="margin: auto; display: block;">
 							<div class="card" style="margin: auto;padding: 5px 10px 15px; width: 90%;">
 								<div class="row">
@@ -92,7 +92,7 @@
 							</div>
 							<br>
 						</div>
-					{# {% endif %} #}
+					{% endif %}
 					<table style="width: 90%; margin: auto;">
 						<tbody>
 							<tr>
