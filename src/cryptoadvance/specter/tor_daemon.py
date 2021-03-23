@@ -3,6 +3,7 @@ import subprocess
 import platform
 import os
 import signal
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,11 @@ class TorDaemonController:
             "Running tor-daemon process with pid {}".format(self.tor_daemon_proc.pid)
         )
 
+        # This is for CTRL-C --> SIGINT
+        signal.signal(signal.SIGINT, self.stop_tor_daemon)
+        # This is for kill $pid --> SIGTERM
+        signal.signal(signal.SIGTERM, self.stop_tor_daemon)
+
     def get_hashed_password(self, password):
         hashed_pw = subprocess.check_output(
             f'{"exec " if platform.system() != "Windows" else ""}"{self.tor_daemon_path}" --hash-password {password}',
@@ -44,8 +50,16 @@ class TorDaemonController:
     def is_running(self):
         return self.tor_daemon_proc and self.tor_daemon_proc.poll() is None
 
-    def stop_tor_daemon(self):
+    def stop_tor_daemon(self, signum=0, frame=0):
+        timeout = 50  # in secs
         if self.tor_daemon_proc:
             if platform.system() == "Windows":
                 subprocess.run("Taskkill /IM tor.exe /F")
             self.tor_daemon_proc.terminate()
+            procs = psutil.Process().children()
+            for p in procs:
+                p.terminate()
+            _, alive = psutil.wait_procs(procs, timeout=timeout)
+            for p in alive:
+                logger.info("tor daemon did not terminated in time, killing!")
+                p.kill()
