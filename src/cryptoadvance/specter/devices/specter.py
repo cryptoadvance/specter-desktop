@@ -1,5 +1,5 @@
 import hashlib
-from .hwi_device import HWIDevice
+from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
 from embit import bip32
@@ -7,13 +7,13 @@ from embit.psbt import PSBT
 from binascii import a2b_base64, b2a_base64
 
 
-class Specter(HWIDevice):
+class Specter(SDCardDevice):
     device_type = "specter"
     name = "Specter-DIY"
     icon = "specter_icon.svg"
 
     exportable_to_wallet = True
-    sd_card_support = False
+    sd_card_support = True
     qr_code_support = True
     qr_code_support_verify = True
     wallet_export_type = "qr"
@@ -49,6 +49,8 @@ class Specter(HWIDevice):
         for inp in qr_psbt.inputs:
             inp.partial_sigs = {}
         psbts["qrcode"] = b2a_base64(qr_psbt.serialize()).strip().decode()
+        # we can add xpubs to SD card, but non_witness can be too large for MCU
+        psbts["sdcard"] = wallet.fill_psbt(psbts["qrcode"], non_witness=False, xpubs=True)
         return psbts
 
     def export_wallet(self, wallet):
