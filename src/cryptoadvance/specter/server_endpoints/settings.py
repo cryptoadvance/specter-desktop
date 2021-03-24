@@ -413,7 +413,7 @@ def tor():
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
         torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),
-        torbrowser_running=app.specter.is_tor_dameon_running,
+        torbrowser_running=app.specter.is_tor_dameon_running(),
         specter=app.specter,
         current_version=current_version,
         rand=rand,
