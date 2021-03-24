@@ -131,8 +131,14 @@
         <div class="row center">
             <p class="explorer-link" id="step4-helper" onclick="toggleHelper('step4')">Unsure? Click here for more info!</p>
             <a class="explorer-link hidden" id="step4-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
+
         </div>
-        <br><br>
+        <br>
+        {% if specter.only_tor  %}
+        You have activated to only connect via Tor. This will significantly slow down the download-process and is not recommended.
+        <br>
+        {% endif %}
+        <br>
         <div class="row">
             <button type="button" class="btn wizard-btn action" id="setup-bitcoind-dir-button" onclick="setupBitcoindDirectory()">Start Syncing!</button>
         </div>
