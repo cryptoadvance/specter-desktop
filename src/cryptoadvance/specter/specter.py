@@ -226,12 +226,14 @@ class Specter:
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
+            logger.info("Specter exit cleanup: Stopping Tor daemon")
             self._tor_daemon.stop_tor_daemon()
 
         if self._bitcoind:
+            logger.info("Specter exit cleanup: Stopping bitcoind")
             self._bitcoind.stop_bitcoind()
 
-        logger.debug("Closing Specter after cleanup")
+        logger.info("Closing Specter after cleanup")
 
     def check(self, user=None, check_all=False):
         """
