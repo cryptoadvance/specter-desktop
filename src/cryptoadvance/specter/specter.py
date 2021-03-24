@@ -9,6 +9,7 @@ import zipfile
 import platform
 import secrets
 import requests
+import signal
 from io import BytesIO
 from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
@@ -217,6 +218,22 @@ class Specter:
         )
         if self.price_check and self.price_provider:
             self.price_checker.start()
+
+        # This is for CTRL-C --> SIGINT
+        signal.signal(signal.SIGINT, self.cleanup_on_exit)
+        # This is for kill $pid --> SIGTERM
+        signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+
+    def cleanup_on_exit(self, signum=0, frame=0):
+        if self._tor_daemon:
+            logger.info("Specter exit cleanup: Stopping Tor daemon")
+            self._tor_daemon.stop_tor_daemon()
+
+        if self._bitcoind:
+            logger.info("Specter exit cleanup: Stopping bitcoind")
+            self._bitcoind.stop_bitcoind()
+
+        logger.info("Closing Specter after cleanup")
 
     def check(self, user=None, check_all=False):
         """
