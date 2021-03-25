@@ -16,6 +16,7 @@ from mnemonic import Mnemonic
 from ..helpers import is_testnet, generate_mnemonic
 from ..key import Key
 from ..wallet_manager import purposes
+from ..specter_error import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -142,6 +143,7 @@ def new_device():
                         + "?newdevice=true"
                     )
                 except Exception as e:
+                    handle_exception(e)
                     flash(f"Failed to setup hot wallet. Error: {e}", "error")
                     app.specter.device_manager.remove_device(
                         device,
@@ -233,6 +235,7 @@ def new_device_manual():
                         url_for("devices_endpoint.device", device_alias=device.alias)
                     )
                 except Exception as e:
+                    handle_exception(e)
                     flash(f"Failed to setup hot wallet. Error: {e}", "error")
                     app.specter.device_manager.remove_device(
                         device,

@@ -234,6 +234,8 @@ class Specter:
             self._bitcoind.stop_bitcoind()
 
         logger.info("Closing Specter after cleanup")
+
+        # End cleaning process by raising an exception to ensure the process stops after the cleanup is complete
         raise SpecterError("Specter closed")
 
     def check(self, user=None, check_all=False):
