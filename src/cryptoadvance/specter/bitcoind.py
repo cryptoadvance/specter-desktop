@@ -18,6 +18,8 @@ from .rpc import RpcError
 from .rpc import BitcoinRPC
 from .helpers import load_jsons
 from .specter_error import ExtProcTimeoutException
+from urllib3.exceptions import NewConnectionError, MaxRetryError
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +55,13 @@ class Btcd_conn:
         rpc.getblockchaininfo()
         return rpc
 
-    def render_url(self):
+    def render_url(self, password_mask=False):
+        if password_mask == True:
+            password = "xxxxxx"
+        else:
+            password = self.rpcpassword
         return "http://{}:{}@{}:{}/wallet/".format(
-            self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport
+            self.rpcuser, password, self.ipaddress, self.rpcport
         )
 
     def as_data(self):
@@ -171,19 +177,30 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn, print_reason=False):
+    def check_bitcoind(rpcconn, raise_exception=False):
         """ returns true if bitcoind is running on that address/port """
+        if raise_exception:
+            rpcconn.get_rpc()  # that call will also check the connection
+            return True
         try:
             rpcconn.get_rpc()  # that call will also check the connection
             return True
+        except RpcError as e:
+            # E.g. "Loading Index ..." #ToDo: check it here
+            return False
         except ConnectionError as e:
+            return False
+        except MaxRetryError as e:
             return False
         except TypeError as e:
             return False
+        except NewConnectionError as e:
+            return False
         except Exception as e:
-            if print_reason:
-                logger.exception(e)
-                logger.debug(f"could not reach bitcoind - message returned: {e}")
+            # We should avoid this:
+            # If you see it in the logs, catch that new exception above
+            logger.error("Unexpected Exception, THIS SHOULD NOT HAPPEN " + str(type(e)))
+            logger.debug(f"could not reach bitcoind - message returned: {e}")
             return False
 
     @staticmethod
@@ -191,18 +208,21 @@ class BitcoindController:
         """ tries to reach the bitcoind via rpc. Timeout after n seconds """
         i = 0
         while True:
-            if BitcoindController.check_bitcoind(rpcconn, print_reason=(i % 20 == 0)):
+            if BitcoindController.check_bitcoind(rpcconn):
                 break
             time.sleep(0.5)
             i = i + 1
-            if i % 20 == 0:
-                logger.info(f"Timeout reached in {timeout/2 - i} seconds")
+            if i % 10 == 0:
+                logger.info(f"Timeout reached in {timeout - i/2} seconds")
             if i > (2 * timeout):
-                raise ExtProcTimeoutException(
-                    "Timeout while trying to reach bitcoind at rpcport {} !".format(
-                        rpcconn
+                try:
+                    BitcoindController.check_bitcoind(rpcconn, raise_exception=True)
+                except Exception as e:
+                    raise ExtProcTimeoutException(
+                        f"Timeout while trying to reach bitcoind {rpcconn.render_url(password_mask=True)} because {e}".format(
+                            rpcconn
+                        )
                     )
-                )
 
     @staticmethod
     def render_rpc_options(rpcconn):

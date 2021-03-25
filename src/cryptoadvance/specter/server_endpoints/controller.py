@@ -88,7 +88,7 @@ def server_error(e):
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    return render_template("500_timeout.jinja", error=e, traceback=trace), 500
+    return render_template("500.jinja", error=e, traceback=trace), 500
 
 
 @app.errorhandler(ExtProcTimeoutException)
@@ -99,7 +99,7 @@ def server_error_timeout(e):
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    return render_template("500.jinja", error=e, loglines=e.loglines), 500
+    return render_template("500_timeout.jinja", error=e, loglines=e.loglines), 500
 
 
 ########## on every request ###############

@@ -26,7 +26,7 @@ class ExtProcTimeoutException(Exception):
     def check_logfile(self, logfile_location):
         try:
             self.logfile_location = logfile_location
-            self.loglines = "\n".join(get_last_lines_from_file(logfile_location))
+            self.loglines = "     ".join(get_last_lines_from_file(logfile_location))
         except IOError as ioe:
             self.message = self.message + f" ({ioe})"
             self.loglines = ""

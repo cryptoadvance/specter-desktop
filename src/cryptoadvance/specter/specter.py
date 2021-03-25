@@ -205,7 +205,7 @@ class Specter:
             if not self.config["rpc"].get("external_node", True):
                 self.bitcoind.start_bitcoind(
                     datadir=os.path.expanduser(self.config["rpc"]["datadir"]),
-                    timeout=0,  # At the initial startup, we don't wait on bitcoind
+                    timeout=15,  # At the initial startup, we don't wait on bitcoind
                 )
                 self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
         except ExtProcTimeoutException as e:
