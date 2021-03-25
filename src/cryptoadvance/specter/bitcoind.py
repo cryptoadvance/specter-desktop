@@ -17,6 +17,7 @@ from .util.shell import which
 from .rpc import RpcError
 from .rpc import BitcoinRPC
 from .helpers import load_jsons
+from .specter_error import ExtProcTimeoutException
 
 logger = logging.getLogger(__name__)
 
@@ -170,30 +171,34 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn):
+    def check_bitcoind(rpcconn, print_reason=False):
         """ returns true if bitcoind is running on that address/port """
         try:
             rpcconn.get_rpc()  # that call will also check the connection
             return True
-        except ConnectionRefusedError as e:
+        except ConnectionError as e:
             return False
         except TypeError as e:
             return False
         except Exception as e:
-            print(f"couldn't reach bitcoind - message returned: {e}")
+            if print_reason:
+                logger.exception(e)
+                logger.debug(f"could not reach bitcoind - message returned: {e}")
             return False
 
     @staticmethod
-    def wait_for_bitcoind(rpcconn, timeout=60):
+    def wait_for_bitcoind(rpcconn, timeout=15):
         """ tries to reach the bitcoind via rpc. Timeout after n seconds """
         i = 0
         while True:
-            if BitcoindController.check_bitcoind(rpcconn):
+            if BitcoindController.check_bitcoind(rpcconn, print_reason=(i % 20 == 0)):
                 break
             time.sleep(0.5)
             i = i + 1
+            if i % 20 == 0:
+                logger.info(f"Timeout reached in {timeout/2 - i} seconds")
             if i > (2 * timeout):
-                raise Exception(
+                raise ExtProcTimeoutException(
                     "Timeout while trying to reach bitcoind at rpcport {} !".format(
                         rpcconn
                     )
@@ -290,7 +295,7 @@ class BitcoindPlainController(BitcoindController):
         )
 
         if cleanup_at_exit:
-            logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")
+            logger.info("Register function cleanup_bitcoind for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, self.cleanup_bitcoind)

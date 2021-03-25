@@ -25,7 +25,7 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
-from ..specter_error import handle_exception
+from ..specter_error import handle_exception, ExtProcTimeoutException
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -144,9 +144,15 @@ def bitcoin_core():
                     flash(f"Failed to stop Bitcoin Core {e}", "error")
         elif action == "startbitcoind":
             node_view = "internal"
-            app.specter.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
-            )
+            try:
+                app.specter.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
+                )
+            except ExtProcTimeoutException as e:
+                e.check_logfile(
+                    os.path.join(app.specter.config["rpc"]["datadir"], "debug.log")
+                )
+                raise e
             app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
             time.sleep(15)
             flash("Specter has started Bitcoin Core")

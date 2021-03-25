@@ -29,7 +29,7 @@ from .util.tor import get_tor_daemon_suffix
 import threading
 from urllib.parse import urlparse
 from stem.control import Controller
-from .specter_error import SpecterError
+from .specter_error import SpecterError, ExtProcTimeoutException
 
 logger = logging.getLogger(__name__)
 
@@ -204,10 +204,14 @@ class Specter:
 
             if not self.config["rpc"].get("external_node", True):
                 self.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                    datadir=os.path.expanduser(self.config["rpc"]["datadir"]),
+                    timeout=0,  # At the initial startup, we don't wait on bitcoind
                 )
                 self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
-                time.sleep(15)
+        except ExtProcTimeoutException as e:
+            logger.error(e)
+            e.check_logfile(os.path.join(self.config["rpc"]["datadir"], "debug.log"))
+            logger.error(e.get_logger_friendly())
         except Exception as e:
             logger.error(e)
         self.update_tor_controller()
@@ -236,6 +240,7 @@ class Specter:
         logger.info("Closing Specter after cleanup")
 
         # End cleaning process by raising an exception to ensure the process stops after the cleanup is complete
+        # https://stackoverflow.com/a/12154678/4745596
         raise SpecterError("Specter closed")
 
     def check(self, user=None, check_all=False):

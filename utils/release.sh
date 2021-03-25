@@ -86,21 +86,25 @@ if [[ -n "$RELEASE_NOTES" ]]; then
         exit 2
     fi
 
-    latest_version=$(git tag -l "v*" | grep -v 'pre' | sort -V | tail -1)
+    latest_version=$(git tag -l "v*" | grep -v 'pre' | grep -v 'dev' | sort -V | tail -1)
 
     echo "latest_version is $latest_version. "
 
     echo "    --> The latest version is $latest_version. "
     echo "    --> We'll create the release-notes based on that."
     if ! ask_yn ; then
-        echo "break"
-        exit 2
+        echo "Ok, then you type in the latest_version:"
+        read latest_version
+        if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
+            echo "Does not match the pattern!"
+            exit 1; 
+        fi
     fi
 
     echo "Here are the release-notes:"
     echo "--------------------------------------------------"
     echo "## ${new_version} $(date +'%B %d, %Y')" > docs/new_release_notes.md
-    docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version >> docs/new_release_notes.md
+    docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version | sort >> docs/new_release_notes.md
     echo "" >> docs/new_release_notes.md
     cat docs/new_release_notes.md
     echo "--------------------------------------------------"
