@@ -153,7 +153,8 @@ def bitcoin_core():
                     os.path.join(app.specter.config["rpc"]["datadir"], "debug.log")
                 )
                 raise e
-            app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+            finally:
+                app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
             time.sleep(15)
             flash("Specter has started Bitcoin Core")
 

@@ -201,19 +201,23 @@ class Specter:
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
+        except Exception as e:
+            logger.error(e)
 
-            if not self.config["rpc"].get("external_node", True):
+        if not self.config["rpc"].get("external_node", True):
+            try:
                 self.bitcoind.start_bitcoind(
                     datadir=os.path.expanduser(self.config["rpc"]["datadir"]),
                     timeout=15,  # At the initial startup, we don't wait on bitcoind
                 )
+            except ExtProcTimeoutException as e:
+                logger.error(e)
+                e.check_logfile(
+                    os.path.join(self.config["rpc"]["datadir"], "debug.log")
+                )
+                logger.error(e.get_logger_friendly())
+            finally:
                 self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
-        except ExtProcTimeoutException as e:
-            logger.error(e)
-            e.check_logfile(os.path.join(self.config["rpc"]["datadir"], "debug.log"))
-            logger.error(e.get_logger_friendly())
-        except Exception as e:
-            logger.error(e)
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()

@@ -5,7 +5,7 @@ from pathlib import Path
 from .sha256sum import sha256sum
 import logging
 from .file_download import download_file
-from ..specter_error import handle_exception
+from ..specter_error import handle_exception, ExtProcTimeoutException
 
 logger = logging.getLogger(__name__)
 
@@ -193,10 +193,12 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         logger.info(
             f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['rpc']['datadir'])}"
         )
-        specter.bitcoind.start_bitcoind(
-            datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
-        )
-        specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
+        try:
+            specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+            )
+        finally:
+            specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
         specter.update_use_external_node(False)
         logger.info("Waiting 15 seconds ...")
         time.sleep(15)
@@ -213,6 +215,10 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             ] = "Failed to start Bitcoin Core..."
             specter._save()
         specter.check()
+    except ExtProcTimeoutException as e:
+        e.check_logfile(os.path.join(app.specter.config["rpc"]["datadir"], "debug.log"))
+        logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
+        logger.error(e.get_logger_friendly())
     except Exception as e:
         logger.exception(f"Failed to setup Bitcoin Core. Error: {e}")
         specter.config["bitcoind_setup"]["error"] = str(e)
