@@ -234,6 +234,7 @@ class Specter:
             self._bitcoind.stop_bitcoind()
 
         logger.info("Closing Specter after cleanup")
+        raise SpecterError("Specter closed")
 
     def check(self, user=None, check_all=False):
         """
