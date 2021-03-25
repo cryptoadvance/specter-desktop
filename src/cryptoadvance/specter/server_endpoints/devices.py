@@ -16,6 +16,7 @@ from mnemonic import Mnemonic
 from ..helpers import is_testnet, generate_mnemonic
 from ..key import Key
 from ..wallet_manager import purposes
+from ..specter_error import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -124,22 +125,32 @@ def new_device():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
-                device.setup_device(file_password, app.specter.wallet_manager)
-                device.add_hot_wallet_keys(
-                    mnemonic,
-                    passphrase,
-                    paths,
-                    file_password,
-                    app.specter.wallet_manager,
-                    is_testnet(app.specter.chain),
-                    keys_range=[range_start, range_end],
-                    keys_purposes=keys_purposes,
-                )
-                flash("{} was added successfully!".format(device_name))
-                return redirect(
-                    url_for("devices_endpoint.device", device_alias=device.alias)
-                    + "?newdevice=true"
-                )
+                try:
+                    device.setup_device(file_password, app.specter.wallet_manager)
+                    device.add_hot_wallet_keys(
+                        mnemonic,
+                        passphrase,
+                        paths,
+                        file_password,
+                        app.specter.wallet_manager,
+                        is_testnet(app.specter.chain),
+                        keys_range=[range_start, range_end],
+                        keys_purposes=keys_purposes,
+                    )
+                    flash("{} was added successfully!".format(device_name))
+                    return redirect(
+                        url_for("devices_endpoint.device", device_alias=device.alias)
+                        + "?newdevice=true"
+                    )
+                except Exception as e:
+                    handle_exception(e)
+                    flash(f"Failed to setup hot wallet. Error: {e}", "error")
+                    app.specter.device_manager.remove_device(
+                        device,
+                        app.specter.wallet_manager,
+                        bitcoin_datadir=app.specter.bitcoin_datadir,
+                        chain=app.specter.chain,
+                    )
             else:
                 flash(err, "error")
     return render_template(
@@ -209,19 +220,29 @@ def new_device_manual():
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
                 )
-                device.setup_device(file_password, app.specter.wallet_manager)
-                device.add_hot_wallet_keys(
-                    mnemonic,
-                    passphrase,
-                    paths,
-                    file_password,
-                    app.specter.wallet_manager,
-                    is_testnet(app.specter.chain),
-                    keys_range=[range_start, range_end],
-                )
-                return redirect(
-                    url_for("devices_endpoint.device", device_alias=device.alias)
-                )
+                try:
+                    device.setup_device(file_password, app.specter.wallet_manager)
+                    device.add_hot_wallet_keys(
+                        mnemonic,
+                        passphrase,
+                        paths,
+                        file_password,
+                        app.specter.wallet_manager,
+                        is_testnet(app.specter.chain),
+                        keys_range=[range_start, range_end],
+                    )
+                    return redirect(
+                        url_for("devices_endpoint.device", device_alias=device.alias)
+                    )
+                except Exception as e:
+                    handle_exception(e)
+                    flash(f"Failed to setup hot wallet. Error: {e}", "error")
+                    app.specter.device_manager.remove_device(
+                        device,
+                        app.specter.wallet_manager,
+                        bitcoin_datadir=app.specter.bitcoin_datadir,
+                        chain=app.specter.chain,
+                    )
         elif action == "generatemnemonic":
             strength = int(request.form["strength"])
             mnemonic = generate_mnemonic(strength=strength)
