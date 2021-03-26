@@ -152,6 +152,15 @@
     <br>
     <button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('stage-progress-details');">View Progress</button>
     <h1 id="stage-progress-details" class="hidden" style="margin: auto;"></h1>
+    <div id="override-data-folder-popup" class="hidden" style="margin: auto;">
+        <p>Your Bitcoin Core data folder seems to be already used.<br>
+        Would you like to override it or select a different folder path?
+        </p><br>
+        <div class="row">
+            <button type="button" class="btn" onclick="hidePageOverlay()">Edit path</button>&nbsp;&nbsp;
+            <button type="button" class="btn" onclick="hidePageOverlay();setupBitcoind(true)">Override existing</button>
+        </div>
+    </div>
     <br><br>
 {% endblock %}
 
@@ -250,12 +259,13 @@
             }
         }
 
-        async function setupBitcoind() {
+        async function setupBitcoind(override=false) {
             torSetup = false;
             let url = "{{ url_for('setup_bitcoind') }}"
             var formData = new FormData();
             formData.append('csrf_token', '{{ csrf_token() }}');
             formData.append('bitcoin_core_datadir', document.getElementById('bitcoin_core_datadir').value);
+            formData.append('override_data_folder', override);
             try {
                 const response = await fetch(
                     url,
@@ -278,6 +288,12 @@
                     showNotification('Bitcoin Core already installed, skipped step.');
                     showStep(++currentStep);
                     return;
+                } else if (jsonResponse.error == "data folder already exists") {
+                    let advancedSettings = document.getElementById(`advanced_settings_3`);
+                    if (advancedSettings.classList.contains("hidden")) {
+                        toggleAdvanced(3);
+                    }
+                    showPageOverlay("override-data-folder-popup");
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
@@ -351,7 +367,7 @@
                         return;
                     }
                     document.getElementById('stage-progress-details').innerHTML = `${stage}<br>`;
-                    if (progress > 0) {
+                    if (progress > 0 && progress < 100) {
                         document.getElementById('stage-progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">Download Progress: ${progress}%</b>`;
                     }
                     setTimeout(fetchStageProgress, 1000);

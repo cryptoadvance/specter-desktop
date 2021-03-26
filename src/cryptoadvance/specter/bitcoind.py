@@ -123,9 +123,18 @@ class BitcoindController:
             extra_args=extra_args,
         )
 
-        self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
+        try:
+            self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
+            self.status = "Running"
+        except ExtProcTimeoutException as e:
+            self.status = "Starting up"
+            raise e
+        except Exception as e:
+            self.status = "Error"
+            raise e
         if self.network == "regtest":
             self.mine(block_count=100)
+
         return self.rpcconn
 
     def version(self):
@@ -284,6 +293,7 @@ class BitcoindPlainController(BitcoindController):
             )
             self.bitcoind_path = bitcoind_path
             self.rpcconn.ipaddress = "localhost"
+            self.status = "Down"
         except Exception as e:
             logger.exception(
                 f"Failed to instantiate BitcoindPlainController. Error: {e}"
@@ -348,14 +358,18 @@ class BitcoindPlainController(BitcoindController):
 
     def stop_bitcoind(self):
         self.cleanup_bitcoind()
+        self.status = "Down"
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if if a
         bitcoind is running on the default port.
         """
         if not self.check_bitcoind(self.rpcconn):
+            if self.status == "Running":
+                self.status = "Down"
             return None
         else:
+            self.status = "Running"
             return True
 
 
