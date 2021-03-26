@@ -141,7 +141,7 @@ class Specter:
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
-            "tor_status": False,
+            "tor_status": False,  # Should start Tor hidden service on startup?
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -157,12 +157,6 @@ class Specter:
             "fee_estimator_custom_url": "",
             "bitcoind": False,
             "bitcoind_internal_version": "",
-            "bitcoind_setup": {
-                "stage_progress": -1,
-            },
-            "torbrowser_setup": {
-                "stage_progress": -1,
-            },
         }
 
         self.torbrowser_path = os.path.join(
@@ -178,6 +172,20 @@ class Specter:
 
         self._bitcoind = None
         self._tor_daemon = None
+
+        self.node_status = None
+        self.setup_status = {
+            "bitcoind": {
+                "stage_progress": -1,
+                "stage": "",
+                "error": "",
+            },
+            "torbrowser": {
+                "stage_progress": -1,
+                "stage": "",
+                "error": "",
+            },
+        }
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         try:
@@ -543,6 +551,28 @@ class Specter:
         if self.config.get("bitcoind", False) != pid:
             self.config["bitcoind"] = pid
             self._save()
+
+    def update_setup_status(self, software_name, stage, progress):
+        self.setup_status[software_name]["error"] = ""
+        self.setup_status[software_name]["stage"] = stage
+        self.setup_status[software_name]["stage_progress"] = progress
+
+    def update_setup_error(self, software_name, error):
+        self.setup_status[software_name]["error"] = error
+        self.setup_status[software_name]["stage_progress"] = -1
+
+    def reset_setup(self, software_name):
+        self.setup_status[software_name]["error"] = ""
+        self.setup_status[software_name]["stage"] = "stage"
+        self.setup_status[software_name]["stage_progress"] = -1
+
+    def get_setup_status(self, software_name):
+        if self.bitcoind_path:
+            installed = os.path.isfile(self.bitcoind_path)
+        else:
+            installed = False
+
+        return {"installed": installed, **self.setup_status[software_name]}
 
     def update_use_external_node(self, use_external_node):
         """ set whatever specter should connect to internal or external node """

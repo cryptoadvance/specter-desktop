@@ -351,7 +351,7 @@
                         return;
                     }
                     document.getElementById('stage-progress-details').innerHTML = `${stage}<br>`;
-                    if (progress > 0) {
+                    if (progress > 0 && progress < 100) {
                         document.getElementById('stage-progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">Download Progress: ${progress}%</b>`;
                     }
                     setTimeout(fetchStageProgress, 1000);

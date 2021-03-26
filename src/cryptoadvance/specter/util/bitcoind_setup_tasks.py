@@ -48,8 +48,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             "bitcoind",
             "Downloading Bitcoin Core signatures...",
         )
-        specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
-        specter._save()
+        specter.update_setup_status("bitcoind", "Verifying signatures...", 100)
         logger.info(f"Verifying signatures of Bitcoin Core binaries")
         with open(bitcoind_sha256sums_file, "r") as f:
             signed_sums = f.read()
@@ -104,14 +103,11 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             file.write(f"\ntorpassword={specter.config['torrc_password']}")
         specter.config["bitcoind_internal_version"] = internal_bitcoind_version
         specter._save()
+        specter.reset_setup("bitcoind")
     except Exception as e:
         logger.error(f"Failed to install Bitcoin Core. Error: {e}")
         handle_exception(e)
-        specter.config["bitcoind_setup"]["error"] = str(e)
-        specter._save()
-    finally:
-        specter.config["bitcoind_setup"]["stage_progress"] = -1
-        specter._save()
+        specter.update_setup_error("bitcoind", str(e))
 
 
 def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
@@ -141,8 +137,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 "bitcoind",
                 "Downloading Quicksync signature...",
             )
-            specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
-            specter._save()
+            specter.update_setup_status("bitcoind", "Verifying signatures...", 100)
             logger.info(f"Verifying signatures of {prunednode_sha256sums_file}")
             with open(prunednode_sha256sums_file, "r") as f:
                 signed_sums = f.read()
@@ -188,8 +183,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 else:
                     file.write(f"\nblockfilterindex=1")
 
-        specter.config["bitcoind_setup"]["stage"] = "Starting up Bitcoin Core..."
-        specter._save()
+        specter.update_setup_status("bitcoind", "Starting up Bitcoin Core...", 100)
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
@@ -211,20 +205,17 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             password=specter.config["rpc"]["password"],
         )
         if not success:
+            specter.update_setup_status(
+                "bitcoind", "Failed to start Bitcoin Core...", 100
+            )
             logger.info("No success connecting to Bitcoin Core")
-            specter.config["bitcoind_setup"][
-                "stage"
-            ] = "Failed to start Bitcoin Core..."
-            specter._save()
         specter.check()
+        specter.reset_setup("bitcoind")
     except ExtProcTimeoutException as e:
-        e.check_logfile(os.path.join(app.specter.config["rpc"]["datadir"], "debug.log"))
+        e.check_logfile(os.path.join(specter.config["rpc"]["datadir"], "debug.log"))
         logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
         logger.error(e.get_logger_friendly())
+        specter.update_setup_error("bitcoind", str(e))
     except Exception as e:
         logger.exception(f"Failed to setup Bitcoin Core. Error: {e}")
-        specter.config["bitcoind_setup"]["error"] = str(e)
-        specter._save()
-    finally:
-        specter.config["bitcoind_setup"]["stage_progress"] = -1
-        specter._save()
+        specter.update_setup_error("bitcoind", str(e))

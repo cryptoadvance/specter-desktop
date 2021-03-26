@@ -7,8 +7,7 @@ def download_file(specter, url, file_path, setup_status_name, setup_status_stage
         total_length = float(response.headers["content-length"])
         downloaded = 0.0
         old_progress = 0
-        specter.config[f"{setup_status_name}_setup"]["stage"] = setup_status_stage
-        specter._save()
+        specter.update_setup_status(setup_status_name, setup_status_stage, 0)
         for chunk in response.iter_content(chunk_size=4096):
             downloaded += len(chunk)
             f.write(chunk)
@@ -17,7 +16,6 @@ def download_file(specter, url, file_path, setup_status_name, setup_status_stage
                 if new_progress > 100:
                     new_progress = 100
                 old_progress = new_progress
-                specter.config[f"{setup_status_name}_setup"][
-                    "stage_progress"
-                ] = new_progress
-                specter._save()
+                specter.update_setup_status(
+                    setup_status_name, setup_status_stage, new_progress
+                )

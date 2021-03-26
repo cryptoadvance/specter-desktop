@@ -18,7 +18,7 @@
 				<br><br>
 			{% endif %}
 			{% if bitcoind_exists %}
-				<h2>Built in Bitcoin Node Status: {% if is_running %}Running{% else %}Down{% endif %}</h2><br>
+				<h2>Built in Bitcoin Node Status: {% if specter.bitcoind.status %}{{specter.bitcoind.status}}{% else %}Down{% endif %}</h2><br>
 				<span class="note" style="font-size: 1.3em;">Bitcoin Core Version: {{specter.config.bitcoind_internal_version}}</span>
 				<br><br>
 				{% if not external_node %}
