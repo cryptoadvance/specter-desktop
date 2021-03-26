@@ -14,3 +14,10 @@ def test_which(caplog):
     assert (
         helpers.which("date") == "/bin/date" or helpers.which("date") == "/usr/bin/date"
     )  # travis-CI has it on /bin/date
+
+
+def test_last_lines(caplog):
+    from cryptoadvance.specter.util.shell import get_last_lines_from_file
+
+    lines = get_last_lines_from_file("LICENSE", 30)
+    assert lines[-2].startswith("OUT OF OR IN CONNECTION WITH THE SOFTWARE ")

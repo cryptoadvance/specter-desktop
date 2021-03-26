@@ -29,7 +29,8 @@ from .util.tor import get_tor_daemon_suffix
 import threading
 from urllib.parse import urlparse
 from stem.control import Controller
-from .specter_error import SpecterError
+from .specter_error import SpecterError, ExtProcTimeoutException
+from sys import exit
 
 logger = logging.getLogger(__name__)
 
@@ -201,15 +202,23 @@ class Specter:
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
-
-            if not self.config["rpc"].get("external_node", True):
-                self.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(self.config["rpc"]["datadir"])
-                )
-                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
-                time.sleep(15)
         except Exception as e:
             logger.error(e)
+
+        if not self.config["rpc"].get("external_node", True):
+            try:
+                self.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(self.config["rpc"]["datadir"]),
+                    timeout=15,  # At the initial startup, we don't wait on bitcoind
+                )
+            except ExtProcTimeoutException as e:
+                logger.error(e)
+                e.check_logfile(
+                    os.path.join(self.config["rpc"]["datadir"], "debug.log")
+                )
+                logger.error(e.get_logger_friendly())
+            finally:
+                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
@@ -234,9 +243,8 @@ class Specter:
             self._bitcoind.stop_bitcoind()
 
         logger.info("Closing Specter after cleanup")
-
-        # End cleaning process by raising an exception to ensure the process stops after the cleanup is complete
-        raise SpecterError("Specter closed")
+        # For some reason we need to explicitely exit here. Otherwise it will hang
+        exit(0)
 
     def check(self, user=None, check_all=False):
         """

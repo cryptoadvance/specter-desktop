@@ -16,7 +16,7 @@ from ..helpers import (
     notify_upgrade,
 )
 from ..specter import Specter
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, ExtProcTimeoutException
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.bitcoind_setup_tasks import (
     setup_bitcoind_thread,
@@ -89,6 +89,17 @@ def server_error(e):
     trace = traceback.format_exc()
     app.logger.error(trace)
     return render_template("500.jinja", error=e, traceback=trace), 500
+
+
+@app.errorhandler(ExtProcTimeoutException)
+def server_error_timeout(e):
+    """ Unspecific Exceptions get a 500 Error-Page """
+    # if rpc is not available
+    if app.specter.rpc is None or not app.specter.rpc.test_connection():
+        # make sure specter knows that rpc is not there
+        app.specter.check()
+    app.logger.error("ExternalProcessTimeoutException: %s" % e)
+    return render_template("500_timeout.jinja", error=e, loglines=e.loglines), 500
 
 
 ########## on every request ###############
