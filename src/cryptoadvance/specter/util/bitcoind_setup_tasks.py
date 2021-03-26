@@ -1,4 +1,4 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys
+import os, time, requests, secrets, platform, tarfile, zipfile, sys, shutil
 from ..bitcoind import BitcoindPlainController
 import pgpy
 from pathlib import Path
@@ -75,6 +75,8 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         else:
             with zipfile.ZipFile(packed_name, "r") as zip_ref:
                 zip_ref.extractall(specter.data_folder)
+        if os.path.exists(bitcoin_binaries_folder):
+            shutil.rmtree(bitcoin_binaries_folder)
         os.rename(
             os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
             bitcoin_binaries_folder,

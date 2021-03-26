@@ -30,6 +30,7 @@ import threading
 from urllib.parse import urlparse
 from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
+from sys import exit
 
 logger = logging.getLogger(__name__)
 
