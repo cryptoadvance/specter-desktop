@@ -227,7 +227,10 @@ class Specter:
                 )
                 logger.error(e.get_logger_friendly())
             finally:
-                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                try:
+                    self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                except Exception as e:
+                    logger.error(e)
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()

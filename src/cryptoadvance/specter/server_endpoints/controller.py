@@ -170,6 +170,9 @@ def setup_bitcoind():
         "bitcoin_core_datadir", app.specter.config["rpc"]["datadir"]
     )
     app.specter._save()
+    if os.path.exists(app.specter.config["rpc"]["datadir"]):
+        if request.form["override_data_folder"] != "true":
+            return {"error": "data folder already exists"}
     if (
         not os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
