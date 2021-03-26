@@ -577,8 +577,10 @@ class Specter:
         self.setup_status[software_name]["stage_progress"] = -1
 
     def get_setup_status(self, software_name):
-        if self.bitcoind_path:
+        if software_name == "bitcoind":
             installed = os.path.isfile(self.bitcoind_path)
+        elif software_name == "torbrowser":
+            installed = os.path.isfile(self.torbrowser_path)
         else:
             installed = False
 
