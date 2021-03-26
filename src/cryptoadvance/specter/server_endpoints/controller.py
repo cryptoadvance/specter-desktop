@@ -174,7 +174,7 @@ def setup_bitcoind():
         not os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
     ):
-        app.specter.update_setup_status("bitcoind", "Strarting Bitcoin Core Setup", 0)
+        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         t = threading.Thread(
             target=setup_bitcoind_thread,
             args=(app.specter, app.config["INTERNAL_BITCOIND_VERSION"]),
@@ -194,7 +194,7 @@ def setup_bitcoind_directory():
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
     ):
-        app.specter.update_setup_status("bitcoind", "Strarting Bitcoin Core Setup", 0)
+        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"
         t = threading.Thread(

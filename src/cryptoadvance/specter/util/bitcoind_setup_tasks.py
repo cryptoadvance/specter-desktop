@@ -48,7 +48,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             "bitcoind",
             "Downloading Bitcoin Core signatures...",
         )
-        specter.update_setup_status("bitcoind", "Verifying signatures...", 100)
+        specter.update_setup_status("bitcoind", "VERIFY_SIGS")
         logger.info(f"Verifying signatures of Bitcoin Core binaries")
         with open(bitcoind_sha256sums_file, "r") as f:
             signed_sums = f.read()
@@ -137,7 +137,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 "bitcoind",
                 "Downloading Quicksync signature...",
             )
-            specter.update_setup_status("bitcoind", "Verifying signatures...", 100)
+            specter.update_setup_status("bitcoind", "VERIFY_SIGS")
             logger.info(f"Verifying signatures of {prunednode_sha256sums_file}")
             with open(prunednode_sha256sums_file, "r") as f:
                 signed_sums = f.read()
@@ -183,7 +183,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 else:
                     file.write(f"\nblockfilterindex=1")
 
-        specter.update_setup_status("bitcoind", "Starting up Bitcoin Core...", 100)
+        specter.update_setup_status("bitcoind", "START_SERVICE")
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
@@ -205,9 +205,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             password=specter.config["rpc"]["password"],
         )
         if not success:
-            specter.update_setup_status(
-                "bitcoind", "Failed to start Bitcoin Core...", 100
-            )
+            specter.update_setup_status("bitcoind", "FAILED")
             logger.info("No success connecting to Bitcoin Core")
         specter.check()
         specter.reset_setup("bitcoind")

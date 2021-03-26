@@ -24,7 +24,7 @@ def setup_tor_thread(specter=None):
             raise Exception(
                 "Linux ARM devices (e.g. Raspberry Pi) must manually install Tor"
             )
-        specter.update_setup_status("torbrowser", "Starting Tor setup process...", 100)
+        specter.update_setup_status("torbrowser", "STARTING_SETUP")
         TOR_OS_SUFFIX = {
             "Windows": "tor-win64-0.4.5.6.zip",
             "Linux": "tor-browser-linux64-10.0.12_en-US.tar.xz",
@@ -54,7 +54,7 @@ def setup_tor_thread(specter=None):
             "torbrowser",
             "Downloading Tor signatures...",
         )
-        specter.update_setup_status("torbrowser", "Verifying signatures...", 100)
+        specter.update_setup_status("torbrowser", "VERIFY_SIGS")
         torbrowser_release_pgp_key, _ = pgpy.PGPKey.from_file(
             os.path.join(sys._MEIPASS, "static/torbrowser-release-pubkey.asc")
             if getattr(sys, "frozen", False)

@@ -31,6 +31,7 @@ from urllib.parse import urlparse
 from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
+from .util.setup_states import SETUP_STATES
 
 logger = logging.getLogger(__name__)
 
@@ -552,9 +553,18 @@ class Specter:
             self.config["bitcoind"] = pid
             self._save()
 
-    def update_setup_status(self, software_name, stage, progress):
+    def update_setup_status(self, software_name, stage):
         self.setup_status[software_name]["error"] = ""
-        self.setup_status[software_name]["stage"] = stage
+        if stage in SETUP_STATES:
+            self.setup_status[software_name]["stage"] = SETUP_STATES[stage].get(
+                software_name, stage
+            )
+        else:
+            self.setup_status[software_name]["stage"] = stage
+        self.setup_status[software_name]["stage_progress"] = 0
+
+    def update_setup_download_progress(self, software_name, progress):
+        self.setup_status[software_name]["error"] = ""
         self.setup_status[software_name]["stage_progress"] = progress
 
     def update_setup_error(self, software_name, error):
