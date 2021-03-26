@@ -1,10 +1,11 @@
-import os, time, requests, secrets, platform, tarfile, zipfile, sys
+import os, time, requests, secrets, platform, tarfile, zipfile, sys, shutil
 from ..bitcoind import BitcoindPlainController
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
 import logging
 from .file_download import download_file
+from ..specter_error import handle_exception, ExtProcTimeoutException
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             specter.data_folder,
             f"bitcoind-{BITCOIND_OS_SUFFIX[platform.system()]}",
         )
+        logger.info(f"Downloading Bitcoin Core release file {bitcoind_url}")
         download_file(
             specter,
             bitcoind_url,
@@ -31,7 +33,11 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             "bitcoind",
             "Downloading Bitcoin Core release files...",
         )
+
         bitcoind_sha256sums_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/SHA256SUMS.asc"
+        logger.info(
+            f"Downloading Bitcoin Core sha256sum file {bitcoind_sha256sums_url}"
+        )
         bitcoind_sha256sums_file = os.path.join(
             specter.data_folder, "bitcoind-sha256sums.asc"
         )
@@ -44,6 +50,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         )
         specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
         specter._save()
+        logger.info(f"Verifying signatures of Bitcoin Core binaries")
         with open(bitcoind_sha256sums_file, "r") as f:
             signed_sums = f.read()
             bitcoind_release_pgp_key, _ = pgpy.PGPKey.from_file(
@@ -61,12 +68,15 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
                 raise Exception("Failed to verify bitcoind hash is in SHA265SUMS.asc")
 
         bitcoin_binaries_folder = os.path.join(specter.data_folder, "bitcoin-binaries")
+        logger.info(f"Unpacking binaries to {bitcoin_binaries_folder}")
         if packed_name.endswith("tar.gz"):
             with tarfile.open(packed_name, "r:gz") as so:
                 so.extractall(specter.data_folder)
         else:
             with zipfile.ZipFile(packed_name, "r") as zip_ref:
                 zip_ref.extractall(specter.data_folder)
+        if os.path.exists(bitcoin_binaries_folder):
+            shutil.rmtree(bitcoin_binaries_folder)
         os.rename(
             os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
             bitcoin_binaries_folder,
@@ -76,7 +86,10 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         specter.config["rpc"]["password"] = secrets.token_urlsafe(16)
         specter._save()
         if not os.path.exists(specter.config["rpc"]["datadir"]):
+            logger.info(f"Creating bitcoin datadir: {specter.config['rpc']['datadir']}")
             os.makedirs(specter.config["rpc"]["datadir"])
+
+        logger.info(f"Writing bitcoin.conf")
         with open(
             os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
             "w",
@@ -93,6 +106,7 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         specter._save()
     except Exception as e:
         logger.error(f"Failed to install Bitcoin Core. Error: {e}")
+        handle_exception(e)
         specter.config["bitcoind_setup"]["error"] = str(e)
         specter._save()
     finally:
@@ -109,12 +123,16 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             prunednode_sha256sums_file = os.path.join(
                 specter.data_folder, "prunednode-sha256sums.asc"
             )
+            logger.info(f"Downloading latest.zip to {prunednode_file}")
             download_file(
                 specter,
                 "https://prunednode.today/latest.zip",
                 prunednode_file,
                 "bitcoind",
                 "Downloading QuickSync files...",
+            )
+            logger.info(
+                f"Downloading latest.signed.txt to {prunednode_sha256sums_file}"
             )
             download_file(
                 specter,
@@ -125,6 +143,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             )
             specter.config["bitcoind_setup"]["stage"] = "Verifying signatures..."
             specter._save()
+            logger.info(f"Verifying signatures of {prunednode_sha256sums_file}")
             with open(prunednode_sha256sums_file, "r") as f:
                 signed_sums = f.read()
                 prunednode_release_pgp_key, _ = pgpy.PGPKey.from_file(
@@ -145,6 +164,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                     raise Exception(
                         "Failed to verify prunednode.today hash is in SHA265SUMS.asc"
                     )
+                logger.info(
+                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['rpc']['datadir'])}"
+                )
                 with zipfile.ZipFile(prunednode_file, "r") as zip_ref:
                     zip_ref.extractall(
                         os.path.expanduser(specter.config["rpc"]["datadir"])
@@ -170,11 +192,17 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         specter._save()
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
-        specter.bitcoind.start_bitcoind(
-            datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+        logger.info(
+            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['rpc']['datadir'])}"
         )
-        specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
+        try:
+            specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+            )
+        finally:
+            specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
         specter.update_use_external_node(False)
+        logger.info("Waiting 15 seconds ...")
         time.sleep(15)
         success = specter.update_rpc(
             port=8332,
@@ -183,11 +211,16 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             password=specter.config["rpc"]["password"],
         )
         if not success:
+            logger.info("No success connecting to Bitcoin Core")
             specter.config["bitcoind_setup"][
                 "stage"
             ] = "Failed to start Bitcoin Core..."
             specter._save()
         specter.check()
+    except ExtProcTimeoutException as e:
+        e.check_logfile(os.path.join(app.specter.config["rpc"]["datadir"], "debug.log"))
+        logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
+        logger.error(e.get_logger_friendly())
     except Exception as e:
         logger.exception(f"Failed to setup Bitcoin Core. Error: {e}")
         specter.config["bitcoind_setup"]["error"] = str(e)
