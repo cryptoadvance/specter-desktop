@@ -33,10 +33,9 @@
     </div>
     <div class="card center hidden" id="step1">
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
-        <br>Download and setup Tor daemon</h1>
+        <br>Setup Tor daemon</h1>
         <h2 style="color: #ccc;">(optional, recommended)</h2>
-        <p>This should take between a few seconds to a few minutes, depending on your internet connection...</p>
-        <p class="hidden warning" id="step1-helper-text">Here, Specter will download the Tor daemon software, verify signatures to ensure download files can be trusted, and start your Tor daemon to allow you to make calls over the Tor network.</p>
+        <p class="hidden warning" id="step1-helper-text">Here, Specter will set up and start your Tor daemon to allow you to make calls over the Tor network.</p>
         <div class="row center">
             <p class="explorer-link" id="step1-helper" onclick="toggleHelper('step1')">Unsure? Click here for more info!</p>
             <a class="explorer-link hidden" id="step1-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
@@ -64,9 +63,8 @@
     </div>
     <div class="card center hidden" id="step3">
         <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
-        <br>Download and setup Bitcoin Core</h1>
-        <p>This should take between a few seconds to a few minutes, depending on your internet connection...</p>
-        <p class="hidden warning" id="step3-helper-text">Here, Specter will download the Bitcoin Core release software, verify signatures to ensure download files can be trusted, and prepare basic configurations of your new Bitcoin Core node.</p>
+        <br>Setup Bitcoin Core</h1>
+        <p class="hidden warning" id="step3-helper-text">Here, Specter will set up and prepare basic configurations of your new Bitcoin Core node.</p>
         <div class="row center">
             <p class="explorer-link" id="step3-helper" onclick="toggleHelper('step3')">Unsure? Click here for more info!</p>
             <a class="explorer-link hidden" id="step3-support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
