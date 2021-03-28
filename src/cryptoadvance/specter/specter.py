@@ -226,6 +226,9 @@ class Specter:
                     os.path.join(self.config["rpc"]["datadir"], "debug.log")
                 )
                 logger.error(e.get_logger_friendly())
+            except SpecterError as e:
+                logger.error(e)
+                # Likely files of bitcoind were not found. Maybe deleted by the user?
             finally:
                 try:
                     self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
