@@ -289,9 +289,11 @@ class Specter:
                 only_tor=self.only_tor,
             )
 
+        self.check_node_info()
+
         # if rpc is not available
         # do checks more often, once in 20 seconds
-        if rpc is None:
+        if rpc is None or self.info.get("initialblockdownload", True):
             period = 20
         else:
             period = 600
@@ -299,7 +301,6 @@ class Specter:
             self.checker.period = period
         self.rpc = rpc
 
-        self.check_node_info()
         if not check_all:
             # find proper user
             user = self.user_manager.get_user(user)
