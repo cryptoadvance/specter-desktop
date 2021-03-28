@@ -24,50 +24,23 @@ def setup_tor_thread(specter=None):
             raise Exception(
                 "Linux ARM devices (e.g. Raspberry Pi) must manually install Tor"
             )
+
         specter.update_setup_status("torbrowser", "STARTING_SETUP")
         TOR_OS_SUFFIX = {
-            "Windows": "tor-win64-0.4.5.6.zip",
-            "Linux": "tor-browser-linux64-10.0.12_en-US.tar.xz",
-            "Darwin": "TorBrowser-10.0.12-osx64_en-US.dmg",
+            "Windows": "tor-win64-0.4.5.7.zip",
+            "Linux": "tor-browser-linux64-10.0.15_en-US.tar.xz",
+            "Darwin": "TorBrowser-10.0.15-osx64_en-US.dmg",
         }
 
-        torbrowser_url = f"https://www.torproject.org/dist/torbrowser/10.0.12/{TOR_OS_SUFFIX[platform.system()]}"
-        packed_name = os.path.join(
-            specter.data_folder,
-            TOR_OS_SUFFIX[platform.system()],
-        )
-        torbrowser_signed_url = f"https://www.torproject.org/dist/torbrowser/10.0.12/{TOR_OS_SUFFIX[platform.system()]}.asc"
-        torbrowser_signed_file = os.path.join(
-            specter.data_folder, f"{TOR_OS_SUFFIX[platform.system()]}.asc"
-        )
-        download_file(
-            specter,
-            torbrowser_url,
-            packed_name,
-            "torbrowser",
-            "Downloading Tor release files...",
-        )
-        download_file(
-            specter,
-            torbrowser_signed_url,
-            torbrowser_signed_file,
-            "torbrowser",
-            "Downloading Tor signatures...",
-        )
-        specter.update_setup_status("torbrowser", "VERIFY_SIGS")
-        torbrowser_release_pgp_key, _ = pgpy.PGPKey.from_file(
-            os.path.join(sys._MEIPASS, "static/torbrowser-release-pubkey.asc")
+        packed_name = (
+            os.path.join(sys._MEIPASS, f"torbrowser/{TOR_OS_SUFFIX[platform.system()]}")
             if getattr(sys, "frozen", False)
-            else Path(__file__).parent / "../static/torbrowser-release-pubkey.asc"
+            else Path(__file__).parent
+            / f"../../../../pyinstaller/torbrowser/{TOR_OS_SUFFIX[platform.system()]}"
         )
-        torbrowser_file_sig = pgpy.PGPSignature.from_file(torbrowser_signed_file)
-        with open(packed_name, "rb") as binary_file:
-            signed_data = binary_file.read()
-            if not torbrowser_release_pgp_key.verify(signed_data, torbrowser_file_sig):
-                raise Exception("Failed to verify Tor PGP signature")
 
         os.makedirs(os.path.join(specter.data_folder, "tor-binaries"), exist_ok=True)
-        if packed_name.endswith(".dmg"):
+        if TOR_OS_SUFFIX[platform.system()].endswith(".dmg"):
             result = subprocess.run(
                 [f'hdiutil attach "{packed_name}"'], shell=True, capture_output=True
             )
@@ -83,7 +56,7 @@ def setup_tor_thread(specter=None):
             )
             disk_image_path = "/Volumes/Tor\ Browser"
             subprocess.run([f"hdiutil detach {disk_image_path}"], shell=True)
-        elif packed_name.endswith(".zip"):
+        elif TOR_OS_SUFFIX[platform.system()].endswith(".zip"):
             with zipfile.ZipFile(packed_name) as zip_file:
                 for file in zip_file.filelist:
                     if file.filename.endswith("dll") or file.filename.endswith("exe"):
@@ -95,7 +68,7 @@ def setup_tor_thread(specter=None):
                             destination_exe, "wb"
                         ) as f:
                             shutil.copyfileobj(zf, f)
-        elif packed_name.endswith(".tar.xz"):
+        elif TOR_OS_SUFFIX[platform.system()].endswith(".tar.xz"):
             with tarfile.open(packed_name) as tar:
                 tor_files = [
                     "libcrypto.so.1.1",
@@ -114,7 +87,7 @@ def setup_tor_thread(specter=None):
                         if tor_file == "tor":
                             st = os.stat(destination_file)
                             os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
-        os.remove(packed_name)
+
         if "torrc_password" not in specter.config:
             specter.generate_torrc_password()
         with open(os.path.join(specter.data_folder, "torrc"), "w") as file:
