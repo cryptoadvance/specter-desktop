@@ -166,11 +166,11 @@ def node_setup_wizard(step):
 @app.route("/setup_bitcoind", methods=["POST"])
 @login_required
 def setup_bitcoind():
-    app.specter.config["rpc"]["datadir"] = request.form.get(
-        "bitcoin_core_datadir", app.specter.config["rpc"]["datadir"]
+    app.specter.config["internal_node"]["datadir"] = request.form.get(
+        "bitcoin_core_datadir", app.specter.config["internal_node"]["datadir"]
     )
     app.specter._save()
-    if os.path.exists(app.specter.config["rpc"]["datadir"]):
+    if os.path.exists(app.specter.config["internal_node"]["datadir"]):
         if request.form["override_data_folder"] != "true":
             return {"error": "data folder already exists"}
     if (
