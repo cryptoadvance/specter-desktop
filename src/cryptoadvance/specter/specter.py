@@ -127,7 +127,13 @@ class Specter:
                 "external_node": True,
             },
             "internal_node": {
+                "autodetect": True,
                 "datadir": os.path.join(self.data_folder, ".bitcoin"),
+                "user": "bitcoin",
+                "password": secrets.token_urlsafe(16),
+                "host": "localhost",  # localhost
+                "protocol": "http",  # https for the future
+                "port": 8332,
             },
             "auth": {
                 "method": "none",
@@ -208,13 +214,6 @@ class Specter:
                 ),
                 None,
             )
-            if not rpc_conf:
-                if not self.config["rpc"]["user"]:
-                    self.config["rpc"]["user"] = "bitcoin"
-                    self._save()
-                if not self.config["rpc"]["password"]:
-                    self.config["rpc"]["password"] = secrets.token_urlsafe(16)
-                    self._save()
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
@@ -283,11 +282,8 @@ class Specter:
         # update rpc if something doesn't work
         rpc = self.rpc
         if rpc is None or not rpc.test_connection():
-            rpcconf = self.config["rpc"]
-            if not self.config["rpc"].get("external_node", True):
-                rpcconf["datadir"] = self.config["internal_node"]["datadir"]
             rpc = get_rpc(
-                rpcconf,
+                self.rpc_conf,
                 self.rpc,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -311,6 +307,14 @@ class Specter:
         else:
             for u in self.user_manager.users:
                 self.check_for_user(u)
+
+    @property
+    def rpc_conf(self):
+        return (
+            self.config["rpc"]
+            if self.config["rpc"].get("external_node", True)
+            else self.config["internal_node"]
+        )
 
     def check_node_info(self):
         self._is_configured = self.rpc is not None
@@ -551,14 +555,18 @@ class Specter:
         return os.path.join(self.data_folder, "config.json")
 
     def update_rpc(self, **kwargs):
-        need_update = False
+        need_update = kwargs.get("need_update", False)
         for k in kwargs:
-            if self.config["rpc"][k] != kwargs[k]:
-                self.config["rpc"][k] = kwargs[k]
+            if k != "need_update" and self.rpc_conf[k] != kwargs[k]:
+                self.config[
+                    "rpc"
+                    if self.config["rpc"].get("external_node", True)
+                    else "internal_node"
+                ][k] = kwargs[k]
                 need_update = True
         if need_update:
             self.rpc = get_rpc(
-                self.config["rpc"],
+                self.rpc_conf,
                 None,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -736,8 +744,8 @@ class Specter:
                     bitcoind_path=self.bitcoind_path,
                     rpcport=8332,
                     network="mainnet",
-                    rpcuser=self.config["rpc"]["user"],
-                    rpcpassword=self.config["rpc"]["password"],
+                    rpcuser=self.config["internal_node"]["user"],
+                    rpcpassword=self.config["internal_node"]["password"],
                 )
             return self._bitcoind
         raise SpecterError(

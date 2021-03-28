@@ -44,9 +44,6 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
             bitcoin_binaries_folder,
         )
-        specter.config["rpc"]["user"] = "bitcoin"
-        specter.config["rpc"]["password"] = secrets.token_urlsafe(16)
-        specter._save()
         if not os.path.exists(specter.config["internal_node"]["datadir"]):
             logger.info(
                 f"Creating bitcoin datadir: {specter.config['internal_node']['datadir']}"
@@ -58,8 +55,8 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
             "w",
         ) as file:
-            file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
-            file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
+            file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
+            file.write(f'\nrpcpassword={specter.config["internal_node"]["password"]}')
             file.write(f"\nserver=1")
             file.write(f"\nlisten=1")
             file.write(f"\nproxy=127.0.0.1:9050")
@@ -138,8 +135,10 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                     ),
                     "a",
                 ) as file:
-                    file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
-                    file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
+                    file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
+                    file.write(
+                        f'\nrpcpassword={specter.config["internal_node"]["password"]}'
+                    )
         else:
             with open(
                 os.path.join(
@@ -170,8 +169,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         success = specter.update_rpc(
             port=8332,
             autodetect=True,
-            user=specter.config["rpc"]["user"],
-            password=specter.config["rpc"]["password"],
+            user=specter.config["internal_node"]["user"],
+            password=specter.config["internal_node"]["password"],
+            need_update="true",
         )
         if not success:
             specter.update_setup_status("bitcoind", "FAILED")

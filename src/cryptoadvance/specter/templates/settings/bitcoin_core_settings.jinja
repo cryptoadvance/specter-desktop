@@ -39,9 +39,11 @@
 				<div class="card">
 					<h1>Danger Zone</h1>
 					<button type="submit" name="action" value="uninstall_bitcoind" class="btn danger centered">Unistall Bitcoin Core</button>
+					<br>
+					<label><input type="checkbox" class="inline" name="remove_datadir"> Delete data folder?</label>
 				</div>
 			{% else %}
-				<div class="card">
+				<div>
 					<h1>Setup Bitcoin Core Node</h1><br>
 					<a href="{{url_for('node_setup_wizard', step=3)}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
 				</div>

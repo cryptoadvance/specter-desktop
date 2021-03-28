@@ -166,7 +166,7 @@ def bitcoin_core():
                 if app.specter.is_bitcoind_running():
                     app.specter.bitcoind.stop_bitcoind()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
-                if request.form.get("remove_datadir", False):
+                if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(
                         os.path.expanduser(
                             app.specter.config["internal_node"]["datadir"]
