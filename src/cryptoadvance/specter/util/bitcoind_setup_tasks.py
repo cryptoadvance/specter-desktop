@@ -20,55 +20,19 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         # ARM Linux devices (e.g. Raspberry Pi 4 == armv7l) need ARM binary
         if platform.system() == "Linux" and "armv" in platform.machine():
             BITCOIND_OS_SUFFIX["Linux"] = "arm-linux-gnueabihf.tar.gz"
-        bitcoind_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}"
-        packed_name = os.path.join(
-            specter.data_folder,
-            f"bitcoind-{BITCOIND_OS_SUFFIX[platform.system()]}",
-        )
-        logger.info(f"Downloading Bitcoin Core release file {bitcoind_url}")
-        download_file(
-            specter,
-            bitcoind_url,
-            packed_name,
-            "bitcoind",
-            "Downloading Bitcoin Core release files...",
-        )
 
-        bitcoind_sha256sums_url = f"https://bitcoincore.org/bin/bitcoin-core-{internal_bitcoind_version}/SHA256SUMS.asc"
-        logger.info(
-            f"Downloading Bitcoin Core sha256sum file {bitcoind_sha256sums_url}"
-        )
-        bitcoind_sha256sums_file = os.path.join(
-            specter.data_folder, "bitcoind-sha256sums.asc"
-        )
-        download_file(
-            specter,
-            bitcoind_sha256sums_url,
-            bitcoind_sha256sums_file,
-            "bitcoind",
-            "Downloading Bitcoin Core signatures...",
-        )
-        specter.update_setup_status("bitcoind", "VERIFY_SIGS")
-        logger.info(f"Verifying signatures of Bitcoin Core binaries")
-        with open(bitcoind_sha256sums_file, "r") as f:
-            signed_sums = f.read()
-            bitcoind_release_pgp_key, _ = pgpy.PGPKey.from_file(
-                os.path.join(sys._MEIPASS, "static/bitcoin-release-pubkey.asc")
-                if getattr(sys, "frozen", False)
-                else Path(__file__).parent / "../static/bitcoin-release-pubkey.asc"
+        packed_name = (
+            os.path.join(
+                sys._MEIPASS,
+                f"bitcoind/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}",
             )
-            bitcoind_sha256sums_msg = pgpy.PGPMessage.from_file(
-                bitcoind_sha256sums_file
-            )
-            if not bitcoind_release_pgp_key.verify(bitcoind_sha256sums_msg):
-                raise Exception("Failed to verify Bitcoin Core PGP signature")
-            bitcoind_hash = sha256sum(packed_name)
-            if bitcoind_hash not in signed_sums:
-                raise Exception("Failed to verify bitcoind hash is in SHA265SUMS.asc")
-
+            if getattr(sys, "frozen", False)
+            else Path(__file__).parent
+            / f"../../../../pyinstaller/bitcoind/bitcoin-{internal_bitcoind_version}-{BITCOIND_OS_SUFFIX[platform.system()]}"
+        )
         bitcoin_binaries_folder = os.path.join(specter.data_folder, "bitcoin-binaries")
         logger.info(f"Unpacking binaries to {bitcoin_binaries_folder}")
-        if packed_name.endswith("tar.gz"):
+        if BITCOIND_OS_SUFFIX[platform.system()].endswith("tar.gz"):
             with tarfile.open(packed_name, "r:gz") as so:
                 so.extractall(specter.data_folder)
         else:
@@ -80,21 +44,19 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
             bitcoin_binaries_folder,
         )
-        os.remove(packed_name)
-        specter.config["rpc"]["user"] = "bitcoin"
-        specter.config["rpc"]["password"] = secrets.token_urlsafe(16)
-        specter._save()
-        if not os.path.exists(specter.config["rpc"]["datadir"]):
-            logger.info(f"Creating bitcoin datadir: {specter.config['rpc']['datadir']}")
-            os.makedirs(specter.config["rpc"]["datadir"])
+        if not os.path.exists(specter.config["internal_node"]["datadir"]):
+            logger.info(
+                f"Creating bitcoin datadir: {specter.config['internal_node']['datadir']}"
+            )
+            os.makedirs(specter.config["internal_node"]["datadir"])
 
         logger.info(f"Writing bitcoin.conf")
         with open(
-            os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+            os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
             "w",
         ) as file:
-            file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
-            file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
+            file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
+            file.write(f'\nrpcpassword={specter.config["internal_node"]["password"]}')
             file.write(f"\nserver=1")
             file.write(f"\nlisten=1")
             file.write(f"\nproxy=127.0.0.1:9050")
@@ -160,22 +122,28 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                         "Failed to verify prunednode.today hash is in SHA265SUMS.asc"
                     )
                 logger.info(
-                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['rpc']['datadir'])}"
+                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['internal_node']['datadir'])}"
                 )
                 with zipfile.ZipFile(prunednode_file, "r") as zip_ref:
                     zip_ref.extractall(
-                        os.path.expanduser(specter.config["rpc"]["datadir"])
+                        os.path.expanduser(specter.config["internal_node"]["datadir"])
                     )
                 os.remove(prunednode_file)
                 with open(
-                    os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                    os.path.join(
+                        specter.config["internal_node"]["datadir"], "bitcoin.conf"
+                    ),
                     "a",
                 ) as file:
-                    file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
-                    file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
+                    file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
+                    file.write(
+                        f'\nrpcpassword={specter.config["internal_node"]["password"]}'
+                    )
         else:
             with open(
-                os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                os.path.join(
+                    specter.config["internal_node"]["datadir"], "bitcoin.conf"
+                ),
                 "a",
             ) as file:
                 if pruned:
@@ -187,11 +155,11 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
-            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['rpc']['datadir'])}"
+            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['internal_node']['datadir'])}"
         )
         try:
             specter.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+                datadir=os.path.expanduser(specter.config["internal_node"]["datadir"])
             )
         finally:
             specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
@@ -201,8 +169,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         success = specter.update_rpc(
             port=8332,
             autodetect=True,
-            user=specter.config["rpc"]["user"],
-            password=specter.config["rpc"]["password"],
+            user=specter.config["internal_node"]["user"],
+            password=specter.config["internal_node"]["password"],
+            need_update="true",
         )
         if not success:
             specter.update_setup_status("bitcoind", "FAILED")
@@ -210,7 +179,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         specter.check()
         specter.reset_setup("bitcoind")
     except ExtProcTimeoutException as e:
-        e.check_logfile(os.path.join(specter.config["rpc"]["datadir"], "debug.log"))
+        e.check_logfile(
+            os.path.join(specter.config["internal_node"]["datadir"], "debug.log")
+        )
         logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
         logger.error(e.get_logger_friendly())
         specter.update_setup_error("bitcoind", str(e))
