@@ -126,6 +126,9 @@ class Specter:
                 "protocol": "http",  # https for the future
                 "external_node": True,
             },
+            "internal_node": {
+                "datadir": os.path.join(self.data_folder, ".bitcoin"),
+            },
             "auth": {
                 "method": "none",
                 "password_min_chars": 6,
@@ -195,7 +198,11 @@ class Specter:
                 (
                     conf
                     for conf in detect_rpc_confs(
-                        datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                        datadir=os.path.expanduser(
+                            self.config["rpc"]["datadir"]
+                            if self.config["rpc"].get("external_node", True)
+                            else self.config["internal_node"]["datadir"]
+                        )
                     )
                     if conf["port"] == 8332
                 ),
@@ -217,13 +224,13 @@ class Specter:
         if not self.config["rpc"].get("external_node", True):
             try:
                 self.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(self.config["rpc"]["datadir"]),
+                    datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
                     timeout=15,  # At the initial startup, we don't wait on bitcoind
                 )
             except ExtProcTimeoutException as e:
                 logger.error(e)
                 e.check_logfile(
-                    os.path.join(self.config["rpc"]["datadir"], "debug.log")
+                    os.path.join(self.config["internal_node"]["datadir"], "debug.log")
                 )
                 logger.error(e.get_logger_friendly())
             except SpecterError as e:
@@ -276,8 +283,11 @@ class Specter:
         # update rpc if something doesn't work
         rpc = self.rpc
         if rpc is None or not rpc.test_connection():
+            rpcconf = self.config["rpc"]
+            if not self.config["rpc"].get("external_node", True):
+                rpcconf["datadir"] = self.config["internal_node"]["datadir"]
             rpc = get_rpc(
-                self.config["rpc"],
+                rpcconf,
                 self.rpc,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -454,7 +464,11 @@ class Specter:
     @property
     def bitcoin_datadir(self):
         if "datadir" in self.config["rpc"]:
-            return os.path.expanduser(self.config["rpc"]["datadir"])
+            if self.config["rpc"].get("external_node", True):
+                return os.path.expanduser(self.config["rpc"]["datadir"])
+            else:
+                if "datadir" in self.config["internal_node"]:
+                    return os.path.expanduser(self.config["internal_node"]["datadir"])
         return get_default_datadir()
 
     def abortrescanutxo(self):

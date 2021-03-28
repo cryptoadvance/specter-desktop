@@ -47,13 +47,15 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         specter.config["rpc"]["user"] = "bitcoin"
         specter.config["rpc"]["password"] = secrets.token_urlsafe(16)
         specter._save()
-        if not os.path.exists(specter.config["rpc"]["datadir"]):
-            logger.info(f"Creating bitcoin datadir: {specter.config['rpc']['datadir']}")
-            os.makedirs(specter.config["rpc"]["datadir"])
+        if not os.path.exists(specter.config["internal_node"]["datadir"]):
+            logger.info(
+                f"Creating bitcoin datadir: {specter.config['internal_node']['datadir']}"
+            )
+            os.makedirs(specter.config["internal_node"]["datadir"])
 
         logger.info(f"Writing bitcoin.conf")
         with open(
-            os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+            os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
             "w",
         ) as file:
             file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
@@ -123,22 +125,26 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                         "Failed to verify prunednode.today hash is in SHA265SUMS.asc"
                     )
                 logger.info(
-                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['rpc']['datadir'])}"
+                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['internal_node']['datadir'])}"
                 )
                 with zipfile.ZipFile(prunednode_file, "r") as zip_ref:
                     zip_ref.extractall(
-                        os.path.expanduser(specter.config["rpc"]["datadir"])
+                        os.path.expanduser(specter.config["internal_node"]["datadir"])
                     )
                 os.remove(prunednode_file)
                 with open(
-                    os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                    os.path.join(
+                        specter.config["internal_node"]["datadir"], "bitcoin.conf"
+                    ),
                     "a",
                 ) as file:
                     file.write(f'\nrpcuser={specter.config["rpc"]["user"]}')
                     file.write(f'\nrpcpassword={specter.config["rpc"]["password"]}')
         else:
             with open(
-                os.path.join(specter.config["rpc"]["datadir"], "bitcoin.conf"),
+                os.path.join(
+                    specter.config["internal_node"]["datadir"], "bitcoin.conf"
+                ),
                 "a",
             ) as file:
                 if pruned:
@@ -150,11 +156,11 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
-            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['rpc']['datadir'])}"
+            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['internal_node']['datadir'])}"
         )
         try:
             specter.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(specter.config["rpc"]["datadir"])
+                datadir=os.path.expanduser(specter.config["internal_node"]["datadir"])
             )
         finally:
             specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
@@ -173,7 +179,9 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         specter.check()
         specter.reset_setup("bitcoind")
     except ExtProcTimeoutException as e:
-        e.check_logfile(os.path.join(specter.config["rpc"]["datadir"], "debug.log"))
+        e.check_logfile(
+            os.path.join(specter.config["internal_node"]["datadir"], "debug.log")
+        )
         logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
         logger.error(e.get_logger_friendly())
         specter.update_setup_error("bitcoind", str(e))

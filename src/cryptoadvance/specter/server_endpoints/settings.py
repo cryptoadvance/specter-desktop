@@ -146,17 +146,35 @@ def bitcoin_core():
             node_view = "internal"
             try:
                 app.specter.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
+                    datadir=os.path.expanduser(
+                        app.specter.config["internal_node"]["datadir"]
+                    )
                 )
             except ExtProcTimeoutException as e:
                 e.check_logfile(
-                    os.path.join(app.specter.config["rpc"]["datadir"], "debug.log")
+                    os.path.join(
+                        app.specter.config["internal_node"]["datadir"], "debug.log"
+                    )
                 )
                 raise e
             finally:
                 app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
             time.sleep(15)
             flash("Specter has started Bitcoin Core")
+        elif action == "uninstall_bitcoind":
+            try:
+                if app.specter.is_bitcoind_running():
+                    app.specter.bitcoind.stop_bitcoind()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
+                if request.form.get("remove_datadir", False):
+                    shutil.rmtree(
+                        os.path.expanduser(
+                            app.specter.config["internal_node"]["datadir"]
+                        )
+                    )
+                flash(f"Bitcoin Core uninstalled successfully")
+            except Exception as e:
+                flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
 
     app.specter.check()
 
