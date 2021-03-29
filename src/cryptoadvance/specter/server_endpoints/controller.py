@@ -106,6 +106,8 @@ def selfcheck():
     """check status before every request"""
     if app.specter.rpc is not None:
         type(app.specter.rpc).counter = 0
+        if not app.specter.chain:
+            app.specter.check()
     if app.config.get("LOGIN_DISABLED"):
         app.login("admin")
 
