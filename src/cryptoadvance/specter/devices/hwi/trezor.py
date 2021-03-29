@@ -29,7 +29,7 @@ from hwilib.errors import (
     common_err_msgs,
     handle_errors,
 )
-from hwilib.devices.trezorlib.client import TrezorClient as Trezor
+from hwilib.devices.trezorlib.client import TrezorClient as Trezor, PASSPHRASE_ON_DEVICE
 from hwilib.devices.trezorlib.debuglink import TrezorClientDebugLink
 from hwilib.devices.trezorlib.exceptions import Cancelled, TrezorFailure
 from hwilib.devices.trezorlib.transport import (
@@ -258,7 +258,9 @@ class PassphraseUI:
     def disallow_passphrase(self) -> None:
         self.return_passphrase = False
 
-    def get_passphrase(self, available_on_device: bool) -> str:
+    def get_passphrase(self, available_on_device: bool) -> object:
+        if available_on_device:
+            return PASSPHRASE_ON_DEVICE
         if self.return_passphrase:
             return self.passphrase
         raise ValueError("Passphrase from Host is not allowed for Trezor T")

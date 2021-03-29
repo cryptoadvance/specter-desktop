@@ -106,6 +106,11 @@ class WalletManager:
                 t.start()
             else:
                 self._update(data_folder, rpc, chain)
+        else:
+            self.is_loading = False
+            logging.info(
+                "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
+            )
 
     def _update(self, data_folder=None, rpc=None, chain=None):
         # list of wallets in the dict

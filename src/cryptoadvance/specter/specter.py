@@ -9,6 +9,7 @@ import zipfile
 import platform
 import secrets
 import requests
+import signal
 from io import BytesIO
 from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
@@ -28,7 +29,9 @@ from .util.tor import get_tor_daemon_suffix
 import threading
 from urllib.parse import urlparse
 from stem.control import Controller
-from .specter_error import SpecterError
+from .specter_error import SpecterError, ExtProcTimeoutException
+from sys import exit
+from .util.setup_states import SETUP_STATES
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +126,15 @@ class Specter:
                 "protocol": "http",  # https for the future
                 "external_node": True,
             },
+            "internal_node": {
+                "autodetect": True,
+                "datadir": os.path.join(self.data_folder, ".bitcoin"),
+                "user": "bitcoin",
+                "password": secrets.token_urlsafe(16),
+                "host": "localhost",  # localhost
+                "protocol": "http",  # https for the future
+                "port": 8332,
+            },
             "auth": {
                 "method": "none",
                 "password_min_chars": 6,
@@ -139,7 +151,7 @@ class Specter:
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
-            "tor_status": False,
+            "tor_status": False,  # Should start Tor hidden service on startup?
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
@@ -155,12 +167,6 @@ class Specter:
             "fee_estimator_custom_url": "",
             "bitcoind": False,
             "bitcoind_internal_version": "",
-            "bitcoind_setup": {
-                "stage_progress": -1,
-            },
-            "torbrowser_setup": {
-                "stage_progress": -1,
-            },
         }
 
         self.torbrowser_path = os.path.join(
@@ -176,6 +182,20 @@ class Specter:
 
         self._bitcoind = None
         self._tor_daemon = None
+
+        self.node_status = None
+        self.setup_status = {
+            "bitcoind": {
+                "stage_progress": -1,
+                "stage": "",
+                "error": "",
+            },
+            "torbrowser": {
+                "stage_progress": -1,
+                "stage": "",
+                "error": "",
+            },
+        }
         # health check: loads config, tests rpc
         # also loads and checks wallets for all users
         try:
@@ -184,31 +204,42 @@ class Specter:
                 (
                     conf
                     for conf in detect_rpc_confs(
-                        datadir=os.path.expanduser(self.config["rpc"]["datadir"])
+                        datadir=os.path.expanduser(
+                            self.config["rpc"]["datadir"]
+                            if self.config["rpc"].get("external_node", True)
+                            else self.config["internal_node"]["datadir"]
+                        )
                     )
                     if conf["port"] == 8332
                 ),
                 None,
             )
-            if not rpc_conf:
-                if not self.config["rpc"]["user"]:
-                    self.config["rpc"]["user"] = "bitcoin"
-                    self._save()
-                if not self.config["rpc"]["password"]:
-                    self.config["rpc"]["password"] = secrets.token_urlsafe(16)
-                    self._save()
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
-
-            if not self.config["rpc"].get("external_node", True):
-                self.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(self.config["rpc"]["datadir"])
-                )
-                self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
-                time.sleep(15)
         except Exception as e:
             logger.error(e)
+
+        if not self.config["rpc"].get("external_node", True):
+            try:
+                self.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
+                    timeout=15,  # At the initial startup, we don't wait on bitcoind
+                )
+            except ExtProcTimeoutException as e:
+                logger.error(e)
+                e.check_logfile(
+                    os.path.join(self.config["internal_node"]["datadir"], "debug.log")
+                )
+                logger.error(e.get_logger_friendly())
+            except SpecterError as e:
+                logger.error(e)
+                # Likely files of bitcoind were not found. Maybe deleted by the user?
+            finally:
+                try:
+                    self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                except Exception as e:
+                    logger.error(e)
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
@@ -217,6 +248,24 @@ class Specter:
         )
         if self.price_check and self.price_provider:
             self.price_checker.start()
+
+        # This is for CTRL-C --> SIGINT
+        signal.signal(signal.SIGINT, self.cleanup_on_exit)
+        # This is for kill $pid --> SIGTERM
+        signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+
+    def cleanup_on_exit(self, signum=0, frame=0):
+        if self._tor_daemon:
+            logger.info("Specter exit cleanup: Stopping Tor daemon")
+            self._tor_daemon.stop_tor_daemon()
+
+        if self._bitcoind:
+            logger.info("Specter exit cleanup: Stopping bitcoind")
+            self._bitcoind.stop_bitcoind()
+
+        logger.info("Closing Specter after cleanup")
+        # For some reason we need to explicitely exit here. Otherwise it will hang
+        exit(0)
 
     def check(self, user=None, check_all=False):
         """
@@ -234,15 +283,17 @@ class Specter:
         rpc = self.rpc
         if rpc is None or not rpc.test_connection():
             rpc = get_rpc(
-                self.config["rpc"],
+                self.rpc_conf,
                 self.rpc,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
             )
 
+        self.check_node_info()
+
         # if rpc is not available
         # do checks more often, once in 20 seconds
-        if rpc is None:
+        if rpc is None or self.info.get("initialblockdownload", True):
             period = 20
         else:
             period = 600
@@ -250,7 +301,6 @@ class Specter:
             self.checker.period = period
         self.rpc = rpc
 
-        self.check_node_info()
         if not check_all:
             # find proper user
             user = self.user_manager.get_user(user)
@@ -258,6 +308,14 @@ class Specter:
         else:
             for u in self.user_manager.users:
                 self.check_for_user(u)
+
+    @property
+    def rpc_conf(self):
+        return (
+            self.config["rpc"]
+            if self.config["rpc"].get("external_node", True)
+            else self.config["internal_node"]
+        )
 
     def check_node_info(self):
         self._is_configured = self.rpc is not None
@@ -411,7 +469,11 @@ class Specter:
     @property
     def bitcoin_datadir(self):
         if "datadir" in self.config["rpc"]:
-            return os.path.expanduser(self.config["rpc"]["datadir"])
+            if self.config["rpc"].get("external_node", True):
+                return os.path.expanduser(self.config["rpc"]["datadir"])
+            else:
+                if "datadir" in self.config["internal_node"]:
+                    return os.path.expanduser(self.config["internal_node"]["datadir"])
         return get_default_datadir()
 
     def abortrescanutxo(self):
@@ -494,14 +556,18 @@ class Specter:
         return os.path.join(self.data_folder, "config.json")
 
     def update_rpc(self, **kwargs):
-        need_update = False
+        need_update = kwargs.get("need_update", False)
         for k in kwargs:
-            if self.config["rpc"][k] != kwargs[k]:
-                self.config["rpc"][k] = kwargs[k]
+            if k != "need_update" and self.rpc_conf[k] != kwargs[k]:
+                self.config[
+                    "rpc"
+                    if self.config["rpc"].get("external_node", True)
+                    else "internal_node"
+                ][k] = kwargs[k]
                 need_update = True
         if need_update:
             self.rpc = get_rpc(
-                self.config["rpc"],
+                self.rpc_conf,
                 None,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -515,6 +581,39 @@ class Specter:
         if self.config.get("bitcoind", False) != pid:
             self.config["bitcoind"] = pid
             self._save()
+
+    def update_setup_status(self, software_name, stage):
+        self.setup_status[software_name]["error"] = ""
+        if stage in SETUP_STATES:
+            self.setup_status[software_name]["stage"] = SETUP_STATES[stage].get(
+                software_name, stage
+            )
+        else:
+            self.setup_status[software_name]["stage"] = stage
+        self.setup_status[software_name]["stage_progress"] = 0
+
+    def update_setup_download_progress(self, software_name, progress):
+        self.setup_status[software_name]["error"] = ""
+        self.setup_status[software_name]["stage_progress"] = progress
+
+    def update_setup_error(self, software_name, error):
+        self.setup_status[software_name]["error"] = error
+        self.setup_status[software_name]["stage_progress"] = -1
+
+    def reset_setup(self, software_name):
+        self.setup_status[software_name]["error"] = ""
+        self.setup_status[software_name]["stage"] = "stage"
+        self.setup_status[software_name]["stage_progress"] = -1
+
+    def get_setup_status(self, software_name):
+        if software_name == "bitcoind":
+            installed = os.path.isfile(self.bitcoind_path)
+        elif software_name == "torbrowser":
+            installed = os.path.isfile(self.torbrowser_path)
+        else:
+            installed = False
+
+        return {"installed": installed, **self.setup_status[software_name]}
 
     def update_use_external_node(self, use_external_node):
         """ set whatever specter should connect to internal or external node """
@@ -646,8 +745,8 @@ class Specter:
                     bitcoind_path=self.bitcoind_path,
                     rpcport=8332,
                     network="mainnet",
-                    rpcuser=self.config["rpc"]["user"],
-                    rpcpassword=self.config["rpc"]["password"],
+                    rpcuser=self.config["internal_node"]["user"],
+                    rpcpassword=self.config["internal_node"]["password"],
                 )
             return self._bitcoind
         raise SpecterError(

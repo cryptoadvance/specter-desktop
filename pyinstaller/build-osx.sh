@@ -42,3 +42,6 @@ mv "Specter ${1:1}.dmg" release/SpecterDesktop-$1.dmg
 cd dist
 zip ../release/specterd-$1-osx.zip specterd
 cd ..
+
+sha256sum ./release/specterd-$1-osx.zip
+sha256sum ./release/SpecterDesktop-$1.dmg

@@ -3,6 +3,7 @@ import subprocess
 import platform
 import os
 import signal
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,15 @@ class TorDaemonController:
         return self.tor_daemon_proc and self.tor_daemon_proc.poll() is None
 
     def stop_tor_daemon(self):
+        timeout = 50  # in secs
         if self.tor_daemon_proc:
             if platform.system() == "Windows":
                 subprocess.run("Taskkill /IM tor.exe /F")
             self.tor_daemon_proc.terminate()
+            procs = psutil.Process().children()
+            for p in procs:
+                p.terminate()
+            _, alive = psutil.wait_procs(procs, timeout=timeout)
+            for p in alive:
+                logger.info("tor daemon did not terminated in time, killing!")
+                p.kill()

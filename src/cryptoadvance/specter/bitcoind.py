@@ -17,6 +17,9 @@ from .util.shell import which
 from .rpc import RpcError
 from .rpc import BitcoinRPC
 from .helpers import load_jsons
+from .specter_error import ExtProcTimeoutException
+from urllib3.exceptions import NewConnectionError, MaxRetryError
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +55,13 @@ class Btcd_conn:
         rpc.getblockchaininfo()
         return rpc
 
-    def render_url(self):
+    def render_url(self, password_mask=False):
+        if password_mask == True:
+            password = "xxxxxx"
+        else:
+            password = self.rpcpassword
         return "http://{}:{}@{}:{}/wallet/".format(
-            self.rpcuser, self.rpcpassword, self.ipaddress, self.rpcport
+            self.rpcuser, password, self.ipaddress, self.rpcport
         )
 
     def as_data(self):
@@ -116,9 +123,18 @@ class BitcoindController:
             extra_args=extra_args,
         )
 
-        self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
+        try:
+            self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
+            self.status = "Running"
+        except ExtProcTimeoutException as e:
+            self.status = "Starting up"
+            raise e
+        except Exception as e:
+            self.status = "Error"
+            raise e
         if self.network == "regtest":
             self.mine(block_count=100)
+
         return self.rpcconn
 
     def version(self):
@@ -170,21 +186,34 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn):
+    def check_bitcoind(rpcconn, raise_exception=False):
         """ returns true if bitcoind is running on that address/port """
+        if raise_exception:
+            rpcconn.get_rpc()  # that call will also check the connection
+            return True
         try:
             rpcconn.get_rpc()  # that call will also check the connection
             return True
-        except ConnectionRefusedError as e:
+        except RpcError as e:
+            # E.g. "Loading Index ..." #ToDo: check it here
+            return False
+        except ConnectionError as e:
+            return False
+        except MaxRetryError as e:
             return False
         except TypeError as e:
             return False
+        except NewConnectionError as e:
+            return False
         except Exception as e:
-            print(f"couldn't reach bitcoind - message returned: {e}")
+            # We should avoid this:
+            # If you see it in the logs, catch that new exception above
+            logger.error("Unexpected Exception, THIS SHOULD NOT HAPPEN " + str(type(e)))
+            logger.debug(f"could not reach bitcoind - message returned: {e}")
             return False
 
     @staticmethod
-    def wait_for_bitcoind(rpcconn, timeout=60):
+    def wait_for_bitcoind(rpcconn, timeout=15):
         """ tries to reach the bitcoind via rpc. Timeout after n seconds """
         i = 0
         while True:
@@ -192,12 +221,17 @@ class BitcoindController:
                 break
             time.sleep(0.5)
             i = i + 1
+            if i % 10 == 0:
+                logger.info(f"Timeout reached in {timeout - i/2} seconds")
             if i > (2 * timeout):
-                raise Exception(
-                    "Timeout while trying to reach bitcoind at rpcport {} !".format(
-                        rpcconn
+                try:
+                    BitcoindController.check_bitcoind(rpcconn, raise_exception=True)
+                except Exception as e:
+                    raise ExtProcTimeoutException(
+                        f"Timeout while trying to reach bitcoind {rpcconn.render_url(password_mask=True)} because {e}".format(
+                            rpcconn
+                        )
                     )
-                )
 
     @staticmethod
     def render_rpc_options(rpcconn):
@@ -259,6 +293,7 @@ class BitcoindPlainController(BitcoindController):
             )
             self.bitcoind_path = bitcoind_path
             self.rpcconn.ipaddress = "localhost"
+            self.status = "Down"
         except Exception as e:
             logger.exception(
                 f"Failed to instantiate BitcoindPlainController. Error: {e}"
@@ -290,7 +325,7 @@ class BitcoindPlainController(BitcoindController):
         )
 
         if cleanup_at_exit:
-            logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")
+            logger.info("Register function cleanup_bitcoind for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, self.cleanup_bitcoind)
@@ -306,31 +341,40 @@ class BitcoindPlainController(BitcoindController):
             )
             shutil.rmtree(datadir, ignore_errors=True)
         else:
-            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-            logger.info(
-                f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-            )
-            # self.bitcoind_proc.wait() # doesn't have a timeout
-            procs = psutil.Process().children()
-            for p in procs:
-                p.terminate()
-            _, alive = psutil.wait_procs(procs, timeout=timeout)
-            for p in alive:
-                logger.info("bitcoind did not terminated in time, killing!")
-                p.kill()
+            try:
+                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+                logger.info(
+                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+                )
+                # self.bitcoind_proc.wait() # doesn't have a timeout
+                procs = psutil.Process().children()
+                for p in procs:
+                    p.terminate()
+                _, alive = psutil.wait_procs(procs, timeout=timeout)
+                for p in alive:
+                    logger.info("bitcoind did not terminated in time, killing!")
+                    p.kill()
+            except ProcessLookupError:
+                # Bitcoind probably never came up or crashed. Silently ignored
+                pass
+
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
 
     def stop_bitcoind(self):
         self.cleanup_bitcoind()
+        self.status = "Down"
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if if a
         bitcoind is running on the default port.
         """
         if not self.check_bitcoind(self.rpcconn):
+            if self.status == "Running":
+                self.status = "Down"
             return None
         else:
+            self.status = "Running"
             return True
 
 

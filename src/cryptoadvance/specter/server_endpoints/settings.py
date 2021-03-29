@@ -25,7 +25,8 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
-from ..specter_error import handle_exception
+from ..util.shell import get_last_lines_from_file
+from ..specter_error import handle_exception, ExtProcTimeoutException
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -40,6 +41,19 @@ def settings():
         return redirect(url_for("settings_endpoint.bitcoin_core"))
     else:
         return redirect(url_for("settings_endpoint.general"))
+
+
+@settings_endpoint.route("/bitcoin_core/internal_logs", methods=["GET"])
+@login_required
+def bitcoin_core_internal_logs():
+    logfile_location = os.path.join(
+        app.specter.config["internal_node"]["datadir"], "debug.log"
+    )
+    return render_template(
+        "settings/bitcoin_core_internal_logs.jinja",
+        specter=app.specter,
+        loglines="".join(get_last_lines_from_file(logfile_location)),
+    )
 
 
 @settings_endpoint.route("/bitcoin_core", methods=["GET", "POST"])
@@ -144,12 +158,37 @@ def bitcoin_core():
                     flash(f"Failed to stop Bitcoin Core {e}", "error")
         elif action == "startbitcoind":
             node_view = "internal"
-            app.specter.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(app.specter.config["rpc"]["datadir"])
-            )
-            app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+            try:
+                app.specter.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(
+                        app.specter.config["internal_node"]["datadir"]
+                    )
+                )
+            except ExtProcTimeoutException as e:
+                e.check_logfile(
+                    os.path.join(
+                        app.specter.config["internal_node"]["datadir"], "debug.log"
+                    )
+                )
+                raise e
+            finally:
+                app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
             time.sleep(15)
             flash("Specter has started Bitcoin Core")
+        elif action == "uninstall_bitcoind":
+            try:
+                if app.specter.is_bitcoind_running():
+                    app.specter.bitcoind.stop_bitcoind()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
+                if bool(request.form.get("remove_datadir", False)):
+                    shutil.rmtree(
+                        os.path.expanduser(
+                            app.specter.config["internal_node"]["datadir"]
+                        )
+                    )
+                flash(f"Bitcoin Core uninstalled successfully")
+            except Exception as e:
+                flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
 
     app.specter.check()
 
@@ -310,9 +349,7 @@ def tor():
     if not current_user.is_admin:
         flash("Only an admin is allowed to access this page.", "error")
         return redirect("")
-    app.specter.config["torbrowser_setup"]["stage"] = ""
-    app.specter.config["torbrowser_setup"]["stage_progress"] = -1
-    app.specter._save()
+    app.specter.reset_setup("torbrowser")
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
@@ -413,7 +450,7 @@ def tor():
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
         torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),
-        torbrowser_running=app.specter.is_tor_dameon_running,
+        torbrowser_running=app.specter.is_tor_dameon_running(),
         specter=app.specter,
         current_version=current_version,
         rand=rand,

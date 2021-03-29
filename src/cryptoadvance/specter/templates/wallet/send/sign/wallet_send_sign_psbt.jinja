@@ -136,7 +136,7 @@
 								<address-label data-address="{{ address }}" data-wallet="{{ wallet_alias }}"></address-label>
 								<br>
 							{% endif %}
-							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
+							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -149,7 +149,7 @@
 						<b>Address:</b>
 						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
 						<br>
-						<b>Amount:</b> {{ output['value'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
+						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
@@ -170,7 +170,7 @@
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
 			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
 			{% for device in wallet.devices %}
-				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.alias in psbt["devices_signed"] else '' }}>
+				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style=background-color:#303c49;' if device.alias in psbt["devices_signed"] else '' }}>
 					{{ device.name }} {% if device.alias in psbt['devices_signed'] %} (&#10004;) {% endif %}
 				</button>
 			{% endfor %}
