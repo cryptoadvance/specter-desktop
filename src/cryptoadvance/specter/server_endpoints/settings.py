@@ -25,6 +25,7 @@ from ..persistence import write_devices, write_wallet
 from ..user import hash_password
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
+from ..util.shell import get_last_lines_from_file
 from ..specter_error import handle_exception, ExtProcTimeoutException
 
 rand = random.randint(0, 1e32)  # to force style refresh
@@ -40,6 +41,19 @@ def settings():
         return redirect(url_for("settings_endpoint.bitcoin_core"))
     else:
         return redirect(url_for("settings_endpoint.general"))
+
+
+@settings_endpoint.route("/bitcoin_core/internal_logs", methods=["GET"])
+@login_required
+def bitcoin_core_internal_logs():
+    logfile_location = os.path.join(
+        app.specter.config["internal_node"]["datadir"], "debug.log"
+    )
+    return render_template(
+        "settings/bitcoin_core_internal_logs.jinja",
+        specter=app.specter,
+        loglines="".join(get_last_lines_from_file(logfile_location)),
+    )
 
 
 @settings_endpoint.route("/bitcoin_core", methods=["GET", "POST"])

@@ -3,13 +3,7 @@ from datetime import datetime
 from binascii import unhexlify
 from flask import make_response
 
-from flask import (
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-)
+from flask import render_template, request, redirect, url_for, flash, Markup
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
@@ -99,8 +93,11 @@ def server_error_timeout(e):
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    flash("Bitcoin Core node is starting up, please refresh in a few seconds")
-    return redirect(url_for("settings_endpoint.bitcoin_core"))
+    flash(
+        "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below",
+        "warn",
+    )
+    return redirect(url_for("settings_endpoint.bitcoin_core_internal_logs"))
 
 
 ########## on every request ###############
@@ -109,6 +106,8 @@ def selfcheck():
     """check status before every request"""
     if app.specter.rpc is not None:
         type(app.specter.rpc).counter = 0
+        if not app.specter.chain:
+            app.specter.check()
     if app.config.get("LOGIN_DISABLED"):
         app.login("admin")
 

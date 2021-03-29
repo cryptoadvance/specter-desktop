@@ -357,7 +357,6 @@
                     let stage = result.stage;
                     let progress = parseFloat(result.stage_progress);
                     if (progress == -1) {
-                        showNotification('Finished successfully');
                         showStep(++currentStep);
                         document.getElementById('stage-progress-details').classList.add('hidden');
                         document.getElementById('show-progress-details').classList.add('hidden');

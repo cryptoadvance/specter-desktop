@@ -341,18 +341,23 @@ class BitcoindPlainController(BitcoindController):
             )
             shutil.rmtree(datadir, ignore_errors=True)
         else:
-            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-            logger.info(
-                f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-            )
-            # self.bitcoind_proc.wait() # doesn't have a timeout
-            procs = psutil.Process().children()
-            for p in procs:
-                p.terminate()
-            _, alive = psutil.wait_procs(procs, timeout=timeout)
-            for p in alive:
-                logger.info("bitcoind did not terminated in time, killing!")
-                p.kill()
+            try:
+                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+                logger.info(
+                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+                )
+                # self.bitcoind_proc.wait() # doesn't have a timeout
+                procs = psutil.Process().children()
+                for p in procs:
+                    p.terminate()
+                _, alive = psutil.wait_procs(procs, timeout=timeout)
+                for p in alive:
+                    logger.info("bitcoind did not terminated in time, killing!")
+                    p.kill()
+            except ProcessLookupError:
+                # Bitcoind probably never came up or crashed. Silently ignored
+                pass
+
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
 

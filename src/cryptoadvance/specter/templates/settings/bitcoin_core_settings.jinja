@@ -6,6 +6,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
 		{{ settings_menu('bitcoin_core', current_user) }}
 		<nav class="row">
 			<button type="button" id="external_node_view_btn" class="btn radio left checked" onclick="setNodeTypeView('external')"> Existing Node </button>
@@ -32,11 +33,15 @@
 						<b>(Warning: QuickSync will override any existing data of your Bitcoin Node!)</b>
 						</p>
 					{% endif %}
+					<br><br>
 				{% else %}
 					<p>Please switch node type to start the built in node.</p>
 				{% endif %}
 				<br><br>
 				<div class="card">
+					<h1>Debug</h1>
+					<a class="btn centered" href="{{url_for('settings_endpoint.bitcoin_core_internal_logs')}}">See Bitcoind Logs</a>
+					<br><br>
 					<h1>Danger Zone</h1>
 					<button type="submit" name="action" value="uninstall_bitcoind" class="btn danger centered">Unistall Bitcoin Core</button>
 					<br>
