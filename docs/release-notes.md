@@ -1,4 +1,4 @@
-## v1.3.0 März X, 2021
+## v1.3.0 März 29, 2021
 - Bugfix: bump embit version, add secp binary #1031 (Stepan Snigirev)
 - Bugfix: consolidations issue #1034 (benk10)
 - Bugfix: Default bitcoind timeout to 60s for all platforms #1044 (kdmukai)
