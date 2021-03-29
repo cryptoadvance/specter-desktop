@@ -6,10 +6,12 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
 		{{ settings_menu('bitcoin_core', current_user) }}
 		<nav class="row">
 			<button type="button" id="external_node_view_btn" class="btn radio left checked" onclick="setNodeTypeView('external')"> Existing Node </button>
-			<button type="button" id="internal_node_view_btn" class="btn radio right" onclick="setNodeTypeView('internal')"> Built In Node </button>
+			<button type="button" id="internal_node_view_btn" class="btn radio" onclick="setNodeTypeView('internal')"> Built In Node </button>
+			{{ settings_menu_item('bitcoin_core_internal_logs', 'Bitcoind Logs', False, isRight=True) }}
 		</nav>
 
 		<div id="internal_node_setup_view" class="card" style="margin: 20px auto 120px; text-align: center;">
