@@ -1,4 +1,4 @@
-## v1.3.0 März 29, 2021
+## v1.3.0 March 29, 2021
 - Bugfix: bump embit version, add secp binary #1031 (Stepan Snigirev)
 - Bugfix: consolidations issue #1034 (benk10)
 - Bugfix: Default bitcoind timeout to 60s for all platforms #1044 (kdmukai)
@@ -45,7 +45,7 @@
 - UIUX: Timeout management and other improvements #1057 (Kim Neunert)
 - UIUX: Only tor quicksync warning #1054 (Kim Neunert)
 
-## v1.2.0 Februar 20, 2021
+## v1.2.0 February 20, 2021
 - Bugfix: a minor bug that always shows address as used #927 (jleo84)
 - Bugfix: cypress-tests #961 (Kim Neunert)
 - Bugfix: Fix key initial format in wallet info #925 (benk10)
@@ -61,7 +61,7 @@
 - UIUX: pass result of createpsbt call back to calculateEstimatedFee #945 (djpnewton)
 - UIUX: Preserve form status when creating a transaction #938 (djpnewton)
 
-## v1.1.0 Januar 30, 2021
+## v1.1.0 January 30, 2021
 - Bugfix: #784 URL encode to prevent breaking characters on RPC connection #866 (Maxi Dev)
 - Bugfix:  #829 - font size and horizontal alignment #900 (Patrick)
 - Bugfix: Check whether tx address contains list before enumerating it #855 (Ondrej Calda)
@@ -99,7 +99,7 @@
 - UIUX: Keep slashes and parentheses in tx labels #861 (Ondrej Calda)
 - UIUX: Make `Add Keys` more obvious #884 (Franck Royer)
 
-## v0.11.0-pre1 Dezember 21, 2020
+## v0.11.0-pre1 December 21, 2020
 - Feature: Tor settings and tor_only mode #765 (benk10)
 - Feature: adding automatic ssl-creation #789 (Kim Neunert)
 - Feature: Export CSV data functionality for all table-data with optional historical price data  #758 (benk10)
