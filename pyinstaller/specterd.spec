@@ -13,8 +13,8 @@ binaries = []
 if platform.system() == 'Windows':
     binaries = [("./windll/libusb-1.0.dll", ".")]
     packaged_software_datas = [
-        ('./torbrowser/tor-win64-0.4.5.7.zip', 'torbrowser',)
-        ('./bitcoind/bitcoin-0.21.0-win64.zip', 'bitcoind',)
+        ('./torbrowser/tor-win64-0.4.5.7.zip', 'torbrowser'),
+        ('./bitcoind/bitcoin-0.21.0-win64.zip', 'bitcoind'),
     ]
 elif platform.system() == 'Linux':
     if platform.processor() == 'aarch64': #ARM 64 bit
