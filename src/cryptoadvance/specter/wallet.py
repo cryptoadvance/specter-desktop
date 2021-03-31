@@ -1,6 +1,6 @@
 import copy, hashlib, json, logging, os, re
 import time
-from .device import Device
+from .devices.device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes

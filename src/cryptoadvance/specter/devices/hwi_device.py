@@ -1,4 +1,4 @@
-from ..device import Device
+from .device import Device
 import hwilib.commands as hwi_commands
 import importlib
 

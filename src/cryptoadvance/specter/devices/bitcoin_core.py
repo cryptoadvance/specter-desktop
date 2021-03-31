@@ -1,7 +1,7 @@
 import os
 import shutil
 from embit import bip39, bip32, networks
-from ..device import Device
+from .device import Device
 from ..helpers import alias
 from ..util.descriptor import AddChecksum
 from ..util.base58 import encode_base58_checksum, decode_base58

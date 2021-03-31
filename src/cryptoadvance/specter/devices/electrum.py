@@ -1,7 +1,7 @@
 from binascii import a2b_base64
 from ..util.base43 import b43_encode
 from typing import List
-from ..device import Device
+from .device import Device
 
 
 class Electrum(Device):

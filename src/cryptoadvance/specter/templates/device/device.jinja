@@ -58,27 +58,13 @@
 	<div style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
+			{{ device.render("multi_add_keys") | safe}}
 		</form>
 		<br>
-		{% if device.hwi_support %}
-			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">Sign message on device</button>
-			<div id="message-signing" class="hidden" style="text-align: left;">
-				Derivation path:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
-				Message:<br>
-				<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
-				<span id="signature-label" class="hidden">Message signature:</span>
-				<p style="word-break: break-all; margin-top: 5px;" id="signature" title="Copy message signature" class="explorer-link" onclick="copyText(this.innerText, 'Copied message signature')">
-				</p>
-				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
-			</div>
-		{% endif %}
-		<br>
-		{% if device.supports_hwi_toggle_passphrase %}
-			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
-			<br>
-		{% endif %}
-		{{ device.render("button_toggle_password")}}
+
+		{{ device.render("multi_sign_message") | safe}}
+		
+		{{ device.render("button_toggle_password") | safe}}
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">Forget the device</button>

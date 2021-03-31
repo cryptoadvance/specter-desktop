@@ -9,6 +9,7 @@ from .cobo import Cobo
 from .generic import GenericDevice
 from .electrum import Electrum
 from .bitcoin_core import BitcoinCore
+from .renderer import DeviceRenderer
 
 # all device types
 __all__ = [

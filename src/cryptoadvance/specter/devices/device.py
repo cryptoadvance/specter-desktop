@@ -1,8 +1,8 @@
 import json
-from .key import Key
-from .persistence import read_json_file, write_json_file
+from ..key import Key
+from ..persistence import read_json_file, write_json_file
 import logging
-from .helpers import is_testnet
+from ..helpers import is_testnet
 
 logger = logging.getLogger()
 
@@ -35,26 +35,31 @@ class Device:
         self.renderer = self.get_renderer()
 
     def get_renderer(self):
+        classname = self.__class__.__name__
         renderer_package = (
-            "cryptoadvance.specter.devices.renderer." + self.__class__.name + "Renderer"
+            "cryptoadvance.specter.devices.renderer." + classname + "Renderer"
         )
         components = renderer_package.split(".")
         mod = __import__(components[0])
         try:
             for comp in components[1:]:
                 mod = getattr(mod, comp)
-            return mod
+            logger.debug(f"Returning Renderer {mod} for {classname}")
+            return mod(self)
         except AttributeError:
+            logger.warn(
+                f"Couldn't find renderer for {classname}, tried {renderer_package}"
+            )
             # ToDo: make a more sophisticated Lookup-mechanism
             renderer_package = "cryptoadvance.specter.devices.renderer.DeviceRenderer"
             components = renderer_package.split(".")
             mod = __import__(components[0])
             for comp in components[1:]:
+                print(mod)
                 mod = getattr(mod, comp)
             return mod(self)
 
     def render(self, name):
-        print(self.renderer)
         return self.renderer.render(name)
 
     def create_psbts(self, base64_psbt, wallet):
