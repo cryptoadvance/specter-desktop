@@ -32,6 +32,30 @@ class Device:
         self.keys = keys
         self.fullpath = fullpath
         self.manager = manager
+        self.renderer = self.get_renderer()
+
+    def get_renderer(self):
+        renderer_package = (
+            "cryptoadvance.specter.devices.renderer." + self.__class__.name + "Renderer"
+        )
+        components = renderer_package.split(".")
+        mod = __import__(components[0])
+        try:
+            for comp in components[1:]:
+                mod = getattr(mod, comp)
+            return mod
+        except AttributeError:
+            # ToDo: make a more sophisticated Lookup-mechanism
+            renderer_package = "cryptoadvance.specter.devices.renderer.DeviceRenderer"
+            components = renderer_package.split(".")
+            mod = __import__(components[0])
+            for comp in components[1:]:
+                mod = getattr(mod, comp)
+            return mod(self)
+
+    def render(self, name):
+        print(self.renderer)
+        return self.renderer.render(name)
 
     def create_psbts(self, base64_psbt, wallet):
         """

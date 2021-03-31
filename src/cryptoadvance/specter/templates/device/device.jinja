@@ -78,6 +78,7 @@
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>
 			<br>
 		{% endif %}
+		{{ device.render("button_toggle_password")}}
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">Forget the device</button>
