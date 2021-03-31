@@ -176,7 +176,7 @@
                 <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
                 {% if current_user.is_admin %}
                 <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('settings_endpoint.bitcoin_core') }}">
-                    <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 13px;"/>Configure Node
+                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">Configure Node
                 </a>
                 {% endif %}
                 </p>

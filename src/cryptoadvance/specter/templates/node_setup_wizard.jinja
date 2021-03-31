@@ -32,7 +32,7 @@
         </div>
     </div>
     <div class="card center hidden" id="step1">
-        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
+        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
         <br>Setup Tor daemon</h1>
         <h2 style="color: #ccc;">(optional, recommended)</h2>
         <p class="hidden warning" id="step1-helper-text">Here, Specter will set up and start your Tor daemon to allow you to make calls over the Tor network.</p>
@@ -47,7 +47,7 @@
         </div>
     </div>
     <div class="card center hidden" id="step2">
-        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Would you like to setup a new Bitcoin node or connect to an existing one?</h1>
         <p class="hidden warning" id="step2-helper-text">If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.<br><br>
         Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!</p>
@@ -62,7 +62,7 @@
         </div>
     </div>
     <div class="card center hidden" id="step3">
-        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Setup Bitcoin Core</h1>
         <p class="hidden warning" id="step3-helper-text">Here, Specter will set up and prepare basic configurations of your new Bitcoin Core node.</p>
         <div class="row center">
@@ -85,7 +85,7 @@
         </div>
     </div>
     <div class="card center hidden" id="step4">
-        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+        <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
         <br>Configure your node</h1>
         <p>QuickSync?&nbsp;&nbsp;
             <label class="switch">

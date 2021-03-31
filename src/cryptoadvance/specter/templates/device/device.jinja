@@ -38,7 +38,7 @@
 						<td>{{ key.purpose }}</td>
 						<td class="optional">{{ key.derivation }}</td>
 						<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
-							<img style="margin-top: 5px;" width="15" src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/>
+							<img style="margin-top: 5px; width: 40px;" src="{{ url_for('static', filename='img/qr-code.svg') }}" class="svg-white"/>
 						</td>
 						<td class="xpub scroll optional">
 							<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
@@ -90,11 +90,7 @@
 			{% for wallet in wallets %}
 				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
-						{% if wallet.is_multisig %}
-							<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
-						{% else %}
-							<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
-						{% endif %}
+						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" style="width: 120px;">
 						{{ wallet.name }}
 					</div>
 				</a>
@@ -102,12 +98,11 @@
 		</div>
 	{% endif %}
 	<div class="hidden" id="new_device_popup">
-	<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
 	<h1>New device was added successfully!</h1>
 	<div class="row overflow">
 		<a href="{{ url_for('devices_endpoint.new_device') }}" style="text-decoration: none;">
 			<div class="small-card radio">
-				<img src="{{ url_for('static', filename='img/plus_icon.svg') }}" width="18px">
+				<img src="{{ url_for('static', filename='img/plus.svg') }}" class="svg-white" style="transform: scale(1.5);">
 				Add another device
 			</div>
 		</a>
@@ -117,7 +112,7 @@
 			<input type="hidden" name="action" value="preselected_device" />
 			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
 				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/simple_icon.svg') }}" width="18px">
+					<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;">
 					Create single key wallet
 				</div>
 			</button>
@@ -125,7 +120,7 @@
 		{% if specter.device_manager.devices | length > 1 %}
 			<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
 				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/multisig_icon.svg') }}" width="18px">
+					<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;">
 					Create multisignature wallet
 				</div>
 			</a>

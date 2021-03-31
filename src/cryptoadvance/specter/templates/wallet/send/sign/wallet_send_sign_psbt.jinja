@@ -156,13 +156,22 @@
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
-					<img src="{{url_for('static', filename='img/download.svg')}}"/> Save binary</a>&nbsp;
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Save binary
+					</a>&nbsp;
 					<a id="download-psbt-btn" class="btn"
 					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
-					<img src="{{url_for('static', filename='img/download.svg')}}"/> Save base64</a>&nbsp;
-					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Save base64
+					</a>&nbsp;
+					<a id="copy-raw-psbt-btn" class="btn">
+						<img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Copy Raw PSBT
+					</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
-					<img src="{{url_for('static', filename='img/qr_tiny.svg')}}"/> Show QR code</a>
+						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Show QR code
+					</a>
 				</div>
 			</div>
 		</div>

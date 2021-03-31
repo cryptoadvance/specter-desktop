@@ -128,7 +128,8 @@
 				<div class="row">
 					<input type="text" id="address_${i}" name="address_${i}" oninput="validateForm()" value="${addr}"> &nbsp;
 					<qr-scanner id="address-scan-${i}" style="margin-top: 3px;">
-						<a slot="button" class="btn" style="height: 35px;"><img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"/> Scan</a>
+						<a slot="button" class="btn" style="height: 35px;">
+						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Scan</a>
 					</qr-scanner>
 				</div>
 				<br>
