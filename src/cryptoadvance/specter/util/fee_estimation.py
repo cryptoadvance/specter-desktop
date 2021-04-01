@@ -49,12 +49,16 @@ def get_fees(specter, config):
             )  # Falling back to Bitcoin Core
 
     return {
-        "fastestFee": int((float(specter.estimatesmartfee(1)["feerate"]) / 1000) * 1e8),
-        "halfHourFee": int(
-            (float(specter.estimatesmartfee(3)["feerate"]) / 1000) * 1e8
+        "fastestFee": int(
+            (float(specter.estimatesmartfee(1).get("feerate", 0.00001)) / 1000) * 1e8
         ),
-        "hourFee": int((float(specter.estimatesmartfee(6)["feerate"]) / 1000) * 1e8),
+        "halfHourFee": int(
+            (float(specter.estimatesmartfee(3).get("feerate", 0.00001)) / 1000) * 1e8
+        ),
+        "hourFee": int(
+            (float(specter.estimatesmartfee(6).get("feerate", 0.00001)) / 1000) * 1e8
+        ),
         "minimumFee": int(
-            (float(specter.estimatesmartfee(20)["feerate"]) / 1000) * 1e8
+            (float(specter.estimatesmartfee(20).get("feerate", 0.00001)) / 1000) * 1e8
         ),
     }
