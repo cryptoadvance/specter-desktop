@@ -1067,6 +1067,15 @@ def decoderawtx(wallet_alias):
 
             if tx["confirmations"] == 0:
                 tx["is_purged"] = wallet.is_tx_purged(txid)
+                try:
+                    if wallet._transactions[txid].get("category", "") == "receive":
+                        tx["fee"] = (
+                            wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
+                        )
+                except Exception as e:
+                    app.logger.warning(
+                        f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
+                    )
 
             return {
                 "success": True,
