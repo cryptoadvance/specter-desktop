@@ -178,6 +178,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             logger.info("No success connecting to Bitcoin Core")
         specter.check()
         specter.reset_setup("bitcoind")
+        app.specter.setup_status["stage"] = 5
     except ExtProcTimeoutException as e:
         e.check_logfile(
             os.path.join(specter.config["internal_node"]["datadir"], "debug.log")
