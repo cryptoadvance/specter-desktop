@@ -76,6 +76,7 @@
                 let address = jsonResponse.address;
                 let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
                 let addressInfoHTML = `
+                <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
                 <table class="address-data-table">
                 <tbody>
                 <tr><td>Address:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
