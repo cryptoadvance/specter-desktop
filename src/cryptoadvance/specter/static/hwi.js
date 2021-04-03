@@ -46,7 +46,7 @@ class HWIBridge {
     async enumerate(passphrase="", useTimeout){
         return await this.fetch("enumerate", { 
             passphrase
-        }, (useTimeout ? 5000 : 0));
+        }, (useTimeout ? 30000 : 0));
     }
     async detectDevice(type, rescan=true){
         // TODO: fingerprint, path, type
