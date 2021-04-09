@@ -148,7 +148,13 @@
         <a href="{{url_for('about')}}" class="btn wizard-btn action">Done</a>
     </div>
     <br>
-    <button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('stage-progress-details');">View Progress</button>
+    <div class="row">
+        <form method="POST" action="{{ url_for('about') }}">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">Cancel process</button>
+        </form>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('stage-progress-details');">View Progress</button>
+    </div>
     <h1 id="stage-progress-details" class="hidden" style="margin: auto;"></h1>
     <div id="override-data-folder-popup" class="hidden" style="margin: auto;">
         <p>Your Bitcoin Core data folder seems to be already used.<br>
@@ -169,6 +175,10 @@
         let torSetup = false;
         document.addEventListener("DOMContentLoaded", function(){
             showStep(currentStep);
+            if ('{{specter.setup_status.stage}}' == 4) {
+                document.getElementById('setup-bitcoind-dir-button').classList.add('hidden');
+                startProgressCheck();
+            }
         });
 
         function showStep(step) {
@@ -292,6 +302,7 @@
                         toggleAdvanced(3);
                     }
                     showPageOverlay("override-data-folder-popup");
+                    return;
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
@@ -360,6 +371,7 @@
                         showStep(++currentStep);
                         document.getElementById('stage-progress-details').classList.add('hidden');
                         document.getElementById('show-progress-details').classList.add('hidden');
+                        document.getElementById('reset-setup-process').classList.add('hidden');
                         hidePageOverlay('stage-progress-details');
                         return;
                     }
@@ -375,6 +387,7 @@
             }
             document.getElementById('stage-progress-details').classList.remove('hidden');
             document.getElementById('show-progress-details').classList.remove('hidden');
+            document.getElementById('reset-setup-process').classList.remove('hidden');
             showPageOverlay('stage-progress-details');
             document.getElementById('stage-progress-details').innerHTML = 'Starting up...';
             
