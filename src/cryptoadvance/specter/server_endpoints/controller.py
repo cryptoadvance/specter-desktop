@@ -50,10 +50,11 @@ rand = random.randint(0, 1e32)  # to force style refresh
 ########## exception handlers ##############
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
-    """ Specific EpecterErrors get passed on to the User as flash """
-    message = f"BitcoinCore RpcError: {str(rpce)}"
+    """ Specific SpecterErrors get passed on to the User as flash """
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
-        message = message + "Specter reloaded all Wallets, please try again.", "error"
+        flash("Wallet not found. Specter reloaded all Wallets, please try again.", "error")
+    else:
+        flash(f"BitcoinCore RpcError: {str(rpce)}", "error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
