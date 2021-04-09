@@ -73,7 +73,7 @@ def check_wallet(func):
 @login_required
 def wallets_overview():
     app.specter.check_blockheight()
-    for wallet in app.specter.wallet_manager.wallets.values():
+    for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.get_balance()
         wallet.check_utxo()
 
