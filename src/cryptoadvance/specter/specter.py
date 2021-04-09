@@ -127,7 +127,7 @@ class Specter:
                 "external_node": True,
             },
             "internal_node": {
-                "autodetect": True,
+                "autodetect": False,
                 "datadir": os.path.join(self.data_folder, ".bitcoin"),
                 "user": "bitcoin",
                 "password": secrets.token_urlsafe(16),
