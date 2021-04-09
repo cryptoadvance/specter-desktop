@@ -104,13 +104,13 @@ class Specter:
 
         self.data_folder = data_folder
 
+        # the rpc-object. Currently we only have one. If we have Node-Managers, we would need
+        # either many of them and register them with a keyword or something like that
         self.rpc = None
-        self.user_manager = UserManager(self)
 
-        self.file_config = None  # what comes from config file
         self.arg_config = config  # what comes from arguments
 
-        # wallet that is currently rescnning with utxorescan
+        # wallet that is currently rescanning with utxorescan
         # can be only one at a time
         self.utxorescanwallet = None
 
@@ -168,6 +168,8 @@ class Specter:
             "bitcoind": False,
             "bitcoind_internal_version": "",
         }
+
+        self.user_manager = UserManager(self)
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -305,10 +307,10 @@ class Specter:
         if not check_all:
             # find proper user
             user = self.user_manager.get_user(user)
-            self.check_for_user(user)
+            user.check()
         else:
             for u in self.user_manager.users:
-                self.check_for_user(u)
+                u.check()
 
     @property
     def rpc_conf(self):
@@ -380,42 +382,6 @@ class Specter:
             return "_" + user.id
         return ""
 
-    def check_wallet_manager(self, user=None):
-        """Updates wallet manager for a particular user"""
-        user = self.user_manager.get_user(user)
-        wallets_rpcpath = "specter%s" % self.config["uid"]
-        wallets_folder = os.path.join(self.data_folder, f"wallets{user.folder_id}")
-        # if chain, user or data folder changed
-        wallet_manager = user.wallet_manager
-        if (
-            wallet_manager is None
-            or wallet_manager.data_folder != wallets_folder
-            or wallet_manager.rpc_path != wallets_rpcpath
-            or wallet_manager.chain != self.chain
-        ):
-            wallet_manager = WalletManager(
-                self.bitcoin_core_version_raw,
-                wallets_folder,
-                self.rpc,
-                self.chain,
-                user.device_manager,
-                path=wallets_rpcpath,
-            )
-            user.wallet_manager = wallet_manager
-        else:
-            wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
-
-    def check_device_manager(self, user=None):
-        """Updates device manager for a particular user"""
-        user = self.user_manager.get_user(user)
-        devices_folder = os.path.join(self.data_folder, f"devices{user.folder_id}")
-        device_manager = user.device_manager
-        if device_manager is None:
-            device_manager = DeviceManager(devices_folder)
-            user.device_manager = device_manager
-        else:
-            device_manager.update(data_folder=devices_folder)
-
     def check_config(self):
         """
         Updates config if file config have changed.
@@ -428,9 +394,9 @@ class Specter:
         # if config.json file exists - load from it
         if os.path.isfile(self.config_fname):
             with self.lock:
-                self.file_config = read_json_file(self.config_fname)
-                migrate_config(self.file_config)
-                deep_update(self.config, self.file_config)
+                file_config = read_json_file(self.config_fname)
+                migrate_config(file_config)
+                deep_update(self.config, file_config)
             # otherwise - create one and assign unique id
         else:
             # unique id of specter
@@ -442,22 +408,6 @@ class Specter:
 
         # config from constructor overrides file config
         deep_update(self.config, self.arg_config)
-
-    def check_for_user(self, user=None):
-        """
-        Performs device and wallet manager check for particular user
-        """
-        user = self.user_manager.get_user(user)
-        self.check_device_manager(user)
-        self.check_wallet_manager(user)
-
-    def add_user(self, user):
-        if user in self.user_manager.users:
-            return
-        user.wallet_manager = None
-        user.device_manager = None
-        self.user_manager.add_user(user)
-        self.check_for_user(user)
 
     def delete_user(self, user):
         if user not in self.user_manager.users:

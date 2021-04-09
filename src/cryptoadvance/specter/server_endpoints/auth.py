@@ -132,7 +132,7 @@ def register():
             }
             password_hash = hash_password(password)
             user = User(user_id, username, password_hash, config, app.specter)
-            app.specter.add_user(user)
+            app.specter.user_manager.add_user(user)
             flash(
                 "You have registered successfully, \
 please login with your new account to start using Specter"

@@ -73,6 +73,7 @@ def migrate_config(config):
 
 
 def deep_update(d, u):
+    """updates the dict d with the dict u"""
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
         if not isinstance(dv, collections.abc.Mapping):
