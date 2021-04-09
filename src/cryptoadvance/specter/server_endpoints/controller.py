@@ -52,7 +52,9 @@ rand = random.randint(0, 1e32)  # to force style refresh
 def server_rpc_error(rpce):
     """ Specific SpecterErrors get passed on to the User as flash """
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
-        flash("Wallet not found. Specter reloaded all Wallets, please try again.", "error")
+        flash(
+            "Wallet not found. Specter reloaded all Wallets, please try again.", "error"
+        )
     else:
         flash(f"BitcoinCore RpcError: {str(rpce)}", "error")
     try:
