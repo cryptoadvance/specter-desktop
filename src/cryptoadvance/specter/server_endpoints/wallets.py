@@ -1109,6 +1109,7 @@ def get_label(wallet_alias):
             "label": label,
         }
     except Exception as e:
+        handle_exception(e)
         return {
             "success": False,
             "error": f"Exception trying to get address label: Error: {e}",
