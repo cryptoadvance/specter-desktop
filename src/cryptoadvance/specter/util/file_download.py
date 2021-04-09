@@ -1,4 +1,5 @@
 import os
+from ..specter_error import SpecterError
 
 
 def download_file(specter, url, file_path, setup_status_name, setup_status_stage):
@@ -9,6 +10,8 @@ def download_file(specter, url, file_path, setup_status_name, setup_status_stage
         old_progress = 0
         specter.update_setup_status(setup_status_name, setup_status_stage)
         for chunk in response.iter_content(chunk_size=4096):
+            if specter.setup_status["stage"] == 0:
+                raise SpecterError("File download canceled")
             downloaded += len(chunk)
             f.write(chunk)
             new_progress = int((downloaded / total_length) * 10000) / 100

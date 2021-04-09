@@ -142,10 +142,16 @@ def index():
     return redirect("about")
 
 
-@app.route("/about")
+@app.route("/about", methods=["GET", "POST"])
 @login_required
 def about():
     notify_upgrade(app, flash)
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "cancelsetup":
+            app.specter.setup_status["stage"] = 0
+            app.specter.reset_setup("bitcoind")
+            app.specter.reset_setup("torbrowser")
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
 
@@ -154,8 +160,11 @@ def about():
 @app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
 @login_required
 def node_setup_wizard(step):
-    app.specter.reset_setup("bitcoind")
-    app.specter.reset_setup("torbrowser")
+    if app.specter.setup_status["stage"] == 0:
+        app.specter.reset_setup("bitcoind")
+        app.specter.reset_setup("torbrowser")
+    if app.specter.setup_status["stage"] == 5:
+        app.specter.setup_status["stage"] = 0
 
     return render_template(
         "node_setup_wizard.jinja", step=step, specter=app.specter, rand=rand
@@ -196,6 +205,7 @@ def setup_bitcoind_directory():
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
     ):
+        app.specter.setup_status["stage"] = 4  # TODO: Structure stages with enum
         app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"
