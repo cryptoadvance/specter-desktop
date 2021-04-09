@@ -154,7 +154,7 @@
                         this.label.innerText = this.address
                     }
                 } else {
-                    showError('Failed to update address label...')
+                    showError('Failed to update address label. Please refresh the page and try again.')
                 }
             }
         
@@ -231,10 +231,10 @@
                 }
                 return;
             }
-            showError('Failed to fetch address label data.');
+            showError('Failed to fetch data. Please refresh the page and retry.');
         } catch(e) {
-            console.log("Caught error: ", e);
-            showError(e);
+            console.log("Caught error fetching address label: ", e);
+            showError('Failed to fetch data. Please refresh the page and retry.');
         }
     }
 
