@@ -74,7 +74,6 @@
 	<form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" style="margin: auto; margin-top: 0px; max-width: 96%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="tx_info">
-			
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
 					{% if specter.unit == 'sat' %}
@@ -86,8 +85,14 @@
 						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 					{% endif %}
 					to<b>
-					<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ wallet.getlabel(psbt['address'][i]) }}" data-wallet="{{ wallet_alias }}"></address-label>
-					</b><br><br>
+						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
+						<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+					</b>
+					{% if addr_label != psbt['address'][i] %}
+						<span class="note">
+							({{ psbt['address'][i] }})
+						</span>
+					{% endif %}<br><br>
 				</div>
 			{% endfor %}
 			{% if wallet.is_multisig %}
@@ -132,9 +137,15 @@
 						(Output #{{ input['vout'] }})<br>
 						{% if tx %}
 							{% if address %}
+								{% set addr_label = wallet.getlabel(address) %}
 								<b>Address:</b>
-								<address-label data-address="{{ address }}" data-wallet="{{ wallet_alias }}"></address-label>
+								{{ address }}
 								<br>
+								{% if addr_label != address %}
+									<b>Label:</b>
+									<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+									<br>
+								{% endif %}
 							{% endif %}
 							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
@@ -146,9 +157,15 @@
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
+						{% set addr_label = wallet.getlabel(output['scriptPubKey']['addresses'][0]) %}
 						<b>Address:</b>
-						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
+						{{ output['scriptPubKey']['addresses'][0] }}
 						<br>
+						{% if addr_label != output['scriptPubKey']['addresses'][0] %}
+							<b>Label:</b>
+							<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<br>
+						{% endif %}
 						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
