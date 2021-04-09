@@ -2,7 +2,8 @@ import random, traceback, socket, threading, os
 from datetime import datetime
 from binascii import unhexlify
 from flask import make_response
-
+from flask_wtf.csrf import CSRFError
+from werkzeug.exceptions import MethodNotAllowed
 from flask import render_template, request, redirect, url_for, flash, Markup
 from flask_login import login_required, current_user
 from ..helpers import (
@@ -98,6 +99,28 @@ def server_error_timeout(e):
         "warn",
     )
     return redirect(url_for("settings_endpoint.bitcoin_core_internal_logs"))
+
+
+@app.errorhandler(CSRFError)
+def server_error_csrf(e):
+    """CSRF token missing. Most likely session expired.
+    If persisting after refresh this could mean the front-end
+    is not sending the CSRF token properly in some form"""
+    app.logger.error("CSRF Exception: %s" % e)
+    trace = traceback.format_exc()
+    app.logger.error(trace)
+    flash("Session expired. Please refresh and try again.", "error")
+    return redirect(request.url)
+
+
+@app.errorhandler(MethodNotAllowed)
+def server_error_405(e):
+    """ 405 method not allowed. Token might have expired."""
+    app.logger.error("405 MethodNotAllowed Exception: %s" % e)
+    trace = traceback.format_exc()
+    app.logger.error(trace)
+    flash("Session expired. Please refresh and try again.", "error")
+    return redirect(request.url)
 
 
 ########## on every request ###############
@@ -237,7 +260,7 @@ def setup_tor():
         )
         t.start()
     elif os.path.isfile(app.specter.torbrowser_path):
-        return {"error": "Tor is already installed"}
+        return {"error": "tor is already installed"}
     elif app.specter.setup_status["torbrowser"]["stage_progress"] != -1:
         return {"error": "Tor installation is still under progress"}
     return {"success": "Starting Tor setup!"}
