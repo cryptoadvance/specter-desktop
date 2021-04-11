@@ -150,7 +150,7 @@
                         this.label.innerText = this.address
                     }
                 } else {
-                    showError('Failed to update address label...')
+                    showError('Failed to update address label. Please refresh the page and try again.')
                 }
             }
         
@@ -188,6 +188,7 @@
         self.explorerLink.style.removeProperty('text-decoration')
         if (self.explorer) {
             self.explorerLink.href = `${ self.explorer }address/${ self.address }`
+            self.explorerLink.onclick = () => {return true;}
         } else {
             self.explorerLink.onclick = () => {
                 copyText(self.address, `Copied address: ${ self.address }`);
@@ -198,11 +199,7 @@
     function disableExplorerLink(self) {
         self.explorerLink.classList.remove('explorer-link');
         self.explorerLink.style['text-decoration'] = 'none';
-        if (self.explorer) {
-            self.explorerLink.href = `javascript: void(0)`
-        } else {
-            self.explorerLink.onclick = () => {}
-        }
+        self.explorerLink.onclick = () => {return false;}
     }
         
 
@@ -228,12 +225,12 @@
                 if (jsonResponse.label) {
                     self.label.innerText = jsonResponse.label;
                 }
-                return
-            };
-            showError('Failed to fetch address label data.')
+                return;
+            }
+            showError('Failed to fetch data. Please refresh the page and retry.');
         } catch(e) {
-            console.log("Caught error: ", e);
-            showError(e);
+            console.log("Caught error fetching address label: ", e);
+            showError('Failed to fetch data. Please refresh the page and retry.');
         }
     }
 

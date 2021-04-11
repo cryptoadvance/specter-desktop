@@ -64,7 +64,8 @@
             return jsonResponse;
         } catch(e) {
             self.note.innerText = "Failed to load transaction details...";
-            showError(e);
+            console.log("Caught error fetching decoded transaction: ", e);
+            showError('Failed to fetch data. Please refresh the page and retry.');
         }
         return null;
     }

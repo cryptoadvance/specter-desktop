@@ -25,7 +25,7 @@
         }
     }
 </style>
-<a id="price-bar-btn" type="button" style="cursor: pointer;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" type="button" style="cursor: pointer; background: #4a90e2; color: #fff;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
         <span>{{ 1 | altunit}}</span>
     {% else %}
@@ -61,23 +61,43 @@
                                 Currency:
                             </td>
                             <td style="padding-bottom: 0px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline;"> 
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
-                                        <option value="usd" selected>$ (USD)</option>
-                                        <option value="eur" {% if specter.price_provider and specter.price_provider.endswith('eur') %}selected{% endif %}>€ (EUR)</option>
-                                        <option value="gbp" {% if specter.price_provider and specter.price_provider.endswith('gbp') %}selected{% endif %}>£ (GBP)</option>
+                                        <optgroup label="Fiat currencies" id="fiat_currency">
+                                            <option value="usd" selected>$ (USD)</option>
+                                            <option value="eur" {% if specter.price_provider and specter.price_provider.endswith('eur') %}selected{% endif %}>€ (EUR)</option>
+                                            <option value="gbp" {% if specter.price_provider and specter.price_provider.endswith('gbp') %}selected{% endif %}>£ (GBP)</option>
+                                            <option value="chf" {% if specter.price_provider and specter.price_provider.endswith('chf') %}selected{% endif %}>Fr. (CHF)</option>
+                                            <option value="jpy" {% if specter.price_provider and specter.price_provider.endswith('jpy') %}selected{% endif %}>¥ (JPY)</option>
+                                            <option value="aud" {% if specter.price_provider and specter.price_provider.endswith('aud') %}selected{% endif %}>$ (AUD)</option>
+                                            <option value="cad" {% if specter.price_provider and specter.price_provider.endswith('cad') %}selected{% endif %}>$ (CAD)</option>
+                                            <option value="nzd" {% if specter.price_provider and specter.price_provider.endswith('nzd') %}selected{% endif %}>$ (NZD)</option>
+                                            <option value="hkd" {% if specter.price_provider and specter.price_provider.endswith('hkd') %}selected{% endif %}>$ (HKD)</option>
+                                            <option value="rub" {% if specter.price_provider and specter.price_provider.endswith('rub') %}selected{% endif %}>₽ (RUB)</option>
+                                            <option value="ils" {% if specter.price_provider and specter.price_provider.endswith('ils') %}selected{% endif %}>₪ (NIS)</option>
+                                            <option value="jod" {% if specter.price_provider and specter.price_provider.endswith('jod') %}selected{% endif %}>د.ا (JOD)</option>
+                                            <option value="twd" {% if specter.price_provider and specter.price_provider.endswith('twd') %}selected{% endif %}>$ (TWD)</option>
+                                            <option value="brl" {% if specter.price_provider and specter.price_provider.endswith('brl') %}selected{% endif %}>BRL (BRL)</option>
+                                        </optgroup>
+                                        <optgroup label="Precious metals" id="metals_currency">
+                                            <option class="metals-price-provider" value="xau" {% if specter.price_provider and specter.price_provider.endswith('xau') %}selected{% endif %}>Gold</option>
+                                            <option class="metals-price-provider" value="xag" {% if specter.price_provider and specter.price_provider.endswith('xag') %}selected{% endif %}>Silver</option>
+                                            <option class="metals-price-provider" value="xpt" {% if specter.price_provider and specter.price_provider.endswith('xpt') %}selected{% endif %}>Platinum</option>
+                                            <option class="metals-price-provider" value="xpd" {% if specter.price_provider and specter.price_provider.endswith('xpd') %}selected{% endif %}>Palladium</option>
+                                        </optgroup>
                                     </select>
                                 </fieldset>
                             </td>
                         </tr>
                         <tr style="background: none;">
-                            <td style="padding-top: 10px; padding-bottom: 10px; padding-right: 15px; border: none; text-align: right;">
+                            <td style="padding-top: 10px; padding-bottom: 0px; padding-right: 15px; border: none; text-align: right;">
                                 <p>Provider:</p>
                             </td>
-                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline;"> 
+                            <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider" id="price_provider">
                                         <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
+                                        <option data-currency-type="usd" value="coindesk" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
                                         <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_kraken" {% if specter.price_provider == 'spotbit_kraken' %}selected{% endif %}>Spotbit Kraken (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>
@@ -96,6 +116,53 @@
                                         <option data-currency-type="gbp" value="spotbit_kraken_gbp" {% if specter.price_provider == 'spotbit_kraken_gbp' %}selected{% endif %}>Spotbit Kraken (Tor) GBP</option>
                                         <option data-currency-type="gbp" value="spotbit_bitfinex_gbp" {% if specter.price_provider == 'spotbit_bitfinex_gbp' %}selected{% endif %}>Spotbit Bitfinex (Tor) GBP</option>
                                         <option data-currency-type="gbp" value="spotbit_bitstamp_gbp" {% if specter.price_provider == 'spotbit_bitstamp_gbp' %}selected{% endif %}>Spotbit Bitstamp (Tor) GBP</option>
+                                        <option data-currency-type="chf" value="coindesk_chf" {% if specter.price_provider == 'coindesk_chf' %}selected{% endif %}>Coindesk CHF</option>
+                                        <option data-currency-type="chf" value="spotbit_coinbase_chf" {% if specter.price_provider == 'spotbit_coinbase_chf' %}selected{% endif %}>Spotbit Coinbase (Tor) CHF</option>
+                                        <option data-currency-type="chf" value="spotbit_kraken_chf" {% if specter.price_provider == 'spotbit_kraken_chf' %}selected{% endif %}>Spotbit Kraken (Tor) CHF</option>
+                                        <option data-currency-type="jpy" value="coindesk_jpy" {% if specter.price_provider == 'coindesk_jpy' %}selected{% endif %}>Coindesk JPY</option>
+                                        <option data-currency-type="jpy" value="spotbit_coinbase_jpy" {% if specter.price_provider == 'spotbit_coinbase_jpy' %}selected{% endif %}>Spotbit Coinbase (Tor) JPY</option>
+                                        <option data-currency-type="jpy" value="spotbit_kraken_jpy" {% if specter.price_provider == 'spotbit_kraken_jpy' %}selected{% endif %}>Spotbit Kraken (Tor) JPY</option>
+                                        <option data-currency-type="jpy" value="spotbit_bitfinex_jpy" {% if specter.price_provider == 'spotbit_bitfinex_jpy' %}selected{% endif %}>Spotbit Bitfinex (Tor) JPY</option>
+                                        <option data-currency-type="aud" value="coindesk_aud" {% if specter.price_provider == 'coindesk_aud' %}selected{% endif %}>Coindesk AUD</option>
+                                        <option data-currency-type="aud" value="spotbit_coinbase_aud" {% if specter.price_provider == 'spotbit_coinbase_aud' %}selected{% endif %}>Spotbit Coinbase (Tor) AUD</option>
+                                        <option data-currency-type="aud" value="spotbit_kraken_aud" {% if specter.price_provider == 'spotbit_kraken_aud' %}selected{% endif %}>Spotbit Kraken (Tor) AUD</option>
+                                        <option data-currency-type="cad" value="coindesk_cad" {% if specter.price_provider == 'coindesk_cad' %}selected{% endif %}>Coindesk CAD</option>
+                                        <option data-currency-type="cad" value="spotbit_coinbase_cad" {% if specter.price_provider == 'spotbit_coinbase_cad' %}selected{% endif %}>Spotbit Coinbase (Tor) CAD</option>
+                                        <option data-currency-type="cad" value="spotbit_kraken_cad" {% if specter.price_provider == 'spotbit_kraken_cad' %}selected{% endif %}>Spotbit Kraken (Tor) CAD</option>
+                                        <option data-currency-type="nzd" value="coindesk_nzd" {% if specter.price_provider == 'coindesk_nzd' %}selected{% endif %}>Coindesk NZD</option>
+                                        <option data-currency-type="nzd" value="spotbit_coinbase_nzd" {% if specter.price_provider == 'spotbit_coinbase_nzd' %}selected{% endif %}>Spotbit Coinbase (Tor) NZD</option>
+                                        <option data-currency-type="hkd" value="coindesk_hkd" {% if specter.price_provider == 'coindesk_hkd' %}selected{% endif %}>Coindesk HKD</option>
+                                        <option data-currency-type="hkd" value="spotbit_coinbase_hkd" {% if specter.price_provider == 'spotbit_coinbase_hkd' %}selected{% endif %}>Spotbit Coinbase (Tor) HKD</option>
+                                        <option data-currency-type="rub" value="coindesk_rub" {% if specter.price_provider == 'coindesk_rub' %}selected{% endif %}>Coindesk RUB</option>
+                                        <option data-currency-type="rub" value="spotbit_coinbase_rub" {% if specter.price_provider == 'spotbit_coinbase_rub' %}selected{% endif %}>Spotbit Coinbase (Tor) RUB</option>
+                                        <option data-currency-type="ils" value="coindesk_ils" {% if specter.price_provider == 'coindesk_ils' %}selected{% endif %}>Coindesk NIS</option>
+                                        <option data-currency-type="ils" value="spotbit_coinbase_ils" {% if specter.price_provider == 'spotbit_coinbase_ils' %}selected{% endif %}>Spotbit Coinbase (Tor) NIS</option>
+                                        <option data-currency-type="jod" value="coindesk_jod" {% if specter.price_provider == 'coindesk_jod' %}selected{% endif %}>Coindesk JOD</option>
+                                        <option data-currency-type="jod" value="spotbit_coinbase_jod" {% if specter.price_provider == 'spotbit_coinbase_jod' %}selected{% endif %}>Spotbit Coinbase (Tor) JOD</option>
+                                        <option data-currency-type="twd" value="coindesk_twd" {% if specter.price_provider == 'coindesk_twd' %}selected{% endif %}>Coindesk TWD</option>
+                                        <option data-currency-type="twd" value="spotbit_coinbase_twd" {% if specter.price_provider == 'spotbit_coinbase_twd' %}selected{% endif %}>Spotbit Coinbase (Tor) TWD</option>
+                                        <option data-currency-type="brl" value="coindesk_brl" {% if specter.price_provider == 'coindesk_brl' %}selected{% endif %}>Coindesk BRL</option>
+                                        <option data-currency-type="brl" value="spotbit_coinbase_brl" {% if specter.price_provider == 'spotbit_coinbase_brl' %}selected{% endif %}>Spotbit Coinbase (Tor) BRL</option>
+                                        <option data-currency-type="xau" value="coindesk_xau" {% if specter.price_provider == 'coindesk_xau' %}selected{% endif %}>Coindesk Gold</option>
+                                        <option data-currency-type="xau" value="spotbit_coinbase_xau" {% if specter.price_provider == 'spotbit_coinbase_xau' %}selected{% endif %}>Spotbit Coinbase (Tor) Gold</option>
+                                        <option data-currency-type="xag" value="coindesk_xag" {% if specter.price_provider == 'coindesk_xag' %}selected{% endif %}>Coindesk Silver</option>
+                                        <option data-currency-type="xag" value="spotbit_coinbase_xag" {% if specter.price_provider == 'spotbit_coinbase_xag' %}selected{% endif %}>Spotbit Coinbase (Tor) Silver</option>
+                                        <option data-currency-type="xpt" value="spotbit_coinbase_xpt" {% if specter.price_provider == 'spotbit_coinbase_xpt' %}selected{% endif %}>Spotbit Coinbase (Tor) Platinum</option>
+                                        <option data-currency-type="xpd" value="spotbit_coinbase_xpd" {% if specter.price_provider == 'spotbit_coinbase_xpd' %}selected{% endif %}>Spotbit Coinbase (Tor) Palladium</option>
+                                    </select>
+                                </fieldset>
+                            </td>
+                        </tr>
+                        <tr style="background: none;" class="hidden" id="weight_unit_row">
+                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: right;">
+                                Weight Unit:
+                            </td>
+                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
+                                <fieldset style="border:none; display: inline; width: 100%;"> 
+                                    <select name="weight_unit" id="weight_unit">
+                                        <option value="oz" {% if specter.weight_unit == 'oz' %}selected{% endif %}>Oz.</option>
+                                        <option value="gram" {% if specter.weight_unit == 'gram' %}selected{% endif %}>Gram</option>
+                                        <option value="kg" {% if specter.weight_unit == 'kg' %}selected{% endif %}>KG</option>
                                     </select>
                                 </fieldset>
                             </td>
@@ -199,6 +266,17 @@
         }
 
         function filterProviderOptions() {
+            let showUnit = false;
+            for (let metal of document.getElementById('metals_currency').children) {
+                if (metal.selected) {
+                    showUnit = true;
+                }
+            }
+            if (showUnit) {
+                document.getElementById('weight_unit_row').classList.remove('hidden');
+            } else {
+                document.getElementById('weight_unit_row').classList.add('hidden');
+            }
             for (let provider of document.getElementById('price_provider').options) {
                 if (provider.getAttribute('data-currency-type') == document.getElementById('price_provider_currency').value) {
                     provider.disabled = false;

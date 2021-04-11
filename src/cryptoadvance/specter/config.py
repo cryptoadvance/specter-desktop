@@ -38,6 +38,13 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    # Logging
+    # SPECTER_LOGFILE will get created dynamically in server.py
+    # using:
+    SPECTER_LOGFORMAT = os.getenv(
+        "SPECTER_LOGFORMAT", "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
+
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
@@ -66,6 +73,31 @@ class BaseConfig(object):
     SPECTER_SSL_CERT_SERIAL_NUMBER = int(
         os.getenv("SPECTER_SSL_CERT_SERIAL_NUMBER", random.randrange(1, 100000))
     )
+    INTERNAL_BITCOIND_VERSION = os.getenv("INTERNAL_BITCOIND_VERSION", "0.21.0")
+
+    # Block explorers URLs
+    EXPLORERS_LIST = {
+        "MEMPOOL_SPACE": {
+            "name": "Mempool.space",
+            "url": "https://mempool.space/",
+        },
+        "MEMPOOL_SPACE_ONION": {
+            "name": "Mempool.space Tor hidden service",
+            "url": "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/",
+        },
+        "BLOCKSTREAM_INFO": {
+            "name": "Blockstream.info",
+            "url": "https://blockstream.info/",
+        },
+        "BLOCKSTREAM_INFO_ONION": {
+            "name": "Blockstream.info Tor hidden service",
+            "url": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/",
+        },
+        "CUSTOM": {
+            "name": "Custom",
+            "url": "",
+        },
+    }
 
 
 class DevelopmentConfig(BaseConfig):

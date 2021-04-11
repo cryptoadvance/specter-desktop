@@ -1,24 +1,25 @@
-import random, traceback, socket
+import random, traceback, socket, threading, os
 from datetime import datetime
 from binascii import unhexlify
 from flask import make_response
-
-from flask import (
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-)
+from flask_wtf.csrf import CSRFError
+from werkzeug.exceptions import MethodNotAllowed
+from flask import render_template, request, redirect, url_for, flash, Markup
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
     notify_upgrade,
 )
 from ..specter import Specter
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, ExtProcTimeoutException
 from ..util.tor import start_hidden_service, stop_hidden_services
-
+from ..util.bitcoind_setup_tasks import (
+    setup_bitcoind_thread,
+    setup_bitcoind_directory_thread,
+)
+from ..util.tor_setup_tasks import (
+    setup_tor_thread,
+)
 from pathlib import Path
 
 env_path = Path(".") / ".flaskenv"
@@ -37,6 +38,7 @@ from .devices import devices_endpoint
 from .price import price_endpoint
 from .settings import settings_endpoint
 from .wallets import wallets_endpoint
+from ..rpc import RpcError
 
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
@@ -46,9 +48,34 @@ app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
-########## exception handler ##############
+########## exception handlers ##############
+@app.errorhandler(RpcError)
+def server_rpc_error(rpce):
+    """ Specific EpecterErrors get passed on to the User as flash """
+    message = f"BitcoinCore RpcError: {str(se)}"
+    if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
+        message = message + "Specter reloaded all Wallets, please try again.", "error"
+    try:
+        app.specter.wallet_manager.update()
+    except SpecterError as se:
+        flash(str(se), "error")
+    return redirect(url_for("about"))
+
+
+@app.errorhandler(SpecterError)
+def server_specter_error(se):
+    """ Specific EpecterErrors get passed on to the User as flash """
+    flash(str(se), "error")
+    try:
+        app.specter.wallet_manager.update()
+    except SpecterError as se:
+        flash(str(se), "error")
+    return redirect(url_for("about"))
+
+
 @app.errorhandler(Exception)
 def server_error(e):
+    """ Unspecific Exceptions get a 500 Error-Page """
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
@@ -59,12 +86,51 @@ def server_error(e):
     return render_template("500.jinja", error=e, traceback=trace), 500
 
 
+@app.errorhandler(ExtProcTimeoutException)
+def server_error_timeout(e):
+    """ Unspecific Exceptions get a 500 Error-Page """
+    # if rpc is not available
+    if app.specter.rpc is None or not app.specter.rpc.test_connection():
+        # make sure specter knows that rpc is not there
+        app.specter.check()
+    app.logger.error("ExternalProcessTimeoutException: %s" % e)
+    flash(
+        "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below",
+        "warn",
+    )
+    return redirect(url_for("settings_endpoint.bitcoin_core_internal_logs"))
+
+
+@app.errorhandler(CSRFError)
+def server_error_csrf(e):
+    """CSRF token missing. Most likely session expired.
+    If persisting after refresh this could mean the front-end
+    is not sending the CSRF token properly in some form"""
+    app.logger.error("CSRF Exception: %s" % e)
+    trace = traceback.format_exc()
+    app.logger.error(trace)
+    flash("Session expired. Please refresh and try again.", "error")
+    return redirect(request.url)
+
+
+@app.errorhandler(MethodNotAllowed)
+def server_error_405(e):
+    """ 405 method not allowed. Token might have expired."""
+    app.logger.error("405 MethodNotAllowed Exception: %s" % e)
+    trace = traceback.format_exc()
+    app.logger.error(trace)
+    flash("Session expired. Please refresh and try again.", "error")
+    return redirect(request.url)
+
+
 ########## on every request ###############
 @app.before_request
 def selfcheck():
     """check status before every request"""
     if app.specter.rpc is not None:
         type(app.specter.rpc).counter = 0
+        if not app.specter.chain:
+            app.specter.check()
     if app.config.get("LOGIN_DISABLED"):
         app.login("admin")
 
@@ -80,8 +146,13 @@ def inject_debug():
 @app.route("/")
 @login_required
 def index():
+    if request.args.get("mode"):
+        if request.args.get("mode") == "remote":
+            pass
     notify_upgrade(app, flash)
     if len(app.specter.wallet_manager.wallets) > 0:
+        if len(app.specter.wallet_manager.wallets) > 1:
+            return redirect(url_for("wallets_endpoint.wallets_overview"))
         return redirect(
             url_for(
                 "wallets_endpoint.wallet",
@@ -94,17 +165,139 @@ def index():
     return redirect("about")
 
 
-@app.route("/about")
+@app.route("/about", methods=["GET", "POST"])
 @login_required
 def about():
     notify_upgrade(app, flash)
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "cancelsetup":
+            app.specter.setup_status["stage"] = 0
+            app.specter.reset_setup("bitcoind")
+            app.specter.reset_setup("torbrowser")
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
+
+
+@app.route("/node_setup_wizard/", defaults={"step": 0}, methods=["GET", "POST"])
+@app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
+@login_required
+def node_setup_wizard(step):
+    if app.specter.setup_status["stage"] == 0:
+        app.specter.reset_setup("bitcoind")
+        app.specter.reset_setup("torbrowser")
+    if app.specter.setup_status["stage"] == 5:
+        app.specter.setup_status["stage"] = 0
+
+    return render_template(
+        "node_setup_wizard.jinja", step=step, specter=app.specter, rand=rand
+    )
+
+
+@app.route("/setup_bitcoind", methods=["POST"])
+@login_required
+def setup_bitcoind():
+    app.specter.config["internal_node"]["datadir"] = request.form.get(
+        "bitcoin_core_datadir", app.specter.config["internal_node"]["datadir"]
+    )
+    app.specter._save()
+    if os.path.exists(app.specter.config["internal_node"]["datadir"]):
+        if request.form["override_data_folder"] != "true":
+            return {"error": "data folder already exists"}
+    if (
+        not os.path.isfile(app.specter.bitcoind_path)
+        and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
+    ):
+        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
+        t = threading.Thread(
+            target=setup_bitcoind_thread,
+            args=(app.specter, app.config["INTERNAL_BITCOIND_VERSION"]),
+        )
+        t.start()
+    elif os.path.isfile(app.specter.bitcoind_path):
+        return {"error": "bitcoind already installed"}
+    elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
+        return {"error": "bitcoind installation is still under progress"}
+    return {"success": "Starting Bitcoin Core setup!"}
+
+
+@app.route("/setup_bitcoind_directory", methods=["POST"])
+@login_required
+def setup_bitcoind_directory():
+    if (
+        os.path.isfile(app.specter.bitcoind_path)
+        and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
+    ):
+        app.specter.setup_status["stage"] = 4  # TODO: Structure stages with enum
+        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
+        quicksync = request.form["quicksync"] == "true"
+        pruned = request.form["nodetype"] == "pruned"
+        t = threading.Thread(
+            target=setup_bitcoind_directory_thread,
+            args=(app.specter, quicksync, pruned),
+        )
+        t.start()
+    elif not os.path.isfile(app.specter.bitcoind_path):
+        return {"error": "bitcoind in not installed but required for this step"}
+    elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
+        return {"error": "bitcoind installation is still under progress"}
+    return {"success": "Starting Bitcoin Core setup!"}
+
+
+@app.route("/setup_tor", methods=["POST"])
+@login_required
+def setup_tor():
+    if (
+        not os.path.isfile(app.specter.torbrowser_path)
+        and app.specter.setup_status["torbrowser"]["stage_progress"] == -1
+    ):
+        app.specter.setup_status["torbrowser"]["stage_progress"] = 0
+        app.specter.setup_status["torbrowser"]["error"] = ""
+        app.specter._save()
+        t = threading.Thread(
+            target=setup_tor_thread,
+            args=(app.specter,),
+        )
+        t.start()
+    elif os.path.isfile(app.specter.torbrowser_path):
+        return {"error": "tor is already installed"}
+    elif app.specter.setup_status["torbrowser"]["stage_progress"] != -1:
+        return {"error": "Tor installation is still under progress"}
+    return {"success": "Starting Tor setup!"}
+
+
+@app.route("/get_node_setup_status")
+@login_required
+@app.csrf.exempt
+def get_node_setup_status():
+    return app.specter.get_setup_status("bitcoind")
+
+
+@app.route("/get_tor_setup_status")
+@login_required
+@app.csrf.exempt
+def get_tor_setup_status():
+    return app.specter.get_setup_status("torbrowser")
 
 
 # TODO: Move all these below to REST API
 
 ################ Utils ####################
+
+
+@app.route("/wallets_loading/", methods=["GET", "POST"])
+@login_required
+def wallets_loading():
+    return {
+        "is_loading": app.specter.wallet_manager.is_loading,
+        "loaded_wallets": [
+            app.specter.wallet_manager.wallets[wallet].alias
+            for wallet in app.specter.wallet_manager.wallets
+        ],
+        "failed_load_wallets": [
+            wallet["alias"] for wallet in app.specter.wallet_manager.failed_load_wallets
+        ],
+    }
 
 
 @app.route("/generatemnemonic/", methods=["GET", "POST"])
@@ -117,8 +310,7 @@ def generatemnemonic():
 @app.route("/get_fee/<blocks>")
 @login_required
 def fees(blocks):
-    res = app.specter.estimatesmartfee(int(blocks))
-    return res
+    return app.specter.estimatesmartfee(int(blocks))
 
 
 @app.route("/get_txout_set_info")

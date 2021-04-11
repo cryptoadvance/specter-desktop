@@ -19,6 +19,7 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
         bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
@@ -93,6 +94,7 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         bitcoind_controller.rpcconn.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -187,6 +189,7 @@ def test_wallet_sortedmulti(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -241,6 +244,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -301,6 +305,7 @@ def test_wallet_change_addresses(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
+        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")

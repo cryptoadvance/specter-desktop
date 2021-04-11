@@ -38,7 +38,7 @@ class UserManager:
                 }
             ]
         # convert to User instances
-        self.users = [User.from_json(u) for u in users]
+        self.users = [User.from_json(u, self.specter) for u in users]
         if not os.path.isfile(self.users_file):
             self.save()
 

@@ -28,6 +28,7 @@ function check_consistency {
   fi
   $(npm bin)/cypress verify
 }
+
 check_consistency
 
 function sub_default {

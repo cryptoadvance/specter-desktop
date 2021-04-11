@@ -1,4 +1,4 @@
-import os, json, logging, shutil, time, zipfile
+import os, json, logging, shutil, threading
 from io import BytesIO
 from collections import OrderedDict
 from .util.descriptor import AddChecksum
@@ -43,6 +43,7 @@ class WalletManager:
         chain,
         device_manager,
         path="specter",
+        allow_threading=True,
     ):
         self.data_folder = data_folder
         self.chain = chain
@@ -51,8 +52,10 @@ class WalletManager:
         self.device_manager = device_manager
         self.is_loading = False
         self.wallets = {}
+        self.wallets_update_list = []
         self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
+        self.allow_threading = allow_threading
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):
@@ -75,81 +78,125 @@ class WalletManager:
             os.mkdir(self.working_folder)
         if rpc is not None:
             self.rpc = rpc
+        self.wallets_update_list = {}
+        if self.working_folder is not None and self.rpc is not None:
+            wallets_files = load_jsons(self.working_folder, key="name")
+            for wallet in wallets_files:
+                wallet_name = wallets_files[wallet]["name"]
+                self.wallets_update_list[wallet_name] = wallets_files[wallet]
+                self.wallets_update_list[wallet_name]["is_multisig"] = (
+                    len(wallets_files[wallet]["keys"]) > 1
+                )
+                self.wallets_update_list[wallet_name]["keys_count"] = len(
+                    wallets_files[wallet]["keys"]
+                )
+            # remove irrelevant wallets
+            for k in list(self.wallets.keys()):
+                if k not in self.wallets_update_list:
+                    self.wallets.pop(k)
+            if self.allow_threading:
+                t = threading.Thread(
+                    target=self._update,
+                    args=(
+                        data_folder,
+                        rpc,
+                        chain,
+                    ),
+                )
+                t.start()
+            else:
+                self._update(data_folder, rpc, chain)
+        else:
+            self.is_loading = False
+            logging.info(
+                "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
+            )
 
-        wallets = {}
+    def _update(self, data_folder=None, rpc=None, chain=None):
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
-        keep_wallets = []
         self.failed_load_wallets = []
         try:
-            if self.working_folder is not None and self.rpc is not None:
-                wallets_files = load_jsons(self.working_folder, key="name")
+            if self.wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
-                for wallet in wallets_files:
-                    wallet_alias = wallets_files[wallet]["alias"]
-                    wallet_name = wallets_files[wallet]["name"]
+                logger.debug("Getting loaded wallets list from Bitcoin Core")
+                for wallet in self.wallets_update_list:
+                    wallet_alias = self.wallets_update_list[wallet]["alias"]
+                    wallet_name = self.wallets_update_list[wallet]["name"]
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
-                            logger.debug("loading %s " % wallets_files[wallet]["alias"])
+                            logger.debug(
+                                "Loading %s to Bitcoin Core"
+                                % self.wallets_update_list[wallet]["alias"]
+                            )
                             self.rpc.loadwallet(
                                 os.path.join(self.rpc_path, wallet_alias)
                             )
-                            loaded_wallet = Wallet.from_json(
-                                wallets_files[wallet], self.device_manager, self
+                            logger.debug(
+                                "Initializing %s Wallet object"
+                                % self.wallets_update_list[wallet]["alias"]
                             )
-                            if loaded_wallet:
-                                wallets[wallet_name] = loaded_wallet
-                            else:
+                            loaded_wallet = Wallet.from_json(
+                                self.wallets_update_list[wallet],
+                                self.device_manager,
+                                self,
+                            )
+                            if not loaded_wallet:
                                 raise Exception("Failed to load wallet")
                             # Lock UTXO of pending PSBTs
-                            if len(wallets[wallet_name].pending_psbts) > 0:
-                                for psbt in wallets[wallet_name].pending_psbts:
+                            logger.debug(
+                                "Re-locking UTXOs of wallet %s"
+                                % self.wallets_update_list[wallet]["alias"]
+                            )
+                            if len(loaded_wallet.pending_psbts) > 0:
+                                for psbt in loaded_wallet.pending_psbts:
                                     logger.debug(
                                         "lock %s " % wallet_alias,
-                                        wallets[wallet_name].pending_psbts[psbt]["tx"][
-                                            "vin"
-                                        ],
+                                        loaded_wallet.pending_psbts[psbt]["tx"]["vin"],
                                     )
-                                    wallets[wallet_name].rpc.lockunspent(
+                                    loaded_wallet.rpc.lockunspent(
                                         False,
                                         [
                                             utxo
-                                            for utxo in wallets[
-                                                wallet_name
-                                            ].pending_psbts[psbt]["tx"]["vin"]
+                                            for utxo in loaded_wallet.pending_psbts[
+                                                psbt
+                                            ]["tx"]["vin"]
                                         ],
                                     )
-                            if len(wallets[wallet_name].frozen_utxo) > 0:
-                                wallets[wallet_name].rpc.lockunspent(
+                            if len(loaded_wallet.frozen_utxo) > 0:
+                                loaded_wallet.rpc.lockunspent(
                                     False,
                                     [
                                         {
                                             "txid": utxo.split(":")[0],
                                             "vout": int(utxo.split(":")[1]),
                                         }
-                                        for utxo in wallets[wallet_name].frozen_utxo
+                                        for utxo in loaded_wallet.frozen_utxo
                                     ],
                                 )
+                            self.wallets[wallet_name] = loaded_wallet
+                            logger.debug(
+                                "Finished loading wallet into Bitcoin Core and Specter: %s"
+                                % self.wallets_update_list[wallet]["alias"]
+                            )
                         except RpcError as e:
                             logger.warning(
-                                f"Couldn't load wallet {wallet_alias} into core.\
-Silently ignored! RPC error: {e}"
+                                f"Couldn't load wallet {wallet_alias} into core. Silently ignored! RPC error: {e}"
                             )
                             self.failed_load_wallets.append(
                                 {
-                                    **wallets_files[wallet],
+                                    **self.wallets_update_list[wallet],
                                     "loading_error": str(e).replace("'", ""),
                                 }
                             )
                         except Exception as e:
                             logger.warning(
-                                f"Couldn't load wallet {wallet_alias}.\
-Silently ignored! Wallet error: {e}"
+                                f"Couldn't load wallet {wallet_alias}. Silently ignored! Wallet error: {e}"
                             )
                             self.failed_load_wallets.append(
                                 {
-                                    **wallets_files[wallet],
+                                    **self.wallets_update_list[wallet],
                                     "loading_error": str(e).replace("'", ""),
                                 }
                             )
@@ -158,11 +205,21 @@ Silently ignored! Wallet error: {e}"
                             # ok wallet is already there
                             # we only need to update
                             try:
+                                logger.debug(
+                                    "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
+                                    % self.wallets_update_list[wallet]["alias"]
+                                )
                                 loaded_wallet = Wallet.from_json(
-                                    wallets_files[wallet], self.device_manager, self
+                                    self.wallets_update_list[wallet],
+                                    self.device_manager,
+                                    self,
                                 )
                                 if loaded_wallet:
-                                    wallets[wallet_name] = loaded_wallet
+                                    self.wallets[wallet_name] = loaded_wallet
+                                    logger.debug(
+                                        "Finished loading wallet into Specter: %s"
+                                        % self.wallets_update_list[wallet]["alias"]
+                                    )
                                 else:
                                     raise Exception("Failed to load wallet")
                             except Exception as e:
@@ -172,26 +229,27 @@ Silently ignored! Wallet error: {e}"
                                 logger.warning(traceback.format_exc())
                                 self.failed_load_wallets.append(
                                     {
-                                        **wallets_files[wallet],
+                                        **self.wallets_update_list[wallet],
                                         "loading_error": str(e).replace("'", ""),
                                     }
                                 )
                         else:
                             # wallet is loaded and should stay
-                            keep_wallets.append(wallet_name)
+                            logger.debug(
+                                "Wallet already in Specter, updating wallet: %s"
+                                % self.wallets_update_list[wallet]["alias"]
+                            )
+                            self.wallets[wallet_name].update()
+                            logger.debug(
+                                "Finished updating wallet:  %s"
+                                % self.wallets_update_list[wallet]["alias"]
+                            )
                             # TODO: check wallet file didn't change
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        # add new wallets
-        for k in wallets:
-            self.wallets[k] = wallets[k]
-        # remove irrelevant wallets
-        for k in existing_names:
-            if k in keep_wallets:
-                self.wallets[k].update()
-            else:
-                self.wallets.pop(k)
+        logger.debug("Done updating wallet manager")
+        self.wallets_update_list = {}
         self.is_loading = False
 
     def get_by_alias(self, alias):

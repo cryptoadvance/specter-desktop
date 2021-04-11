@@ -10,9 +10,9 @@ import time
 import pytest
 import docker
 from cryptoadvance.specter.bitcoind import (
-    BitcoindDockerController,
     BitcoindPlainController,
 )
+from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
 from cryptoadvance.specter.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
@@ -48,6 +48,8 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
+        from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
+
         bitcoind_controller = BitcoindDockerController(
             rpcport=rpcport, docker_tag=requested_version
         )

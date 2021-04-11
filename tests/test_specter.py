@@ -110,6 +110,7 @@ def test_abandon_purged_tx(
         rpc,
         "regtest",
         device_manager,
+        allow_threading=False,
     )
 
     # Create a new device that can sign psbts (Bitcoin Core hot wallet)

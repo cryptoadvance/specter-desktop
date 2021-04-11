@@ -77,7 +77,7 @@
 					Rescan blockchain from block: <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
 					{% if specter.info['pruned']  %}
 						<span class="warning" style="display: inline-block; max-width:300px;">
-							&#9432;<br>You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}
 						</span>
 					{% endif %}
 					<div class="note center" style="margin-top: 5px; line-height: 2;">In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.</div>
@@ -94,9 +94,9 @@
 						<div id="utxo-explorer">
 							<br>
 							Block explorer URL:
-							<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+							{% include "components/explorer_select.jinja" %}
 							<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							&#9432;<br>Careful with block explorers!<br>
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Careful with block explorers!<br>
 							This may have privacy implication!<br>
 							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
 							"They" will know what transactions you are interested in.

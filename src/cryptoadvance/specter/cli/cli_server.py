@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from ..server import create_app, init_app
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,7 @@ def cli():
     help="By default SSL encryption will not be used. Use -ssl to create a self-signed certificate for SSL encryption. You can also specify encryption via --cert and --key.",
 )
 @click.option("--debug/--no-debug", default=None)
+@click.option("--filelog/--no-filelog", default=True)
 @click.option("--tor", is_flag=True)
 @click.option(
     "--hwibridge",
@@ -97,6 +99,7 @@ def server(
     key,
     ssl,
     debug,
+    filelog,
     tor,
     hwibridge,
     specter_data_folder,
@@ -133,6 +136,16 @@ def server(
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
+
+    if filelog:
+        # again logging: Creating a logfile in SPECTER_DATA_FOLDER (which needs to exist)
+        app.config["SPECTER_LOGFILE"] = os.path.join(
+            app.specter.data_folder, "specter.log"
+        )
+        fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+        formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
+        fh.setFormatter(formatter)
+        logging.getLogger().addHandler(fh)
 
     # This stuff here is deprecated
     # When we remove it, we should imho keep the pid_file thing which can be very useful!
@@ -198,18 +211,6 @@ def server(
     # debug is false by default
     def run(debug=debug):
         try:
-            tor_control_address = urlparse(app.specter.proxy_url).netloc.split(":")[0]
-            if tor_control_address == "localhost":
-                tor_control_address = "127.0.0.1"
-            app.controller = Controller.from_port(
-                address=tor_control_address,
-                port=int(app.specter.tor_control_port)
-                if app.specter.tor_control_port
-                else "default",
-            )
-        except Exception:
-            app.controller = None
-        try:
             # if we have certificates
             if "ssl_context" in kwargs:
                 tor_port = 443
@@ -245,8 +246,12 @@ def server(
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:
-            if app.controller is not None:
-                app.controller.close()
+            try:
+                if app.specter.tor_controller is not None:
+                    app.specter.tor_controller.close()
+            except SpecterError as se:
+                # no reason to break startup here
+                logger.error("Could not initialize tor-system")
 
     # check if we should run a daemon or not
     if daemon or restart:

@@ -24,7 +24,8 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-    document.getElementById('export_wallet_file').href = 'data:text/json,' + encodeURIComponent('{{ wallet.account_map|safe }}');
+    let accountMap = encodeURIComponent(`{{ wallet.account_map|tojson }}`)
+    document.getElementById('export_wallet_file').href = "data:text/json;charset=utf-8," + accountMap.substring(3, accountMap.length - 3);
 });
 document.addEventListener("DOMContentLoaded", function(){
     document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');

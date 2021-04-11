@@ -17,7 +17,7 @@ def test_home(caplog, client):
     assert b"Add Device" in result.data
     result = client.get("/settings", follow_redirects=True)
     assert result.status_code == 200  # OK.
-    assert b"settings - Specter Desktop" in result.data
+    assert b"Settings" in result.data
     result = client.get("/wallets/new_wallet", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"Select the type of the wallet" in result.data
@@ -62,8 +62,11 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
         "/settings/general",
         data=dict(
             action="restore",
-            explorer="",
+            explorer="CUSTOM",
+            custom_explorer="",
             unit="btc",
+            fee_estimator="mempool",
+            fee_estimator_custom_url="",
             loglevel="debug",
             restoredevices=restore_devices,
             restorewallets=restore_wallets,

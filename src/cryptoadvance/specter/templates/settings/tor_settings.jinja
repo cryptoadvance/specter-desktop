@@ -2,7 +2,7 @@
 {% block main %}
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<h1 id="title" class="settings-title">Tor settings - Specter Desktop {{ current_version }}</h1>
+		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('tor', current_user) }}
 		<div class="card" style="margin: 20px auto;">
@@ -10,6 +10,24 @@
 			<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
 			Tor configurations
 			</h1>
+			<div class="card center">
+				<h2>Specter built-in Tor</h2><br>
+				{% if torbrowser_installed %}
+					<h2><b>Status: {% if torbrowser_running %}Running{% else %}Down{% endif %}</b></h2>
+					<br>
+					<div class="row">
+						<button type="submit" class="btn" name="action" value="uninstalltor">Uninstall Tor</button>&nbsp;&nbsp;
+						{% if torbrowser_running %}
+							<button type="submit" class="btn" name="action" value="stoptor">Stop Tor</button>
+						{% else %}
+							<button type="submit" class="btn" name="action" value="starttor">Start Tor</button>
+						{% endif %}
+					</div>
+				{% else %}
+					<button type="button" class="btn centered" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor!</button>
+				{% endif %}
+			</div>
+			<br><br>
 			Use Tor proxy running at: 
 			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
 			<br>
@@ -64,14 +82,99 @@
                         </span>
                     </b></p>
                 {% endif %}
+                {% if specter.config.auth.method == "none" %}
+                    <p class="warning" style="max-width:700px;">
+                        <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+                        Enabling Tor hidden service will expose your Specter for remote access.
+                        It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>
+                        Please go to Settings -> Authentication and set up an authentication method and retry.
+                    </p>
+                {% endif %}
                 <div class="row">
-                    <button type="submit" class="btn" name="action" value="toggle_hidden_service">
+                    <button type="submit" class="btn" name="action" value="toggle_hidden_service" {% if specter.config.auth.method == "none" %} disabled style="background-color:#303c49;"{% endif %}>
                     {% if tor_service_id %} Stop {% else %} Start {% endif %}
                     </button>
                 </div><br>
             {% endif %}
 		</div>
 	</form>
+	<h1 id="stage-progress-details" class="hidden" style="margin: auto;"></h1>
 {% endblock %}
 {% block scripts %}
+	<script>
+		async function setupTorDaemon() {
+            let url = "{{ url_for('setup_tor') }}"
+            var formData = new FormData();
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if ("success" in jsonResponse) {
+                    showNotification(jsonResponse.success);
+                    document.getElementById('setup-tor-button').classList.add('hidden');
+                    startProgressCheck();
+                    return;
+                } if (jsonResponse.error == "tor is already installed") {
+                    showNotification('Tor daemon already installed.');
+                    return;
+                }
+                showError(jsonResponse.error, 4000);
+            }  catch(e) {
+                showError("Failed to download Tor daemon...");
+                showError(e);
+            }
+        }
+
+        function startProgressCheck() {
+            async function fetchStageProgress() {
+                try {
+                    let url="{{ url_for('get_tor_setup_status') }}"
+                    const response = await fetch(
+                        url,
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    let stage = result.stage;
+                    if (result.error) {
+                        showError('Encountered an error:' + result.error);
+                        document.getElementById('stage-progress-details').classList.add('hidden');
+                        hidePageOverlay('stage-progress-details');
+                        return;
+                    }
+                    let progress = parseFloat(result.stage_progress);
+                    if (progress == -1) {
+                        showNotification('Finished successfully');
+                        document.getElementById('stage-progress-details').classList.add('hidden');
+                        hidePageOverlay('stage-progress-details');
+						location.reload();
+                        return;
+                    }
+                    document.getElementById('stage-progress-details').innerHTML = `${stage}<br>`;
+                    if (progress > 0 && progress < 100) {
+                        document.getElementById('stage-progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">Download Progress: ${progress}%</b>`;
+                    }
+                    setTimeout(fetchStageProgress, 1000);
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            document.getElementById('stage-progress-details').classList.remove('hidden');
+            showPageOverlay('stage-progress-details');
+            document.getElementById('stage-progress-details').innerHTML = 'Starting up...';
+            setTimeout(fetchStageProgress, 1000);
+        }
+	</script>
 {% endblock %}

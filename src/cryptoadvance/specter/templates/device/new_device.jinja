@@ -123,7 +123,7 @@
             <div {% if not existing_device or existing_device.hot_wallet or convert_to_hot_wallet %}id="step2" class="hidden"{% else %}id="step1"{% endif %}>
                 <h1 style="font-size: 1.8em;">Upload Keys</h1>
                 {% if not existing_device %}
-                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" required {% if convert_to_hot_wallet %}value="{{ device_name }}"{% endif %} /></h2>
+                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" id="device_name" required {% if convert_to_hot_wallet %}value="{{ device_name }}"{% endif %} /></h2>
                     <br>
                 {% endif %}
                 <div id="coldcard-instructions">
@@ -149,10 +149,10 @@
                     Scan your Cobo Vault master public key or upload a wallet export file.<br>
                     </p>
                     <span class="note">
-                    To get the master public keys QR codes to scan:<br>
-                    For single sig, click on: Setting -> Watch-Only Wallet -> Generic Wallet, click next then select the wallet address type you would like to use for your wallet.
-                    For multisig, click on: Multisig Wallet -> Show/Export XPUB, then select the wallet address type you would like to use for your wallet.
-                    Cobo Vault will then display the QR code which you should scan into Specter.<br>
+                    To get the master public keys QR codes to scan:<br><br>
+                    For single sig, click on: Setting -> Watch-Only Wallet -> Generic Wallet, Click the top right 3 dots (...) -> Wallet Info ->Toggle Address Type, then select the wallet address type you would like to use for your wallet.<br><br>
+                    For multisig, click on: Multisig Wallet -> Click the top right 3 dots (...) -> Show/Export XPUB, then select the wallet address type you would like to use for your wallet.<br>
+                    Cobo Vault will then display the QR code which you should scan into Specter.<br><br>
                     To import with SD card, click on "touch here to export the file with microSD" on the same screen as the QR code.
                     </span>
                 </div>
@@ -321,7 +321,7 @@
                 <td></td>
                 <td></td>
                 <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">Add account</button></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivaion</button></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivation</button></td>
                 <td></td>
             `
             let xpubAddRow = document.createElement('tr');
