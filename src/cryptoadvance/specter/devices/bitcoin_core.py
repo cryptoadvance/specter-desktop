@@ -1,6 +1,11 @@
+import hmac
+import logging
 import os
 import shutil
 from embit import bip39, bip32, networks
+from io import BytesIO
+
+from . import DeviceTypes
 from ..device import Device
 from ..helpers import alias
 from ..util.descriptor import AddChecksum
@@ -8,15 +13,12 @@ from ..util.base58 import encode_base58_checksum, decode_base58
 from ..util.xpub import get_xpub_fingerprint, convert_xpub_prefix
 from ..key import Key
 from ..rpc import get_default_datadir
-from io import BytesIO
-import hmac
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
-    device_type = "bitcoincore"
+    device_type = DeviceTypes.BITCOINCORE
     name = "Bitcoin Core (hot wallet)"
     icon = "bitcoincore_icon.svg"
 
@@ -199,7 +201,7 @@ class BitcoinCore(Device):
 
 
 class BitcoinCoreWatchOnly(BitcoinCore):
-    device_type = "bitcoincore_watchonly"
+    device_type = DeviceTypes.BITCOINCORE_WATCHONLY
     name = "Bitcoin Core (watch only)"
     icon = "bitcoincore_icon.svg"
 
@@ -236,7 +238,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
         )
 
         # Change type (also triggers write to file)
-        self.set_type("bitcoincore")
+        self.set_type(DeviceTypes.BITCOINCORE)
 
         # After update this device will be available as a BitcoinCore (hot) instance
         self.manager.update()

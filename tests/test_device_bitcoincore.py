@@ -24,7 +24,7 @@ def test_restore_hot_wallet(caplog, specter_regtest_configured):
 
     # Create the bitcoin core hot wallet
     device = device_manager.add_device(
-        name="bitcoin_core_hot_wallet", device_type="bitcoincore", keys=[]
+        name="bitcoin_core_hot_wallet", device_type=DeviceTypes.BITCOINCORE, keys=[]
     )
     device.setup_device(file_password=None, wallet_manager=wallet_manager)
     mnemonic = generate_mnemonic(strength=128)
@@ -68,7 +68,7 @@ def test_restore_hot_wallet(caplog, specter_regtest_configured):
         txFS = device.sign_raw_tx(txF["hex"], wallet)
         txid = wallet.rpc.sendrawtransaction(txFS["hex"])
 
-    # spend_utxo(device, wallet, utxos)
+    spend_utxo(device, wallet, utxos)
 
     # Generate backup and start import process
     wallet_backup = wallet.account_map.replace("\\\\", "")
@@ -79,7 +79,7 @@ def test_restore_hot_wallet(caplog, specter_regtest_configured):
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
 
-    # Parse the backed up wallet (basically copied from the new_wallet server endpoint
+    # Parse the backed up wallet (code copied from the new_wallet endpoint)
     (
         wallet_name,
         recv_descriptor,
@@ -99,7 +99,6 @@ def test_restore_hot_wallet(caplog, specter_regtest_configured):
     ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
 
     # Re-create the device, but as a watch-only wallet
-    # unknown_cosigners = [(desc_key, cosigners_types[i]["label"])]
     device_name = cosigners_types[0]["label"]
     new_device = device_manager.add_device(
         name=device_name,

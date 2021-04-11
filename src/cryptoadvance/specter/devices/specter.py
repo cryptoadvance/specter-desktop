@@ -1,7 +1,9 @@
 import hashlib
+
 from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
+
 from embit import bip32
 from embit.psbt import PSBT
 from binascii import a2b_base64, b2a_base64

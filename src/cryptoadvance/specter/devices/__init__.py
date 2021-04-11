@@ -1,7 +1,7 @@
+from .device_types import DeviceTypes
 from .coldcard import ColdCard
 from .trezor import Trezor
 from .ledger import Ledger
-
 from .bitbox02 import BitBox02
 from .keepkey import Keepkey
 from .specter import Specter
@@ -24,16 +24,3 @@ __all__ = [
     BitcoinCoreWatchOnly,
     GenericDevice,
 ]
-
-
-class DeviceTypes:
-    BITBOX02 = "bitbox02"
-    BITCOINCORE = "bitcoincore"
-    BITCOINCORE_WATCHONLY = "bitcoincore_watchonly"
-    COBO = "cobo"
-    COLDCARD = "coldcard"
-    ELECTRUM = "electrum"
-    GENERICDEVICE = "other"
-    KEEPKEY = "keepkey"
-    SPECTER = "specter"
-    TREZOR = "trezor"
