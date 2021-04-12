@@ -58,6 +58,10 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
             bitcoind_controller = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
             )  # always prefer the self-compiled bitcoind if existing
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            bitcoind_controller = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
+            )  # next take the self-installed binary if existing
         else:
             bitcoind_controller = BitcoindPlainController(
                 rpcport=rpcport

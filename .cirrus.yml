@@ -1,9 +1,57 @@
 container:
-  image: python:slim
+#  image: python:slim
+#  image: ubuntu:focal
+#  image: python:3.8-buster
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
+
+# We assume here that we're having a proper python3 system including virtualenv and pip
+prep_stuff_template: &PREP_STUFF_TEMPLATE
+  verify_script: python3 --version && virtualenv --version && pip3 --version
+  bitcoind_installation_cache:
+    folder: ./tests/bitcoin
+    populate_script: set -o errexit; source ./tests/install_bitcoind.sh binary
+  pip_cache:
+    folder: /tmp/cirrus-ci-build/.env
+    fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
+    populate_script: 
+      - virtualenv --python=python .env 
+      - source ./.env/bin/activate
+      - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
+  install_script: 
+    - pwd
+    - ls -l ./.env/bin
+    - source ./.env/bin/activate
+    - echo $PATH
+    - ls -l /usr/bin 
+    - pip3 install -e .
 
 test_task:
-  pip_cache:
-    folder: ~/.local/lib/python3.8/site-packages
-    fingerprint_script: echo $PYTHON_VERSION && cat requirements.txt
-    populate_script: pip3 install -r requirements.txt
-  test_script: pytest --cov=cryptoadvance
+  pre_prep_script: 
+    - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
+  << : *PREP_STUFF_TEMPLATE
+  test_script: 
+    - pwd
+    - ls -l ./.env/bin
+    - source ./.env/bin/activate
+    - echo $PATH
+    #- pip3 install -e .
+    - pytest --cov=cryptoadvance
+
+cypress_test_task:
+  container:
+    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python
+  pre_prep_script: 
+    - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip python3-virtualenv bc
+    # The stupid old debian-package is not installing a proper binary but just the python-package
+    - echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv
+    - chmod +x /usr/local/bin/virtualenv
+    - virtualenv --version
+  << : *PREP_STUFF_TEMPLATE
+  npm_cache:
+    folder: ./node_modules
+    fingerprint_script: cat package-lock.json
+    populate_script: npm ci
+  cypress_script:
+    - source ./.env/bin/activate
+    #- pip3 install -e .
+    - ./utils/test-cypress.sh --debug run 

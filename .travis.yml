@@ -57,7 +57,7 @@ addons:
 before_install:
   - npm ci
   - docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
-  - set -o errexit; source ./tests/install_bitcoind.sh
+  - set -o errexit; source ./tests/install_bitcoind.sh compile
 install:
   - npm ci
 script: 
