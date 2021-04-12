@@ -6,6 +6,7 @@ from .sha256sum import sha256sum
 import logging
 from .file_download import download_file
 from ..specter_error import handle_exception, ExtProcTimeoutException
+from .rpcauth import generate_salt, password_to_hmac
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +56,13 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
             "w",
         ) as file:
-            file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
-            file.write(f'\nrpcpassword={specter.config["internal_node"]["password"]}')
+            salt = generate_salt(16)
+            password_hmac = password_to_hmac(
+                salt, specter.config["internal_node"]["password"]
+            )
+            file.write(
+                f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
+            )
             file.write(f"\nserver=1")
             file.write(f"\nlisten=1")
             file.write(f"\nproxy=127.0.0.1:9050")
@@ -135,9 +141,12 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                     ),
                     "a",
                 ) as file:
-                    file.write(f'\nrpcuser={specter.config["internal_node"]["user"]}')
+                    salt = generate_salt(16)
+                    password_hmac = password_to_hmac(
+                        salt, specter.config["internal_node"]["password"]
+                    )
                     file.write(
-                        f'\nrpcpassword={specter.config["internal_node"]["password"]}'
+                        f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
                     )
         else:
             with open(
@@ -168,7 +177,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         time.sleep(15)
         success = specter.update_rpc(
             port=8332,
-            autodetect=True,
+            autodetect=False,
             user=specter.config["internal_node"]["user"],
             password=specter.config["internal_node"]["password"],
             need_update="true",
@@ -178,6 +187,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             logger.info("No success connecting to Bitcoin Core")
         specter.check()
         specter.reset_setup("bitcoind")
+        app.specter.setup_status["stage"] = 5
     except ExtProcTimeoutException as e:
         e.check_logfile(
             os.path.join(specter.config["internal_node"]["datadir"], "debug.log")

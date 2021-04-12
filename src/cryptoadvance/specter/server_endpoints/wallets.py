@@ -73,7 +73,7 @@ def check_wallet(func):
 @login_required
 def wallets_overview():
     app.specter.check_blockheight()
-    for wallet in app.specter.wallet_manager.wallets.values():
+    for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.get_balance()
         wallet.check_utxo()
 
@@ -1109,13 +1109,20 @@ def rescan_progress(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
 @login_required
 def get_label(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    address = request.form.get("address", "")
-    label = wallet.getlabel(address)
-    return {
-        "address": address,
-        "label": label,
-    }
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        address = request.form.get("address", "")
+        label = wallet.getlabel(address)
+        return {
+            "address": address,
+            "label": label,
+        }
+    except Exception as e:
+        handle_exception(e)
+        return {
+            "success": False,
+            "error": f"Exception trying to get address label: Error: {e}",
+        }
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
