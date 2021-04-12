@@ -84,19 +84,20 @@ def bitcoin_core():
     test = None
     if request.method == "POST":
         action = request.form["action"]
-        autodetect = "autodetect" in request.form
-        if autodetect:
-            datadir = request.form["datadir"]
-        user = request.form["username"]
-        password = request.form["password"]
-        port = request.form["port"]
-        host = request.form["host"].rstrip("/")
+        if action == "test" or action == "save":
+            autodetect = "autodetect" in request.form
+            if autodetect:
+                datadir = request.form["datadir"]
+            user = request.form["username"]
+            password = request.form["password"]
+            port = request.form["port"]
+            host = request.form["host"].rstrip("/")
 
-        # protocol://host
-        if "://" in host:
-            arr = host.split("://")
-            protocol = arr[0]
-            host = arr[1]
+            # protocol://host
+            if "://" in host:
+                arr = host.split("://")
+                protocol = arr[0]
+                host = arr[1]
 
         if action == "test":
             # If this is failing, the test_rpc-method needs improvement

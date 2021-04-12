@@ -185,6 +185,7 @@ class Specter:
 
         self.node_status = None
         self.setup_status = {
+            "stage": 0,
             "bitcoind": {
                 "stage_progress": -1,
                 "stage": "",
@@ -602,7 +603,7 @@ class Specter:
 
     def reset_setup(self, software_name):
         self.setup_status[software_name]["error"] = ""
-        self.setup_status[software_name]["stage"] = "stage"
+        self.setup_status[software_name]["stage"] = ""
         self.setup_status[software_name]["stage_progress"] = -1
 
     def get_setup_status(self, software_name):
