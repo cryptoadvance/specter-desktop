@@ -1,0 +1,9 @@
+container:
+  image: python:slim
+
+test_task:
+  pip_cache:
+    folder: ~/.local/lib/python3.8/site-packages
+    fingerprint_script: echo $PYTHON_VERSION && cat requirements.txt
+    populate_script: pip3 install -r requirements.txt
+  test_script: pytest --cov=cryptoadvance
