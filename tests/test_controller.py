@@ -12,7 +12,7 @@ def test_home(caplog, client):
     assert result.status_code == 302  # REDIRECT.
     result = client.get("/about")
     assert b"Welcome to Specter" in result.data
-    result = client.get("/devices/new_device", follow_redirects=True)
+    result = client.get("/devices/new_device_type", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"Add Device" in result.data
     result = client.get("/settings", follow_redirects=True)

@@ -165,7 +165,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('devices_endpoint.new_device') }}">
+									<a href="{{ url_for('devices_endpoint.new_device_type') }}">
 										<h2>Add signing devices you wish to use.</h2>
 									</a>
 								</td>
