@@ -86,7 +86,6 @@
 			{% endif %}
 
 			Validate Merkle Proofs:
-			{% include "includes/merkletooltip.html" %}
 			<div class="note">
 			    Cannot enable when using a pruned bitcoin node
 			</div>
@@ -94,8 +93,16 @@
 			    <label class="switch">
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
 				<span class="slider"></span>
-			    </label>
-			</div><br>
+			    </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="note explorer-link" style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">What's this?</span>
+			</div>
+			<div class="warning hidden" id="merkle-info-details">
+				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+				 Specter-Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.<br><br>
+				However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain!
+				If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well.
+			</div>
+			<br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
@@ -104,6 +111,14 @@
 {% endblock %}
 {% block scripts %}
 	<script type="text/javascript">
+	function toggleHidden(elementId) {
+		let el = document.getElementById(elementId);
+		if (el.classList.contains("hidden")) {
+			el.classList.remove('hidden');
+		} else {
+			el.classList.add('hidden');
+		}
+	}
 	function updateFeeEstimator() {
 			if (document.getElementById('fee_estimator_custom_option').checked) {
 				document.getElementById('fee_estimator_custom_url').classList.remove('hidden');
