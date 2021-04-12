@@ -82,8 +82,16 @@
                         </span>
                     </b></p>
                 {% endif %}
+                {% if specter.config.auth.method == "none" %}
+                    <p class="warning" style="max-width:700px;">
+                        <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+                        Enabling Tor hidden service will expose your Specter for remote access.
+                        It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>
+                        Please go to Settings -> Authentication and set up an authentication method and retry.
+                    </p>
+                {% endif %}
                 <div class="row">
-                    <button type="submit" class="btn" name="action" value="toggle_hidden_service">
+                    <button type="submit" class="btn" name="action" value="toggle_hidden_service" {% if specter.config.auth.method == "none" %} disabled style="background-color:#303c49;"{% endif %}>
                     {% if tor_service_id %} Stop {% else %} Start {% endif %}
                     </button>
                 </div><br>
