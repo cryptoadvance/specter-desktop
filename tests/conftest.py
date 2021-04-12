@@ -87,11 +87,8 @@ def bitcoin_regtest(docker, request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = "./test_specter_data_2789334"
-    shutil.rmtree(data_folder, ignore_errors=True)
-    os.mkdir(data_folder)
-    yield data_folder
-    shutil.rmtree(data_folder, ignore_errors=True)
+    with tempfile.TemporaryDirectory("_specter_home_tmp") as data_folder:
+        yield data_folder
 
 
 @pytest.fixture

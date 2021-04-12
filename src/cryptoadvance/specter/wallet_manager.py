@@ -1,13 +1,19 @@
-import os, json, logging, shutil, threading
-from io import BytesIO
-from collections import OrderedDict
-from .util.descriptor import AddChecksum
-from .helpers import alias, load_jsons
-from .rpc import get_default_datadir, RpcError
-from .specter_error import SpecterError
-from .wallet import Wallet
-from .persistence import delete_file, delete_folder
+import json
+import logging
+import os
+import pathlib
+import shutil
+import threading
 import traceback
+from collections import OrderedDict
+from io import BytesIO
+
+from .helpers import alias, load_jsons
+from .persistence import delete_file, delete_folder
+from .rpc import RpcError, get_default_datadir
+from .specter_error import SpecterError
+from .util.descriptor import AddChecksum
+from .wallet import Wallet
 
 logger = logging.getLogger()
 
@@ -71,11 +77,9 @@ class WalletManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
-        self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
-        if self.working_folder is not None and not os.path.exists(self.working_folder):
-            os.mkdir(self.working_folder)
+        pathlib.Path(self.working_folder).mkdir(parents=True, exist_ok=True)
         if rpc is not None:
             self.rpc = rpc
         self.wallets_update_list = {}
