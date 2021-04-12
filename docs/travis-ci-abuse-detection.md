@@ -17,7 +17,7 @@ Hi Support,
 
 unfortunately we have been suffering from the abuse-detection system (again).
 
-Please whitelist @someGuy as he wants to contribute to our repo in [insertPR-LinkHere].
+Please whitelist @someGuy as he wants to contribute to our repo in https://github.com/cryptoadvance/specter-desktop/blob/master/docs/travis-ci-abuse-detection.md.
 
 For further details, please have a look at [insert link to this document]
 
