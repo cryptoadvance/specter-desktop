@@ -37,6 +37,9 @@ start_bitcoind-function:
 
 Travis-CI setup is very straightforward. As we're using the build-cache, the bitcoind sources, npm-setup (for cypress) and build is cached. Therefore such a build would only take 10 minutes. If the master-branch has new commits, bitcoind gets automatically rebuilt and the tests are running against the new version (tests/install_bitcoind.sh).py
 
+# Cirrus
+Still to be done
+
 # Releasing
 
 ## What gets released
