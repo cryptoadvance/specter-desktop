@@ -40,9 +40,6 @@ We're no longer using travis-ci due to the abuse-detection-system going wild on 
 
 [Cirrus-CI](https://cirrus-ci.org) is used by Bitcoin-Core and HWI and is a quite good replacement for travis. We're using it only for PRs so far. The [../.cirrus.yml] file defines the build. We have two task, one for pytest and one for the cypress-tests.
 
-# Cirrus
-Still to be done
-
 # Releasing
 
 ## What gets released
