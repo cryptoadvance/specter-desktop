@@ -1073,6 +1073,7 @@ def decoderawtx(wallet_alias):
                             wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
                         )
                 except Exception as e:
+                    handle_exception(e)
                     app.logger.warning(
                         f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
                     )
