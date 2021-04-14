@@ -10,13 +10,13 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   bitcoind_installation_cache:
     folder: ./tests/bitcoin
     populate_script: set -o errexit; source ./tests/install_bitcoind.sh binary
-  pip_cache:
-    folder: /tmp/cirrus-ci-build/.env
-    fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
-    populate_script: 
-      - virtualenv --python=python .env 
-      - source ./.env/bin/activate
-      - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
+  pip_script:
+    #folder: /tmp/cirrus-ci-build/.env
+    #fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
+    #populate_script: 
+    - virtualenv --python=python .env 
+    - source ./.env/bin/activate
+    - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
   install_script: 
     - pwd
     - ls -l ./.env/bin
