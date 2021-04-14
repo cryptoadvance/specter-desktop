@@ -61,4 +61,5 @@ def get_fees(specter, config):
         "minimumFee": int(
             (float(specter.estimatesmartfee(20).get("feerate", 0.00001)) / 1000) * 1e8
         ),
+        "failed": "feerate" not in specter.estimatesmartfee(1),
     }
