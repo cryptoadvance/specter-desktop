@@ -47,16 +47,16 @@ def new_device_keys(device_type):
     file_password = ""
     range_start = 0
     range_end = 1000
+    existing_device = None
     if request.method == "POST":
         mnemonic = request.form.get("mnemonic", "")
         passphrase = request.form.get("passphrase", "")
         file_password = request.form.get("file_password", "")
         range_start = request.form.get("range_start", 0)
         range_end = request.form.get("range_end", 1000)
-        if request.form.get("existing_device"):
-            device = app.specter.device_manager.get_by_alias(
-                request.form.get("existing_device")
-            )
+        existing_device = request.form.get("existing_device", None)
+        if existing_device:
+            device = app.specter.device_manager.get_by_alias(existing_device)
         else:
             device_name = request.form.get("device_name", "")
             if not device_name:
@@ -89,7 +89,7 @@ def new_device_keys(device_type):
                 if err is None:
                     passphrase = request.form["passphrase"]
                     file_password = request.form["file_password"]
-                    if request.form.get("existing_device"):
+                    if existing_device:
                         device.add_hot_wallet_keys(
                             mnemonic,
                             passphrase,
@@ -140,7 +140,7 @@ def new_device_keys(device_type):
             else:
                 err = "xpubs list must not be empty"
         elif not err:
-            if request.form.get("existing_device"):
+            if existing_device:
                 device.add_keys(keys)
                 flash("{} keys were added successfully".format(len(keys)))
                 return redirect(
@@ -163,6 +163,9 @@ def new_device_keys(device_type):
         file_password=file_password,
         range_start=range_start,
         range_end=range_end,
+        existing_device=app.specter.device_manager.get_by_alias(existing_device)
+        if existing_device
+        else None,
         error=err,
         specter=app.specter,
         rand=rand,
@@ -175,6 +178,7 @@ def new_device_mnemonic():
     err = None
     strength = 128
     mnemonic = generate_mnemonic(strength=strength)
+    existing_device = None
     if request.method == "POST":
         if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
             err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
@@ -191,24 +195,26 @@ def new_device_mnemonic():
         existing_device = app.specter.device_manager.get_by_alias(
             request.form.get("existing_device", None)
         )
-        return render_template(
-            "device/new_device/new_device_keys.jinja",
-            mnemonic=mnemonic,
-            passphrase=passphrase,
-            file_password=file_password,
-            range_start=range_start,
-            range_end=range_end,
-            device_class=BitcoinCore,
-            existing_device=existing_device,
-            error=err,
-            specter=app.specter,
-            rand=rand,
-        )
+        if not err:
+            return render_template(
+                "device/new_device/new_device_keys.jinja",
+                mnemonic=mnemonic,
+                passphrase=passphrase,
+                file_password=file_password,
+                range_start=range_start,
+                range_end=range_end,
+                device_class=BitcoinCore,
+                existing_device=existing_device,
+                error=err,
+                specter=app.specter,
+                rand=rand,
+            )
 
     return render_template(
         "device/new_device/new_device_mnemonic.jinja",
         strength=strength,
         mnemonic=mnemonic,
+        existing_device=existing_device,
         error=err,
         specter=app.specter,
         rand=rand,
