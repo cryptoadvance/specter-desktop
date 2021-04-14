@@ -74,7 +74,7 @@ class WalletManager:
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
-        if self.working_folder is not None and not os.path.isdir(self.working_folder):
+        if self.working_folder is not None and not os.path.exists(self.working_folder):
             os.mkdir(self.working_folder)
         if rpc is not None:
             self.rpc = rpc
