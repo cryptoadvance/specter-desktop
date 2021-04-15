@@ -80,7 +80,7 @@ class WalletManager:
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
-        pathlib.Path(self.working_folder).mkdir(parents=True, exist_ok=True)
+            pathlib.Path(self.working_folder).mkdir(parents=True, exist_ok=True)
         if rpc is not None:
             self.rpc = rpc
         self.wallets_update_list = {}
