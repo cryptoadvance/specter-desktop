@@ -116,7 +116,7 @@ def register():
                 "error",
             )
             return redirect("register?otp={}".format(otp))
-        if app.specter.validate_new_user_otp(otp):
+        if app.specter.otp_manager.validate_new_user_otp(otp):
             user_id = alias(username)
             i = 1
             while app.specter.user_manager.get_user(user_id):
@@ -125,7 +125,7 @@ def register():
             if app.specter.user_manager.get_user_by_username(username):
                 flash("Username is already taken, please choose another one", "error")
                 return redirect("register?otp={}".format(otp))
-            app.specter.remove_new_user_otp(otp)
+            app.specter.otp_manager.remove_new_user_otp(otp)
             config = {
                 "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",

@@ -32,6 +32,7 @@ from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
 from .util.setup_states import SETUP_STATES
+from .managers.otp_manager import OtpManager
 
 logger = logging.getLogger(__name__)
 
@@ -799,42 +800,6 @@ class Specter:
         self.config["validate_merkle_proofs"] = validate_bool
         self._save()
 
-    def add_new_user_otp(self, otp_dict):
-        """ adds an OTP for user registration """
-        if "new_user_otps" not in self.config:
-            self.config["new_user_otps"] = []
-        self.config["new_user_otps"].append(otp_dict)
-        self._save()
-
-    def validate_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if expired"""
-        if "new_user_otps" not in self.config:
-            return False
-        now = time.time()
-        for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            if otp_dict["otp"] == otp:
-                if (
-                    "expiry" in otp_dict
-                    and otp_dict["expiry"] < now
-                    and otp_dict["expiry"] > 0
-                ):
-                    del self.config["new_user_otps"][i]
-                    self._save()
-                    return False
-                return True
-        return False
-
-    def remove_new_user_otp(self, otp):
-        """ removes an OTP for user registration"""
-        if "new_user_otps" not in self.config:
-            return False
-        for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            if otp_dict["otp"] == otp:
-                del self.config["new_user_otps"][i]
-                self._save()
-                return True
-        return False
-
     def combine(self, psbt_arr):
         # backward compatibility with current Core psbt parser
         psbt_arr = [clean_psbt(psbt) for psbt in psbt_arr]
@@ -942,13 +907,19 @@ class Specter:
 
     @property
     def admin(self):
-        for u in self.users:
+        for u in self.user_manager.users:
             if u.is_admin:
                 return u
 
     @property
     def user(self):
         return self.user_manager.user
+
+    @property
+    def otp_manager(self):
+        if not self._otp_manager:
+            self._otp_manager = OtpManager(self.data_folder)
+        return self._otp_manager
 
     @property
     def device_manager(self):
