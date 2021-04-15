@@ -397,6 +397,8 @@
 			let url;
 			if ("{{ specter.chain }}" == "main") {
 				url="https://blockstream.info/api/tx";
+			} else if("{{specter.chain}}" == "liquidv1"){
+				url="https://blockstream.info/liquid/api/tx";
 			} else {
 				url="https://blockstream.info/testnet/api/tx";
 			}

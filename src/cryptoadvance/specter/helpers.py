@@ -26,8 +26,10 @@ defaultlock = threading.Lock()
 
 
 def is_testnet(chain):
-    return chain in ["test", "regtest", "signet"]
+    return chain not in ["main", "liquidv1", "None", "none", None, ""]
 
+def is_liquid(chain):
+    return chain not in ["main", "regtest", "test", "signet", "None", "none", None, ""]
 
 def locked(customlock=defaultlock):
     """
@@ -164,7 +166,7 @@ def der_to_bytes(derivation):
 def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     devices = []
     prefix = "tpub"
-    if app.specter.chain == "main":
+    if not is_testnet(app.specter.chain):
         prefix = "xpub"
     for cosigner in cosigners:
         device = copy.deepcopy(cosigner)
