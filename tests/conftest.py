@@ -58,6 +58,10 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
             bitcoind_controller = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
             )  # always prefer the self-compiled bitcoind if existing
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            bitcoind_controller = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
+            )  # next take the self-installed binary if existing
         else:
             bitcoind_controller = BitcoindPlainController(
                 rpcport=rpcport
@@ -83,11 +87,8 @@ def bitcoin_regtest(docker, request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = "./test_specter_data_2789334"
-    shutil.rmtree(data_folder, ignore_errors=True)
-    os.mkdir(data_folder)
-    yield data_folder
-    shutil.rmtree(data_folder, ignore_errors=True)
+    with tempfile.TemporaryDirectory("_specter_home_tmp") as data_folder:
+        yield data_folder
 
 
 @pytest.fixture

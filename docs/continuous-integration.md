@@ -1,16 +1,15 @@
 # introduction
-Specter-Desktop is using GitLab, Travis-CI and GitHub-Actions for continuous integration purposes but GitHub-actions only for Blackify so far. It might be more effort using more than one CI-approach but it makes us also more resilient. 
-GitLab and Travis-CI have both advantages and disadvantages so ... let's use both!
+Specter-Desktop is using GitLab, Cirrus and GitHub-Actions for continuous integration purposes but GitHub-actions only for Blackify so far. It might be more effort using more than one CI-approach but it makes us also more resilient. 
+GitLab and Cirrus have both advantages and disadvantages so ... let's use both!
 GitLab:
 * is completely open Source for server- and clients
 * the gitlab-runner can run docker and is itself running on docker
 * but does not support Pull-Requests
 * needs to have bitcoind in a prepared docker-container which binds the build to that version
 
-Travis-CI:
+Cirrus-CI:
 * supports the PR-model
-* quite easy to setup even without docker
-* enables to test against any specific version of bitcoind we would like to
+* quite easy to setup even though it's using docker
 
 # Gitlab
 
@@ -35,7 +34,11 @@ start_bitcoind-function:
 
 # Travis-CI
 
-Travis-CI setup is very straightforward. As we're using the build-cache, the bitcoind sources, npm-setup (for cypress) and build is cached. Therefore such a build would only take 10 minutes. If the master-branch has new commits, bitcoind gets automatically rebuilt and the tests are running against the new version (tests/install_bitcoind.sh).py
+We're no longer using travis-ci due to the abuse-detection-system going wild on us.
+
+# Cirrus-CI
+
+[Cirrus-CI](https://cirrus-ci.org) is used by Bitcoin-Core and HWI and is a quite good replacement for travis. We're using it only for PRs so far. The [../.cirrus.yml] file defines the build. We have two task, one for pytest and one for the cypress-tests.
 
 # Releasing
 
