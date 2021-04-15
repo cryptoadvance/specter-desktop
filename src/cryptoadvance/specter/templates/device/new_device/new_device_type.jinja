@@ -2,7 +2,7 @@
 {% block main %}
     <h1 style="font-size: 2em;">Add Device</h1><br>
     <div id="device_setup_wizard" class="card center" style="width: auto; margin: 40px;">
-        <div>
+        <div id="device-type-container">
             <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
             <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
             <div id="devices_list" class="row overflow">
