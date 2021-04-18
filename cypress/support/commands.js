@@ -35,7 +35,7 @@ Cypress.Commands.add("addDevice", (name) => {
         // Creating a Device
         cy.contains('Select Your Device Type')
         cy.get('#trezor_device_card')
-        cy.get('#device-type-container > [type="text"]').type("specter")
+        cy.get('#device-type-searchbar').type("specter")
         cy.contains('Select Your Device Type')
         cy.get('#trezor_device_card').should('not.have.class', 'disabled')
         cy.get('#specter_device_card').click()

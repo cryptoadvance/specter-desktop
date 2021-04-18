@@ -4,11 +4,11 @@
     <div id="device_setup_wizard" class="card center" style="width: auto; margin: 40px;">
         <div id="device-type-container">
             <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
-            <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
+            <input id="device-type-searchbar" type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
             <div id="devices_list" class="row overflow">
                 {% for cls in specter.device_manager.supported_devices %}
                     {% if not cls.hot_wallet or specter.rpc %}
-                        <a id="label_device_type_{{ cls.name }}" href="{{ url_for('devices_endpoint.new_device_keys', device_type=cls.device_type) if not cls.hot_wallet else url_for('devices_endpoint.new_device_mnemonic') }}" style="text-decoration: none;">
+                        <a id="label_device_type_{{ cls.name | replace(' ', '') }}" href="{{ url_for('devices_endpoint.new_device_keys', device_type=cls.device_type) if not cls.hot_wallet else url_for('devices_endpoint.new_device_mnemonic') }}" style="text-decoration: none;">
                             <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
                                 <img src="{{ url_for('static', filename='img/devices/' ~ cls.icon) }}" width="18px">
                                 {{ cls.name }}
@@ -27,7 +27,9 @@
         function filterDeviceTypes(text) {
             let devicesLabels = []
             {% for cls in specter.device_manager.supported_devices %}
-                devicesLabels.push('label_device_type_{{ cls.name }}')
+                {% if not cls.hot_wallet or specter.rpc %}
+                    devicesLabels.push('label_device_type_{{ cls.name | replace(' ', '') }}')
+                {% endif %}
             {% endfor %}
             if (text) {
                 for (let deviceLabel of devicesLabels) {

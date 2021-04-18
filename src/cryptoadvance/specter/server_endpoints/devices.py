@@ -52,8 +52,8 @@ def new_device_keys(device_type):
         mnemonic = request.form.get("mnemonic", "")
         passphrase = request.form.get("passphrase", "")
         file_password = request.form.get("file_password", "")
-        range_start = request.form.get("range_start", 0)
-        range_end = request.form.get("range_end", 1000)
+        range_start = int(request.form.get("range_start", "0"))
+        range_end = int(request.form.get("range_end", "1000"))
         existing_device = request.form.get("existing_device", None)
         if existing_device:
             device = app.specter.device_manager.get_by_alias(existing_device)
@@ -87,8 +87,6 @@ def new_device_keys(device_type):
                 if not paths:
                     err = "No paths were specified, please provide at lease one."
                 if err is None:
-                    passphrase = request.form["passphrase"]
-                    file_password = request.form["file_password"]
                     if existing_device:
                         device.add_hot_wallet_keys(
                             mnemonic,
@@ -192,9 +190,11 @@ def new_device_mnemonic():
         mnemonic = request.form["mnemonic"]
         passphrase = request.form["passphrase"]
         file_password = request.form["file_password"]
-        existing_device = app.specter.device_manager.get_by_alias(
-            request.form.get("existing_device", None)
-        )
+        existing_device = request.form.get("existing_device", None)
+        print("file_password")
+        print(file_password)
+        if existing_device:
+            existing_device = app.specter.device_manager.get_by_alias(existing_device)
         if not err:
             return render_template(
                 "device/new_device/new_device_keys.jinja",
