@@ -13,7 +13,7 @@
 			<div class="card center">
 				<h2>Specter built-in Tor</h2><br>
 				{% if torbrowser_installed %}
-					<h2><b>Status: {% if torbrowser_running %}Running{% else %}Down{% endif %}</b></h2>
+					<b><h2 id="tor-status-text">Status: {% if torbrowser_running %}Running{% else %}Down{% endif %}</h2></b>
 					<br>
 					<div class="row">
 						<button type="submit" class="btn" name="action" value="uninstalltor">Uninstall Tor</button>&nbsp;&nbsp;
