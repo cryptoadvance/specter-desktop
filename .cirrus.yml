@@ -53,6 +53,5 @@ cypress_test_task:
     populate_script: npm ci
   cypress_script:
     - source ./.env/bin/activate
-    - apt-get install -y libevent-2.1-7
     #- pip3 install -e .
     - ./utils/test-cypress.sh --debug run 
