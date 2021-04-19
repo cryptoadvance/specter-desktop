@@ -558,7 +558,7 @@
                     let summaryAmount = 0;
                     let summaryPrice = 0;
                     for (let tx of txlist) {
-                        let txRow = `
+                        let txRow = document.createRange().createContextualFragment(`
                         <tx-row
                             data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
                             data-price="${self.price ? self.price : 0}"
@@ -568,8 +568,8 @@
                             data-show-blockhash="${showBlockhash}"
                             data-mode="${self.getAttribute('type') + (self.wallet ? "" : "-overview")}">
                             </tx-row>
-                        `
-                        self.tbody.innerHTML += txRow;
+                        `)
+                        self.tbody.append(txRow);
                         summaryTxCount++;
                         summaryAmount += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
                         summaryPrice += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${self.symbol}`, '').replace(')', '').replace(',', ''));
