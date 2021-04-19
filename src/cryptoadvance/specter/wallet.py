@@ -686,10 +686,18 @@ class Wallet:
                     if tx["confirmations"] <= 100:
                         category = "immature"
 
+                '''
+                This only includes non-RBF transactions waiting in the mempool.
+
                 if (
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
+                '''
+                '''
+                Whenvever transaction is a spend, include fee (for applications accessing Specter's API).
+                '''
+                if tx["category"] == "send":
                     tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
 
                 if isinstance(tx["address"], str):
