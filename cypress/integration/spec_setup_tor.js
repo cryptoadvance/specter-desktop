@@ -8,7 +8,7 @@ describe('Setup Tor and test connection', () => {
         cy.contains('Setup Tor daemon')
         cy.get('#setup-tor-button').click()
 
-        cy.wait(10000)
+        cy.wait(60000)
         cy.get('#tor-status-text').contains('Status: Running')
         cy.get('[value="test_tor"]').click()
         cy.contains('Tor requests test completed successfully!')
