@@ -585,6 +585,9 @@ def send_new(wallet_alias):
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
     fee_estimation_data = get_fees(app.specter, app.config)
+    if fee_estimation_data.get("failed", None):
+        flash("Failed to fetch fee estimations, please use the manual fee calculation")
+
     fee_rate = fee_estimation_data["hourFee"]
 
     if request.method == "POST":
@@ -1067,6 +1070,16 @@ def decoderawtx(wallet_alias):
 
             if tx["confirmations"] == 0:
                 tx["is_purged"] = wallet.is_tx_purged(txid)
+                try:
+                    if wallet._transactions[txid].get("category", "") == "receive":
+                        tx["fee"] = (
+                            wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
+                        )
+                except Exception as e:
+                    handle_exception(e)
+                    app.logger.warning(
+                        f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
+                    )
 
             return {
                 "success": True,

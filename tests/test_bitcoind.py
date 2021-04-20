@@ -25,6 +25,10 @@ def test_bitcoinddocker_running(caplog, docker, request):
             my_bitcoind = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind"
             )
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind"
+            )  # next take the self-installed binary if existing
         else:
             try:
                 which("bitcoind")

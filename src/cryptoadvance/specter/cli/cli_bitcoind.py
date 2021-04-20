@@ -151,6 +151,10 @@ def bitcoind(
             my_bitcoind = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind"
             )  # always prefer the self-compiled bitcoind if existing
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind"
+            )  # next take the self-installed binary if existing
         else:
             my_bitcoind = (
                 BitcoindPlainController()
