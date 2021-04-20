@@ -260,7 +260,7 @@ def setup_tor():
         )
         t.start()
     elif os.path.isfile(app.specter.torbrowser_path):
-        return {"error": "Tor is already installed"}
+        return {"error": "tor is already installed"}
     elif app.specter.setup_status["torbrowser"]["stage_progress"] != -1:
         return {"error": "Tor installation is still under progress"}
     return {"success": "Starting Tor setup!"}

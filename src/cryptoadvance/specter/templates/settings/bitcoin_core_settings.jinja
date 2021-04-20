@@ -14,7 +14,7 @@
 		</nav>
 
 		<div id="internal_node_setup_view" class="card" style="margin: 20px auto 120px; text-align: center;">
-			{% if external_node %}
+			{% if external_node and bitcoind_exists %}
 				<button type="submit" class="btn centered" name="action" value="useinternal">Switch to built-in node</button>
 				<br><br>
 			{% endif %}
@@ -49,144 +49,155 @@
 				</div>
 			{% else %}
 				<div>
-					<h1>Setup Bitcoin Core Node</h1><br>
-					<a href="{{url_for('node_setup_wizard', step=3)}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
+					<h1>Setup Bitcoin Core Node</h1>
+					<p class="warning">
+						Specter can help you get started with your own Bitcoin Core node by setting it all up for you.<br><br>
+						If you don't yet have your own Bitcoin node, or want to switch from an external node to the Specter managed option, you can click below to start the setup.<br><br>
+						<a href="{{url_for('node_setup_wizard', step=3)}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
+					</p>
 				</div>
 			{% endif %}
 		</div>
 		
 		<div id="external_node_setup_view" class="card" style="margin: 20px auto 120px;">
 			{% if not external_node %}
-				<button type="submit" class="btn centered" name="action" value="useexternal">Switch to external node</button>
-				<br><br>
-			{% endif %}
-			<h2>Bitcoin JSON-RPC configuration</h2>
-			<br>
-			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
-			<label class="switch">
-				<input type="checkbox" id="autodetect" name="autodetect" {% if autodetect %}checked{% endif %}>
-				<span class="slider"></span>
-			</label>
-			<span id="datadir-container">
-			<div class="tool-tip" style="float: right;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">Setting Bitcoin Core Data Directory<br></span><br>
-						When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or 
-						attempt to automatically locate your Bitcoin data directory and load your node configurations from it.<br><br>
-						However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.<br><br>
-						If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.
-					</span>
+				<h1>Use existing Bitcoin node</h1>
+				<p class="warning">
+					If you're already running a Bitcoin Core node and would like to use it with Specter, you can click below to setup the connection.<br><br>
+					<i>Note: make sure your Bitcoin node is configured with server=1 in its bitcoin.conf file.</i><br>
 				</p>
-			</div>
-			<br><br>
-				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
-			</span>
-			<br><br>
-			<div id="rpc_settings">
-				<div id="lock" class="center">
-					<p style="text-align: center; margin: auto; ">&#128274;</p>
-					<span class="note centered"> (disable auto-detect to configure manually)</span>
-				</div>
-				Username:<br><input type="text" id="username" name="username" value="{{ username }}">
-				<br><br>
-				Password:<br><input type="password" id="password" name="password" value="{{ password }}">
-				<br><br>
-				Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
 				<br>
-				<qr-scanner id="scan_rpc" style="margin: 10px;">
-					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
-						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
-						Connect with QR
-					</a>
-				</qr-scanner>
-			</div>
-			Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">
-			<div class="note">
-				Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
-			</div>
-			<br><br>
-			<div class="row">
-				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
-				<button type="submit" class="btn" name="action" value="save">Save</button>
-			</div>
-			{% if test %}
-				<br><div class="log"><b>Test results:</b><br><br>
-				<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
-					{% macro tick_or_cross(my_boolean) %}
-					<button style="background: #fff; border: none;" disabled> 
-						{% if my_boolean %}
-							<div style="color: green; font-size: 1.5em;">&#x2714;</div> 
-						{% else %} 
-							<div style="color: red; font-size: 1.5em;">&#x274C;</div>  
-						{% endif %}
-					</button>
-					{% endmacro %}
-					{% if 'connectable' in test['tests'] %}
-						<div>Connectable</div>
-						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
-						{% if not test['tests']['connectable'] %} 
-							<tool-tip title="Your Node can't be reached" style="float: right;">
-								There are a lot of potential issues preventing the connection.
-								Please doublecheck the Host and the Port. Make sure you can reach
-								the host and make sure that Bitcoin-Core is listening at the port
-								you have specified. 
-								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
-							</tool-tip>
-						{% else %}
-							<div></div>
-						{% endif %}
-					{% endif %}
-
-					{% if 'credentials' in test['tests'] %}
-						<div>Credentials</div>
-						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
-						{% if not test['tests']['credentials'] %}
-							<tool-tip title="Your Credentials don't work" style="float: right;">
-								Please doublecheck the user and the Password. Look at the bitcoin.conf
-								for the correct values in that field.
-								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
-							</tool-tip>
-						{% else %}
-							<div></div>
-						{% endif %}
-					{% endif %}
-
-					{% if 'recent_version' in test['tests'] %}
-						<div>Version recent enough</div>
-						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
-						{% if not test['tests']['recent_version'] %}
-							<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
-									Specter is working well up from Bitcoin Core version 0.17.
-									The version of your Node is too low, unfortunatley.
-									Please upgrade!
-							</tool-tip>
-						{% else %}
-							<div></div>
-						{% endif %}
-					{% endif %}
-					
-					{% if 'wallets' in test['tests'] %}
-						<div>Wallets enabled</div>
-						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
-						{% if not test['tests']['wallets'] %}
-							<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
-								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
-								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
-							</tool-tip>
-						{% else %}
-							<div></div>
-						{% endif %}
-					{% endif %}
-
-				</div>
-
+				<button type="submit" class="btn centered" name="action" value="useexternal">Switch to external node</button>
 				<br>
-					<code>
-						<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
-					</code>
+			{% else %}
+				<h2>Bitcoin JSON-RPC configuration</h2>
+				<br>
+				<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
+				<label class="switch">
+					<input type="checkbox" id="autodetect" name="autodetect" {% if autodetect %}checked{% endif %}>
+					<span class="slider"></span>
+				</label>
+				<span id="datadir-container">
+				<div class="tool-tip" style="float: right;">
+					<i class="tool-tip__icon">i</i>
+					<p class="tool-tip__info">
+						<span class="info">
+							<span class="info__title">Setting Bitcoin Core Data Directory<br></span><br>
+							When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or 
+							attempt to automatically locate your Bitcoin data directory and load your node configurations from it.<br><br>
+							However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.<br><br>
+							If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.
+						</span>
+					</p>
 				</div>
+				<br><br>
+					Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
+				</span>
+				<br><br>
+				<div id="rpc_settings">
+					<div id="lock" class="center">
+						<p style="text-align: center; margin: auto; ">&#128274;</p>
+						<span class="note centered"> (disable auto-detect to configure manually)</span>
+					</div>
+					Username:<br><input type="text" id="username" name="username" value="{{ username }}">
+					<br><br>
+					Password:<br><input type="password" id="password" name="password" value="{{ password }}">
+					<br><br>
+					Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
+					<br>
+					<qr-scanner id="scan_rpc" style="margin: 10px;">
+						<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
+							Connect with QR
+						</a>
+					</qr-scanner>
+				</div>
+				Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">
+				<div class="note">
+					Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
+				</div>
+				<br><br>
+				<div class="row">
+					<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
+					<button type="submit" class="btn" name="action" value="save">Save</button>
+				</div>
+				{% if test %}
+					<br><div class="log"><b>Test results:</b><br><br>
+					<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
+						{% macro tick_or_cross(my_boolean) %}
+						<button style="background: #fff; border: none;" disabled> 
+							{% if my_boolean %}
+								<div style="color: green; font-size: 1.5em;">&#x2714;</div> 
+							{% else %} 
+								<div style="color: red; font-size: 1.5em;">&#x274C;</div>  
+							{% endif %}
+						</button>
+						{% endmacro %}
+						{% if 'connectable' in test['tests'] %}
+							<div>Connectable</div>
+							<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
+							{% if not test['tests']['connectable'] %} 
+								<tool-tip title="Your Node can't be reached" style="float: right;">
+									There are a lot of potential issues preventing the connection.
+									Please doublecheck the Host and the Port. Make sure you can reach
+									the host and make sure that Bitcoin-Core is listening at the port
+									you have specified. 
+									For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+								</tool-tip>
+							{% else %}
+								<div></div>
+							{% endif %}
+						{% endif %}
+
+						{% if 'credentials' in test['tests'] %}
+							<div>Credentials</div>
+							<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
+							{% if not test['tests']['credentials'] %}
+								<tool-tip title="Your Credentials don't work" style="float: right;">
+									Please doublecheck the user and the Password. Look at the bitcoin.conf
+									for the correct values in that field.
+									For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+								</tool-tip>
+							{% else %}
+								<div></div>
+							{% endif %}
+						{% endif %}
+
+						{% if 'recent_version' in test['tests'] %}
+							<div>Version recent enough</div>
+							<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
+							{% if not test['tests']['recent_version'] %}
+								<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
+										Specter is working well up from Bitcoin Core version 0.17.
+										The version of your Node is too low, unfortunatley.
+										Please upgrade!
+								</tool-tip>
+							{% else %}
+								<div></div>
+							{% endif %}
+						{% endif %}
+						
+						{% if 'wallets' in test['tests'] %}
+							<div>Wallets enabled</div>
+							<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
+							{% if not test['tests']['wallets'] %}
+								<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
+									The RPC-Interface of your Core-Node is available, but the wallet-api is not.
+									Please make sure to have 'disablewallet=0' in your bitcoin.conf.
+								</tool-tip>
+							{% else %}
+								<div></div>
+							{% endif %}
+						{% endif %}
+
+					</div>
+
+					<br>
+						<code>
+							<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
+						</code>
+					</div>
+				{% endif %}
 			{% endif %}
 		</div>
 	</form>
