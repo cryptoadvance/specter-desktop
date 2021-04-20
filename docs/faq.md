@@ -405,9 +405,9 @@ Specter only works with python3, so use pip3 to install it
 Run it with the
  command `python3 -m cryptoadvance.specter server` - then it will use python3
  
-## *I created an existing wallets but even after rescanning, specter couldn't find any funds?*
+## *I created an existing wallets but even after rescanning, specter couldn't find any (or not enough) funds?*
 
-Make sure you're using the right type of wallet. There are "Nested Segwit" and "Native SegWit". Make sure to choose the right one. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
+Make sure you're using the right type of wallet. Specter is only supporting "Nested Segwit" and "Native SegWit". If you have an older wallet, where addresses are starting with "1" or "3", those funds won't be able to show up in specter. So, make sure you know which type of wallet you want to choose. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
 If you're running a pruned node, it's not possible to scan for the entire transaction history without doing a full re-download of the blockchain (IBD). Alternatively, we also support scanning for only the existing wallet balance (UTXO) which is very quick and supports both full and pruned nodes. However, for pruned nodes to support this feature, we must query some external data from an outside source (such as a block explorer, configurable by the user). This does not constitute a security risk, as the validity of the data can be verified against the hash existing on the pruned node itself, but can be a potential privacy risk, although it's possible to get the data over Tor to reduce the potential privacy leak. Yet, we still strongly recommend using a non-pruned-node (if possible) when dealing with older wallets.
 
 ## *How to delete a wallet using a remote full node?*
