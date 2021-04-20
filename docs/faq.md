@@ -59,7 +59,7 @@
   - [*How can I access the web interface if it's hosted on a headless computer?*](#how-can-i-access-the-web-interface-if-its-hosted-on-a-headless-computer)
   - [*Keep getting: No matching distribution found for cryptoadvance.specter*](#keep-getting-no-matching-distribution-found-for-cryptoadvancespecter)
   - [*Even after upgrading to python3 it's still looking at 2.7 version. I uninstalled 2.7, so not sure where to go next?*](#even-after-upgrading-to-python3-its-still-looking-at-27-version-i-uninstalled-27-so-not-sure-where-to-go-next)
-  - [*I created an existing wallets but even after rescanning, specter couldn't find any funds?*](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)
+  - [*I created an existing wallets but even after rescanning, specter couldn't find any (or not enough) funds?*](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-or-not-enough-funds)
   - [*How to delete a wallet using a remote full node?*](#how-to-delete-a-wallet-using-a-remote-full-node)
   - [*Trying to connect specter-desktop to my remote node on my LAN few times but no success. `bitcoin.conf` has the `server=1` option, should there be something else since I get this error `Process finished with code -1Error message: Failed to connect` message?*](#trying-to-connect-specter-desktop-to-my-remote-node-on-my-lan-few-times-but-no-success-bitcoinconf-has-the-server1-option-should-there-be-something-else-since-i-get-this-error-process-finished-with-code--1error-message-failed-to-connect-message)
   - [Backup files not showing when trying to load backups](#backup-files-not-showing-when-trying-to-load-backups)
