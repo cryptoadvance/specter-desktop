@@ -150,24 +150,24 @@
                 <br>
                 <div class="row overflow">
                     <div id="connect-hwi" class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" style="width: 18px;">
+                        <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
                         Get via USB
                     </div>
                     <label id="connect-sdcard">
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" style="width: 18px;">
+                            <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Upload from SD Card
                         </div>
                     </label>
                     <qr-scanner id="xpub-scan">
                         <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" style="width: 18px;">
+                            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Scan QR code
                         </a>
                     </qr-scanner>
                     <button type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
-                    <img src="{{ url_for('static', filename='img/paste_icon.svg') }}" style="width: 18px;">
+                    <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
                     Paste xpub
                     </button>
                     <div class="hidden" id="paste-xpub-popup">

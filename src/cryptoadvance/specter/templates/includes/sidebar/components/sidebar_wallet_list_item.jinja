@@ -8,7 +8,7 @@
  #}
 {% macro sidebar_wallet_list_item(wallet, wallet_alias, chain, loading=false) -%}
     <a id="{{wallet.alias}}-sidebar-list-item" href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}" style="{%if loading%}display: none;{%endif%}">
-        {% include "includes/sidebar/components/wallet_type_svg.jinja" %}
+        <img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" style="width: 45px; margin-left: 5px;">
         <div class="grow">
             {{ wallet.name }}<br>
             <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} Multisig{% else %}Single Key{% endif %}</span>
