@@ -454,7 +454,7 @@
 
                     for (let addr of addressesList) {
 
-                        let addrRow = `
+                        let addrRow = document.createRange().createContextualFragment(`
                         <address-row 
                             data-verify-qr="{{ supports_qr_code_verify != [] }}"
                             data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
@@ -463,9 +463,9 @@
                             data-symbol="${self.symbol ? self.symbol : ''}"
                             data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${self.wallet}"> 
-                        </<address-row>`;
+                        </<address-row>`);
 
-                        self.tbody.innerHTML += addrRow;
+                        self.tbody.append(addrRow);
                     }
 
                     // Pagination
