@@ -106,7 +106,10 @@
 					Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
 					<br>
 					<qr-scanner id="scan_rpc" style="margin: 10px;">
-						<a slot="button" href="#" class="btn" style="max-width: 180px;"><img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Connect with QR</a>
+						<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
+							Connect with QR
+						</a>
 					</qr-scanner>
 				</div>
 				Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">

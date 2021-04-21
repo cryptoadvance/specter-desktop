@@ -25,11 +25,11 @@
         }
     }
 </style>
-<a id="price-bar-btn" type="button" style="cursor: pointer; background: #4a90e2; color: #fff;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
         <span>{{ 1 | altunit}}</span>
     {% else %}
-        <img src="{{ url_for('static', filename='img/shitcoins.svg') }}" style="width: 22px;"/>
+        <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" style="width: 40px;" class="svg-white"/>
     {% endif %}
 </a>
 <div id="price-popup" class="hidden">

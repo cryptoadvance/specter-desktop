@@ -98,24 +98,24 @@
                 <br>
                 <div class="row overflow">
                     <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 10px;" class="btn {% if not device_class.hwi_support %}hidden{% endif %}">
-                        <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" style="width: 18px;">
+                        <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
                         Get via USB
                     </div>
                     <label id="connect-sdcard" {% if not device_class.sd_card_support %}class="hidden"{% endif %}>
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/sd_tiny.svg') }}" style="width: 18px;">
+                            <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Upload from SD Card
                         </div>
                     </label>
                     <qr-scanner id="xpub-scan" {% if not device_class.qr_code_support %}class="hidden"{% endif %}>
                         <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}" style="width: 18px;">
+                            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Scan QR code
                         </a>
                     </qr-scanner>
                     <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
-                        <img src="{{ url_for('static', filename='img/paste_icon.svg') }}" style="width: 18px;">
+                        <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
                         Paste xpub
                     </button>
                     <div class="hidden" id="paste-xpub-popup">
