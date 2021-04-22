@@ -65,7 +65,7 @@ def node_type():
 @setup_endpoint.route("/bitcoind/", methods=["GET"])
 @login_required
 def bitcoind():
-    ''' wizard: Setup Bitcoin Core (Start the Setup!) '''
+    """ wizard: Setup Bitcoin Core (Start the Setup!) """
     return render_template("setup/bitcoind.jinja", specter=app.specter, rand=rand)
 
 
@@ -81,7 +81,7 @@ def bitcoind_datadir():
 @setup_endpoint.route("/end/", methods=["GET"])
 @login_required
 def end():
-    ''' wizard: Setup competed Successfully (Done)'''
+    """ wizard: Setup competed Successfully (Done)"""
     return render_template("setup/end.jinja", specter=app.specter, rand=rand)
 
 
