@@ -71,6 +71,7 @@ def bitcoind():
 @setup_endpoint.route("/bitcoind_datadir/", methods=["GET"])
 @login_required
 def bitcoind_datadir():
+    ''' wizard: Configure your node (Quicksync? , Start Syncing) '''
     return render_template(
         "setup/bitcoind_datadir.jinja", specter=app.specter, rand=rand
     )
