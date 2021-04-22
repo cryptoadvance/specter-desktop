@@ -56,6 +56,9 @@ def tor():
 @setup_endpoint.route("/node_type/", methods=["GET"])
 @login_required
 def node_type():
+    ''' wizard: Would you like to setup a new Bitcoin node or connect to an existing one?
+        (Connect existing node / Setup a new node )
+    '''
     return render_template("setup/node_type.jinja", specter=app.specter, rand=rand)
 
 
