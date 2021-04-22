@@ -80,6 +80,7 @@ def bitcoind_datadir():
 @setup_endpoint.route("/end/", methods=["GET"])
 @login_required
 def end():
+    ''' wizard: Setup competed Successfully (Done)'''
     return render_template("setup/end.jinja", specter=app.specter, rand=rand)
 
 
