@@ -1,4 +1,4 @@
-import copy, random, json, os, threading
+import copy, random, json, os, threading, shutil
 
 from flask import (
     Flask,
@@ -124,6 +124,7 @@ def setup_bitcoind():
     if os.path.exists(app.specter.config["internal_node"]["datadir"]):
         if request.form["override_data_folder"] != "true":
             return {"error": "data folder already exists"}
+        shutil.rmtree(app.specter.config["internal_node"]["datadir"])
     if (
         not os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
