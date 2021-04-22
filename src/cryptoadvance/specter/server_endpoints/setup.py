@@ -44,7 +44,7 @@ def start():
 @setup_endpoint.route("/tor/", methods=["GET"])
 @login_required
 def tor():
-    ''' wizard: Setup Tor daemon (Skip / Setup Tor) '''
+    """ wizard: Setup Tor daemon (Skip / Setup Tor) """
     return render_template(
         "setup/tor.jinja",
         nextURL="setup_endpoint.node_type",
@@ -56,9 +56,9 @@ def tor():
 @setup_endpoint.route("/node_type/", methods=["GET"])
 @login_required
 def node_type():
-    ''' wizard: Would you like to setup a new Bitcoin node or connect to an existing one?
-        (Connect existing node / Setup a new node )
-    '''
+    """wizard: Would you like to setup a new Bitcoin node or connect to an existing one?
+    (Connect existing node / Setup a new node )
+    """
     return render_template("setup/node_type.jinja", specter=app.specter, rand=rand)
 
 
@@ -71,7 +71,7 @@ def bitcoind():
 @setup_endpoint.route("/bitcoind_datadir/", methods=["GET"])
 @login_required
 def bitcoind_datadir():
-    ''' wizard: Configure your node (Quicksync? , Start Syncing) '''
+    """ wizard: Configure your node (Quicksync? , Start Syncing) """
     return render_template(
         "setup/bitcoind_datadir.jinja", specter=app.specter, rand=rand
     )
@@ -86,7 +86,7 @@ def end():
 @setup_endpoint.route("/tor_setup/", methods=["GET"])
 @login_required
 def tor_from_settings():
-    ''' wizard: Setup Tor daemon (Setup Tor) '''
+    """ wizard: Setup Tor daemon (Setup Tor) """
     return render_template(
         "setup/tor.jinja",
         nextURL="settings_endpoint.tor",
