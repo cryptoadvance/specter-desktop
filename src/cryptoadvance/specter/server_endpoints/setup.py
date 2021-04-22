@@ -65,6 +65,7 @@ def node_type():
 @setup_endpoint.route("/bitcoind/", methods=["GET"])
 @login_required
 def bitcoind():
+    ''' wizard: Setup Bitcoin Core (Start the Setup!) '''
     return render_template("setup/bitcoind.jinja", specter=app.specter, rand=rand)
 
 
