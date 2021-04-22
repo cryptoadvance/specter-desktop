@@ -86,6 +86,7 @@ def end():
 @setup_endpoint.route("/tor_setup/", methods=["GET"])
 @login_required
 def tor_from_settings():
+    ''' wizard: Setup Tor daemon (Setup Tor) '''
     return render_template(
         "setup/tor.jinja",
         nextURL="settings_endpoint.tor",
