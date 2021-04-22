@@ -44,6 +44,7 @@ def start():
 @setup_endpoint.route("/tor/", methods=["GET"])
 @login_required
 def tor():
+    ''' wizard: Setup Tor daemon (Skip / Setup Tor) '''
     return render_template(
         "setup/tor.jinja",
         nextURL="setup_endpoint.node_type",
