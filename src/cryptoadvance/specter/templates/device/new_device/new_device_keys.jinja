@@ -32,78 +32,26 @@
             visibility: hidden;
         }
     </style>
-    <div id="device_setup_wizard" style="width: 100%;" onsubmit="showPacman();">
-        <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
-        <form id="form" action="{{ url_for('devices_endpoint.new_device') }}" method="POST" class="card center" style="width: auto; margin: 40px;">
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+        <div style="width: auto; margin: 40px;" class="card center" >
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div {% if not existing_device %}id="step1"{% else %}class="hidden"{% endif %}>
-                <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
-                <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
-                <div id="devices_list" class="row overflow">
-                    {% for cls in specter.device_manager.supported_devices %}
-                        <label id="label_device_type_{{ cls.name }}">
-                            <input onchange="setStepCompleted(1);nextStep();" type="radio" name="devices" value="{{ cls.device_type }}" data-qrcode="{{cls.qr_code_support}}" data-sdcard="{{cls.sd_card_support}}" data-hwi="{{cls.hwi_support}}" data-device-name="{{ cls.name }}" class="hidden device-type">
-                            <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
-                                <img src="{{ url_for('static', filename='img/devices/' ~ cls.icon) }}" width="18px">
-                                {{ cls.name }}
-                            </div>
-                        </label>
-                    {% endfor %}
-                </div>
-                <a class="note center" style="text-decoration: underline; cursor: pointer;" href="{{ url_for('devices_endpoint.new_device_manual') }}">Manual configuration</a>
-
-            </div>
-            <div {% if not existing_device %}id="step2-hot-wallet" class="hidden"{% elif existing_device.hot_wallet %}id="step1"{% else %}class="hidden"{% endif %}>
-                <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
-                    <br>
-                    <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
-                        <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
-                        This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
-                        Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
-                    </p>
-                    <p>Enter you mnemonic here or use the randomly generated one:</p>
-                    <p><b>Make sure to backup these words!</b></p>
-                    {% set wordslist = mnemonic.split(' ') %}
-                    <nav class="row">
-                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
-                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
-                    </nav>
-                    <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
-                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
-                    <div id="generated_mnemonic">
-                        <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
-                            <fieldset style="border:none; display: inline;"> 
-                                <select name="strength" id="strength">
-                                    <option value="128">12 words</option>
-                                    <option value="256">24 words</option>
-                                </select>
-                            </fieldset>
-                            <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">Generate New Mnemonic</button>
-                        </div>
-                        <br>
-                        <table id="mnemonic_table">
-                            {% for i in range(wordslist|length // 4) %}
-                                <tr>
-                                    <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
-                                    <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
-                                    <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
-                                    <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div {% if not existing_device or existing_device.hot_wallet %}id="step2" class="hidden"{% else %}id="step1"{% endif %}>
+            {% if device_class.hot_wallet %}
+                <input type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+                <input type="hidden" name="passphrase" value="{{ passphrase }}"/>
+                <input type="hidden" name="file_password" value="{{ file_password }}"/>
+                <input type="hidden" name="range_start" value="{{ range_start }}"/>
+                <input type="hidden" name="range_end" value="{{ range_end }}"/>
+            {% endif %}
+            <div>
                 <h1 style="font-size: 1.8em;">Upload Keys</h1>
                 {% if not existing_device %}
                     <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" id="device_name" required/></h2>
                     <br>
                 {% endif %}
-                <div id="coldcard-instructions">
+                <div id="coldcard-instructions" {%if device_class.device_type != 'coldcard' %}class="hidden"{% endif %}>
                     <p>
                     Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.<br>
                     </p>
@@ -113,7 +61,7 @@
                     To get the multisig xpubs, go to: Settings -> Multisig Wallets -> Export XPUB and confirm the export.
                     </span>
                 </div>
-                <div id="specter-instructions">
+                <div id="specter-instructions" {%if device_class.device_type != 'specter' %}class="hidden"{% endif %}>
                     <p>
                     Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.<br>
                     </p>
@@ -121,7 +69,7 @@
                     To get the master public key QR code to scan, click on: Master public keys, then select each key type you'd like to import and scan the displayed QR code for each into Specter.
                     </span>
                 </div>
-                <div id="cobo-instructions">
+                <div id="cobo-instructions" {%if device_class.device_type != 'cobo' %}class="hidden"{% endif %}>
                     <p>
                     Scan your Cobo Vault master public key or upload a wallet export file.<br>
                     </p>
@@ -133,7 +81,7 @@
                     To import with SD card, click on "touch here to export the file with microSD" on the same screen as the QR code.
                     </span>
                 </div>
-                <div id="hwi-only-instructions">
+                <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>
                     <p>Connect your hardware device to the computer via USB.</p>
                 </div>
                 <br>
@@ -149,26 +97,26 @@
                 </table>
                 <br>
                 <div class="row overflow">
-                    <div id="connect-hwi" class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
+                    <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 10px;" class="btn {% if not device_class.hwi_support %}hidden{% endif %}">
                         <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
                         Get via USB
                     </div>
-                    <label id="connect-sdcard">
+                    <label id="connect-sdcard" {% if not device_class.sd_card_support %}class="hidden"{% endif %}>
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
                             <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Upload from SD Card
                         </div>
                     </label>
-                    <qr-scanner id="xpub-scan">
+                    <qr-scanner id="xpub-scan" {% if not device_class.qr_code_support %}class="hidden"{% endif %}>
                         <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
                             <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                             Scan QR code
                         </a>
                     </qr-scanner>
-                    <button type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
-                    <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
-                    Paste xpub
+                    <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
+                        <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
+                        Paste xpub
                     </button>
                     <div class="hidden" id="paste-xpub-popup">
                         <h1>Paste xpub</h1>
@@ -177,32 +125,11 @@
                         <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">Add xpub</button>
                     </div>
                 </div>
-				<span id="toggle_advanced_xpubs" style="cursor: pointer;" onclick="toggleAdvancedXpubs()">Advanced &#9654;</span>
-				<br>
-                <div id="advanced_settings_xpubs" class="hidden">
-                    <div id="advanced-hot-wallet" class="hidden" style="width: 400px; margin: auto;">
-                        <label>Encrypt Wallet File: </label>
-                        <input type="password" name="file_password" class="inline" placeholder="password">
-                        <br>
-                        <br>
-                        <label>BIP39 passphrase (optional): </label>
-                        <input type="password" name="passphrase" class="inline" placeholder="passphrase">
-                        <br>
-                        <p style="margin-bottom: 10px;">Addresses range to import: </p>
-                        From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
-                        to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
-                        <br>
-                    </div>
-				</div>
             </div>
-            <br>
-            <div class="row">
-                <button type="button" class="btn hidden" style="width: 140px; max-width: 140px; margin: auto; margin-right: 40px;" id="wizard-previous" onclick="prevStep()">Previous</button>
-                <button type="button" class="btn" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-next" onclick="nextStep()" disabled>Next</button>
-                <button type="submit" class="btn centered action hidden" style="width: 140px; max-width: 140px; margin: auto;" id="wizard-submit">Add {% if existing_device %}Keys{% else %}Device{% endif %}</button>
-            </div>
-        </form>
-    </div>
+        </div>
+        <button type="submit" id="submit-keys" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">Continue</button>
+        <br><br>
+    </form>
 {% endblock %}
 
 {% block scripts %}
@@ -346,265 +273,6 @@
             setupXpubsTable();
         });
 
-        function setMnemonicView(view) {
-            var generatedMnemonic = document.getElementById("generated_mnemonic");
-            var importMnemonic = document.getElementById("import_mnemonic");
-            var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
-            var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
-            var mnemonicValue = document.getElementById("mnemonic_value");
-            if (view == 'generate') {
-                generatedMnemonic.style.display = 'block';
-                importMnemonic.style.display = 'none';
-                generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
-                importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
-                mnemonicValue.value = '{{ mnemonic }}'
-            } else {
-                generatedMnemonic.style.display = 'none';
-                importMnemonic.style.display = 'block';
-                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
-                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
-                mnemonicValue.value = importMnemonic.value;
-                importMnemonic.addEventListener("input", function() {
-                    mnemonicValue.value = importMnemonic.value;
-                });
-            }
-        }
-
-        async function generateMnemonic() {
-			let url = `{{ url_for('generatemnemonic') }}`;
-            var formData = new FormData(document.getElementById('form'));
-			try {
-				const response = await fetch(
-					url,
-					{
-						method: 'POST',
-						body: formData
-					}
-				);
-				if(response.status != 200){
-					showError(await response.text());
-					return;
-				}
-				const jsonResponse = await response.json();
-                let mnemonic = jsonResponse.mnemonic;
-
-                document.getElementById("mnemonic_value").value = mnemonic;
-                let wordslist = mnemonic.split(' ');
-                let mnemonicTable = document.getElementById("mnemonic_table");
-                mnemonicTable.innerHTML = ``;
-    
-                for(let i=0; i < wordslist.length / 4; i++) {
-                    mnemonicTable.innerHTML += `
-                        <tr>
-                            <td id="mnemonicwo">${ 4 * i + 1 }. ${ wordslist[4 * i] }</td>
-                            <td>${ 4 * i + 2 }. ${ wordslist[4 * i + 1] }</td>
-                            <td>${ 4 * i + 3 }. ${ wordslist[4 * i + 2] }</td>
-                            <td>${ 4 * i + 4 }. ${ wordslist[4 * i + 3] }</td>
-                        </tr>
-                    `
-                }
-			} catch(e) {
-				console.log("Caught error: ", e);
-				showError(e);
-			}
-		}
-
-        // Wizard JS
-
-        let currentStep = 1;
-        let totalSteps = parseInt('{{ 1 if existing_device and not existing_device.hot_wallet else 2 }}');
-        let stepsCompleted = [];
-        {% if existing_device %}
-            {% if existing_device.hot_wallet %}
-                setStepCompleted(1);
-            {% else %}
-                nextStep();
-            {% endif %}
-        {% endif %}
-
-        function checkStepCompleted(step) {
-        }
-
-        function setStepCompleted(step) {
-            document.getElementById('wizard-next').removeAttribute('disabled');
-            stepsCompleted.push(step);
-        }
-
-        function setStepUncompleted(step) {
-            document.getElementById('wizard-next').setAttribute('disabled', true);
-            delete stepsCompleted[(stepsCompleted.indexOf(step))];
-        }
-
-        function nextStep() {
-            if (currentStep == 1) {
-                {% if existing_device %}
-                    let device = {
-                        value: "{{ existing_device.device_type }}",
-                         'data-qrcode': "{{existing_device.qr_code_support}}",
-                         'data-sdcard': "{{existing_device.sd_card_support}}",
-                         'data-hwi': "{{existing_device.hwi_support}}",
-                         'data-device-name': "{{ existing_device.name }}"
-                    }
-                {% else %}
-                var devices = document.getElementsByName('devices');
-                let device;
-                for (var i = 0, length = devices.length; i < length; i++) {
-                    if (devices[i].checked) {
-                        device = devices[i];
-                        break;
-                    }
-                }
-                device = {
-                    value: device.value,
-                    'data-qrcode': device.getAttribute('data-qrcode'),
-                    'data-sdcard': device.getAttribute('data-sdcard'),
-                    'data-hwi': device.getAttribute('data-hwi'),
-                    'data-device-name': device.getAttribute('data-device-name')
-                }
-                {% endif %}
-
-                if (device.value == 'bitcoincore') {
-                    if (document.getElementById('step2-hot-wallet')) {
-                        document.getElementById('step2').id = 'step3';
-                        document.getElementById('step2-hot-wallet').id = 'step2';
-                    }
-                    document.getElementById('toggle_advanced_xpubs').style.display = 'block';
-                    totalSteps = parseInt('{{ 2 if existing_device else 3 }}');
-                } else {
-                    if (document.getElementById('step3')) {
-                        document.getElementById('step3').id = 'step2';
-                        document.getElementById('step2').id = 'step2-hot-wallet';
-                    }
-                    document.getElementById('toggle_advanced_xpubs').style.display = 'none';
-                    totalSteps = parseInt('{{ 1 if existing_device else 2 }}');
-                }
-
-                
-
-                // Update connect methods for step 2
-                if (device['data-hwi'] == 'True') {
-                    document.getElementById('connect-hwi').classList.remove('hidden');
-                } else {
-                    document.getElementById('connect-hwi').classList.add('hidden');
-                }
-
-                if (device['data-sdcard'] == 'True') {
-                    document.getElementById('connect-sdcard').classList.remove('hidden');
-                } else {
-                    document.getElementById('connect-sdcard').classList.add('hidden');
-                }
-
-                if (device['data-qrcode'] == 'True') {
-                    document.getElementById('xpub-scan').classList.remove('hidden');
-                } else {
-                    document.getElementById('xpub-scan').classList.add('hidden');
-                }
-                if (device.value == 'electrum' || device.value == 'other') {
-                    document.getElementById('xpub-paste').classList.remove('hidden');
-                } else {
-                    document.getElementById('xpub-paste').classList.add('hidden');
-                }
-                document.getElementById('specter-instructions').classList.add('hidden');
-                document.getElementById('coldcard-instructions').classList.add('hidden');
-                document.getElementById('cobo-instructions').classList.add('hidden');
-                document.getElementById('hot-wallet').classList.add('hidden');
-                document.getElementById('advanced-hot-wallet').classList.add('hidden');
-                document.getElementById('hwi-only-instructions').classList.add('hidden');
-                switch(device.value) {
-                    case 'specter':
-                        document.getElementById('specter-instructions').classList.remove('hidden');
-                        break;
-                    case 'coldcard':
-                        document.getElementById('coldcard-instructions').classList.remove('hidden');
-                        break;
-                    case 'cobo':
-                        document.getElementById('cobo-instructions').classList.remove('hidden');
-                        break;
-                    case 'electrum':
-                    case 'other':
-                        break;
-                    case 'bitcoincore':
-                        document.getElementById('hot-wallet').classList.remove('hidden');
-                        document.getElementById('advanced-hot-wallet').classList.remove('hidden');
-                        break;
-                    default:
-                        document.getElementById('hwi-only-instructions').classList.remove('hidden');
-                }
-            }
-
-            if (currentStep < totalSteps) {
-                document.getElementById('wizard-previous').classList.remove('hidden');
-                document.getElementById(`step${currentStep}`).classList.add('hidden');
-                document.getElementById(`step${currentStep + 1}`).classList.remove('hidden');
-                if (!document.getElementById('step3')) { // Only bitcoin core hot wallet
-                    document.getElementById('wizard-next').setAttribute('disabled', 'true');
-                }
-                currentStep++;   
-            }
-
-            if (currentStep in stepsCompleted) {
-                setStepCompleted(currentStep);
-            }
-
-            if (currentStep == totalSteps) {
-                document.getElementById('wizard-next').classList.add('hidden');
-                document.getElementById('wizard-submit').classList.remove('hidden');
-
-                let deviceName;
-                let deviceType;
-
-                var devices = document.getElementsByName('devices');
-
-                for (var i = 0, length = devices.length; i < length; i++) {
-                    if (devices[i].checked) {
-                        deviceName = devices[i]['data-device-name'];
-                        deviceType = devices[i].value;
-                        setupXpubsTable(deviceType);
-                        break;
-                    }
-                }
-                if (deviceType == 'other' || deviceType == 'electrum') {
-                    xpubsEditable = true;
-                } else {
-                    xpubsEditable = false;
-                }
-            }
-        }
-
-        function prevStep() {
-            document.getElementById(`step${currentStep}`).classList.add('hidden');
-            document.getElementById(`step${currentStep - 1}`).classList.remove('hidden');
-            currentStep--;
-            if (currentStep == 1) {
-                document.getElementById('wizard-previous').classList.add('hidden');
-            }
-            setStepCompleted(currentStep);
-
-            
-            document.getElementById('wizard-next').classList.remove('hidden');
-            document.getElementById('wizard-submit').classList.add('hidden');
-        }
-
-        function filterDeviceTypes(text) {
-            let devicesLabels = []
-            {% for cls in specter.device_manager.supported_devices %}
-                devicesLabels.push('label_device_type_{{ cls.name }}')
-            {% endfor %}
-            if (text) {
-                for (let deviceLabel of devicesLabels) {
-                    if (deviceLabel.split('label_device_type_')[1].toLowerCase().includes(text.toLowerCase())) {                                        
-                        document.getElementById(deviceLabel).style.display = 'flex';
-                    } else {
-                        document.getElementById(deviceLabel).style.display = 'none';
-                    }
-                }
-            } else {
-                for (let deviceLabel of devicesLabels) {
-                    document.getElementById(deviceLabel).style.display = 'flex';
-                }
-            }
-        }
-
         function editXpubsTable(editBtn) {
             let visibility = '';
             if (editBtn.innerHTML == 'Edit') {
@@ -619,23 +287,6 @@
             document.getElementById('edit_custom_der').style.display = 'none';
             for (let el of document.getElementsByClassName('xpubs_edit')) {
                 el.style.visibility = visibility;
-            }
-        }
-
-        function toggleAdvancedXpubs() {
-            let advancedButton = document.getElementById('toggle_advanced_xpubs');
-            let advancedSettings = document.getElementById('advanced_settings_xpubs');
-            if (advancedSettings.style.display === 'block') {
-                advancedSettings.style.display = 'none';
-                advancedButton.innerHTML = 'Advanced &#9654;';
-            } else {
-                advancedSettings.style.display = 'block';
-                advancedButton.innerHTML = 'Advanced &#9660;';
-                if (totalSteps == 3) {
-                    document.getElementById('advanced-hot-wallet').display = 'block';
-                } else {
-                    document.getElementById('advanced-hot-wallet').display = 'none';
-                }
             }
         }
     </script>
