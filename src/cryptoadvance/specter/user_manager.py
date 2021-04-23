@@ -50,10 +50,12 @@ class UserManager:
         write_json_file(users_json, self.users_file)
 
     def add_user(self, user):
+        """Adds a User-Object to the list"""
         if user not in self.users:
             self.users.append(user)
             user.manager = self
         self.save()  # save files
+        user.check()
         return self.get_user(user)
 
     @property
