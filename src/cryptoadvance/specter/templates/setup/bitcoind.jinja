@@ -1,7 +1,7 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
     <br>Setup Bitcoin Core</h1>
     <span id="toggle_advanced" style="cursor: pointer;" onclick="toggleAdvanced()">Advanced &#9654;</span>
     <br>

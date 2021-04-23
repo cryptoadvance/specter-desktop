@@ -1,7 +1,7 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
     <br>Configure your node</h1>
     <p>QuickSync?&nbsp;&nbsp;
         <label class="switch" id="quicksync-switch">
@@ -61,7 +61,7 @@
 {% block setup_scripts %}
     <script>
         document.addEventListener("DOMContentLoaded", function(){
-            if ('{{specter.setup_status.waiting_bitcoind_datadir_setup}}' == 'True') {
+            if ('{{specter.setup_status["bitcoind"]["stage_progress"]}}' != '-1') {
                 document.getElementById('setup-bitcoind-dir-button').classList.add('hidden');
                 startProgressCheck('bitcoind', "{{ url_for('setup_endpoint.end') }}");
             }

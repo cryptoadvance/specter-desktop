@@ -74,11 +74,7 @@
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
 					<br><br>
 					{% if not specter.chain %}
-					{% if specter.setup_status.waiting_bitcoind_datadir_setup %}
-						<a href="{{url_for('setup_endpoint.bitcoind_datadir')}}" class="btn action centered" style="max-width: 200px;">See setup progress</a>
-					{% else %}
-						<a href="{{ url_for('setup_endpoint.start') }}" class="btn action centered" style="max-width: 200px;">Get started!</a>
-					{% endif %}
+					<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}Get started!{% else %}Continue setup{% endif %}</a>
 					<br><br>
 					{% else %}
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>

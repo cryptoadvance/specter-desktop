@@ -1,7 +1,7 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow_right.svg') }}" style="width: 60px;"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
     <br>Would you like to setup a new Bitcoin node or connect to an existing one?</h1>
     <p class="hidden warning" id="helper-text">If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.<br><br>
     Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!</p>

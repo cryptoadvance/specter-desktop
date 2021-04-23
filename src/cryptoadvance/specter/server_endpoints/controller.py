@@ -169,7 +169,7 @@ def about():
     if request.method == "POST":
         action = request.form["action"]
         if action == "cancelsetup":
-            app.specter.setup_status["waiting_bitcoind_datadir_setup"] = False
+            app.specter.setup_status["stage"] = "start"
             app.specter.reset_setup("bitcoind")
             app.specter.reset_setup("torbrowser")
 

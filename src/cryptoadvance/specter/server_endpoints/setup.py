@@ -36,8 +36,7 @@ setup_endpoint = Blueprint("setup_endpoint", __name__)
 @setup_endpoint.route("/start/", methods=["GET"])
 @login_required
 def start():
-    app.specter.reset_setup("bitcoind")
-    app.specter.reset_setup("torbrowser")
+    app.specter.setup_status["stage"] = "start"
     return render_template("setup/start.jinja", specter=app.specter, rand=rand)
 
 
@@ -45,6 +44,7 @@ def start():
 @login_required
 def tor():
     """ wizard: Setup Tor daemon (Skip / Setup Tor) """
+    app.specter.setup_status["stage"] = "tor"
     return render_template(
         "setup/tor.jinja",
         nextURL="setup_endpoint.node_type",
@@ -59,6 +59,7 @@ def node_type():
     """wizard: Would you like to setup a new Bitcoin node or connect to an existing one?
     (Connect existing node / Setup a new node )
     """
+    app.specter.setup_status["stage"] = "node_type"
     return render_template("setup/node_type.jinja", specter=app.specter, rand=rand)
 
 
@@ -66,6 +67,7 @@ def node_type():
 @login_required
 def bitcoind():
     """ wizard: Setup Bitcoin Core (Start the Setup!) """
+    app.specter.setup_status["stage"] = "bitcoind"
     return render_template("setup/bitcoind.jinja", specter=app.specter, rand=rand)
 
 
@@ -73,6 +75,7 @@ def bitcoind():
 @login_required
 def bitcoind_datadir():
     """ wizard: Configure your node (Quicksync? , Start Syncing) """
+    app.specter.setup_status["stage"] = "bitcoind_datadir"
     return render_template(
         "setup/bitcoind_datadir.jinja", specter=app.specter, rand=rand
     )
@@ -82,6 +85,7 @@ def bitcoind_datadir():
 @login_required
 def end():
     """ wizard: Setup competed Successfully (Done)"""
+    app.specter.setup_status["stage"] = "end"
     return render_template("setup/end.jinja", specter=app.specter, rand=rand)
 
 
@@ -149,9 +153,6 @@ def setup_bitcoind_datadir():
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
     ):
-        app.specter.setup_status[
-            "waiting_bitcoind_datadir_setup"
-        ] = True  # TODO: Structure stages with enum
         app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"
