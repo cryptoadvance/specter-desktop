@@ -64,7 +64,7 @@
             try {
                 result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
             } catch (e) {
-                if (e.message !== 'Fetch is aborted') {
+                if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                     throw e;
                 }
                 if (deviceTypes == 'bitbox02') {
@@ -93,7 +93,7 @@
                 try {
                     result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
                 } catch (e) {
-                    if (e.message !== 'Fetch is aborted') {
+                    if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                         throw e;
                     }
                     if (deviceTypes == 'bitbox02') {
