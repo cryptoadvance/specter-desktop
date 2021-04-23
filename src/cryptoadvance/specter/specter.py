@@ -134,7 +134,7 @@ class Specter:
 
         self.node_status = None
         self.setup_status = {
-            "stage": 0,
+            "stage": "start",
             "bitcoind": {
                 "stage_progress": -1,
                 "stage": "",

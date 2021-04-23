@@ -106,8 +106,8 @@
             setTimeout(fetchUTXORescanProgress, 1000);
         </script>
         {% endif %}
-        {% if specter.setup_status.stage %}
-            {{ sidebar_btn(url_for('node_setup_wizard', step=specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
+        {% if specter.setup_status.stage != "start" and specter.rpc is none %}
+            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
@@ -173,7 +173,7 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-            {% elif not specter.setup_status.stage %}
+            {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
                 <p class="warning" style="border: 1px solid #fff;">
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
                 <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>

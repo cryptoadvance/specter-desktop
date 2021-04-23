@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
+    specter.update_setup_status("bitcoind", "STARTING_SETUP")
     try:
         BITCOIND_OS_SUFFIX = {
             "Windows": "win64.zip",
@@ -50,25 +51,6 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
                 f"Creating bitcoin datadir: {specter.config['internal_node']['datadir']}"
             )
             os.makedirs(specter.config["internal_node"]["datadir"])
-
-        logger.info(f"Writing bitcoin.conf")
-        with open(
-            os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
-            "w",
-        ) as file:
-            salt = generate_salt(16)
-            password_hmac = password_to_hmac(
-                salt, specter.config["internal_node"]["password"]
-            )
-            file.write(
-                f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
-            )
-            file.write(f"\nserver=1")
-            file.write(f"\nlisten=1")
-            file.write(f"\nproxy=127.0.0.1:9050")
-            file.write(f"\nbind=127.0.0.1")
-            file.write(f"\ntorcontrol=127.0.0.1:9051")
-            file.write(f"\ntorpassword={specter.config['torrc_password']}")
         specter.config["bitcoind_internal_version"] = internal_bitcoind_version
         specter._save()
         specter.reset_setup("bitcoind")
@@ -135,32 +117,35 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                         os.path.expanduser(specter.config["internal_node"]["datadir"])
                     )
                 os.remove(prunednode_file)
-                with open(
-                    os.path.join(
-                        specter.config["internal_node"]["datadir"], "bitcoin.conf"
-                    ),
-                    "a",
-                ) as file:
-                    salt = generate_salt(16)
-                    password_hmac = password_to_hmac(
-                        salt, specter.config["internal_node"]["password"]
-                    )
-                    file.write(
-                        f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
-                    )
-        else:
-            with open(
-                os.path.join(
-                    specter.config["internal_node"]["datadir"], "bitcoin.conf"
-                ),
-                "a",
-            ) as file:
-                if pruned:
-                    file.write(f"\nprune=1000")
-                else:
-                    file.write(f"\nblockfilterindex=1")
+
+        logger.info(f"Writing bitcoin.conf")
+        if not os.path.exists(specter.config["internal_node"]["datadir"]):
+            os.makedirs(specter.config["internal_node"]["datadir"])
+        with open(
+            os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
+            "w+",
+        ) as file:
+            salt = generate_salt(16)
+            password_hmac = password_to_hmac(
+                salt, specter.config["internal_node"]["password"]
+            )
+            file.write(
+                f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
+            )
+            file.write(f"\nserver=1")
+            file.write(f"\nlisten=1")
+            file.write(f"\nproxy=127.0.0.1:9050")
+            file.write(f"\nbind=127.0.0.1")
+            file.write(f"\ntorcontrol=127.0.0.1:9051")
+            file.write(f"\ntorpassword={specter.config['torrc_password']}")
+            file.write(f"\nfallbackfee=0.0002")
+            if quicksync or pruned:
+                file.write(f"\nprune=1000")
+            else:
+                file.write(f"\nblockfilterindex=1")
 
         specter.update_setup_status("bitcoind", "START_SERVICE")
+        specter.update_use_external_node(False)
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
@@ -172,7 +157,6 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             )
         finally:
             specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
-        specter.update_use_external_node(False)
         logger.info("Waiting 15 seconds ...")
         time.sleep(15)
         success = specter.update_rpc(
@@ -187,7 +171,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
             logger.info("No success connecting to Bitcoin Core")
         specter.check()
         specter.reset_setup("bitcoind")
-        app.specter.setup_status["stage"] = 5
+        specter.setup_status["stage"] = "end"
     except ExtProcTimeoutException as e:
         e.check_logfile(
             os.path.join(specter.config["internal_node"]["datadir"], "debug.log")

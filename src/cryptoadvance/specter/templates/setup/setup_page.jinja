@@ -1,0 +1,114 @@
+{% extends "base.jinja" %}
+{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+{% block main %}
+    <style>
+        .wizard-btn {
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
+            height: 36px;
+            margin: auto;
+        }
+        .helper-btn {
+            text-decoration: underline;
+            margin: 10px 50px;
+        }
+    </style>
+    <div class="card center">
+        {% block setup %}
+        {% endblock %}
+    </div>
+    <br><br>
+    <div class="row">
+        <form method="POST" action="{{ url_for('about') }}">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">Cancel process</button>
+        </form>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('progress-details');">View Progress</button>
+    </div>
+    <h1 id="progress-details" class="hidden" style="margin: auto;"></h1>
+    
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        let currentStep = parseInt('{{step}}');
+        let torSetup = false;
+
+        function toggleHelper() {
+            let helper = document.getElementById("helper");
+            let helperText = document.getElementById("helper-text");
+            let support = document.getElementById("support");
+            if (helperText.classList.contains("hidden")) {
+                helper.innerText = "Got it!";
+                helperText.classList.remove("hidden");
+                support.classList.remove("hidden");
+                helper.classList.add("helper-btn");
+                support.classList.add("helper-btn");
+            } else {
+                helper.innerText = "Unsure? Click here for more info!";
+                helperText.classList.add("hidden");
+                support.classList.add("hidden");
+                helper.classList.remove("helper-btn");
+                support.classList.remove("helper-btn");
+            }
+        }
+
+        function toggleAdvanced() {
+            let advancedButton = document.getElementById(`toggle_advanced`);
+            let advancedSettings = document.getElementById(`advanced_settings`);
+            if (advancedSettings.classList.contains("hidden")) {
+                advancedSettings.classList.remove("hidden");
+                advancedButton.innerHTML = 'Advanced &#9660;';
+            } else {
+                advancedSettings.classList.add("hidden");
+                advancedButton.innerHTML = 'Advanced &#9654;';
+            }
+        }
+
+        function startProgressCheck(software, nextURL) {
+            async function fetchProgress() {
+                try {
+                    let url = "{{ url_for('setup_endpoint.get_software_setup_status', software='SOFTWARE_PLACEHOLDER') }}".replace('SOFTWARE_PLACEHOLDER', software);
+
+                    const response = await fetch(
+                        url,
+                        {
+                            method: 'GET'
+                        }
+                    );
+                    let result = await response.json();
+                    if (result.error) {
+                        showError('Encountered an error:' + result.error);
+                        document.getElementById('progress-details').classList.add('hidden');
+                        hidePageOverlay('progress-details');
+                        return;
+                    }
+                    let stage = result.stage;
+                    let progress = parseFloat(result.stage_progress);
+                    if (progress == -1) {
+                        window.location.href = nextURL;
+                    }
+                    document.getElementById('progress-details').innerHTML = `${stage}<br>`;
+                    if (progress > 0 && progress < 100) {
+                        document.getElementById('progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">Download Progress: ${progress}%</b>`;
+                    }
+                    setTimeout(fetchProgress, 1000);
+                } catch(e) {
+                    console.log('Caught error:', e);
+                    return { success: false, error: e };
+                }
+            }
+            document.getElementById('progress-details').classList.remove('hidden');
+            document.getElementById('show-progress-details').classList.remove('hidden');
+            document.getElementById('reset-setup-process').classList.remove('hidden');
+            showPageOverlay('progress-details');
+            document.getElementById('progress-details').innerHTML = 'Starting up...';
+            
+            setTimeout(fetchProgress, 1000);
+        }
+    </script>
+    {% block setup_scripts %}
+    {% endblock %}
+{% endblock %}
