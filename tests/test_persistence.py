@@ -5,6 +5,7 @@ import json
 
 # count files
 def count_files_in(path, extension=".json"):
+    assert not path is None
     return len(
         [
             f
@@ -37,6 +38,7 @@ def test_write_devices(app, monkeypatch, caplog):
 
 
 def test_write_wallet(app, monkeypatch, caplog):
+    assert not app.specter.wallet_manager.working_folder is None
     wallet_json = json.loads(
         """
         {"name": "MyOtherWallet", "alias": "myotherwallet", "description": "Single (Segwit)", "address_type": "bech32", "address": "bcrt1qavs8svrqcgnrzktvsn27z3w7acq0dljgnf8k89", "address_index": 0, "change_address": "bcrt1qx70x540rcy26usrdxpv27l5qfhx7rmv9sjdx6c", "change_index": 0, "keypool": 20, "change_keypool": 20, "recv_descriptor": "wpkh([1831e62e/84h/1h/0h]tpubDDArDQWC6J5LCiB2LoNKTyEdcee2bXboauk5XzLLY1zQvFSESD6B7zwnz2YWWFemepcE69or1UzYcLtwpvBh3bmKSFmqT84UUAfrQCcaTMY/0/*)#zpjep3zd", "change_descriptor": "wpkh([1831e62e/84h/1h/0h]tpubDDArDQWC6J5LCiB2LoNKTyEdcee2bXboauk5XzLLY1zQvFSESD6B7zwnz2YWWFemepcE69or1UzYcLtwpvBh3bmKSFmqT84UUAfrQCcaTMY/1/*)#n4hcuyj4", "keys": [{"original": "vpub5Z8h5qLg5f2vEKbwDtoyqsiFwbFUiu7kD47LceVRS6Um4m94rfuxjRxghaYYywPh3dqhyd6rZ4TQ9bBCzfWRZgwpdydgbmmGLkx9s6MGKaU", "fingerprint": "1831e62e", "derivation": "m/84h/1h/0h", "type": "wpkh", "xpub": "tpubDDArDQWC6J5LCiB2LoNKTyEdcee2bXboauk5XzLLY1zQvFSESD6B7zwnz2YWWFemepcE69or1UzYcLtwpvBh3bmKSFmqT84UUAfrQCcaTMY"}], "devices": ["mynicedevice"], "sigs_required": 1, "pending_psbts": {}, "fullpath": "/home/kim/.specter/wallets/regtest/myotherwallet.json", "last_block": "24ca00b211427afb921dec51d4d7c7b110f7aef6165298149a5fcf009c5abea0", "blockheight": 214}

@@ -275,6 +275,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     specter.check()
+    assert not specter.wallet_manager.working_folder is None
     yield specter
     shutil.rmtree(data_folder, ignore_errors=True)
 
