@@ -6,7 +6,6 @@ import threading
 import time
 from urllib.parse import urlparse
 
-from mock import Mock
 
 from ..helpers import deep_update
 from ..persistence import read_json_file, write_json_file
