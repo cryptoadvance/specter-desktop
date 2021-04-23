@@ -47,16 +47,18 @@
                         This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
                         Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
                     </p>
-                    <p>Enter you mnemonic here or use the randomly generated one:</p>
-                    <p><b>Make sure to backup these words!</b></p>
+                    <p>Enter your mnemonic here{% if not existing_device %} or use the randomly generated one{% endif %}:</p>
+                    {% if not existing_device %}<p><b>Make sure to backup these words!</b></p>{% endif %}
                     {% set wordslist = mnemonic.split(' ') %}
+                    {% if not existing_device %}
                     <nav class="row">
                         <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
                         <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
                     </nav>
+                    {% endif %}
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
                     <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
-                    <div id="generated_mnemonic">
+                    <div id="generated_mnemonic" {% if existing_device %}class="hidden"{% endif %}>
                         <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
                             <fieldset style="border:none; display: inline;"> 
                                 <select name="strength" id="strength">
@@ -105,6 +107,12 @@
 
 {% block scripts %}
     <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            {% if existing_device %}
+                setMnemonicView('import');
+            {% endif %}
+        });
+
         function setMnemonicView(view) {
             var generatedMnemonic = document.getElementById("generated_mnemonic");
             var importMnemonic = document.getElementById("import_mnemonic");
