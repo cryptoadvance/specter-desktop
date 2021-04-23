@@ -1,6 +1,35 @@
 import logging
 
 
+def test_deep_update():
+    import cryptoadvance.specter.helpers as helpers
+
+    base_value = {
+        "pli": {"pla": "blub", "yes": "yes"},
+        "pli2": ["arrayelm1", "arrayelm2", "arrayelm3"],
+        "pli3": "aStringValue",
+    }
+    assert len(base_value) == 3
+    assert len(base_value["pli"]) == 2
+    assert len(base_value["pli2"]) == 3
+
+    update_value = {
+        "newRootKey": {"pla": "blub"},
+        "pli": {"newSubKey": "blub2"},
+        "pli2": ["arrayelm4", "arrayelm5"],
+    }
+    helpers.deep_update(base_value, update_value)
+    # There is now a newRootKey
+    assert len(base_value) == 4
+    # keys get added
+    assert len(base_value["pli"]) == 3
+    # Arrays get replaced, not appended!
+    assert len(base_value["pli2"]) == 2
+    # you cannot delete stuff with empty dicts
+    helpers.deep_update(base_value, {"newRootKey": {}})
+    assert base_value["newRootKey"]["pla"] == "blub"
+
+
 def test_load_jsons(caplog):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")

@@ -11,7 +11,7 @@ import secrets
 import requests
 import signal
 from io import BytesIO
-from .helpers import migrate_config, deep_update, clean_psbt, is_testnet
+from .helpers import deep_update, clean_psbt, is_testnet
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
 from .bitcoind import BitcoindPlainController
@@ -32,6 +32,8 @@ from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
 from .util.setup_states import SETUP_STATES
+from .managers.otp_manager import OtpManager
+from .managers.config_manager import ConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -104,70 +106,17 @@ class Specter:
 
         self.data_folder = data_folder
 
+        # the rpc-object. Currently we only have one. If we have Node-Managers, we would need
+        # either many of them and register them with a keyword or something like that
         self.rpc = None
-        self.user_manager = UserManager(self)
 
-        self.file_config = None  # what comes from config file
-        self.arg_config = config  # what comes from arguments
-
-        # wallet that is currently rescnning with utxorescan
+        # wallet that is currently rescanning with utxorescan
         # can be only one at a time
         self.utxorescanwallet = None
 
-        # default config
-        self.config = {
-            "rpc": {
-                "autodetect": True,
-                "datadir": get_default_datadir(),
-                "user": "",
-                "password": "",
-                "port": "",
-                "host": "localhost",  # localhost
-                "protocol": "http",  # https for the future
-                "external_node": True,
-            },
-            "internal_node": {
-                "autodetect": False,
-                "datadir": os.path.join(self.data_folder, ".bitcoin"),
-                "user": "bitcoin",
-                "password": secrets.token_urlsafe(16),
-                "host": "localhost",  # localhost
-                "protocol": "http",  # https for the future
-                "port": 8332,
-            },
-            "auth": {
-                "method": "none",
-                "password_min_chars": 6,
-                "rate_limit": 10,
-                "registration_link_timeout": 1,
-            },
-            "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
-            "explorer_id": {
-                "main": "CUSTOM",
-                "test": "CUSTOM",
-                "regtest": "CUSTOM",
-                "signet": "CUSTOM",
-            },
-            "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
-            "only_tor": False,
-            "tor_control_port": "",
-            "tor_status": False,  # Should start Tor hidden service on startup?
-            "hwi_bridge_url": "/hwi/api/",
-            # unique id that will be used in wallets path in Bitcoin Core
-            # empty by default for backward-compatibility
-            "uid": "",
-            "unit": "btc",
-            "price_check": False,
-            "alt_rate": 1,
-            "alt_symbol": "BTC",
-            "price_provider": "",
-            "weight_unit": "oz",
-            "validate_merkle_proofs": False,
-            "fee_estimator": "mempool",
-            "fee_estimator_custom_url": "",
-            "bitcoind": False,
-            "bitcoind_internal_version": "",
-        }
+        self.user_manager = UserManager(self)
+
+        self._config_manager = ConfigManager(self.data_folder, config)
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -221,7 +170,7 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        if not self.config["rpc"].get("external_node", True):
+        if not self.config_manager.data["rpc"].get("external_node", True):
             try:
                 self.bitcoind.start_bitcoind(
                     datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
@@ -284,7 +233,7 @@ class Specter:
         rpc = self.rpc
         if rpc is None or not rpc.test_connection():
             rpc = get_rpc(
-                self.rpc_conf,
+                self.config_manager.rpc_conf,
                 self.rpc,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -305,18 +254,15 @@ class Specter:
         if not check_all:
             # find proper user
             user = self.user_manager.get_user(user)
-            self.check_for_user(user)
+            user.check()
         else:
             for u in self.user_manager.users:
-                self.check_for_user(u)
+                u.check()
 
     @property
-    def rpc_conf(self):
-        return (
-            self.config["rpc"]
-            if self.config["rpc"].get("external_node", True)
-            else self.config["internal_node"]
-        )
+    def config(self):
+        """A convenience property simply redirecting to the config_manager"""
+        return self.config_manager.data
 
     def check_node_info(self):
         self._is_configured = self.rpc is not None
@@ -380,42 +326,6 @@ class Specter:
             return "_" + user.id
         return ""
 
-    def check_wallet_manager(self, user=None):
-        """Updates wallet manager for a particular user"""
-        user = self.user_manager.get_user(user)
-        wallets_rpcpath = "specter%s" % self.config["uid"]
-        wallets_folder = os.path.join(self.data_folder, f"wallets{user.folder_id}")
-        # if chain, user or data folder changed
-        wallet_manager = user.wallet_manager
-        if (
-            wallet_manager is None
-            or wallet_manager.data_folder != wallets_folder
-            or wallet_manager.rpc_path != wallets_rpcpath
-            or wallet_manager.chain != self.chain
-        ):
-            wallet_manager = WalletManager(
-                self.bitcoin_core_version_raw,
-                wallets_folder,
-                self.rpc,
-                self.chain,
-                user.device_manager,
-                path=wallets_rpcpath,
-            )
-            user.wallet_manager = wallet_manager
-        else:
-            wallet_manager.update(wallets_folder, self.rpc, chain=self.chain)
-
-    def check_device_manager(self, user=None):
-        """Updates device manager for a particular user"""
-        user = self.user_manager.get_user(user)
-        devices_folder = os.path.join(self.data_folder, f"devices{user.folder_id}")
-        device_manager = user.device_manager
-        if device_manager is None:
-            device_manager = DeviceManager(devices_folder)
-            user.device_manager = device_manager
-        else:
-            device_manager.update(data_folder=devices_folder)
-
     def check_config(self):
         """
         Updates config if file config have changed.
@@ -424,40 +334,7 @@ class Specter:
         - file config from config.json
         - arg_config passed in constructor
         """
-
-        # if config.json file exists - load from it
-        if os.path.isfile(self.config_fname):
-            with self.lock:
-                self.file_config = read_json_file(self.config_fname)
-                migrate_config(self.file_config)
-                deep_update(self.config, self.file_config)
-            # otherwise - create one and assign unique id
-        else:
-            # unique id of specter
-            if self.config["uid"] == "":
-                self.config["uid"] = (
-                    random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
-                )
-            self._save()
-
-        # config from constructor overrides file config
-        deep_update(self.config, self.arg_config)
-
-    def check_for_user(self, user=None):
-        """
-        Performs device and wallet manager check for particular user
-        """
-        user = self.user_manager.get_user(user)
-        self.check_device_manager(user)
-        self.check_wallet_manager(user)
-
-    def add_user(self, user):
-        if user in self.user_manager.users:
-            return
-        user.wallet_manager = None
-        user.device_manager = None
-        self.user_manager.add_user(user)
-        self.check_for_user(user)
+        self.config_manager.check_config()
 
     def delete_user(self, user):
         if user not in self.user_manager.users:
@@ -467,15 +344,10 @@ class Specter:
         user.device_manager.delete(self)
         self.user_manager.delete_user(user)
 
+    # mark
     @property
     def bitcoin_datadir(self):
-        if "datadir" in self.config["rpc"]:
-            if self.config["rpc"].get("external_node", True):
-                return os.path.expanduser(self.config["rpc"]["datadir"])
-            else:
-                if "datadir" in self.config["internal_node"]:
-                    return os.path.expanduser(self.config["internal_node"]["datadir"])
-        return get_default_datadir()
+        return self.config_manager.bitcoin_datadir
 
     def abortrescanutxo(self):
         self.rpc.scantxoutset("abort", [])
@@ -485,7 +357,7 @@ class Specter:
         self.utxorescanwallet = None
 
     def test_rpc(self, **kwargs):
-        conf = copy.deepcopy(self.config["rpc"])
+        conf = copy.deepcopy(self.config_manager.data["rpc"])
         conf.update(kwargs)
 
         rpc = get_rpc(
@@ -549,6 +421,7 @@ class Specter:
                 r["code"] = -1
         return r
 
+    # mark
     def _save(self):
         write_json_file(self.config, self.config_fname, lock=self.lock)
 
@@ -556,19 +429,12 @@ class Specter:
     def config_fname(self):
         return os.path.join(self.data_folder, "config.json")
 
+    # mark
     def update_rpc(self, **kwargs):
-        need_update = kwargs.get("need_update", False)
-        for k in kwargs:
-            if k != "need_update" and self.rpc_conf[k] != kwargs[k]:
-                self.config[
-                    "rpc"
-                    if self.config["rpc"].get("external_node", True)
-                    else "internal_node"
-                ][k] = kwargs[k]
-                need_update = True
+        need_update = self.config_manager.update_rpc(**kwargs)
         if need_update:
             self.rpc = get_rpc(
-                self.rpc_conf,
+                self.config_manager.rpc_conf,
                 None,
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
@@ -577,11 +443,10 @@ class Specter:
             self.check(check_all=True)
         return self.rpc is not None
 
+    # mark
     def set_bitcoind_pid(self, pid):
         """ set the control pid of the bitcoind daemon """
-        if self.config.get("bitcoind", False) != pid:
-            self.config["bitcoind"] = pid
-            self._save()
+        self.config_manager.set_bitcoind_pid(pid)
 
     def update_setup_status(self, software_name, stage):
         self.setup_status[software_name]["error"] = ""
@@ -616,93 +481,52 @@ class Specter:
 
         return {"installed": installed, **self.setup_status[software_name]}
 
+    # mark
     def update_use_external_node(self, use_external_node):
         """ set whatever specter should connect to internal or external node """
-        self.config["rpc"]["external_node"] = use_external_node
-        self._save()
+        self.config_manager.update_use_external_node(use_external_node)
 
+    # mark
     def update_auth(self, method, rate_limit, registration_link_timeout):
         """ simply persisting the current auth-choice """
-        auth = self.config["auth"]
-        if auth["method"] != method:
-            auth["method"] = method
-        if auth["rate_limit"] != rate_limit:
-            auth["rate_limit"] = rate_limit
-        if auth["registration_link_timeout"] != registration_link_timeout:
-            auth["registration_link_timeout"] = registration_link_timeout
-        self._save()
+        self.config_manager.update_auth(method, rate_limit, registration_link_timeout)
 
+    # mark
     def update_explorer(self, explorer_id, explorer_data, user):
         """ update the block explorers urls """
-        user = self.user_manager.get_user(user)
-        # we don't know what chain to change
-        if not self.chain:
-            return
+        self.config_manager.update_explorer(
+            explorer_id, explorer_data, user, self.chain
+        )
 
-        if explorer_id == "CUSTOM":
-            if explorer_data["url"] and not explorer_data["url"].endswith("/"):
-                # make sure the urls end with a "/"
-                explorer_data["url"] += "/"
-        else:
-            chain_name = (
-                ""
-                if (self.chain == "main" or self.chain == "regtest")
-                else ("signet/" if self.chain == "signet" else "testnet/")
-            )
-            explorer_data["url"] += chain_name
-        # update the urls in the app config
-        if user.id == "admin":
-            self.config["explorers"][self.chain] = explorer_data["url"]
-            self.config["explorer_id"][self.chain] = explorer_id
-            self._save()
-        else:
-            user.set_explorer(explorer_id, explorer_data["url"])
-
+    # mark
     def update_fee_estimator(self, fee_estimator, custom_url, user):
         """ update the fee estimator option and its url if custom """
-        user = self.user_manager.get_user(user)
-        fee_estimator_options = ["mempool", "bitcoin_core", "custom"]
+        self.config_manager.update_fee_estimator(fee_estimator, custom_url, user)
 
-        if fee_estimator not in fee_estimator_options:
-            raise SpecterError("Invalid fee estimator option specified.")
-
-        if user.id == "admin":
-            self.config["fee_estimator"] = fee_estimator
-            if fee_estimator == "custom":
-                self.config["fee_estimator_custom_url"] = custom_url
-            self._save()
-        else:
-            user.set_fee_estimator(fee_estimator, custom_url)
-
+    # mark
     def update_proxy_url(self, proxy_url, user):
         """ update the Tor proxy url """
-        if self.config["proxy_url"] != proxy_url:
-            self.config["proxy_url"] = proxy_url
-            self._save()
+        self.config_manager.update_proxy_url(proxy_url, user)
 
+    # mark
     def toggle_tor_status(self):
         """ toggle the Tor status """
-        self.config["tor_status"] = not self.config["tor_status"]
-        self._save()
+        self.config_manager.toggle_tor_status()
 
+    # mark
     def update_only_tor(self, only_tor, user):
         """ switch whatever to use Tor for all calls """
-        if self.config["only_tor"] != only_tor:
-            self.config["only_tor"] = only_tor
-            self._save()
+        self.config_manager.update_only_tor(only_tor, user)
 
+    # mark
     def update_tor_control_port(self, tor_control_port, user):
         """ set the control port of the tor daemon """
-        if self.config["tor_control_port"] != tor_control_port:
-            self.config["tor_control_port"] = tor_control_port
-            self._save()
+        if self.config_manager.update_tor_control_port:
             self.update_tor_controller()
 
+    # mark
     def generate_torrc_password(self, overwrite=False):
-        if "torrc_password" not in self.config or overwrite:
-            self.config["torrc_password"] = secrets.token_urlsafe(16)
-            self._save()
-            logger.info(f"Generated torrc_password in {self.config_fname}")
+        self.config_manager.generate_torrc_password(overwrite)
 
     def update_tor_controller(self):
         if "torrc_password" not in self.config:
@@ -771,119 +595,41 @@ class Specter:
             "Failed to connect to the Tor daemon. Make sure ControlPort is properly configured."
         )
 
+    # mark
     def update_hwi_bridge_url(self, url, user):
         """ update the hwi bridge url to use """
-        user = self.user_manager.get_user(user)
-        if url and not url.endswith("/"):
-            # make sure the urls end with a "/"
-            url += "/"
-        # a few dummy checks:
-        # no schema and not local
-        if "://" not in url and not url.startswith("/"):
-            url = "http://" + url
-        # wrong ending:
-        if url.endswith("/hwi/settings/"):
-            url = url.replace("/hwi/settings/", "/hwi/api/")
-        # no ending
-        if not url.endswith("/hwi/api/"):
-            url += "hwi/api/"
+        self.config_manager.update_hwi_bridge_url(url, user)
 
-        if user.is_admin:
-            self.config["hwi_bridge_url"] = url
-            self._save()
-        else:
-            user.set_hwi_bridge_url(url)
-
+    # mark
     def update_unit(self, unit, user):
-        if user.is_admin:
-            self.config["unit"] = unit
-            self._save()
-        else:
-            user.set_unit(unit)
+        self.config_manager.update_unit(unit, user)
 
+    # mark
     def update_price_check_setting(self, price_check_bool, user):
-        if user.is_admin:
-            self.config["price_check"] = price_check_bool
-            self._save()
-        else:
-            user.set_price_check(price_check_bool)
-        if price_check_bool and (self.price_provider and self.user == user):
-            self.price_checker.start()
-        else:
-            self.price_checker.stop()
+        self.config_manager.update_price_check_setting(price_check_bool, user)
 
+    # mark
     def update_price_provider(self, price_provider, user):
-        if user.is_admin:
-            self.config["price_provider"] = price_provider
-            self._save()
-        else:
-            user.set_price_provider(price_provider)
+        self.config_manager.update_price_provider(price_provider, user)
 
+    # mark needs User-Type injection
     def update_weight_unit(self, weight_unit, user):
-        if user.is_admin:
-            self.config["weight_unit"] = weight_unit
-            self._save()
-        else:
-            user.set_weight_unit(weight_unit)
+        self.config_manager.update_weight_unit(weight_unit, user)
 
+    # mark needs User-Type injection
     def update_alt_rate(self, alt_rate, user):
-        alt_rate = round(float(alt_rate), 2)
-        if user.is_admin:
-            self.config["alt_rate"] = alt_rate
-            self._save()
-        else:
-            user.set_alt_rate(alt_rate)
+        self.config_manager.update_alt_rate(alt_rate, user)
 
+    # mark
     def update_alt_symbol(self, alt_symbol, user):
-        if user.is_admin:
-            self.config["alt_symbol"] = alt_symbol
-            self._save()
-        else:
-            user.set_alt_symbol(alt_symbol)
+        self.config_manager.update_alt_symbol(alt_symbol, user)
 
+    # mark logic!
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False
             logger.warning("Cannot enable merkleproof setting on pruned node.")
-
-        self.config["validate_merkle_proofs"] = validate_bool
-        self._save()
-
-    def add_new_user_otp(self, otp_dict):
-        """ adds an OTP for user registration """
-        if "new_user_otps" not in self.config:
-            self.config["new_user_otps"] = []
-        self.config["new_user_otps"].append(otp_dict)
-        self._save()
-
-    def validate_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if expired"""
-        if "new_user_otps" not in self.config:
-            return False
-        now = time.time()
-        for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            if otp_dict["otp"] == otp:
-                if (
-                    "expiry" in otp_dict
-                    and otp_dict["expiry"] < now
-                    and otp_dict["expiry"] > 0
-                ):
-                    del self.config["new_user_otps"][i]
-                    self._save()
-                    return False
-                return True
-        return False
-
-    def remove_new_user_otp(self, otp):
-        """ removes an OTP for user registration"""
-        if "new_user_otps" not in self.config:
-            return False
-        for i, otp_dict in enumerate(self.config["new_user_otps"]):
-            if otp_dict["otp"] == otp:
-                del self.config["new_user_otps"][i]
-                self._save()
-                return True
-        return False
+        self.config_manager.update_merkleproof_settings(validate_bool)
 
     def combine(self, psbt_arr):
         # backward compatibility with current Core psbt parser
@@ -992,7 +738,7 @@ class Specter:
 
     @property
     def admin(self):
-        for u in self.users:
+        for u in self.user_manager.users:
             if u.is_admin:
                 return u
 
@@ -1001,12 +747,24 @@ class Specter:
         return self.user_manager.user
 
     @property
+    def config_manager(self):
+        if not hasattr(self, "_config_manager"):
+            self._config_manager = ConfigManager(self.data_folder)
+        return self._config_manager
+
+    @property
     def device_manager(self):
         return self.user.device_manager
 
     @property
     def wallet_manager(self):
         return self.user.wallet_manager
+
+    @property
+    def otp_manager(self):
+        if not hasattr(self, "_otp_manager"):
+            self._otp_manager = OtpManager(self.data_folder)
+        return self._otp_manager
 
     def requests_session(self, force_tor=False):
         requests_session = requests.Session()
@@ -1037,3 +795,14 @@ class Specter:
                     )
         memory_file.seek(0)
         return memory_file
+
+
+class SpecterConfiguration:
+    """An abstract class which only holds functionality relevant for storage of information mostly
+    deferring to ConfigManager.
+    Do not put logic in here, which is not directly relevant for the config.json.
+    Do not deal with the config.json directly but implement that in the ConfigManager
+    """
+
+    pass
+    # ToDo: move all the methods above here.
