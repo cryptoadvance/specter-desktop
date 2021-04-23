@@ -201,7 +201,7 @@ class ConfigManager(GenericDataManager):
         if fee_estimator not in fee_estimator_options:
             raise SpecterError("Invalid fee estimator option specified.")
 
-        if user.id == "admin":
+        if user.is_admin:
             self.data["fee_estimator"] = fee_estimator
             if fee_estimator == "custom":
                 self.data["fee_estimator_custom_url"] = custom_url
