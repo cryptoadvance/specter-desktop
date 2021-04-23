@@ -185,7 +185,7 @@ class ConfigManager(GenericDataManager):
             )
             explorer_data["url"] += chain_name
         # update the urls in the app config
-        if user.id == "admin":
+        if user.is_admin:
             self.data["explorers"][chain] = explorer_data["url"]
             self.data["explorer_id"][chain] = explorer_id
             self._save()
