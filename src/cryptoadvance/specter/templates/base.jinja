@@ -32,19 +32,19 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
-					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
-						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
+					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" style="padding: 0px 7px;">
+						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
 					<a class="settings-bar-btn" href="{{ url_for('about') }}" title="About and help">
 						<img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth.method != "none" %}
-						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}">
-							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
+						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}"  style="padding: 0px 7px;">
+							<img src="{{ url_for('static', filename='img/exit.svg') }}" style="width: 36px;" class="svg-white"/>
 						</a>
 					{% endif %}
 				</div>
-			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}"/>
+			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}" class="svg-white" style="width: 40px;"/>
 			{% endif %}
 
 			<div id="messages">
@@ -165,7 +165,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('devices_endpoint.new_device') }}">
+									<a href="{{ url_for('devices_endpoint.new_device_type') }}">
 										<h2>Add signing devices you wish to use.</h2>
 									</a>
 								</td>
