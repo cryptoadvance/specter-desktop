@@ -51,6 +51,7 @@ describe('Setup wizard', () => {
         cy.get('#setup-tor-button').click()
 
         cy.visit('/about')
+
         cy.get('[href="/setup/start/"]').click()
     })
 })
