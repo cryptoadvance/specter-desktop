@@ -85,7 +85,7 @@ def bitcoind_datadir():
 @login_required
 def end():
     """ wizard: Setup competed Successfully (Done)"""
-    app.specter.setup_status["stage"] = "end"
+    app.specter.setup_status["stage"] = "start"
     return render_template("setup/end.jinja", specter=app.specter, rand=rand)
 
 
