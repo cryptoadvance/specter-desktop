@@ -44,6 +44,9 @@ from .util.checker import Checker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .managers.otp_manager import OtpManager
+from .managers.config_manager import ConfigManager
+from embit.liquid.networks import get_network
 
 logger = logging.getLogger(__name__)
 
@@ -496,6 +499,13 @@ class Specter:
     @property
     def chain(self):
         return self.node.chain
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
 
     @property
     def network_parameters(self):
