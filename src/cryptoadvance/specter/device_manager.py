@@ -68,7 +68,9 @@ class DeviceManager:
             if key not in non_dup_keys:
                 non_dup_keys.append(key)
         keys = non_dup_keys
-        device = get_device_class(device_type)(name, device_alias, keys, fullpath, self)
+        device = get_device_class(device_type)(
+            name, device_alias, keys, "", fullpath, self
+        )
         write_device(device, fullpath)
         self.update()  # reload files
         return device

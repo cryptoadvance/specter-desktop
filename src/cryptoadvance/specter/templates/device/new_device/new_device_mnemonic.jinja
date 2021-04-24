@@ -32,7 +32,7 @@
             visibility: hidden;
         }
     </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic') }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
         <div class="card center" style="width: auto; margin: 40px;" >
             <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
             {% if existing_device %}

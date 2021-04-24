@@ -20,8 +20,8 @@ class Specter(SDCardDevice):
     supports_hwi_multisig_display_address = True
     liquid_support = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        super().__init__(name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)

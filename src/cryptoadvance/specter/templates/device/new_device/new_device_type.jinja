@@ -8,7 +8,7 @@
             <div id="devices_list" class="row overflow">
                 {% for cls in specter.device_manager.supported_devices_for_chain(specter) %}
                     {% if not cls.hot_wallet or specter.rpc %}
-                        <a id="label_device_type_{{ cls.name | replace(' ', '') }}" href="{{ url_for('devices_endpoint.new_device_keys', device_type=cls.device_type) if not cls.hot_wallet else url_for('devices_endpoint.new_device_mnemonic') }}" style="text-decoration: none;">
+                        <a id="label_device_type_{{ cls.name | replace(' ', '') }}" href="{{ url_for('devices_endpoint.new_device_keys', device_type=cls.device_type) if not cls.hot_wallet else url_for('devices_endpoint.new_device_mnemonic', device_type=cls.device_type) }}" style="text-decoration: none;">
                             <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
                                 <img src="{{ url_for('static', filename='img/devices/' ~ cls.icon) }}" width="18px">
                                 {{ cls.name }}

@@ -83,7 +83,7 @@ def new_device_keys(device_type):
                     err = "Failed to parse these xpubs:\n" + "\n".join(xpub)
                     break
         if not keys and not err:
-            if device_type == "bitcoincore":
+            if device_type in ["bitcoincore", "elementscore"]:
                 if not paths:
                     err = "No paths were specified, please provide at lease one."
                 if err is None:
@@ -170,9 +170,9 @@ def new_device_keys(device_type):
     )
 
 
-@devices_endpoint.route("/new_device_mnemonic/", methods=["GET", "POST"])
+@devices_endpoint.route("/new_device_mnemonic/<device_type>", methods=["GET", "POST"])
 @login_required
-def new_device_mnemonic():
+def new_device_mnemonic(device_type):
     err = None
     strength = 128
     mnemonic = generate_mnemonic(strength=strength)
@@ -191,19 +191,17 @@ def new_device_mnemonic():
         passphrase = request.form["passphrase"]
         file_password = request.form["file_password"]
         existing_device = request.form.get("existing_device", None)
-        print("file_password")
-        print(file_password)
         if existing_device:
             existing_device = app.specter.device_manager.get_by_alias(existing_device)
         if not err:
             return render_template(
                 "device/new_device/new_device_keys.jinja",
+                device_class=get_device_class(device_type),
                 mnemonic=mnemonic,
                 passphrase=passphrase,
                 file_password=file_password,
                 range_start=range_start,
                 range_end=range_end,
-                device_class=BitcoinCore,
                 existing_device=existing_device,
                 error=err,
                 specter=app.specter,
@@ -212,6 +210,7 @@ def new_device_mnemonic():
 
     return render_template(
         "device/new_device/new_device_mnemonic.jinja",
+        device_type=device_type,
         strength=strength,
         mnemonic=mnemonic,
         existing_device=existing_device,
