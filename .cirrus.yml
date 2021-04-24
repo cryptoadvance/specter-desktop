@@ -10,6 +10,9 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   bitcoind_installation_cache:
     folder: ./tests/bitcoin
     populate_script: set -o errexit; source ./tests/install_bitcoind.sh binary
+  elementsd_installation_cache:
+    folder: ./tests/elements
+    populate_script: set -o errexit; source ./tests/install_bitcoind.sh --elementsd compile
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
     #fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
