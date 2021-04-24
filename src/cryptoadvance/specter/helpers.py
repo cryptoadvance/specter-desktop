@@ -28,8 +28,10 @@ defaultlock = threading.Lock()
 def is_testnet(chain):
     return chain not in ["main", "liquidv1", "None", "none", None, ""]
 
+
 def is_liquid(chain):
     return chain not in ["main", "regtest", "test", "signet", "None", "none", None, ""]
+
 
 def locked(customlock=defaultlock):
     """
