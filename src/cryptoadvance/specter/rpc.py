@@ -250,7 +250,7 @@ class BitcoinRPC:
         self.session = session
 
     def wallet(self, name=""):
-        return BitcoinRPC(
+        return type(self)(
             user=self.user,
             password=self.password,
             port=self.port,
