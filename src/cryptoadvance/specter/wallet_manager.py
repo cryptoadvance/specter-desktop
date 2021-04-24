@@ -313,7 +313,16 @@ class WalletManager:
                 blinding_key = devices[0].blinding_key
             if not blinding_key:
                 desc = Descriptor.from_string(recv_descriptor.split("#")[0])
-                secret = hashlib.sha256(desc.derive(0).script_pubkey().serialize()).digest()
+                # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
+                # where chaincodes are corresponding to xpub of the first receiving address
+                xor = bytearray(32)
+                desc_keys = desc.derive(0).keys
+                for k in desc_keys:
+                    if k.is_extended:
+                        chaincode = k.key.chain_code
+                        for i in range(32):
+                            xor[i] = xor[i] ^ chaincode[i]
+                secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
                 blinding_key = ec.PrivateKey(secret).wif()
             recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
             change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"

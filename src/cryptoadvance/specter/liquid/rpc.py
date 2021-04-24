@@ -2,6 +2,7 @@ from ..rpc import RpcError, BitcoinRPC
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
 
+
 class LiquidRPC(BitcoinRPC):
     """
     This class introduces fixes to Elements RPC that are broken in current Elements Core.

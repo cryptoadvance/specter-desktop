@@ -984,7 +984,11 @@ class Wallet:
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        return LDescriptor.from_string(desc.split("#")[0]).derive(index).address(get_network(self.manager.chain))
+        return (
+            LDescriptor.from_string(desc.split("#")[0])
+            .derive(index)
+            .address(get_network(self.manager.chain))
+        )
 
     def get_descriptor(self, index=None, change=False, address=None):
         """
