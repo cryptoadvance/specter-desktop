@@ -173,7 +173,7 @@ def bitcoin_core():
                 )
                 raise e
             finally:
-                app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
+                app.specter.set_bitcoind_pid(app.specter.bitcoind.node_proc.pid)
             time.sleep(15)
             flash("Specter has started Bitcoin Core")
         elif action == "uninstall_bitcoind":

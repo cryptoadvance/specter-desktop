@@ -11,8 +11,6 @@ function checkout {
     node_setup_needed=false
     if [ ! -d "./${node_impl}/.git" ]; then
         echo "    --> cloning $node_impl"
-        elements_url=https://github.com/ElementsProject/elements.git
-        bitcoin_url=https://github.com/bitcoin/bitcoin.git
         if [ $node_impl = "elements" ]; then
             clone_url=https://github.com/ElementsProject/elements.git
         elif [ $node_impl= "bitcoin" ]; then
@@ -31,10 +29,24 @@ function maybe_update {
     node_impl=$1 # either bitcoin or elements
     # Determine if we need to pull. From https://stackoverflow.com/a/3278427
     UPSTREAM=origin/master
-    LOCAL=$(git describe --tags)
+    LOCAL=$(git describe --all | sed 's/heads\///' | sed 's/tags\///') # gives either a tag or "master" 
     if cat ../../pytest.ini | grep "addopts = --${node_impl}d-version" ; then
-        PINNED=$(cat ../../pytest.ini | grep "addopts = --${node_impl}d-version" | cut -d' ' -f4)
+        # in this case, we use the expected version from the test also as the tag to be checked out
+        # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
+        PINNED=$(cat ../../pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
+        if [ "$node_impl" = "elements" ]; then
+            # in the case of elements, the tags have a "elements-" prefix
+            PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
+        fi
     fi
+    
+    # the version in pytest.ini is (also) used to check the version via getnetworkinfo()["subversion"]
+    # However, this might not be a valid git rev. So we need another way to specify the git-rev used
+    # as we want to be able to test against specific commits
+    if [ -f ../${node_impl}_gitrev_pinned ]; then
+        PINNED=$(cat ../${node_impl}_gitrev_pinned)
+    fi
+
     if [ -z $PINNED ]; then
         REMOTE=$(git rev-parse "$UPSTREAM")
         BASE=$(git merge-base @ "$UPSTREAM")
@@ -55,14 +67,19 @@ function maybe_update {
             return 1
         fi
     fi
-    return 0
+    if [ -f ./tests/${node_impl}/src/${node_impl}d ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 function build_node_impl {
     node_impl=$1 # either bitcoin or elements
     nodeimpl_setup_needed=$2
     
-    if [ "$nodeimpl_setup_needed" = "true" ] ; then
+    if [ "$nodeimpl_setup_needed" = 1 ] ; then
+        echo "    --> Autogen & Configure necessary"
         # Build dependencies. This is super slow, but it is cached so it runs fairly quickly.
         cd contrib
         # This is hopefully fullfilles (via .travis.yml most relevantly)
@@ -88,10 +105,15 @@ function build_node_impl {
             echo "unknown node_impl $node_impl"
             exit 1
         fi
+    else
+        echo "    --> Skipping Autogen & Configure"
     fi
     export BDB_PREFIX="$(pwd)/contrib/db4"
     BDB_CFLAGS="-I${BDB_PREFIX}/include"
-    make -j$(nproc)
+    # optimizing for speed would use the maximum threads available:
+    #make -j$(nproc)
+    # but we're optimizing for mem-allocation. 1 thread is quite slow, let's try 4 (we have 4GB and need to find the sweet-spot)
+    make -j3
     cd ../.. #travis is sourcing this script
     echo "    --> Finished build bitcoind"
 
@@ -108,30 +130,17 @@ function sub_help {
 }
 
 function sub_compile {
-    echo "    --> install_node.sh Start $(date) (compiling)"
     START=$(date +%s.%N)
     node_impl=$1
-
-    if [ $node_impl = "elements" ]; then
-        echo "    --> compiling for elementsd"
-    elif [ $node_impl= "bitcoin" ]; then
-        echo "    --> compiling for bitcoind"
-    else
-        echo "unknown node_impl $node_impl, please start like either:"
-        echo "$ ./install_node.sh --bitcoin compile"
-        echo "or"
-        echo "$ ./install_node.sh --elements compile"
-        exit 1
-    fi
-    echo "    --> install_node.sh Start $(date) (compiling)"
-    START=$(date +%s.%N)
+    echo "    --> install_node.sh Start $(date) (compiling for $node_impl)"
+    echo "        checkout ..."
     checkout $node_impl
     cd $node_impl
     maybe_update $node_impl
-    build_node_impl $node_impl true
-
-    # Build bitcoind. 
-
+    update=$?
+    build_node_impl $node_impl $update
+    echo "    --> Listing binaries"
+    find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
     echo "    --> install_node.sh End $(date) took $DIFF"
@@ -151,6 +160,8 @@ function sub_binary {
     fi
     mv ./bitcoin-${version} bitcoin
     cd .. #cirrus is sourcing this script
+    echo "    --> Listing binaries"
+    find tests/bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
@@ -176,11 +187,11 @@ function parse_and_execute() {
         DEBUG=true
         shift
         ;;
-      --bitcoind)
+      --bitcoin)
         node_impl=bitcoin
         shift
         ;;
-      --elementsd)
+      --elements)
         node_impl=elements
         shift
         ;;

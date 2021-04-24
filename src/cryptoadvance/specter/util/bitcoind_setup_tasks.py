@@ -1,5 +1,5 @@
 import os, time, requests, secrets, platform, tarfile, zipfile, sys, shutil
-from ..bitcoind import BitcoindPlainController
+from ..process_controller.bitcoind_controller import BitcoindPlainController
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
@@ -156,7 +156,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 datadir=os.path.expanduser(specter.config["internal_node"]["datadir"])
             )
         finally:
-            specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
+            specter.set_bitcoind_pid(specter.bitcoind.node_proc.pid)
         logger.info("Waiting 15 seconds ...")
         time.sleep(15)
         success = specter.update_rpc(

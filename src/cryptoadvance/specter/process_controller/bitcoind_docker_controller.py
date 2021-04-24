@@ -5,19 +5,19 @@ import logging
 # If this fails, you need to pip install the test-requirements
 import docker
 import os
-from .bitcoind import BitcoindController, Btcd_conn
+from .node_controller import Btcd_conn, NodeController
 import signal
 import time
 
 logger = logging.getLogger(__name__)
 
 
-class BitcoindDockerController(BitcoindController):
+class BitcoindDockerController(NodeController):
     """A class specifically controlling a docker-based bitcoind-container"""
 
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
-        super().__init__(rpcport=rpcport)
+        super().__init__(rpcport=rpcport, node_impl="bitcoin")
         self.docker_tag = docker_tag
 
         if self.detect_bitcoind_container(rpcport) != None:

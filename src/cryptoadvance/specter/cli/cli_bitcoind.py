@@ -98,7 +98,7 @@ def bitcoind(
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
 
-    from ..bitcoind import BitcoindPlainController
+    from ..process_controller.bitcoind_controller import BitcoindPlainController
 
     if config is None:
         config = DEFAULT_CONFIG
@@ -271,7 +271,7 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
 def mine_2_specter_wallets(my_bitcoind, data_folder, echo):
     """Get each specter-wallet some coins"""
 
-    from ..bitcoind import fetch_wallet_addresses_for_mining
+    from ..process_controller.node_controller import fetch_wallet_addresses_for_mining
 
     try:
 

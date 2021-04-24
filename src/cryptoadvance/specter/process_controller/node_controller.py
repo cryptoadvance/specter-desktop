@@ -13,11 +13,11 @@ import json
 import platform
 
 
-from .util.shell import which
-from .rpc import RpcError
-from .rpc import BitcoinRPC
-from .helpers import load_jsons
-from .specter_error import ExtProcTimeoutException
+from ..util.shell import which, get_last_lines_from_file
+from ..rpc import RpcError
+from ..rpc import BitcoinRPC
+from ..helpers import load_jsons
+from ..specter_error import ExtProcTimeoutException
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 from requests.exceptions import ConnectionError
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Btcd_conn:
-    """An object to easily store connection data"""
+    """An object to easily store connection data to bitcoind-comatible nodes (Bitcoin/Elements)"""
 
     def __init__(
         self, rpcuser="bitcoin", rpcpassword="secret", rpcport=18543, ipaddress=None
@@ -83,22 +83,28 @@ class Btcd_conn:
         return "<Btcd_conn {}>".format(self.render_url())
 
 
-class BitcoindController:
+class NodeController:
     """A kind of abstract class to simplify running a bitcoind with or without docker"""
 
     def __init__(
-        self, rpcport=18443, network="regtest", rpcuser="bitcoin", rpcpassword="secret"
+        self,
+        rpcport=18443,
+        network="regtest",
+        rpcuser="bitcoin",
+        rpcpassword="secret",
+        node_impl="bitcoin",
     ):
         try:
             self.rpcconn = Btcd_conn(
                 rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
             )
             self.network = network
+            self.node_impl = node_impl
         except Exception as e:
             logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
             raise e
 
-    def start_bitcoind(
+    def start_node(
         self,
         cleanup_at_exit=False,
         cleanup_hard=False,
@@ -113,10 +119,10 @@ class BitcoindController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
-            return self.check_existing()
+            return self.rpcconn
 
-        logger.debug("Starting bitcoind")
-        self._start_bitcoind(
+        logger.debug(f"Starting {self.node_impl}d")
+        self._start_node(
             cleanup_at_exit,
             cleanup_hard=cleanup_hard,
             datadir=datadir,
@@ -124,10 +130,14 @@ class BitcoindController:
         )
 
         try:
-            self.wait_for_bitcoind(self.rpcconn, timeout=timeout)
+            self.wait_for_node(self.rpcconn, timeout=timeout)
             self.status = "Running"
         except ExtProcTimeoutException as e:
+            if self.node_proc.poll() is None:
+                self.status = "error"
+                raise Exception(f"Could not start node due to: {self.get_debug_log()}")
             self.status = "Starting up"
+            logger.error(self.node_proc.stdout)
             raise e
         except Exception as e:
             self.status = "Error"
@@ -138,24 +148,24 @@ class BitcoindController:
         return self.rpcconn
 
     def version(self):
-        """Returns the version of bitcoind, e.g. "v0.19.1" """
-        version = self.get_rpc().getnetworkinfo()["subversion"]
-        version = version.replace("/", "").replace("Satoshi:", "v")
-        return version
+        raise Exception("version needs to be overridden by Subclassses")
 
     def get_rpc(self):
         """wrapper for convenience"""
         return self.rpcconn.get_rpc()
 
-    def _start_bitcoind(
+    def _start_node(
         self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
     ):
+        raise Exception("This should not be used in the baseclass!")
+
+    def get_debug_log(self):
         raise Exception("This should not be used in the baseclass!")
 
     def check_existing(self):
         raise Exception("This should not be used in the baseclass!")
 
-    def stop_bitcoind(self):
+    def stop_node(self):
         raise Exception("This should not be used in the baseclass!")
 
     def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
@@ -186,7 +196,7 @@ class BitcoindController:
             rpc.generatetoaddress(1, test3rdparty_address)
 
     @staticmethod
-    def check_bitcoind(rpcconn, raise_exception=False):
+    def check_node(rpcconn, raise_exception=False):
         """returns true if bitcoind is running on that address/port"""
         if raise_exception:
             rpcconn.get_rpc()  # that call will also check the connection
@@ -213,11 +223,11 @@ class BitcoindController:
             return False
 
     @staticmethod
-    def wait_for_bitcoind(rpcconn, timeout=15):
+    def wait_for_node(rpcconn, timeout=15):
         """tries to reach the bitcoind via rpc. Timeout after n seconds"""
         i = 0
         while True:
-            if BitcoindController.check_bitcoind(rpcconn):
+            if NodeController.check_node(rpcconn):
                 break
             time.sleep(0.5)
             i = i + 1
@@ -225,10 +235,10 @@ class BitcoindController:
                 logger.info(f"Timeout reached in {timeout - i/2} seconds")
             if i > (2 * timeout):
                 try:
-                    BitcoindController.check_bitcoind(rpcconn, raise_exception=True)
+                    NodeController.check_node(rpcconn, raise_exception=True)
                 except Exception as e:
                     raise ExtProcTimeoutException(
-                        f"Timeout while trying to reach bitcoind {rpcconn.render_url(password_mask=True)} because {e}".format(
+                        f"Timeout while trying to reach node {rpcconn.render_url(password_mask=True)} because {e}".format(
                             rpcconn
                         )
                     )
@@ -241,17 +251,17 @@ class BitcoindController:
         return options
 
     @classmethod
-    def construct_bitcoind_cmd(
+    def construct_node_cmd(
         cls,
         rpcconn,
         run_docker=True,
         datadir=None,
-        bitcoind_path="bitcoind",
+        node_path="bitcoind",
         network="regtest",
         extra_args=[],
     ):
-        """returns a bitcoind-command to run bitcoind"""
-        btcd_cmd = '"{}" '.format(bitcoind_path)
+        """returns a command to run your node (bitcoind/elementsd)"""
+        btcd_cmd = '"{}" '.format(node_path)
         if network != "mainnet":
             btcd_cmd += " -{} ".format(network)
         btcd_cmd += " -fallbackfee=0.0002 "
@@ -273,16 +283,17 @@ class BitcoindController:
         return btcd_cmd
 
 
-class BitcoindPlainController(BitcoindController):
+class NodePlainController(NodeController):
     """A class controlling the bitcoind-process directly on the machine"""
 
     def __init__(
         self,
-        bitcoind_path="bitcoind",
+        node_path="bitcoind",
         rpcport=18443,
         network="regtest",
         rpcuser="bitcoin",
         rpcpassword="secret",
+        node_impl="bitcoin",
     ):
         try:
             super().__init__(
@@ -290,69 +301,80 @@ class BitcoindPlainController(BitcoindController):
                 network=network,
                 rpcuser=rpcuser,
                 rpcpassword=rpcpassword,
+                node_impl="bitcoin",
             )
-            self.bitcoind_path = bitcoind_path
+            self.node_path = node_path
             self.rpcconn.ipaddress = "localhost"
             self.status = "Down"
         except Exception as e:
-            logger.exception(
-                f"Failed to instantiate BitcoindPlainController. Error: {e}"
-            )
+            logger.exception(f"Failed to instantiate NodePlainController. Error: {e}")
             raise e
 
-    def _start_bitcoind(
+    def _start_node(
         self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
     ):
         if datadir == None:
-            datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
+            datadir = tempfile.mkdtemp(
+                prefix=f"specter_{self.node_impl}_regtest_plain_datadir_"
+            )
+        self.datadir = datadir
 
-        bitcoind_cmd = self.construct_bitcoind_cmd(
+        node_cmd = self.construct_node_cmd(
             self.rpcconn,
             run_docker=False,
             datadir=datadir,
-            bitcoind_path=self.bitcoind_path,
+            node_path=self.node_path,
             network=self.network,
             extra_args=extra_args,
         )
-        logger.debug("About to execute: {}".format(bitcoind_cmd))
-        # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
-        self.bitcoind_proc = subprocess.Popen(
-            ("exec " if platform.system() != "Windows" else "") + bitcoind_cmd,
+        logger.debug("About to execute: {}".format(node_cmd))
+        # exec will prevent creating a child-process and will make node_proc.terminate() work as expected
+        self.node_proc = subprocess.Popen(
+            ("exec " if platform.system() != "Windows" else "") + node_cmd,
             shell=True,
         )
+        time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
+        if not self.node_proc.poll() is None:
+            raise Exception(f"Could not start node due to:" + self.get_debug_log())
         logger.debug(
-            "Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
+            f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )
 
         if cleanup_at_exit:
-            logger.info("Register function cleanup_bitcoind for SIGINT and SIGTERM")
+            logger.info("Register function cleanup_node for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, self.cleanup_bitcoind)
+            signal.signal(signal.SIGINT, self.cleanup_node)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, self.cleanup_bitcoind)
+            signal.signal(signal.SIGTERM, self.cleanup_node)
 
-    def cleanup_bitcoind(self, cleanup_hard=None, datadir=None):
+    def get_debug_log(self):
+        logfile_location = os.path.join(self.datadir, self.network, "debug.log")
+        return "".join(get_last_lines_from_file(logfile_location))
+
+    def cleanup_node(self, cleanup_hard=None, datadir=None):
         timeout = 50  # in secs
         if cleanup_hard:
-            self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+            self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
             logger.info(
-                f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
+                f"Killed ${self.node_impl}d with pid {self.node_proc.pid}, Removing {datadir}"
             )
             shutil.rmtree(datadir, ignore_errors=True)
         else:
             try:
-                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+                self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(
-                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+                    f"Terminated ${self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                 )
-                # self.bitcoind_proc.wait() # doesn't have a timeout
+                # self.node_proc.wait() # doesn't have a timeout
                 procs = psutil.Process().children()
                 for p in procs:
                     p.terminate()
                 _, alive = psutil.wait_procs(procs, timeout=timeout)
                 for p in alive:
-                    logger.info("bitcoind did not terminated in time, killing!")
+                    logger.info(
+                        f"${self.node_impl} did not terminated in time, killing!"
+                    )
                     p.kill()
             except ProcessLookupError:
                 # Bitcoind probably never came up or crashed. Silently ignored
@@ -361,15 +383,15 @@ class BitcoindPlainController(BitcoindController):
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
 
-    def stop_bitcoind(self):
-        self.cleanup_bitcoind()
+    def stop_node(self):
+        self.cleanup_node()
         self.status = "Down"
 
     def check_existing(self):
-        """other then in docker, we won't check on the "instance-level". This will return true if if a
-        bitcoind is running on the default port.
+        """other then in docker, we won't check on the "instance-level". This will return true if a
+        node is running on the default port.
         """
-        if not self.check_bitcoind(self.rpcconn):
+        if not self.check_node(self.rpcconn):
             if self.status == "Running":
                 self.status = "Down"
             return None

@@ -14,7 +14,7 @@ from io import BytesIO
 from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
-from .bitcoind import BitcoindPlainController
+from .process_controller.bitcoind_controller import BitcoindPlainController
 from .tor_daemon import TorDaemonController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
@@ -199,7 +199,7 @@ class Specter:
                 # Likely files of bitcoind were not found. Maybe deleted by the user?
             finally:
                 try:
-                    self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
+                    self.set_bitcoind_pid(self.bitcoind.node_proc.pid)
                 except Exception as e:
                     logger.error(e)
         self.update_tor_controller()
