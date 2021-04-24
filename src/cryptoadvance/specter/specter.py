@@ -28,7 +28,6 @@ from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
-from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
 from .managers.user_manager import UserManager
@@ -39,6 +38,11 @@ from .rpc import (BitcoinRPC, RpcError, autodetect_rpc_confs, detect_rpc_confs,
                   get_default_datadir)
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
+from .rpc import BitcoinRPC
+from .liquid.rpc import LiquidRPC
+from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.checker import Checker
 from .util.price_providers import update_price
