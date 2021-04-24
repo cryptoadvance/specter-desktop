@@ -8,7 +8,8 @@ from .util.descriptor import AddChecksum
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
-from embit import bip32, networks
+from embit import bip32
+from embit.liquid import networks
 import logging
 import bitbox02
 from typing import Callable
@@ -246,9 +247,7 @@ class HWIBridge(JSONRPC):
             else:
                 client.chain = Chain.argparse(chain)
 
-            network = networks.NETWORKS[
-                "test" if client.chain != Chain.MAIN else "main"
-            ]
+            network = networks.get_network(chain)
 
             master_fpr = client.get_master_fingerprint().hex()
 
@@ -413,6 +412,8 @@ class HWIBridge(JSONRPC):
                     "The device was identified but could not be reached.  Please check it is properly connected and try again"
                 )
             try:
+                if chain == "liquidv1":
+                    chain = "main"
                 client.chain = Chain.argparse(chain)
                 yield client
             finally:
