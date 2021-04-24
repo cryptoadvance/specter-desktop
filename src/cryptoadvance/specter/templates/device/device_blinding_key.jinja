@@ -75,25 +75,13 @@
                 return;
             }
 
-            let xpubsTable = document.getElementById('xpubs_table');
-            
-            for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
-                    continue
-                }
-
-                let xpub = await getXpub(device,
-                    document.getElementById(xpubRow.id + '-derivation').innerHTML,
-                    "",
-                    "{specter.chain}"
-                );
-                if(xpub == null){
-                    showError('Failed to retrive device data. Please try again.');
-                    return;
-                }
-
-                addXpub('Custom', document.getElementById(xpubRow.id + '-derivation').innerHTML, xpub)
-            }
+            let masterBlindingKey = await getMasterBlindingKey(
+                device,
+                "",
+                "{specter.chain}"
+            );
+            document.getElementById('blinding_key').value = masterBlindingKey;
+            document.form.submit();
         });
     </script>
 
@@ -101,11 +89,11 @@
         let scanner = document.getElementById('key-scan');
         if(scanner != null) {
             scanner.addEventListener('scan', e=>{
-                let result = e.detail.result;
-                if(result==null){
+                let masterBlindingKey = e.detail.result;
+                if (masterBlindingKey == null) {
                     return;
                 }
-                document.getElementById('blinding_key').value = result;
+                document.getElementById('blinding_key').value = masterBlindingKey;
                 document.form.submit();
             });
         }

@@ -63,6 +63,7 @@ class HWIBridge(JSONRPC):
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
+            "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
         # Running enumerate after beginning an interaction with a specific device
@@ -358,6 +359,29 @@ class HWIBridge(JSONRPC):
                 return status["signature"]
             else:
                 raise Exception("Failed to sign message with device: Unknown Error")
+
+    @locked(hwilock)
+    def extract_master_blinding_key(
+        self,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.get_master_blinding_key().to_string()
+            except Exception as e:
+                logger.warning(
+                    f"Failed to get the master blinding key from the device. Error: {e}"
+                )
 
     def bitbox02_pairing(self, chain=""):
         config = hwi_get_config(app.specter)
