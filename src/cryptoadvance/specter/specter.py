@@ -2,44 +2,45 @@ import copy
 import json
 import logging
 import os
-import traceback
-import random
-import time
-import zipfile
 import platform
+import random
 import secrets
-import requests
 import signal
-from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
-from .util.checker import Checker
-from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
-from .bitcoind import BitcoindPlainController
-from .tor_daemon import TorDaemonController
-from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError
-from .rpc import BitcoinRPC
-from .managers.device_manager import DeviceManager
-from .managers.wallet_manager import WalletManager
-from .managers.user_manager import UserManager
-from .managers.otp_manager import OtpManager
-from .managers.config_manager import ConfigManager
-from .persistence import write_json_file, read_json_file, write_node
-from .user import User
-from .util.price_providers import update_price
-from .util.tor import get_tor_daemon_suffix
 import threading
-from urllib.parse import urlparse
-from stem.control import Controller
-from .specter_error import SpecterError, ExtProcTimeoutException
+import time
+import traceback
+import zipfile
+from io import BytesIO
 from sys import exit
-from .util.setup_states import SETUP_STATES
-from .node import Node
+from urllib.parse import urlparse
+
+import requests
+from embit.liquid.networks import get_network
+from requests.exceptions import ConnectionError
+from stem.control import Controller
+from urllib3.exceptions import NewConnectionError
+
+from .bitcoind import BitcoindPlainController
+from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
+from .liquid.rpc import LiquidRPC
+from .managers.config_manager import ConfigManager
+from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
-from .managers.config_manager import ConfigManager
-from embit.liquid.networks import get_network
+from .managers.user_manager import UserManager
+from .managers.wallet_manager import WalletManager
+from .node import Node
+from .persistence import read_json_file, write_json_file, write_node
+from .rpc import (BitcoinRPC, RpcError, autodetect_rpc_confs, detect_rpc_confs,
+                  get_default_datadir)
+from .specter_error import ExtProcTimeoutException, SpecterError
+from .tor_daemon import TorDaemonController
+from .user import User
+from .util.checker import Checker
+from .util.price_providers import update_price
+from .util.setup_states import SETUP_STATES
+from .util.tor import get_tor_daemon_suffix
 
 logger = logging.getLogger(__name__)
 

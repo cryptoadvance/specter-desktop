@@ -2,15 +2,11 @@ import json
 import logging
 import os
 
-from .helpers import is_testnet
-from .rpc import (
-    BitcoinRPC,
-    RpcError,
-    autodetect_rpc_confs,
-    detect_rpc_confs,
-    get_default_datadir,
-)
+from .helpers import is_testnet, is_liquid
+from .liquid.rpc import LiquidRPC
 from .persistence import write_node
+from .rpc import (BitcoinRPC, RpcError, autodetect_rpc_confs, detect_rpc_confs,
+                  get_default_datadir)
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +149,14 @@ class Node:
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
             )
+        # check if it's liquid
+        try:
+            res = rpc.getblockchaininfo()
+            if is_liquid(res.get("chain")):
+                # convert to LiquidRPC class
+                rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        except Exception as e:
+            logger.exception(e)
         return rpc
 
     def update_rpc(
