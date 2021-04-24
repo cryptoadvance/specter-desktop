@@ -147,7 +147,7 @@
 									<br>
 								{% endif %}
 							{% endif %}
-							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
+							<b>Amount:</b> {{ psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1)|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0].get('witness_utxo', {}).get('amount', -1) | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}

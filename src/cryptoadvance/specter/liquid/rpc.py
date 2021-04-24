@@ -74,6 +74,11 @@ class LiquidRPC(BitcoinRPC):
                 res[k][kk] = v
         return res
 
+    def decodepsbt(self, *args, **kwargs):
+        res = super().__getattr__("decodepsbt")(*args, **kwargs)
+        res["fee"] = res["fees"]["bitcoin"]
+        return res
+
     def getreceivedbyaddress(self, address, minconf=1, assetlabel="bitcoin", **kwargs):
         args = [address, minconf]
         if assetlabel is not None:
