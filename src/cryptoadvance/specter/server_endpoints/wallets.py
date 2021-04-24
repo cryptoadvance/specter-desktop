@@ -306,6 +306,15 @@ def new_wallet(wallet_type):
                 app.specter.device_manager.get_by_alias(alias)
                 for alias in request.form.getlist("devices")
             ]
+
+            if not cosigners:
+                return render_template(
+                    "wallet/new_wallet/new_wallet.jinja",
+                    wallet_type=wallet_type,
+                    error="No device was selected. Please select a device to create the wallet for.",
+                    specter=app.specter,
+                    rand=rand,
+                )
             devices = get_devices_with_keys_by_type(app, cosigners, wallet_type)
             for device in devices:
                 if len(device.keys) == 0:

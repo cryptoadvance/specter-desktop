@@ -37,6 +37,9 @@ from .util.setup_states import SETUP_STATES
 from .node import Node
 from .internal_node import InternalNode
 from .managers.node_manager import NodeManager
+from .managers.otp_manager import OtpManager
+from .managers.config_manager import ConfigManager
+from embit.liquid.networks import get_network
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +187,55 @@ class Specter:
     def config(self):
         """A convenience property simply redirecting to the config_manager"""
         return self.config_manager.data
+
+    def check_node_info(self):
+        self._is_configured = self.rpc is not None
+        self._is_running = False
+        if self._is_configured:
+            try:
+                res = [
+                    r["result"]
+                    for r in self.rpc.multi(
+                        [
+                            ("getblockchaininfo", None),
+                            ("getnetworkinfo", None),
+                            ("getmempoolinfo", None),
+                            ("uptime", None),
+                            ("getblockhash", 0),
+                            ("scantxoutset", "status", []),
+                        ]
+                    )
+                ]
+                self._info = res[0]
+                self._network_info = res[1]
+                self._info["mempool_info"] = res[2]
+                self._info["uptime"] = res[3]
+                try:
+                    self.rpc.getblockfilter(res[4])
+                    self._info["blockfilterindex"] = True
+                except:
+                    self._info["blockfilterindex"] = False
+                self._info["utxorescan"] = (
+                    res[5]["progress"]
+                    if res[5] is not None and "progress" in res[5]
+                    else None
+                )
+                if self._info["utxorescan"] is None:
+                    self.utxorescanwallet = None
+                self._network_parameters = get_network(self.chain)
+                self._is_running = True
+            except Exception as e:
+                self._info = {"chain": None}
+                self._network_info = {"subversion": "", "version": 999999}
+                self._network_parameters = get_network("main")
+                logger.error("Exception %s while specter.check()" % e)
+                pass
+        else:
+            self._info = {"chain": None}
+            self._network_info = {"subversion": "", "version": 999999}
+
+        if not self._is_running:
+            self._info["chain"] = None
 
     def check_blockheight(self):
         if self.node.check_blockheight():
@@ -440,6 +492,13 @@ class Specter:
     @property
     def chain(self):
         return self.node.chain
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
 
     @property
     def is_testnet(self):
