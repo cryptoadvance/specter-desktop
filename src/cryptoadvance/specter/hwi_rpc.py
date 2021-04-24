@@ -376,7 +376,7 @@ class HWIBridge(JSONRPC):
             chain=chain,
         ) as client:
             try:
-                return client.get_master_blinding_key().to_string()
+                return client.get_master_blinding_key()
             except Exception as e:
                 logger.warning(
                     f"Failed to get the master blinding key from the device. Error: {e}"
