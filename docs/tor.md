@@ -1,3 +1,15 @@
+# Tor and Specter Desktop
+
+When using Specter Desktop, there might be certain cases where you would want to make calls over the Tor network. The simplest way to setup Tor integration with Specter Desktop is to click on the Get Started button of the welcome page aand follow the setup wizard, which will install and configure Tor for you. You can also access it but going to Settings -> Tor tab, and clicking on Setup Tor.
+
+<img width="956" alt="Screen Shot 2021-04-24 at 10 42 08" src="https://user-images.githubusercontent.com/10667901/115953085-c4bd2f00-a4e9-11eb-8aa0-34e601681852.png">
+
+<img width="1043" alt="Screen Shot 2021-04-24 at 10 43 42" src="https://user-images.githubusercontent.com/10667901/115953143-f2a27380-a4e9-11eb-969b-d583d196056f.png">
+
+These will take you through the one click setup process, just click "Setup Tor" and Specter will take care of installing, configuring and running the Tor daemon.
+
+<img width="732" alt="Screen Shot 2021-04-24 at 10 42 17" src="https://user-images.githubusercontent.com/10667901/115953082-bf5fe480-a4e9-11eb-8f71-7417eb1a2a74.png">
+
 ## Running Specter Desktop over a Tor hidden service
 
 Specter Desktop protects your security and privacy by running on a local server that only talks to your own Bitcoin node. But what if you need to check a wallet balance or generate and sign transactions when you're away from your home network?
@@ -6,11 +18,13 @@ Configuring your router to let you VPN into your home network is probably the ea
 
 But you can also make Specter Desktop available outside of your network via a Tor hidden service. A hidden service generates an .onion address so Specter can be accessed from a Tor browser from anywhere in the world. This does not require any port forwarding on your router.
 
-Make sure authentication is enabled to avoid access to your Specter by random strangers in the internet. It can be configured in the `Settings -> Authentication` tab.
-"Multiuser" mode is something you want for simple authentication, "RPC password as PIN" makes your Specter available only if Bitcoin Core is running and configured with a static rpcpassword but can cause problems if Bitcoin Core shuts down.
+Make sure authentication is enabled to avoid access to your Specter by random strangers in the internet. It can be configured in the `Settings -> Authentication` tab. "Password Protection" would be the simplest authentication option, and you would normally want to select it in this case.
 
-### Security note
-Tor support, like Specter Desktop as a whole, should be treated as a work-in-progress that is not yet vetted as being fully secure.
+After setting up authentication, running the hidden service to remotely access specter is as easy as going to the Settings -> Tor tab, scrolling to the bottom and clicking the "Start" button under the "Tor Hidden Service" section.
+
+<img width="755" alt="Screen Shot 2021-04-24 at 10 58 30" src="https://user-images.githubusercontent.com/10667901/115953464-02bb5280-a4ec-11eb-8eb5-0f40b78be8cf.png">
+
+## Manual Tor configurations
 
 ### Setting up Tor using the Tor Browser
 The easiest way to use Tor with Specter is to have the [Tor Browser](https://www.torproject.org/download/) open. Just install it on your computer, open it and it will expose a Tor proxy Specter can connect to.
@@ -24,6 +38,7 @@ Alternatively, you can setup the Tor service. Install Tor on the same server tha
 
 ### Configure Specter Desktop for Remote Instance
 If you're using Specter Desktop on a remote machine and would like to connect to it over Tor (to use hardware wallets for example), then follow these steps to set up the app to connect to your remote Specter server.
+
 
 1. Open Preferences
 2. Choose "remote Specter server"
