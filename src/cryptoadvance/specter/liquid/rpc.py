@@ -1,5 +1,6 @@
 from ..rpc import RpcError, BitcoinRPC
-
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
 
 class LiquidRPC(BitcoinRPC):
     """
@@ -34,6 +35,27 @@ class LiquidRPC(BitcoinRPC):
         if assetlabel is not None:
             args.append(assetlabel)
         return super().__getattr__("getbalance")(*args, **kwargs)
+
+    def importdescriptors(self, arr, *args, **kwargs):
+        descs = [LDescriptor.from_string(a["desc"].split("#")[0]) for a in arr]
+        blinded = [d.is_blinded for d in descs]
+        bkey = None
+        if any(blinded) and not all(blinded):
+            raise RpcError("All descriptors should be either blinded or not")
+        if all(blinded):
+            bkeys = {d.blinding_key.key.secret for d in descs}
+            if len(bkeys) > 1:
+                raise RpcError("All descriptors should use the same blinding key")
+            bkey = bkeys.pop().hex()
+            arr = [a.copy() for a in arr]
+            for i, a in enumerate(arr):
+                descs[i].blinding_key = None
+                a["desc"] = add_checksum(str(descs[i]))
+        res = super().__getattr__("importdescriptors")(arr, *args, **kwargs)
+        if bkey is not None:
+            print("importmasterblindingkey")
+            self.__getattr__("importmasterblindingkey")(bkey, **kwargs)
+        return res
 
     def getbalances(self, assetlabel="bitcoin", **kwargs):
         """

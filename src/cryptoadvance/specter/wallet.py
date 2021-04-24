@@ -6,6 +6,9 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes
 from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
+from embit.liquid.networks import get_network
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
 from .persistence import write_json_file, delete_file
@@ -328,7 +331,7 @@ class Wallet:
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["recv_descriptor"]
         ):
-            new_dict["recv_descriptor"] = AddChecksum(
+            new_dict["recv_descriptor"] = add_checksum(
                 new_dict["recv_descriptor"]
                 .replace("multi", "sortedmulti")
                 .split("#")[0]
@@ -338,7 +341,7 @@ class Wallet:
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["change_descriptor"]
         ):
-            new_dict["change_descriptor"] = AddChecksum(
+            new_dict["change_descriptor"] = add_checksum(
                 new_dict["change_descriptor"]
                 .replace("multi", "sortedmulti")
                 .split("#")[0]
@@ -981,7 +984,7 @@ class Wallet:
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        return Descriptor.parse(desc).address(index, self.manager.chain)
+        return LDescriptor.from_string(desc.split("#")[0]).derive(index).address(get_network(self.manager.chain))
 
     def get_descriptor(self, index=None, change=False, address=None):
         """
