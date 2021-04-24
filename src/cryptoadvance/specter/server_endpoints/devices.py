@@ -38,7 +38,7 @@ def new_device_type():
     )
 
 
-@devices_endpoint.route("/new_device_keys/<device_type>", methods=["GET", "POST"])
+@devices_endpoint.route("/new_device_keys/<device_type>/", methods=["GET", "POST"])
 @login_required
 def new_device_keys(device_type):
     err = None
@@ -147,11 +147,21 @@ def new_device_keys(device_type):
             device = app.specter.device_manager.add_device(
                 name=device_name, device_type=device_type, keys=keys
             )
-            flash("{} was added successfully!".format(device_name))
-            return redirect(
-                url_for("devices_endpoint.device", device_alias=device.alias)
-                + "?newdevice=true"
-            )
+            if app.specter.is_liquid:
+                return render_template(
+                    "device/device_blinding_key.jinja",
+                    new_device=True,
+                    device=device,
+                    error=err,
+                    specter=app.specter,
+                    rand=rand,
+                )
+            else:
+                flash("{} was added successfully!".format(device_name))
+                return redirect(
+                    url_for("devices_endpoint.device", device_alias=device.alias)
+                    + "?newdevice=true"
+                )
 
     return render_template(
         "device/new_device/new_device_keys.jinja",
@@ -170,7 +180,7 @@ def new_device_keys(device_type):
     )
 
 
-@devices_endpoint.route("/new_device_mnemonic/<device_type>", methods=["GET", "POST"])
+@devices_endpoint.route("/new_device_mnemonic/<device_type>/", methods=["GET", "POST"])
 @login_required
 def new_device_mnemonic(device_type):
     err = None
@@ -214,6 +224,38 @@ def new_device_mnemonic(device_type):
         strength=strength,
         mnemonic=mnemonic,
         existing_device=existing_device,
+        error=err,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
+@devices_endpoint.route("/device_blinding_key/<device_alias>/", methods=["GET", "POST"])
+@login_required
+def device_blinding_key(device_alias):
+    err = None
+    try:
+        device = app.specter.device_manager.get_by_alias(device_alias)
+    except:
+        return render_template(
+            "base.jinja", error="Device not found", specter=app.specter, rand=rand
+        )
+    if not device:
+        return redirect(url_for("index"))
+    if request.method == "POST":
+        new_device = request.form.get("new_device", False)
+        blinding_key = request.form.get("blinding_key")
+        device.set_blinding_key(blinding_key)
+        if not new_device:
+            flash("Master blinding key was added successfully")
+        return redirect(
+            url_for("devices_endpoint.device", device_alias=device.alias)
+            + ("?newdevice=true" if new_device else "")
+        )
+
+    return render_template(
+        "device/device_blinding_key.jinja",
+        device=device,
         error=err,
         specter=app.specter,
         rand=rand,
