@@ -1,28 +1,39 @@
 #!/bin/bash
 
+# chenage to the directory the script is located in
+cd "$( dirname "${BASH_SOURCE[0]}" )/."
 
-function sub_compile {
+function checkout {
+    node_impl=$1 # either bitcoin or elements
 
-
-    echo "    --> install_bitcoind.sh Start $(date) (compiling)"
-    START=$(date +%s.%N)
     # Clone bitcoind if it doesn't exist, or update it if it does
     # (copied from HWI)
-    cd tests
-    bitcoind_setup_needed=false
-    if [ ! -d "./bitcoin/.git" ]; then
-        echo "    --> cloning bitcoin"
-        git clone https://github.com/bitcoin/bitcoin.git
-        bitcoind_setup_needed=true
+    node_setup_needed=false
+    if [ ! -d "./${node_impl}/.git" ]; then
+        echo "    --> cloning $node_impl"
+        elements_url=https://github.com/ElementsProject/elements.git
+        bitcoin_url=https://github.com/bitcoin/bitcoin.git
+        if [ $node_impl = "elements" ]; then
+            clone_url=https://github.com/ElementsProject/elements.git
+        elif [ $node_impl= "bitcoin" ]; then
+            clone_url=https://github.com/bitcoin/bitcoin.git
+        else
+            echo "unknown node_impl $node_impl"
+            exit 1
+        fi
+        git clone $clone_url
+        return 1
     fi
+    return 0
+}
 
-    cd bitcoin
-
+function maybe_update {
+    node_impl=$1 # either bitcoin or elements
     # Determine if we need to pull. From https://stackoverflow.com/a/3278427
     UPSTREAM=origin/master
     LOCAL=$(git describe --tags)
-    if cat ../../pytest.ini | grep "addopts = --bitcoind-version" ; then
-        PINNED=$(cat ../../pytest.ini | grep "addopts = --bitcoind-version" | cut -d' ' -f4)
+    if cat ../../pytest.ini | grep "addopts = --${node_impl}d-version" ; then
+        PINNED=$(cat ../../pytest.ini | grep "addopts = --${node_impl}d-version" | cut -d' ' -f4)
     fi
     if [ -z $PINNED ]; then
         REMOTE=$(git rev-parse "$UPSTREAM")
@@ -32,7 +43,7 @@ function sub_compile {
         elif [ $LOCAL = $BASE ]; then
             git pull
             git reset --hard origin/master
-            bitcoind_setup_needed=true
+            return 1
         fi
     else
         if [ $LOCAL = $PINNED ]; then
@@ -41,14 +52,17 @@ function sub_compile {
             echo "    --> Pinned: $PINNED! Checkout needed!"
             git fetch
             git checkout $PINNED || exit 1
-            bitcoind_setup_needed=true
+            return 1
         fi
     fi
+    return 0
+}
 
-
-
-    # Build bitcoind. 
-    if [ "$bitcoind_setup_needed" = "true" ] ; then
+function build_node_impl {
+    node_impl=$1 # either bitcoin or elements
+    nodeimpl_setup_needed=$2
+    
+    if [ "$nodeimpl_setup_needed" = "true" ] ; then
         # Build dependencies. This is super slow, but it is cached so it runs fairly quickly.
         cd contrib
         # This is hopefully fullfilles (via .travis.yml most relevantly)
@@ -62,16 +76,65 @@ function sub_compile {
         ./autogen.sh
         echo "    --> Starting configure"
         export BDB_PREFIX="$(pwd)/contrib/db4"
+        echo "        BDB_PREFIX=$BDB_PREFIX"
         # This is for reducing mem-footprint as for some reason cirrus fails even though it has 4GB Mem
         # CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768 -O2"
-        ./configure BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include" CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768 -O2" --with-miniupnpc=no --without-gui --disable-zmq --disable-tests --disable-bench --with-libs=no --with-utils=no
+        
+        if [ $node_impl = "elements" ]; then
+            ./configure BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include"
+        elif [ $node_impl= "bitcoin" ]; then
+            ./configure BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include" CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768 -O2" --with-miniupnpc=no --without-gui --disable-zmq --disable-tests --disable-bench --with-libs=no --with-utils=no
+        else
+            echo "unknown node_impl $node_impl"
+            exit 1
+        fi
     fi
-    make -j$(nproc) src/bitcoind
+    export BDB_PREFIX="$(pwd)/contrib/db4"
+    BDB_CFLAGS="-I${BDB_PREFIX}/include"
+    make -j$(nproc)
     cd ../.. #travis is sourcing this script
     echo "    --> Finished build bitcoind"
+
+
+}
+
+function sub_help {
+    echo "This script will result in having bitcoind or elementsd binaries, either by binary download or via compilation"
+    echo "Do one of these:"
+    echo "$ ./install_node.sh --bitcoin compile"
+    echo "$ ./install_node.sh --elements compile"
+    echo "$ ./install_node.sh binary # only works for bitcoind currently, no binaries for elements"
+
+}
+
+function sub_compile {
+    echo "    --> install_node.sh Start $(date) (compiling)"
+    START=$(date +%s.%N)
+    node_impl=$1
+
+    if [ $node_impl = "elements" ]; then
+        echo "    --> compiling for elementsd"
+    elif [ $node_impl= "bitcoin" ]; then
+        echo "    --> compiling for bitcoind"
+    else
+        echo "unknown node_impl $node_impl, please start like either:"
+        echo "$ ./install_node.sh --bitcoin compile"
+        echo "or"
+        echo "$ ./install_node.sh --elements compile"
+        exit 1
+    fi
+    echo "    --> install_node.sh Start $(date) (compiling)"
+    START=$(date +%s.%N)
+    checkout $node_impl
+    cd $node_impl
+    maybe_update $node_impl
+    build_node_impl $node_impl true
+
+    # Build bitcoind. 
+
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_bitcoind.sh End $(date) took $DIFF"
+    echo "    --> install_node.sh End $(date) took $DIFF"
 }
 
 function sub_binary {
@@ -113,8 +176,20 @@ function parse_and_execute() {
         DEBUG=true
         shift
         ;;
+      --bitcoind)
+        node_impl=bitcoin
+        shift
+        ;;
+      --elementsd)
+        node_impl=elements
+        shift
+        ;;
+      help)
+        sub_help
+        shift
+        ;;
       compile)
-        sub_compile
+        sub_compile $node_impl
         shift
         ;;
       binary)
@@ -138,4 +213,5 @@ function parse_and_execute() {
   esac
   done
 }
+
 parse_and_execute $@
