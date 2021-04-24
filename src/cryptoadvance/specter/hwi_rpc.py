@@ -8,7 +8,8 @@ from .util.descriptor import AddChecksum
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
-from embit import bip32, networks
+from embit import bip32
+from embit.liquid import networks
 import logging
 import bitbox02
 from typing import Callable
@@ -63,6 +64,7 @@ class HWIBridge(JSONRPC):
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
+            "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
         # Running enumerate after beginning an interaction with a specific device
@@ -245,9 +247,7 @@ class HWIBridge(JSONRPC):
             else:
                 client.chain = Chain.argparse(chain)
 
-            network = networks.NETWORKS[
-                "test" if client.chain != Chain.MAIN else "main"
-            ]
+            network = networks.get_network(chain)
 
             master_fpr = client.get_master_fingerprint().hex()
 
@@ -359,6 +359,29 @@ class HWIBridge(JSONRPC):
             else:
                 raise Exception("Failed to sign message with device: Unknown Error")
 
+    @locked(hwilock)
+    def extract_master_blinding_key(
+        self,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.get_master_blinding_key()
+            except Exception as e:
+                logger.warning(
+                    f"Failed to get the master blinding key from the device. Error: {e}"
+                )
+
     def bitbox02_pairing(self, chain=""):
         config = hwi_get_config(app.specter)
         return {"code": config.get("bitbox02_pairing_code", "")}
@@ -389,6 +412,8 @@ class HWIBridge(JSONRPC):
                     "The device was identified but could not be reached.  Please check it is properly connected and try again"
                 )
             try:
+                if chain == "liquidv1":
+                    chain = "main"
                 client.chain = Chain.argparse(chain)
                 yield client
             finally:

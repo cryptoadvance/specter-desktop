@@ -1,0 +1,101 @@
+{% extends "base.jinja" %}
+{% block main %}
+    {% include "includes/hwi/hwi.jinja" %}
+    {% include "includes/qr-scanner.html" %}
+    <form name="form" action="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+        <div style="width: auto; margin: 40px;" class="card center" >
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div>
+                <h1> Get the master blinding key </h1>
+                <input type="hidden" name="new_device" value="{{ new_device }}"/>
+                <input type="hidden" name="blinding_key" id="blinding_key"/>
+                <div style="width:100%;">
+                    <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 20px auto;" class="btn {% if not device.hwi_support %}hidden{% endif %}">
+                        <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
+                        Get via USB
+                    </div>
+                    <qr-scanner id="key-scan" {% if not device.qr_code_support %}class="hidden"{% endif %}>
+                        <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 20px auto;">
+                            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+                            Scan QR code
+                        </a>
+                    </qr-scanner>
+                    <button {% if device.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 20px auto;">
+                        <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
+                        Paste xpub
+                    </button>
+                    <div class="hidden" id="paste-xpub-popup">
+                        <h1>Paste xpub</h1>
+                        <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
+                        <br><br>
+                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">Add xpub</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        document.getElementById('connect-hwi').addEventListener('click', async e => {
+            var devicesRadios = document.getElementsByName('devices');
+            let deviceType;
+            for (var i = 0, length = devicesRadios.length; i < length; i++) {
+                if (devicesRadios[i].checked) {
+                    deviceType = devicesRadios[i].value;
+                    break;
+                }
+            }
+            // detect devices
+            let devices = await enumerate(deviceType);
+            if(devices == null){
+                return
+            }
+            // this shouldn't happen actually
+            if(devices.length == 0){
+                showError("No devices found :(");
+                return;
+            }
+
+            let device;
+            if (devices.length == 1) {
+                device = devices[0];
+                let passphrase = await unlockDevice(device);
+                if (passphrase != null){
+                    device.passphrase = passphrase;
+                }
+            } else {
+                // first only for now
+                device = await selectDevice(devices);
+            }
+
+            // nothing to do if user cancelled
+            if(device == null){
+                return;
+            }
+
+            let masterBlindingKey = await getMasterBlindingKey(
+                device,
+                "",
+                "{specter.chain}"
+            );
+            document.getElementById('blinding_key').value = masterBlindingKey;
+            document.form.submit();
+        });
+    </script>
+
+    <script type="text/javascript">
+        let scanner = document.getElementById('key-scan');
+        if(scanner != null) {
+            scanner.addEventListener('scan', e=>{
+                let masterBlindingKey = e.detail.result;
+                if (masterBlindingKey == null) {
+                    return;
+                }
+                document.getElementById('blinding_key').value = masterBlindingKey;
+                document.form.submit();
+            });
+        }
+    </script>
+{% endblock %}

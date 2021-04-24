@@ -9,6 +9,7 @@ from .cobo import Cobo
 from .generic import GenericDevice
 from .electrum import Electrum
 from .bitcoin_core import BitcoinCore
+from .elements_core import ElementsCore
 
 # all device types
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     Cobo,
     Electrum,
     BitcoinCore,
+    ElementsCore,
     GenericDevice,
 ]
