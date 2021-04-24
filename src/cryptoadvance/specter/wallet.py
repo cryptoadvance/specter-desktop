@@ -3,7 +3,7 @@ import time
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes
+from .helpers import der_to_bytes, is_liquid
 from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from embit.liquid.descriptor import LDescriptor
@@ -92,6 +92,7 @@ class Wallet:
             os.path.join(self.manager.rpc_path, self.alias)
         )
         self.last_block = last_block
+        self.data_source = "rpc" if is_liquid(self.manager.chain) else "csv"
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
         self._addresses = AddressList(addr_path, self.rpc)
@@ -135,6 +136,11 @@ class Wallet:
 
     def fetch_transactions(self):
         """Load transactions from Bitcoin Core"""
+        # From RPC
+        if self.data_source == "rpc":
+            return
+
+        # From CSV
         arr = []
         idx = 0
         # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
@@ -638,6 +644,11 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
+        # From RPC
+        if self.data_source == "rpc":
+            return self.rpc.listtransactions("*", 10000, 0, True)
+
+        # From CSV
         if fetch_transactions or (
             self.use_descriptors
             and len(
@@ -734,6 +745,13 @@ class Wallet:
 
     def gettransaction(self, txid, blockheight=None, decode=False):
         try:
+            # From RPC
+            if self.data_source == "rpc":
+                tx_data = self.rpc.gettransaction(txid)
+                if decode:
+                    return self.rpc.decoderawtransaction(tx_data["hex"])
+                return tx_data
+            # From CSV
             tx_data = self._transactions.gettransaction(txid, blockheight)
             if decode:
                 return decoderawtransaction(tx_data["hex"], self.manager.chain)
