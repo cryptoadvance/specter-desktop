@@ -37,7 +37,8 @@ class LiquidRPC(BitcoinRPC):
             args.append(assetlabel)
         return super().__getattr__("getbalance")(*args, **kwargs)
 
-    def importdescriptors(self, arr, *args, **kwargs):
+    def _patch_descriptors(self, arr):
+        # used by importmulti and importdescriptors
         descs = [LDescriptor.from_string(a["desc"].split("#")[0]) for a in arr]
         blinded = [d.is_blinded for d in descs]
         bkey = None
@@ -52,9 +53,20 @@ class LiquidRPC(BitcoinRPC):
             for i, a in enumerate(arr):
                 descs[i].blinding_key = None
                 a["desc"] = add_checksum(str(descs[i]))
+        return arr, bkey
+
+    def importdescriptors(self, arr, *args, **kwargs):
+        arr, bkey = self._patch_descriptors(arr)
         res = super().__getattr__("importdescriptors")(arr, *args, **kwargs)
         if bkey is not None:
-            self.__getattr__("importmasterblindingkey")(bkey, **kwargs)
+            self.importmasterblindingkey(bkey, **kwargs)
+        return res
+
+    def importmulti(self, arr, *args, **kwargs):
+        arr, bkey = self._patch_descriptors(arr)
+        res = super().__getattr__("importmulti")(arr, *args, **kwargs)
+        if bkey is not None:
+            self.importmasterblindingkey(bkey, **kwargs)
         return res
 
     def getbalances(self, assetlabel="bitcoin", **kwargs):
