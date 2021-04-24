@@ -335,7 +335,9 @@ class Node:
 
     @property
     def bitcoin_core_version(self):
-        return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+        # return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+        # This hopefully works for elements as well:
+        return self.network_info["subversion"].strip("/").split(":")[-1]
 
     @property
     def bitcoin_core_version_raw(self):

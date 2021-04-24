@@ -11,7 +11,7 @@ import secrets
 import requests
 import signal
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
+from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
 from .bitcoind import BitcoindPlainController
@@ -444,6 +444,10 @@ class Specter:
     @property
     def is_testnet(self):
         return self.node.is_testnet
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def user_config(self):
