@@ -327,8 +327,8 @@ class WalletManager:
             recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
             change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
 
-        recv_descriptor = add_checksum(recv_descriptor)
-        change_descriptor = add_checksum(change_descriptor)
+        recv_descriptor = AddChecksum(recv_descriptor)
+        change_descriptor = AddChecksum(change_descriptor)
 
         # v20.99 is pre-v21 Elements Core for descriptors
         if self.bitcoin_core_version_raw >= 209900:

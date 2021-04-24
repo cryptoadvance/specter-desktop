@@ -20,6 +20,9 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
+from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
+from .util.checker import Checker
+from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
 from .bitcoind import BitcoindPlainController
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
@@ -504,6 +507,10 @@ class Specter:
     @property
     def is_testnet(self):
         return self.node.is_testnet
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def is_liquid(self):
