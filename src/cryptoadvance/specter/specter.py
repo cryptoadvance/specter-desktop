@@ -19,6 +19,7 @@ from .tor_daemon import TorDaemonController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
+from .liquid.rpc import LiquidRPC
 from .device_manager import DeviceManager
 from .wallet_manager import WalletManager
 from .user_manager import UserManager
@@ -72,6 +73,16 @@ def get_rpc(
         if not conf.get("port", None):
             conf["port"] = 8332
         rpc = BitcoinRPC(**conf)
+
+    # check if it's liquid
+    try:
+        res = rpc.getblockchaininfo()
+        if is_liquid(res.get("chain")):
+            # convert to LiquidRPC class
+            rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+    except Exception as e:
+        logger.error(e)
+
     if return_broken_instead_none:
         return rpc
     # check if we have something to compare with
