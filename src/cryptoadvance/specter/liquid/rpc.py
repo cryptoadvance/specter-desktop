@@ -109,6 +109,10 @@ class LiquidRPC(BitcoinRPC):
             res["psbt"] = blinded
         return res
 
+    def decoderawtransaction(self, tx):
+        unblinded = self.unblindrawtransaction(tx)["hex"]
+        return super().__getattr__("decoderawtransaction")(unblinded)
+
     @classmethod
     def from_bitcoin_rpc(cls, rpc):
         """Convert BitcoinRPC to LiquidRPC"""

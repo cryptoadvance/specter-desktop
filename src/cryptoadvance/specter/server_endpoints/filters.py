@@ -25,7 +25,7 @@ def timedatetime(context, s):
 @filters_bp.app_template_filter("btcamount")
 def btcamount(context, value):
     if value < 0:
-        return 'Confidential'
+        return "Confidential"
     value = round(float(value), 8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
 
@@ -52,7 +52,7 @@ def feerate(context, value):
 @filters_bp.app_template_filter("btcunitamount")
 def btcunitamount(context, value):
     if value < 0:
-        return 'Confidential'
+        return "Confidential"
     if app.specter.unit != "sat":
         return btcamount(context, value)
     value = float(value)
@@ -63,7 +63,7 @@ def btcunitamount(context, value):
 @filters_bp.app_template_filter("altunit")
 def altunit(context, value):
     if value < 0:
-        return '-'
+        return "-"
     if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
         rate = (
             "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
