@@ -70,6 +70,14 @@ class SpecterClient(HardwareWalletClient):
         """
         return bytes.fromhex(self.query("fingerprint", timeout=self.TIMEOUT))
 
+    def get_master_blinding_key(self) -> str:
+        """
+        Get the master blinding key as WIF string (according to SLIP77 format).
+
+        :return: The master blinding key as WIF string
+        """
+        return self.query("slip77")
+
     def get_pubkey_at_path(self, bip32_path: str) -> ExtendedKey:
         """
         Get the public key at the BIP 32 derivation path.

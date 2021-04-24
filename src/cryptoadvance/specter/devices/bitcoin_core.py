@@ -22,8 +22,8 @@ class BitcoinCore(Device):
 
     hot_wallet = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        Device.__init__(self, name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        Device.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
 
     def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
