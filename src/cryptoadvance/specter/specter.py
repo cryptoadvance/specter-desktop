@@ -23,7 +23,7 @@ from urllib3.exceptions import NewConnectionError
 from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
-from .bitcoind import BitcoindPlainController
+from .process_controller.bitcoind_controller import BitcoindPlainController
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
@@ -119,7 +119,26 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        ################################################################################
+        if not self.config_manager.data["rpc"].get("external_node", True):
+            try:
+                self.bitcoind.start_bitcoind(
+                    datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
+                    timeout=15,  # At the initial startup, we don't wait on bitcoind
+                )
+            except ExtProcTimeoutException as e:
+                logger.error(e)
+                e.check_logfile(
+                    os.path.join(self.config["internal_node"]["datadir"], "debug.log")
+                )
+                logger.error(e.get_logger_friendly())
+            except SpecterError as e:
+                logger.error(e)
+                # Likely files of bitcoind were not found. Maybe deleted by the user?
+            finally:
+                try:
+                    self.set_bitcoind_pid(self.bitcoind.node_proc.pid)
+                except Exception as e:
+                    logger.error(e)
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()

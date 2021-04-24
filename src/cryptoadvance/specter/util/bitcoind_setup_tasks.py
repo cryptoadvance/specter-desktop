@@ -1,5 +1,5 @@
 import os, time, requests, secrets, platform, tarfile, zipfile, sys, shutil
-from ..bitcoind import BitcoindPlainController
+from ..process_controller.bitcoind_controller import BitcoindPlainController
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
@@ -146,7 +146,22 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
-            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.node_manager.internal_node.datadir)}"
+            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['internal_node']['datadir'])}"
+        )
+        try:
+            specter.bitcoind.start_bitcoind(
+                datadir=os.path.expanduser(specter.config["internal_node"]["datadir"])
+            )
+        finally:
+            specter.set_bitcoind_pid(specter.bitcoind.node_proc.pid)
+        logger.info("Waiting 15 seconds ...")
+        time.sleep(15)
+        success = specter.update_rpc(
+            port=8332,
+            autodetect=False,
+            user=specter.config["internal_node"]["user"],
+            password=specter.config["internal_node"]["password"],
+            need_update="true",
         )
         success = specter.node_manager.internal_node.start(timeout=60)
         specter.update_active_node(specter.node_manager.internal_node.alias)
