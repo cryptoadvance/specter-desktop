@@ -11,7 +11,7 @@ import secrets
 import requests
 import signal
 from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
+from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
 from .util.checker import Checker
 from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
 from .bitcoind import BitcoindPlainController
@@ -666,7 +666,7 @@ class Specter:
 
     @property
     def bitcoin_core_version(self):
-        return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+        return self.network_info["subversion"].strip("/").split(":")[-1]
 
     @property
     def bitcoin_core_version_raw(self):
@@ -679,6 +679,10 @@ class Specter:
     @property
     def is_testnet(self):
         return is_testnet(self.chain)
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def user_config(self):

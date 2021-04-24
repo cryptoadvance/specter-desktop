@@ -1318,7 +1318,8 @@ class Wallet:
                 "replaceable": rbf,
             }
 
-            if self.manager.bitcoin_core_version_raw >= 210000:
+            # 209900 is pre-v21 for Elements Core
+            if self.manager.bitcoin_core_version_raw >= 209900:
                 options["add_inputs"] = selected_coins == []
 
             if fee_rate > 0:

@@ -34,11 +34,19 @@
             {% else %}
             <a href="{{ url_for('settings_endpoint.settings') }}" class="item core" style="color: #fff; text-decoration: none;">
         {% endif %}
-            {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+            {% if specter.is_liquid %}
+                {% from "components/liquid_svg.jinja" import bitcoin_svg %}
+            {% else %}
+                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+            {% endif %}
             {{ bitcoin_svg(specter.info.chain, 40) }}
             {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
             <div>
-                Bitcoin Core<br>
+                {% if specter.is_liquid %}
+                Elements Core
+                {% else %}
+                Bitcoin Core
+                {% endif %}<br>
                 <small>
                     {% if specter.chain %}
                         {% if specter.bitcoin_core_version != '' %}

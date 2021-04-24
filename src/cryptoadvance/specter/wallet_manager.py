@@ -302,7 +302,8 @@ class WalletManager:
             change_descriptor = "%s(%s)" % (el, change_descriptor)
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
-        if self.bitcoin_core_version_raw >= 210000:
+        # v20.99 is pre-v21 Elements Core for descriptors
+        if self.bitcoin_core_version_raw >= 209900:
             # Use descriptor wallet
             self.rpc.createwallet(
                 os.path.join(self.rpc_path, wallet_alias), True, True, "", False, True
