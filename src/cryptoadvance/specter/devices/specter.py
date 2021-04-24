@@ -18,6 +18,7 @@ class Specter(SDCardDevice):
     qr_code_support_verify = True
     wallet_export_type = "qr"
     supports_hwi_multisig_display_address = True
+    liquid_support = True
 
     def __init__(self, name, alias, keys, fullpath, manager):
         super().__init__(name, alias, keys, fullpath, manager)

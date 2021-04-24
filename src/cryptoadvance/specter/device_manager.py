@@ -96,6 +96,26 @@ class DeviceManager:
     def supported_devices(self):
         return device_classes
 
+    def supported_devices_for_chain(self, specter):
+        if not specter.chain:
+            return [
+                device_class
+                for device_class in device_classes
+                if device_class.device_type != "bitcoincore"
+            ]
+        elif specter.is_liquid:
+            return [
+                device_class
+                for device_class in device_classes
+                if device_class.liquid_support
+            ]
+        else:
+            return [
+                device_class
+                for device_class in device_classes
+                if device_class.bitcoin_core_support
+            ]
+
     def delete(self, specter):
         """Deletes all the devices"""
         for d in self.devices:
