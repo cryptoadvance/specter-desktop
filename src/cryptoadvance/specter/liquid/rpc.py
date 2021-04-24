@@ -54,7 +54,6 @@ class LiquidRPC(BitcoinRPC):
                 a["desc"] = add_checksum(str(descs[i]))
         res = super().__getattr__("importdescriptors")(arr, *args, **kwargs)
         if bkey is not None:
-            print("importmasterblindingkey")
             self.__getattr__("importmasterblindingkey")(bkey, **kwargs)
         return res
 
