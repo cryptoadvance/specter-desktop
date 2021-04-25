@@ -722,7 +722,7 @@ def send_new(wallet_alias):
                 flash("Failed to perform RBF. Error: %s" % e, "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
-            psbt = ast.literal_eval(request.form["psbt"])
+            psbt = json.loads(request.form["psbt"])
             b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
@@ -806,13 +806,13 @@ def send_pending(wallet_alias):
         if action == "deletepsbt":
             try:
                 wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
+                    json.loads(request.form["pending_psbt"])["tx"]["txid"]
                 )
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
                 flash("Could not delete Pending PSBT!", "error")
         elif action == "openpsbt":
-            psbt = ast.literal_eval(request.form["pending_psbt"])
+            psbt = json.loads(request.form["pending_psbt"])
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 psbt=psbt,
@@ -1012,7 +1012,7 @@ def combine(wallet_alias):
         psbts[i] = psbt
         # psbt should start with cHNi
         # if not - maybe finalized hex tx
-        if not psbt.startswith("cHNi"):
+        if not psbt.startswith("cHNi") and not psbt.startswith("cHNl"):
             raw["hex"] = psbt
             combined = psbts[1 - i]
             # check it's hex
