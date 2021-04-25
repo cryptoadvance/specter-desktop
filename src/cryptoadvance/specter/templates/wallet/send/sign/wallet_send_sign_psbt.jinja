@@ -152,7 +152,7 @@
 					</p>
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
-				{% for output in psbt['tx']['vout'] %}
+				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
 					{% set address = output['scriptPubKey']['addresses'][0] %}
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
