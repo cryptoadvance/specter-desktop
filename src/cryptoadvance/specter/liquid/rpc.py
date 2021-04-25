@@ -1,4 +1,6 @@
 from ..rpc import RpcError, BitcoinRPC
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
 
 
 class LiquidRPC(BitcoinRPC):
@@ -35,6 +37,38 @@ class LiquidRPC(BitcoinRPC):
             args.append(assetlabel)
         return super().__getattr__("getbalance")(*args, **kwargs)
 
+    def _patch_descriptors(self, arr):
+        # used by importmulti and importdescriptors
+        descs = [LDescriptor.from_string(a["desc"].split("#")[0]) for a in arr]
+        blinded = [d.is_blinded for d in descs]
+        bkey = None
+        if any(blinded) and not all(blinded):
+            raise RpcError("All descriptors should be either blinded or not")
+        if all(blinded):
+            bkeys = {d.blinding_key.key.secret for d in descs}
+            if len(bkeys) > 1:
+                raise RpcError("All descriptors should use the same blinding key")
+            bkey = bkeys.pop().hex()
+            arr = [a.copy() for a in arr]
+            for i, a in enumerate(arr):
+                descs[i].blinding_key = None
+                a["desc"] = add_checksum(str(descs[i]))
+        return arr, bkey
+
+    def importdescriptors(self, arr, *args, **kwargs):
+        arr, bkey = self._patch_descriptors(arr)
+        res = super().__getattr__("importdescriptors")(arr, *args, **kwargs)
+        if bkey is not None:
+            self.importmasterblindingkey(bkey, **kwargs)
+        return res
+
+    def importmulti(self, arr, *args, **kwargs):
+        arr, bkey = self._patch_descriptors(arr)
+        res = super().__getattr__("importmulti")(arr, *args, **kwargs)
+        if bkey is not None:
+            self.importmasterblindingkey(bkey, **kwargs)
+        return res
+
     def getbalances(self, assetlabel="bitcoin", **kwargs):
         """
         Bitcoin-like getbalance rpc call without assets,
@@ -49,6 +83,11 @@ class LiquidRPC(BitcoinRPC):
             for kk in res[k]:
                 v = res[k][kk].get(assetlabel, 0)
                 res[k][kk] = v
+        return res
+
+    def decodepsbt(self, *args, **kwargs):
+        res = super().__getattr__("decodepsbt")(*args, **kwargs)
+        res["fee"] = res["fees"]["bitcoin"]
         return res
 
     def getreceivedbyaddress(self, address, minconf=1, assetlabel="bitcoin", **kwargs):
@@ -80,6 +119,10 @@ class LiquidRPC(BitcoinRPC):
             # res["unblinded"] = psbt
             res["psbt"] = blinded
         return res
+
+    def decoderawtransaction(self, tx):
+        unblinded = self.unblindrawtransaction(tx)["hex"]
+        return super().__getattr__("decoderawtransaction")(unblinded)
 
     @classmethod
     def from_bitcoin_rpc(cls, rpc):
