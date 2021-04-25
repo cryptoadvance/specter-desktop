@@ -5,15 +5,21 @@ import pathlib
 import shutil
 import threading
 import traceback
+import hashlib
 from collections import OrderedDict
 from io import BytesIO
 
-from ..helpers import alias, load_jsons
+from ..helpers import alias, load_jsons, is_liquid
 from ..persistence import delete_file, delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
 from ..util.descriptor import AddChecksum
 from ..wallet import Wallet
+
+from embit import ec
+from embit.descriptor import Descriptor
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
 
 logger = logging.getLogger()
 
@@ -300,8 +306,30 @@ class WalletManager:
         for el in arr[::-1]:
             recv_descriptor = "%s(%s)" % (el, recv_descriptor)
             change_descriptor = "%s(%s)" % (el, change_descriptor)
-        recv_descriptor = AddChecksum(recv_descriptor)
-        change_descriptor = AddChecksum(change_descriptor)
+
+        if is_liquid(self.chain):
+            blinding_key = ""
+            if len(devices) == 1:
+                blinding_key = devices[0].blinding_key
+            if not blinding_key:
+                desc = Descriptor.from_string(recv_descriptor.split("#")[0])
+                # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
+                # where chaincodes are corresponding to xpub of the first receiving address
+                xor = bytearray(32)
+                desc_keys = desc.derive(0).keys
+                for k in desc_keys:
+                    if k.is_extended:
+                        chaincode = k.key.chain_code
+                        for i in range(32):
+                            xor[i] = xor[i] ^ chaincode[i]
+                secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
+                blinding_key = ec.PrivateKey(secret).wif()
+            recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
+            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
+
+        recv_descriptor = add_checksum(recv_descriptor)
+        change_descriptor = add_checksum(change_descriptor)
+
         # v20.99 is pre-v21 Elements Core for descriptors
         if self.bitcoin_core_version_raw >= 209900:
             # Use descriptor wallet

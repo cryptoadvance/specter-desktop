@@ -186,17 +186,21 @@
                 if (address == 'Unknown') {
                     address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
                 }
-                let value = parseFloat(rawtx.vout[i].value.toFixed(8));
+
+                let value = "Confidential";
                 let price = '';
-                if (self.price && self.symbol) {
-                    price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
-                }
+                if (rawtx.vout[i].value) {
+                    value = parseFloat(rawtx.vout[i].value.toFixed(8));
+                    if (self.price && self.symbol) {
+                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                    }
 
-                if (self.btcUnit == 'sat') {
-                    value = parseInt(value * 1e8)
-                }
+                    if (self.btcUnit == 'sat') {
+                        value = parseInt(value * 1e8)
+                    }
 
-                value = `${numberWithCommas(value.toString())}`;
+                    value = `${numberWithCommas(value.toString())}`;
+                }
 
                 let bgColor = '#131a24';
                 let isMine = await fetchAddressIsMine(self, address);

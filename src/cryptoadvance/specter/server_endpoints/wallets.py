@@ -1090,10 +1090,17 @@ def decoderawtx(wallet_alias):
                         f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
                     )
 
+            if wallet.data_source == "rpc":
+                # From RPC
+                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
+            else:
+                # From CSV
+                rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+
             return {
                 "success": True,
                 "tx": tx,
-                "rawtx": decoderawtransaction(tx["hex"], app.specter.chain),
+                "rawtx": rawtx,
                 "walletName": wallet.name,
             }
     except Exception as e:
@@ -1422,7 +1429,7 @@ def wallet_overview_txs_csv():
     try:
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
         txlist = app.specter.wallet_manager.full_txlist(
-            validate_merkle_proofs=validate_merkle_proofs
+            validate_merkle_proofs=validate_merkle_proofs,
         )
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
