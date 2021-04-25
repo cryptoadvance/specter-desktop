@@ -21,6 +21,11 @@ from embit.descriptor import Descriptor
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
 
+from embit import ec
+from embit.descriptor import Descriptor
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
+
 logger = logging.getLogger()
 
 purposes = OrderedDict(
