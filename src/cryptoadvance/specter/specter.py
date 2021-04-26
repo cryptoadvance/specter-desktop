@@ -90,7 +90,7 @@ def get_rpc(
 
 
 class Specter:
-    """ A central Object mostly holding app-settings """
+    """A central Object mostly holding app-settings"""
 
     # use this lock for all fs operations
     lock = threading.Lock()
@@ -445,7 +445,7 @@ class Specter:
 
     # mark
     def set_bitcoind_pid(self, pid):
-        """ set the control pid of the bitcoind daemon """
+        """set the control pid of the bitcoind daemon"""
         self.config_manager.set_bitcoind_pid(pid)
 
     def update_setup_status(self, software_name, stage):
@@ -483,44 +483,44 @@ class Specter:
 
     # mark
     def update_use_external_node(self, use_external_node):
-        """ set whatever specter should connect to internal or external node """
+        """set whatever specter should connect to internal or external node"""
         self.config_manager.update_use_external_node(use_external_node)
 
     # mark
     def update_auth(self, method, rate_limit, registration_link_timeout):
-        """ simply persisting the current auth-choice """
+        """simply persisting the current auth-choice"""
         self.config_manager.update_auth(method, rate_limit, registration_link_timeout)
 
     # mark
     def update_explorer(self, explorer_id, explorer_data, user):
-        """ update the block explorers urls """
+        """update the block explorers urls"""
         self.config_manager.update_explorer(
             explorer_id, explorer_data, user, self.chain
         )
 
     # mark
     def update_fee_estimator(self, fee_estimator, custom_url, user):
-        """ update the fee estimator option and its url if custom """
+        """update the fee estimator option and its url if custom"""
         self.config_manager.update_fee_estimator(fee_estimator, custom_url, user)
 
     # mark
     def update_proxy_url(self, proxy_url, user):
-        """ update the Tor proxy url """
+        """update the Tor proxy url"""
         self.config_manager.update_proxy_url(proxy_url, user)
 
     # mark
     def toggle_tor_status(self):
-        """ toggle the Tor status """
+        """toggle the Tor status"""
         self.config_manager.toggle_tor_status()
 
     # mark
     def update_only_tor(self, only_tor, user):
-        """ switch whatever to use Tor for all calls """
+        """switch whatever to use Tor for all calls"""
         self.config_manager.update_only_tor(only_tor, user)
 
     # mark
     def update_tor_control_port(self, tor_control_port, user):
-        """ set the control port of the tor daemon """
+        """set the control port of the tor daemon"""
         if self.config_manager.update_tor_control_port:
             self.update_tor_controller()
 
@@ -597,7 +597,7 @@ class Specter:
 
     # mark
     def update_hwi_bridge_url(self, url, user):
-        """ update the hwi bridge url to use """
+        """update the hwi bridge url to use"""
         self.config_manager.update_hwi_bridge_url(url, user)
 
     # mark

@@ -278,7 +278,7 @@ def server(
 
 
 def configure_ssl(kwargs, app_config, ssl):
-    """ accepts kwargs and adjust them based on the config and ssl """
+    """accepts kwargs and adjust them based on the config and ssl"""
     # If we should create a cert but it's not specified where, let's specify the location
 
     if not ssl and app_config["CERT"] is None:

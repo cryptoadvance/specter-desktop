@@ -3,7 +3,7 @@ import pytest
 
 
 def test_home(caplog, client):
-    """ The root of the app """
+    """The root of the app"""
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     login(client, "secret")
@@ -85,7 +85,7 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
 
 
 def login(client, password):
-    """ login helper-function """
+    """login helper-function"""
     result = client.post(
         "auth/login", data=dict(password=password), follow_redirects=True
     )
@@ -97,5 +97,5 @@ def login(client, password):
 
 
 def logout(client):
-    """ logout helper-method """
+    """logout helper-method"""
     return client.get("auth/logout", follow_redirects=True)

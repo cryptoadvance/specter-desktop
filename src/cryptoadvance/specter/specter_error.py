@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpecterError(Exception):
-    """ A SpecterError contains meaningfull messages which can be passed directly to the user """
+    """A SpecterError contains meaningfull messages which can be passed directly to the user"""
 
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
@@ -38,7 +38,7 @@ class ExtProcTimeoutException(Exception):
 
 
 def handle_exception(exception, user=None):
-    """ prints the exception and most important the stacktrace """
+    """prints the exception and most important the stacktrace"""
     logger.error("Unexpected error:")
     logger.error(
         "----START-TRACEBACK-----------------------------------------------------------------"

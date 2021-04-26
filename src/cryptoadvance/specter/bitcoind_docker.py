@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitcoindDockerController(BitcoindController):
-    """ A class specifically controlling a docker-based bitcoind-container """
+    """A class specifically controlling a docker-based bitcoind-container"""
 
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
@@ -92,7 +92,7 @@ class BitcoindDockerController(BitcoindController):
         raise Exception("Ambigious Container running")
 
     def check_existing(self):
-        """ Checks whether self.btcd_container is up2date and not ambigious """
+        """Checks whether self.btcd_container is up2date and not ambigious"""
         if self.btcd_container != None:
             self.btcd_container.reload()
             if self.btcd_container.status == "running":
@@ -106,7 +106,7 @@ class BitcoindDockerController(BitcoindController):
 
     @staticmethod
     def search_bitcoind_container(all=False):
-        """ returns a list of containers which are running bitcoind """
+        """returns a list of containers which are running bitcoind"""
         d_client = docker.from_env()
         return [
             c
@@ -179,7 +179,7 @@ class BitcoindDockerController(BitcoindController):
         return None
 
     def wait_for_container(self):
-        """ waits for the docker-container to come up. Times out after 10 seconds """
+        """waits for the docker-container to come up. Times out after 10 seconds"""
         i = 0
         while True:
             ip_address = self.btcd_container.attrs["NetworkSettings"]["IPAddress"]

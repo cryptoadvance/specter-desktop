@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class TorDaemonController:
-    """ A class controlling the tor-daemon process directly on the machine """
+    """A class controlling the tor-daemon process directly on the machine"""
 
     def __init__(
         self,

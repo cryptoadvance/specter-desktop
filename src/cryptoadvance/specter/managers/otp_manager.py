@@ -14,14 +14,14 @@ class OtpManager(GenericDataManager):
     name_of_json_file = "otps.json"
 
     def add_new_user_otp(self, otp_dict):
-        """ adds an OTP for user registration """
+        """adds an OTP for user registration"""
         if "new_user_otps" not in self.data:
             self.data["new_user_otps"] = []
         self.data["new_user_otps"].append(otp_dict)
         self._save()
 
     def validate_new_user_otp(self, otp):
-        """ validates an OTP for user registration and removes it if expired"""
+        """validates an OTP for user registration and removes it if expired"""
         if "new_user_otps" not in self.data:
             return False
         now = time.time()
@@ -39,7 +39,7 @@ class OtpManager(GenericDataManager):
         return False
 
     def remove_new_user_otp(self, otp):
-        """ removes an OTP for user registration"""
+        """removes an OTP for user registration"""
         if "new_user_otps" not in self.data:
             return False
         for i, otp_dict in enumerate(self.data["new_user_otps"]):
