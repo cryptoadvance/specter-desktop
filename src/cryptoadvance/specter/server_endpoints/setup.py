@@ -43,7 +43,7 @@ def start():
 @setup_endpoint.route("/tor/", methods=["GET"])
 @login_required
 def tor():
-    """ wizard: Setup Tor daemon (Skip / Setup Tor) """
+    """wizard: Setup Tor daemon (Skip / Setup Tor)"""
     app.specter.setup_status["stage"] = "tor"
     return render_template(
         "setup/tor.jinja",
@@ -66,7 +66,7 @@ def node_type():
 @setup_endpoint.route("/bitcoind/", methods=["GET"])
 @login_required
 def bitcoind():
-    """ wizard: Setup Bitcoin Core (Start the Setup!) """
+    """wizard: Setup Bitcoin Core (Start the Setup!)"""
     app.specter.setup_status["stage"] = "bitcoind"
     return render_template("setup/bitcoind.jinja", specter=app.specter, rand=rand)
 
@@ -74,7 +74,7 @@ def bitcoind():
 @setup_endpoint.route("/bitcoind_datadir/", methods=["GET"])
 @login_required
 def bitcoind_datadir():
-    """ wizard: Configure your node (Quicksync? , Start Syncing) """
+    """wizard: Configure your node (Quicksync? , Start Syncing)"""
     app.specter.setup_status["stage"] = "bitcoind_datadir"
     return render_template(
         "setup/bitcoind_datadir.jinja", specter=app.specter, rand=rand
@@ -84,7 +84,7 @@ def bitcoind_datadir():
 @setup_endpoint.route("/end/", methods=["GET"])
 @login_required
 def end():
-    """ wizard: Setup competed Successfully (Done)"""
+    """wizard: Setup competed Successfully (Done)"""
     app.specter.setup_status["stage"] = "start"
     return render_template("setup/end.jinja", specter=app.specter, rand=rand)
 
@@ -92,7 +92,7 @@ def end():
 @setup_endpoint.route("/tor_setup/", methods=["GET"])
 @login_required
 def tor_from_settings():
-    """ wizard: Setup Tor daemon (Setup Tor) """
+    """wizard: Setup Tor daemon (Setup Tor)"""
     return render_template(
         "setup/tor.jinja",
         nextURL="settings_endpoint.tor",

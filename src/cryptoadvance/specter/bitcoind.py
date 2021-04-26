@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Btcd_conn:
-    """ An object to easily store connection data """
+    """An object to easily store connection data"""
 
     def __init__(
         self, rpcuser="bitcoin", rpcpassword="secret", rpcport=18543, ipaddress=None
@@ -47,7 +47,7 @@ class Btcd_conn:
         self._ipaddress = ipaddress
 
     def get_rpc(self):
-        """ returns a BitcoinRPC """
+        """returns a BitcoinRPC"""
         # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
         rpc = BitcoinRPC(
             self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
@@ -65,7 +65,7 @@ class Btcd_conn:
         )
 
     def as_data(self):
-        """ returns a data-representation of this connection """
+        """returns a data-representation of this connection"""
         me = {
             "user": self.rpcuser,
             "password": self.rpcpassword,
@@ -76,7 +76,7 @@ class Btcd_conn:
         return me
 
     def render_json(self):
-        """ returns a json-representation of this connection """
+        """returns a json-representation of this connection"""
         return json.dumps(self.as_data())
 
     def __repr__(self):
@@ -84,7 +84,7 @@ class Btcd_conn:
 
 
 class BitcoindController:
-    """ A kind of abstract class to simplify running a bitcoind with or without docker """
+    """A kind of abstract class to simplify running a bitcoind with or without docker"""
 
     def __init__(
         self, rpcport=18443, network="regtest", rpcuser="bitcoin", rpcpassword="secret"
@@ -138,13 +138,13 @@ class BitcoindController:
         return self.rpcconn
 
     def version(self):
-        """ Returns the version of bitcoind, e.g. "v0.19.1" """
+        """Returns the version of bitcoind, e.g. "v0.19.1" """
         version = self.get_rpc().getnetworkinfo()["subversion"]
         version = version.replace("/", "").replace("Satoshi:", "v")
         return version
 
     def get_rpc(self):
-        """ wrapper for convenience """
+        """wrapper for convenience"""
         return self.rpcconn.get_rpc()
 
     def _start_bitcoind(
@@ -159,11 +159,11 @@ class BitcoindController:
         raise Exception("This should not be used in the baseclass!")
 
     def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
-        """ Does mining to the attached address with as many as block_count blocks """
+        """Does mining to the attached address with as many as block_count blocks"""
         self.rpcconn.get_rpc().generatetoaddress(block_count, address)
 
     def testcoin_faucet(self, address, amount=20, mine_tx=False):
-        """ an easy way to get some testcoins """
+        """an easy way to get some testcoins"""
         rpc = self.get_rpc()
         try:
             test3rdparty_rpc = rpc.wallet("test3rdparty")
@@ -187,7 +187,7 @@ class BitcoindController:
 
     @staticmethod
     def check_bitcoind(rpcconn, raise_exception=False):
-        """ returns true if bitcoind is running on that address/port """
+        """returns true if bitcoind is running on that address/port"""
         if raise_exception:
             rpcconn.get_rpc()  # that call will also check the connection
             return True
@@ -214,7 +214,7 @@ class BitcoindController:
 
     @staticmethod
     def wait_for_bitcoind(rpcconn, timeout=15):
-        """ tries to reach the bitcoind via rpc. Timeout after n seconds """
+        """tries to reach the bitcoind via rpc. Timeout after n seconds"""
         i = 0
         while True:
             if BitcoindController.check_bitcoind(rpcconn):
@@ -250,7 +250,7 @@ class BitcoindController:
         network="regtest",
         extra_args=[],
     ):
-        """ returns a bitcoind-command to run bitcoind """
+        """returns a bitcoind-command to run bitcoind"""
         btcd_cmd = '"{}" '.format(bitcoind_path)
         if network != "mainnet":
             btcd_cmd += " -{} ".format(network)
@@ -274,7 +274,7 @@ class BitcoindController:
 
 
 class BitcoindPlainController(BitcoindController):
-    """ A class controlling the bitcoind-process directly on the machine """
+    """A class controlling the bitcoind-process directly on the machine"""
 
     def __init__(
         self,

@@ -1016,7 +1016,7 @@ class Wallet:
         return addrinfo and not addrinfo.is_external
 
     def get_electrum_file(self):
-        """ Exports the wallet data as Electrum JSON format """
+        """Exports the wallet data as Electrum JSON format"""
         electrum_devices = [
             "bitbox02",
             "coldcard",
