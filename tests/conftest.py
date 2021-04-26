@@ -275,13 +275,14 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     specter.check()
+    assert not specter.wallet_manager.working_folder is None
     yield specter
     shutil.rmtree(data_folder, ignore_errors=True)
 
 
 @pytest.fixture
 def app(specter_regtest_configured):
-    """ the Flask-App, but uninitialized """
+    """the Flask-App, but uninitialized"""
     app = create_app()
     app.app_context().push()
     app.config["TESTING"] = True
@@ -294,5 +295,5 @@ def app(specter_regtest_configured):
 
 @pytest.fixture
 def client(app):
-    """ a test_client from an initialized Flask-App """
+    """a test_client from an initialized Flask-App"""
     return app.test_client()

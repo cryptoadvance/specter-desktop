@@ -106,8 +106,8 @@
             setTimeout(fetchUTXORescanProgress, 1000);
         </script>
         {% endif %}
-        {% if specter.setup_status.stage %}
-            {{ sidebar_btn(url_for('node_setup_wizard', step=specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
+        {% if specter.setup_status.stage != "start" and specter.rpc is none %}
+            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
         {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
@@ -173,13 +173,13 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-            {% elif not specter.setup_status.stage %}
+            {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
                 <p class="warning" style="border: 1px solid #fff;">
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
                 <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
                 {% if current_user.is_admin %}
                 <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('settings_endpoint.bitcoin_core') }}">
-                    <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 13px;"/>Configure Node
+                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">Configure Node
                 </a>
                 {% endif %}
                 </p>
@@ -195,7 +195,7 @@
             {% for device_name in specter.device_manager.devices_names %}
                     {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
             {% endfor %}
-            {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device','btn_new_device') }}
+            {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), 'Add new device','btn_new_device') }}
         </div>
         <br>
         <div class="footer">

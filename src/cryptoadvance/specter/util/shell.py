@@ -56,7 +56,7 @@ def run_shell(cmd):
 
 
 def get_last_lines_from_file(file_localtion, x=50):
-    """ returns an array of the last x lines of a file """
+    """returns an array of the last x lines of a file"""
     with open(file_localtion, "r") as the_file:
         lines = the_file.readlines()
         last_lines = lines[-x:]

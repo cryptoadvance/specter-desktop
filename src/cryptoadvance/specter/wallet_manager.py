@@ -424,7 +424,7 @@ class WalletManager:
 
     def delete(self, specter):
         """Deletes all the wallets"""
-        for w in self.wallets:
+        for w in list(self.wallets.keys()):
             wallet = self.wallets[w]
             self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
         delete_folder(self.data_folder)

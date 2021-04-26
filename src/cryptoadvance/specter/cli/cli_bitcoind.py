@@ -229,7 +229,7 @@ def bitcoind(
 
 
 def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
-    " An endless loop mining bitcoin "
+    "An endless loop mining bitcoin"
 
     echo(
         "Now, mining a block every %f seconds, avoid it via --no-mining"

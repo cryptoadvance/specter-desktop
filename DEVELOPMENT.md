@@ -136,7 +136,7 @@ Check the cypress-section on how to run cypress-frontend-tests.
 ## Code-Style
 
 Before your create a PR, make sure to [blackify](https://github.com/psf/black) all your changes. In order to automate that,
-there is a git pre-commit hook which you can simply install like this:
+there is a git [pre-commit hook](https://ljvmiranda921.github.io/notebook/2018/06/21/precommits-using-black-and-flake8/) which you can simply install like this:
 ```
 pre-commit install
 ```

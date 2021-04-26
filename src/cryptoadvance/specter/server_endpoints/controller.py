@@ -12,14 +12,6 @@ from ..helpers import (
 )
 from ..specter import Specter
 from ..specter_error import SpecterError, ExtProcTimeoutException
-from ..util.tor import start_hidden_service, stop_hidden_services
-from ..util.bitcoind_setup_tasks import (
-    setup_bitcoind_thread,
-    setup_bitcoind_directory_thread,
-)
-from ..util.tor_setup_tasks import (
-    setup_tor_thread,
-)
 from pathlib import Path
 
 env_path = Path(".") / ".flaskenv"
@@ -37,6 +29,7 @@ from .auth import auth_endpoint
 from .devices import devices_endpoint
 from .price import price_endpoint
 from .settings import settings_endpoint
+from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from ..rpc import RpcError
 
@@ -44,6 +37,7 @@ app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
 app.register_blueprint(price_endpoint, url_prefix="/price")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
+app.register_blueprint(setup_endpoint, url_prefix="/setup")
 app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
 
 rand = random.randint(0, 1e32)  # to force style refresh
@@ -51,7 +45,7 @@ rand = random.randint(0, 1e32)  # to force style refresh
 ########## exception handlers ##############
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
-    """ Specific SpecterErrors get passed on to the User as flash """
+    """Specific SpecterErrors get passed on to the User as flash"""
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
         flash(
             "Wallet not found. Specter reloaded all Wallets, please try again.", "error"
@@ -67,7 +61,7 @@ def server_rpc_error(rpce):
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """ Specific EpecterErrors get passed on to the User as flash """
+    """Specific EpecterErrors get passed on to the User as flash"""
     flash(str(se), "error")
     try:
         app.specter.wallet_manager.update()
@@ -78,7 +72,7 @@ def server_specter_error(se):
 
 @app.errorhandler(Exception)
 def server_error(e):
-    """ Unspecific Exceptions get a 500 Error-Page """
+    """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
@@ -91,7 +85,7 @@ def server_error(e):
 
 @app.errorhandler(ExtProcTimeoutException)
 def server_error_timeout(e):
-    """ Unspecific Exceptions get a 500 Error-Page """
+    """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
@@ -118,7 +112,7 @@ def server_error_csrf(e):
 
 @app.errorhandler(MethodNotAllowed)
 def server_error_405(e):
-    """ 405 method not allowed. Token might have expired."""
+    """405 method not allowed. Token might have expired."""
     app.logger.error("405 MethodNotAllowed Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
@@ -141,7 +135,7 @@ def selfcheck():
 ########## template injections #############
 @app.context_processor
 def inject_debug():
-    """ Can be used in all jinja2 templates """
+    """Can be used in all jinja2 templates"""
     return dict(debug=app.config["DEBUG"])
 
 
@@ -175,112 +169,11 @@ def about():
     if request.method == "POST":
         action = request.form["action"]
         if action == "cancelsetup":
-            app.specter.setup_status["stage"] = 0
+            app.specter.setup_status["stage"] = "start"
             app.specter.reset_setup("bitcoind")
             app.specter.reset_setup("torbrowser")
 
     return render_template("base.jinja", specter=app.specter, rand=rand)
-
-
-@app.route("/node_setup_wizard/", defaults={"step": 0}, methods=["GET", "POST"])
-@app.route("/node_setup_wizard/<step>", methods=["GET", "POST"])
-@login_required
-def node_setup_wizard(step):
-    if app.specter.setup_status["stage"] == 0:
-        app.specter.reset_setup("bitcoind")
-        app.specter.reset_setup("torbrowser")
-    if app.specter.setup_status["stage"] == 5:
-        app.specter.setup_status["stage"] = 0
-
-    return render_template(
-        "node_setup_wizard.jinja", step=step, specter=app.specter, rand=rand
-    )
-
-
-@app.route("/setup_bitcoind", methods=["POST"])
-@login_required
-def setup_bitcoind():
-    app.specter.config["internal_node"]["datadir"] = request.form.get(
-        "bitcoin_core_datadir", app.specter.config["internal_node"]["datadir"]
-    )
-    app.specter._save()
-    if os.path.exists(app.specter.config["internal_node"]["datadir"]):
-        if request.form["override_data_folder"] != "true":
-            return {"error": "data folder already exists"}
-    if (
-        not os.path.isfile(app.specter.bitcoind_path)
-        and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
-    ):
-        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
-        t = threading.Thread(
-            target=setup_bitcoind_thread,
-            args=(app.specter, app.config["INTERNAL_BITCOIND_VERSION"]),
-        )
-        t.start()
-    elif os.path.isfile(app.specter.bitcoind_path):
-        return {"error": "bitcoind already installed"}
-    elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
-        return {"error": "bitcoind installation is still under progress"}
-    return {"success": "Starting Bitcoin Core setup!"}
-
-
-@app.route("/setup_bitcoind_directory", methods=["POST"])
-@login_required
-def setup_bitcoind_directory():
-    if (
-        os.path.isfile(app.specter.bitcoind_path)
-        and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
-    ):
-        app.specter.setup_status["stage"] = 4  # TODO: Structure stages with enum
-        app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
-        quicksync = request.form["quicksync"] == "true"
-        pruned = request.form["nodetype"] == "pruned"
-        t = threading.Thread(
-            target=setup_bitcoind_directory_thread,
-            args=(app.specter, quicksync, pruned),
-        )
-        t.start()
-    elif not os.path.isfile(app.specter.bitcoind_path):
-        return {"error": "bitcoind in not installed but required for this step"}
-    elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
-        return {"error": "bitcoind installation is still under progress"}
-    return {"success": "Starting Bitcoin Core setup!"}
-
-
-@app.route("/setup_tor", methods=["POST"])
-@login_required
-def setup_tor():
-    if (
-        not os.path.isfile(app.specter.torbrowser_path)
-        and app.specter.setup_status["torbrowser"]["stage_progress"] == -1
-    ):
-        app.specter.setup_status["torbrowser"]["stage_progress"] = 0
-        app.specter.setup_status["torbrowser"]["error"] = ""
-        app.specter._save()
-        t = threading.Thread(
-            target=setup_tor_thread,
-            args=(app.specter,),
-        )
-        t.start()
-    elif os.path.isfile(app.specter.torbrowser_path):
-        return {"error": "tor is already installed"}
-    elif app.specter.setup_status["torbrowser"]["stage_progress"] != -1:
-        return {"error": "Tor installation is still under progress"}
-    return {"success": "Starting Tor setup!"}
-
-
-@app.route("/get_node_setup_status")
-@login_required
-@app.csrf.exempt
-def get_node_setup_status():
-    return app.specter.get_setup_status("bitcoind")
-
-
-@app.route("/get_tor_setup_status")
-@login_required
-@app.csrf.exempt
-def get_tor_setup_status():
-    return app.specter.get_setup_status("torbrowser")
 
 
 # TODO: Move all these below to REST API

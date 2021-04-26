@@ -119,17 +119,13 @@
 		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Finish</button>
 	</div>
 	<div class="hidden" id="new_wallet_popup">
-		<img src="{{ url_for('static', filename='img/done_icon.svg') }}" width="40px">
 		<h1>New wallet was created successfully!</h1>
-		<div class="row overflow">
-			<div id="pdf-wallet-download" class="small-card radio">
-				<img src="{{ url_for('static', filename='img/file_icon.svg') }}" width="18px" style="transform: scale(1.8);">
-				<span style="font-size: 1.3em;">
-				Save Backup PDF
-				</span>
-			</div>
-			{% include 'wallet/components/wallet_pdf.jinja' %}
-		</div>
+		<button id="pdf-wallet-download" class="btn centered action" type="button">
+			<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 30px; margin-right: 2px;" class="svg-white">
+			Save Backup PDF
+		</button>
+		{% include 'wallet/components/wallet_pdf.jinja' %}
+		<br>
 		<div style="margin: 0 auto;" class="center">
 			<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
 			<label class="switch">

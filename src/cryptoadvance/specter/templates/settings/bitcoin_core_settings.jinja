@@ -53,7 +53,7 @@
 					<p class="warning">
 						Specter can help you get started with your own Bitcoin Core node by setting it all up for you.<br><br>
 						If you don't yet have your own Bitcoin node, or want to switch from an external node to the Specter managed option, you can click below to start the setup.<br><br>
-						<a href="{{url_for('node_setup_wizard', step=3)}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
+						<a href="{{url_for('setup_endpoint.bitcoind')}}" class="btn wizard-btn" style="width: 200px; margin: auto;">Setup new Bitcoin node</a>
 					</p>
 				</div>
 			{% endif %}
@@ -106,7 +106,10 @@
 					Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
 					<br>
 					<qr-scanner id="scan_rpc" style="margin: 10px;">
-						<a slot="button" href="#" class="btn" style="max-width: 180px;"><img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Connect with QR</a>
+						<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
+							Connect with QR
+						</a>
 					</qr-scanner>
 				</div>
 				Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">

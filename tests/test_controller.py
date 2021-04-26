@@ -3,7 +3,7 @@ import pytest
 
 
 def test_home(caplog, client):
-    """ The root of the app """
+    """The root of the app"""
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     login(client, "secret")
@@ -12,7 +12,7 @@ def test_home(caplog, client):
     assert result.status_code == 302  # REDIRECT.
     result = client.get("/about")
     assert b"Welcome to Specter" in result.data
-    result = client.get("/devices/new_device", follow_redirects=True)
+    result = client.get("/devices/new_device_type", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"Add Device" in result.data
     result = client.get("/settings", follow_redirects=True)
@@ -21,6 +21,7 @@ def test_home(caplog, client):
     result = client.get("/wallets/new_wallet", follow_redirects=True)
     assert result.status_code == 200  # OK.
     assert b"Select the type of the wallet" in result.data
+    logout(client)
 
     # Login logout testing
     result = client.get("/auth/login", follow_redirects=False)
@@ -84,7 +85,7 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
 
 
 def login(client, password):
-    """ login helper-function """
+    """login helper-function"""
     result = client.post(
         "auth/login", data=dict(password=password), follow_redirects=True
     )
@@ -96,5 +97,5 @@ def login(client, password):
 
 
 def logout(client):
-    """ logout helper-method """
+    """logout helper-method"""
     return client.get("auth/logout", follow_redirects=True)

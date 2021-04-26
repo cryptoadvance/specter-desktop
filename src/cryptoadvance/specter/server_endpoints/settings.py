@@ -577,7 +577,7 @@ def auth():
                 else:
                     expiry = 0
                     expiry_desc = ""
-                app.specter.add_new_user_otp(
+                app.specter.otp_manager.add_new_user_otp(
                     {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
                 flash(

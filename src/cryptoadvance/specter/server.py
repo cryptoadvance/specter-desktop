@@ -27,7 +27,7 @@ csrf = CSRFProtect()
 
 
 def calc_module_name(config):
-    """ tiny helper to make passing configs more convenient """
+    """tiny helper to make passing configs more convenient"""
     if "." in config:
         return config
     else:
@@ -75,7 +75,7 @@ def create_app(config=None):
 
 
 def init_app(app, hwibridge=False, specter=None):
-    """  see blogpost 19nd Feb 2020 """
+    """see blogpost 19nd Feb 2020"""
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     app.secret_key = app.config["SECRET_KEY"]

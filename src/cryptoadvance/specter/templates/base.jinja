@@ -32,19 +32,19 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
-					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}">
-						<img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 22px;"/>
+					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" style="padding: 0px 7px;">
+						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
 					<a class="settings-bar-btn" href="{{ url_for('about') }}" title="About and help">
 						<img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth.method != "none" %}
-						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}">
-							<img src="{{ url_for('static', filename='img/logout-status-bar.svg') }}" style="width: 22px;"/>
+						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}"  style="padding: 0px 7px;">
+							<img src="{{ url_for('static', filename='img/exit.svg') }}" style="width: 36px;" class="svg-white"/>
 						</a>
 					{% endif %}
 				</div>
-			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}"/>
+			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}" class="svg-white" style="width: 40px;"/>
 			{% endif %}
 
 			<div id="messages">
@@ -74,11 +74,7 @@
 					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
 					<br><br>
 					{% if not specter.chain %}
-					{% if specter.setup_status.stage %}
-						<a href="{{url_for('node_setup_wizard', step=specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">See setup progress</a>
-					{% else %}
-						<a href="{{ url_for('node_setup_wizard') }}" class="btn action centered" style="max-width: 200px;">Get started!</a>
-					{% endif %}
+					<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}Get started!{% else %}Continue setup{% endif %}</a>
 					<br><br>
 					{% else %}
 					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
@@ -104,7 +100,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('node_setup_wizard') }}">
+									<a href="{{ url_for('setup_endpoint.node_type') }}">
 										<h2>Connect Specter with Bitcoin Core node.</h2>
 									</a>
 								</td>
@@ -165,7 +161,7 @@
 									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 								</td>
 								<td style="text-align: left;">
-									<a href="{{ url_for('devices_endpoint.new_device') }}">
+									<a href="{{ url_for('devices_endpoint.new_device_type') }}">
 										<h2>Add signing devices you wish to use.</h2>
 									</a>
 								</td>
