@@ -1,4 +1,4 @@
-## v1.4.0 April 26, 2021
+## v1.3.1 April 26, 2021
 - Feature: Add unconfirmed tx fees data  #1085 (benk10)
 - Feature: Use RPCAuth instead of username + password #1093 (benk10)
 - Feature: Return to/ cancel setup process #1091 (benk10)
