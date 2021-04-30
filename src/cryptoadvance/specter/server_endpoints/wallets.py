@@ -1002,7 +1002,7 @@ def combine(wallet_alias):
         # if electrum then it's base43
         try:
             decoded = b43_decode(psbt)
-            if decoded.startswith(b"psbt\xff"):
+            if decoded[:5] in [b"psbt\xff", b"pset\xff"]:
                 psbt = b2a_base64(decoded).decode()
             else:
                 psbt = decoded.hex()

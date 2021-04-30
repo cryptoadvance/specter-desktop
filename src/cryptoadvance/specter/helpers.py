@@ -11,8 +11,11 @@ import subprocess
 import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
-from hwilib.tx import CTransaction
-from hwilib.psbt import PSBT
+from embit.script import Script
+from embit.psbt import PSBT
+from embit.transaction import Transaction
+from embit.liquid.pset import PSET
+from embit.liquid.transaction import LTransaction
 from .persistence import read_json_file, write_json_file
 from .util.bcur import bcur_decode
 import threading
@@ -191,12 +194,14 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
 
 
 def clean_psbt(b64psbt):
-    psbt = PSBT()
-    psbt.deserialize(b64psbt)
+    try:
+        psbt = PSBT.from_string(b64psbt)
+    except:
+        psbt = PSET.from_string(b64psbt)
     for inp in psbt.inputs:
         if inp.witness_utxo is not None and inp.non_witness_utxo is not None:
             inp.non_witness_utxo = None
-    return psbt.serialize()
+    return psbt.to_string()
 
 
 def bcur2base64(encoded):
@@ -205,13 +210,13 @@ def bcur2base64(encoded):
 
 
 def get_txid(tx):
-    b = BytesIO(bytes.fromhex(tx))
-    t = CTransaction()
-    t.deserialize(b)
+    try:
+        t = Transaction.from_string(tx)
+    except:
+        t = LTransaction.from_string(tx)
     for inp in t.vin:
-        inp.scriptSig = b""
-    t.rehash()
-    return t.hash
+        inp.script_sig = Script(b"")
+    return t.txid().hex()
 
 
 def get_startblock_by_chain(specter):
