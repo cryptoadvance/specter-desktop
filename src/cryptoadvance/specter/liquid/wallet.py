@@ -1,8 +1,8 @@
 from ..wallet import *
 from embit.liquid.pset import PSET
 
-class LWallet(Wallet):
 
+class LWallet(Wallet):
     def fetch_transactions(self):
         return
 
