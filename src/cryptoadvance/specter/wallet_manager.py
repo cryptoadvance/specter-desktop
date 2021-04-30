@@ -15,6 +15,7 @@ from .rpc import RpcError, get_default_datadir
 from .specter_error import SpecterError
 from .util.descriptor import AddChecksum
 from .wallet import Wallet
+from .liquid.wallet import LWallet
 
 from embit import ec
 from embit.descriptor import Descriptor
@@ -68,6 +69,8 @@ class WalletManager:
         self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading = allow_threading
+        # define different wallet classes for liquid and bitcoin
+        self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):
@@ -148,7 +151,7 @@ class WalletManager:
                                 "Initializing %s Wallet object"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
-                            loaded_wallet = Wallet.from_json(
+                            loaded_wallet = self.WalletClass.from_json(
                                 self.wallets_update_list[wallet],
                                 self.device_manager,
                                 self,
@@ -220,7 +223,7 @@ class WalletManager:
                                     "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
                                     % self.wallets_update_list[wallet]["alias"]
                                 )
-                                loaded_wallet = Wallet.from_json(
+                                loaded_wallet = self.WalletClass.from_json(
                                     self.wallets_update_list[wallet],
                                     self.device_manager,
                                     self,
@@ -339,7 +342,7 @@ class WalletManager:
         else:
             self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
 
-        w = Wallet(
+        w = self.WalletClass(
             name,
             wallet_alias,
             "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
