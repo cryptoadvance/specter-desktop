@@ -1,4 +1,5 @@
 from ..wallet import *
+from ..addresslist import Address
 from embit.liquid.pset import PSET
 
 
@@ -42,3 +43,22 @@ class LWallet(Wallet):
                     inp.non_witness_utxo = None
 
         return psbt.to_string()
+
+    def get_address_info(self, address):
+        try:
+            res = self.rpc.getaddressinfo(address)
+            used = None
+            if "desc" in res:
+                used = self.rpc.getreceivedbyaddress(address, 0) > 0
+            return Address(
+                self.rpc,
+                address=address,
+                index=None
+                if "desc" not in res
+                else res["desc"].split("]")[0].split("/")[-1],
+                change=None if "desc" not in res else res["ischange"],
+                label=next(iter(res["labels"]), ""),
+                used=used,
+            )
+        except:
+            return None

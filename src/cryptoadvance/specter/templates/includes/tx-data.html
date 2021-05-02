@@ -143,17 +143,20 @@
                     }
 
 
-                    let value = parseFloat(spentOutput.value.toFixed(8));
-                    let price = ''
-                    if (self.price && self.symbol) {
-                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
-                    }
+                    let value = "Confidential";
+                    let price = '';
+                    if (spentOutput.value) {
+                        value = parseFloat(spentOutput.value.toFixed(8));
+                        if (self.price && self.symbol) {
+                            price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                        }
 
-                    if (self.btcUnit == 'sat') {
-                        value = parseInt(value * 1e8)
-                    }
+                        if (self.btcUnit == 'sat') {
+                            value = parseInt(value * 1e8)
+                        }
 
-                    value = `${numberWithCommas(value.toString())}`;
+                        value = `${numberWithCommas(value.toString())}`;
+                    }
 
                     addressAndValue = `<br>
                         Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
