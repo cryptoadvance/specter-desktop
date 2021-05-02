@@ -1080,7 +1080,10 @@ def decoderawtx(wallet_alias):
             if tx["confirmations"] == 0:
                 tx["is_purged"] = wallet.is_tx_purged(txid)
                 try:
-                    if wallet._transactions[txid].get("category", "") == "receive":
+                    if (
+                        wallet.gettransaction(txid, decode=True).get("category", "")
+                        == "receive"
+                    ):
                         tx["fee"] = (
                             wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
                         )
@@ -1090,12 +1093,10 @@ def decoderawtx(wallet_alias):
                         f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
                     )
 
-            if wallet.data_source == "rpc":
-                # From RPC
-                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
-            else:
-                # From CSV
+            try:
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+            except:
+                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
 
             return {
                 "success": True,
