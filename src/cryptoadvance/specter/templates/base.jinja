@@ -158,6 +158,20 @@
 								<td style="text-align: left;">
 								</td>
 							</tr>
+							{% if specter.chain == 'main' %}
+							<tr>
+								<td>
+									<img src="{{ url_for('static', filename='img/ghost.png')}}" width="30px">
+								</td>
+								<td style="text-align: left;">
+									<a href="{{ url_for('get_whitepaper') }}">
+										<h2>And when you are all set: Get the whitepaper from the timechain.</h2>
+									</a>
+								</td>
+								<td style="text-align: left;">
+								</td>
+							</tr>
+							{% endif %}
 						</tbody>
 					</table>
 					<br>
@@ -183,7 +197,6 @@
 			{% endblock %}
 		</main>
 	</div>
-
 	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 	{% block scripts %}
 	{% endblock %}

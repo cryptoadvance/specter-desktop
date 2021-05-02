@@ -111,6 +111,26 @@ class Device:
                     return True
         return "" in self.key_types(network)
 
+    def no_key_found_reason(self, wallet_type, network="main"):
+        if wallet_type == "multisig" and self.device_type == "bitbox02":
+            return "BitBox02 multisig is not yet supported. Stay tuned for future versions."
+        if self.has_key_types(wallet_type, network=network):
+            return ""
+        reverse_network = "main" if is_testnet(network) else "test"
+        if wallet_type == "multisig":
+            for key_type in self.key_types(reverse_network):
+                if key_type in ["", "sh-wsh", "wsh"]:
+                    return "Multisig compatible keys were found, but for the wrong network, make sure to add keys for the right network."
+        elif wallet_type == "simple":
+            for key_type in self.key_types(reverse_network):
+                if key_type in ["", "sh-wpkh", "wpkh"]:
+                    return "Single-sig compatible keys were found, but for the wrong network, make sure to add keys for the right network.".format(
+                        "Single key" if wallet_type == "simple" else "Multisig"
+                    )
+        return "No keys found with the correct derivation type for a {} wallet.".format(
+            "single key" if wallet_type == "simple" else "multisig"
+        )
+
     def __eq__(self, other):
         if other is None:
             return False

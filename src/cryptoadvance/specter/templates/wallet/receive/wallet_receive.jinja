@@ -33,6 +33,7 @@
 	<br>
 	<div class="center card" style="width: 610px; padding-top: 25px;">
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
@@ -42,6 +43,7 @@
 		<qr-code style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
 		</div><br>
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
 			{% set supports_qr_code_verify = [] %}
 			{% for device in wallet.devices if device.qr_code_support_verify %}
@@ -75,64 +77,6 @@
 		</form>
 	</div>
 	<br>
-	{% from 'wallet/components/explorer_link.jinja' import explorer_link %}
-	<div id="addresses_list" class="hidden optional" style="width: 80%;">
-		{% if history_idx != 0 or addresses_count > 10 %}
-			<div style="margin: auto; text-align: center;">
-				<a href="./?history_idx={{ history_idx - 1 }}" class="pagination-arrow {% if history_idx == 0 %}pagination-disabled{% endif %}">&#8249;</a>
-				{% if addresses_count > 0 or idx != 0 %}
-				Page {{ history_idx + 1 }}
-				{% endif %}
-				<a href="./?history_idx={{ history_idx + 1 }}" class="pagination-arrow {% if (addresses_count - (history_idx * 10)) <= 10 %}pagination-disabled{% endif %}">&#8250;</a>
-			</div>
-		{% endif %}
-		<div class="table-holder">
-			<table style="margin: auto;">
-				<thead>
-					<tr>
-						<th>Used</th><th>Label</th><th>Address</th>
-						{% if supports_qr_code_verify != [] or (supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig)) %}
-						<th style="width: 400px;" class="optional">Actions</th>
-						{% endif %}
-						<th style="width: 50px; padding: 10px;">
-							<a href="{{ url_for('wallets_endpoint.addresses_csv', wallet_alias=wallet_alias) }}" download class="btn" style="width: 50px;">Export</a>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for address in past_addresses %}
-						<tr>
-							<td>
-							{% set address_info = wallet.get_address_info(past_addresses[loop.index0]) %}
-							{% if address_info.used %}
-								<img src="{{ url_for('static', filename='img/checkbox-tick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Used</p>
-							{% else %}
-								<img src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" style="float: left; width: 25px; padding-top: 11px;"> <p style="padding-left: 32px;">Unused</p>
-							{% endif %}
-							</td>
-							<td class="tx scroll"><address-label data-address="{{ address }}" data-label="{{ address_info.label }}" data-wallet="{{ wallet_alias }}"></address-label></td>
-							<td class="tx scroll">{{ explorer_link('address', address, address, specter.explorer) }}</td>
-							{% if supports_qr_code_verify != [] or (supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig)) %}
-								<td class="optional row">
-									{% if supports_qr_code_verify != [] %}
-										<button onclick="verifyQRCode('{{ address }}', '{{ address_info.index }}')" type="button" class="btn" style="max-width:170px; width:170px; float: left;">Verify address via QR code</button>
-									{% endif %}
-									{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-										<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ past_descriptors[loop.index0]|tojson }}`)' class="btn" style="width:170px; max-width:170px;">Display address on device</button>
-									{% endif %}
-								</td>
-							{% endif %}
-							<td></td>
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-		<br>
-	</div>
-	{% if wallet.address_index > 0 %}
-		<button type="button" class="center btn optional" style="width: 300px; max-height: 34px;" id="show_all_addresses" onclick="toggleAddressHistory(this)">Show past addresses</button>
-	{% endif %}
 	<br>
 	<div class="hidden" id="new_wallet_devices_popup">
 		{% set supports_export_to_device = [] %}
@@ -215,16 +159,6 @@
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
 			showPageOverlay('verify_address_qr_code');
 		}
-		function toggleAddressHistory(btn) {
-			let addressesList = document.getElementById('addresses_list');
-			if (addressesList.style.display == 'block') {
-				addressesList.style.display = 'none';
-				btn.innerText = 'Show past addresses';
-			} else {
-				addressesList.style.display = 'block';
-				btn.innerText = 'Hide past addresses';
-			}
-		}
 		function toggleKeyDisplay() {
 			let slip132Checkbox = document.getElementById('use_slip_132_pdf');
 			/* If at some point this view will show the key, the below selectors will be needed to convert back and forth depending on the switch selection
@@ -236,11 +170,5 @@
 		if (isNewWallet) {
 			showPageOverlay('new_wallet_popup');
 		}
-		
-		{% if past_addresses and history_idx > 0 %}
-			document.addEventListener("DOMContentLoaded", function(){
-					toggleAddressHistory();
-			});
-		{% endif %}
 	</script>
 {% endblock %}

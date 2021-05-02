@@ -23,6 +23,7 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 
 
 @auth_endpoint.route("/login", methods=["GET", "POST"])
+@app.csrf.exempt
 def login():
     """ login """
     if request.method == "POST":
@@ -35,6 +36,12 @@ def login():
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
             if app.specter.rpc is None:
+                if app.specter.config["rpc"]["password"] == request.form["password"]:
+                    app.login("admin")
+                    app.logger.info(
+                        "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
+                    )
+                    return redirect_login(request)
                 flash(
                     "We could not check your password, maybe Bitcoin Core is not running or not configured?",
                     "error",
@@ -53,6 +60,11 @@ def login():
             if rpc.test_connection():
                 app.login("admin")
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
+                return redirect_login(request)
+        elif auth["method"] == "passwordonly":
+            password = request.form["password"]
+            if verify_password(app.specter.user_manager.admin.password, password):
+                app.login("admin")
                 return redirect_login(request)
         elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?

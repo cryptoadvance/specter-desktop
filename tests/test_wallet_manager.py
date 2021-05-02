@@ -1,4 +1,5 @@
 import json, os
+from conftest import instantiate_bitcoind_controller
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
@@ -6,9 +7,18 @@ from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.wallet_manager import WalletManager
 
 
-def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manager):
+def test_WalletManager(docker, request, devices_filled_data_folder, device_manager):
+    # Instantiate a fresh bitcoind instance to isolate this test.
+    bitcoind_controller = instantiate_bitcoind_controller(
+        docker, request, rpcport=18998
+    )
+
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoind_controller.rpcconn.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
@@ -67,10 +77,22 @@ def test_WalletManager(bitcoin_regtest, devices_filled_data_folder, device_manag
     assert not os.path.exists(wallet_fullpath)
     assert len(wm.wallets) == 1
 
+    # cleanup
+    bitcoind_controller.stop_bitcoind()
 
-def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_manager):
+
+def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_manager):
+    # Instantiate a fresh bitcoind instance to isolate this test.
+    bitcoind_controller = instantiate_bitcoind_controller(
+        docker, request, rpcport=18998
+    )
+
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoind_controller.rpcconn.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -104,15 +126,9 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     unspents = wallet.rpc.listunspent(0)
     # Lets take 3 more or less random txs from the unspents:
     selected_coins = [
-        "{},{},{}".format(
-            unspents[5]["txid"], unspents[5]["vout"], unspents[5]["amount"]
-        ),
-        "{},{},{}".format(
-            unspents[9]["txid"], unspents[9]["vout"], unspents[9]["amount"]
-        ),
-        "{},{},{}".format(
-            unspents[12]["txid"], unspents[12]["vout"], unspents[12]["amount"]
-        ),
+        "{},{}".format(unspents[5]["txid"], unspents[5]["vout"]),
+        "{},{}".format(unspents[9]["txid"], unspents[9]["vout"]),
+        "{},{}".format(unspents[12]["txid"], unspents[12]["vout"]),
     ]
     selected_coins_amount_sum = (
         unspents[5]["amount"] + unspents[9]["amount"] + unspents[12]["amount"]
@@ -158,12 +174,19 @@ def test_wallet_createpsbt(bitcoin_regtest, devices_filled_data_folder, device_m
     assert len(wallet.rpc.listlockunspent()) == 0
     assert wallet.full_available_balance == wallet.fullbalance
 
+    # cleanup
+    bitcoind_controller.stop_bitcoind()
+
 
 def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -213,7 +236,11 @@ def test_wallet_sortedmulti(
 
 def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -244,7 +271,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.get_balance()
 
     address_balance = wallet.fullbalance
-    assert len(wallet.utxo) == 20
+    assert len(wallet.full_utxo) == 20
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, "")
@@ -256,7 +283,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.getdata()
     wallet.get_balance()
 
-    assert len(wallet.utxo) == 40
+    assert len(wallet.full_utxo) == 40
 
     wallet.setlabel(new_address, "")
     third_address = wallet.getnewaddress()
@@ -269,7 +296,11 @@ def test_wallet_change_addresses(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")

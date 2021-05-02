@@ -38,6 +38,7 @@
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div {% if not existing_device %}id="step1"{% else %}class="hidden"{% endif %}>
                 <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
                 <input type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
@@ -623,12 +624,12 @@
 
         function toggleAdvancedXpubs() {
             let advancedButton = document.getElementById('toggle_advanced_xpubs');
-            let advancedSettigns = document.getElementById('advanced_settings_xpubs');
-            if (advancedSettigns.style.display === 'block') {
-                advancedSettigns.style.display = 'none';
+            let advancedSettings = document.getElementById('advanced_settings_xpubs');
+            if (advancedSettings.style.display === 'block') {
+                advancedSettings.style.display = 'none';
                 advancedButton.innerHTML = 'Advanced &#9654;';
             } else {
-                advancedSettigns.style.display = 'block';
+                advancedSettings.style.display = 'block';
                 advancedButton.innerHTML = 'Advanced &#9660;';
                 if (totalSteps == 3) {
                     document.getElementById('advanced-hot-wallet').display = 'block';
@@ -737,6 +738,10 @@
                                     }
                                     let s = prefix + json.keystore.xpub + "\n";
                                     data += s;
+                                } else if ("ExtPubKey" in json){
+                                    // Probably Cobo single key txt file
+                                    let der = '/' + json.AccountKeyPath.replace("m","").replace(/'/g,"h");
+                                    data += `[${json.MasterFingerprint}${der}]${json.ExtPubKey}\n`;
                                 } else if (("bip84" in json) && ("xfp" in json)){
                                 // coldcard generic file
                                     let s = "";
@@ -751,6 +756,10 @@
                                         }
                                     });
                                     data += s;
+                                } else if (("xpub" in json) && ("path" in json) && ("xfp" in json)) {
+                                    // Probably Cobo single key file
+                                    let der = json.path.replace("m","").replace(/'/g,"h");
+                                    data += `[${json.xfp}${der}]${json.xpub}\n`;
                                 } else if ("xfp" in json) {
                                 // probably ColdCard multisig file
                                     let s = "";

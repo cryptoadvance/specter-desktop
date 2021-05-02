@@ -14,6 +14,7 @@
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
 	<form action="./" method="POST">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
 		</div>
@@ -44,6 +45,7 @@
 						</td>
 						<td width="80px" class="optional">
 							<form action="./" method="POST">
+								<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 								<input type="hidden" name="key" value="{{ key.original }}">
 								<button type="submit" name="action" value="delete_key" class="btn danger hovering">Delete</button>
 							</form>
@@ -55,6 +57,7 @@
 	</div>
 	<div style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">Add more keys</button>
 		</form>
 		<br>
@@ -76,6 +79,7 @@
 			<br>
 		{% endif %}
 		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">Forget the device</button>
 		</form>
 	</div>
@@ -108,6 +112,7 @@
 			</div>
 		</a>
 		<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<input type="hidden" name="device" value="{{ device.alias }}" />
 			<input type="hidden" name="action" value="preselected_device" />
 			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">

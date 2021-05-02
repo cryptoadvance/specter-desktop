@@ -1,11 +1,13 @@
 import logging
 import os
 import sys
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager, login_user
+from flask_wtf.csrf import CSRFProtect
 
 from .helpers import hwi_get_config
 from .specter import Specter
@@ -14,11 +16,14 @@ from .user import User
 from .util.version import VersionChecker
 
 from werkzeug.middleware.proxy_fix import ProxyFix
+from jinja2 import select_autoescape
 
 logger = logging.getLogger(__name__)
 
 env_path = Path(".") / ".flaskenv"
 load_dotenv(env_path)
+
+csrf = CSRFProtect()
 
 
 def calc_module_name(config):
@@ -33,14 +38,18 @@ def create_app(config=None):
 
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
+        config = calc_module_name(
+            os.environ.get("SPECTER_CONFIG")
+            if os.environ.get("SPECTER_CONFIG")
+            else config
+        )
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
             config = calc_module_name(os.environ.get("SPECTER_CONFIG"))
         else:
             # Default
-            config = "cryptoadvance.specter.config.DevelopmentConfig"
+            config = "cryptoadvance.specter.config.ProductionConfig"
 
     if getattr(sys, "frozen", False):
 
@@ -54,11 +63,14 @@ def create_app(config=None):
         )
     else:
         app = Flask(__name__, template_folder="templates", static_folder="static")
+    app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
+    csrf.init_app(app)
+    app.csrf = csrf
     return app
 
 
@@ -66,6 +78,7 @@ def init_app(app, hwibridge=False, specter=None):
     """  see blogpost 19nd Feb 2020 """
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
+    app.secret_key = app.config["SECRET_KEY"]
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
@@ -80,8 +93,10 @@ def init_app(app, hwibridge=False, specter=None):
     specter.version.start()
 
     login_manager = LoginManager()
+    login_manager.session_protection = "strong"
     login_manager.init_app(app)  # Enable Login
     login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
+    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 
     @login_manager.user_loader
     def user_loader(id):
@@ -100,6 +115,7 @@ def init_app(app, hwibridge=False, specter=None):
         app.logger.info("Login enabled")
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
+    csrf.exempt(hwi_server)
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller

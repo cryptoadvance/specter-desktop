@@ -1,6 +1,6 @@
 ## Running Specter Desktop over a Tor hidden service
 
-Specter Desktop protects your security and privacy by running on a local server that only talks to your own bitcoin node. But what if you need to check a wallet balance or generate and sign transactions when you're away from your home network?
+Specter Desktop protects your security and privacy by running on a local server that only talks to your own Bitcoin node. But what if you need to check a wallet balance or generate and sign transactions when you're away from your home network?
 
 Configuring your router to let you VPN into your home network is probably the easiest solution.
 
@@ -49,7 +49,7 @@ CookieAuthFileGroupReadable 1
 ```
 
 Restart the Tor service:
-* `sudo /etc/init.d/tor restart` on linux
+* `sudo /etc/init.d/tor restart` on Linux
 * `brew services restart tor` on macOS Homebrew installs
 
 On Linux you also need to add yourself to the Tor group (depends on the system `debian-tor` on Ubuntu):
@@ -65,7 +65,7 @@ You can start the server using `--tor` flag or enable it in the web interface:
 $ python3 -m cryptoadvance.specter server --tor
 ```
 
-Amongst the startup output you'll see:
+Among the startup output you'll see:
 ```
 ...
 * Started a new hidden service with the address of blahblahbla123asbfdgfd.onion

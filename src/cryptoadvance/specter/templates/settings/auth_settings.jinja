@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Authentication settings - Specter Desktop {{ current_version }}</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}
@@ -9,13 +10,19 @@
 				Authentication:<br>
 				<select name="method" onchange="toggleUsernamePassword(this)">
 					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
-					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% endif %}>RPC password as Pin</option>
+					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
 					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.config.rpc.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
 				</select>
 				<br><br>
 			{% endif %}
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
 				Rate Limiting (seconds between login/register attempts):<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
+			</div>
+			<div id="passwordonly" class="{% if method != 'passwordonly' %}hidden{% endif %}">
+				Specter Password:<br><input id="specter_password_only" type="password" name="specter_password_only" placeholder="Set new password">
+				<br><span class="note">(default: admin)</span><br>
+				<br>
 			</div>
 			<div id="usernamepassword" class="{% if method != 'usernamepassword' %}hidden{% endif %}">
 				{% if current_user.is_admin %}
@@ -29,6 +36,7 @@
 					<h2>Users:</h2>
 					{% for user in users %}
 						<form action="?" method="POST">
+							<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
 								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>Username:</b> {{ user.username }}</span>
 								<br class="mobile-only">
@@ -57,14 +65,14 @@
 {% block scripts %}
 	<script>
 		function toggleUsernamePassword(select) {
-		{% if current_user.is_admin %}
-			var ratelimitDiv = document.getElementById("ratelimit");
-			if (select.options[select.selectedIndex].value !== 'none'){
-				ratelimitDiv.style.display = 'block';
-			} else {
-				ratelimitDiv.style.display = 'none';
-			}
-		{% endif %}
+			{% if current_user.is_admin %}
+				var ratelimitDiv = document.getElementById("ratelimit");
+				if (select.options[select.selectedIndex].value !== 'none'){
+					ratelimitDiv.style.display = 'block';
+				} else {
+					ratelimitDiv.style.display = 'none';
+				}
+			{% endif %}
 			var usernamepasswordDiv = document.getElementById("usernamepassword");
 			var specterUsername = document.getElementById("specter_username");
 			var specterPassword = document.getElementById("specter_password");
@@ -78,6 +86,16 @@
 				specterPassword.value = '';
 				generateregistrationlinkDiv.style.display = 'none';
 			}
+
+			// Password Only mode
+			var passwordOnlyDiv = document.getElementById("passwordonly");	
+            var specterPasswordOnly = document.getElementById("specter_password_only");
+            if (select.options[select.selectedIndex].value === 'passwordonly'){
+                passwordOnlyDiv.style.display = 'block';
+            } else {
+                passwordOnlyDiv.style.display = 'none';
+                specterPasswordOnly.value = '';
+            }
 		}
 	</script>
 {% endblock %}

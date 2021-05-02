@@ -1,9 +1,10 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1>Name your Wallet</h1>
 		<div class="center">
-			<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="My new wallet" required>
+			<input type="text" id="wallet_name" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="My new wallet" required>
 		</div>
 		<br>
 		<h1>Type of the wallet</h1>
@@ -166,11 +167,7 @@
 		{% endfor %}
 		<button type="submit" name="action" value="key" class="btn centered action">Create wallet</button>
 	</form>
-
 	<div class="spacer"></div>
-	<div class="note">
-		<center>Here we only show <b>{{ purposes[wallet_type] }}</b> and <b>General</b> keys. Follow the standards.</center>
-	</div>
 {% endblock %}
 {% block scripts %}
 	<script>

@@ -15,7 +15,7 @@
 		{% endif %}
 		btc-unit="{{ specter.unit }}"
 		blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
-		type="txlist"
+		type="{{ tx_list_type }}"
 		wallet="{{ wallet.alias }}">
 		</tx-table>
 	</div>

@@ -4,13 +4,15 @@
 
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
-  - [Howto run the tests](#howto-run-the-tests)
+  - [How to run the tests](#how-to-run-the-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
     - [bitcoin-specific stuff](#bitcoin-specific-stuff)
     - [Cypress UI-testing](#cypress-ui-testing)
   - [Flask specific stuff](#flask-specific-stuff)
   - [More on the bitcoind requirements](#more-on-the-bitcoind-requirements)
+    - [Automatically mine and deposit test coins](#automatically-mine-and-deposit-test-coins)
+    - [Manually mine and deposit test coins](#manually-mine-and-deposit-test-coins)
   - [IDE-specific Configuration (might be outdated)](#ide-specific-configuration-might-be-outdated)
     - [Visual Studio Code](#visual-studio-code)
       - [Debugging](#debugging)
@@ -50,29 +52,43 @@ Run the server:
 
 ```sh
 cd specter-desktop
-python3 -m cryptoadvance.specter server
+python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
-## Howto run the tests
-Run the tests (still very limited):
+## How to run the tests
+_TODO: Need more thorough tests!_
 
+Set up the dependencies:
 ```sh
 pip3 install -r test_requirements.txt
 pip3 install -e .
+```
 
-# needs a bitcoind on your path
+If you have a local bitcoind already installed:
+```
+# Run all the tests
 pytest 
+```
 
-# needs a working docker-setup (but not bitcoind)
-# prerequsisite: 
-# docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
+OR run against bitcoind in Docker:
+```
+# Pull the bitcoind image if you haven't already:
+docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
+
+# Run all the tests against the docker bitcoind image
 pytest --docker 
+```
 
-# Run all the tests in a specific test-file
-pytest tests/test_specter
+Running specific test subsets:
+```
+# Run all the tests in a specific test file
+pytest tests/test_specter.py
 
 # Run all tests in a specific file matching "Manager"
-pytest tests/test_specter -k Manager 
+pytest tests/test_specter.py -k Manager 
+
+# Run a specific test
+pytest tests/test_specter.py::test_specter
 ```
 
 Check the cypress-section on how to run cypress-frontend-tests.
@@ -139,9 +155,10 @@ If Someone could figure out a better way to do that avoiding this strange this .
 Developing against a bitcoind-API makes most sense with the [Regtest Mode](https://bitcoin.org/en/developer-examples#regtest-mode). Depending on preferences and usecases, there are three major ways on how this dependency can be fullfilled:
 * Easiest way via Docker
 * The unittests on Travis-CI are using a script which is installing and compiling bitcoind
-* bitcoind is manually started (out of scope for this document)
+* Manually run local bitcoind in Regtest
 
-In order to make the "docker-way" even easier, there is a python-script which detects a running-docker-bitcoind and/or is booting one up. Use it like this:
+### Automatically mine and deposit test coins
+In order to make the "docker-way" even easier, there is a python-script which detects a running-docker-bitcoind and/or is boots one up. Use it like this:
 
 ```
 python3 -m cryptoadvance.specter bitcoind
@@ -158,6 +175,42 @@ After that, you can configure the bitcoin-core-connection in specter-desktop lik
 * Password: secret
 * Host: localhost
 * Port: 18443
+
+### Manually mine and deposit test coins
+If you're not using the integrated Docker method above, start your local bitcoind in regtest mode:
+```
+bitcoind -regtest -fallbackfee=0.0001
+```
+
+In another terminal initialize a default wallet to mine to:
+```
+bitcoin-cli -regtest createwallet satoshiswallet
+```
+
+Get a new address to deposit newly mined coins:
+```
+bitcoin-cli -regtest getnewaddress
+```
+
+Mine coins to the new address
+```
+bitcoin-cli -regtest generatetoaddress 101 <address>
+```
+
+Create a wallet in Specter and send test coins to a receive addr for the new wallet
+```
+bitcoin-cli -regtest sendtoaddress <address> <amount>
+```
+
+Mine the next block when you want a pending tx to be confirmed
+```
+bitcoin-cli -regtest generatetoaddress 1 <address>
+```
+
+Cleanup: Stop your local regtest instance
+```
+bitcoin-cli -regtest stop
+```
 
 ## IDE-specific Configuration (might be outdated)
 

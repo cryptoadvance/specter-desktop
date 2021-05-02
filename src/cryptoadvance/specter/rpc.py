@@ -2,7 +2,6 @@ import logging
 import requests, json, os
 import os, sys, errno
 from .helpers import is_ip_private
-import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -224,24 +223,30 @@ class BitcoinRPC:
     ):
         path = path.replace("//", "/")  # just in case
         self.user = user
-        self.password = password
+        self._password = password
         self.port = port
         self.protocol = protocol
         self.host = host
         self.path = path
         self.timeout = timeout
-        self.proxy_url = (proxy_url,)
-        self.only_tor = (only_tor,)
+        self.proxy_url = proxy_url
+        self.only_tor = only_tor
         self.r = None
         # session reuse speeds up requests
         if session is None:
-            session = requests.Session()
-            # check if we need to connect over Tor
-            if not is_ip_private(host):
-                if only_tor or ".onion" in self.host:
-                    # configure Tor proxies
-                    session.proxies["http"] = proxy_url
-                    session.proxies["https"] = proxy_url
+            self._create_session()
+        else:
+            self.session = session
+
+    def _create_session(self):
+        session = requests.Session()
+        session.auth = (self.user, self.password)
+        # check if we need to connect over Tor
+        if not is_ip_private(self.host):
+            if self.only_tor or ".onion" in self.host:
+                # configure Tor proxies
+                session.proxies["http"] = self.proxy_url
+                session.proxies["https"] = self.proxy_url
         self.session = session
 
     def wallet(self, name=""):
@@ -260,16 +265,16 @@ class BitcoinRPC:
 
     @property
     def url(self):
-        user = urllib.parse.quote_plus("{s.user}".format(s=self))
-        password = urllib.parse.quote_plus("{s.password}".format(s=self))
-        encoded = (
-            "{s.protocol}://".format(s=self)
-            + user
-            + ":"
-            + password
-            + "@{s.host}:{s.port}{s.path}".format(s=self)
-        )
-        return encoded
+        return "{s.protocol}://{s.host}:{s.port}{s.path}".format(s=self)
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        self._password = value
+        self._create_session()
 
     def test_connection(self):
         """ returns a boolean depending on whether getblockchaininfo() succeeds """

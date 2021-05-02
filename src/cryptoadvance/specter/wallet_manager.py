@@ -35,7 +35,15 @@ addrtypes = {
 
 class WalletManager:
     # chain is required to manage wallets when bitcoind is not running
-    def __init__(self, data_folder, rpc, chain, device_manager, path="specter"):
+    def __init__(
+        self,
+        bitcoin_core_version_raw,
+        data_folder,
+        rpc,
+        chain,
+        device_manager,
+        path="specter",
+    ):
         self.data_folder = data_folder
         self.chain = chain
         self.rpc = rpc
@@ -43,6 +51,8 @@ class WalletManager:
         self.device_manager = device_manager
         self.is_loading = False
         self.wallets = {}
+        self.failed_load_wallets = []
+        self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):
@@ -71,7 +81,7 @@ class WalletManager:
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
         keep_wallets = []
-        failed_load_wallets = []
+        self.failed_load_wallets = []
         try:
             if self.working_folder is not None and self.rpc is not None:
                 wallets_files = load_jsons(self.working_folder, key="name")
@@ -110,18 +120,39 @@ class WalletManager:
                                             ].pending_psbts[psbt]["tx"]["vin"]
                                         ],
                                     )
+                            if len(wallets[wallet_name].frozen_utxo) > 0:
+                                wallets[wallet_name].rpc.lockunspent(
+                                    False,
+                                    [
+                                        {
+                                            "txid": utxo.split(":")[0],
+                                            "vout": int(utxo.split(":")[1]),
+                                        }
+                                        for utxo in wallets[wallet_name].frozen_utxo
+                                    ],
+                                )
                         except RpcError as e:
-                            logger.warn(
+                            logger.warning(
                                 f"Couldn't load wallet {wallet_alias} into core.\
 Silently ignored! RPC error: {e}"
                             )
-                            failed_load_wallets.append(wallet)
+                            self.failed_load_wallets.append(
+                                {
+                                    **wallets_files[wallet],
+                                    "loading_error": str(e).replace("'", ""),
+                                }
+                            )
                         except Exception as e:
-                            logger.warn(
+                            logger.warning(
                                 f"Couldn't load wallet {wallet_alias}.\
 Silently ignored! Wallet error: {e}"
                             )
-                            failed_load_wallets.append(wallet)
+                            self.failed_load_wallets.append(
+                                {
+                                    **wallets_files[wallet],
+                                    "loading_error": str(e).replace("'", ""),
+                                }
+                            )
                     else:
                         if wallet_name not in existing_names:
                             # ok wallet is already there
@@ -135,9 +166,16 @@ Silently ignored! Wallet error: {e}"
                                 else:
                                     raise Exception("Failed to load wallet")
                             except Exception as e:
-                                logger.warn(f"Failed to load wallet {wallet_name}: {e}")
-                                logger.warn(traceback.format_exc())
-                                failed_load_wallets.append(wallet)
+                                logger.warning(
+                                    f"Failed to load wallet {wallet_name}: {e}"
+                                )
+                                logger.warning(traceback.format_exc())
+                                self.failed_load_wallets.append(
+                                    {
+                                        **wallets_files[wallet],
+                                        "loading_error": str(e).replace("'", ""),
+                                    }
+                                )
                         else:
                             # wallet is loaded and should stay
                             keep_wallets.append(wallet_name)
@@ -201,8 +239,13 @@ Silently ignored! Wallet error: {e}"
             change_descriptor = "%s(%s)" % (el, change_descriptor)
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
-
-        self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
+        if self.bitcoin_core_version_raw >= 210000:
+            # Use descriptor wallet
+            self.rpc.createwallet(
+                os.path.join(self.rpc_path, wallet_alias), True, True, "", False, True
+            )
+        else:
+            self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
 
         w = Wallet(
             name,
@@ -223,6 +266,7 @@ Silently ignored! Wallet error: {e}"
             devices,
             sigs_required,
             {},
+            [],
             os.path.join(self.working_folder, "%s.json" % wallet_alias),
             self.device_manager,
             self,
@@ -305,7 +349,7 @@ Silently ignored! Wallet error: {e}"
                     "label": wallet.getlabel(utxo["address"]),
                     "wallet_alias": wallet.alias,
                 }
-                for utxo in wallet.utxo
+                for utxo in wallet.full_utxo
             ]
             for wallet in self.wallets.values()
         ]

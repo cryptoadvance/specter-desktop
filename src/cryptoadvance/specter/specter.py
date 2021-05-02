@@ -67,9 +67,9 @@ def get_rpc(
     if rpc is None:
         # check if old rpc is still valid
         return old_rpc if old_rpc.test_connection() else None
-    # check if something have changed
-    # and return new rpc if so
-    if rpc.url == old_rpc.url:
+    # check if something has changed and return new rpc if so.
+    # RPC cookie will have a new password if bitcoind is restarted.
+    if rpc.url == old_rpc.url and rpc.password == old_rpc.password:
         return old_rpc
     else:
         logger.info("rpc config have changed.")
@@ -268,6 +268,7 @@ class Specter:
             or wallet_manager.chain != self.chain
         ):
             wallet_manager = WalletManager(
+                self.bitcoin_core_version_raw,
                 wallets_folder,
                 self.rpc,
                 self.chain,
@@ -366,11 +367,16 @@ class Specter:
         if rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
-        r["tests"] = {}
+        r["tests"] = {"connectable": False}
+        r["err"] = ""
+        r["code"] = 0
         try:
             r["tests"]["recent_version"] = (
                 int(rpc.getnetworkinfo()["version"]) >= 170000
             )
+            if not r["tests"]["recent_version"]:
+                r["err"] = "Core Node might be too old"
+
             r["tests"]["connectable"] = True
             r["tests"]["credentials"] = True
             try:
@@ -379,10 +385,9 @@ class Specter:
             except RpcError as rpce:
                 logger.error(rpce)
                 r["tests"]["wallets"] = False
+                r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
-            r["err"] = ""
-            r["code"] = 0
         except ConnectionError as e:
             logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
@@ -393,10 +398,11 @@ class Specter:
             logger.error("Caught an RpcError while test_rpc: %s", rpce)
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
+            r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
+                r["err"] = "RPC authentication failed!"
             else:
-                r["code"] = rpc.r.status_code
                 r["err"] = str(rpce.status_code)
         except Exception as e:
             logger.error(
@@ -648,6 +654,10 @@ class Specter:
     @property
     def bitcoin_core_version(self):
         return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+
+    @property
+    def bitcoin_core_version_raw(self):
+        return self.network_info["version"]
 
     @property
     def chain(self):

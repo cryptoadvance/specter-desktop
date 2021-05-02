@@ -9,8 +9,8 @@
 - [GENERAL QUESTIONS](#general-questions)
   - [*How safe is the app to use? Is it still considered alpha/beta or safe enough to use it with real sats in a HWW or Specter-DIY multisig setup?*](#how-safe-is-the-app-to-use-is-it-still-considered-alphabeta-or-safe-enough-to-use-it-with-real-sats-in-a-hww-or-specter-diy-multisig-setup)
   - [*What does WIP mean?*](#what-does-wip-mean)
-  - [*What's the difference between specter-desktop and specter-DIY?*](#whats-the-difference-between-specter-desktop-and-specter-diy)
-  - [*Is a full node necessary for using specter-desktop?*](#is-a-full-node-necessary-for-using-specter-desktop)
+  - [*What's the difference between Specter-desktop and Specter-DIY?*](#whats-the-difference-between-specter-desktop-and-specter-diy)
+  - [*Is a full node necessary for using Specter-desktop?*](#is-a-full-node-necessary-for-using-specter-desktop)
   - [*Can I use pruned mode?*](#can-i-use-pruned-mode)
   - [*I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*](#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure)
   - [How many addresses does an HD wallet have, and are they all the same?](#how-many-addresses-does-an-hd-wallet-have-and-are-they-all-the-same)
@@ -19,7 +19,7 @@
   - [*If the Bitcoin Core instance we are connecting to already has a wallet, is it possible to load it via the UI if we know the name, and could we import a .dat file?*](#if-the-bitcoin-core-instance-we-are-connecting-to-already-has-a-wallet-is-it-possible-to-load-it-via-the-ui-if-we-know-the-name-and-could-we-import-a-dat-file)
   - [*How are Bitcoin Core mnemonic seeds created? With Core there's only the option to backup the wallet.dat file, so how does specter-desktop transform the wallet.dat file into a mnemonic seed?*](#how-are-bitcoin-core-mnemonic-seeds-created-with-core-theres-only-the-option-to-backup-the-walletdat-file-so-how-does-specter-desktop-transform-the-walletdat-file-into-a-mnemonic-seed)
   - [*Why when I export a multisig wallet from specter-desktop (settings > export > copy wallet data) created from devices with only segwit ZPUBs, do I get a data structure with expected segwit derivation paths but XPUBs instead?*](#why-when-i-export-a-multisig-wallet-from-specter-desktop-settings--export--copy-wallet-data-created-from-devices-with-only-segwit-zpubs-do-i-get-a-data-structure-with-expected-segwit-derivation-paths-but-xpubs-instead)
-  - [*Does Specter have Coin Control?*](#does-specter-have-coin-control)
+  - [*Does Specter have coin control?*](#does-specter-have-coin-control)
 - [USAGE](#usage)
   - [*How do I run the app?*](#how-do-i-run-the-app)
   - [*What types of ways can I run specter-desktop?*](#what-types-of-ways-can-i-run-specter-desktop)
@@ -27,16 +27,16 @@
   - [*What do I need to do in order to create a multisig wallet?*](#what-do-i-need-to-do-in-order-to-create-a-multisig-wallet)
   - [*Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*](#is-my-understanding-correct-that-specter-desktop-does-not-hold-any-keys-and-you-need-to-create-a-multisig-wallet-in-order-to-sign-transactions-and-send-funds)
   - [*How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*](#how-would-one-sign-with-electrum-do-i-need-to-create-multisig-wallet-in-electrum-first-or-can-i-create-it-with-specter-desktop)
-  - [*Can I use Ledger and Coldcard multisig while CC remains airgapped?*](#can-i-use-ledger-and-coldcard-multisig-while-cc-remains-airgapped)
+  - [*Can I use Ledger and ColdCard multisig while CC remains air-gapped?*](#can-i-use-ledger-and-coldcard-multisig-while-cc-remains-air-gapped)
   - [*Can I use Bluewallet with Specter DIY?*](#can-i-use-bluewallet-with-specter-diy)
-  - [*Which HWW's are supported?*](#which-hwws-are-supported)
+  - [*Which hardware wallets are supported?*](#which-hardware-wallets-are-supported)
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
   - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
-  - [I forgot my password, how can i reset it!](#i-forgot-my-password-how-can-i-reset-it)
+  - [I forgot my password, how can i reset it?](#i-forgot-my-password-how-can-i-reset-it)
 - [BACKING UP FUNDS](#backing-up-funds)
-  - [*If something happens to the `~/.specter` folder, is it still possible to **restore** acccess to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-acccess-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
-  - [*To recover a multisig that was built on specter (eg: 2 of 3 with Coldcard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
+  - [*If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-access-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
+  - [*To recover a multisig that was built on specter (eg: 2 of 3 with ColdCard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
 - [SPECTER-DIY](#specter-diy)
   - [*What does the Specter-DIY consist of?*](#what-does-the-specter-diy-consist-of)
   - [*Is specter-DIY safe to use?*](#is-specter-diy-safe-to-use)
@@ -45,7 +45,7 @@
   - [*Do you have a physical security design?*](#do-you-have-a-physical-security-design)
   - [*Is there a simulator I can try the Specter-DIY with?*](#is-there-a-simulator-i-can-try-the-specter-diy-with)
   - [*Is there a goal to get Specter-DIY loading firmware updates from the SD card?*](#is-there-a-goal-to-get-specter-diy-loading-firmware-updates-from-the-sd-card)
-  - [*Can specter-DIY register cosigner xpubs like coldcard? I know you wipe private keys on shutdown, but do you save stuff like that?*](#can-specter-diy-register-cosigner-xpubs-like-coldcard-i-know-you-wipe-private-keys-on-shutdown-but-do-you-save-stuff-like-that)
+  - [*Can Specter-DIY register cosigner xpubs like ColdCard? I know you wipe private keys on shutdown, but do you save stuff like that?*](#can-specter-diy-register-cosigner-xpubs-like-coldcard-i-know-you-wipe-private-keys-on-shutdown-but-do-you-save-stuff-like-that)
   - [*Once you add the javacard (secure element) you'll save the private keys, too?*](#once-you-add-the-javacard-secure-element-youll-save-the-private-keys-too)
 - [SPECTER-DEVKIT](#specter-devkit)
   - [*Can I buy the Specter-devkit pre-built?*](#can-i-buy-the-specter-devkit-pre-built)
@@ -70,9 +70,9 @@
   - [*Does specter-desktop require `txindex=1` to be set in your `bitcoin.conf`?*](#does-specter-desktop-require-txindex1-to-be-set-in-your-bitcoinconf)
   - [*Does specter-desktop specify an RPC wallet in the `bitcoin.conf` or append wallet name to node url?*](#does-specter-desktop-specify-an-rpc-wallet-in-the-bitcoinconf-or-append-wallet-name-to-node-url)
 - [FUTURE FEATURES](#future-features)
-  - [*How are you guys planning to do airgapped firmware updates via QR codes?*](#how-are-you-guys-planning-to-do-airgapped-firmware-updates-via-qr-codes)
+  - [*How are you guys planning to do air-gapped firmware updates via QR codes?*](#how-are-you-guys-planning-to-do-air-gapped-firmware-updates-via-qr-codes)
   - [*Will this device be Shamir Secret Shares compatible?*](#will-this-device-be-shamir-secret-shares-compatible)
-  - [*Will there be coinjoin support in the future?*](#will-there-be-coinjoin-support-in-the-future)
+  - [*Will there be CoinJoin support in the future?*](#will-there-be-coinjoin-support-in-the-future)
 - [VIDEOS](#videos)
   - [**1** Getting started with Specter-DIY and Specter-Desktop](#1-getting-started-with-specter-diy-and-specter-desktop)
   - [**2** Assembling Specter-DIY](#2-assembling-specter-diy)
@@ -84,9 +84,9 @@
 
 # ABOUT THE PROJECT
 
-The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with airgapped (offline) hardware wallets. 
+The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with air-gapped (offline) hardware wallets. 
 
-We first wanted to make a new hardware wallet (HWW), but after we understood that everything can be hacked, we decided to build a user-friendly Multisig Desktop App and nice DIY Hardware Wallet.
+We first wanted to make a new hardware wallet (HWW), but after we understood that everything can be hacked, we decided to build a user-friendly multisig Desktop App and nice DIY Hardware Wallet.
 
 **Why is that good for Bitcoin?**
 
@@ -120,16 +120,16 @@ We try to use default descriptors and derivation paths exactly for this reason -
 
 WIP means that we don't try to be very backward-compatible at the moment. At some point we may change wallet storage format for example, and you would need to migrate using some script or create wallets from scratch. In this case, we would provide migration scripts.
 
-## *What's the difference between specter-desktop and specter-DIY?* 
+## *What's the difference between Specter-desktop and Specter-DIY?* 
 
 Specter-desktop is a watch-only GUI software wallet running on Bitcoin Core using its wallet and full node functionality.
 Bitcoin Core tracks addresses, UTXO (unspent transaction outputs) and composes PSBT (partially-signed bitcoin transactions).
 
 Whereas, [Specter-DIY](https://github.com/cryptoadvance/specter-diy) is a do-it-yourself hardware wallet from off the shelf components, that signs and broadcasts transactions using QR codes that forgets your private keys when powered off.
 
-## *Is a full node necessary for using specter-desktop?*
+## *Is a full node necessary for using Specter-desktop?*
 
-Yes, a Bitcoin full node is needed to provide the Bitcoin Core data so you don't rely on 3rd parties, and also for its watch-only wallet capabilities.
+Yes, a Bitcoin full node is needed to provide all relevant data without relying on 3rd parties, and also for its watch-only wallet capabilities.
 
 ## *Can I use pruned mode?*
 
@@ -144,13 +144,11 @@ You don't need private keys in Bitcoin Core, but you need wallets to be enabled 
 
 By default the gap limit is 20, but you can go to the wallet settings and import as many addresses as you want. If you know the wallet is old you may want to try importing many addresses (~1000), and then rescanning.
 
-The order is the same, and the addresses are also the same as the address derivation process is determinisic for a wallet. Address index is a derivation index of the wallet, so the index and the address itself are connected.
-
-
+The order is the same, and the addresses are also the same as the address derivation process is deterministic for a wallet. Address index is a derivation index of the wallet, so the index and the address itself are connected.
 
 ## *I make unsigned transactions from my cold storage using a watching-only Electrum wallet. I use public servers instead of my own node because doing it "right" is too complicated for me. Specter may be an ideal alternative if it will connect to my **headless bitcoind node**. Will this be possible?*
 
-Yes, this is the plan - to use a HWW like Coldcard/Trezor with Specter DIY, with a user-friendly multisig Specter desktop app, which is connected to your own node for better privacy.
+Yes, this is the plan - to use a HWW like ColdCard/Trezor with Specter DIY, with a user-friendly multisig Specter desktop app, which is connected to your own node for better privacy.
 
 ## *What is the practical difference of using PSBT (partially signed bitcoin transaction) with multisig vs. just signing the raw multisig transaction normally?*
 
@@ -172,9 +170,9 @@ Specter-desktop generates a random mnemonic using Trezor's mnemonic package, the
 
 XPUB is a canonical representation that is supported by Bitcoin Core, whereas ZPUB is an invention of SatoshiLabs that got adopted by the industry, but not by Bitcoin Core. In wallet export file we export Bitcoin Core's descriptor, so it contains master keys in the format that Bitcoin Core understands. More info on descriptors can be found [here](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md).
 
-## *Does Specter have Coin Control?*
+## *Does Specter have coin control?*
 
-Yes, Specter supports Coin Control. Go to "Send". Open the "Advanced" features - and down at the right you have "Select coins manually" bottom.
+Yes, Specter supports coin control. Go to "Send". Open the "Advanced" features - and down at the right you have "Select coins manually" bottom.
 
 
 # USAGE
@@ -196,7 +194,7 @@ It depends on your setup, and can be customized accordingly.
 
 Specter-desktop makes many requests to Bitcoin Core RPC, so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default Bitcoin Core RPC is connecting over HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md) to fix that.
 
-If you use hardware wallets and they are usb-conneced to specter-desktop then you should take these precautions, but if they are airgapped (coldcard, specter-diy, cobo) - then you can use remote web interface.
+If you use hardware wallets and they are usb-conneced to specter-desktop then you should take these precautions, but if they are air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
 
 ## Devices? Wallets? Where ist the difference?
 
@@ -206,7 +204,7 @@ For some devices it makes sense to import keys, for example for another passphra
 
 ## *What do I need to do in order to create a multisig wallet?*
 
-XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, specter-DIY, etc.) in order to create a multistig setup, but don't worry it's in watch-only mode and it's your own full node! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
+XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, etc.) in order to create a multistig setup, but don't worry it's in watch-only mode and it's your own full node! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
 
 ## *Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*
 
@@ -217,19 +215,19 @@ As of late, you can also use a hot wallet as a signer with specter-desktop, but 
 You need to create it in both wallets. When you start creating multisig wallet in Electrum it will give you the bech32 extended public key (ZPUB) where you can then add it to specter-desktop as well as other ZPUBS from other devices, and then add them to Electrum. After that you can start using Electrum as a signer.
 Full Electrum support is not out yet, but it should already work with files and copy paste of the transaction.
 
-## *Can I use Ledger and Coldcard multisig while CC remains airgapped?*
+## *Can I use Ledger and ColdCard multisig while CC remains air-gapped?*
 
-Yes you can use the Coldcard with its SD card without connecting it to the computer directly. You just need to import the Coldcard public keys with SD card. Just after creating the multisig wallet, you should go to the wallet page, click on the Settings tab, then scroll down to the Export and click on the export to Coldcard option. It will download a file you can import with the SD card to Coldcard and show you a notification with the instructions on how to do this. This will allow the Coldcard to be “aware” of the multisig and sign transactions for it.
+Yes you can use the ColdCard with its SD card without connecting it to the computer via USB. You just need to import the ColdCard public keys with SD card. Just after creating the multisig wallet, you should go to the wallet page, click on the Settings tab, then scroll down to the Export and click on the export to ColdCard option. It will download a file you can import with the SD card to ColdCard and show you a notification with the instructions on how to do this. This will allow the ColdCard to be “aware” of the multisig and sign transactions for it.
 
 ## *Can I use Bluewallet with Specter DIY?*
 
 Yes you can use BlueWallet in watch-only mode and sign with Specter DIY. See it in action [here](https://twitter.com/StepanSnigirev/status/1209426608949465088)
 
-## *Which HWW's are supported?*
+## *Which hardware wallets are supported?*
 
-Any HWW with HWI, including USB HWW's (Coldcard, Trezor, Ledger, KeepKey, BitBox, etc.)
+Any HWW with HWI, including USB HWW's (ColdCard, Trezor, Ledger, KeepKey, BitBox, CoboVault etc.)
 
-## *Can this also work with external nodes like Casa, MyNode, and Raspilitz?* 
+## *Can this also work with external nodes like Casa, MyNode, and Raspilitz?*
 
 Absolutely, as well as any other DIY bitcoin full, or pruned, node!
 
@@ -250,9 +248,9 @@ This feature is optional and not needed for the wallet to function. It's only us
 Technically, you can use any block explorer but that's not what you want to do, unless you want to try out the feature.
 Simply fill in https://blockstream.info/ to use that block explorer, but you will leak privacy doing that.
 
-## I forgot my password, how can i reset it!
+## I forgot my password, how can i reset it?
 
-Check the .specter-folder in your Homefolder (or on your mynode/raspiblitz/...). There is a file called `config.json` in there which has a line like this:
+Check the .specter-folder in your home folder (or on your mynode/raspiblitz/...). There is a file called `config.json` in there which has a line like this:
 ```
 "auth": {
     "method": "somethingInHere",
@@ -266,16 +264,16 @@ Depending on "what's written in `somethingInHere`:
 
 # BACKING UP FUNDS 
 
-## *If something happens to the `~/.specter` folder, is it still possible to **restore** acccess to multisigs created there (assuming there is no backup of the `~/.specter` folder)?* 
+## *If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?* 
 
 Yes, it's a standard multisig. So you can recreate it as soon as you have **master public keys of ALL the devices** - either with Specter, or Electrum.
 
 If your `~/.specter` folder is gone and only one of your devices is lost
  without a backup, then all your funds are **LOST**, even if you have a 1/4-multisig-wallet.
 
-When using Specter and importing an old wallet you would need to rescan blockchain in the wallet settings page.
+When using Specter and importing an old wallet you would need to re-scan the blockchain in the wallet settings page.
 
-## *To recover a multisig that was built on specter (eg: 2 of 3 with Coldcard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*
+## *To recover a multisig that was built on specter (eg: 2 of 3 with ColdCard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*
 
 Having seeds is enough, but in case you lose one of the seeds it is also **highly recommended** that you also backup your XPUBs. You can go to the wallet settings and export it as json file, this file has all the information needed to find your funds. "Export to wallet" software should give you one json file with all information needed for the recovery of your watch only wallet later on. 
 
@@ -303,17 +301,17 @@ Do not use it on mainnet yet unless it's only being used as one of the signers i
 
 It supports passphrases as an additional security layer, but currently it has two modes of operation - agnostic when your secrets are not stored on the device and you need to enter recovery phrase every time you use the device, and reckless when it is stored on flash and can be extracted. 
 
-We are working on smartcard support so you could store your keys on removable secure element in a credit card form factor, as well as an option to encrypt secrets with a key stored on the SD card. See this recently opened [issue](https://github.com/cryptoadvance/specter-diy/issues/64) thanks to @Thomas1378 in the Telegram chat!
+We are working on smart card support so you could store your keys on removable secure element in a credit card form factor, as well as an option to encrypt secrets with a key stored on the SD card. See this recently opened [issue](https://github.com/cryptoadvance/specter-diy/issues/64) thanks to @Thomas1378 in the Telegram chat!
 
 ## *Currently there is a `specter_hwi.py` file, which implements the HWIClient for Specter-DIY. Is there any reason you didn't add that directly to HWI?*
 
-Putting it into HWI means: "this is a hardware wallet people should consider using for real". Currently, we would strongly advice NOT to use USB with specter-DIY, but to use QR codes instead.
+Putting it into HWI means: "this is a hardware wallet people should consider using for real". Currently, we would strongly advice NOT to use USB with Specter-DIY, but to use QR codes instead.
 
-We will make a PR to HWI when we think it's safe enough. In particular when we will have a secure bootloader that verifies signatures of the firmware, and USB communication is more reliable. 
+We will make a pull request to HWI when we think it's safe enough. In particular when we will have a secure bootloader that verifies signatures of the firmware, and USB communication is more reliable. 
 
 ## *Do you have a physical security design?*
 
-No security at the moment, but it also doesn't store the private key. Working on integration of secure element similar to the ColdCard's (mikroe secure click). At the moment it's more like a toy.
+No security at the moment, but it also doesn't store the private key. Working on integration of secure element similar to the ColdCard's (mikroe secure chip). At the moment it's more like a toy.
 
 ## *Is there a simulator I can try the Specter-DIY with?*
 
@@ -324,7 +322,7 @@ Yes. Specter-DIY in simulator-mode simulates QR code scanner over TCP, see [here
 At the moment we don't have a proper bootloader and secure element integration yet, but we're moving in that direction! 
 I think SD card is a good choice, also QR codes might be possible, but we need to experiment with them a bit.
 
-## *Can specter-DIY register cosigner xpubs like coldcard? I know you wipe private keys on shutdown, but do you save stuff like that?*
+## *Can Specter-DIY register cosigner xpubs like ColdCard? I know you wipe private keys on shutdown, but do you save stuff like that?*
 
 Yes, we keep wallet descriptors and other public info.
 
@@ -336,7 +334,7 @@ With the secure element you will have three options:
  - store key on the smartcard but do all crypto on application MCU
  - store key and do crypto on the secure element
 
-Last seems to be the most secure, but then you trust proprietary crypto imementation. Second option saves private key on the secure element under pin protection, but also encrypted, so secure element never knows the private key.
+Last seems to be the most secure, but then you trust proprietary crypto implementation. Second option saves private key on the secure element under pin protection, but also encrypted, so secure element never knows the private key.
 
 # SPECTER-DEVKIT
 
@@ -357,11 +355,11 @@ This is a known issue. See [here](https://github.com/cryptoadvance/specter-deskt
 * Make sure that your USB-cable is working. Often enough they are not working anymore. 
 * Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. 
 * On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
-* Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardwarewallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
+* Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardware wallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
 
 ## *How to upgrade Specter-desktop?*
 
-This depends very much on how you've installed it in the first place. You might have it running on a node-implementation like nodl, raspiblitz or mynode or you have it running on your desktop or laptop. Mynode doesn't support manual upgrade, but let's start with the laptop:
+This depends very much on how you've installed it in the first place. You might have it running on a node-implementation like nodl, RaspiBlitz or MyNode or you have it running on your desktop or laptop. MyNode doesn't support manual upgrade, but let's start with the laptop:
 
 ### Laptop/Desktop
 If you have downloaded a binary, simply do it again with the new version. If you have a pip-installation (and installed it as described), use this command:
@@ -369,7 +367,7 @@ If you have downloaded a binary, simply do it again with the new version. If you
 To check (before and/or afterwards) your installed version, you can use: `pip3 show cryptoadvance.specter`
 
 ### Raspiblitz
-You might want to wait until raspiblitz is provising an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
+You might want to wait until raspiblitz is providing an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
 ```
 sudo su - bitcoin
 cd .specter/
@@ -402,7 +400,7 @@ Run it with the
  
 ## *I created an existing wallets but even after rescanning, specter couldn't find any funds?*
 
-Make sure you're using the right type of wallet. There are "Nested Segwit" and "Native segwit". Make sure to choose the right one. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
+Make sure you're using the right type of wallet. There are "Nested Segwit" and "Native SegWit". Make sure to choose the right one. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
 If you're running a pruned node, it's not possible to scan for the entire transaction history without doing a full re-download of the blockchain (IBD). Alternatively, we also support scanning for only the existing wallet balance (UTXO) which is very quick and supports both full and pruned nodes. However, for pruned nodes to support this feature, we must query some external data from an outside source (such as a block explorer, configurable by the user). This does not constitute a security risk, as the validity of the data can be verified against the hash existing on the pruned node itself, but can be a potential privacy risk, although it's possible to get the data over Tor to reduce the potential privacy leak. Yet, we still strongly recommend using a non-pruned-node (if possible) when dealing with older wallets.
 
 ## *How to delete a wallet using a remote full node?*
@@ -444,7 +442,7 @@ It specifes `-rpcwallet` with every call to `bitcoin-cli`
 
 # FUTURE FEATURES
 
-## *How are you guys planning to do airgapped firmware updates via QR codes?*
+## *How are you guys planning to do air-gapped firmware updates via QR codes?*
 
 We haven't tested it yet. We will work on the bootloader soon and try different update mechanisms. QR codes is one of them. Also considering SD card - might be easier as firmware is 1Mb, so it would require 1000 QR codes.
 
@@ -452,15 +450,15 @@ We haven't tested it yet. We will work on the bootloader soon and try different 
 
 Yes it will be, and especially effective in "forget after turn off" mode. Then one could use it to split a secret for wallets that don't support it.
 
-## *Will there be coinjoin support in the future?*
+## *Will there be CoinJoin support in the future?*
 
-When coinjoin servers and hardware wallets support proof of ownership: https://github.com/satoshilabs/slips/blob/slips-19-20-coinjoin-proofs/slip-0019.md
+When CoinJoin servers and hardware wallets support proof of ownership: https://github.com/satoshilabs/slips/blob/slips-19-20-coinjoin-proofs/slip-0019.md
 
 # VIDEOS
 
 ## **1** [Getting started with Specter-DIY and Specter-Desktop](https://twitter.com/CryptoAdvance/status/1235151027348926464)
 
-How to flash and set up an airgapped hardware wallet that uses QR codes to communicate with the host.
+How to flash and set up an air-gapped hardware wallet that uses QR codes to communicate with the host.
 
 In the video: 
 

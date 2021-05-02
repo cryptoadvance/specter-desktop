@@ -83,7 +83,9 @@ class BitcoindController:
     def __init__(self, rpcport=18443):
         self.rpcconn = Btcd_conn(rpcport=rpcport)
 
-    def start_bitcoind(self, cleanup_at_exit=False, cleanup_hard=False, datadir=None):
+    def start_bitcoind(
+        self, cleanup_at_exit=False, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
         """starts bitcoind with a specific rpcport=18543 by default.
         That's not the standard in order to make pytest running while
         developing locally against a different regtest-instance
@@ -94,7 +96,10 @@ class BitcoindController:
 
         logger.debug("Starting bitcoind")
         self._start_bitcoind(
-            cleanup_at_exit, cleanup_hard=cleanup_hard, datadir=datadir
+            cleanup_at_exit,
+            cleanup_hard=cleanup_hard,
+            datadir=datadir,
+            extra_args=extra_args,
         )
 
         self.wait_for_bitcoind(self.rpcconn)
@@ -111,7 +116,9 @@ class BitcoindController:
         """ wrapper for convenience """
         return self.rpcconn.get_rpc()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False):
+    def _start_bitcoind(
+        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
         raise Exception("This should not be used in the baseclass!")
 
     def check_existing(self):
@@ -185,7 +192,12 @@ class BitcoindController:
 
     @classmethod
     def construct_bitcoind_cmd(
-        cls, rpcconn, run_docker=True, datadir=None, bitcoind_path="bitcoind"
+        cls,
+        rpcconn,
+        run_docker=True,
+        datadir=None,
+        bitcoind_path="bitcoind",
+        extra_args=[],
     ):
         """ returns a bitcoind-command to run bitcoind """
         btcd_cmd = "{} ".format(bitcoind_path)
@@ -203,6 +215,8 @@ class BitcoindController:
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += " -datadir={} ".format(datadir)
+        if extra_args:
+            btcd_cmd += " {}".format(" ".join(extra_args))
         logger.debug("constructed bitcoind-command: %s", btcd_cmd)
         return btcd_cmd
 
@@ -215,14 +229,18 @@ class BitcoindPlainController(BitcoindController):
         self.bitcoind_path = bitcoind_path
         self.rpcconn.ipaddress = "localhost"
 
-    def _start_bitcoind(self, cleanup_at_exit=True, cleanup_hard=False, datadir=None):
+    def _start_bitcoind(
+        self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
         if datadir == None:
             datadir = tempfile.mkdtemp(prefix="specter_btc_regtest_plain_datadir_")
+
         bitcoind_cmd = self.construct_bitcoind_cmd(
             self.rpcconn,
             run_docker=False,
             datadir=datadir,
             bitcoind_path=self.bitcoind_path,
+            extra_args=extra_args,
         )
         logger.debug("About to execute: {}".format(bitcoind_cmd))
         # exec will prevent creating a child-process and will make bitcoind_proc.terminate() work as expected
@@ -231,40 +249,38 @@ class BitcoindPlainController(BitcoindController):
             "Running bitcoind-process with pid {}".format(self.bitcoind_proc.pid)
         )
 
-        def cleanup_bitcoind(*args):
-            timeout = 50  # in secs
-            if cleanup_hard:
-                self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
-                logger.info(
-                    f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
-                )
-                shutil.rmtree(datadir, ignore_errors=True)
-            else:
-                self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-                logger.info(
-                    f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-                )
-                # self.bitcoind_proc.wait() # doesn't have a timeout
-                procs = psutil.Process().children()
-                for p in procs:
-                    p.terminate()
-                _, alive = psutil.wait_procs(procs, timeout=timeout)
-                for p in alive:
-                    logger.info("bitcoind did not terminated in time, killing!")
-                    p.kill()
-
         if cleanup_at_exit:
             logger.debug("Register function cleanup_bitcoind for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, cleanup_bitcoind)
+            signal.signal(signal.SIGINT, self.cleanup_bitcoind)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, cleanup_bitcoind)
+            signal.signal(signal.SIGTERM, self.cleanup_bitcoind)
+
+    def cleanup_bitcoind(self, cleanup_hard=None, datadir=None):
+        timeout = 50  # in secs
+        if cleanup_hard:
+            self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+            logger.info(
+                f"Killed bitcoind with pid {self.bitcoind_proc.pid}, Removing {datadir}"
+            )
+            shutil.rmtree(datadir, ignore_errors=True)
+        else:
+            self.bitcoind_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
+            logger.info(
+                f"Terminated bitcoind with pid {self.bitcoind_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+            )
+            # self.bitcoind_proc.wait() # doesn't have a timeout
+            procs = psutil.Process().children()
+            for p in procs:
+                p.terminate()
+            _, alive = psutil.wait_procs(procs, timeout=timeout)
+            for p in alive:
+                logger.info("bitcoind did not terminated in time, killing!")
+                p.kill()
 
     def stop_bitcoind(self):
-        # not necessary as the cleanup_bitcoind() will do it automatically!
-        # ToDo: Implement it nevertheless
-        pass
+        self.cleanup_bitcoind()
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if if a
@@ -290,11 +306,13 @@ class BitcoindDockerController(BitcoindController):
             btcd_container.stop()
             btcd_container.remove()
 
-    def _start_bitcoind(self, cleanup_at_exit, cleanup_hard=False, datadir=None):
+    def _start_bitcoind(
+        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+    ):
         if datadir != None:
             # ignored
             pass
-        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn)
+        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, extra_args=extra_args)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports = {

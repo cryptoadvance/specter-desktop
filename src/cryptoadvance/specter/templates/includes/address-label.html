@@ -55,6 +55,7 @@
         }
     </style>
     <form class="address-label-form">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">Fetching address label...</span></a>
         <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" width="18px"></button>
         <button type="button" class="btn update hidden">Update</button>
@@ -209,6 +210,7 @@
         let url = `{{ url_for('wallets_endpoint.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
         var formData = new FormData();
         formData.append('address', self.address);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             const response = await fetch(
                 url,
@@ -240,6 +242,7 @@
         var formData = new FormData();
         formData.append('address', self.address);
         formData.append('label', self.label.innerText);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             const response = await fetch(
                 url,
