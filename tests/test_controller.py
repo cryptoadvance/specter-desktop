@@ -2,6 +2,7 @@ import logging
 import pytest
 
 
+@pytest.mark.slow
 def test_home(caplog, client):
     """The root of the app"""
     caplog.set_level(logging.INFO)
@@ -37,6 +38,7 @@ def test_home(caplog, client):
     assert b"Invalid username or password" in result.data
 
 
+@pytest.mark.slow
 def test_settings_general(caplog, client):
     login(client, "secret")
     result = client.get("/settings/general", follow_redirects=True)
@@ -44,6 +46,7 @@ def test_settings_general(caplog, client):
     assert b"regtest" in result.data
 
 
+@pytest.mark.slow
 def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     login(client, "secret")
     restore_wallets = open(

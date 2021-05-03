@@ -26,13 +26,29 @@ class BitcoindDockerController(NodeController):
             btcd_container.stop()
             btcd_container.remove()
 
-    def _start_bitcoind(
+    def start_bitcoind(
+        self,
+        cleanup_at_exit=False,
+        cleanup_hard=False,
+        datadir=None,
+        extra_args=[],
+        timeout=60,
+    ):
+        self.start_node(
+            cleanup_at_exit,
+            cleanup_hard,
+            datadir,
+            extra_args,
+            timeout,
+        )
+
+    def _start_node(
         self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
     ):
         if datadir != None:
             # ignored
             pass
-        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, extra_args=extra_args)
+        bitcoind_path = self.construct_node_cmd(self.rpcconn, extra_args=extra_args)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports = {

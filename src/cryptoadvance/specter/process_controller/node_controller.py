@@ -157,16 +157,16 @@ class NodeController:
     def _start_node(
         self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
     ):
-        raise Exception("This should not be used in the baseclass!")
+        raise Exception(f"This should not be used in the baseclass! self: {self}")
 
     def get_debug_log(self):
-        raise Exception("This should not be used in the baseclass!")
+        raise Exception(f"This should not be used in the baseclass! self: {self}")
 
     def check_existing(self):
-        raise Exception("This should not be used in the baseclass!")
+        raise Exception(f"This should not be used in the baseclass! self: {self}")
 
     def stop_node(self):
-        raise Exception("This should not be used in the baseclass!")
+        raise Exception(f"This should not be used in the baseclass! self: {self}")
 
     def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
         """Does mining to the attached address with as many as block_count blocks"""
@@ -357,14 +357,14 @@ class NodePlainController(NodeController):
         if cleanup_hard:
             self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
             logger.info(
-                f"Killed ${self.node_impl}d with pid {self.node_proc.pid}, Removing {datadir}"
+                f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {datadir}"
             )
             shutil.rmtree(datadir, ignore_errors=True)
         else:
             try:
                 self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                 logger.info(
-                    f"Terminated ${self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
+                    f"Terminated {self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                 )
                 # self.node_proc.wait() # doesn't have a timeout
                 procs = psutil.Process().children()
@@ -373,7 +373,7 @@ class NodePlainController(NodeController):
                 _, alive = psutil.wait_procs(procs, timeout=timeout)
                 for p in alive:
                     logger.info(
-                        f"${self.node_impl} did not terminated in time, killing!"
+                        f"{self.node_impl} did not terminated in time, killing!"
                     )
                     p.kill()
             except ProcessLookupError:
@@ -398,6 +398,22 @@ class NodePlainController(NodeController):
         else:
             self.status = "Running"
             return True
+
+
+def find_node_executable(node_impl):
+    '''Returns the path to a node_impl executable whereas node_impl is either "bitcoin" or "elements"'''
+    if os.path.isfile(f"tests/{node_impl}/src/{node_impl}d"):
+        # copied from conftest.py
+        # always prefer the self-compiled bitcoind if existing
+        return f"tests/{node_impl}/src/{node_impl}d"
+    elif os.path.isfile(f"./tests/{node_impl}/bin/{node_impl}d"):
+        # next take the self-installed binary if existing
+        return f"tests/{node_impl}/bin/{node_impl}d"
+    else:
+        # First list files in the folders above:
+        logger.warn(f"Couldn't find reasonable executable for {node_impl}")
+        # hmmm, maybe we have a bitcoind on the PATH
+        return which(f"{node_impl}d")
 
 
 def fetch_wallet_addresses_for_mining(data_folder):
