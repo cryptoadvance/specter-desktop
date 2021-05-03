@@ -56,7 +56,7 @@ class ElementsPlainController(NodePlainController):
         rpcconn,
         run_docker=True,
         datadir=None,
-        node_path="bitcoind",
+        node_path="elementsd",
         network="regtest",
         extra_args=[],
     ):
