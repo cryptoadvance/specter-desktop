@@ -19,9 +19,11 @@ from .tor_daemon import TorDaemonController
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from .rpc import BitcoinRPC
-from .device_manager import DeviceManager
-from .wallet_manager import WalletManager
-from .user_manager import UserManager
+from .managers.device_manager import DeviceManager
+from .managers.wallet_manager import WalletManager
+from .managers.user_manager import UserManager
+from .managers.otp_manager import OtpManager
+from .managers.config_manager import ConfigManager
 from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.price_providers import update_price
@@ -32,8 +34,6 @@ from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
 from .util.setup_states import SETUP_STATES
-from .managers.otp_manager import OtpManager
-from .managers.config_manager import ConfigManager
 
 logger = logging.getLogger(__name__)
 
