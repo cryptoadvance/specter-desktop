@@ -143,19 +143,19 @@ class ConfigManager(GenericDataManager):
         return get_default_datadir()
 
     def set_bitcoind_pid(self, pid):
-        """ set the control pid of the bitcoind daemon """
+        """set the control pid of the bitcoind daemon"""
         if self.data.get("bitcoind", False) != pid:
             self.data["bitcoind"] = pid
             self._save()
 
     def update_use_external_node(self, use_external_node):
-        """ set whatever specter should connect to internal or external node """
+        """set whatever specter should connect to internal or external node"""
         assert isinstance(use_external_node, bool)
         self.data["rpc"]["external_node"] = use_external_node
         self._save()
 
     def update_auth(self, method, rate_limit, registration_link_timeout):
-        """ simply persisting the current auth-choice """
+        """simply persisting the current auth-choice"""
         auth = self.data["auth"]
         if auth["method"] != method:
             auth["method"] = method
@@ -166,7 +166,7 @@ class ConfigManager(GenericDataManager):
         self._save()
 
     def update_explorer(self, explorer_id, explorer_data, user, chain):
-        """ update the block explorers urls """
+        """update the block explorers urls"""
         if isinstance(user, str):
             raise Exception("Please pass a real user, not a string-user")
         # we don't know what chain to change
@@ -193,7 +193,7 @@ class ConfigManager(GenericDataManager):
             user.set_explorer(explorer_id, explorer_data["url"])
 
     def update_fee_estimator(self, fee_estimator, custom_url, user):
-        """ update the fee estimator option and its url if custom """
+        """update the fee estimator option and its url if custom"""
         if isinstance(user, str):
             raise Exception("Please pass a real user, not a string-user")
         fee_estimator_options = ["mempool", "bitcoin_core", "custom"]
@@ -210,24 +210,24 @@ class ConfigManager(GenericDataManager):
             user.set_fee_estimator(fee_estimator, custom_url)
 
     def update_proxy_url(self, proxy_url, user):
-        """ update the Tor proxy url """
+        """update the Tor proxy url"""
         if self.data["proxy_url"] != proxy_url:
             self.data["proxy_url"] = proxy_url
             self._save()
 
     def toggle_tor_status(self):
-        """ toggle the Tor status """
+        """toggle the Tor status"""
         self.data["tor_status"] = not self.data["tor_status"]
         self._save()
 
     def update_only_tor(self, only_tor, user):
-        """ switch whatever to use Tor for all calls """
+        """switch whatever to use Tor for all calls"""
         if self.data["only_tor"] != only_tor:
             self.data["only_tor"] = only_tor
             self._save()
 
     def update_tor_control_port(self, tor_control_port, user):
-        """ set the control port of the tor daemon """
+        """set the control port of the tor daemon"""
         if self.data["tor_control_port"] != tor_control_port:
             self.data["tor_control_port"] = tor_control_port
             self._save()
@@ -240,7 +240,7 @@ class ConfigManager(GenericDataManager):
             logger.info(f"Generated torrc_password in {self.data_file}")
 
     def update_hwi_bridge_url(self, url, user):
-        """ update the hwi bridge url to use """
+        """update the hwi bridge url to use"""
         if isinstance(user, str):
             raise Exception("Please pass a real user, not a string-user")
         if url and not url.endswith("/"):

@@ -45,7 +45,7 @@ rand = random.randint(0, 1e32)  # to force style refresh
 ########## exception handlers ##############
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
-    """ Specific SpecterErrors get passed on to the User as flash """
+    """Specific SpecterErrors get passed on to the User as flash"""
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
         flash(
             "Wallet not found. Specter reloaded all Wallets, please try again.", "error"
@@ -61,7 +61,7 @@ def server_rpc_error(rpce):
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """ Specific EpecterErrors get passed on to the User as flash """
+    """Specific EpecterErrors get passed on to the User as flash"""
     flash(str(se), "error")
     try:
         app.specter.wallet_manager.update()
@@ -72,7 +72,7 @@ def server_specter_error(se):
 
 @app.errorhandler(Exception)
 def server_error(e):
-    """ Unspecific Exceptions get a 500 Error-Page """
+    """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
@@ -85,7 +85,7 @@ def server_error(e):
 
 @app.errorhandler(ExtProcTimeoutException)
 def server_error_timeout(e):
-    """ Unspecific Exceptions get a 500 Error-Page """
+    """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
@@ -112,7 +112,7 @@ def server_error_csrf(e):
 
 @app.errorhandler(MethodNotAllowed)
 def server_error_405(e):
-    """ 405 method not allowed. Token might have expired."""
+    """405 method not allowed. Token might have expired."""
     app.logger.error("405 MethodNotAllowed Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
@@ -135,7 +135,7 @@ def selfcheck():
 ########## template injections #############
 @app.context_processor
 def inject_debug():
-    """ Can be used in all jinja2 templates """
+    """Can be used in all jinja2 templates"""
     return dict(debug=app.config["DEBUG"])
 
 

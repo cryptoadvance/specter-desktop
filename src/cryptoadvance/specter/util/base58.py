@@ -27,7 +27,7 @@ def encode_base58(s):
 
 
 def encode_base58_checksum(s):
-    """ Adds the checksum and then encodes to base58 """
+    """Adds the checksum and then encodes to base58"""
     return encode_base58(s + double_sha256(s)[:4]).decode("ascii")
 
 

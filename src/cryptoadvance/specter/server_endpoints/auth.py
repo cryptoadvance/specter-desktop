@@ -25,7 +25,7 @@ auth_endpoint = Blueprint("auth_endpoint", __name__)
 @auth_endpoint.route("/login", methods=["GET", "POST"])
 @app.csrf.exempt
 def login():
-    """ login """
+    """login"""
     if request.method == "POST":
         rate_limit()
         auth = app.specter.config["auth"]
@@ -97,7 +97,7 @@ def login():
 
 @auth_endpoint.route("/register", methods=["GET", "POST"])
 def register():
-    """ register """
+    """register"""
     if request.method == "POST":
         rate_limit()
         username = request.form["username"]
