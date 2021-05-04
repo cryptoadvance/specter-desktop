@@ -1,4 +1,4 @@
-<div class="page_overlay" id="page_overlay">
+<div class="page_overlay" id="page_overlay" style="display: none;">
     <div class="page_overlay_popup" id="page_overlay_popup">
         <div id="page_overlay_popup_content"></div>
         <div class="page_overlay_popup_cancel">
@@ -51,6 +51,8 @@
 
             var overlayPopup = document.getElementById("page_overlay_popup");
             overlayPopup.style.display = "none";
+            // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
+            onCancelOverlay();
         }
     }
 
@@ -82,7 +84,5 @@
 
     function cancelOverlay() {
         hidePageOverlay();
-        // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
-        onCancelOverlay();
     }
 </script>

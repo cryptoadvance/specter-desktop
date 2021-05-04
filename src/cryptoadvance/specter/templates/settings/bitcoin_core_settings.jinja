@@ -74,7 +74,7 @@
 				<br>
 				<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
 				<label class="switch">
-					<input type="checkbox" id="autodetect" name="autodetect" {% if autodetect %}checked{% endif %}>
+					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
 					<span class="slider"></span>
 				</label>
 				<span id="datadir-container">
@@ -91,7 +91,7 @@
 					</p>
 				</div>
 				<br><br>
-					Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ datadir }}">
+					Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
 				</span>
 				<br><br>
 				<div id="rpc_settings">
@@ -99,11 +99,11 @@
 						<p style="text-align: center; margin: auto; ">&#128274;</p>
 						<span class="note centered"> (disable auto-detect to configure manually)</span>
 					</div>
-					Username:<br><input type="text" id="username" name="username" value="{{ username }}">
+					Username:<br><input type="text" id="username" name="username" value="{{ node.user }}">
 					<br><br>
-					Password:<br><input type="password" id="password" name="password" value="{{ password }}">
+					Password:<br><input type="password" id="password" name="password" value="{{ node.password }}">
 					<br><br>
-					Host:<br><input type="text" id="host" name="host" type="text" value="{{ protocol }}://{{ host }}">
+					Host:<br><input type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
 					<br>
 					<qr-scanner id="scan_rpc" style="margin: 10px;">
 						<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
@@ -112,7 +112,7 @@
 						</a>
 					</qr-scanner>
 				</div>
-				Port:<br><input type="text" id="port" name="port" type="text" value="{{ port }}">
+				Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
 				<div class="note">
 					Default ports: <b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for Regtest, <b>38332</b> for signet
 				</div>
@@ -223,8 +223,8 @@
 					rpcSettings.style['border-radius'] = '10px';
 
 					scanRpc.style.display = 'none';
-					document.getElementById("username").value = '{{ username }}';
-					document.getElementById("password").value = '{{ password }}';
+					document.getElementById("username").value = '{{ node.user }}';
+					document.getElementById("password").value = '{{ node.password }}';
 				} else {
 					lock.style['display'] = 'none';
 					datadirContainer.style['display'] = 'none';

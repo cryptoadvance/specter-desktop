@@ -34,59 +34,10 @@ from stem.control import Controller
 from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
 from .util.setup_states import SETUP_STATES
+from .node import Node
+from .managers.node_manager import NodeManager
 
 logger = logging.getLogger(__name__)
-
-
-def get_rpc(
-    conf,
-    old_rpc=None,
-    return_broken_instead_none=False,
-    proxy_url="socks5h://localhost:9050",
-    only_tor=False,
-):
-    """
-    Checks if config have changed, compares with old rpc
-    and returns new one if necessary
-    If there is no working rpc-connection, it has to return None
-    If return_broken_instead_none is True, it'll return even a broken connection.
-    """
-    if "autodetect" not in conf:
-        conf["autodetect"] = True
-    rpc = None
-    if conf["autodetect"]:
-        if "port" in conf:
-            rpc_conf_arr = autodetect_rpc_confs(
-                datadir=os.path.expanduser(conf["datadir"]), port=conf["port"]
-            )
-        else:
-            rpc_conf_arr = autodetect_rpc_confs(
-                datadir=os.path.expanduser(conf["datadir"])
-            )
-        if len(rpc_conf_arr) > 0:
-            rpc = BitcoinRPC(**rpc_conf_arr[0], proxy_url=proxy_url, only_tor=only_tor)
-    else:
-        # if autodetect is disabled and port is not defined
-        # we use default port 8332
-        if not conf.get("port", None):
-            conf["port"] = 8332
-        rpc = BitcoinRPC(**conf)
-    if return_broken_instead_none:
-        return rpc
-    # check if we have something to compare with
-    if old_rpc is None:
-        return rpc if rpc and rpc.test_connection() else None
-    # check if we have something detected
-    if rpc is None:
-        # check if old rpc is still valid
-        return old_rpc if old_rpc.test_connection() else None
-    # check if something has changed and return new rpc if so.
-    # RPC cookie will have a new password if bitcoind is restarted.
-    if rpc.url == old_rpc.url and rpc.password == old_rpc.password:
-        return old_rpc
-    else:
-        logger.info("rpc config have changed.")
-        return rpc
 
 
 class Specter:
@@ -106,17 +57,16 @@ class Specter:
 
         self.data_folder = data_folder
 
-        # the rpc-object. Currently we only have one. If we have Node-Managers, we would need
-        # either many of them and register them with a keyword or something like that
-        self.rpc = None
-
-        # wallet that is currently rescanning with utxorescan
-        # can be only one at a time
-        self.utxorescanwallet = None
-
         self.user_manager = UserManager(self)
 
         self._config_manager = ConfigManager(self.data_folder, config)
+
+        self.node_manager = NodeManager(
+            proxy_url=self.proxy_url,
+            only_tor=self.only_tor,
+            active_node=self.active_node_alias,
+            data_folder=os.path.join(self.data_folder, "nodes"),
+        )
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -132,7 +82,6 @@ class Specter:
         self._bitcoind = None
         self._tor_daemon = None
 
-        self.node_status = None
         self.setup_status = {
             "stage": "start",
             "bitcoind": {
@@ -150,27 +99,14 @@ class Specter:
         # also loads and checks wallets for all users
         try:
             self.check(check_all=True)
-            rpc_conf = next(
-                (
-                    conf
-                    for conf in detect_rpc_confs(
-                        datadir=os.path.expanduser(
-                            self.config["rpc"]["datadir"]
-                            if self.config["rpc"].get("external_node", True)
-                            else self.config["internal_node"]["datadir"]
-                        )
-                    )
-                    if conf["port"] == 8332
-                ),
-                None,
-            )
 
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
         except Exception as e:
             logger.error(e)
 
-        if not self.config_manager.data["rpc"].get("external_node", True):
+        # TODO: Move internal node logic to node object
+        if not self.node.external_node:
             try:
                 self.bitcoind.start_bitcoind(
                     datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
@@ -190,6 +126,8 @@ class Specter:
                     self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
                 except Exception as e:
                     logger.error(e)
+
+        ################################################################################
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
@@ -229,27 +167,16 @@ class Specter:
         # check if config file have changed
         self.check_config()
 
-        # update rpc if something doesn't work
-        rpc = self.rpc
-        if rpc is None or not rpc.test_connection():
-            rpc = get_rpc(
-                self.config_manager.rpc_conf,
-                self.rpc,
-                proxy_url=self.proxy_url,
-                only_tor=self.only_tor,
-            )
-
-        self.check_node_info()
+        self.node.update_rpc()
 
         # if rpc is not available
         # do checks more often, once in 20 seconds
-        if rpc is None or self.info.get("initialblockdownload", True):
+        if self.rpc is None or self.node.info.get("initialblockdownload", True):
             period = 20
         else:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:
             self.checker.period = period
-        self.rpc = rpc
 
         if not check_all:
             # find proper user
@@ -260,60 +187,24 @@ class Specter:
                 u.check()
 
     @property
+    def node(self):
+        return self.node_manager.active_node
+
+    @property
+    def rpc(self):
+        return self.node.rpc
+
+    @property
+    def utxorescanwallet(self):
+        return self.node.utxorescanwallet
+
+    @property
     def config(self):
         """A convenience property simply redirecting to the config_manager"""
         return self.config_manager.data
 
-    def check_node_info(self):
-        self._is_configured = self.rpc is not None
-        self._is_running = False
-        if self._is_configured:
-            try:
-                res = [
-                    r["result"]
-                    for r in self.rpc.multi(
-                        [
-                            ("getblockchaininfo", None),
-                            ("getnetworkinfo", None),
-                            ("getmempoolinfo", None),
-                            ("uptime", None),
-                            ("getblockhash", 0),
-                            ("scantxoutset", "status", []),
-                        ]
-                    )
-                ]
-                self._info = res[0]
-                self._network_info = res[1]
-                self._info["mempool_info"] = res[2]
-                self._info["uptime"] = res[3]
-                try:
-                    self.rpc.getblockfilter(res[4])
-                    self._info["blockfilterindex"] = True
-                except:
-                    self._info["blockfilterindex"] = False
-                self._info["utxorescan"] = (
-                    res[5]["progress"]
-                    if res[5] is not None and "progress" in res[5]
-                    else None
-                )
-                if self._info["utxorescan"] is None:
-                    self.utxorescanwallet = None
-                self._is_running = True
-            except Exception as e:
-                self._info = {"chain": None}
-                self._network_info = {"subversion": "", "version": 999999}
-                logger.error("Exception %s while specter.check()" % e)
-                pass
-        else:
-            self._info = {"chain": None}
-            self._network_info = {"subversion": "", "version": 999999}
-
-        if not self._is_running:
-            self._info["chain"] = None
-
     def check_blockheight(self):
-        current_blockheight = self.rpc.getblockcount()
-        if self.info["blocks"] != current_blockheight:
+        if self.node.check_blockheight():
             self.check(check_all=True)
 
     def get_user_folder_id(self, user=None):
@@ -347,79 +238,7 @@ class Specter:
     # mark
     @property
     def bitcoin_datadir(self):
-        return self.config_manager.bitcoin_datadir
-
-    def abortrescanutxo(self):
-        self.rpc.scantxoutset("abort", [])
-        # Bitcoin Core doesn't catch up right away
-        # so app.specter.check() doesn't work
-        self._info["utxorescan"] = None
-        self.utxorescanwallet = None
-
-    def test_rpc(self, **kwargs):
-        conf = copy.deepcopy(self.config_manager.data["rpc"])
-        conf.update(kwargs)
-
-        rpc = get_rpc(
-            conf,
-            return_broken_instead_none=True,
-            proxy_url=self.proxy_url,
-            only_tor=self.only_tor,
-        )
-        if rpc is None:
-            return {"out": "", "err": "autodetect failed", "code": -1}
-        r = {}
-        r["tests"] = {"connectable": False}
-        r["err"] = ""
-        r["code"] = 0
-        try:
-            r["tests"]["recent_version"] = (
-                int(rpc.getnetworkinfo()["version"]) >= 170000
-            )
-            if not r["tests"]["recent_version"]:
-                r["err"] = "Core Node might be too old"
-
-            r["tests"]["connectable"] = True
-            r["tests"]["credentials"] = True
-            try:
-                rpc.listwallets()
-                r["tests"]["wallets"] = True
-            except RpcError as rpce:
-                logger.error(rpce)
-                r["tests"]["wallets"] = False
-                r["err"] = "Wallets disabled"
-
-            r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
-        except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: %s", e)
-
-            r["tests"]["connectable"] = False
-            r["err"] = "Failed to connect!"
-            r["code"] = -1
-        except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: %s", rpce)
-            logger.error(rpce.status_code)
-            r["tests"]["connectable"] = True
-            r["code"] = rpc.r.status_code
-            if rpce.status_code == 401:
-                r["tests"]["credentials"] = False
-                r["err"] = "RPC authentication failed!"
-            else:
-                r["err"] = str(rpce.status_code)
-        except Exception as e:
-            logger.error(
-                "Caught an exception of type {} while test_rpc: {}".format(
-                    type(e), str(e)
-                )
-            )
-            r["out"] = ""
-            if rpc.r is not None and "error" in rpc.r:
-                r["err"] = rpc.r["error"]
-                r["code"] = rpc.r.status_code
-            else:
-                r["err"] = "Failed to connect"
-                r["code"] = -1
-        return r
+        return self.node.datadir
 
     # mark
     def _save(self):
@@ -430,18 +249,11 @@ class Specter:
         return os.path.join(self.data_folder, "config.json")
 
     # mark
-    def update_rpc(self, **kwargs):
-        need_update = self.config_manager.update_rpc(**kwargs)
-        if need_update:
-            self.rpc = get_rpc(
-                self.config_manager.rpc_conf,
-                None,
-                proxy_url=self.proxy_url,
-                only_tor=self.only_tor,
-            )
-            self._save()
-            self.check(check_all=True)
-        return self.rpc is not None
+    def update_active_node(self, node_alias):
+        """update the current active node to use"""
+        self.config_manager.update_active_node(node_alias)
+        self.node_manager.switch_node(node_alias)
+        self.check()
 
     # mark
     def set_bitcoind_pid(self, pid):
@@ -658,31 +470,35 @@ class Specter:
 
     @property
     def info(self):
-        return self._info
+        return self.node.info
 
     @property
     def network_info(self):
-        return self._network_info
+        return self.node.network_info
 
     @property
     def bitcoin_core_version(self):
-        return self.network_info["subversion"].replace("/", "").replace("Satoshi:", "")
+        return self.node.bitcoin_core_version
 
     @property
     def bitcoin_core_version_raw(self):
-        return self.network_info["version"]
+        return self.node.bitcoin_core_version_raw
 
     @property
     def chain(self):
-        return self._info["chain"]
+        return self.node.chain
 
     @property
     def is_testnet(self):
-        return is_testnet(self.chain)
+        return self.node.is_testnet
 
     @property
     def user_config(self):
         return self.config if self.user.is_admin else self.user.config
+
+    @property
+    def active_node_alias(self):
+        return self.user_config.get("active_node_alias", "default")
 
     @property
     def explorer(self):

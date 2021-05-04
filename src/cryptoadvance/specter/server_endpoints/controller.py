@@ -27,6 +27,7 @@ app.register_blueprint(filters_bp)
 # Setup specter endpoints
 from .auth import auth_endpoint
 from .devices import devices_endpoint
+from .nodes import nodes_endpoint
 from .price import price_endpoint
 from .settings import settings_endpoint
 from .setup import setup_endpoint
@@ -35,6 +36,7 @@ from ..rpc import RpcError
 
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
+app.register_blueprint(nodes_endpoint, url_prefix="/nodes")
 app.register_blueprint(price_endpoint, url_prefix="/price")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(setup_endpoint, url_prefix="/setup")
@@ -74,9 +76,9 @@ def server_specter_error(se):
 def server_error(e):
     """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
-    if app.specter.rpc is None or not app.specter.rpc.test_connection():
-        # make sure specter knows that rpc is not there
-        app.specter.check()
+    # if app.specter.rpc is None or not app.specter.rpc.test_connection():
+    #     # make sure specter knows that rpc is not there
+    #     app.specter.check()
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)

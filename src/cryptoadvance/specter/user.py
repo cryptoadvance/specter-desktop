@@ -90,8 +90,8 @@ class User(UserMixin):
         return user_dict
 
     def check(self):
-        self.check_wallet_manager()
         self.check_device_manager()
+        self.check_wallet_manager()
 
     def check_wallet_manager(self):
         """Updates wallet manager for this user"""

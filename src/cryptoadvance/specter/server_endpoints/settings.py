@@ -123,7 +123,7 @@ def bitcoin_core():
         elif action == "save":
             if current_user.is_admin:
                 node_view = "external"
-                success = app.specter.update_rpc(
+                success = app.specter.node.update_rpc(
                     user=user,
                     password=password,
                     port=port,
@@ -195,14 +195,8 @@ def bitcoin_core():
 
     return render_template(
         "settings/bitcoin_core_settings.jinja",
+        node=app.specter.node,
         test=test,
-        autodetect=autodetect,
-        datadir=datadir,
-        username=user,
-        password=password,
-        port=port,
-        host=host,
-        protocol=protocol,
         specter=app.specter,
         current_version=current_version,
         bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
