@@ -2,8 +2,8 @@ import logging
 import os
 from cryptoadvance.specter.util.shell import which
 from cryptoadvance.specter.bitcoind import BitcoindPlainController
-from cryptoadvance.specter.bitcoind import BitcoindDockerController
 from cryptoadvance.specter.bitcoind import fetch_wallet_addresses_for_mining
+from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
 
 
 def test_bitcoinddocker_running(caplog, docker, request):
@@ -13,6 +13,8 @@ def test_bitcoinddocker_running(caplog, docker, request):
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
+        from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
+
         my_bitcoind = BitcoindDockerController(
             rpcport=18999, docker_tag=requested_version
         )  # completly different port to not interfere
@@ -23,6 +25,10 @@ def test_bitcoinddocker_running(caplog, docker, request):
             my_bitcoind = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind"
             )
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind"
+            )  # next take the self-installed binary if existing
         else:
             try:
                 which("bitcoind")

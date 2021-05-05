@@ -1,7 +1,5 @@
 from .hwi_device import HWIDevice
-
-# a hack that verifies multisig
-from .hwi import trezor
+from .hwi.trezor import TrezorClient
 
 
 class Trezor(HWIDevice):
@@ -17,4 +15,4 @@ class Trezor(HWIDevice):
 
     @classmethod
     def get_client(cls, *args, **kwargs):
-        return trezor.TrezorClient(*args, **kwargs)
+        return TrezorClient(*args, **kwargs)

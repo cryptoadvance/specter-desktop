@@ -13,12 +13,12 @@
 		{% endif %}
 		{{ settings_menu_item('general', 'General', active_menuitem, isLeft=(not current_user.is_admin)) }}
 		{{ settings_menu_item('auth', 'Authentication', active_menuitem, isRight=false) }}
-		{{ settings_menu_item('hwi', 'HWI Bridge', active_menuitem, isRight=(not current_user.is_admin)) }}
+		{{ settings_menu_item('hwi', 'USB Devices', active_menuitem, isRight=(not current_user.is_admin)) }}
 		{% if current_user.is_admin %}
 			{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
 		{% endif %}
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
-			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
 	</nav>
 {%- endmacro %}

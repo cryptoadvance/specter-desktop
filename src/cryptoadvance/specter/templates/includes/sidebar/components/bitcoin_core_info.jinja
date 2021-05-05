@@ -2,10 +2,10 @@
     <h1>Bitcoin Core Node Info:</h1>
     {% if specter.chain %}
         {% if specter.info['pruned'] %}
-            <p class="warning">&#9432;<br>You are using a pruned node.<br>Pruned nodes may not be able to scan for old balances when importing an existing wallet.<br>It is recommended to use Specter with an unpruned node.</p>
+            <p class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>You are using a pruned node.<br>Pruned nodes may not be able to scan for old balances when importing an existing wallet.<br>It is recommended to use Specter with an unpruned node.</p>
             <br>
         {% elif not specter.info['blockfilterindex'] %}
-            <p class="warning">&#9432;<br>Your node does not have <code>blockfilterindex</code> enabled.<br>Setting <code>blockfilterindex=1</code> in your <code>bitcoin.conf</code> file is recommended as it takes just a few GB of storage<br>and helps to speed-up blockchain rescanning.</p>
+            <p class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Your node does not have <code>blockfilterindex</code> enabled.<br>Setting <code>blockfilterindex=1</code> in your <code>bitcoin.conf</code> file is recommended as it takes just a few GB of storage<br>and helps to speed-up blockchain rescanning.</p>
             <br>
         {% endif %}
         <table>
@@ -69,7 +69,7 @@
         {% if current_user.is_admin %}
             <div class="row">
                 <a class="btn centered" href="{{ url_for('settings_endpoint.bitcoin_core') }}">
-                    <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 18px;"/>
+                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
                     Configure Bitcoin Core RPC Connection
                 </a>
             </div>

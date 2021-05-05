@@ -43,6 +43,10 @@ class BitcoinCore(Device):
         keys_range=[0, 1000],
         keys_purposes=[],
     ):
+        if type(keys_range[0]) == str:
+            keys_range[0] = int(keys_range[0])
+        if type(keys_range[1]) == str:
+            keys_range[1] = int(keys_range[1])
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
         network = networks.NETWORKS["test" if testnet else "main"]

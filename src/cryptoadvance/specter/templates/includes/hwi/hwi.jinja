@@ -15,30 +15,13 @@
     <p id="bitbox02-pairing-code" style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
-        Running Specter on a remote machine? &#9654
-    </div>
-    <div id="hwi_progress_note_expand" class="hidden">
-        <br>
-        <a target="_blank" style="color: #fff;" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/hwibridge.md">Follow this guide</a> to learn more about using hardware wallets with a remote Specter.
+        If your device does not show up, ensure the Specter USB settings are correctly configured.<br><br>
+        <a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
+            View USB settings
+        </a>
     </div>
     <br>
 </div>
-
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(){
-        let note = document.getElementById('hwi_progress_note');
-        note.addEventListener('click', (e) => {
-            let noteDetails = document.getElementById('hwi_progress_note_expand');
-            if (noteDetails.style.display == 'block') {
-                noteDetails.style.display = 'none';
-                note.innerHTML = note.innerText.substring(0, note.innerText.length - 1) + '&#9654;';
-            } else {
-                noteDetails.style.display = 'block';
-                note.innerHTML = note.innerText.substring(0, note.innerText.length - 1) + '&#9660;';
-            }
-        })
-    });
-</script>
 
 <script type="text/javascript">
     let hwiURL = '/hwi/api/';
@@ -81,7 +64,7 @@
             try {
                 result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
             } catch (e) {
-                if (e.message !== 'Fetch is aborted') {
+                if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                     throw e;
                 }
                 if (deviceTypes == 'bitbox02') {
@@ -103,14 +86,14 @@
                 // check that we still need to do it
                 // just before the request
                 if(!overlayIsActive()){
-                    showNotification("HWI is ready again", 10000);
+                    // showNotification("HWI is ready again", 10000);
                     return null;
                 }
                 console.log("Retrying enumerate...");
                 try {
                     result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
                 } catch (e) {
-                    if (e.message !== 'Fetch is aborted') {
+                    if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                         throw e;
                     }
                     if (deviceTypes == 'bitbox02') {
@@ -139,7 +122,7 @@
         console.log(result);
         document.getElementById('bitbox02-pairing-code').innerHTML = "";
         if(!overlayIsActive() && devicePath == null){
-            showNotification("HWI is ready again", 10000);
+            // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
@@ -161,7 +144,7 @@
             return null;
         }
         if(!overlayIsActive()){
-            showNotification("HWI is ready again", 3000);
+            // showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
@@ -169,19 +152,19 @@
         return result;
     }
 
-    async function getXpub(device, derivation="", passphrase=""){
+    async function getXpub(device, derivation="", passphrase="", chain=""){
         // detect device
         showHWIProgress("Extracting public key...<br><span style='font-size: 0.8em;'>Derivation: " + derivation + "</span>", 
             `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
         let result = [];
         try {
-            result = await hwi.getXpub(device, derivation, passphrase);
+            result = await hwi.getXpub(device, derivation, passphrase, chain);
         } catch (error) {
             handleHWIError(error);
             return null;
         }
         if(!overlayIsActive()){
-            showNotification("HWI is ready again", 3000);
+            // showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }

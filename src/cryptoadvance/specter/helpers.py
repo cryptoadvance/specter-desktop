@@ -11,7 +11,8 @@ import subprocess
 import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
-from hwilib.serializations import PSBT, CTransaction
+from hwilib.tx import CTransaction
+from hwilib.psbt import PSBT
 from .persistence import read_json_file, write_json_file
 from .util.bcur import bcur_decode
 import threading
@@ -64,14 +65,8 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
-def migrate_config(config):
-    # migrate old "auth" string into new "auth" json subtree
-    if "auth" in config:
-        if isinstance(config["auth"], str):
-            config["auth"] = dict(method=config["auth"])
-
-
 def deep_update(d, u):
+    """updates the dict d with the dict u"""
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
         if not isinstance(dv, collections.abc.Mapping):

@@ -8,6 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - uses: psf/black@stable # the default is equivalent to `black . --diff --check`.
+      - uses: psf/black@21.4b0 # the default is equivalent to `black . --diff --check`.
         with:
           args: ". --diff --check"

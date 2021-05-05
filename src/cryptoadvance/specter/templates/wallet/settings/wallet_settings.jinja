@@ -16,8 +16,8 @@
 		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
 		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
 		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
-			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
 	</nav><br>
 	<div id="wallet_info_settings_tab" style="width: 100%">
@@ -227,9 +227,9 @@
 					<div id="utxo-explorer">
 						<br>
 						Block explorer URL:
-						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+						{% include "components/explorer_select.jinja" %}
 						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							&#9432;<br>Careful with block explorers!<br>
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Careful with block explorers!<br>
 							This may have privacy implication!<br>
 							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
 							"They" will know what transactions you are interested in.

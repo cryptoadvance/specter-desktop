@@ -3,12 +3,21 @@
         .frozen {
             background: #546773;
         }
+        .svg-send {
+            filter: invert(63%) sepia(67%) saturate(851%) hue-rotate(346deg) brightness(107%) contrast(92%);
+        }
+        .svg-receive, .svg-immature, .svg-generate {
+            filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);
+        }
+        .svg-selftransfer {
+            filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <tr class="tx-row">
         <td>
             <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
-            <img class="frozen-img hidden" style="vertical-align: middle;" src="{{ url_for('static', filename='img/snow.svg') }}" height="20" />
+            <img class="frozen-img hidden svg-white" style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
         </td>
         <td class="tx scroll optional txid">
             <span class="explorer-link"></span>
@@ -62,6 +71,7 @@
 
             // Set category image
             this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
+            this.category.classList.add('svg-' + this.tx.category)
             
             // TODO:
             // Setup tx popup for mobile
@@ -113,7 +123,11 @@
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                if (this.symbol == "$" || this.symbol == "£") {
+                    this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                } else {
+                    this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
+                }
                 this.amountPrice.classList.remove('hidden');
             }
 
@@ -217,25 +231,19 @@
     }
 
     function getCategoryImg(category, isConfirmed) {
+        if (!isConfirmed) {
+            return `{{ url_for('static', filename='img') }}/clock.svg`;
+        }
         switch (category) {
             case "send":
-                if (isConfirmed) {
-                    return `{{ url_for('static', filename='img') }}/send_icon.svg`;
-                }
-                return `{{ url_for('static', filename='img') }}/unconfirmed_send_icon.svg`;
+                return `{{ url_for('static', filename='img') }}/send.svg`;
             case "receive":
             case "immature":
-                if (isConfirmed && category != "immature") {
-                    return `{{ url_for('static', filename='img') }}/receive_icon.svg`;
-                }
-                return `{{ url_for('static', filename='img') }}/unconfirmed_receive_icon.svg`;
+                return `{{ url_for('static', filename='img') }}/receive.svg`;
             case "generate":
                 return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
             case "selftransfer":
-                if (isConfirmed) {
-                    return `{{ url_for('static', filename='img') }}/selftransfer_icon.svg`;
-                }
-                return `{{ url_for('static', filename='img') }}/unconfirmed_selftransfer_icon.svg`;
+                return `{{ url_for('static', filename='img') }}/transfer.svg`;
         }
     }
 

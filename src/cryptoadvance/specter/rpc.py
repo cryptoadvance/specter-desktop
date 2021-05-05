@@ -277,7 +277,7 @@ class BitcoinRPC:
         self._create_session()
 
     def test_connection(self):
-        """ returns a boolean depending on whether getblockchaininfo() succeeds """
+        """returns a boolean depending on whether getblockchaininfo() succeeds"""
         try:
             self.getblockchaininfo()
             return True

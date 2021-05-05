@@ -24,7 +24,7 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-  - pip3 install virtualenv
+  - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
 
@@ -46,7 +46,7 @@ test:
    - py.test --cov-report term --cov cryptoadvance --docker
 
 test-cypress:
-  image: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:20210424
   stage: testing
   script:
     # start the server in the background

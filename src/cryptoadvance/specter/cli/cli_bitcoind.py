@@ -98,7 +98,7 @@ def bitcoind(
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
 
-    from ..bitcoind import BitcoindDockerController, BitcoindPlainController
+    from ..bitcoind import BitcoindPlainController
 
     if config is None:
         config = DEFAULT_CONFIG
@@ -151,6 +151,10 @@ def bitcoind(
             my_bitcoind = BitcoindPlainController(
                 bitcoind_path="tests/bitcoin/src/bitcoind"
             )  # always prefer the self-compiled bitcoind if existing
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            my_bitcoind = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind"
+            )  # next take the self-installed binary if existing
         else:
             my_bitcoind = (
                 BitcoindPlainController()
@@ -159,6 +163,8 @@ def bitcoind(
         Path(config_obj["BTCD_REGTEST_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
     else:
         echo("starting container")
+        from ..bitcoind_docker import BitcoindDockerController
+
         my_bitcoind = BitcoindDockerController(docker_tag=docker_tag)
     try:
         my_bitcoind.start_bitcoind(
@@ -223,7 +229,7 @@ def bitcoind(
 
 
 def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
-    " An endless loop mining bitcoin "
+    "An endless loop mining bitcoin"
 
     echo(
         "Now, mining a block every %f seconds, avoid it via --no-mining"

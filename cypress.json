@@ -1,8 +1,11 @@
 {
     "testFiles": [
+      "spec_setup_wizard.js",
+      "spec_setup_tor.js",
       "spec_empty_specter_home.js",
       "spec_node_configured.js",
-      "spec_existing_history.js"
+      "spec_wallet_send.js",
+      "spec_wallet_utxo.js"
     ],
     "baseUrl": "http://localhost:25444"
 }

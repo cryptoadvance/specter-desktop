@@ -38,7 +38,7 @@ class UserManager:
                 }
             ]
         # convert to User instances
-        self.users = [User.from_json(u) for u in users]
+        self.users = [User.from_json(u, self.specter) for u in users]
         if not os.path.isfile(self.users_file):
             self.save()
 
@@ -50,10 +50,12 @@ class UserManager:
         write_json_file(users_json, self.users_file)
 
     def add_user(self, user):
+        """Adds a User-Object to the list"""
         if user not in self.users:
             self.users.append(user)
             user.manager = self
         self.save()  # save files
+        user.check()
         return self.get_user(user)
 
     @property

@@ -74,7 +74,6 @@
 	<form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" style="margin: auto; margin-top: 0px; max-width: 96%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="tx_info">
-			
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
 					{% if specter.unit == 'sat' %}
@@ -86,8 +85,14 @@
 						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 					{% endif %}
 					to<b>
-					<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ wallet.getlabel(psbt['address'][i]) }}" data-wallet="{{ wallet_alias }}"></address-label>
-					</b><br><br>
+						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
+						<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+					</b>
+					{% if addr_label != psbt['address'][i] %}
+						<span class="note">
+							({{ psbt['address'][i] }})
+						</span>
+					{% endif %}<br><br>
 				</div>
 			{% endfor %}
 			{% if wallet.is_multisig %}
@@ -105,7 +110,6 @@
 				<br>
 				<h2 class="tx_details_header">Transaction Info</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
-					<b>Transaction id:</b> {{ psbt['tx']['txid'] }}<br>
 					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>Fee rate:</b>
 					{% if 'tx_full_size' in psbt %}
@@ -133,11 +137,17 @@
 						(Output #{{ input['vout'] }})<br>
 						{% if tx %}
 							{% if address %}
+								{% set addr_label = wallet.getlabel(address) %}
 								<b>Address:</b>
-								<address-label data-address="{{ address }}" data-wallet="{{ wallet_alias }}"></address-label>
+								{{ address }}
 								<br>
+								{% if addr_label != address %}
+									<b>Label:</b>
+									<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+									<br>
+								{% endif %}
 							{% endif %}
-							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
+							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -147,23 +157,38 @@
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
+						{% set addr_label = wallet.getlabel(output['scriptPubKey']['addresses'][0]) %}
 						<b>Address:</b>
-						<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-wallet="{{ wallet_alias }}"></address-label>
+						{{ output['scriptPubKey']['addresses'][0] }}
 						<br>
-						<b>Amount:</b> {{ output['value'] }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
+						{% if addr_label != output['scriptPubKey']['addresses'][0] %}
+							<b>Label:</b>
+							<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<br>
+						{% endif %}
+						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
 				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
-					<img src="{{url_for('static', filename='img/download.svg')}}"/> Save binary</a>&nbsp;
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Save binary
+					</a>&nbsp;
 					<a id="download-psbt-btn" class="btn"
 					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
-					<img src="{{url_for('static', filename='img/download.svg')}}"/> Save base64</a>&nbsp;
-					<a id="copy-raw-psbt-btn" class="btn">Copy Raw PSBT</a>&nbsp;
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Save base64
+					</a>&nbsp;
+					<a id="copy-raw-psbt-btn" class="btn">
+						<img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Copy Raw PSBT
+					</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
-					<img src="{{url_for('static', filename='img/qr_tiny.svg')}}"/> Show QR code</a>
+						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+						Show QR code
+					</a>
 				</div>
 			</div>
 		</div>
@@ -171,7 +196,7 @@
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
 			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
 			{% for device in wallet.devices %}
-				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style="background-color:#303c49;"' if device.alias in psbt["devices_signed"] else '' }}>
+				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style=background-color:#303c49;' if device.alias in psbt["devices_signed"] else '' }}>
 					{{ device.name }} {% if device.alias in psbt['devices_signed'] %} (&#10004;) {% endif %}
 				</button>
 			{% endfor %}

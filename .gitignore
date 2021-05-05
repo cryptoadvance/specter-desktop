@@ -28,3 +28,5 @@ cypress/screenshots
 node_modules
 btcd-conn.json
 tests/bitcoin
+tests/bitcoin.binary
+tests/bitcoin.compile
