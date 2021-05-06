@@ -24,7 +24,7 @@ from .managers.wallet_manager import WalletManager
 from .managers.user_manager import UserManager
 from .managers.otp_manager import OtpManager
 from .managers.config_manager import ConfigManager
-from .persistence import write_json_file, read_json_file
+from .persistence import write_json_file, read_json_file, write_node
 from .user import User
 from .util.price_providers import update_price
 from .util.tor import get_tor_daemon_suffix
@@ -35,6 +35,7 @@ from .specter_error import SpecterError, ExtProcTimeoutException
 from sys import exit
 from .util.setup_states import SETUP_STATES
 from .node import Node
+from .internal_node import InternalNode
 from .managers.node_manager import NodeManager
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,11 @@ class Specter:
         self.user_manager = UserManager(self)
 
         self._config_manager = ConfigManager(self.data_folder, config)
+
+        self.internal_bitcoind_version = internal_bitcoind_version
+
+        # Migrating from Specter 1.3.1 and lower (prior to the node manager)
+        self.migrate_old_node_format()
 
         self.node_manager = NodeManager(
             proxy_url=self.proxy_url,
@@ -558,6 +564,63 @@ class Specter:
                     )
         memory_file.seek(0)
         return memory_file
+
+    # Migrating RPC nodes from Specter 1.3.1 and lower (prior to the node manager)
+    def migrate_old_node_format(self):
+        if not os.path.isdir(os.path.join(self.data_folder, "nodes")):
+            os.mkdir(os.path.join(self.data_folder, "nodes"))
+        old_rpc = self.config.get("rpc", None)
+        old_internal_rpc = self.config.get("internal_node", None)
+        if old_internal_rpc and os.path.isfile(self.bitcoind_path):
+            internal_node = InternalNode(
+                "Specter Bitcoin",
+                "specter_bitcoin",
+                old_internal_rpc["autodetect"],
+                old_internal_rpc["datadir"],
+                old_internal_rpc["user"],
+                old_internal_rpc["password"],
+                old_internal_rpc["port"],
+                old_internal_rpc["host"],
+                old_internal_rpc["protocol"],
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "specter_bitcoin.json"
+                ),
+                self,
+                self.bitcoind_path,
+                "mainnet",
+                self.internal_bitcoind_version,
+            )
+            write_node(
+                internal_node,
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "specter_bitcoin.json"
+                ),
+            )
+            del self.config["internal_node"]
+            if not old_rpc or not old_rpc.get("external_node", True):
+                self.config_manager.update_active_node("specter_bitcoin")
+
+        if old_rpc:
+            node = Node(
+                "Bitcoin Core",
+                "default",
+                old_rpc["autodetect"],
+                old_rpc["datadir"],
+                old_rpc["user"],
+                old_rpc["password"],
+                old_rpc["port"],
+                old_rpc["host"],
+                old_rpc["protocol"],
+                True,
+                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                self,
+            )
+            write_node(
+                node,
+                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+            )
+            del self.config["rpc"]
+        self._save()
 
 
 class SpecterConfiguration:
