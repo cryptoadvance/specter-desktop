@@ -85,6 +85,7 @@ def init_app(app, hwibridge=False, specter=None):
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
+            internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
 
     # version checker

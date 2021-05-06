@@ -121,14 +121,17 @@ def setup_tor():
 @setup_endpoint.route("/setup_bitcoind", methods=["POST"])
 @login_required
 def setup_bitcoind():
-    app.specter.config["internal_node"]["datadir"] = request.form.get(
-        "bitcoin_core_datadir", app.specter.config["internal_node"]["datadir"]
+    app.specter.node_manager.internal_node.update_rpc(
+        datadir=request.form.get(
+            "bitcoin_core_datadir", app.specter.node_manager.internal_node.datadir
+        ),
     )
-    app.specter._save()
-    if os.path.exists(app.specter.config["internal_node"]["datadir"]):
+    if os.path.exists(app.specter.node_manager.internal_node.datadir):
         if request.form["override_data_folder"] != "true":
             return {"error": "data folder already exists"}
-        shutil.rmtree(app.specter.config["internal_node"]["datadir"])
+        shutil.rmtree(
+            app.specter.node_manager.internal_node.datadir, ignore_errors=True
+        )
     if (
         not os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1

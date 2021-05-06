@@ -97,7 +97,12 @@ def server_error_timeout(e):
         "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below",
         "warn",
     )
-    return redirect(url_for("settings_endpoint.bitcoin_core_internal_logs"))
+    return redirect(
+        url_for(
+            "node_settings.bitcoin_core_internal_logs",
+            node_alias=app.specter.node.alias,
+        )
+    )
 
 
 @app.errorhandler(CSRFError)

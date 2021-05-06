@@ -1,15 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
-
-	<form action="?" method="POST">
-		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<h1 id="title" class="settings-title">Settings</h1>
-		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
-		{{ settings_menu('bitcoin_core', current_user) }}
-	</form>
-	<br><br><br>
-	<a href="{{ url_for('settings_endpoint.bitcoin_core')}}" class="btn centered">Return</a>
+	<a href="{{ url_for('nodes_endpoint.internal_node_settings', node_alias=node.alias)}}" class="btn centered">Return</a>
 	<br><br>
 	<div class="card" style="width:90%; max-width: 1000px;">
 		Bitcoin Logs:

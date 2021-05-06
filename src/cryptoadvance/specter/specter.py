@@ -46,7 +46,7 @@ class Specter:
     # use this lock for all fs operations
     lock = threading.Lock()
 
-    def __init__(self, data_folder="./data", config={}):
+    def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -65,6 +65,8 @@ class Specter:
             proxy_url=self.proxy_url,
             only_tor=self.only_tor,
             active_node=self.active_node_alias,
+            bitcoind_path=self.bitcoind_path,
+            internal_bitcoind_version=internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
         )
 
@@ -72,14 +74,6 @@ class Specter:
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
         )
 
-        self.bitcoind_path = os.path.join(
-            self.data_folder, "bitcoin-binaries/bin/bitcoind"
-        )
-
-        if platform.system() == "Windows":
-            self.bitcoind_path += ".exe"
-
-        self._bitcoind = None
         self._tor_daemon = None
 
         self.setup_status = {
@@ -105,28 +99,6 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        # TODO: Move internal node logic to node object
-        if not self.node.external_node:
-            try:
-                self.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(self.config["internal_node"]["datadir"]),
-                    timeout=15,  # At the initial startup, we don't wait on bitcoind
-                )
-            except ExtProcTimeoutException as e:
-                logger.error(e)
-                e.check_logfile(
-                    os.path.join(self.config["internal_node"]["datadir"], "debug.log")
-                )
-                logger.error(e.get_logger_friendly())
-            except SpecterError as e:
-                logger.error(e)
-                # Likely files of bitcoind were not found. Maybe deleted by the user?
-            finally:
-                try:
-                    self.set_bitcoind_pid(self.bitcoind.bitcoind_proc.pid)
-                except Exception as e:
-                    logger.error(e)
-
         ################################################################################
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -147,9 +119,9 @@ class Specter:
             logger.info("Specter exit cleanup: Stopping Tor daemon")
             self._tor_daemon.stop_tor_daemon()
 
-        if self._bitcoind:
-            logger.info("Specter exit cleanup: Stopping bitcoind")
-            self._bitcoind.stop_bitcoind()
+        for node in self.node_manager.nodes.values():
+            if not node.external_node:
+                node.stop()
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
@@ -188,7 +160,11 @@ class Specter:
 
     @property
     def node(self):
-        return self.node_manager.active_node
+        try:
+            return self.node_manager.active_node
+        except SpecterError as e:
+            self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
+            return self.node_manager.active_node
 
     @property
     def rpc(self):
@@ -255,11 +231,6 @@ class Specter:
         self.node_manager.switch_node(node_alias)
         self.check()
 
-    # mark
-    def set_bitcoind_pid(self, pid):
-        """set the control pid of the bitcoind daemon"""
-        self.config_manager.set_bitcoind_pid(pid)
-
     def update_setup_status(self, software_name, stage):
         self.setup_status[software_name]["error"] = ""
         if stage in SETUP_STATES:
@@ -292,11 +263,6 @@ class Specter:
             installed = False
 
         return {"installed": installed, **self.setup_status[software_name]}
-
-    # mark
-    def update_use_external_node(self, use_external_node):
-        """set whatever specter should connect to internal or external node"""
-        self.config_manager.update_use_external_node(use_external_node)
 
     # mark
     def update_auth(self, method, rate_limit, registration_link_timeout):
@@ -374,27 +340,8 @@ class Specter:
             "Tor daemon files missing. Make sure Tor is installed within Specter"
         )
 
-    @property
-    def bitcoind(self):
-        if os.path.isfile(self.bitcoind_path):
-            if not self._bitcoind:
-                self._bitcoind = BitcoindPlainController(
-                    bitcoind_path=self.bitcoind_path,
-                    rpcport=8332,
-                    network="mainnet",
-                    rpcuser=self.config["internal_node"]["user"],
-                    rpcpassword=self.config["internal_node"]["password"],
-                )
-            return self._bitcoind
-        raise SpecterError(
-            "Bitcoin Core files missing. Make sure Bitcoin Core is installed within Specter"
-        )
-
     def is_tor_dameon_running(self):
         return self._tor_daemon and self._tor_daemon.is_running()
-
-    def is_bitcoind_running(self):
-        return self._bitcoind and self._bitcoind.check_existing()
 
     @property
     def tor_controller(self):
@@ -461,12 +408,12 @@ class Specter:
         return self.rpc.estimatesmartfee(blocks)
 
     @property
-    def is_running(self):
-        return self._is_running
+    def bitcoind_path(self):
+        bitcoind_path = os.path.join(self.data_folder, "bitcoin-binaries/bin/bitcoind")
 
-    @property
-    def is_configured(self):
-        return self._is_configured
+        if platform.system() == "Windows":
+            bitcoind_path += ".exe"
+        return bitcoind_path
 
     @property
     def info(self):

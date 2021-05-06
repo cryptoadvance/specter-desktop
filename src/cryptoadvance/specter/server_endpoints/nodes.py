@@ -1,4 +1,4 @@
-import copy, random, json
+import copy, random, json, time, os, shutil
 
 from flask import (
     Flask,
@@ -14,7 +14,8 @@ from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
 from ..node import Node
-
+from ..specter_error import ExtProcTimeoutException
+from ..util.shell import get_last_lines_from_file
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -32,6 +33,13 @@ def node_settings(node_alias):
     if node_alias:
         try:
             node = app.specter.node_manager.get_by_alias(node_alias)
+            if not node.external_node:
+                return redirect(
+                    url_for(
+                        "nodes_endpoint.internal_node_settings",
+                        node_alias=node.alias,
+                    )
+                )
         except:
             return render_template(
                 "base.jinja", error="Node not found", specter=app.specter, rand=rand
@@ -57,7 +65,7 @@ def node_settings(node_alias):
         return redirect("")
     # The node might have been down but is now up again
     # (and the checker did not realized yet) and the user clicked "Configure Node"
-    if node.rpc is None:
+    if node.rpc is None and node_alias:
         node.update_rpc()
 
     err = None
@@ -188,6 +196,129 @@ def node_settings(node_alias):
         test=test,
         specter=app.specter,
         rand=rand,
+    )
+
+
+@nodes_endpoint.route("specter_node/<node_alias>/", methods=["GET", "POST"])
+@login_required
+def internal_node_settings(node_alias):
+    err = None
+    if node_alias:
+        try:
+            node = app.specter.node_manager.get_by_alias(node_alias)
+            if node.external_node:
+                return redirect(
+                    url_for(
+                        "nodes_endpoint.node_settings",
+                        node_alias=node.alias,
+                    )
+                )
+        except:
+            return render_template(
+                "base.jinja", error="Node not found", specter=app.specter, rand=rand
+            )
+    else:
+        # TODO: Allow internal node setup here?
+        return redirect(
+            url_for(
+                "nodes_endpoint.internal_node_settings",
+                node_alias=node.alias,
+            )
+        )
+
+    if not current_user.is_admin:
+        flash("Only an admin is allowed to access this page.", "error")
+        return redirect("")
+    # The node might have been down but is now up again
+    # (and the checker did not realized yet) and the user clicked "Configure Node"
+    if node.rpc is None:
+        node.update_rpc()
+
+    err = None
+    if request.method == "POST":
+        action = request.form["action"]
+
+        if action == "rename":
+            node_name = request.form["newtitle"]
+            if not node_name:
+                flash("Node name must not be empty", "error")
+            elif node_name == node.name:
+                pass
+            elif node_name in app.specter.device_manager.devices_names:
+                flash("Node with this name already exists", "error")
+            else:
+                node.rename(node_name)
+        elif action == "forget":
+            if not node_alias:
+                flash("Failed to deleted node. Node isn't saved", "error")
+            elif len(app.specter.node_manager.nodes) > 1:
+                app.specter.node_manager.delete_node(node, app.specter)
+                if bool(request.form.get("remove_datadir", False)):
+                    shutil.rmtree(os.path.expanduser(node.datadir))
+                flash("Node deleted successfully")
+                return redirect(
+                    url_for(
+                        "nodes_endpoint.node_settings",
+                        node_alias=app.specter.node.alias,
+                    )
+                )
+            else:
+                flash(
+                    "Failed to deleted node. Specter must have at least one node configured",
+                    "error",
+                )
+        elif action == "stopbitcoind":
+            try:
+                node.stop()
+                time.sleep(5)
+                flash("Specter stopped Bitcoin Core successfully")
+            except Exception:
+                try:
+                    flash("Stopping Bitcoin Core, this might take a few moments.")
+                    node.rpc.stop()
+                except Exception as e:
+                    flash(f"Failed to stop Bitcoin Core {e}", "error")
+        elif action == "startbitcoind":
+            if node.start(timeout=120):
+                flash("Specter has started Bitcoin Core")
+            else:
+                flash("Specter failed to start the node...", "error")
+        elif action == "uninstall_bitcoind":
+            try:
+                node.stop()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
+                if bool(request.form.get("remove_datadir", False)):
+                    shutil.rmtree(os.path.expanduser(node.datadir))
+                flash(f"Bitcoin Core uninstalled successfully")
+                app.specter.node_manager.delete_node(node, app.specter)
+                return redirect(
+                    url_for(
+                        "nodes_endpoint.node_settings",
+                        node_alias=app.specter.node.alias,
+                    )
+                )
+            except Exception as e:
+                flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
+
+    return render_template(
+        "node/internal_node_settings.jinja",
+        node=node,
+        node_alias=node_alias,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
+@nodes_endpoint.route("/internal_node_logs/<node_alias>/", methods=["GET"])
+@login_required
+def internal_node_logs(node_alias):
+    node = app.specter.node_manager.get_by_alias(node_alias)
+    logfile_location = os.path.join(node.datadir, "debug.log")
+    return render_template(
+        "node/internal_node_logs.jinja",
+        node_alias=node_alias,
+        specter=app.specter,
+        loglines="".join(get_last_lines_from_file(logfile_location)),
     )
 
 

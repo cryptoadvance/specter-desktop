@@ -37,10 +37,7 @@ settings_endpoint = Blueprint("settings_endpoint", __name__)
 @settings_endpoint.route("/", methods=["GET"])
 @login_required
 def settings():
-    if current_user.is_admin:
-        return redirect(url_for("settings_endpoint.bitcoin_core"))
-    else:
-        return redirect(url_for("settings_endpoint.general"))
+    return redirect(url_for("settings_endpoint.general"))
 
 
 @settings_endpoint.route("/bitcoin_core/internal_logs", methods=["GET"])

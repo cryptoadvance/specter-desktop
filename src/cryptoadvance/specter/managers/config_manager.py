@@ -61,8 +61,8 @@ class ConfigManager(GenericDataManager):
             "validate_merkle_proofs": False,
             "fee_estimator": "mempool",
             "fee_estimator_custom_url": "",
+            # TODO: remove
             "bitcoind": False,
-            "bitcoind_internal_version": "",
         }
         self.check_config()
 
@@ -97,12 +97,6 @@ class ConfigManager(GenericDataManager):
         """set the current active node to use"""
         self.data["active_node_alias"] = node_alias
         self._save()
-
-    def set_bitcoind_pid(self, pid):
-        """set the control pid of the bitcoind daemon"""
-        if self.data.get("bitcoind", False) != pid:
-            self.data["bitcoind"] = pid
-            self._save()
 
     def update_auth(self, method, rate_limit, registration_link_timeout):
         """simply persisting the current auth-choice"""
