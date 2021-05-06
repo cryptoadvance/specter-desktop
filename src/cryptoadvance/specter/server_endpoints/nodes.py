@@ -254,7 +254,7 @@ def internal_node_settings(node_alias):
             elif len(app.specter.node_manager.nodes) > 1:
                 app.specter.node_manager.delete_node(node, app.specter)
                 if bool(request.form.get("remove_datadir", False)):
-                    shutil.rmtree(os.path.expanduser(node.datadir))
+                    shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
                 flash("Node deleted successfully")
                 return redirect(
                     url_for(
@@ -286,9 +286,12 @@ def internal_node_settings(node_alias):
         elif action == "uninstall_bitcoind":
             try:
                 node.stop()
-                shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
+                shutil.rmtree(
+                    os.path.join(app.specter.data_folder, "bitcoin-binaries"),
+                    ignore_errors=True,
+                )
                 if bool(request.form.get("remove_datadir", False)):
-                    shutil.rmtree(os.path.expanduser(node.datadir))
+                    shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
                 flash(f"Bitcoin Core uninstalled successfully")
                 app.specter.node_manager.delete_node(node, app.specter)
                 return redirect(
