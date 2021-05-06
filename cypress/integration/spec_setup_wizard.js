@@ -17,14 +17,14 @@ describe('Setup wizard', () => {
         cy.contains('Configure your node')
         cy.get('#quicksync-switch').click()
         cy.get('#setup-bitcoind-dir-button').click()
-        cy.wait(3000)
-        cy.contains('Starting up Bitcoin Core...')
+        cy.contains('Starting up Bitcoin Core...', { timeout: 3000 })
         cy.wait(60000)
         cy.contains('Setup Completed Successfully!')
         cy.get('#finish-setup-btn').click()
         cy.contains('Connect Specter with Bitcoin Core node.')
         
-        cy.get('[href="/settings/"]').click()
+        cy.get('#active-node').click()
+        cy.get('#active-node-settings-btn').click()
         cy.contains('Built in Bitcoin Node Status: Running')
         cy.get('[value="stopbitcoind"]').click()
         cy.contains('Built in Bitcoin Node Status: Down')
@@ -33,10 +33,6 @@ describe('Setup wizard', () => {
         cy.contains('Built in Bitcoin Node Status: Running')
         cy.get('[name="remove_datadir"]').click()
         cy.get('[value="uninstall_bitcoind"]').click()
-        cy.contains('Specter can help you get started with your own Bitcoin Core node by setting it all up for you.')
-        cy.get('#external_node_view_btn').click()
-        cy.get('[value="useexternal"]').click()
-
 
         cy.visit('/settings/tor')
         cy.get('[value="starttor"]').click()

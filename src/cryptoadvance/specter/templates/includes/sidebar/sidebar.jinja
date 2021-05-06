@@ -46,7 +46,7 @@
         {% if specter.network_info.version < 190000 %}
             <p class="warning"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
         {% endif %}
-        <div onclick="{% if not specter.chain %}window.location.href = `{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}`;{% else %}hidePageOverlay();showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');{% endif %}" class="item core" style="cursor: pointer; position: relative;">
+        <div id="active-node" onclick="{% if not specter.chain %}window.location.href = `{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}`;{% else %}hidePageOverlay();showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');{% endif %}" class="item core" style="cursor: pointer; position: relative;">
             {{ bitcoin_svg(specter.info.chain, 40) }}
             <div>
                 <span style="max-width: 140px;">{{ specter.node.name }}</span>
