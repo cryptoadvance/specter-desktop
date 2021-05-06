@@ -28,15 +28,13 @@ def kill_node_process(node_impl, echo):
     for proc in psutil.process_iter():
         try:
             # Get process name & pid from process object.
-            processName = proc.name()
-            pid = proc.pid
-            if processName.startswith("{node_impl}d"):
-                echo(f"Killing {node_impl}d-process with id {pid} ...")
+            if proc.name().endswith(f"{node_impl}d"):
+                echo(f"Killing {node_impl}d-process with id {proc.pid} ...")
                 did_something = True
-                os.kill(pid, signal.SIGTERM)
+                os.kill(proc.pid, signal.SIGTERM)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            echo(f"Pid {pid} not owned by us. Might be a docker-process? {proc}")
-        return did_something
+            echo(f"Pid {proc.pid} not owned by us. Might be a docker-process? {proc}")
+    return did_something
 
 
 def compute_data_dir_and_set_config_obj(node_impl, data_dir, config_obj):

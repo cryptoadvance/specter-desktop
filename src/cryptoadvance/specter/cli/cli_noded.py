@@ -192,6 +192,7 @@ def noded(
     If a node_impl is already running on port ?, it won't start another one. If you CTRL-C this, the node_impl will
     still continue to run. You have to shut it down yourself.
     """
+    logger.debug("If you can read, this, logging is on debug")
     # In order to avoid these dependencies for production use, we're importing them here:
     import docker
 
@@ -213,16 +214,16 @@ def noded(
         if not nodocker:
             echo("ERROR: --reset only works in conjunction with --nodocker currently")
             return
-        did_something = kill_node_process("bitcoin", echo)
+        did_something = kill_node_process(node_impl, echo)
         did_something = (
-            purge_node_data_dir("bitcoin", config_obj, echo) or did_something
+            purge_node_data_dir(node_impl, config_obj, echo) or did_something
         )
         if not did_something:
             echo("Nothing to do!")
         return
     mining_every_x_seconds = float(mining_period)
     if nodocker:
-        echo(f"starting plain {node_impl}d")
+        echo(f"Creating plain {node_impl}d")
         if node_impl == "bitcoin":
             my_node = BitcoindPlainController(
                 bitcoind_path=find_node_executable("bitcoin")
@@ -233,7 +234,7 @@ def noded(
             )
         Path(data_dir).mkdir(parents=True, exist_ok=True)
     else:
-        echo("starting container")
+        echo("Creating container")
         from ..process_controller.bitcoind_docker_controller import (
             BitcoindDockerController,
         )
@@ -243,6 +244,7 @@ def noded(
         else:
             raise Exception("There is no Elementsd-Bitcoin-Controller yet!")
     try:
+        echo(f"Starting {node_impl}d")
         if node_impl == "bitcoin":
             my_node.start_bitcoind(
                 cleanup_at_exit=True,
@@ -261,6 +263,10 @@ def noded(
             f"Try to download first with docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{docker_tag}"
         )
         sys.exit(1)
+    except Exception as e:
+        if e.startswith("There is already a node running!"):
+            echo(f"{e} please reset via:")
+            echo(f"python3 -m cryptoadvacne.specter {node_impl}d --reset")
     if not nodocker:
         tags_of_image = [
             image.split(":")[-1] for image in my_node.btcd_container.image.tags
@@ -278,7 +284,7 @@ def noded(
             sys.exit(1)
         echo(f"containerImage: {my_node.btcd_container.image.tags} ")
     echo(f"           url: {my_node.rpcconn.render_url()}")
-    echo(f"user, password: { node_impl }, secret")
+    echo(f"user, password: { my_node.rpcconn.rpcuser }, secret")
     echo(f"    host, port: localhost, {my_node.rpcconn.rpcport}")
     echo(
         f"   {node_impl}-cli: {node_impl}-cli -regtest -rpcport={my_node.rpcconn.rpcport} -rpcuser={ node_impl } -rpcpassword=secret getblockchaininfo "
@@ -302,39 +308,69 @@ def noded(
     signal.signal(
         signal.SIGUSR1,
         lambda x, y: mine_2_specter_wallets(
-            my_node, config_obj["SPECTER_DATA_FOLDER"], echo
+            node_impl, my_node, config_obj["SPECTER_DATA_FOLDER"], echo
         ),
     )
 
+    if node_impl == "elements":
+        prepare_elements_default_wallet(my_node)
+
     if mining:
         miner_loop(
-            my_node, config_obj["SPECTER_DATA_FOLDER"], mining_every_x_seconds, echo
+            node_impl,
+            my_node,
+            config_obj["SPECTER_DATA_FOLDER"],
+            mining_every_x_seconds,
+            echo,
         )
 
 
-def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
+def prepare_elements_default_wallet(my_node):
+    """this will collect the free coins we have created with -initialfreecoins=2100000000000000
+    and transfer them to the default-wallet
+    """
+    rpc = my_node.rpcconn.get_rpc()
+    wallet = rpc.wallet("")
+    freehash = rpc.getblockhash(0)
+    freetxid = rpc.getblock(freehash)["tx"][1]
+    logger.debug(f"freetxid: {freetxid}")
+    if rpc.gettxout(freetxid, 0):  # unspent!
+        tx = rpc.getrawtransaction(freetxid, 1)
+        fee = 1000e-8
+        value = round(tx["vout"][0]["value"] - fee, 8)
+        addr = wallet.getnewaddress()
+        unconfidential = wallet.getaddressinfo(addr)["unconfidential"]
+        rawtx = wallet.createrawtransaction(
+            [{"txid": freetxid, "vout": 0}],  # inputs
+            [{unconfidential: value}, {"fee": fee}],
+        )
+        wallet.sendrawtransaction(rawtx)
+        rpc.generatetoaddress(101, unconfidential)
+
+
+def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
     "An endless loop mining bitcoin"
 
     echo(
         "Now, mining a block every %f seconds, avoid it via --no-mining"
         % mining_every_x_seconds
     )
-    mine_2_specter_wallets(my_bitcoind, data_folder, echo)
+    mine_2_specter_wallets(node_impl, my_node, data_folder, echo)
 
     # make them spendable
-    my_bitcoind.mine(block_count=100)
+    my_node.mine(block_count=100)
     echo(
-        f"height: {my_bitcoind.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+        f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
         nl=False,
     )
     i = 0
     while True:
         try:
-            my_bitcoind.mine()
-            current_height = my_bitcoind.rpcconn.get_rpc().getblockchaininfo()["blocks"]
+            my_node.mine()
+            current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
         except Exception as e:
             logger.debug(
-                "Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
+                f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
             echo(f"THE_END(@height:{current_height})")
             break
@@ -352,18 +388,19 @@ def miner_loop(my_bitcoind, data_folder, mining_every_x_seconds, echo):
         time.sleep(mining_every_x_seconds)
 
 
-def mine_2_specter_wallets(my_bitcoind, data_folder, echo):
+def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
     """Get each specter-wallet some coins"""
 
     from ..process_controller.node_controller import fetch_wallet_addresses_for_mining
 
     try:
 
-        for address in fetch_wallet_addresses_for_mining(data_folder):
+        for address in fetch_wallet_addresses_for_mining(node_impl, data_folder):
             echo("")
             echo(f"Mining to address {address}")
-            my_bitcoind.mine(address=address)
-        my_bitcoind.mine(block_count=100)
+            my_node.testcoin_faucet(address)
+            # my_node.mine(address=address)
+        # my_node.mine(block_count=100)
     except FileNotFoundError:
         # might happen if there no ~/.specter folder yet
         pass

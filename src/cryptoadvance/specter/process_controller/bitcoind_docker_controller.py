@@ -17,7 +17,7 @@ class BitcoindDockerController(NodeController):
 
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
-        super().__init__(rpcport=rpcport, node_impl="bitcoin")
+        super().__init__("bitcoin", rpcport=rpcport)
         self.docker_tag = docker_tag
 
         if self.detect_bitcoind_container(rpcport) != None:

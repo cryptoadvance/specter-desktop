@@ -18,12 +18,12 @@ class ElementsPlainController(NodePlainController):
     ):
         # Just call super and add the node_impl
         super().__init__(
+            "elements",
             node_path=elementsd_path,
             rpcport=rpcport,
             network=network,
             rpcuser=rpcuser,
             rpcpassword=rpcpassword,
-            node_impl="elements",
         )
 
     def start_elementsd(
@@ -57,16 +57,17 @@ class ElementsPlainController(NodePlainController):
         run_docker=True,
         datadir=None,
         node_path="elementsd",
-        network="regtest",
+        network="regtest",  # Doesn't make sense here. For now, only "elreg" is supported
         extra_args=[],
     ):
         """returns a command to run your elementsd"""
         btcd_cmd = '"{}" '.format(node_path)
-        if network != "mainnet":
-            btcd_cmd += " -{} ".format(network)
+        btcd_cmd += " -chain=elreg "
         btcd_cmd += " -fallbackfee=0.0000001 "
         btcd_cmd += " -validatepegin=0 "
-        btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(
+        btcd_cmd += " -txindex=1 "
+        btcd_cmd += " -initialfreecoins=2100000000000000 "
+        btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0".format(
             rpcconn.rpcport + 1, rpcconn.rpcport
         )
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(

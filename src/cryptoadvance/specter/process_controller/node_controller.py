@@ -88,11 +88,11 @@ class NodeController:
 
     def __init__(
         self,
+        node_impl,
         rpcport=18443,
         network="regtest",
         rpcuser="bitcoin",
         rpcpassword="secret",
-        node_impl="bitcoin",
     ):
         try:
             self.rpcconn = Btcd_conn(
@@ -119,6 +119,7 @@ class NodeController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
+            logger.warn(f"Reusing existing {self.node_impl}d")
             return self.rpcconn
 
         logger.debug(f"Starting {self.node_impl}d")
@@ -128,7 +129,6 @@ class NodeController:
             datadir=datadir,
             extra_args=extra_args,
         )
-
         try:
             self.wait_for_node(self.rpcconn, timeout=timeout)
             self.status = "Running"
@@ -142,13 +142,34 @@ class NodeController:
         except Exception as e:
             self.status = "Error"
             raise e
-        if self.network == "regtest":
+
+        if "" not in self.get_rpc().listwallets():
+            logger.info("Creating Default-wallet")
+            self.get_rpc().createwallet("", False, False, "", False, True, True)
+
+        if self.is_testnet():
+            logger.debug("Mining 100 blocks")
             self.mine(block_count=100)
 
         return self.rpcconn
 
     def version(self):
         raise Exception("version needs to be overridden by Subclassses")
+
+    def is_testnet(self):
+        return self.network not in ["main", "liquidv1", "None", "none", None, ""]
+
+    def is_liquid(self):
+        return self.network not in [
+            "main",
+            "regtest",
+            "test",
+            "signet",
+            "None",
+            "none",
+            None,
+            "",
+        ]
 
     def get_rpc(self):
         """wrapper for convenience"""
@@ -168,32 +189,40 @@ class NodeController:
     def stop_node(self):
         raise Exception(f"This should not be used in the baseclass! self: {self}")
 
-    def mine(self, address="mruae2834buqxk77oaVpephnA5ZAxNNJ1r", block_count=1):
+    def mine(self, address=None, block_count=1):
         """Does mining to the attached address with as many as block_count blocks"""
-        self.rpcconn.get_rpc().generatetoaddress(block_count, address)
+        if address == None:
+            if self.node_impl == "bitcoin":
+                address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
+            else:
+                address = "el1qqf6tv4n8qp55qc04v4xts5snd9v5uurkry4vskef6lmecahj6c42jt9lnj0432287rs67z9vzq2zvuer036s5mahptwxgyd8k"
+        self.get_rpc().generatetoaddress(block_count, address)
 
-    def testcoin_faucet(self, address, amount=20, mine_tx=False):
+    def testcoin_faucet(self, address, amount=20):
         """an easy way to get some testcoins"""
         rpc = self.get_rpc()
         try:
-            test3rdparty_rpc = rpc.wallet("test3rdparty")
-            test3rdparty_rpc.getbalance()
+            default_rpc = rpc.wallet("")
+            default_rpc.getbalance()
         except RpcError as rpce:
             # return-codes:
             # https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
             if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
-                logger.debug("Creating test3rdparty wallet")
-                rpc.createwallet("test3rdparty")
-                test3rdparty_rpc = rpc.wallet("test3rdparty")
+                logger.debug("Creating default wallet")
+                rpc.createwallet("")
+                default_rpc = rpc.wallet("")
             else:
                 raise rpce
-        balance = test3rdparty_rpc.getbalance()
+        balance = default_rpc.getbalance()
+        if isinstance(balance, dict):
+            balance = balance["bitcoin"]  # elements
+        logger.debug("balance:" + str(balance))
+        default_address = default_rpc.getnewaddress("")
+        if self.node_impl == "elements":
+            default_address = rpc.getaddressinfo(default_address)["unconfidential"]
         if balance < amount:
-            test3rdparty_address = test3rdparty_rpc.getnewaddress("test3rdparty")
-            rpc.generatetoaddress(102, test3rdparty_address)
-        test3rdparty_rpc.sendtoaddress(address, amount)
-        if mine_tx:
-            rpc.generatetoaddress(1, test3rdparty_address)
+            rpc.generatetoaddress(102, default_address)
+        rpc.sendtoaddress(address, amount)
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):
@@ -288,20 +317,20 @@ class NodePlainController(NodeController):
 
     def __init__(
         self,
+        node_impl,
         node_path="bitcoind",
         rpcport=18443,
         network="regtest",
         rpcuser="bitcoin",
         rpcpassword="secret",
-        node_impl="bitcoin",
     ):
         try:
             super().__init__(
+                node_impl,
                 rpcport=rpcport,
                 network=network,
                 rpcuser=rpcuser,
                 rpcpassword=rpcpassword,
-                node_impl="bitcoin",
             )
             self.node_path = node_path
             self.rpcconn.ipaddress = "localhost"
@@ -340,13 +369,17 @@ class NodePlainController(NodeController):
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )
 
+        # This function is redirecting to the class.member as it needs a fixed parameterlist: (signal_number, stack)
+        def cleanup_node(signal_number, stack):
+            self.cleanup_node(cleanup_hard, datadir)
+
         if cleanup_at_exit:
             logger.info("Register function cleanup_node for SIGINT and SIGTERM")
             # atexit.register(cleanup_bitcoind)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, self.cleanup_node)
+            signal.signal(signal.SIGINT, cleanup_node)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, self.cleanup_node)
+            signal.signal(signal.SIGTERM, cleanup_node)
 
     def get_debug_log(self):
         logfile_location = os.path.join(self.datadir, self.network, "debug.log")
@@ -354,12 +387,15 @@ class NodePlainController(NodeController):
 
     def cleanup_node(self, cleanup_hard=None, datadir=None):
         timeout = 50  # in secs
+        logger.info(
+            f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{datadir})"
+        )
         if cleanup_hard:
             self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
             logger.info(
-                f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {datadir}"
+                f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
             )
-            shutil.rmtree(datadir, ignore_errors=True)
+            shutil.rmtree(self.datadir, ignore_errors=True)
         else:
             try:
                 self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
@@ -379,7 +415,6 @@ class NodePlainController(NodeController):
             except ProcessLookupError:
                 # Bitcoind probably never came up or crashed. Silently ignored
                 pass
-
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
 
@@ -416,11 +451,14 @@ def find_node_executable(node_impl):
         return which(f"{node_impl}d")
 
 
-def fetch_wallet_addresses_for_mining(data_folder):
+def fetch_wallet_addresses_for_mining(node_impl, data_folder):
     """parses all the wallet-jsons in the folder (default ~/.specter/wallets/regtest)
     and returns an array with the addresses
     """
-    wallets = load_jsons(data_folder + "/wallets/regtest")
+    wallet_folder = (
+        f"{data_folder}/wallets/{'regtest' if node_impl == 'bitcoin' else 'elreg'}"
+    )
+    wallets = load_jsons(wallet_folder)
     address_array = [value["address"] for key, value in wallets.items()]
     # remove duplicates
     address_array = list(dict.fromkeys(address_array))
