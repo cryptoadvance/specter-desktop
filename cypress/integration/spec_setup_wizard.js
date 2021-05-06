@@ -17,9 +17,7 @@ describe('Setup wizard', () => {
         cy.contains('Configure your node')
         cy.get('#quicksync-switch').click()
         cy.get('#setup-bitcoind-dir-button').click()
-        cy.contains('Starting up Bitcoin Core...', { timeout: 3000 })
-        cy.wait(60000)
-        cy.contains('Setup Completed Successfully!')
+        cy.contains('Setup Completed Successfully!', { timeout: 60000 })
         cy.get('#finish-setup-btn').click()
         cy.contains('Connect Specter with Bitcoin Core node.')
         
