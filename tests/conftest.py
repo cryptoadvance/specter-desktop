@@ -263,6 +263,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     config = {
         "rpc": {
             "autodetect": False,
+            "datadir": "",
             "user": bitcoin_regtest.rpcconn.rpcuser,
             "password": bitcoin_regtest.rpcconn.rpcpassword,
             "port": bitcoin_regtest.rpcconn.rpcport,
