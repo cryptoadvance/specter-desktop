@@ -148,7 +148,7 @@ class NodeController:
             self.get_rpc().createwallet("", False, False, "", False, True, True)
 
         if self.is_testnet():
-            logger.debug("Mining 100 blocks")
+            logger.debug(f"Mining 100 blocks (network: {self.network})")
             self.mine(block_count=100)
 
         return self.rpcconn
@@ -157,11 +157,20 @@ class NodeController:
         raise Exception("version needs to be overridden by Subclassses")
 
     def is_testnet(self):
-        return self.network not in ["main", "liquidv1", "None", "none", None, ""]
+        return self.network not in [
+            "mainnet",
+            "main",
+            "liquidv1",
+            "None",
+            "none",
+            None,
+            "",
+        ]
 
     def is_liquid(self):
         return self.network not in [
             "main",
+            "mainnet",
             "regtest",
             "test",
             "signet",
