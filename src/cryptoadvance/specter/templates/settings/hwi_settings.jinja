@@ -106,7 +106,6 @@
 			if (viewType == 'custom') {
 				bridgeUrl.value = '{{ specter.hwi_bridge_url }}';
 			} else if (viewType == 'remote') {
-				document.getElementById('remote-hwi-bridge-config').classList.remove('hidden')
 				bridgeUrl.value = 'http://127.0.0.1:25441/hwi/api';
 			} else {
 				document.getElementById('remote-warning').classList.add('hidden')
