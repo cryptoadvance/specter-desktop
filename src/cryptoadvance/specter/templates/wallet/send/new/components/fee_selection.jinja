@@ -8,8 +8,8 @@
             <p class="tool-tip__info">
                 <span class="info">
                     <span class="info__title">Subtract fees from amount<br><br></span>
-                    If checked, the transaction fees will be payed off from the transaction amount.<br><br>
-                    Otherwise, the fees will be payed as an added cost in addition to the amount sent.
+                    If checked, the transaction fees will be paid off from the transaction amount.<br><br>
+                    Otherwise, the fees will be paid as an added cost in addition to the amount sent.
                 </span>
             </p>
         </div>
@@ -76,7 +76,7 @@
         } else if (feesSlider.value >= fastestFee && feesSlider.value < fastestFee * 1.2) {
             document.getElementById('fee_rate_speed_text').innerText = 'Very fast (10 minutes)';
         } else if (feesSlider.value >= fastestFee * 1.2) {
-            document.getElementById('fee_rate_speed_text').innerText = 'Overpayed! (10 minutes)';
+            document.getElementById('fee_rate_speed_text').innerText = 'Overpaid! (10 minutes)';
         }
     }
 
