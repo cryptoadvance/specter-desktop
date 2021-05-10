@@ -39,7 +39,7 @@ describe('Setup wizard', () => {
         cy.get('#tor-status-text').contains('Status: Down')
         cy.get('[value="starttor"]').click()
         cy.get('#tor-status-text').contains('Status: Running')
-        cy.get('[value="test_tor"]').click()
+        cy.get('[value="test_tor"]').click({ timeout: 60000 })
         cy.contains('Tor requests test completed successfully!')
         cy.get('[value="uninstalltor"]').click()
         cy.get('#setup-tor-button').click()
