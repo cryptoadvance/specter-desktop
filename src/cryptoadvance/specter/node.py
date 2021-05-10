@@ -45,7 +45,6 @@ class Node:
         self.manager = manager
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
-        self.rpc = None
         self.rpc = self.get_rpc()
 
         self.check_info()
@@ -100,7 +99,10 @@ class Node:
         Checks if config have changed, compares with old rpc
         and returns new one if necessary
         """
-        rpc = self.rpc
+        if hasattr(self, "rpc"):
+            rpc = self.rpc
+        else:
+            rpc = None
         if self.autodetect:
             if self.port:
                 rpc_conf_arr = autodetect_rpc_confs(

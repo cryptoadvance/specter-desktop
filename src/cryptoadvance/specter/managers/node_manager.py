@@ -131,6 +131,7 @@ class NodeManager:
         )
         write_node(node, fullpath)
         self.update()  # reload files
+        logger.info("Added new node {}".format(node.alias))
         return node
 
     def add_internal_node(
@@ -167,6 +168,7 @@ class NodeManager:
         )
         write_node(node, fullpath)
         self.update()  # reload files
+        logger.info("Added new internal node {}".format(node.alias))
         return node
 
     def delete_node(self, node, specter):
@@ -177,6 +179,7 @@ class NodeManager:
         if self._active_node == node.alias:
             specter.update_active_node(next(iter(self.nodes.values())).alias)
         self.update()
+        logger.info("Node {} was deleted successfully".format(node.alias))
 
     # TODO: Refactor out later to allow multiple built in nodes
     @property
