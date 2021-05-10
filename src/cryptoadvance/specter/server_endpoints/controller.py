@@ -76,9 +76,9 @@ def server_specter_error(se):
 def server_error(e):
     """Unspecific Exceptions get a 500 Error-Page"""
     # if rpc is not available
-    # if app.specter.rpc is None or not app.specter.rpc.test_connection():
-    #     # make sure specter knows that rpc is not there
-    #     app.specter.check()
+    if app.specter.rpc is None or not app.specter.rpc.test_connection():
+        # make sure specter knows that rpc is not there
+        app.specter.check()
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)

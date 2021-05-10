@@ -1,4 +1,4 @@
-import copy, random, json, time, os, shutil
+import copy, random, json, time, os, shutil, logging
 
 from flask import (
     Flask,
@@ -17,6 +17,8 @@ from ..node import Node
 from ..specter_error import ExtProcTimeoutException
 from ..util.shell import get_last_lines_from_file
 
+logger = logging.getLogger(__name__)
+
 rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
@@ -29,7 +31,6 @@ nodes_endpoint = Blueprint("nodes_endpoint", __name__)
 @nodes_endpoint.route("node/<node_alias>/", methods=["GET", "POST"])
 @login_required
 def node_settings(node_alias):
-    err = None
     if node_alias:
         try:
             node = app.specter.node_manager.get_by_alias(node_alias)
@@ -68,7 +69,6 @@ def node_settings(node_alias):
     if node.rpc is None and node_alias:
         node.update_rpc()
 
-    err = None
     test = None
     if request.method == "POST":
         action = request.form["action"]
@@ -234,7 +234,6 @@ def internal_node_settings(node_alias):
     if node.rpc is None:
         node.update_rpc()
 
-    err = None
     if request.method == "POST":
         action = request.form["action"]
 
@@ -272,12 +271,14 @@ def internal_node_settings(node_alias):
                 node.stop()
                 time.sleep(5)
                 flash("Specter stopped Bitcoin Core successfully")
-            except Exception:
+            except Exception as e:
                 try:
+                    logger.exception(e)
                     flash("Stopping Bitcoin Core, this might take a few moments.")
                     node.rpc.stop()
-                except Exception as e:
-                    flash(f"Failed to stop Bitcoin Core {e}", "error")
+                except Exception as ne:
+                    logger.exception(ne)
+                    flash(f"Failed to stop Bitcoin Core {ne}", "error")
         elif action == "startbitcoind":
             if node.start(timeout=120):
                 flash("Specter has started Bitcoin Core")
