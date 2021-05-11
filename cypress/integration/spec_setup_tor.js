@@ -10,7 +10,7 @@ describe('Setup Tor and test connection', () => {
 
         cy.wait(60000)
         cy.get('#tor-status-text').contains('Status: Running')
-        cy.get('[value="test_tor"]').click()
+        cy.get('[value="test_tor"]').click({ timeout: 60000 })
         cy.contains('Tor requests test completed successfully!')
         cy.get('[value="stoptor"]').click()
         cy.get('#tor-status-text').contains('Status: Down')

@@ -128,6 +128,11 @@ def write_device(device, fullpath):
     storage_callback()
 
 
+def write_node(node, fullpath):
+    _write_json_file(node.json, fullpath)
+    storage_callback()
+
+
 def delete_folder(path):
     _delete_folder(path)
     storage_callback()

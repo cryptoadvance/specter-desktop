@@ -12,7 +12,7 @@
 		<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if not device %}
-				<label>Name it:<label>
+				<label>Name it:</label>
 				<div class="row">
 					<input type="text" id="device_name" name="device_name" value="{{ device_name }}" placeholder="Name your device">
 				</div>

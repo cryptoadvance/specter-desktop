@@ -1,8 +1,10 @@
 import logging
-import subprocess
-import platform
 import os
+import platform
 import signal
+import subprocess
+from io import StringIO
+
 import psutil
 
 logger = logging.getLogger(__name__)
@@ -27,10 +29,20 @@ class TorDaemonController:
         self.tor_daemon_proc = subprocess.Popen(
             f'{"exec " if platform.system() != "Windows" else ""}"{self.tor_daemon_path}" --defaults-torrc {self.tor_config_path}',
             shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
         logger.debug(
             "Running tor-daemon process with pid {}".format(self.tor_daemon_proc.pid)
         )
+
+    def get_logs(self):
+        logs = ""
+        newline = self.tor_daemon_proc.stdout.readline().decode("ascii")
+        while newline != "":
+            logs = logs + newline
+            newline = self.tor_daemon_proc.stdout.readline().decode("ascii")
+        return logs
 
     def get_hashed_password(self, password):
         hashed_pw = subprocess.check_output(

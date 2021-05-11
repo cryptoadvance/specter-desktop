@@ -15,9 +15,9 @@ from flask import current_app as app
 from mnemonic import Mnemonic
 from ..helpers import is_testnet, generate_mnemonic
 from ..key import Key
-from ..device_manager import get_device_class
+from ..managers.device_manager import get_device_class
 from ..devices.bitcoin_core import BitcoinCore
-from ..wallet_manager import purposes
+from ..managers.wallet_manager import purposes
 from ..specter_error import handle_exception
 
 rand = random.randint(0, 1e32)  # to force style refresh
