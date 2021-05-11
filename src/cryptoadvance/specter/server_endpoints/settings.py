@@ -235,6 +235,8 @@ def tor():
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
+                    logger.error("Tor-Logs:")
+                    logger.error(app.specter.tor_daemon.get_logs())
                 else:
                     flash(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}",
@@ -243,9 +245,13 @@ def tor():
                     logger.error(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}"
                     )
+                    logger.error("Tor-Logs:")
+                    logger.error(app.specter.tor_daemon.get_logs())
             except Exception as e:
                 flash(f"Failed to make test request over Tor.\nError: {e}", "error")
                 logger.error(f"Failed to make test request over Tor.\nError: {e}")
+                logger.error("Tor-Logs:")
+                logger.error(app.specter.tor_daemon.get_logs())
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
