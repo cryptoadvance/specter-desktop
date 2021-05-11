@@ -1,20 +1,23 @@
-import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys, shutil
-import pgpy
+import json
+import logging
+import os
+import platform
+import random
+import secrets
+import shutil
+import sys
+import tarfile
+import time
+import zipfile
 from pathlib import Path
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-    send_file,
-)
-from flask_login import login_required, current_user
 
+import pgpy
+import requests
+from flask import Blueprint, Flask
 from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask_login import current_user, login_required
+
 from ..helpers import (
     get_loglevel,
     get_startblock_by_chain,
@@ -22,11 +25,13 @@ from ..helpers import (
     set_loglevel,
 )
 from ..persistence import write_devices, write_wallet
+from ..specter_error import ExtProcTimeoutException, handle_exception
 from ..user import hash_password
-from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
-from ..specter_error import handle_exception, ExtProcTimeoutException
+from ..util.tor import start_hidden_service, stop_hidden_services
+
+logger = logging.getLogger(__name__)
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -198,6 +203,7 @@ def tor():
                 flash("Specter has started Tor")
             except Exception as e:
                 flash(f"Failed to start Tor, error: {e}", "error")
+                logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
@@ -205,6 +211,7 @@ def tor():
                 flash("Specter stopped Tor successfully")
             except Exception as e:
                 flash(f"Failed to stop Tor, error: {e}", "error")
+                logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
             try:
                 if app.specter.is_tor_dameon_running():
@@ -213,7 +220,8 @@ def tor():
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
                 flash(f"Tor uninstalled successfully")
             except Exception as e:
-                flash(f"Failed to stop Tor, error: {e}", "error")
+                flash(f"Failed to uninstall Tor, error: {e}", "error")
+                logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
             try:
                 requests_session = requests.Session()
@@ -222,14 +230,22 @@ def tor():
                 res = requests_session.get(
                     # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
                     "https://protonirockerxow.onion",  # Proton mail onion website
+                    timeout=10,
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
                 else:
-                    flash("Failed to make test request over Tor.", "error")
+                    flash(
+                        f"Failed to make test request over Tor. Status-Code: {res.status_code}",
+                        "error",
+                    )
+                    logger.error(
+                        f"Failed to make test request over Tor. Status-Code: {res.status_code}"
+                    )
             except Exception as e:
-                flash("Failed to make test request over Tor.\nError: %s" % e, "error")
+                flash(f"Failed to make test request over Tor.\nError: {e}", "error")
+                logger.error(f"Failed to make test request over Tor.\nError: {e}")
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
