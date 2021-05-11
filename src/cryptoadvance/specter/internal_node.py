@@ -19,6 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class InternalNode(Node):
+    """A Node but other than Node, this one is managed by Specter.
+    So it has start and stop methods and one called is_bitcoind_running
+    """
+
     def __init__(
         self,
         name,

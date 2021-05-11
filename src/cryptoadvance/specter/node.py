@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 class Node:
+    """A NodeManager represents the connection to a Bitcoin and/o Liquid Node (Full-) node.
+    It can be created via Constructor or from_json, and mainly it can give you A
+    RPC-object to use the API.
+    One or many Nodes are managed via the NodeManager
+    """
+
     def __init__(
         self,
         name,
@@ -31,6 +37,21 @@ class Node:
         fullpath,
         manager,
     ):
+        """Constructor for your Node.
+
+        :param name: arbitrary name
+        :param alias: Bad habit, doesn't seem to have business functionality
+        :param autodetect: Boolean, will use the datadir to derive config is yes
+        :param datadir: A directory where a bitcoin.conf can be found, relevant for autodetect
+        :param user: rpc-user
+        :param password: rpc-password
+        :param port: usually something like 8332 for mainnet, 18332 for testnet, 18443 for Regtest, 38332 for signet
+        :param host: domainname or ip-address. Don't add the protocol here
+        :param protocol: Usually https or http
+        :param external_node: should be True for Node and False for InternalNode
+        :param fullpath: it's assumed that you want to store it on disk AND decide about the fullpath upfront
+        :param manager: A NodeManager instance which will get notified if the Node's name changes, the proxy_url will get copied from the manager as well
+        """
         self.name = name
         self.alias = alias
         self.autodetect = autodetect
@@ -51,6 +72,7 @@ class Node:
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
+        """Create a Node from json"""
         name = node_dict.get("name", "")
         alias = node_dict.get("alias", default_alias)
         autodetect = node_dict.get("autodetect", True)
@@ -80,6 +102,7 @@ class Node:
 
     @property
     def json(self):
+        """Get a json-representation of this Node"""
         return {
             "name": self.name,
             "alias": self.alias,
@@ -224,6 +247,10 @@ class Node:
             self._info["chain"] = None
 
     def test_rpc(self):
+        """tests the rpc-connection and returns a dict which helps
+        to derive what might be wrong with the config
+        ToDo: list an example here.
+        """
         if self.rpc is None:
             return {"out": "", "err": "autodetect failed", "code": -1}
         r = {}
@@ -280,6 +307,7 @@ class Node:
         return r
 
     def abortrescanutxo(self):
+        """use this to abort a rescan as it stores some state while rescanning"""
         self.rpc.scantxoutset("abort", [])
         # Bitcoin Core doesn't catch up right away
         # so app.specter.check() doesn't work
