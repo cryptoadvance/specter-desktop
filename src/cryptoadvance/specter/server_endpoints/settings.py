@@ -1,20 +1,23 @@
-import json, os, time, random, requests, secrets, platform, tarfile, zipfile, sys, shutil
-import pgpy
+import json
+import logging
+import os
+import platform
+import random
+import secrets
+import shutil
+import sys
+import tarfile
+import time
+import zipfile
 from pathlib import Path
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-    send_file,
-)
-from flask_login import login_required, current_user
 
+import pgpy
+import requests
+from flask import Blueprint, Flask
 from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask_login import current_user, login_required
+
 from ..helpers import (
     get_loglevel,
     get_startblock_by_chain,
@@ -22,11 +25,13 @@ from ..helpers import (
     set_loglevel,
 )
 from ..persistence import write_devices, write_wallet
+from ..specter_error import ExtProcTimeoutException, handle_exception
 from ..user import hash_password
-from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
-from ..specter_error import handle_exception, ExtProcTimeoutException
+from ..util.tor import start_hidden_service, stop_hidden_services
+
+logger = logging.getLogger(__name__)
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -37,181 +42,7 @@ settings_endpoint = Blueprint("settings_endpoint", __name__)
 @settings_endpoint.route("/", methods=["GET"])
 @login_required
 def settings():
-    if current_user.is_admin:
-        return redirect(url_for("settings_endpoint.bitcoin_core"))
-    else:
-        return redirect(url_for("settings_endpoint.general"))
-
-
-@settings_endpoint.route("/bitcoin_core/internal_logs", methods=["GET"])
-@login_required
-def bitcoin_core_internal_logs():
-    logfile_location = os.path.join(
-        app.specter.config["internal_node"]["datadir"], "debug.log"
-    )
-    return render_template(
-        "settings/bitcoin_core_internal_logs.jinja",
-        specter=app.specter,
-        loglines="".join(get_last_lines_from_file(logfile_location)),
-    )
-
-
-@settings_endpoint.route("/bitcoin_core", methods=["GET", "POST"])
-@login_required
-def bitcoin_core():
-    current_version = notify_upgrade(app, flash)
-    if not current_user.is_admin:
-        flash("Only an admin is allowed to access this page.", "error")
-        return redirect("")
-    # The node might have been down but is now up again
-    # (and the checker did not realized yet) and the user clicked "Configure Node"
-    if app.specter.rpc is None:
-        app.specter.check()
-    rpc = app.specter.config["rpc"]
-    user = rpc["user"]
-    password = rpc["password"]
-    port = rpc["port"]
-    host = rpc["host"]
-    protocol = "http"
-    autodetect = rpc["autodetect"]
-    datadir = rpc["datadir"]
-    external_node = rpc["external_node"]
-    node_view = "external" if external_node else "internal"
-    err = None
-
-    if "protocol" in rpc:
-        protocol = rpc["protocol"]
-    test = None
-    if request.method == "POST":
-        action = request.form["action"]
-        if action == "test" or action == "save":
-            autodetect = "autodetect" in request.form
-            if autodetect:
-                datadir = request.form["datadir"]
-            user = request.form["username"]
-            password = request.form["password"]
-            port = request.form["port"]
-            host = request.form["host"].rstrip("/")
-
-            # protocol://host
-            if "://" in host:
-                arr = host.split("://")
-                protocol = arr[0]
-                host = arr[1]
-
-        if action == "test":
-            # If this is failing, the test_rpc-method needs improvement
-            # Don't wrap this into a try/except otherwise the feedback
-            # of what's wron to the user gets broken
-            test = app.specter.test_rpc(
-                user=user,
-                password=password,
-                port=port,
-                host=host,
-                protocol=protocol,
-                autodetect=autodetect,
-                datadir=datadir,
-            )
-            node_view = "external"
-
-            if "tests" in test:
-                # If any test has failed, we notify the user that the test has not passed
-                if False in list(test["tests"].values()):
-                    flash(f"Test failed: {test['err']}", "error")
-                else:
-                    flash("Test passed", "info")
-        elif action == "save":
-            if current_user.is_admin:
-                node_view = "external"
-                success = app.specter.update_rpc(
-                    user=user,
-                    password=password,
-                    port=port,
-                    host=host,
-                    protocol=protocol,
-                    autodetect=autodetect,
-                    datadir=datadir,
-                )
-                if not success:
-                    flash("Failed connecting to the node", "error")
-            app.specter.check()
-        # Internal Node actions
-        elif action == "useinternal":
-            app.specter.update_use_external_node(False)
-            external_node = False
-            node_view = "internal"
-        elif action == "useexternal":
-            app.specter.update_use_external_node(True)
-            external_node = True
-            node_view = "external"
-        elif action == "stopbitcoind":
-            node_view = "internal"
-            try:
-                app.specter.bitcoind.stop_bitcoind()
-                app.specter.set_bitcoind_pid(False)
-                time.sleep(5)
-                flash("Specter stopped Bitcoin Core successfully")
-            except Exception:
-                try:
-                    flash("Stopping Bitcoin Core, this might take a few moments.")
-                    app.specter.rpc.stop()
-                except Exception as e:
-                    flash(f"Failed to stop Bitcoin Core {e}", "error")
-        elif action == "startbitcoind":
-            node_view = "internal"
-            try:
-                app.specter.bitcoind.start_bitcoind(
-                    datadir=os.path.expanduser(
-                        app.specter.config["internal_node"]["datadir"]
-                    )
-                )
-            except ExtProcTimeoutException as e:
-                e.check_logfile(
-                    os.path.join(
-                        app.specter.config["internal_node"]["datadir"], "debug.log"
-                    )
-                )
-                raise e
-            finally:
-                app.specter.set_bitcoind_pid(app.specter.bitcoind.bitcoind_proc.pid)
-            time.sleep(15)
-            flash("Specter has started Bitcoin Core")
-        elif action == "uninstall_bitcoind":
-            try:
-                if app.specter.is_bitcoind_running():
-                    app.specter.bitcoind.stop_bitcoind()
-                shutil.rmtree(os.path.join(app.specter.data_folder, "bitcoin-binaries"))
-                if bool(request.form.get("remove_datadir", False)):
-                    shutil.rmtree(
-                        os.path.expanduser(
-                            app.specter.config["internal_node"]["datadir"]
-                        )
-                    )
-                flash(f"Bitcoin Core uninstalled successfully")
-            except Exception as e:
-                flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
-
-    app.specter.check()
-
-    return render_template(
-        "settings/bitcoin_core_settings.jinja",
-        test=test,
-        autodetect=autodetect,
-        datadir=datadir,
-        username=user,
-        password=password,
-        port=port,
-        host=host,
-        protocol=protocol,
-        specter=app.specter,
-        current_version=current_version,
-        bitcoind_exists=os.path.isfile(app.specter.bitcoind_path),
-        is_running=app.specter.is_bitcoind_running(),
-        node_view=node_view,
-        external_node=external_node,
-        error=err,
-        rand=rand,
-    )
+    return redirect(url_for("settings_endpoint.general"))
 
 
 @settings_endpoint.route("/general", methods=["GET", "POST"])
@@ -372,6 +203,7 @@ def tor():
                 flash("Specter has started Tor")
             except Exception as e:
                 flash(f"Failed to start Tor, error: {e}", "error")
+                logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
@@ -379,6 +211,7 @@ def tor():
                 flash("Specter stopped Tor successfully")
             except Exception as e:
                 flash(f"Failed to stop Tor, error: {e}", "error")
+                logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
             try:
                 if app.specter.is_tor_dameon_running():
@@ -387,7 +220,8 @@ def tor():
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
                 flash(f"Tor uninstalled successfully")
             except Exception as e:
-                flash(f"Failed to stop Tor, error: {e}", "error")
+                flash(f"Failed to uninstall Tor, error: {e}", "error")
+                logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
             try:
                 requests_session = requests.Session()
@@ -396,14 +230,28 @@ def tor():
                 res = requests_session.get(
                     # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
                     "https://protonirockerxow.onion",  # Proton mail onion website
+                    timeout=10,
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
+                    logger.error("Tor-Logs:")
+                    logger.error(app.specter.tor_daemon.get_logs())
                 else:
-                    flash("Failed to make test request over Tor.", "error")
+                    flash(
+                        f"Failed to make test request over Tor. Status-Code: {res.status_code}",
+                        "error",
+                    )
+                    logger.error(
+                        f"Failed to make test request over Tor. Status-Code: {res.status_code}"
+                    )
+                    logger.error("Tor-Logs:")
+                    logger.error(app.specter.tor_daemon.get_logs())
             except Exception as e:
-                flash("Failed to make test request over Tor.\nError: %s" % e, "error")
+                flash(f"Failed to make test request over Tor.\nError: {e}", "error")
+                logger.error(f"Failed to make test request over Tor.\nError: {e}")
+                logger.error("Tor-Logs:")
+                logger.error(app.specter.tor_daemon.get_logs())
                 tor_connectable = False
         elif action == "toggle_hidden_service":
             if not app.config["DEBUG"]:
