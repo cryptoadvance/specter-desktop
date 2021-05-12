@@ -230,7 +230,7 @@ def tor():
                 res = requests_session.get(
                     # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
                     "https://protonirockerxow.onion",  # Proton mail onion website
-                    timeout=10,
+                    timeout=30,
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
