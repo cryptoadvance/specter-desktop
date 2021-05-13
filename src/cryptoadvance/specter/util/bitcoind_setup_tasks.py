@@ -46,13 +46,11 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
             os.path.join(specter.data_folder, f"bitcoin-{internal_bitcoind_version}"),
             bitcoin_binaries_folder,
         )
-        if not os.path.exists(specter.config["internal_node"]["datadir"]):
+        if not os.path.exists(specter.node_manager.internal_node.datadir):
             logger.info(
-                f"Creating bitcoin datadir: {specter.config['internal_node']['datadir']}"
+                f"Creating bitcoin datadir: {specter.node_manager.internal_node.datadir}"
             )
-            os.makedirs(specter.config["internal_node"]["datadir"])
-        specter.config["bitcoind_internal_version"] = internal_bitcoind_version
-        specter._save()
+            os.makedirs(specter.node_manager.internal_node.datadir)
         specter.reset_setup("bitcoind")
     except Exception as e:
         logger.error(f"Failed to install Bitcoin Core. Error: {e}")
@@ -110,27 +108,27 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                         "Failed to verify prunednode.today hash is in SHA265SUMS.asc"
                     )
                 logger.info(
-                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.config['internal_node']['datadir'])}"
+                    f"Unpacking {prunednode_file} to {os.path.expanduser(specter.node_manager.internal_node.datadir)}"
                 )
                 with zipfile.ZipFile(prunednode_file, "r") as zip_ref:
                     zip_ref.extractall(
-                        os.path.expanduser(specter.config["internal_node"]["datadir"])
+                        os.path.expanduser(specter.node_manager.internal_node.datadir)
                     )
                 os.remove(prunednode_file)
 
         logger.info(f"Writing bitcoin.conf")
-        if not os.path.exists(specter.config["internal_node"]["datadir"]):
-            os.makedirs(specter.config["internal_node"]["datadir"])
+        if not os.path.exists(specter.node_manager.internal_node.datadir):
+            os.makedirs(specter.node_manager.internal_node.datadir)
         with open(
-            os.path.join(specter.config["internal_node"]["datadir"], "bitcoin.conf"),
+            os.path.join(specter.node_manager.internal_node.datadir, "bitcoin.conf"),
             "w+",
         ) as file:
             salt = generate_salt(16)
             password_hmac = password_to_hmac(
-                salt, specter.config["internal_node"]["password"]
+                salt, specter.node_manager.internal_node.password
             )
             file.write(
-                f'\nrpcauth={specter.config["internal_node"]["user"]}:{salt}${password_hmac}'
+                f"\nrpcauth={specter.node_manager.internal_node.user}:{salt}${password_hmac}"
             )
             file.write(f"\nserver=1")
             file.write(f"\nlisten=1")
@@ -145,27 +143,13 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
                 file.write(f"\nblockfilterindex=1")
 
         specter.update_setup_status("bitcoind", "START_SERVICE")
-        specter.update_use_external_node(False)
 
         # Specter's 'bitcoind' attribute will instantiate a BitcoindController as needed
         logger.info(
-            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.config['internal_node']['datadir'])}"
+            f"Starting up Bitcoin Core... in {os.path.expanduser(specter.node_manager.internal_node.datadir)}"
         )
-        try:
-            specter.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(specter.config["internal_node"]["datadir"])
-            )
-        finally:
-            specter.set_bitcoind_pid(specter.bitcoind.bitcoind_proc.pid)
-        logger.info("Waiting 15 seconds ...")
-        time.sleep(15)
-        success = specter.update_rpc(
-            port=8332,
-            autodetect=False,
-            user=specter.config["internal_node"]["user"],
-            password=specter.config["internal_node"]["password"],
-            need_update="true",
-        )
+        success = specter.node_manager.internal_node.start(timeout=60)
+        specter.update_active_node(specter.node_manager.internal_node.alias)
         if not success:
             specter.update_setup_status("bitcoind", "FAILED")
             logger.info("No success connecting to Bitcoin Core")
@@ -174,7 +158,7 @@ def setup_bitcoind_directory_thread(specter=None, quicksync=True, pruned=True):
         specter.setup_status["stage"] = "end"
     except ExtProcTimeoutException as e:
         e.check_logfile(
-            os.path.join(specter.config["internal_node"]["datadir"], "debug.log")
+            os.path.join(specter.node_manager.internal_node.datadir, "debug.log")
         )
         logger.error(f"Failed to setup Bitcoin Core. Error: {e}")
         logger.error(e.get_logger_friendly())

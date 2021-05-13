@@ -13,7 +13,7 @@ from cryptoadvance.specter.bitcoind import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
-from cryptoadvance.specter.device_manager import DeviceManager
+from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
 
@@ -263,6 +263,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     config = {
         "rpc": {
             "autodetect": False,
+            "datadir": "",
             "user": bitcoin_regtest.rpcconn.rpcuser,
             "password": bitcoin_regtest.rpcconn.rpcpassword,
             "port": bitcoin_regtest.rpcconn.rpcport,

@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 
 from ..helpers import deep_update
 from ..persistence import read_json_file, write_json_file
-from ..rpc import RpcError, autodetect_rpc_confs, detect_rpc_confs, get_default_datadir
 from ..specter_error import SpecterError
 from .genericdata_manager import GenericDataManager
 
@@ -31,25 +30,6 @@ class ConfigManager(GenericDataManager):
         super().__init__(data_folder)
         self.arg_config = config
         self.data = {
-            "rpc": {
-                "autodetect": True,
-                "datadir": get_default_datadir(),
-                "user": "",
-                "password": "",
-                "port": "",
-                "host": "localhost",  # localhost
-                "protocol": "http",  # https for the future
-                "external_node": True,
-            },
-            "internal_node": {
-                "autodetect": False,
-                "datadir": os.path.join(self.data_folder, ".bitcoin"),
-                "user": "bitcoin",
-                "password": secrets.token_urlsafe(16),
-                "host": "localhost",  # localhost
-                "protocol": "http",  # https for the future
-                "port": 8332,
-            },
             "auth": {
                 "method": "none",
                 "password_min_chars": 6,
@@ -63,6 +43,7 @@ class ConfigManager(GenericDataManager):
                 "regtest": "CUSTOM",
                 "signet": "CUSTOM",
             },
+            "active_node_alias": "default",
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
@@ -80,30 +61,10 @@ class ConfigManager(GenericDataManager):
             "validate_merkle_proofs": False,
             "fee_estimator": "mempool",
             "fee_estimator_custom_url": "",
+            # TODO: remove
             "bitcoind": False,
-            "bitcoind_internal_version": "",
         }
         self.check_config()
-
-    @property
-    def rpc_conf(self):
-        return (
-            self.data["rpc"]
-            if self.data["rpc"].get("external_node", True)
-            else self.data["internal_node"]
-        )
-
-    def update_rpc(self, **kwargs):
-        need_update = kwargs.get("need_update", False)
-        for k in kwargs:
-            if k != "need_update" and self.rpc_conf[k] != kwargs[k]:
-                self.data[
-                    "rpc"
-                    if self.data["rpc"].get("external_node", True)
-                    else "internal_node"
-                ][k] = kwargs[k]
-                need_update = True
-        return need_update
 
     def check_config(self):
         """
@@ -132,26 +93,9 @@ class ConfigManager(GenericDataManager):
         # config from constructor overrides file config
         deep_update(self.data, self.arg_config)
 
-    @property
-    def bitcoin_datadir(self):
-        if "datadir" in self.data["rpc"]:
-            if self.data["rpc"].get("external_node", True):
-                return os.path.expanduser(self.data["rpc"]["datadir"])
-            else:
-                if "datadir" in self.data["internal_node"]:
-                    return os.path.expanduser(self.data["internal_node"]["datadir"])
-        return get_default_datadir()
-
-    def set_bitcoind_pid(self, pid):
-        """set the control pid of the bitcoind daemon"""
-        if self.data.get("bitcoind", False) != pid:
-            self.data["bitcoind"] = pid
-            self._save()
-
-    def update_use_external_node(self, use_external_node):
-        """set whatever specter should connect to internal or external node"""
-        assert isinstance(use_external_node, bool)
-        self.data["rpc"]["external_node"] = use_external_node
+    def update_active_node(self, node_alias):
+        """set the current active node to use"""
+        self.data["active_node_alias"] = node_alias
         self._save()
 
     def update_auth(self, method, rate_limit, registration_link_timeout):
@@ -238,6 +182,10 @@ class ConfigManager(GenericDataManager):
             self.data["torrc_password"] = secrets.token_urlsafe(16)
             self._save()
             logger.info(f"Generated torrc_password in {self.data_file}")
+        else:
+            logger.info(
+                f"torrc_password in {self.data_file} already set. Skipping generation"
+            )
 
     def update_hwi_bridge_url(self, url, user):
         """update the hwi bridge url to use"""
