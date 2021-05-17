@@ -22,14 +22,26 @@
                 <input type="radio" name="node-type" id="node-type-archival" class="hidden" value="archival" {% if network != 'mainnet' %}checked{% endif %}>
                 <div class="small-card radio">
                     <span style="font-size: 1.2em; font-weight: bold;">Archival Node</span><br>
+                    {% if network == 'mainnet' %}
                     Requires about 400GB of available storage
+                    {% elif network == 'testnet' %}
+                    Requires about 30GB of available storage<br><br>
+                    {% else %}
+                    Requires a few MB of available storage<br><br>
+                    {% endif %}
                 </div>
             </label>
             <label style="position: relative;">
                 <input type="radio" name="node-type" class="hidden" value="pruned" {% if network == 'mainnet' %}checked{% endif %}>
                 <div class="small-card radio">
                     <span style="font-size: 1.2em; font-weight: bold;">Pruned Node</span><br>
+                    {% if network == 'mainnet' %}
                     Requires about 10GB of available storage<br><br>
+                    {% elif network == 'testnet' %}
+                    Requires about 3GB of available storage<br><br>
+                    {% else %}
+                    Requires a few MB of available storage<br><br>
+                    {% endif %}
                 </div>
             </label>
         </div>
@@ -80,28 +92,32 @@
     <div id="switch-network-popup" class="hidden" style="margin: auto;">
         <h1> Select Network to setup </h1>
         <div class="row overflow">
-            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='mainnet') }}">
-                <div class="small-card radio">
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='mainnet') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
                     {{ bitcoin_svg('main', 40) }}
+                    <br>
                     Mainnet
                 </div>
             </a>
-            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='testnet') }}">
-                <div class="small-card radio">
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='testnet') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
                     {{ bitcoin_svg('test', 40) }}
+                    <br>
                     Testnet
                 </div>
             </a>
-            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='regtest') }}">
-                <div class="small-card radio">
-                    {{ bitcoin_svg('regtest', 40) }}
-                    Regtest
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='signet') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('signet', 40) }}
+                    <br>
+                    Signet
                 </div>
             </a>
-            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='signet') }}">
-                <div class="small-card radio">
-                    {{ bitcoin_svg('signet', 40) }}
-                    Signet
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='regtest') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('regtest', 40) }}
+                    <br>
+                    Regtest
                 </div>
             </a>
         </div>
