@@ -60,7 +60,12 @@ def node_type():
     (Connect existing node / Setup a new node )
     """
     app.specter.setup_status["stage"] = "node_type"
-    return render_template("setup/node_type.jinja", specter=app.specter, rand=rand)
+    return render_template(
+        "setup/node_type.jinja",
+        bitcoind_installed=os.path.isfile(app.specter.bitcoind_path),
+        specter=app.specter,
+        rand=rand,
+    )
 
 
 @setup_endpoint.route("/bitcoind/", methods=["GET"])
@@ -71,13 +76,16 @@ def bitcoind():
     return render_template("setup/bitcoind.jinja", specter=app.specter, rand=rand)
 
 
-@setup_endpoint.route("/bitcoind_datadir/", methods=["GET"])
+@setup_endpoint.route(
+    "/bitcoind_datadir/", defaults={"network": "mainnet"}, methods=["GET"]
+)
+@setup_endpoint.route("/bitcoind_datadir/<network>", methods=["GET"])
 @login_required
-def bitcoind_datadir():
+def bitcoind_datadir(network):
     """wizard: Configure your node (Quicksync? , Start Syncing)"""
     app.specter.setup_status["stage"] = "bitcoind_datadir"
     return render_template(
-        "setup/bitcoind_datadir.jinja", specter=app.specter, rand=rand
+        "setup/bitcoind_datadir.jinja", network=network, specter=app.specter, rand=rand
     )
 
 
@@ -121,17 +129,6 @@ def setup_tor():
 @setup_endpoint.route("/setup_bitcoind", methods=["POST"])
 @login_required
 def setup_bitcoind():
-    app.specter.node_manager.internal_node.update_rpc(
-        datadir=request.form.get(
-            "bitcoin_core_datadir", app.specter.node_manager.internal_node.datadir
-        ),
-    )
-    if os.path.exists(app.specter.node_manager.internal_node.datadir):
-        if request.form["override_data_folder"] != "true":
-            return {"error": "data folder already exists"}
-        shutil.rmtree(
-            app.specter.node_manager.internal_node.datadir, ignore_errors=True
-        )
     if (
         not os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
@@ -152,6 +149,20 @@ def setup_bitcoind():
 @setup_endpoint.route("/setup_bitcoind_datadir", methods=["POST"])
 @login_required
 def setup_bitcoind_datadir():
+    network = request.form.get("network", "mainnet")
+    # TODO: Set name + number if node name already exists...
+    node = app.specter.node_manager.add_internal_node(
+        "Specter Bitcoin" if network == "mainnet" else f"Specter {network.title()}",
+        network=network,
+    )
+    if request.form.get("bitcoin_core_datadir", None):
+        node.update_rpc(
+            datadir=request.form.get("bitcoin_core_datadir", node.datadir),
+        )
+    if os.path.exists(node.datadir):
+        if request.form["override_data_folder"] != "true":
+            return {"error": "data folder already exists"}
+        shutil.rmtree(node.datadir, ignore_errors=True)
     if (
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
@@ -161,7 +172,7 @@ def setup_bitcoind_datadir():
         pruned = request.form["nodetype"] == "pruned"
         t = threading.Thread(
             target=setup_bitcoind_directory_thread,
-            args=(app.specter, quicksync, pruned),
+            args=(app.specter, quicksync, pruned, node.alias),
         )
         t.start()
     elif not os.path.isfile(app.specter.bitcoind_path):

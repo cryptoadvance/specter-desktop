@@ -266,7 +266,13 @@ svg.core .main{
 svg.core.test .main{
     fill: var(--test-color);
 }
+svg.core.testnet .main{
+    fill: var(--test-color);
+}
 svg.core.main .main{
+    fill: var(--main-color);
+}
+svg.core.mainnet .main{
     fill: var(--main-color);
 }
 svg.core.regtest .main{
@@ -299,7 +305,13 @@ small, .small{
 .rescan_progress.test > div{
 	background: #00F100;
 }
+.rescan_progress.testnet > div{
+	background: #00F100;
+}
 .rescan_progress.main > div{
+	background: #FF9A00;
+}
+.rescan_progress.mainnet > div{
 	background: #FF9A00;
 }
 .rescan_progress.regtest > div{

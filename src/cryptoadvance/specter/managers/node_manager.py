@@ -2,7 +2,7 @@ import os
 import logging
 import secrets
 
-from ..rpc import get_default_datadir
+from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError
 from ..persistence import write_node, delete_file
 from ..helpers import alias, load_jsons
@@ -137,6 +137,7 @@ class NodeManager:
     def add_internal_node(
         self,
         name,
+        network="mainnet",
         default_alias=None,
     ):
         if not default_alias:
@@ -154,16 +155,16 @@ class NodeManager:
             name,
             node_alias,
             False,
-            os.path.join(self.data_folder, f"{node_alias}/.bitcoin"),
+            os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}"),
             "bitcoin",
             secrets.token_urlsafe(16),
-            8332,
+            RPC_PORTS[network] if network in RPC_PORTS else 8332,
             "localhost",
             "http",
             fullpath,
             self,
             self.bitcoind_path,
-            "mainnet",
+            network,
             self.internal_bitcoind_version,
         )
         write_node(node, fullpath)
@@ -180,13 +181,3 @@ class NodeManager:
             specter.update_active_node(next(iter(self.nodes.values())).alias)
         self.update()
         logger.info("Node {} was deleted successfully".format(node.alias))
-
-    # TODO: Refactor out later to allow multiple built in nodes
-    @property
-    def internal_node(self):
-        internal_nodes = [
-            node for node in self.nodes.values() if not node.external_node
-        ]
-        if len(internal_nodes) < 1:
-            return self.add_internal_node("Specter Bitcoin")
-        return internal_nodes[0]

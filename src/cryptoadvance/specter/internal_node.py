@@ -60,6 +60,22 @@ class InternalNode(Node):
         self._bitcoind = None
         self.bitcoin_pid = False
         self.version = version
+        if self.bitcoind_network != "mainnet":
+            if self.bitcoind_network == "testnet" and not self.datadir.endswith(
+                "/testnet3"
+            ):
+                self.datadir = os.path.join(self.datadir, "testnet3")
+                write_node(self, self.fullpath)
+            elif self.bitcoind_network == "regtest" and not self.datadir.endswith(
+                "/regtest"
+            ):
+                self.datadir = os.path.join(self.datadir, "regtest")
+                write_node(self, self.fullpath)
+            elif self.bitcoind_network == "signet" and not self.datadir.endswith(
+                "/signet"
+            ):
+                self.datadir = os.path.join(self.datadir, "signet")
+                write_node(self, self.fullpath)
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
@@ -106,7 +122,11 @@ class InternalNode(Node):
     def start(self, timeout=15):
         try:
             self.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(self.datadir),
+                datadir=os.path.expanduser(
+                    os.path.join(
+                        self.datadir, "" if self.bitcoind_network == "mainnet" else ".."
+                    )
+                ),
                 timeout=timeout,  # At the initial startup, we don't wait on bitcoind
             )
         except ExtProcTimeoutException as e:
@@ -134,8 +154,8 @@ class InternalNode(Node):
             if not self._bitcoind:
                 self._bitcoind = BitcoindPlainController(
                     bitcoind_path=self.bitcoind_path,
-                    rpcport=8332,
-                    network="mainnet",
+                    rpcport=self.port,
+                    network=self.bitcoind_network,
                     rpcuser=self.user,
                     rpcpassword=self.password,
                 )

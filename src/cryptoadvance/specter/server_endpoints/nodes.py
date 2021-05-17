@@ -231,7 +231,7 @@ def internal_node_settings(node_alias):
         return redirect("")
     # The node might have been down but is now up again
     # (and the checker did not realized yet) and the user clicked "Configure Node"
-    if node.rpc is None:
+    if node.rpc is None or not node.is_bitcoind_running():
         node.update_rpc()
 
     if request.method == "POST":

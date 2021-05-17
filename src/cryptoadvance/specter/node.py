@@ -237,8 +237,7 @@ class Node:
             except Exception as e:
                 self._info = {"chain": None}
                 self._network_info = {"subversion": "", "version": 999999}
-                logger.error("Exception %s while check_node_info()" % e)
-                pass
+                logger.error("Exception %s while check_info()" % e)
         else:
             self._info = {"chain": None}
             self._network_info = {"subversion": "", "version": 999999}

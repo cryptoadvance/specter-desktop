@@ -7,7 +7,14 @@ logger = logging.getLogger(__name__)
 
 # TODO: redefine __dir__ and help
 
-RPC_PORTS = {"test": 18332, "regtest": 18443, "main": 8332, "signet": 38332}
+RPC_PORTS = {
+    "testnet": 18332,
+    "test": 18332,
+    "regtest": 18443,
+    "main": 8332,
+    "mainnet": 8332,
+    "signet": 38332,
+}
 
 
 def get_default_datadir():
