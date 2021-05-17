@@ -150,9 +150,19 @@ def setup_bitcoind():
 @login_required
 def setup_bitcoind_datadir():
     network = request.form.get("network", "mainnet")
-    # TODO: Set name + number if node name already exists...
+    node_name = (
+        "Specter Bitcoin" if network == "mainnet" else f"Specter {network.title()}"
+    )
+    i = 1
+    while node_name in app.specter.node_manager.nodes:
+        i += 1
+        node_name = (
+            f"Specter Bitcoin {i}"
+            if network == "mainnet"
+            else f"Specter {network.title()} {i}"
+        )
     node = app.specter.node_manager.add_internal_node(
-        "Specter Bitcoin" if network == "mainnet" else f"Specter {network.title()}",
+        node_name,
         network=network,
     )
     if request.form.get("bitcoin_core_datadir", None):

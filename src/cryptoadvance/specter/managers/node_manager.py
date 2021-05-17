@@ -138,6 +138,7 @@ class NodeManager:
         self,
         name,
         network="mainnet",
+        port=None,
         default_alias=None,
     ):
         if not default_alias:
@@ -158,7 +159,7 @@ class NodeManager:
             os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}"),
             "bitcoin",
             secrets.token_urlsafe(16),
-            RPC_PORTS[network] if network in RPC_PORTS else 8332,
+            port if port else (RPC_PORTS[network] if network in RPC_PORTS else 8332),
             "localhost",
             "http",
             fullpath,
