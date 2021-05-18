@@ -231,7 +231,7 @@ class NodeController:
             default_address = rpc.getaddressinfo(default_address)["unconfidential"]
         if balance < amount:
             rpc.generatetoaddress(102, default_address)
-        rpc.sendtoaddress(address, amount)
+        default_rpc.sendtoaddress(address, amount)
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):

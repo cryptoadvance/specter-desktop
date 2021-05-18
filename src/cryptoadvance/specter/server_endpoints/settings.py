@@ -45,19 +45,6 @@ def settings():
     return redirect(url_for("settings_endpoint.general"))
 
 
-@settings_endpoint.route("/bitcoin_core/internal_logs", methods=["GET"])
-@login_required
-def bitcoin_core_internal_logs():
-    logfile_location = os.path.join(
-        app.specter.config["internal_node"]["datadir"], "debug.log"
-    )
-    return render_template(
-        "settings/bitcoin_core_internal_logs.jinja",
-        specter=app.specter,
-        loglines="".join(get_last_lines_from_file(logfile_location)),
-    )
-
-
 @settings_endpoint.route("/general", methods=["GET", "POST"])
 @login_required
 def general():

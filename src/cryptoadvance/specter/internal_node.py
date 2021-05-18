@@ -118,7 +118,7 @@ class InternalNode(Node):
             # Likely files of bitcoind were not found. Maybe deleted by the user?
         finally:
             try:
-                self.bitcoin_pid = self.bitcoind.bitcoind_proc.pid
+                self.bitcoin_pid = self.bitcoind.node_proc.pid
             except Exception as e:
                 logger.error(e)
         return self.update_rpc()

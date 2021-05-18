@@ -154,14 +154,17 @@ class Node:
                 proxy_url=self.proxy_url,
                 only_tor=self.only_tor,
             )
+
+        if rpc == None:
+            return None
         # check if it's liquid
-        try:
-            res = rpc.getblockchaininfo()
-            if is_liquid(res.get("chain")):
-                # convert to LiquidRPC class
-                rpc = LiquidRPC.from_bitcoin_rpc(rpc)
-        except Exception as e:
-            logger.exception(e)
+        # try:
+        #     res = rpc.getblockchaininfo()
+        #     if is_liquid(res.get("chain")):
+        #         # convert to LiquidRPC class
+        #         rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        # except Exception as e:
+        #     return None
         return rpc
 
     def update_rpc(
