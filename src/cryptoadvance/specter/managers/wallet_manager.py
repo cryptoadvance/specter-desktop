@@ -8,12 +8,12 @@ import traceback
 from collections import OrderedDict
 from io import BytesIO
 
-from .helpers import alias, load_jsons
-from .persistence import delete_file, delete_folder
-from .rpc import RpcError, get_default_datadir
-from .specter_error import SpecterError
-from .util.descriptor import AddChecksum
-from .wallet import Wallet
+from ..helpers import alias, load_jsons
+from ..persistence import delete_file, delete_folder
+from ..rpc import RpcError, get_default_datadir
+from ..specter_error import SpecterError
+from ..util.descriptor import AddChecksum
+from ..wallet import Wallet
 
 logger = logging.getLogger()
 

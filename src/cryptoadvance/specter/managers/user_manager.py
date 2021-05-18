@@ -1,8 +1,8 @@
 import os
 import json
 import logging
-from .persistence import read_json_file, write_json_file
-from .user import User, hash_password
+from ..persistence import read_json_file, write_json_file
+from ..user import User, hash_password
 from flask_login import current_user
 
 logger = logging.getLogger(__name__)

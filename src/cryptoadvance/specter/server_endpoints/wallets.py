@@ -37,7 +37,7 @@ from ..util.descriptor import AddChecksum, Descriptor
 from ..util.fee_estimation import get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
-from ..wallet_manager import purposes
+from ..managers.wallet_manager import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
 

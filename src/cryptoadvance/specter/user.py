@@ -6,8 +6,8 @@ import json
 from flask_login import UserMixin
 from .specter_error import SpecterError
 from .persistence import read_json_file, write_json_file, delete_folder
-from .wallet_manager import WalletManager
-from .device_manager import DeviceManager
+from .managers.wallet_manager import WalletManager
+from .managers.device_manager import DeviceManager
 
 
 def hash_password(password):
@@ -90,8 +90,8 @@ class User(UserMixin):
         return user_dict
 
     def check(self):
-        self.check_wallet_manager()
         self.check_device_manager()
+        self.check_wallet_manager()
 
     def check_wallet_manager(self):
         """Updates wallet manager for this user"""
