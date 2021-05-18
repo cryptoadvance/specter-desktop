@@ -9,7 +9,7 @@ import time
 
 import docker
 import pytest
-from cryptoadvance.specter.device_manager import DeviceManager
+from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )

@@ -11,7 +11,7 @@ from .rpc import (
     detect_rpc_confs,
     get_default_datadir,
 )
-from .bitcoind import BitcoindPlainController
+from .process_controller.bitcoind_controller import BitcoindPlainController
 from .persistence import write_node
 from .node import Node
 
