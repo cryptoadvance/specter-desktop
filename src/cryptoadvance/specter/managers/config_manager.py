@@ -182,6 +182,10 @@ class ConfigManager(GenericDataManager):
             self.data["torrc_password"] = secrets.token_urlsafe(16)
             self._save()
             logger.info(f"Generated torrc_password in {self.data_file}")
+        else:
+            logger.info(
+                f"torrc_password in {self.data_file} already set. Skipping generation"
+            )
 
     def update_hwi_bridge_url(self, url, user):
         """update the hwi bridge url to use"""
