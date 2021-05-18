@@ -20,10 +20,6 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
-from .helpers import deep_update, clean_psbt, is_testnet, is_liquid
-from .util.checker import Checker
-from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
-from .process_controller.bitcoind_controller import BitcoindPlainController
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
@@ -34,6 +30,7 @@ from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
 from .persistence import read_json_file, write_json_file, write_node
+from .process_controller.bitcoind_controller import BitcoindPlainController
 from .rpc import (
     BitcoinRPC,
     RpcError,
@@ -43,19 +40,11 @@ from .rpc import (
 )
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
-from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError
-from .rpc import BitcoinRPC
-from .liquid.rpc import LiquidRPC
-from .persistence import write_json_file, read_json_file
 from .user import User
 from .util.checker import Checker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
-from .managers.otp_manager import OtpManager
-from .managers.config_manager import ConfigManager
-from embit.liquid.networks import get_network
 
 logger = logging.getLogger(__name__)
 
@@ -523,8 +512,19 @@ class Specter:
             return get_network("main")
 
     @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
     def is_testnet(self):
         return self.node.is_testnet
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def is_liquid(self):

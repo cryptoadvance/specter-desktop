@@ -3,13 +3,10 @@ import os
 
 import pytest
 from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
-from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.managers.wallet_manager import WalletManager
-
-from conftest import instantiate_bitcoind_controller
 
 
 @pytest.mark.slow

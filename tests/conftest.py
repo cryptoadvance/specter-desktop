@@ -16,8 +16,6 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
 from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
     BitcoindDockerController,
 )
-from cryptoadvance.specter.managers.device_manager import DeviceManager
-from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 
