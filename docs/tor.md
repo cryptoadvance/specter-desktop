@@ -2,13 +2,13 @@
 
 When using Specter Desktop, there might be certain cases where you would want to make calls over the Tor network. The simplest way to setup Tor integration with Specter Desktop is to click on the Get Started button of the welcome page aand follow the setup wizard, which will install and configure Tor for you. You can also access it but going to Settings -> Tor tab, and clicking on Setup Tor.
 
-<img width="956" alt="Screen Shot 2021-04-24 at 10 42 08" src="https://user-images.githubusercontent.com/10667901/115953085-c4bd2f00-a4e9-11eb-8aa0-34e601681852.png">
+<img width="956" alt="Screen Shot 2021-04-24 at 10 42 08" src="../screenshots/get-started-setup.png">
 
-<img width="1043" alt="Screen Shot 2021-04-24 at 10 43 42" src="https://user-images.githubusercontent.com/10667901/115953143-f2a27380-a4e9-11eb-969b-d583d196056f.png">
+<img width="1043" alt="Screen Shot 2021-04-24 at 10 43 42" src="../screenshots/tor-config-setup.png">
 
 These will take you through the one click setup process, just click "Setup Tor" and Specter will take care of installing, configuring and running the Tor daemon.
 
-<img width="732" alt="Screen Shot 2021-04-24 at 10 42 17" src="https://user-images.githubusercontent.com/10667901/115953082-bf5fe480-a4e9-11eb-8f71-7417eb1a2a74.png">
+<img width="732" alt="Screen Shot 2021-04-24 at 10 42 17" src="../screenshots/setup-tor-daemon.png">
 
 ## Running Specter Desktop over a Tor hidden service
 
@@ -22,7 +22,7 @@ Make sure authentication is enabled to avoid access to your Specter by random st
 
 After setting up authentication, running the hidden service to remotely access specter is as easy as going to the Settings -> Tor tab, scrolling to the bottom and clicking the "Start" button under the "Tor Hidden Service" section.
 
-<img width="755" alt="Screen Shot 2021-04-24 at 10 58 30" src="https://user-images.githubusercontent.com/10667901/115953464-02bb5280-a4ec-11eb-8eb5-0f40b78be8cf.png">
+<img width="755" alt="Screen Shot 2021-04-24 at 10 58 30" src="../screenshots/tor-hidden-service.png">
 
 ## Manual Tor configurations
 
