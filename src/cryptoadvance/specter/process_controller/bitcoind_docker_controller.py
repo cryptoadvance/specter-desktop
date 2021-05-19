@@ -207,3 +207,9 @@ class BitcoindDockerController(NodeController):
             i = i + 1
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
+
+    def version(self):
+        """Returns the version of bitcoind, e.g. "v0.19.1" """
+        version = self.get_rpc().getnetworkinfo()["subversion"]
+        version = version.replace("/", "").replace("Satoshi:", "v")
+        return version
