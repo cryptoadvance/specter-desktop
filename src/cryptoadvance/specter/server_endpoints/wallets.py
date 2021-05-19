@@ -1136,6 +1136,11 @@ def set_label(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     address = request.form["address"]
     label = request.form["label"]
+    while label.endswith("\n") or label.endswith("\r"):
+        if label.endswith("\n"):
+            label = label[:-2]
+        if label.endswith("\r"):
+            label = label[:-2]
     wallet.setlabel(address, label)
     return {"success": True}
 
