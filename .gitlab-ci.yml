@@ -12,6 +12,7 @@ cache:
   paths:
     - .cache/pip
     - .env/
+    - ./tests/elements
 
 stages:
   - testing
@@ -24,6 +25,7 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
+  - ./tests/install_bitcoind.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
