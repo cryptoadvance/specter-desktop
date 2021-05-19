@@ -158,13 +158,13 @@ class Node:
         if rpc == None:
             return None
         # check if it's liquid
-        # try:
-        #     res = rpc.getblockchaininfo()
-        #     if is_liquid(res.get("chain")):
-        #         # convert to LiquidRPC class
-        #         rpc = LiquidRPC.from_bitcoin_rpc(rpc)
-        # except Exception as e:
-        #     return None
+        try:
+            res = rpc.getblockchaininfo()
+            if is_liquid(res.get("chain")):
+                # convert to LiquidRPC class
+                rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        except Exception as e:
+            return rpc
         return rpc
 
     def update_rpc(
@@ -263,15 +263,16 @@ class Node:
         to derive what might be wrong with the config
         ToDo: list an example here.
         """
-        if self.rpc is None:
-            return {"out": "", "err": "autodetect failed", "code": -1}
+        rpc = self.get_rpc()
+        if rpc is None:
+            return {"out": "", "err": "Connection to node failed", "code": -1}
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""
         r["code"] = 0
         try:
             r["tests"]["recent_version"] = (
-                int(self.rpc.getnetworkinfo()["version"]) >= 170000
+                int(rpc.getnetworkinfo()["version"]) >= 170000
             )
             if not r["tests"]["recent_version"]:
                 r["err"] = "Core Node might be too old"
@@ -279,14 +280,14 @@ class Node:
             r["tests"]["connectable"] = True
             r["tests"]["credentials"] = True
             try:
-                self.rpc.listwallets()
+                rpc.listwallets()
                 r["tests"]["wallets"] = True
             except RpcError as rpce:
                 logger.error(rpce)
                 r["tests"]["wallets"] = False
                 r["err"] = "Wallets disabled"
 
-            r["out"] = json.dumps(self.rpc.getblockchaininfo(), indent=4)
+            r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
         except ConnectionError as e:
             logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
@@ -297,7 +298,7 @@ class Node:
             logger.error("Caught an RpcError while test_rpc: %s", rpce)
             logger.error(rpce.status_code)
             r["tests"]["connectable"] = True
-            r["code"] = self.rpc.r.status_code
+            r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
                 r["err"] = "RPC authentication failed!"
@@ -310,9 +311,9 @@ class Node:
                 )
             )
             r["out"] = ""
-            if self.rpc.r is not None and "error" in self.rpc.r:
-                r["err"] = self.rpc.r["error"]
-                r["code"] = self.rpc.r.status_code
+            if rpc.r is not None and "error" in rpc.r:
+                r["err"] = rpc.r["error"]
+                r["code"] = rpc.r.status_code
             else:
                 r["err"] = "Failed to connect"
                 r["code"] = -1
