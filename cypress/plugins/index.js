@@ -28,6 +28,7 @@ module.exports = (on, config) => {
       var rimraf = require("rimraf");
       rimraf.sync(specter_home);
       fs.mkdirSync(specter_home);
+      fs.mkdirSync(specter_home+"/nodes");
       fs.mkdirSync(specter_home+"/devices");
       fs.mkdirSync(specter_home+"/wallets");
       return null

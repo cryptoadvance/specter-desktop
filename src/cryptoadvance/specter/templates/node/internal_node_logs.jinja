@@ -9,7 +9,7 @@
 		{{ settings_menu('bitcoin_core', current_user) }}
 	</form>
 	<br><br><br>
-	<a href="{{ url_for('settings_endpoint.bitcoin_core')}}" class="btn centered">Return</a>
+	<a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node_alias) }}" class="btn centered">Return</a>
 	<br><br>
 	<div class="card" style="width:90%; max-width: 1000px;">
 		Bitcoin Logs:

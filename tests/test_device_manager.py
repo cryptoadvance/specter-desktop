@@ -1,8 +1,8 @@
 import os
 from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.device_manager import DeviceManager
-from cryptoadvance.specter.wallet_manager import WalletManager
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 
 def test_DeviceManager(empty_data_folder):

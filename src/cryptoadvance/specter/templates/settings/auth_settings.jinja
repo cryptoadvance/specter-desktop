@@ -12,7 +12,7 @@
 					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
 					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
 					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
-					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.config.rpc.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.node.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
 				</select>
 				<br><br>
 			{% endif %}

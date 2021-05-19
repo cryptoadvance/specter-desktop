@@ -7,9 +7,10 @@ describe('Completely empty specter-home', () => {
     cy.viewport(1200,660)
     cy.visit('/')
     cy.contains('Welcome to Specter Desktop')
+    cy.get('#node-switch-icon').click()
+    cy.get('[href="/nodes/node/default/"]').first().click()
+    cy.contains('Bitcoin Core')
     cy.get('[href="/settings/"] > img').click()
-    cy.contains('Bitcoin JSON-RPC')
-    cy.get('[href="/settings/general"]').click()
     cy.contains('Backup and Restore')
     cy.get('[href="/settings/auth"]').click()
     cy.contains('Authentication:')
@@ -29,7 +30,8 @@ describe('Completely empty specter-home', () => {
   it('Configures the node in Specter', () => {
     cy.viewport(1200,660)
     cy.visit('/')
-    cy.get('[href="/settings/"] > img').click()
+    cy.get('#node-switch-icon').click()
+    cy.get('[href="/nodes/node/default/"]').first().click()
     cy.get('#datadir-container').then(($datadir) => {
       cy.log($datadir)
       if (!Cypress.dom.isVisible($datadir)) {

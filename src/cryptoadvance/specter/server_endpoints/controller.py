@@ -27,6 +27,7 @@ app.register_blueprint(filters_bp)
 # Setup specter endpoints
 from .auth import auth_endpoint
 from .devices import devices_endpoint
+from .nodes import nodes_endpoint
 from .price import price_endpoint
 from .settings import settings_endpoint
 from .setup import setup_endpoint
@@ -35,6 +36,7 @@ from ..rpc import RpcError
 
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
+app.register_blueprint(nodes_endpoint, url_prefix="/nodes")
 app.register_blueprint(price_endpoint, url_prefix="/price")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(setup_endpoint, url_prefix="/setup")
@@ -95,7 +97,12 @@ def server_error_timeout(e):
         "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below",
         "warn",
     )
-    return redirect(url_for("settings_endpoint.bitcoin_core_internal_logs"))
+    return redirect(
+        url_for(
+            "node_settings.bitcoin_core_internal_logs",
+            node_alias=app.specter.node.alias,
+        )
+    )
 
 
 @app.errorhandler(CSRFError)
