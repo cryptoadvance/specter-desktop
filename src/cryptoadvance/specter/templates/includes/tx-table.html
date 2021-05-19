@@ -425,7 +425,7 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'wallet'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet'];
         }
 
         /**
@@ -435,6 +435,7 @@
          * - price: BTC price for price calculations
          * - symbol: Currency symbol for price calculations
          * - type: Transactions list type to load. Either "txlist" or "utxo"
+         * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
@@ -453,6 +454,7 @@
                 this.price != this.getAttribute('price') ||
                 this.symbol != this.getAttribute('symbol') ||
                 this.listType != this.getAttribute('type') ||
+                this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info') ||
                 this.wallet != this.getAttribute('wallet')
             ) {
                 this.blockhash = this.getAttribute('blockhash');
@@ -460,6 +462,7 @@
                 this.price = this.getAttribute('price');
                 this.symbol = this.getAttribute('symbol');
                 this.listType = this.getAttribute('type');
+                this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
                 this.wallet = this.getAttribute('wallet');
                 if (!this.listType) {
                     return
@@ -566,7 +569,8 @@
                             data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"
                             data-show-blockhash="${showBlockhash}"
-                            data-mode="${self.getAttribute('type') + (self.wallet ? "" : "-overview")}">
+                            data-mode="${self.getAttribute('type') + (self.wallet ? "" : "-overview")}"
+                            data-hide-sensitive-info="${self.hideSensitiveInfo}">
                             </tx-row>
                         `)
                         self.tbody.append(txRow);

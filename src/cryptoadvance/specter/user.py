@@ -179,6 +179,10 @@ class User(UserMixin):
         self.config["price_check"] = price_check_bool
         self.save_info()
 
+    def set_hide_sensitive_info(self, hide_sensitive_info_bool):
+        self.config["hide_sensitive_info"] = hide_sensitive_info_bool
+        self.save_info()
+
     def set_price_provider(self, price_provider):
         self.config["price_provider"] = price_provider
         self.save_info()
