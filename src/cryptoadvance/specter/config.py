@@ -56,6 +56,11 @@ class BaseConfig(object):
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_btc_regtest_plain_datadir"
     )
 
+    # only used by cli_node.py, we want to have that static for the same reason
+    ELMD_REGTEST_DATA_DIR = os.getenv(
+        "ELMD_REGTEST_DATA_DIR", "/tmp/specter_elm_regtest_plain_datadir"
+    )
+
     # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
     SPECTER_SSL_CERT_SUBJECT_C = os.getenv("SPECTER_SSL_CERT_SUBJECT_C", "DE")
     SPECTER_SSL_CERT_SUBJECT_ST = os.getenv("SPECTER_SSL_CERT_SUBJECT_ST", "BDW")

@@ -144,6 +144,8 @@ def node_settings(node_alias):
                     flash(f"Test failed: {test['err']}", "error")
                 else:
                     flash("Test passed", "info")
+            elif "err" in test:
+                flash(f"Test failed: {test['err']}", "error")
         elif action == "save":
             if not node_alias:
                 if node.name in app.specter.node_manager.nodes:

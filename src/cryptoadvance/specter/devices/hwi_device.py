@@ -8,8 +8,8 @@ class HWIDevice(Device):
     hwi_support = True
     exportable_to_wallet = False
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        Device.__init__(self, name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        Device.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
         return {"hwi": wallet.fill_psbt(base64_psbt)}

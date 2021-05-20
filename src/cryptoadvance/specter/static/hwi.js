@@ -162,6 +162,18 @@ class HWIBridge {
         });
     }
 
+    async getMasterBlindingKey(device, passphrase="", chain=""){
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.fetch('extract_master_blinding_key', {
+            device_type: device.type,
+            path: device.path,
+            passphrase: device.passphrase,
+            chain: chain,
+        });
+    }
+
 
     async displayAddress(device, descriptor, passphrase=""){
         if(!('passphrase' in device)){

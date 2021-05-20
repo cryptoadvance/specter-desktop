@@ -6,8 +6,13 @@
 </style>
 <div class="network-label">
     {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+    {% from "components/liquid_svg.jinja" import liquid_svg %}
     {% if key.xpub.startswith("xpub") %}
-        {{ bitcoin_svg('main', 16) }}&nbsp;<span>Main</span>
+        {% if "/1776h/" in key.derivation %}
+            {{ liquid_svg('main', 16) }}&nbsp;<span>Liquid</span>
+        {% else %}
+            {{ bitcoin_svg('main', 16) }}&nbsp;<span>Main</span>
+        {% endif %}
     {% else %}
         {{ bitcoin_svg('test', 16) }}&nbsp;<span>Test</span>
     {% endif %}
