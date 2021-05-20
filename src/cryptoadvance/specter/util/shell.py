@@ -37,7 +37,7 @@ def which(program):
             if is_exe(exe_file):
                 logger.debug("Found %s executable in %s" % (program, path))
                 return exe_file
-    raise Exception("Couldn't find executable %s" % program)
+    raise Exception(f"Couldn't find executable {program} cwd={os.getcwd()}")
 
 
 # should work in all python versions

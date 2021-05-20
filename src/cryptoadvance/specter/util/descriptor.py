@@ -1,5 +1,6 @@
 import re
 from embit import bip32, ec, networks, script
+from embit.liquid.networks import get_network
 from cryptoadvance.specter.specter_error import SpecterError
 
 # Based on hwilib by achow101: https://github.com/bitcoin-core/HWI/blob/1.2.1/hwilib/descriptor.py which is from
@@ -358,9 +359,9 @@ class Descriptor:
 
     def address(self, idx=None, network=None):
         if network is None:
-            net = networks.NETWORKS["test" if self.testnet else "main"]
+            net = get_network("test" if self.testnet else "main")
         else:
-            net = networks.NETWORKS[network]
+            net = get_network(network)
         return self.scriptpubkey(idx).address(net)
 
     def serialize(self):

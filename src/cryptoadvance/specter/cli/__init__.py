@@ -1,7 +1,7 @@
 import logging
 import click
 from .cli_server import server
-from .cli_bitcoind import bitcoind
+from .cli_noded import bitcoind, elementsd
 
 logger = logging.getLogger(__name__)
 
@@ -19,3 +19,4 @@ def entry_point(config_home, debug=False):
 
 entry_point.add_command(server)
 entry_point.add_command(bitcoind)
+entry_point.add_command(elementsd)

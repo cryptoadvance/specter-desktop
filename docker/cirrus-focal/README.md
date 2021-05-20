@@ -1,4 +1,4 @@
-An image used to run the build on cirrus.
+An image used to run the build on cirrus (tests only, not cypress-tests).
 
 Create it like this:
 

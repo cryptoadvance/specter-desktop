@@ -73,6 +73,10 @@
 				<button type="button" class="btn centered" onclick="signMessageOnDevice();">Sign message on device</button>
 			</div>
 		{% endif %}
+		{% if specter.is_liquid %}
+			<br>
+			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">Update master blinding key</a>
+		{% endif %}
 		<br>
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">Toggle device passphrase</button>

@@ -1,6 +1,5 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
 {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-{% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
 {% include "includes/sidebar/components/node_select_popup.jinja" %}
 <style>
     #wallets_overview_link {
@@ -46,8 +45,18 @@
         {% if specter.network_info.version < 190000 %}
             <p class="warning"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
         {% endif %}
-        <div id="active-node" onclick="{% if not specter.chain %}window.location.href = `{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}`;{% else %}hidePageOverlay();showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');{% endif %}" class="item core" style="cursor: pointer; position: relative;">
-            {{ bitcoin_svg(specter.info.chain, 40) }}
+            <div 
+                id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" 
+                class="item core" style="cursor: pointer;">
+
+            {% if specter.is_liquid %}
+                {% from "components/liquid_svg.jinja" import liquid_svg %}
+                {{ liquid_svg(specter.info.chain, 40) }}
+            {% else %}
+                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                {{ bitcoin_svg(specter.info.chain, 40) }}
+            {% endif %}
+            {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
             <div>
                 <span style="max-width: 140px;">{{ specter.node.name }}</span>
                 <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
@@ -68,6 +77,7 @@
                     {% endif %}
                 </small>
             </div>
+
         </div>
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
