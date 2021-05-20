@@ -107,6 +107,9 @@ class BitcoindDockerController(NodeController):
                     return
         raise Exception("Ambigious Container running")
 
+    def stop_node(self):
+        self.stop_bitcoind()
+
     def check_existing(self):
         """Checks whether self.btcd_container is up2date and not ambigious"""
         if self.btcd_container != None:

@@ -2,6 +2,9 @@ import logging
 import os
 
 import pytest
+from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
+    BitcoindDockerController,
+)
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -28,7 +31,9 @@ def test_node_running_bitcoin(caplog, docker, request):
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
-        # The NodeController is not available on docker
+        my_bitcoind = BitcoindDockerController(
+            rpcport=18456, docker_tag=requested_version
+        )
         pass
     else:
         my_bitcoind = BitcoindPlainController(
@@ -66,7 +71,7 @@ def test_node_running_elements(caplog, docker, request):
     requested_version = request.config.getoption("--elementsd-version")
     if docker:
         # The NodeController is not available on docker
-        pass
+        return
     else:
         my_elementsd = ElementsPlainController(
             elementsd_path=find_node_executable(node_impl="elements"),
