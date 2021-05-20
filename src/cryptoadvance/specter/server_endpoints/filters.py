@@ -24,6 +24,8 @@ def timedatetime(context, s):
 @contextfilter
 @filters_bp.app_template_filter("btcamount")
 def btcamount(context, value):
+    if value < 0:
+        return "Confidential"
     value = round(float(value), 8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
 

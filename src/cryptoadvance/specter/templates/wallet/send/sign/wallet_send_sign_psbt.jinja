@@ -147,12 +147,12 @@
 									<br>
 								{% endif %}
 							{% endif %}
-							<b>Amount:</b> {{ psbt['inputs'][loop.index0]['witness_utxo']['amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0]['witness_utxo']['amount'] | altunit }})</span>{% endif %}
+							<b>Amount:</b> {{ psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1)|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0].get('witness_utxo', {}).get('amount', -1) | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
-				{% for output in psbt['tx']['vout'] %}
+				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
 					{% set address = output['scriptPubKey']['addresses'][0] %}
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
@@ -397,6 +397,8 @@
 			let url;
 			if ("{{ specter.chain }}" == "main") {
 				url="https://blockstream.info/api/tx";
+			} else if("{{specter.chain}}" == "liquidv1"){
+				url="https://blockstream.info/liquid/api/tx";
 			} else {
 				url="https://blockstream.info/testnet/api/tx";
 			}

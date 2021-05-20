@@ -5,19 +5,19 @@ import logging
 # If this fails, you need to pip install the test-requirements
 import docker
 import os
-from .bitcoind import BitcoindController, Btcd_conn
+from .node_controller import Btcd_conn, NodeController
 import signal
 import time
 
 logger = logging.getLogger(__name__)
 
 
-class BitcoindDockerController(BitcoindController):
+class BitcoindDockerController(NodeController):
     """A class specifically controlling a docker-based bitcoind-container"""
 
     def __init__(self, rpcport=18443, docker_tag="latest"):
         self.btcd_container = None
-        super().__init__(rpcport=rpcport)
+        super().__init__("bitcoin", rpcport=rpcport)
         self.docker_tag = docker_tag
 
         if self.detect_bitcoind_container(rpcport) != None:
@@ -26,13 +26,29 @@ class BitcoindDockerController(BitcoindController):
             btcd_container.stop()
             btcd_container.remove()
 
-    def _start_bitcoind(
+    def start_bitcoind(
+        self,
+        cleanup_at_exit=False,
+        cleanup_hard=False,
+        datadir=None,
+        extra_args=[],
+        timeout=60,
+    ):
+        self.start_node(
+            cleanup_at_exit,
+            cleanup_hard,
+            datadir,
+            extra_args,
+            timeout,
+        )
+
+    def _start_node(
         self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
     ):
         if datadir != None:
             # ignored
             pass
-        bitcoind_path = self.construct_bitcoind_cmd(self.rpcconn, extra_args=extra_args)
+        bitcoind_path = self.construct_node_cmd(self.rpcconn, extra_args=extra_args)
         dclient = docker.from_env()
         logger.debug("Running (in docker): {}".format(bitcoind_path))
         ports = {
@@ -90,6 +106,9 @@ class BitcoindDockerController(BitcoindController):
                     self.btcd_container.remove()
                     return
         raise Exception("Ambigious Container running")
+
+    def stop_node(self):
+        self.stop_bitcoind()
 
     def check_existing(self):
         """Checks whether self.btcd_container is up2date and not ambigious"""
@@ -191,3 +210,9 @@ class BitcoindDockerController(BitcoindController):
             i = i + 1
             if i > 20:
                 raise Exception("Timeout while starting bitcoind-docker-container!")
+
+    def version(self):
+        """Returns the version of bitcoind, e.g. "v0.19.1" """
+        version = self.get_rpc().getnetworkinfo()["subversion"]
+        version = version.replace("/", "").replace("Satoshi:", "v")
+        return version
