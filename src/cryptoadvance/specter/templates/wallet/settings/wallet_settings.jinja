@@ -80,7 +80,7 @@
 	</div>
 	<div class="hidden" id="wallet_export_settings_tab">
 		<h1 style="font-size: 1.7em;">Export Wallet</h1>
-		<div class="card">
+		<div class="card center">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
 				{# check if export_wallet is not None #}
@@ -129,13 +129,16 @@
 			It is recommended that you print and save this wallet backup file with each of your devices.
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
-			<div style="margin: 0 auto;" class="center">
+			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">Advanced &#9654;</span>
+			<br>
+			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
 				<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
 				<label class="switch">
 				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
 			</div>
+			<br>
 			<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
 			<p style="max-width: 500px;" class="note center">
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
@@ -288,6 +291,18 @@
 				for (zpub of zpubs) {
 					zpub.style.display = 'none';
 				}
+			}
+		}
+
+		function togglePDFExportAdvanced() {
+			let advancedButton = document.getElementById(`advanced_pdf_export_toggle`);
+			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
+			if (advancedSettings.classList.contains("hidden")) {
+				advancedSettings.classList.remove("hidden");
+				advancedButton.innerHTML = 'Advanced &#9660;';
+			} else {
+				advancedSettings.classList.add("hidden");
+				advancedButton.innerHTML = 'Advanced &#9654;';
 			}
 		}
 
