@@ -303,10 +303,22 @@ def internal_node_settings(node_alias):
                 )
             except Exception as e:
                 flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
-
+        elif action == "upgrade_bitcoind":
+            if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
+                try:
+                    app.specter.node_manager.update_bitcoind_version(
+                        app.specter, app.config["INTERNAL_BITCOIND_VERSION"]
+                    )
+                except Exception as e:
+                    flash(
+                        f"Failed to upgrade Bitcoin Core version, error: {e}", "error"
+                    )
+            else:
+                flash("Bitcoin Core version is already up to date")
     return render_template(
         "node/internal_node_settings.jinja",
         node=node,
+        latest_bitcoind=app.config["INTERNAL_BITCOIND_VERSION"],
         node_alias=node_alias,
         specter=app.specter,
         rand=rand,
