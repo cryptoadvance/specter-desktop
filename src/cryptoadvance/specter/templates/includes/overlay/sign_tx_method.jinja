@@ -62,8 +62,13 @@
         {% endif %}
         {% if device.hot_wallet %}
             <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+                {% if device.device_type == "bitcoincore" %}
+                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                    {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+                {% else %}
+                    {% from "components/liquid_svg.jinja" import liquid_svg %}
+                    {{ liquid_svg(chain, 16) }} Sign with Elements Core
+                {% endif %}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
