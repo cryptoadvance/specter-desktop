@@ -45,7 +45,6 @@ test:
    - pip3 install -r test_requirements.txt
    # pytest --docker not working? Uncomment this for better debugging:
    # - python3 tests/conftest.py 
-   - docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
    - py.test --cov-report term --cov cryptoadvance --docker
 
 test-cypress:
