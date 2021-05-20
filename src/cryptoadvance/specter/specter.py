@@ -2,41 +2,49 @@ import copy
 import json
 import logging
 import os
-import traceback
-import random
-import time
-import zipfile
 import platform
+import random
 import secrets
-import requests
 import signal
-from io import BytesIO
-from .helpers import deep_update, clean_psbt, is_testnet
-from .util.checker import Checker
-from .rpc import autodetect_rpc_confs, detect_rpc_confs, get_default_datadir, RpcError
-from .bitcoind import BitcoindPlainController
-from .tor_daemon import TorDaemonController
-from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError
-from .rpc import BitcoinRPC
-from .managers.device_manager import DeviceManager
-from .managers.wallet_manager import WalletManager
-from .managers.user_manager import UserManager
-from .managers.otp_manager import OtpManager
-from .managers.config_manager import ConfigManager
-from .persistence import write_json_file, read_json_file, write_node
-from .user import User
-from .util.price_providers import update_price
-from .util.tor import get_tor_daemon_suffix
 import threading
-from urllib.parse import urlparse
-from stem.control import Controller
-from .specter_error import SpecterError, ExtProcTimeoutException
+import time
+import traceback
+import zipfile
+from io import BytesIO
 from sys import exit
-from .util.setup_states import SETUP_STATES
-from .node import Node
+from urllib.parse import urlparse
+
+import requests
+from embit.liquid.networks import get_network
+from requests.exceptions import ConnectionError
+from stem.control import Controller
+from urllib3.exceptions import NewConnectionError
+
+from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
+from .liquid.rpc import LiquidRPC
+from .managers.config_manager import ConfigManager
 from .managers.node_manager import NodeManager
+from .managers.otp_manager import OtpManager
+from .managers.user_manager import UserManager
+from .managers.wallet_manager import WalletManager
+from .node import Node
+from .persistence import read_json_file, write_json_file, write_node
+from .process_controller.bitcoind_controller import BitcoindPlainController
+from .rpc import (
+    BitcoinRPC,
+    RpcError,
+    autodetect_rpc_confs,
+    detect_rpc_confs,
+    get_default_datadir,
+)
+from .specter_error import ExtProcTimeoutException, SpecterError
+from .tor_daemon import TorDaemonController
+from .user import User
+from .util.checker import Checker
+from .util.price_providers import update_price
+from .util.setup_states import SETUP_STATES
+from .util.tor import get_tor_daemon_suffix
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +113,6 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        ################################################################################
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
@@ -184,6 +191,55 @@ class Specter:
     def config(self):
         """A convenience property simply redirecting to the config_manager"""
         return self.config_manager.data
+
+    def check_node_info(self):
+        self._is_configured = self.rpc is not None
+        self._is_running = False
+        if self._is_configured:
+            try:
+                res = [
+                    r["result"]
+                    for r in self.rpc.multi(
+                        [
+                            ("getblockchaininfo", None),
+                            ("getnetworkinfo", None),
+                            ("getmempoolinfo", None),
+                            ("uptime", None),
+                            ("getblockhash", 0),
+                            ("scantxoutset", "status", []),
+                        ]
+                    )
+                ]
+                self._info = res[0]
+                self._network_info = res[1]
+                self._info["mempool_info"] = res[2]
+                self._info["uptime"] = res[3]
+                try:
+                    self.rpc.getblockfilter(res[4])
+                    self._info["blockfilterindex"] = True
+                except:
+                    self._info["blockfilterindex"] = False
+                self._info["utxorescan"] = (
+                    res[5]["progress"]
+                    if res[5] is not None and "progress" in res[5]
+                    else None
+                )
+                if self._info["utxorescan"] is None:
+                    self.utxorescanwallet = None
+                self._network_parameters = get_network(self.chain)
+                self._is_running = True
+            except Exception as e:
+                self._info = {"chain": None}
+                self._network_info = {"subversion": "", "version": 999999}
+                self._network_parameters = get_network("main")
+                logger.error("Exception %s while specter.check()" % e)
+                pass
+        else:
+            self._info = {"chain": None}
+            self._network_info = {"subversion": "", "version": 999999}
+
+        if not self._is_running:
+            self._info["chain"] = None
 
     def check_blockheight(self):
         if self.node.check_blockheight():
@@ -442,8 +498,41 @@ class Specter:
         return self.node.chain
 
     @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
     def is_testnet(self):
         return self.node.is_testnet
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def user_config(self):

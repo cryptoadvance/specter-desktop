@@ -27,6 +27,7 @@ def test_specter(specter_regtest_configured, caplog):
     assert json_return["chain"] == "regtest"
 
 
+@pytest.mark.slow
 def test_abandon_purged_tx(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
