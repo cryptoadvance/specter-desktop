@@ -197,4 +197,29 @@
         hidePageOverlay();
         return result;
     }
+
+    async function getMasterBlindingKey(device, passphrase="", chain=""){
+        // detect device
+        showHWIProgress("Extracting master blinding key...", 
+            `Please confirm action on your ${capitalize(device.type)} device.`);
+        let result = [];
+        try {
+            result = await hwi.getMasterBlindingKey(device, passphrase, chain);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        if(!overlayIsActive()){
+            // showNotification("HWI is ready again", 3000);
+            // no need to proceed at all
+            return null;
+        }
+        hidePageOverlay();
+        return result;
+    }
+
+    // TODO: remove, legacy
+    function onCancelOverlay(){
+
+    }
 </script>

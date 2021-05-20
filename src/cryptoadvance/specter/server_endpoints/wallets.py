@@ -306,6 +306,15 @@ def new_wallet(wallet_type):
                 app.specter.device_manager.get_by_alias(alias)
                 for alias in request.form.getlist("devices")
             ]
+
+            if not cosigners:
+                return render_template(
+                    "wallet/new_wallet/new_wallet.jinja",
+                    wallet_type=wallet_type,
+                    error="No device was selected. Please select a device to create the wallet for.",
+                    specter=app.specter,
+                    rand=rand,
+                )
             devices = get_devices_with_keys_by_type(app, cosigners, wallet_type)
             for device in devices:
                 if len(device.keys) == 0:
@@ -713,7 +722,7 @@ def send_new(wallet_alias):
                 flash("Failed to perform RBF. Error: %s" % e, "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
-            psbt = ast.literal_eval(request.form["psbt"])
+            psbt = json.loads(request.form["psbt"])
             b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
@@ -797,13 +806,13 @@ def send_pending(wallet_alias):
         if action == "deletepsbt":
             try:
                 wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
+                    json.loads(request.form["pending_psbt"])["tx"]["txid"]
                 )
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
                 flash("Could not delete Pending PSBT!", "error")
         elif action == "openpsbt":
-            psbt = ast.literal_eval(request.form["pending_psbt"])
+            psbt = json.loads(request.form["pending_psbt"])
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 psbt=psbt,
@@ -1003,7 +1012,7 @@ def combine(wallet_alias):
         psbts[i] = psbt
         # psbt should start with cHNi
         # if not - maybe finalized hex tx
-        if not psbt.startswith("cHNi"):
+        if not psbt.startswith("cHNi") and not psbt.startswith("cHNl"):
             raw["hex"] = psbt
             combined = psbts[1 - i]
             # check it's hex
@@ -1081,10 +1090,17 @@ def decoderawtx(wallet_alias):
                         f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
                     )
 
+            if wallet.data_source == "rpc":
+                # From RPC
+                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
+            else:
+                # From CSV
+                rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+
             return {
                 "success": True,
                 "tx": tx,
-                "rawtx": decoderawtransaction(tx["hex"], app.specter.chain),
+                "rawtx": rawtx,
                 "walletName": wallet.name,
             }
     except Exception as e:
@@ -1418,7 +1434,7 @@ def wallet_overview_txs_csv():
     try:
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
         txlist = app.specter.wallet_manager.full_txlist(
-            validate_merkle_proofs=validate_merkle_proofs
+            validate_merkle_proofs=validate_merkle_proofs,
         )
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
