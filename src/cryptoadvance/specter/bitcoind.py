@@ -333,6 +333,12 @@ class BitcoindPlainController(BitcoindController):
             signal.signal(signal.SIGTERM, self.cleanup_bitcoind)
 
     def cleanup_bitcoind(self, cleanup_hard=None, datadir=None):
+        if not hasattr(self, "bitcoind_proc"):
+            logger.info("bitcoind process was not running")
+            if cleanup_hard:
+                logger.info(f"Removing bitcoind datadir: {datadir}")
+                shutil.rmtree(datadir, ignore_errors=True)
+            return
         timeout = 50  # in secs
         if cleanup_hard:
             self.bitcoind_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
