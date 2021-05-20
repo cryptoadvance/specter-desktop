@@ -14,7 +14,7 @@ if platform.system() == 'Windows':
     binaries = [("./windll/libusb-1.0.dll", ".")]
     packaged_software_datas = [
         ('./torbrowser/tor-win64-0.4.5.7.zip', 'torbrowser'),
-        ('./bitcoind/bitcoin-0.21.0-win64.zip', 'bitcoind'),
+        ('./bitcoind/bitcoin-0.21.1-win64.zip', 'bitcoind'),
     ]
 elif platform.system() == 'Linux':
     if platform.processor() == 'aarch64': #ARM 64 bit
@@ -33,8 +33,8 @@ elif platform.system() == 'Linux':
                 break
     packaged_software_datas = [
         ('./torbrowser/tor-browser-linux64-10.0.15_en-US.tar.xz', 'torbrowser'),
-        ('./bitcoind/bitcoin-0.21.0-x86_64-linux-gnu.tar.gz', 'bitcoind'),
-        ('./bitcoind/bitcoin-0.21.0-arm-linux-gnueabihf.tar.gz', 'bitcoind'),
+        ('./bitcoind/bitcoin-0.21.1-x86_64-linux-gnu.tar.gz', 'bitcoind'),
+        ('./bitcoind/bitcoin-0.21.1-arm-linux-gnueabihf.tar.gz', 'bitcoind'),
     ]
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
@@ -42,7 +42,7 @@ elif platform.system() == 'Darwin':
     binaries = [(libusb_path.rstrip().decode() + "/lib/libusb-1.0.dylib", ".")]
     packaged_software_datas = [
         ('./torbrowser/TorBrowser-10.0.15-osx64_en-US.dmg', 'torbrowser'),
-        ('./bitcoind/bitcoin-0.21.0-osx64.tar.gz', 'bitcoind'),
+        ('./bitcoind/bitcoin-0.21.1-osx64.tar.gz', 'bitcoind'),
     ]
 
 a = Analysis(['specterd.py'],
