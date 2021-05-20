@@ -20,20 +20,24 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
-from .bitcoind import BitcoindPlainController
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
-from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
 from .persistence import read_json_file, write_json_file, write_node
-from .rpc import (BitcoinRPC, RpcError, autodetect_rpc_confs, detect_rpc_confs,
-                  get_default_datadir)
+from .process_controller.bitcoind_controller import BitcoindPlainController
+from .rpc import (
+    BitcoinRPC,
+    RpcError,
+    autodetect_rpc_confs,
+    detect_rpc_confs,
+    get_default_datadir,
+)
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -109,7 +113,6 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        ################################################################################
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         self.checker.start()
@@ -502,8 +505,30 @@ class Specter:
             return get_network("main")
 
     @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
+
+    @property
     def is_testnet(self):
         return self.node.is_testnet
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def is_liquid(self):
