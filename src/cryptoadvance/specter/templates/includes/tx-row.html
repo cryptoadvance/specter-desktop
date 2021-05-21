@@ -68,6 +68,7 @@
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
             this.mode = this.getAttribute('data-mode');
+            this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             // Set category image
             this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
@@ -82,15 +83,17 @@
 
 
             // Set txid
-            this.txid.innerText = this.tx.txid;
-            this.txid.onclick = () => {
-                showTxData(
-                    this.btcUnit,
-                    this.price,
-                    this.symbol,
-                    this.tx.txid,
-                    this.wallet
-                );
+            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid;
+            if (!this.hideSensitiveInfo) {
+                this.txid.onclick = () => {
+                    showTxData(
+                        this.btcUnit,
+                        this.price,
+                        this.symbol,
+                        this.tx.txid,
+                        this.wallet
+                    );
+                }
             }
 
             if (window.innerWidth < 690) {
@@ -107,9 +110,9 @@
 
             // Set address-label
             if (Array.isArray(this.tx.address)) {
-                this.address.innerText = `${this.tx.address.length} Recipients`;
+                this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} Recipients`;
             } else {
-                this.address.innerHTML = `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+                this.address.innerHTML = this.hideSensitiveInfo ? '#########' : `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
             }
             
             // Set amount
@@ -119,7 +122,7 @@
                 this.amount = parseFloat(this.tx.amount.toFixed(8));
             }
 
-            if (!this.price || !this.symbol) {
+            if (!this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -135,14 +138,14 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = `${numberWithCommas(this.amount.toString())}`;
+            this.amountText.innerText = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
 
             // Set confirmations
             if (this.tx.confirmations > 0) {
-                this.confirmations.innerHTML = `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;
             } else {
                 this.el.classList.add('unconfirmed');
-                this.confirmations.innerHTML = `Unconfirmed`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `Unconfirmed`;
             }
 
             if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes") {
@@ -192,7 +195,7 @@
             }
             
             // Set time
-            this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+            this.time.innerText = this.hideSensitiveInfo ? '###########' : (new Date(this.tx.time * 1000)).toLocaleString()
 
             // Show blockhash
             if (this.showBlockhash) {
@@ -202,7 +205,7 @@
                     this.tx.validated_blockhash &&
                     this.tx.validated_blockhash == this.tx.blockhash
                 ) {
-                    this.blockhash.innerHTML = `
+                    this.blockhash.innerHTML = this.hideSensitiveInfo ? '############################################' : `
                     <explorer-link style="word-break: break-all;" data-type="block" data-value="${this.tx.blockhash}"></explorer-link><br>
                     `;
                 }

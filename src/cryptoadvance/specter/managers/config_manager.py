@@ -61,6 +61,7 @@ class ConfigManager(GenericDataManager):
             "validate_merkle_proofs": False,
             "fee_estimator": "mempool",
             "fee_estimator_custom_url": "",
+            "hide_sensitive_info": False,
             # TODO: remove
             "bitcoind": False,
         }
@@ -234,6 +235,15 @@ class ConfigManager(GenericDataManager):
         #    self.price_checker.start()
         # else:
         #    self.price_checker.stop()
+
+    def update_hide_sensitive_info(self, hide_sensitive_info_bool, user):
+        if isinstance(user, str):
+            raise Exception("Please pass a real user, not a string-user")
+        if user.is_admin:
+            self.data["hide_sensitive_info"] = hide_sensitive_info_bool
+            self._save()
+        else:
+            user.set_hide_sensitive_info(hide_sensitive_info_bool)
 
     def update_price_provider(self, price_provider, user):
         if isinstance(user, str):
