@@ -3,7 +3,7 @@
 {% block setup %}
     <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg(network, 60) }}<br>
     <br>Configure your node</h1>
-    <p id="quicksync-option" {% if network != 'mainnet' %}class="hidden"{% endif %}>QuickSync?&nbsp;&nbsp;
+    <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>QuickSync?&nbsp;&nbsp;
         <label class="switch" id="quicksync-switch">
             <input type="checkbox" name="quicksync" id="quicksync" onchange="toggleNodeTypeSelect()" checked>
             <span class="slider"></span>
@@ -14,15 +14,15 @@
             Later blocks will be normally validated like with a regular full node.
         </tool-tip>
     </p>
-    <div {% if network == 'mainnet' %}class="hidden"{% endif %} id="select-node-type-div">
+    <div {% if network == 'main' %}class="hidden"{% endif %} id="select-node-type-div">
         <br>
         <h1>Select node type:</h1>
         <div class="row">
             <label style="position: relative;">
-                <input type="radio" name="node-type" id="node-type-archival" class="hidden" value="archival" {% if network != 'mainnet' %}checked{% endif %}>
+                <input type="radio" name="node-type" id="node-type-archival" class="hidden" value="archival" {% if network != 'main' %}checked{% endif %}>
                 <div class="small-card radio">
                     <span style="font-size: 1.2em; font-weight: bold;">Archival Node</span><br>
-                    {% if network == 'mainnet' %}
+                    {% if network == 'main' %}
                     Requires about 400GB of available storage
                     {% elif network == 'testnet' %}
                     Requires about 30GB of available storage<br><br>
@@ -32,10 +32,10 @@
                 </div>
             </label>
             <label style="position: relative;">
-                <input type="radio" name="node-type" class="hidden" value="pruned" {% if network == 'mainnet' %}checked{% endif %}>
+                <input type="radio" name="node-type" class="hidden" value="pruned" {% if network == 'main' %}checked{% endif %}>
                 <div class="small-card radio">
                     <span style="font-size: 1.2em; font-weight: bold;">Pruned Node</span><br>
-                    {% if network == 'mainnet' %}
+                    {% if network == 'main' %}
                     Requires about 10GB of available storage<br><br>
                     {% elif network == 'testnet' %}
                     Requires about 3GB of available storage<br><br>
@@ -92,7 +92,7 @@
     <div id="switch-network-popup" class="hidden" style="margin: auto;">
         <h1> Select Network to setup </h1>
         <div class="row overflow">
-            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='mainnet') }}" style="color: #fff; text-decoration: none;">
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='main') }}" style="color: #fff; text-decoration: none;">
                 <div class="small-card radio" style="min-width: 150px;">
                     {{ bitcoin_svg('main', 40) }}
                     <br>
@@ -146,7 +146,7 @@
             let url = "{{ url_for('setup_endpoint.setup_bitcoind_datadir') }}"
             var formData = new FormData();
             formData.append('csrf_token', '{{ csrf_token() }}');
-            formData.append('quicksync', network == 'mainnet' ? document.getElementById('quicksync').checked : false);
+            formData.append('quicksync', network == 'main' ? document.getElementById('quicksync').checked : false);
             formData.append('nodetype', document.getElementById('node-type-archival').checked ? 'archival' : 'pruned');
             // Advanced settings
             formData.append('network', network);

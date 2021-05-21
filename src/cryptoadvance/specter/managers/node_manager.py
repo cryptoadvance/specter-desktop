@@ -137,7 +137,7 @@ class NodeManager:
     def add_internal_node(
         self,
         name,
-        network="mainnet",
+        network="main",
         port=None,
         default_alias=None,
     ):

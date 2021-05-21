@@ -60,7 +60,7 @@ class InternalNode(Node):
         self._bitcoind = None
         self.bitcoin_pid = False
         self.version = version
-        if self.bitcoind_network != "mainnet":
+        if self.bitcoind_network != "main":
             if self.bitcoind_network == "testnet" and not self.datadir.endswith(
                 "/testnet3"
             ):
@@ -91,7 +91,7 @@ class InternalNode(Node):
         external_node = node_dict.get("external_node", True)
         fullpath = node_dict.get("fullpath", default_fullpath)
         bitcoind_path = node_dict.get("bitcoind_path", "")
-        bitcoind_network = node_dict.get("bitcoind_network", "mainnet")
+        bitcoind_network = node_dict.get("bitcoind_network", "main")
         version = node_dict.get("version", "")
 
         return cls(
@@ -122,11 +122,7 @@ class InternalNode(Node):
     def start(self, timeout=15):
         try:
             self.bitcoind.start_bitcoind(
-                datadir=os.path.expanduser(
-                    os.path.join(
-                        self.datadir, "" if self.bitcoind_network == "mainnet" else ".."
-                    )
-                ),
+                datadir=os.path.expanduser(self.datadir),
                 timeout=timeout,  # At the initial startup, we don't wait on bitcoind
             )
         except ExtProcTimeoutException as e:

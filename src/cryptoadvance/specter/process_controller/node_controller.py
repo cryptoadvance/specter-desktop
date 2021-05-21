@@ -147,7 +147,7 @@ class NodeController:
             logger.info("Creating Default-wallet")
             self.get_rpc().createwallet("", False, False, "", False, True, True)
 
-        if self.is_testnet():
+        if self.network == "regtest":
             logger.debug(f"Mining 100 blocks (network: {self.network})")
             self.mine(block_count=100)
 
@@ -300,7 +300,7 @@ class NodeController:
     ):
         """returns a command to run your node (bitcoind/elementsd)"""
         btcd_cmd = '"{}" '.format(node_path)
-        if network != "mainnet":
+        if network != "mainnet" and network != "main":
             btcd_cmd += " -{} ".format(network)
         btcd_cmd += " -fallbackfee=0.0002 "
         btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(
@@ -391,8 +391,16 @@ class NodePlainController(NodeController):
             signal.signal(signal.SIGTERM, cleanup_node)
 
     def get_debug_log(self):
-        logfile_location = os.path.join(self.datadir, self.network, "debug.log")
-        return "".join(get_last_lines_from_file(logfile_location))
+        try:
+            logfile_location = os.path.join(
+                self.datadir,
+                self.network if self.network != "testnet" else "testnet3",
+                "debug.log",
+            )
+            return "".join(get_last_lines_from_file(logfile_location))
+        except Exception as e:
+            logger.exception(f"Failed to get debug logs. Error: {e}")
+            return ""
 
     def cleanup_node(self, cleanup_hard=None, datadir=None):
         if not hasattr(self, "node_proc"):

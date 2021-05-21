@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+from embit.liquid.networks import get_network
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -245,10 +246,12 @@ class Node:
                 )
                 if self._info["utxorescan"] is None:
                     self.utxorescanwallet = None
+                self._network_parameters = get_network(self.chain)
                 self._is_running = True
             except Exception as e:
                 self._info = {"chain": None}
                 self._network_info = {"subversion": "", "version": 999999}
+                self._network_parameters = get_network("main")
                 logger.error("Exception %s while check_info()" % e)
         else:
             self._info = {"chain": None}
@@ -344,6 +347,13 @@ class Node:
     @property
     def network_info(self):
         return self._network_info
+
+    @property
+    def network_parameters(self):
+        try:
+            return self._network_parameters
+        except Exception:
+            return get_network("main")
 
     @property
     def bitcoin_core_version(self):

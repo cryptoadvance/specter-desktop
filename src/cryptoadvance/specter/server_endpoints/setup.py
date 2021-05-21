@@ -77,7 +77,7 @@ def bitcoind():
 
 
 @setup_endpoint.route(
-    "/bitcoind_datadir/", defaults={"network": "mainnet"}, methods=["GET"]
+    "/bitcoind_datadir/", defaults={"network": "main"}, methods=["GET"]
 )
 @setup_endpoint.route("/bitcoind_datadir/<network>", methods=["GET"])
 @login_required
@@ -149,16 +149,14 @@ def setup_bitcoind():
 @setup_endpoint.route("/setup_bitcoind_datadir", methods=["POST"])
 @login_required
 def setup_bitcoind_datadir():
-    network = request.form.get("network", "mainnet")
-    node_name = (
-        "Specter Bitcoin" if network == "mainnet" else f"Specter {network.title()}"
-    )
+    network = request.form.get("network", "main")
+    node_name = "Specter Bitcoin" if network == "main" else f"Specter {network.title()}"
     i = 1
     while node_name in app.specter.node_manager.nodes:
         i += 1
         node_name = (
             f"Specter Bitcoin {i}"
-            if network == "mainnet"
+            if network == "main"
             else f"Specter {network.title()} {i}"
         )
     node = app.specter.node_manager.add_internal_node(
