@@ -33,8 +33,7 @@ elif platform.system() == 'Linux':
                 break
     packaged_software_datas = [
         ('./torbrowser/tor-browser-linux64-10.0.15_en-US.tar.xz', 'torbrowser'),
-        ('./bitcoind/bitcoin-0.21.1-x86_64-linux-gnu.tar.gz', 'bitcoind'),
-        ('./bitcoind/bitcoin-0.21.1-arm-linux-gnueabihf.tar.gz', 'bitcoind'),
+        ('./bitcoind/bitcoin-0.21.1' + ('-arm-linux-gnueabihf.tar.gz' if "armv" in platform.machine() else '-x86_64-linux-gnu.tar.gz'), 'bitcoind')
     ]
 elif platform.system() == 'Darwin':
     find_brew_libusb_proc = subprocess.Popen(['brew', '--prefix', 'libusb'], stdout=subprocess.PIPE)
