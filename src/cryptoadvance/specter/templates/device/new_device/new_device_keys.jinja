@@ -57,7 +57,7 @@
                     </p>
                     <span class="note">
                     To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:<br>
-                    To get the single sig xpubs, go to: Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, select acount number (default is 0) and confirm the export.<br>
+                    To get the single sig xpubs, go to: Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, select account number (default is 0) and confirm the export.<br>
                     To get the multisig xpubs, go to: Settings -> Multisig Wallets -> Export XPUB and confirm the export.
                     </span>
                 </div>
@@ -396,7 +396,7 @@
                                 } else if (("bip84" in json) && ("xfp" in json)){
                                 // coldcard generic file
                                     let s = "";
-                                    ["bip44","bip49","bip84"].forEach((bip)=>{
+                                    ["bip44","bip49","bip84","bip48_1","bip48_2"].forEach((bip)=>{
                                         if(bip in json){
                                             let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
                                             let xpub = json[bip].xpub;
@@ -445,14 +445,14 @@
                 // cobo uses json format
                 if(result.includes("{")){
                     let obj = JSON.parse(result);
-                    if( ("ExtPubKey" in obj) && 
+                    if(("ExtPubKey" in obj) && 
                         ("AccountKeyPath" in obj) && 
                         ("MasterFingerprint" in obj)){
                         console.log(obj);
                         let path = obj.AccountKeyPath.replace(/'/g,'h');
                         let str = `[${obj.MasterFingerprint}/${path}]${obj.ExtPubKey}`;
                         addXpubs(str);
-                    }else if( ("xfp" in obj) &&
+                    } else if( ("xfp" in obj) &&
                             ("xpub" in obj) &&
                             ("path" in obj)){
                         console.log(obj);

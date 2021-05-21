@@ -238,6 +238,21 @@ def get_scantxoutset_status():
     }
 
 
+@app.route("/toggle_hide_sensitive_info/", methods=["POST"])
+@login_required
+def toggle_hide_sensitive_info():
+    try:
+        app.specter.update_hide_sensitive_info(
+            not app.specter.hide_sensitive_info, current_user
+        )
+        return {"success": True}
+    except Exception as e:
+        app.logger.warning(
+            "Failed to update sensitive info display settings. Exception: {}".format(e)
+        )
+    return {"success": False}
+
+
 @app.route("/bitcoin.pdf")
 @login_required
 def get_whitepaper():

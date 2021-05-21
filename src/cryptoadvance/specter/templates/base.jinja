@@ -28,6 +28,9 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
+					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
+						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>
+					</a>
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" style="padding: 0px 7px;">
 						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
@@ -217,6 +220,40 @@
 		</main>
 	</div>
 	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+	<script>
+		async function toggleHideSensitiveInfo(showPrice) {
+            if (showPrice) {
+                showNotification('Hiding sensitive info...', 0)
+            } else {
+                showNotification('Showing sensitive info...', 0)
+            }
+            let url = `{{ url_for('toggle_hide_sensitive_info') }}`;
+            var formData = new FormData();
+			formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if (jsonResponse.success) {
+                    location.reload();
+                    return
+                };
+                showError('Failed to toggle sensitive info mode...')
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+            }
+        }
+	</script>
 	{% block scripts %}
 	{% endblock %}
 	</body>
