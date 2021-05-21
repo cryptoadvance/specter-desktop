@@ -376,6 +376,10 @@ class Specter:
         self.config_manager.update_unit(unit, user)
 
     # mark
+    def update_hide_sensitive_info(self, hide_sensitive_info_bool, user):
+        self.config_manager.update_hide_sensitive_info(hide_sensitive_info_bool, user)
+
+    # mark
     def update_price_check_setting(self, price_check_bool, user):
         self.config_manager.update_price_check_setting(price_check_bool, user)
 
@@ -556,6 +560,10 @@ class Specter:
         if not hasattr(self, "_otp_manager"):
             self._otp_manager = OtpManager(self.data_folder)
         return self._otp_manager
+
+    @property
+    def hide_sensitive_info(self):
+        return self.user_config.get("hide_sensitive_info", False)
 
     def requests_session(self, force_tor=False):
         requests_session = requests.Session()

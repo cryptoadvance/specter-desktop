@@ -358,7 +358,7 @@
         }
 
         static get observedAttributes() {
-            return ['type', 'wallet', 'btc-unit', 'price', 'symbol'];
+            return ['type', 'wallet', 'btc-unit', 'price', 'symbol', 'hide-sensitive-info'];
         }
 
         /**
@@ -367,6 +367,7 @@
          * - price: BTC price for price calculations
          * - symbol: Currency symbol for price calculations
          * - type: Addresses list type to load. Either "receive" or "change"
+         * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
@@ -376,13 +377,15 @@
                 this.wallet != this.getAttribute('wallet') ||
                 this.btcUnit != this.getAttribute('btc-unit') ||
                 this.price != this.getAttribute('price') ||
-                this.symbol != this.getAttribute('symbol')
+                this.symbol != this.getAttribute('symbol') ||
+                this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info')
             ) {
                 this.listType = this.getAttribute('type');
                 this.wallet = this.getAttribute('wallet');
                 this.btcUnit = this.getAttribute('btc-unit');
                 this.price = this.getAttribute('price');
                 this.symbol = this.getAttribute('symbol');
+                this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
 
                 if (!this.listType) {
                     return
@@ -462,6 +465,7 @@
                             data-price="${self.price ? self.price : 0}"
                             data-symbol="${self.symbol ? self.symbol : ''}"
                             data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                            data-hide-sensitive-info="${self.hideSensitiveInfo}"
                             data-wallet="${self.wallet}"> 
                         </<address-row>`);
 
