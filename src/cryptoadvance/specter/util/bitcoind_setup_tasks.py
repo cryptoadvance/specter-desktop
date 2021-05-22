@@ -1,5 +1,5 @@
 import os, time, requests, secrets, platform, tarfile, zipfile, sys, shutil
-from ..bitcoind import BitcoindPlainController
+from ..process_controller.bitcoind_controller import BitcoindPlainController
 import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum

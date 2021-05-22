@@ -9,6 +9,7 @@
 {# === wallet specific stuff ==== #}
 {% include 'includes/hwi/components/wallet.jinja' %}
 
+
 <div id="hwi_progress" class="hidden" style="width: 270px;">
     <h1 id="hwi_progress_title">Processing...</h1>
     <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
@@ -21,6 +22,16 @@
         </a>
     </div>
     <br>
+</div>
+
+<div class="flex-column hidden" id="coldcard_warning">
+    <p> Do you really want to use your Coldcard over USB (no airgap)? </p>
+    <div class="flex-center">
+        <button onclick="coldCardNotice()" class="btn flex-center"> Yes, I am living on the edge! </button>
+    </div> <br>
+    <div class="flex-center">
+        <button onclick = "goToCoinkite()" class="btn flex-center"> No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info. </button>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -53,7 +64,22 @@
         }
     }
 
+    var coldcardUsb = 0;
+    function coldCardNotice(){
+        coldcardUsb = 1;
+        cancelOverlay();
+    }
+
+    function goToCoinkite(){
+        parent.open("https://blog.coinkite.com/address-explorer/");
+        cancelOverlay();
+    }
+
     async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
+        // special handling of coldcard 
+        if (deviceTypes == 'coldcard' && coldcardUsb == 0) {
+             document.getElementById("page_overlay_popup_content").appendChild(document.getElementById("coldcard_warning"));
+                }
         // detect device
         if (devicePath == null) {
             showHWIProgress("Detecting...", "Plug in your device");
@@ -170,5 +196,30 @@
         }
         hidePageOverlay();
         return result;
+    }
+
+    async function getMasterBlindingKey(device, passphrase="", chain=""){
+        // detect device
+        showHWIProgress("Extracting master blinding key...", 
+            `Please confirm action on your ${capitalize(device.type)} device.`);
+        let result = [];
+        try {
+            result = await hwi.getMasterBlindingKey(device, passphrase, chain);
+        } catch (error) {
+            handleHWIError(error);
+            return null;
+        }
+        if(!overlayIsActive()){
+            // showNotification("HWI is ready again", 3000);
+            // no need to proceed at all
+            return null;
+        }
+        hidePageOverlay();
+        return result;
+    }
+
+    // TODO: remove, legacy
+    function onCancelOverlay(){
+
     }
 </script>

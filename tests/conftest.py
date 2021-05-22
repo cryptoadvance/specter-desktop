@@ -7,15 +7,17 @@ import subprocess
 import tempfile
 import time
 
-import pytest
 import docker
-from cryptoadvance.specter.bitcoind import (
+import pytest
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
-from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
-from cryptoadvance.specter.managers.device_manager import DeviceManager
-from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
+    BitcoindDockerController,
+)
 from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.specter import Specter
 
 pytest_plugins = ["ghost_machine"]
 
@@ -29,7 +31,13 @@ def pytest_addoption(parser):
         "--bitcoind-version",
         action="store",
         default="v0.20.1",
-        help="setup environment: development",
+        help="Version of bitcoind (something which works with git checkout ...)",
+    )
+    parser.addoption(
+        "--elementsd-version",
+        action="store",
+        default="master",
+        help="Version of elementsd (something which works with git checkout ...)",
     )
 
 
@@ -48,7 +56,9 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
-        from cryptoadvance.specter.bitcoind_docker import BitcoindDockerController
+        from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
+            BitcoindDockerController,
+        )
 
         bitcoind_controller = BitcoindDockerController(
             rpcport=rpcport, docker_tag=requested_version
@@ -71,10 +81,9 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
     )
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
-    assert (
-        running_version != requested_version,
+    assert running_version == requested_version, (
         "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"
-        % (running_version, requested_version),
+        % (running_version, requested_version)
     )
     return bitcoind_controller
 
