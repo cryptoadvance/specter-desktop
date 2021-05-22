@@ -153,17 +153,17 @@
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
 				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
-					{% set address = output['scriptPubKey']['addresses'][0] %}
+					{% set address = output['scriptPubKey']['addresses'][0] if "addresses" in output["scriptPubKey"] else output["scriptPubKey"]["address"] %}
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
-						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
-						{% set addr_label = wallet.getlabel(output['scriptPubKey']['addresses'][0]) %}
+						<b>Output #{{loop.index0}}</b> {% if address not in psbt['address'] %}(Change){% endif %}<br><br>
+						{% set addr_label = wallet.getlabel(address) %}
 						<b>Address:</b>
-						{{ output['scriptPubKey']['addresses'][0] }}
+						{{ address }}
 						<br>
-						{% if addr_label != output['scriptPubKey']['addresses'][0] %}
+						{% if addr_label != address %}
 							<b>Label:</b>
-							<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
 						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}

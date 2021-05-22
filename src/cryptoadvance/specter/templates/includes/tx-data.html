@@ -137,6 +137,9 @@
                     if (address == 'Unknown') {
                         address = ('addresses' in spentOutput.scriptPubKey && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
                     }
+                    if (address == 'Unknown') {
+                        address = 'address' in spentOutput.scriptPubKey ? spentOutput.scriptPubKey.address : 'Unknown';
+                    }
                     let isMine = await fetchAddressIsMine(self, address);
                     if (isMine) {
                         bgColor = '#925d07';
@@ -185,6 +188,9 @@
                 let address = ('addresses' in rawtx.vout[i] && rawtx.vout[i].addresses.length == 1) ? rawtx.vout[i].addresses[0] : 'Unknown';
                 if (address == 'Unknown') {
                     address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
+                }
+                if (address == 'Unknown') {
+                    address = ('address' in rawtx.vout[i].scriptPubKey) ? rawtx.vout[i].scriptPubKey.address : 'Unknown';
                 }
 
                 let value = "Confidential";

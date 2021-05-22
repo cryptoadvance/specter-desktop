@@ -1452,18 +1452,32 @@ class Wallet:
         return {
             "addresses": [
                 vout["scriptPubKey"]["addresses"][0]
+                if "addresses" in vout["scriptPubKey"]
+                else vout["scriptPubKey"]["address"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
+                )
                 or not self.get_address_info(
                     vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
                 ).change
             ],
             "amounts": [
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
+                )
                 or not self.get_address_info(
                     vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
                 ).change
             ],
             "used_utxo": [
@@ -1481,9 +1495,19 @@ class Wallet:
         psbt = self.rpc.decodepsbt(raw_psbt)
         psbt["changeAddress"] = [
             vout["scriptPubKey"]["addresses"][0]
+            if "addresses" in vout["scriptPubKey"]
+            else vout["scriptPubKey"]["address"]
             for i, vout in enumerate(psbt["tx"]["vout"])
-            if self.get_address_info(vout["scriptPubKey"]["addresses"][0])
-            and self.get_address_info(vout["scriptPubKey"]["addresses"][0]).change
+            if self.get_address_info(
+                vout["scriptPubKey"]["addresses"][0]
+                if "addresses" in vout["scriptPubKey"]
+                else vout["scriptPubKey"]["address"]
+            )
+            and self.get_address_info(
+                vout["scriptPubKey"]["addresses"][0]
+                if "addresses" in vout["scriptPubKey"]
+                else vout["scriptPubKey"]["address"]
+            ).change
         ]
         if psbt["changeAddress"]:
             psbt["changeAddress"] = psbt["changeAddress"][0]
@@ -1492,18 +1516,32 @@ class Wallet:
         return self.createpsbt(
             addresses=[
                 vout["scriptPubKey"]["addresses"][0]
+                if "addresses" in vout["scriptPubKey"]
+                else vout["scriptPubKey"]["address"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
+                )
                 or not self.get_address_info(
                     vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
                 ).change
             ],
             amounts=[
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
+                )
                 or not self.get_address_info(
                     vout["scriptPubKey"]["addresses"][0]
+                    if "addresses" in vout["scriptPubKey"]
+                    else vout["scriptPubKey"]["address"]
                 ).change
             ],
             fee_rate=fee_rate,
@@ -1585,10 +1623,15 @@ class Wallet:
             if (
                 "addresses" not in out["scriptPubKey"]
                 or len(out["scriptPubKey"]["addresses"]) == 0
+                or "address" not in out["scriptPubKey"]
             ):
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
-            addr = out["scriptPubKey"]["addresses"][0]
+            addr = (
+                out["scriptPubKey"]["addresses"][0]
+                if "addresses" in out["scriptPubKey"]
+                else out["scriptPubKey"]["address"]
+            )
             info = self.get_address_info(addr)
             # check if it's a change
             if info and info.change:
