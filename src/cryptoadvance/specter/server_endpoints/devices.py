@@ -1,4 +1,4 @@
-import copy, random, json
+import copy, random, json, re
 
 from flask import (
     Flask,
@@ -436,9 +436,18 @@ def device(device_alias):
             device_type = request.form["device_type"]
             device.set_type(device_type)
     device = copy.deepcopy(device)
-    device.keys.sort(
-        key=lambda k: k.metadata["chain"] + k.metadata["purpose"], reverse=True
-    )
+
+    def sort_accounts(k):
+        # Ordering: 1) chain 2) purpose 3) account
+        pattern = r"^m\/([0-9]+)h\/([0-9])h\/([0-9]+)h"
+        match = re.search(pattern, k.derivation)
+        return (
+            int(match.group(1)) * 100
+            + (int(match.group(2)) + 1) * 10000
+            + int(match.group(3))
+        )
+
+    device.keys.sort(key=sort_accounts, reverse=False)
     return render_template(
         "device/device.jinja",
         device=device,
