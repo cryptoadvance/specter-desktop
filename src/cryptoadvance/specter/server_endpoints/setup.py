@@ -13,7 +13,7 @@ from flask import (
 from flask_login import login_required, current_user
 from flask import current_app as app
 from mnemonic import Mnemonic
-from ..helpers import is_testnet, generate_mnemonic
+from ..helpers import alias, is_testnet, generate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..devices.bitcoin_core import BitcoinCore
@@ -159,22 +159,40 @@ def setup_bitcoind_datadir():
             if network == "main"
             else f"Specter {network.title()} {i}"
         )
-    node = app.specter.node_manager.add_internal_node(
-        node_name,
-        network=network,
-    )
-    if request.form.get("bitcoin_core_datadir", None):
-        node.update_rpc(
-            datadir=request.form.get("bitcoin_core_datadir", node.datadir),
+    print(
+        os.path.join(
+            app.specter.node_manager.data_folder,
+            f"{alias(node_name)}/.bitcoin-{network}",
         )
-    if os.path.exists(node.datadir):
+    )
+    node_default_datadir = os.path.join(
+        app.specter.node_manager.data_folder, f"{alias(node_name)}/.bitcoin-{network}"
+    )
+    if os.path.exists(
+        request.form.get("bitcoin_core_datadir", None)
+        if request.form.get("bitcoin_core_datadir", None)
+        else node_default_datadir
+    ):
         if request.form["override_data_folder"] != "true":
             return {"error": "data folder already exists"}
-        shutil.rmtree(node.datadir, ignore_errors=True)
+        shutil.rmtree(
+            request.form.get("bitcoin_core_datadir", None)
+            if request.form.get("bitcoin_core_datadir", None)
+            else node_default_datadir,
+            ignore_errors=True,
+        )
     if (
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
     ):
+        node = app.specter.node_manager.add_internal_node(
+            node_name,
+            network=network,
+        )
+        if request.form.get("bitcoin_core_datadir", None):
+            node.update_rpc(
+                datadir=request.form.get("bitcoin_core_datadir", node.datadir),
+            )
         app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"

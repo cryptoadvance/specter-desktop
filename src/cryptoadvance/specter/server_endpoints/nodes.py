@@ -253,6 +253,7 @@ def internal_node_settings(node_alias):
             if not node_alias:
                 flash("Failed to deleted node. Node isn't saved", "error")
             elif len(app.specter.node_manager.nodes) > 1:
+                node.stop()
                 app.specter.node_manager.delete_node(node, app.specter)
                 if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)

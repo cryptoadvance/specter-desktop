@@ -196,8 +196,9 @@ class NodeManager:
         logger.info("Deleting {}".format(node.alias))
         # Delete files
         delete_file(node.fullpath)
-        del self.nodes[node.name]
+        delete_file(node.fullpath + ".bkp")
         if self._active_node == node.alias:
             specter.update_active_node(next(iter(self.nodes.values())).alias)
+        del self.nodes[node.name]
         self.update()
         logger.info("Node {} was deleted successfully".format(node.alias))
