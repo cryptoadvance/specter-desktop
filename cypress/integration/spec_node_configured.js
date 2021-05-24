@@ -21,6 +21,7 @@ describe('Node Configured', () => {
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
         cy.task("node:mine")
+        cy.wait(10000)
         cy.get('#btn_continue').click()
         cy.get('#btn_transactions').click()
         cy.get('#fullbalance_amount')
