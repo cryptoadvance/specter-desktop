@@ -3,7 +3,7 @@ import time
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, is_liquid
+from .helpers import der_to_bytes, is_liquid, get_address_from_dict
 from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from embit.liquid.descriptor import LDescriptor
@@ -22,7 +22,7 @@ from math import ceil
 from .addresslist import AddressList
 from .txlist import TxList
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
@@ -1435,8 +1435,8 @@ class Wallet:
                 "txid": utxo["txid"],
                 "vout": utxo["vout"],
                 "amount": utxo["details"]["value"],
-                "address": utxo["details"]["addresses"][0],
-                "label": self.getlabel(utxo["details"]["addresses"][0]),
+                "address": get_address_from_dict(utxo["details"]),
+                "label": self.getlabel(get_address_from_dict(utxo["details"])),
             }
             for utxo in rbf_utxo
         ]
@@ -1451,33 +1451,23 @@ class Wallet:
         psbt = self.rpc.decodepsbt(raw_psbt)
         return {
             "addresses": [
-                vout["scriptPubKey"]["addresses"][0]
-                if "addresses" in vout["scriptPubKey"]
-                else vout["scriptPubKey"]["address"]
+                get_address_from_dict(vout["scriptPubKey"])
                 for i, vout in enumerate(psbt["tx"]["vout"])
                 if not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             "amounts": [
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
                 if not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             "used_utxo": [
@@ -1494,19 +1484,11 @@ class Wallet:
 
         psbt = self.rpc.decodepsbt(raw_psbt)
         psbt["changeAddress"] = [
-            vout["scriptPubKey"]["addresses"][0]
-            if "addresses" in vout["scriptPubKey"]
-            else vout["scriptPubKey"]["address"]
+            get_address_from_dict(vout["scriptPubKey"])
             for i, vout in enumerate(psbt["tx"]["vout"])
-            if self.get_address_info(
-                vout["scriptPubKey"]["addresses"][0]
-                if "addresses" in vout["scriptPubKey"]
-                else vout["scriptPubKey"]["address"]
-            )
+            if self.get_address_info(get_address_from_dict(vout["scriptPubKey"]))
             and self.get_address_info(
-                vout["scriptPubKey"]["addresses"][0]
-                if "addresses" in vout["scriptPubKey"]
-                else vout["scriptPubKey"]["address"]
+                get_address_from_dict(vout["scriptPubKey"])
             ).change
         ]
         if psbt["changeAddress"]:
@@ -1515,33 +1497,23 @@ class Wallet:
             raise Exception("Cannot RBF a transaction with no change output")
         return self.createpsbt(
             addresses=[
-                vout["scriptPubKey"]["addresses"][0]
-                if "addresses" in vout["scriptPubKey"]
-                else vout["scriptPubKey"]["address"]
+                get_address_from_dict(vout["scriptPubKey"])
                 for i, vout in enumerate(psbt["tx"]["vout"])
                 if not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             amounts=[
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
                 if not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
-                    if "addresses" in vout["scriptPubKey"]
-                    else vout["scriptPubKey"]["address"]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             fee_rate=fee_rate,
@@ -1627,11 +1599,7 @@ class Wallet:
             ):
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
-            addr = (
-                out["scriptPubKey"]["addresses"][0]
-                if "addresses" in out["scriptPubKey"]
-                else out["scriptPubKey"]["address"]
-            )
+            addr = get_address_from_dict(out["scriptPubKey"])
             info = self.get_address_info(addr)
             # check if it's a change
             if info and info.change:
