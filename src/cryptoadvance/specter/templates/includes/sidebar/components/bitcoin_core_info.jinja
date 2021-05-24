@@ -9,19 +9,19 @@
             <br>
         {% endif %}
         <table>
-        <tr> <td style="text-align: left;">Network:<td> <td style="text-align: right;">{{specter.chain}}</td> </tr>
-        <tr> <td style="text-align: left; width: 35%;">Bitcoin Core Version:<td> <td style="text-align: right;">v{{specter.bitcoin_core_version}} <span class="note">({{specter.network_info['version']}})</span></td> </tr>
-        <tr> <td style="text-align: left;">Connections count:<td> <td style="text-align: right;">{{specter.network_info['connections']}}</td> </tr>
-        <tr> <td style="text-align: left;">Difficulty:<td> <td style="text-align: right;">{{specter.info.get('difficulty', 0) | int}}</td> </tr>
-        <tr> <td style="text-align: left;">Size on disk:<td> <td style="text-align: right;">{{specter.info['size_on_disk']|bytessize }}</td> </tr>
-        <tr> <td style="text-align: left;">Blocks count:<td> <td style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
-        <tr> <td style="text-align: left;">Last block hash:<td> <td style="text-align: right"><code style="word-break: break-word;">{{specter.info['bestblockhash']}}</code></td> </tr>
-        <tr> <td style="text-align: left;">Mempool Size:<td> <td style="text-align: right;">{{specter.info['mempool_info'].size}} transactions</td> </tr>
-        <tr> <td style="text-align: left;">Node uptime:<td> <td style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} Hours</td> </tr>
+        <tr> <td style="text-align: left;">Network:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
+        <tr> <td style="text-align: left; width: 35%;">Bitcoin Core Version:</td> <td style="text-align: right;">v{{specter.bitcoin_core_version}} <span class="note">({{specter.network_info['version']}})</span></td> </tr>
+        <tr> <td style="text-align: left;">Connections count:</td> <td style="text-align: right;">{{specter.network_info['connections']}}</td> </tr>
+        <tr> <td style="text-align: left;">Difficulty:</td> <td style="text-align: right;">{{specter.info.get('difficulty', 0) | int}}</td> </tr>
+        <tr> <td style="text-align: left;">Size on disk:</td> <td style="text-align: right;">{{specter.info['size_on_disk']|bytessize }}</td> </tr>
+        <tr> <td style="text-align: left;">Blocks count:</td> <td style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
+        <tr> <td style="text-align: left;">Last block hash:</td> <td style="text-align: right"><code style="word-break: break-word;">{{specter.info['bestblockhash']}}</code></td> </tr>
+        <tr> <td style="text-align: left;">Mempool Size:</td> <td style="text-align: right;">{{specter.info['mempool_info'].size}} transactions</td> </tr>
+        <tr> <td style="text-align: left;">Node uptime:</td> <td style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} Hours</td> </tr>
         {% if specter.info['pruned'] %}
-            <tr> <td style="text-align: left;">Automatic pruning:<td> <td style="text-align: right;">{{specter.info['automatic_pruning']}}</td> </tr>
-            <tr> <td style="text-align: left;">Prune height:<td> <td style="text-align: right;">{{specter.info['pruneheight']}}</td> </tr>
-            <tr> <td style="text-align: left;">Prune target size:<td> <td style="text-align: right;">{{specter.info['prune_target_size']}}</td> </tr>
+            <tr> <td style="text-align: left;">Automatic pruning:</td> <td style="text-align: right;">{{specter.info['automatic_pruning']}}</td> </tr>
+            <tr> <td style="text-align: left;">Prune height:</td> <td style="text-align: right;">{{specter.info['pruneheight']}}</td> </tr>
+            <tr> <td style="text-align: left;">Prune target size:</td> <td style="text-align: right;">{{specter.info['prune_target_size']}}</td> </tr>
         {% endif %}
         </table>
         <p id="total_supply" style="line-height: 2.5;"></p>

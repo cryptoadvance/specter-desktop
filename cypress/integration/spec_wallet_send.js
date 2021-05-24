@@ -21,9 +21,10 @@ describe('Send transactions from wallets', () => {
         // Download PDF
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
-        cy.task("node:mine")
         cy.get('#btn_continue').click()
         cy.get('#btn_transactions').click()
+        cy.task("node:mine")
+        cy.wait(10000)
         cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
         cy.get('#fullbalance_amount')
         .should(($div) => {
@@ -70,6 +71,7 @@ describe('Send transactions from wallets', () => {
         cy.get('#page_overlay_popup_cancel_button').click()
         // Send transaction
         cy.task("node:mine")
+        cy.wait(10000)
         cy.get('#btn_transactions').click()
         cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
         cy.reload()
