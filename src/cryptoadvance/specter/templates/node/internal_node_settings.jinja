@@ -16,7 +16,7 @@
 				</div>
 			{% endif %}
 			<br><br>
-			{% if node.bitcoin_pid %}
+			{% if node.bitcoind.status != "Down" %}
 				<button type="submit" class="btn centered" name="action" value="stopbitcoind">Stop Bitcoin Core</button>
 			{% else %}
 				<button type="submit" class="btn centered" name="action" value="startbitcoind">Start Bitcoin Core</button>

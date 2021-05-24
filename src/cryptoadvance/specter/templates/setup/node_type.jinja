@@ -11,7 +11,7 @@
     </div>
     <br><br>
     <div class="row">
-        <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}" class="btn wizard-btn">Connect existing node</a>
-        <a href="{{ url_for('setup_endpoint.bitcoind') }}" class="btn wizard-btn action" id="setup-node-btn">Setup a new node</a>
+        <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) if not specter.node.rpc and specter.node.external_node else url_for('nodes_endpoint.node_settings') }}"  class="btn wizard-btn">Connect existing node</a>
+        <a href="{{ url_for('setup_endpoint.bitcoind' if not bitcoind_installed else 'setup_endpoint.bitcoind_datadir') }}" class="btn wizard-btn action" id="setup-node-btn">Setup a new node</a>
     </div>
 {% endblock %}

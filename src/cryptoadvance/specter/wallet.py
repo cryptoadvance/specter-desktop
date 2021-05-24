@@ -1152,7 +1152,7 @@ class Wallet:
     def keypoolrefill(self, start, end=None, change=False):
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
-        # The "keypool" for desciptor wallets is automatically refilled
+        # The "keypool" for descriptor wallets is automatically refilled
         if self.use_descriptors and start > 0:
             return
 
