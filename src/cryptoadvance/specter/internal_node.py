@@ -60,6 +60,22 @@ class InternalNode(Node):
         self._bitcoind = None
         self.bitcoin_pid = False
         self.version = version
+        if self.bitcoind_network != "main":
+            if self.bitcoind_network == "testnet" and not self.datadir.endswith(
+                "/testnet3"
+            ):
+                self.datadir = os.path.join(self.datadir, "testnet3")
+                write_node(self, self.fullpath)
+            elif self.bitcoind_network == "regtest" and not self.datadir.endswith(
+                "/regtest"
+            ):
+                self.datadir = os.path.join(self.datadir, "regtest")
+                write_node(self, self.fullpath)
+            elif self.bitcoind_network == "signet" and not self.datadir.endswith(
+                "/signet"
+            ):
+                self.datadir = os.path.join(self.datadir, "signet")
+                write_node(self, self.fullpath)
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
@@ -75,7 +91,7 @@ class InternalNode(Node):
         external_node = node_dict.get("external_node", True)
         fullpath = node_dict.get("fullpath", default_fullpath)
         bitcoind_path = node_dict.get("bitcoind_path", "")
-        bitcoind_network = node_dict.get("bitcoind_network", "mainnet")
+        bitcoind_network = node_dict.get("bitcoind_network", "main")
         version = node_dict.get("version", "")
 
         return cls(
@@ -134,8 +150,8 @@ class InternalNode(Node):
             if not self._bitcoind:
                 self._bitcoind = BitcoindPlainController(
                     bitcoind_path=self.bitcoind_path,
-                    rpcport=8332,
-                    network="mainnet",
+                    rpcport=self.port,
+                    network=self.bitcoind_network,
                     rpcuser=self.user,
                     rpcpassword=self.password,
                 )
