@@ -325,6 +325,8 @@ def is_ip_private(ip):
 
 
 def get_address_from_dict(data_dict):
+    # TODO: Remove this helper function in favor of simple ["address"]
+    # when support for Bitcoin Core version < 22 is dropped
     return (
         data_dict["addresses"][0]
         if "addresses" in data_dict and data_dict["addresses"][0]
