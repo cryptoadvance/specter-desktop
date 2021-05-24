@@ -617,8 +617,8 @@ class Specter:
                 ),
                 self,
                 self.bitcoind_path,
-                "main",
-                self.internal_bitcoind_version,
+                "mainnet",
+                "0.20.1",
             )
             write_node(
                 internal_node,
