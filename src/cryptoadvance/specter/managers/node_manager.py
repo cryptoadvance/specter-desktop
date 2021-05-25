@@ -1,13 +1,15 @@
 import os
 import logging
 import secrets
+import shutil
 
-from ..rpc import get_default_datadir
+from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError
 from ..persistence import write_node, delete_file
 from ..helpers import alias, load_jsons
 from ..node import Node
 from ..internal_node import InternalNode
+from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +93,23 @@ class NodeManager:
                 return self.nodes[node_name]
         raise SpecterError("Node %s does not exist!" % alias)
 
+    def update_bitcoind_version(self, specter, version):
+        stopped_nodes = []
+        for node in (node for node in self.nodes.values() if not node.external_node):
+            if node.is_bitcoind_running():
+                node.stop()
+                stopped_nodes.append(node.alias)
+        shutil.rmtree(
+            os.path.join(specter.data_folder, "bitcoin-binaries"),
+            ignore_errors=True,
+        )
+        setup_bitcoind_thread(specter, version)
+        for node in (node for node in self.nodes.values() if not node.external_node):
+            node.version = version
+            write_node(node, node.fullpath)
+        for node_alias in stopped_nodes:
+            self.get_by_alias(node_alias).start(timeout=60)
+
     def add_node(
         self,
         name,
@@ -137,6 +156,8 @@ class NodeManager:
     def add_internal_node(
         self,
         name,
+        network="main",
+        port=None,
         default_alias=None,
     ):
         if not default_alias:
@@ -154,16 +175,16 @@ class NodeManager:
             name,
             node_alias,
             False,
-            os.path.join(self.data_folder, f"{node_alias}/.bitcoin"),
+            os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}"),
             "bitcoin",
             secrets.token_urlsafe(16),
-            8332,
+            port if port else (RPC_PORTS[network] if network in RPC_PORTS else 8332),
             "localhost",
             "http",
             fullpath,
             self,
             self.bitcoind_path,
-            "mainnet",
+            network,
             self.internal_bitcoind_version,
         )
         write_node(node, fullpath)
@@ -175,18 +196,9 @@ class NodeManager:
         logger.info("Deleting {}".format(node.alias))
         # Delete files
         delete_file(node.fullpath)
-        del self.nodes[node.name]
+        delete_file(node.fullpath + ".bkp")
         if self._active_node == node.alias:
             specter.update_active_node(next(iter(self.nodes.values())).alias)
+        del self.nodes[node.name]
         self.update()
         logger.info("Node {} was deleted successfully".format(node.alias))
-
-    # TODO: Refactor out later to allow multiple built in nodes
-    @property
-    def internal_node(self):
-        internal_nodes = [
-            node for node in self.nodes.values() if not node.external_node
-        ]
-        if len(internal_nodes) < 1:
-            return self.add_internal_node("Specter Bitcoin")
-        return internal_nodes[0]
