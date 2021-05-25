@@ -31,7 +31,7 @@ from embit.descriptor import Descriptor
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 purposes = OrderedDict(
     {
@@ -129,7 +129,7 @@ class WalletManager:
                 self._update(data_folder, rpc, chain)
         else:
             self.is_loading = False
-            logging.info(
+            logger.info(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
 
@@ -141,20 +141,20 @@ class WalletManager:
         try:
             if self.wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
-                logger.debug("Getting loaded wallets list from Bitcoin Core")
+                logger.info("Getting loaded wallets list from Bitcoin Core")
                 for wallet in self.wallets_update_list:
                     wallet_alias = self.wallets_update_list[wallet]["alias"]
                     wallet_name = self.wallets_update_list[wallet]["name"]
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
-                            logger.debug(
+                            logger.info(
                                 "Loading %s to Bitcoin Core"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
                             self.rpc.loadwallet(
                                 os.path.join(self.rpc_path, wallet_alias)
                             )
-                            logger.debug(
+                            logger.info(
                                 "Initializing %s Wallet object"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
@@ -166,13 +166,13 @@ class WalletManager:
                             if not loaded_wallet:
                                 raise Exception("Failed to load wallet")
                             # Lock UTXO of pending PSBTs
-                            logger.debug(
+                            logger.info(
                                 "Re-locking UTXOs of wallet %s"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
                             if len(loaded_wallet.pending_psbts) > 0:
                                 for psbt in loaded_wallet.pending_psbts:
-                                    logger.debug(
+                                    logger.info(
                                         "lock %s " % wallet_alias,
                                         loaded_wallet.pending_psbts[psbt]["tx"]["vin"],
                                     )
@@ -197,7 +197,7 @@ class WalletManager:
                                     ],
                                 )
                             self.wallets[wallet_name] = loaded_wallet
-                            logger.debug(
+                            logger.info(
                                 "Finished loading wallet into Bitcoin Core and Specter: %s"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
@@ -226,7 +226,7 @@ class WalletManager:
                             # ok wallet is already there
                             # we only need to update
                             try:
-                                logger.debug(
+                                logger.info(
                                     "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
                                     % self.wallets_update_list[wallet]["alias"]
                                 )
@@ -237,7 +237,7 @@ class WalletManager:
                                 )
                                 if loaded_wallet:
                                     self.wallets[wallet_name] = loaded_wallet
-                                    logger.debug(
+                                    logger.info(
                                         "Finished loading wallet into Specter: %s"
                                         % self.wallets_update_list[wallet]["alias"]
                                     )
@@ -256,12 +256,12 @@ class WalletManager:
                                 )
                         else:
                             # wallet is loaded and should stay
-                            logger.debug(
+                            logger.info(
                                 "Wallet already in Specter, updating wallet: %s"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
                             self.wallets[wallet_name].update()
-                            logger.debug(
+                            logger.info(
                                 "Finished updating wallet:  %s"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
@@ -269,7 +269,7 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        logger.debug("Done updating wallet manager")
+        logger.info("Done updating wallet manager")
         self.wallets_update_list = {}
         self.is_loading = False
 
