@@ -670,7 +670,10 @@ def send_new(wallet_alias):
                     # calculate new amount if we need to subtract
                     if subtract:
                         for v in psbt["tx"]["vout"]:
-                            if addresses[0] in v["scriptPubKey"]["addresses"]:
+                            if (
+                                addresses[0] in v["scriptPubKey"]["addresses"]
+                                or addresses[0] == v["scriptPubKey"]["address"]
+                            ):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
