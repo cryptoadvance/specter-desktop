@@ -247,7 +247,11 @@ class HWIBridge(JSONRPC):
             else:
                 client.chain = Chain.argparse(chain)
 
-            network = networks.get_network(chain)
+            network = networks.get_network(
+                chain
+                if chain and chain != "None"
+                else ("main" if client.chain == Chain.MAIN else "test")
+            )
 
             master_fpr = client.get_master_fingerprint().hex()
 
