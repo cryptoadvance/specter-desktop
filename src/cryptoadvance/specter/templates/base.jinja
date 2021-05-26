@@ -221,12 +221,8 @@
 	</div>
 	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 	<script>
-		async function toggleHideSensitiveInfo(showPrice) {
-            if (showPrice) {
-                showNotification('Hiding sensitive info...', 0)
-            } else {
-                showNotification('Showing sensitive info...', 0)
-            }
+		async function toggleHideSensitiveInfo() {
+			showNotification('{{ "Revealing" if specter.hide_sensitive_info else "Hiding"}} sensitive info...', 0);
             let url = `{{ url_for('toggle_hide_sensitive_info') }}`;
             var formData = new FormData();
 			formData.append('csrf_token', '{{ csrf_token() }}');
