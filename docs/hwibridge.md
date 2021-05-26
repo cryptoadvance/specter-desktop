@@ -16,10 +16,13 @@ The following steps will help you set up a local `Specter HWIBridge`, which you 
 <br><b>You could do that by downloading the binary from the [Specter's GitHub releases page](https://github.com/cryptoadvance/specter-desktop/releases), and double clicking it.</b>
 2. Then open `http://127.0.0.1:25441/hwi/settings` in your browser.
 3. In the `Whitelisted domains` form field, enter the domain of your remote Specter server you are connecting to and click update.
-4. Now open the remote Specter server you wish to use and go to settings.
-5. In the bottom, find `HWI Bridge URL`, and enter there the URL of your local Specter HWIBridge along with `/hwi/api/` (i.e. `http://127.0.0.1:25441/hwi/api/`), then click save.
+4. Now open a browser tab to the remote Specter server you wish to use and go to its settings.
+5. On the "USB Devices" tab select "Remote Specter USB connection", then click "Save Changes".
+6. Scroll further down and click "Test connection". You should see the "Detecting..." popup spinner.
 
-Now you should now be able to use hardware wallets connected via USB to your local node with the Specter running on the remote server.
+_note: Brave browser shields and other ad blockers may prevent device bridge communication. If you don't see the "Detecting..." popup, try disabling your ad blocker._
+
+Now you should now be able to use hardware wallets connected via USB to your local machine with Specter running on a remote server.
 
 We are currently working to make this process much easier and simpler.
 In the meantime, if you have any further questions or need help, please either open a GitHub issue, or ask in the [Specter Telegram group](https://t.me/spectersupport).

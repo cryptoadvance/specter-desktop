@@ -133,9 +133,15 @@
                 let jsonResponse = await fetchRawTx(self, rawtx.vin[i].txid);
                 if (jsonResponse !== null && jsonResponse.success) {
                     let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
-                    let address = ('addresses' in spentOutput && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
+                    let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
                     if (address == 'Unknown') {
-                        address = ('addresses' in spentOutput.scriptPubKey && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
+                        address = (spentOutput.scriptPubKey.addresses && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
+                    }
+                    if (address == 'Unknown') {
+                        address = spentOutput.scriptPubKey.address ? spentOutput.scriptPubKey.address : 'Unknown';
+                    }
+                    if (address == 'Unknown') {
+                        address = spentOutput.address ? spentOutput.address : 'Unknown';
                     }
                     let isMine = await fetchAddressIsMine(self, address);
                     if (isMine) {
@@ -182,11 +188,17 @@
 
             rawtxHTML += `<h3>Outputs</h3>`;
             for (let i in rawtx.vout) {
-                let address = ('addresses' in rawtx.vout[i] && rawtx.vout[i].addresses.length == 1) ? rawtx.vout[i].addresses[0] : 'Unknown';
+                let address = rawtx.vout[i].addresses && rawtx.vout[i].addresses.length == 1 ? rawtx.vout[i].addresses[0] : 'Unknown';
                 if (address == 'Unknown') {
-                    address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
+                    address = rawtx.vout[i].scriptPubKey.addresses && rawtx.vout[i].scriptPubKey.addresses.length == 1 ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
+                
                 }
-
+                if (address == 'Unknown') {
+                    address = rawtx.vout[i].scriptPubKey.address ? rawtx.vout[i].scriptPubKey.address : 'Unknown';
+                }
+                if (address == 'Unknown') {
+                    address = rawtx.vout[i].address ? rawtx.vout[i].address : 'Unknown';
+                }
                 let value = "Confidential";
                 let price = '';
                 if (rawtx.vout[i].value) {
