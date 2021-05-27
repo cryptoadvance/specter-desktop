@@ -1148,10 +1148,6 @@ class Wallet:
         return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
-        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
-        # still have legacy wallets. Use getwalletinfo to check the wallet type.
-        # The "keypool" for descriptor wallets is automatically refilled
-
         if end is None:
             # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
@@ -1181,6 +1177,9 @@ class Wallet:
         ]
         self._addresses.add(addresses, check_rpc=False)
 
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for descriptor wallets is automatically refilled
         if not self.use_descriptors or start > 0:
             if not self.is_multisig:
                 if self.use_descriptors:
