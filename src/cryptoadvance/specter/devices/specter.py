@@ -4,6 +4,7 @@ from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
 from embit import bip32
 from embit.psbt import PSBT
+from embit.liquid.pset import PSET
 from binascii import a2b_base64, b2a_base64
 
 
@@ -27,21 +28,10 @@ class Specter(SDCardDevice):
         psbts = super().create_psbts(base64_psbt, wallet)
         # remove non-witness utxo if they are there to reduce QR code size
         updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
-        qr_psbt = PSBT.parse(a2b_base64(updated_psbt))
-        # find my key
-        fgp = None
-        derivation = None
-        for k in wallet.keys:
-            if k in self.keys and k.fingerprint and k.derivation:
-                fgp = bytes.fromhex(k.fingerprint)
-                derivation = bip32.parse_path(k.derivation)
-                break
-        # remove unnecessary derivations from inputs and outputs
-        for inp in qr_psbt.inputs + qr_psbt.outputs:
-            # keep only my derivation
-            for k in list(inp.bip32_derivations.keys()):
-                if inp.bip32_derivations[k].fingerprint != fgp:
-                    inp.bip32_derivations.pop(k, None)
+        try:
+            qr_psbt = PSBT.from_string(updated_psbt)
+        except:
+            qr_psbt = PSET.from_string(updated_psbt)
         # remove scripts from outputs (DIY should know about the wallet)
         for out in qr_psbt.outputs:
             out.witness_script = None
@@ -49,7 +39,7 @@ class Specter(SDCardDevice):
         # remove partial sigs from inputs
         for inp in qr_psbt.inputs:
             inp.partial_sigs = {}
-        psbts["qrcode"] = b2a_base64(qr_psbt.serialize()).strip().decode()
+        psbts["qrcode"] = qr_psbt.to_string()
         # we can add xpubs to SD card, but non_witness can be too large for MCU
         psbts["sdcard"] = wallet.fill_psbt(
             psbts["qrcode"], non_witness=False, xpubs=True
