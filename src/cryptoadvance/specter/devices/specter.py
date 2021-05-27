@@ -32,6 +32,20 @@ class Specter(SDCardDevice):
             qr_psbt = PSBT.from_string(updated_psbt)
         except:
             qr_psbt = PSET.from_string(updated_psbt)
+        # find my key
+        fgp = None
+        derivation = None
+        for k in wallet.keys:
+            if k in self.keys and k.fingerprint and k.derivation:
+                fgp = bytes.fromhex(k.fingerprint)
+                derivation = bip32.parse_path(k.derivation)
+                break
+        # remove unnecessary derivations from inputs and outputs
+        for inp in qr_psbt.inputs + qr_psbt.outputs:
+            # keep only my derivation
+            for k in list(inp.bip32_derivations.keys()):
+                if fgp and inp.bip32_derivations[k].fingerprint != fgp:
+                    inp.bip32_derivations.pop(k, None)
         # remove scripts from outputs (DIY should know about the wallet)
         for out in qr_psbt.outputs:
             out.witness_script = None
@@ -40,9 +54,10 @@ class Specter(SDCardDevice):
         for inp in qr_psbt.inputs:
             inp.partial_sigs = {}
         psbts["qrcode"] = qr_psbt.to_string()
+
         # we can add xpubs to SD card, but non_witness can be too large for MCU
         psbts["sdcard"] = wallet.fill_psbt(
-            psbts["qrcode"], non_witness=False, xpubs=True
+            psbts["base64_psbt"], non_witness=False, xpubs=True
         )
         return psbts
 
