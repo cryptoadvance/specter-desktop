@@ -243,7 +243,7 @@
             } else {
                 document.getElementById("wallets-loading-indicator").classList.add("hidden");
                 {% if not specter.wallet_manager.failed_load_wallets %}
-                if ('{{wallet_alias}}') {
+                if ('{{wallet_alias}}' && window.location.href.endsWith('history/')) {
                     document.getElementById("wallets-loading-done").classList.remove("hidden");
                 }
                 {% endif %}

@@ -1063,14 +1063,15 @@ def broadcast(wallet_alias):
 
 
 @wallets_endpoint.route(
-    "/wallet/<wallet_alias>/broadcast_blockexplorer_tor/", methods=["GET", "POST"]
+    "/wallet/<wallet_alias>/broadcast_blockexplorer/", methods=["GET", "POST"]
 )
 @login_required
-def broadcast_blockexplorer_tor(wallet_alias):
+def broadcast_blockexplorer(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         tx = request.form.get("tx")
         explorer = request.form.get("explorer")
+        use_tor = request.form.get("use_tor", "true") == "true"
         res = wallet.rpc.testmempoolaccept([tx])[0]
         if res["allowed"]:
             try:
@@ -1088,15 +1089,15 @@ def broadcast_blockexplorer_tor(wallet_alias):
                         error=f"Failed to broadcast transaction. Network not supported.",
                     )
                 if explorer == "mempool":
-                    explorer = "MEMPOOL_SPACE_ONION"
+                    explorer = f"MEMPOOL_SPACE{'_ONION' if use_tor else ''}"
                 elif explorer == "blockstream":
-                    explorer = "BLOCKSTREAM_INFO_ONION"
+                    explorer = f"BLOCKSTREAM_INFO{'_ONION' if use_tor else ''}"
                 else:
                     return jsonify(
                         success=False,
                         error=f"Failed to broadcast transaction. Block explorer not supported.",
                     )
-                requests_session = app.specter.requests_session(force_tor=True)
+                requests_session = app.specter.requests_session(force_tor=use_tor)
                 requests_session.post(
                     f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                     data=tx,
