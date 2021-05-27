@@ -1513,7 +1513,9 @@ class Wallet:
                 txid = psbt.tx.vin[0].txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    psbt.inputs[i].non_witness_utxo = Transaction.from_string(res["hex"])
+                    psbt.inputs[i].non_witness_utxo = Transaction.from_string(
+                        res["hex"]
+                    )
                 except:
                     logger.error(
                         "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."

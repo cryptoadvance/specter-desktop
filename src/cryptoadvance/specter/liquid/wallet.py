@@ -3,6 +3,7 @@ from ..addresslist import Address
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 
+
 class LWallet(Wallet):
     def fetch_transactions(self):
         return
@@ -41,7 +42,9 @@ class LWallet(Wallet):
                 txid = psbt.tx.vin[0].txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    psbt.inputs[i].non_witness_utxo = LTransaction.from_string(res["hex"])
+                    psbt.inputs[i].non_witness_utxo = LTransaction.from_string(
+                        res["hex"]
+                    )
                 except:
                     logger.error(
                         "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
