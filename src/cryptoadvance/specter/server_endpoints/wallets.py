@@ -670,7 +670,10 @@ def send_new(wallet_alias):
                     # calculate new amount if we need to subtract
                     if subtract:
                         for v in psbt["tx"]["vout"]:
-                            if addresses[0] in v["scriptPubKey"]["addresses"]:
+                            if (
+                                addresses[0] in v["scriptPubKey"]["addresses"]
+                                or addresses[0] == v["scriptPubKey"]["address"]
+                            ):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
@@ -1050,6 +1053,62 @@ def broadcast(wallet_alias):
             app.specter.broadcast(tx)
             wallet.delete_pending_psbt(get_txid(tx))
             return jsonify(success=True)
+        else:
+            return jsonify(
+                success=False,
+                error="Failed to broadcast transaction: transaction is invalid\n%s"
+                % res["reject-reason"],
+            )
+    return jsonify(success=False, error="broadcast tx request must use POST")
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/broadcast_blockexplorer/", methods=["GET", "POST"]
+)
+@login_required
+def broadcast_blockexplorer(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    if request.method == "POST":
+        tx = request.form.get("tx")
+        explorer = request.form.get("explorer")
+        use_tor = request.form.get("use_tor", "true") == "true"
+        res = wallet.rpc.testmempoolaccept([tx])[0]
+        if res["allowed"]:
+            try:
+                if app.specter.chain == "main":
+                    url_network = ""
+                elif app.specter.chain == "liquidv1":
+                    url_network = "liquid/"
+                elif app.specter.chain == "test" or app.specter.chain == "testnet":
+                    url_network = "testnet/"
+                elif app.specter.chain == "signet":
+                    url_network = "signet/"
+                else:
+                    return jsonify(
+                        success=False,
+                        error=f"Failed to broadcast transaction. Network not supported.",
+                    )
+                if explorer == "mempool":
+                    explorer = f"MEMPOOL_SPACE{'_ONION' if use_tor else ''}"
+                elif explorer == "blockstream":
+                    explorer = f"BLOCKSTREAM_INFO{'_ONION' if use_tor else ''}"
+                else:
+                    return jsonify(
+                        success=False,
+                        error=f"Failed to broadcast transaction. Block explorer not supported.",
+                    )
+                requests_session = app.specter.requests_session(force_tor=use_tor)
+                requests_session.post(
+                    f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
+                    data=tx,
+                )
+                wallet.delete_pending_psbt(get_txid(tx))
+                return jsonify(success=True)
+            except Exception as e:
+                return jsonify(
+                    success=False,
+                    error=f"Failed to broadcast transaction with error: {e}",
+                )
         else:
             return jsonify(
                 success=False,

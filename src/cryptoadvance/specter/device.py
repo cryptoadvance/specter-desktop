@@ -4,7 +4,7 @@ from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Device:

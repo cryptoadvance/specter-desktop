@@ -35,7 +35,7 @@ def decoderawoutput(vout, chain):
         },
     }
     try:
-        result["addresses"] = [vout.script_pubkey.address(NETWORKS[chain])]
+        result["address"] = vout.script_pubkey.address(NETWORKS[chain])
     except:
         pass
     return result

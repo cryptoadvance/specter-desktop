@@ -322,3 +322,13 @@ def is_ip_private(ip):
         or priv_16.match(ip)
     )
     return res is not None
+
+
+def get_address_from_dict(data_dict):
+    # TODO: Remove this helper function in favor of simple ["address"]
+    # when support for Bitcoin Core version < 22 is dropped
+    return (
+        data_dict["addresses"][0]
+        if "addresses" in data_dict and data_dict["addresses"][0]
+        else data_dict["address"]
+    )

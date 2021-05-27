@@ -153,17 +153,17 @@
 				{% endfor %}
 				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
 				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
-					{% set address = output['scriptPubKey']['addresses'][0] %}
+					{% set address = output['scriptPubKey']['addresses'][0] if "addresses" in output["scriptPubKey"] else output["scriptPubKey"]["address"] %}
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
-						<b>Output #{{loop.index0}}</b> {% if output['scriptPubKey']['addresses'][0] not in psbt['address'] %}(Change){% endif %}<br><br>
-						{% set addr_label = wallet.getlabel(output['scriptPubKey']['addresses'][0]) %}
+						<b>Output #{{loop.index0}}</b> {% if address not in psbt['address'] %}(Change){% endif %}<br><br>
+						{% set addr_label = wallet.getlabel(address) %}
 						<b>Address:</b>
-						{{ output['scriptPubKey']['addresses'][0] }}
+						{{ address }}
 						<br>
-						{% if addr_label != output['scriptPubKey']['addresses'][0] %}
+						{% if addr_label != address %}
 							<b>Label:</b>
-							<address-label data-address="{{ output['scriptPubKey']['addresses'][0] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
 						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
@@ -263,6 +263,32 @@
 				showPageOverlay("tx_broadcast");
 			});
 
+			document.getElementById("broadcast_block_explorer_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				document.getElementById("broadcast_local_btn").classList.add("hidden");
+				document.getElementById("broadcast_block_explorer_btn").classList.add("hidden");
+				document.getElementById("save_psbt_btn").classList.add("hidden");
+				document.getElementById("copy_final_tx_btn").classList.add("hidden");
+				document.getElementById("broadcast_blockstream_btn").classList.remove("hidden");
+				document.getElementById("broadcast_mempool_btn").classList.remove("hidden");
+				document.getElementById("broadcast_blockstream_tor_btn").classList.remove("hidden");
+				document.getElementById("broadcast_mempool_tor_btn").classList.remove("hidden");
+				document.getElementById("broadcast_options_btn").classList.remove("hidden");
+			});
+
+			document.getElementById("broadcast_options_btn").addEventListener("click", async function(e) {
+				e.preventDefault();
+				document.getElementById("broadcast_local_btn").classList.remove("hidden");
+				document.getElementById("broadcast_block_explorer_btn").classList.remove("hidden");
+				document.getElementById("save_psbt_btn").classList.remove("hidden");
+				document.getElementById("copy_final_tx_btn").classList.remove("hidden");
+				document.getElementById("broadcast_blockstream_btn").classList.add("hidden");
+				document.getElementById("broadcast_mempool_btn").classList.add("hidden");
+				document.getElementById("broadcast_blockstream_tor_btn").classList.add("hidden");
+				document.getElementById("broadcast_mempool_tor_btn").classList.add("hidden");
+				document.getElementById("broadcast_options_btn").classList.add("hidden");
+			});
+
 			document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
 				e.preventDefault();
 				broadcastLocal(raw);
@@ -271,7 +297,22 @@
 			if ("{{ specter.chain }}" != "regtest") {
 				document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
 					e.preventDefault();
-					broadcastBlockstream(raw);
+					broadcastBlockExplorer(raw, 'blockstream', false);
+				});
+
+				document.getElementById("broadcast_mempool_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					broadcastBlockExplorer(raw, 'mempool', false);
+				});
+				
+				document.getElementById("broadcast_blockstream_tor_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					broadcastBlockExplorer(raw, 'blockstream', true);
+				});
+				
+				document.getElementById("broadcast_mempool_tor_btn").addEventListener("click", async function(e) {
+					e.preventDefault();
+					broadcastBlockExplorer(raw, 'mempool', true);
 				});
 			}
 
@@ -391,34 +432,37 @@
 			}
 		}
 
-		function broadcastBlockstream(tx) {
-			showNotification("Sending transaction via blockstream...");
-			// TODO: Use fetch instead of XMLHttpRequest
-			let url;
-			if ("{{ specter.chain }}" == "main") {
-				url="https://blockstream.info/api/tx";
-			} else if("{{specter.chain}}" == "liquidv1"){
-				url="https://blockstream.info/liquid/api/tx";
-			} else {
-				url="https://blockstream.info/testnet/api/tx";
-			}
+		async function broadcastBlockExplorer(tx, explorer, useTor) {
+			showNotification("Sending transaction...", 0);
+			let url = "{{ url_for('wallets_endpoint.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
+	
 
-			var xmlHttp = new XMLHttpRequest();
-			xmlHttp.onreadystatechange = function() { 
-				if(xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-					let o = JSON.parse(this.responseText);
-					var deletePSBTBtn = document.getElementById("deletepsbt_btn");
-					deletePSBTBtn.click();
-					showNotification("Transaction was sent successfully!");
-				} else {
-					if(xmlHttp.readyState === 4){
-						showError("Server failed to broadcast transactions!\n" + xmlHttp.response);
+			var formData = new FormData();
+			formData.append("csrf_token", "{{ csrf_token() }}");
+			formData.append("tx", tx);
+			formData.append("explorer", explorer);
+			formData.append("use_tor", useTor);
+
+			try {
+				const response = await fetch(
+					url,
+					{
+						method: 'POST',
+						body: formData
 					}
-				}
-			}
+				);
 
-			xmlHttp.open("POST", url, true); // true for asynchronous 
-			xmlHttp.send(tx);
+				const jsonResponse = await response.json();
+
+				if (jsonResponse.success) {
+					hidePageOverlay();
+					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
+				} else {
+					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
+				}
+			} catch(e) {
+				showError("Server failed to broadcast transactions!\n" + e);
+			}
 		}
 
 		// ================== Signers various device support ==================
