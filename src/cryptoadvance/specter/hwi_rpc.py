@@ -235,22 +235,17 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            if not chain or chain == "None":
-                try:
-                    client.chain = (
-                        Chain.TEST
-                        if derivation.split("/")[2].startswith("1")
-                        else Chain.MAIN
-                    )
-                except:
-                    client.chain = Chain.MAIN
-            else:
-                client.chain = Chain.argparse(chain)
+            try:
+                client.chain = (
+                    Chain.TEST
+                    if derivation.split("/")[2].startswith("1")
+                    else Chain.MAIN
+                )
+            except:
+                client.chain = Chain.MAIN
 
             network = networks.get_network(
-                chain
-                if chain and chain != "None"
-                else ("main" if client.chain == Chain.MAIN else "test")
+                "main" if client.chain == Chain.MAIN else "test"
             )
 
             master_fpr = client.get_master_fingerprint().hex()
