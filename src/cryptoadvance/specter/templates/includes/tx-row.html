@@ -215,9 +215,9 @@
             newFee = 1;
         }
         if (rbfType == 'cancel') {
-            newFee += 2;
-        } else {
             newFee *= 1.5; // Tx likely to have lower size so will need higher fee
+        } else {
+            newFee += 2;
         }
         txDataPopup.innerHTML = `
         <form action="${url}" method="POST">
