@@ -1,4 +1,4 @@
-## v1.4.0 May 27, 2021
+## v1.4.0 May 28, 2021
 - Feature: Broadcast transactions over block explorer via Tor #1183 (benk10)
 - Feature: "Verify on device" with Coldcard sugggest using airgap instead of USB connection #1157 (Manolis)
 - Feature: Merge in Liquid branch (preparation for Liquid support) #1174 (benk10)
