@@ -109,7 +109,7 @@
                     <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * tx.fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
                 `;
             }
-            if (tx.confirmations) {
+            if (tx.confirmations && tx.confirmations > 0) {
                 rawtxHTML += `
                     <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
                     <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
