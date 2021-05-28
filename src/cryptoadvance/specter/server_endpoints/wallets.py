@@ -670,10 +670,9 @@ def send_new(wallet_alias):
                     # calculate new amount if we need to subtract
                     if subtract:
                         for v in psbt["tx"]["vout"]:
-                            if (
-                                addresses[0] in v["scriptPubKey"]["addresses"]
-                                or addresses[0] == v["scriptPubKey"]["address"]
-                            ):
+                            if addresses[0] in v["scriptPubKey"].get(
+                                "addresses", [""]
+                            ) or addresses[0] == v["scriptPubKey"].get("address", ""):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
@@ -709,6 +708,22 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 flash("Failed to perform RBF. Error: %s" % e, "error")
+        elif action == "rbf_cancel":
+            try:
+                rbf_tx_id = request.form["rbf_tx_id"]
+                rbf_fee_rate = float(request.form["rbf_fee_rate"])
+                psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
+                return render_template(
+                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                    psbt=psbt,
+                    labels=[],
+                    wallet_alias=wallet_alias,
+                    wallet=wallet,
+                    specter=app.specter,
+                    rand=rand,
+                )
+            except Exception as e:
+                flash("Failed to cancel transaction with RBF. Error: %s" % e, "error")
         elif action == "rbf_edit":
             try:
                 decoded_tx = wallet.decode_tx(rbf_tx_id)
@@ -1063,14 +1078,15 @@ def broadcast(wallet_alias):
 
 
 @wallets_endpoint.route(
-    "/wallet/<wallet_alias>/broadcast_blockexplorer_tor/", methods=["GET", "POST"]
+    "/wallet/<wallet_alias>/broadcast_blockexplorer/", methods=["GET", "POST"]
 )
 @login_required
-def broadcast_blockexplorer_tor(wallet_alias):
+def broadcast_blockexplorer(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         tx = request.form.get("tx")
         explorer = request.form.get("explorer")
+        use_tor = request.form.get("use_tor", "true") == "true"
         res = wallet.rpc.testmempoolaccept([tx])[0]
         if res["allowed"]:
             try:
@@ -1088,15 +1104,15 @@ def broadcast_blockexplorer_tor(wallet_alias):
                         error=f"Failed to broadcast transaction. Network not supported.",
                     )
                 if explorer == "mempool":
-                    explorer = "MEMPOOL_SPACE_ONION"
+                    explorer = f"MEMPOOL_SPACE{'_ONION' if use_tor else ''}"
                 elif explorer == "blockstream":
-                    explorer = "BLOCKSTREAM_INFO_ONION"
+                    explorer = f"BLOCKSTREAM_INFO{'_ONION' if use_tor else ''}"
                 else:
                     return jsonify(
                         success=False,
                         error=f"Failed to broadcast transaction. Block explorer not supported.",
                     )
-                requests_session = app.specter.requests_session(force_tor=True)
+                requests_session = app.specter.requests_session(force_tor=use_tor)
                 requests_session.post(
                     f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                     data=tx,

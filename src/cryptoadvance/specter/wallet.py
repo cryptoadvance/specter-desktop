@@ -27,8 +27,6 @@ LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
 class Wallet:
-    # if the wallet is old we import 300 addresses
-    IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
@@ -704,7 +702,9 @@ class Wallet:
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
-                    tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
+                    rpc_tx = self.rpc.gettransaction(tx["txid"])
+                    tx["fee"] = rpc_tx.get("fee", 1)
+                    tx["confirmations"] = rpc_tx.get("confirmations", 0)
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
@@ -1150,12 +1150,6 @@ class Wallet:
         return self.balance
 
     def keypoolrefill(self, start, end=None, change=False):
-        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
-        # still have legacy wallets. Use getwalletinfo to check the wallet type.
-        # The "keypool" for descriptor wallets is automatically refilled
-        if self.use_descriptors and start > 0:
-            return
-
         if end is None:
             # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
@@ -1185,43 +1179,47 @@ class Wallet:
         ]
         self._addresses.add(addresses, check_rpc=False)
 
-        if not self.is_multisig:
-            if self.use_descriptors:
-                r = self.rpc.importdescriptors(args)
-            else:
-                r = self.rpc.importmulti(args, {"rescan": False})
-        # bip67 requires sorted public keys for multisig addresses
-        else:
-            if self.use_descriptors:
-                self.rpc.importdescriptors(args)
-            else:
-                # try if sortedmulti is supported
-                r = self.rpc.importmulti(args, {"rescan": False})
-                # doesn't raise, but instead returns "success": False
-                if not r[0]["success"]:
-                    # first import normal multi
-                    # remove checksum
-                    desc = desc.split("#")[0]
-                    # switch to multi
-                    desc = desc.replace("sortedmulti", "multi")
-                    # add checksum
-                    desc = AddChecksum(desc)
-                    # update descriptor
-                    args[0]["desc"] = desc
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for descriptor wallets is automatically refilled
+        if not self.use_descriptors or start > 0:
+            if not self.is_multisig:
+                if self.use_descriptors:
+                    r = self.rpc.importdescriptors(args)
+                else:
                     r = self.rpc.importmulti(args, {"rescan": False})
-                    # make a batch of single addresses to import
-                    arg = args[0]
-                    # remove range key
-                    arg.pop("range")
-                    batch = []
-                    for i in range(start, end):
-                        sorted_desc = sort_descriptor(desc, index=i)
-                        # create fresh object
-                        obj = {}
-                        obj.update(arg)
-                        obj.update({"desc": sorted_desc})
-                        batch.append(obj)
-                    r = self.rpc.importmulti(batch, {"rescan": False})
+            # bip67 requires sorted public keys for multisig addresses
+            else:
+                if self.use_descriptors:
+                    self.rpc.importdescriptors(args)
+                else:
+                    # try if sortedmulti is supported
+                    r = self.rpc.importmulti(args, {"rescan": False})
+                    # doesn't raise, but instead returns "success": False
+                    if not r[0]["success"]:
+                        # first import normal multi
+                        # remove checksum
+                        desc = desc.split("#")[0]
+                        # switch to multi
+                        desc = desc.replace("sortedmulti", "multi")
+                        # add checksum
+                        desc = AddChecksum(desc)
+                        # update descriptor
+                        args[0]["desc"] = desc
+                        r = self.rpc.importmulti(args, {"rescan": False})
+                        # make a batch of single addresses to import
+                        arg = args[0]
+                        # remove range key
+                        arg.pop("range")
+                        batch = []
+                        for i in range(start, end):
+                            sorted_desc = sort_descriptor(desc, index=i)
+                            # create fresh object
+                            obj = {}
+                            obj.update(arg)
+                            obj.update({"desc": sorted_desc})
+                            batch.append(obj)
+                        r = self.rpc.importmulti(batch, {"rescan": False})
         if change:
             self.change_keypool = end
         else:
@@ -1474,6 +1472,35 @@ class Wallet:
                 {"txid": vin["txid"], "vout": vin["vout"]} for vin in psbt["tx"]["vin"]
             ],
         }
+
+    def canceltx(self, txid, fee_rate):
+        self.check_unused()
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        decoded_tx = self.decode_tx(txid)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        return self.createpsbt(
+            addresses=[self.address],
+            amounts=[
+                sum(
+                    vout["witness_utxo"]["amount"]
+                    for i, vout in enumerate(psbt["inputs"])
+                )
+            ],
+            subtract=True,
+            fee_rate=float(fee_rate),
+            selected_coins=selected_coins,
+            readonly=False,
+            rbf=True,
+            rbf_edit_mode=True,
+        )
 
     def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
