@@ -702,7 +702,9 @@ class Wallet:
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
-                    tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
+                    rpc_tx = self.rpc.gettransaction(tx["txid"])
+                    tx["fee"] = rpc_tx.get("fee", 1)
+                    tx["confirmations"] = rpc_tx.get("confirmations", 0)
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])

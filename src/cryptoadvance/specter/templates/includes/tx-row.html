@@ -12,6 +12,9 @@
         .svg-selftransfer {
             filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
         }
+        .svg-cancelled {
+            filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <tr class="tx-row">
@@ -145,9 +148,14 @@
             // Set confirmations
             if (this.tx.confirmations > 0) {
                 this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;
-            } else {
+            } else if (this.tx.confirmations == 0) {
                 this.el.classList.add('unconfirmed');
                 this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `Unconfirmed`;
+            } else {
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `Cancelled (replaced by sender)`;
+                this.category.src = `{{ url_for('static', filename='img') }}/cross.svg`;
+                this.category.classList.remove('svg-' + this.tx.category);
+                this.category.classList.add('svg-cancelled');
             }
 
             if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes") {
