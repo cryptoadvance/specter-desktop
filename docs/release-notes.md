@@ -6,6 +6,7 @@
 - Feature: Managing more than one Node-connection and switch between them #1146 (benk10)
 - Feature: Managing multiple internal nodes with testnet(s) support #1165 (benk10)
 - Feature: Hide sensitive info mode #1170 (benk10)
+- Feature: Add cancel transaction with RBF button and show cancelled transactions status #1197 (benk10)
 - UIUX: Updated change text from 'payed' to 'paid' in fee_selection file #1155 (Chris Pollard)
 - UIUX: Move backup PDF SLIP132 option to advanced section #1168 (benk10)
 - Docs: Update tor.md #1129 (benk10)
