@@ -27,7 +27,8 @@
         <td class="time"></td>
         <td>
             <span class="confirmations"></span>
-            <button class="rbf btn optional hidden" style="width: 120px; float: right;" type="button">Speed up</button>
+            <button class="rbf btn optional hidden" style="width: 130px; float: right;" type="button">Speed up</button>
+            <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">Cancel transaction</button>
         </td>
         <td class="hidden optional blockhash"></td>
         <td><input class="select-tx-value" type="hidden" value=""><img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px"></tool-tip></td>
@@ -52,6 +53,7 @@
             this.confirmations = clone.querySelector(".confirmations");
             this.blockhash = clone.querySelector(".blockhash");        
             this.rbf = clone.querySelector(".rbf");
+            this.rbfCancel = clone.querySelector(".rbf-cancel");
             this.selectTxValue = clone.querySelector(".select-tx-value");
             this.selectTxImg = clone.querySelector(".select-tx-img");
             this.frozenImg = clone.querySelector(".frozen-img");
@@ -150,48 +152,20 @@
 
             if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes") {
                 this.rbf.classList.remove('hidden');
+                if (this.tx.category == "selftransfer") {
+                    this.rbfCancel.classList.add('hidden');
+                } else {
+                    this.rbfCancel.classList.remove('hidden');
+                    this.rbfCancel.onclick = () => {
+                        rbfPopup(this, 'cancel');
+                    }
+                }
                 this.rbf.onclick = () => {
-                    let txDataPopup = document.getElementById('tx-popup');
-                    let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-                    let newFee = parseFloat((((this.tx.fee * -1) / this.tx.vsize) * 1e8).toFixed(2));
-                    if (newFee <= 1.02) {
-                        newFee = 1;
-                    }
-                    newFee += 2;
-                    txDataPopup.innerHTML = `
-                    <form action="${url}" method="POST">
-                    <h1>Speed up the Transaction</h1>
-                    <p>You can speedup the transaction by increasing its fee rate:</p>
-                    <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
-                    <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
-                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <br>
-                    <br>
-                    <button type="submit" name="action" value="rbf" class="btn centered">Speed up!</button>
-                    <br>
-			        <span class="toggle_advanced_rbf" style="cursor: pointer;">Advanced {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-                    <div class="advanced_rbf hidden warning">
-                        <p style="max-width: 400px;">If you would like further customization, you can click here to fully edit the transaction.<br>(advanced, not recommended for new users)</p>
-                        <button type="submit" name="action" value="rbf_edit" class="btn centered">Edit the transaction (advanced)</button>
-                    </div>
-                    </form>
-                    `;
-                    txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
-                        let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
-                        let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
-                        if (advancedSettings.classList.contains('hidden')) {
-                            advancedSettings.classList.remove('hidden')
-                            advancedButton.innerHTML = 'Advanced &#9660;';
-                        } else {
-                            advancedSettings.classList.add('hidden')
-                            advancedButton.innerHTML = 'Advanced &#9654;';
-                        }
-                    }
-
-                    showPageOverlay('tx-popup');
+                    rbfPopup(this, 'speedup');
                 }
             } else {
                 this.rbf.classList.add('hidden');
+                this.rbfCancel.classList.add('hidden');
             }
             
             // Set time
@@ -231,6 +205,51 @@
                 this.selectTxImg.classList.add('hidden');
             }
         }
+    }
+
+    function rbfPopup(self, rbfType) {
+        let txDataPopup = document.getElementById('tx-popup');
+        let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        let newFee = parseFloat((((self.tx.fee * -1) / self.tx.vsize) * 1e8).toFixed(2));
+        if (newFee <= 1.02) {
+            newFee = 1;
+        }
+        if (rbfType == 'cancel') {
+            newFee += 2;
+        } else {
+            newFee *= 1.5; // Tx likely to have lower size so will need higher fee
+        }
+        txDataPopup.innerHTML = `
+        <form action="${url}" method="POST">
+        <h1>${rbfType == 'cancel' ? 'Cancel' : 'Speed up'} the Transaction</h1>
+        <p>You can ${rbfType == 'cancel' ? 'cancel' : 'speed up'} the transaction by increasing its fee rate${rbfType == 'cancel' ? ' and sending the funds back to yourself' : ''}:</p>
+        <input type="hidden" name="rbf_tx_id" value='${self.tx.txid}' />
+        <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+        <br>
+        <br>
+        <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? 'Cancel transaction' : 'Speed up!'}</button>
+        <br>
+        <span class="toggle_advanced_rbf" style="cursor: pointer;">Advanced {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+        <div class="advanced_rbf hidden warning">
+            <p style="max-width: 400px;">If you would like further customization, you can click here to fully edit the transaction.<br>(advanced, not recommended for new users)</p>
+            <button type="submit" name="action" value="rbf_edit" class="btn centered">Edit the transaction (advanced)</button>
+        </div>
+        </form>
+        `;
+        txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
+            let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
+            let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
+            if (advancedSettings.classList.contains('hidden')) {
+                advancedSettings.classList.remove('hidden')
+                advancedButton.innerHTML = 'Advanced &#9660;';
+            } else {
+                advancedSettings.classList.add('hidden')
+                advancedButton.innerHTML = 'Advanced &#9654;';
+            }
+        }
+
+        showPageOverlay('tx-popup');
     }
 
     function getCategoryImg(category, isConfirmed) {

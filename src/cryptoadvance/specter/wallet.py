@@ -1471,6 +1471,35 @@ class Wallet:
             ],
         }
 
+    def canceltx(self, txid, fee_rate):
+        self.check_unused()
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        decoded_tx = self.decode_tx(txid)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        return self.createpsbt(
+            addresses=[self.address],
+            amounts=[
+                sum(
+                    vout["witness_utxo"]["amount"]
+                    for i, vout in enumerate(psbt["inputs"])
+                )
+            ],
+            subtract=True,
+            fee_rate=float(fee_rate),
+            selected_coins=selected_coins,
+            readonly=False,
+            rbf=True,
+            rbf_edit_mode=True,
+        )
+
     def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
         raw_psbt = self.rpc.utxoupdatepsbt(
