@@ -294,7 +294,7 @@ class BitcoinRPC:
     def clone(self):
         """
         Returns a clone of self.
-        Usefull if you want to mess with the properties
+        Useful if you want to mess with the properties
         """
         return BitcoinRPC(
             self.user,
