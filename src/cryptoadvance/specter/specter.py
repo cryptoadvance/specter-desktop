@@ -568,8 +568,17 @@ class Specter:
     def requests_session(self, force_tor=False):
         requests_session = requests.Session()
         if self.only_tor or force_tor:
-            requests_session.proxies["http"] = self.proxy_url
-            requests_session.proxies["https"] = self.proxy_url
+            proxy_url = self.proxy_url
+            proxy_parsed_url = urlparse(self.proxy_url)
+            proxy_url = proxy_parsed_url._replace(
+                netloc="{}:{}@{}".format(
+                    str(random.randint(10000, 0x7FFFFFFF)),
+                    "random",
+                    proxy_parsed_url.netloc,
+                )
+            ).geturl()
+            requests_session.proxies["http"] = proxy_url
+            requests_session.proxies["https"] = proxy_url
         return requests_session
 
     def specter_backup_file(self):
