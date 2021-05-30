@@ -440,6 +440,8 @@ def device(device_alias):
     def sort_accounts(k):
         # Ordering: 1) chain 2) account 3) purpose
         pattern = r"^m\/([0-9]+)h\/([0-9])h\/([0-9]+)h"
+        if not k.derivation:
+            return 0
         match = re.search(pattern, k.derivation)
         return (
             int(match.group(1))
