@@ -443,6 +443,8 @@ def device(device_alias):
         if not k.derivation:
             return 0
         match = re.search(pattern, k.derivation)
+        if not match:
+            return 0
         return (
             int(match.group(1))
             + (int(match.group(2)) + 1) * 1000000
