@@ -1,3 +1,7 @@
+## v1.4.2 June 01, 2021
+- Bugfix: unconventional derivations fail regexes #1204 (Stepan Snigirev)
+- Chore: Simplify emptiness checks in txlist #1202 (Roman Zeyde)
+
 ## v1.4.1 May 30, 2021
 - Bugfix: a few typos #1201 (Roman Zeyde)
 - Bugfix: Set http as default network protocol if non specified #1199 (benk10)
