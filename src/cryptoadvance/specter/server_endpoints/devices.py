@@ -438,13 +438,17 @@ def device(device_alias):
     device = copy.deepcopy(device)
 
     def sort_accounts(k):
-        # Ordering: 1) chain 2) purpose 3) account
+        # Ordering: 1) chain 2) account 3) purpose
         pattern = r"^m\/([0-9]+)h\/([0-9])h\/([0-9]+)h"
+        if not k.derivation:
+            return 0
         match = re.search(pattern, k.derivation)
+        if not match:
+            return 0
         return (
-            int(match.group(1)) * 100
-            + (int(match.group(2)) + 1) * 10000
-            + int(match.group(3))
+            int(match.group(1))
+            + (int(match.group(2)) + 1) * 1000000
+            + (int(match.group(3)) + 1) * 2000
         )
 
     device.keys.sort(key=sort_accounts, reverse=False)

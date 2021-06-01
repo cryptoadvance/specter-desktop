@@ -670,10 +670,9 @@ def send_new(wallet_alias):
                     # calculate new amount if we need to subtract
                     if subtract:
                         for v in psbt["tx"]["vout"]:
-                            if (
-                                addresses[0] in v["scriptPubKey"]["addresses"]
-                                or addresses[0] == v["scriptPubKey"]["address"]
-                            ):
+                            if addresses[0] in v["scriptPubKey"].get(
+                                "addresses", [""]
+                            ) or addresses[0] == v["scriptPubKey"].get("address", ""):
                                 amounts[0] = v["value"]
             except Exception as e:
                 err = e
@@ -709,6 +708,22 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 flash("Failed to perform RBF. Error: %s" % e, "error")
+        elif action == "rbf_cancel":
+            try:
+                rbf_tx_id = request.form["rbf_tx_id"]
+                rbf_fee_rate = float(request.form["rbf_fee_rate"])
+                psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
+                return render_template(
+                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                    psbt=psbt,
+                    labels=[],
+                    wallet_alias=wallet_alias,
+                    wallet=wallet,
+                    specter=app.specter,
+                    rand=rand,
+                )
+            except Exception as e:
+                flash("Failed to cancel transaction with RBF. Error: %s" % e, "error")
         elif action == "rbf_edit":
             try:
                 decoded_tx = wallet.decode_tx(rbf_tx_id)
