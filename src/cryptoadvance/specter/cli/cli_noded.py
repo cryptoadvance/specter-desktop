@@ -287,7 +287,7 @@ def noded(
     echo(f"user, password: { my_node.rpcconn.rpcuser }, secret")
     echo(f"    host, port: localhost, {my_node.rpcconn.rpcport}")
     echo(
-        f"   {node_impl}-cli: {node_impl}-cli -regtest -rpcport={my_node.rpcconn.rpcport} -rpcuser={ node_impl } -rpcpassword=secret getblockchaininfo "
+        f"   {node_impl}-cli: {node_impl}-cli -regtest -rpcport={my_node.rpcconn.rpcport} -rpcuser={ my_node.rpcconn.rpcuser } -rpcpassword=secret getblockchaininfo "
     )
 
     if create_conn_json:

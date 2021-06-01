@@ -17,7 +17,7 @@ from ..util.shell import which, get_last_lines_from_file
 from ..rpc import RpcError
 from ..rpc import BitcoinRPC
 from ..helpers import load_jsons
-from ..specter_error import ExtProcTimeoutException
+from ..specter_error import ExtProcTimeoutException, SpecterError
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 from requests.exceptions import ConnectionError
 
@@ -373,7 +373,7 @@ class NodePlainController(NodeController):
         )
         time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
-            raise Exception(f"Could not start node due to:" + self.get_debug_log())
+            raise SpecterError(f"Could not start node due to:" + self.get_debug_log())
         logger.debug(
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )

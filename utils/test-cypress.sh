@@ -6,6 +6,8 @@ PORT=25444
 # This needs to be the same than in config.py CypressTestConfig BTCD_REGTEST_DATA_DIR
 # As we don't want to speculate here, we're injecting it via Env-var
 export BTCD_REGTEST_DATA_DIR=/tmp/specter_cypress_btc_regtest_plain_datadir
+# same with this
+export ELMD_REGTEST_DATA_DIR=/tmp/specter_cypress_elm_regtest_plain_datadir
 # same with SPECTER_DATA_FOLDER
 export SPECTER_DATA_FOLDER=~/.specter-cypress
 # We'll might change that on the "dev-function"
@@ -96,11 +98,21 @@ function send_signal() {
   fi
 }
 
-function start_bitcoind {
 
+
+function start_node {
+  addopts=""
   while [[ $# -gt 0 ]]; do
     arg="$1"
     case $arg in
+      --bitcoin)
+        node_impl=bitcoind
+        shift
+        ;;
+      --elements)
+        node_impl=elementsd
+        shift
+        ;;
       --reset)
         echo "--> Purging $BTCD_REGTEST_DATA_DIR"
         rm -rf $BTCD_REGTEST_DATA_DIR
@@ -111,7 +123,7 @@ function start_bitcoind {
         shift
         ;;
       *)
-        echo "unrecognized argument for start_bitcoind: $1 "
+        echo "unrecognized argument for start_node: $1 "
         exit 1
         shift
         ;;
@@ -119,22 +131,42 @@ function start_bitcoind {
   done
 
   if [ "$1" = "--reset" ]; then
+    if [ "$node_impl" = "bitcoind" ]; then
       echo "--> Purging $BTCD_REGTEST_DATA_DIR"
       rm -rf $BTCD_REGTEST_DATA_DIR
+    else
+      echo "--> Purging $ELMD_REGTEST_DATA_DIR"
+      rm -rf $ELMD_REGTEST_DATA_DIR
+    fi
   fi
   if [ "$1" = "--cleanuphard" ]; then
       addopts="--cleanuphard"
   fi
   if [ "$DOCKER" != "true" ]; then
+    if [ "$node_impl" != "elementsd" ]; then # no docker for elementsd yet
       addopts="$addopts --nodocker"
+    fi
   fi
-  echo "--> Starting bitcoind with $addopts..."
-  python3 -m cryptoadvance.specter $DEBUG bitcoind $addopts --create-conn-json --config $SPECTER_CONFIG &
-  bitcoind_pid=$!
+  echo "--> Starting $node_impl with $addopts ..."
+  python3 -m cryptoadvance.specter $DEBUG $node_impl $addopts --create-conn-json --config $SPECTER_CONFIG &
+  if [ "$node_impl" = "bitcoind" ]; then
+    bitcoind_pid=$!
+  else
+    elementsd_pid=$!
+  fi
+
   while ! [ -f ./btcd-conn.json ] ; do
       sleep 0.5
   done
 
+}
+
+function start_bitcoind {
+  start_node --bitcoin $*
+}
+
+function start_elementsd {
+  start_node --elements $*
 }
 
 function stop_bitcoind {
@@ -143,6 +175,15 @@ function stop_bitcoind {
     send_signal SIGTERM $bitcoind_pid
     wait $bitcoind_pid
     unset bitcoind_pid
+  fi
+}
+
+function stop_elementsd {
+  if [ ! -z ${elementsd_pid+x} ]; then
+    echo "--> Killing/Terminating elementsdwrapper with PID $elementsd_pid ..."
+    send_signal SIGTERM $elementsd_pid
+    wait $elementsd_pid
+    unset elementsd_pid
   fi
 }
 
@@ -168,8 +209,9 @@ function stop_specter {
 
 function cleanup()
 {
-    stop_specter || :
-    stop_bitcoind || :
+    stop_specter || : 
+    stop_bitcoind || : 
+    stop_elementsd || : 
 }
 
 
@@ -200,13 +242,20 @@ function restore_snapshot {
       exit 1
     fi
   done
+
   rm -rf ${BTCD_REGTEST_DATA_DIR}
   mkdir ${BTCD_REGTEST_DATA_DIR}
-  rm -rf $SPECTER_DATA_FOLDER
-  mkdir $SPECTER_DATA_FOLDER
   echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
   tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C ${BTCD_REGTEST_DATA_DIR} --strip-components=1
+
+  rm -rf ${ELMD_REGTEST_DATA_DIR}
+  mkdir ${ELMD_REGTEST_DATA_DIR}
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_elmdir.tar.gz ... "
+  tar -xzf ./cypress/fixtures/${spec_file}_elmdir.tar.gz -C ${ELMD_REGTEST_DATA_DIR} --strip-components=1
+
   echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
+  rm -rf $SPECTER_DATA_FOLDER
+  mkdir $SPECTER_DATA_FOLDER 
   tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C $SPECTER_DATA_FOLDER --strip-components=1
 }
 
@@ -223,9 +272,11 @@ function sub_dev {
   if [ -n "${spec_file}" ]; then
     restore_snapshot ${spec_file}
     start_bitcoind --cleanuphard
+    start_elementsd --cleanuphard
     start_specter
   else
     start_bitcoind --reset
+    stop_elementsd --reset
     start_specter --reset
   fi
   open http://localhost:${PORT}
@@ -237,9 +288,11 @@ function sub_open {
   if [ -n "${spec_file}" ]; then
     restore_snapshot ${spec_file}
     start_bitcoind --cleanuphard --reset
+    start_elementsd --cleanuphard --reset
     start_specter
   else
     start_bitcoind --reset
+    start_elementsd --reset
     start_specter --reset
   fi
   start_specter
@@ -251,11 +304,15 @@ function sub_run {
   if [ -f ./cypress/integration/${spec_file} ]; then
     restore_snapshot ${spec_file}
     start_bitcoind --cleanuphard --reset
+    start_elementsd --cleanuphard --reset
     start_specter
-    # Run $spec_file and all of the others coming later which come later!
-    $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
+    # Run $spec_file and all of the others coming later!
+    #$(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
+    # Run $spec_file and only that spec-file!
+    $(npm bin)/cypress run --spec $spec_file
   else 
     start_bitcoind --reset
+    start_elementsd --reset
     start_specter --reset
     $(npm bin)/cypress run
   fi
@@ -270,15 +327,21 @@ function sub_snapshot {
     exit 2
   fi
   start_bitcoind --reset
+  start_elementsd --reset
   start_specter --reset
   $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file)
   echo "--> stopping specter"
   stop_specter
   echo "--> stopping bitcoind gracefully ... won't take long ..."
   stop_bitcoind
-  echo "--> Creating snapshot  $BTCD_REGTEST_DATA_DIR)"
+  echo "--> stopping elementsd gracefully ... won't take long ..."
+  stop_elementsd
+  echo "--> Creating snapshot $BTCD_REGTEST_DATA_DIR)"
   rm ./cypress/fixtures/${spec_file}_btcdir.tar.gz 2> /dev/null 1>&2 || :
   tar -czf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C /tmp $(basename $BTCD_REGTEST_DATA_DIR)
+  echo "--> Creating snapshot $ELMD_REGTEST_DATA_DIR)"
+  rm ./cypress/fixtures/${spec_file}_elmdir.tar.gz 2> /dev/null 1>&2 || :
+  tar -czf ./cypress/fixtures/${spec_file}_elmdir.tar.gz -C /tmp $(basename $ELMD_REGTEST_DATA_DIR)
   echo "--> Creating snapshot of $SPECTER_DATA_FOLDER"
   rm ./cypress/fixtures/${spec_file}_specterdir.tar.gz 2> /dev/null 1>&2 || :
   tar -czf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C ~ $(basename $SPECTER_DATA_FOLDER)

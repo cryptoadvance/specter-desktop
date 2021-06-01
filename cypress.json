@@ -3,6 +3,7 @@
       "spec_setup_wizard.js",
       "spec_setup_tor.js",
       "spec_empty_specter_home.js",
+      "spec_configures_nodes.js",
       "spec_node_configured.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js"
