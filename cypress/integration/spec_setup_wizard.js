@@ -73,6 +73,5 @@ describe('Setup wizard', () => {
         cy.visit('/about')
 
         cy.get('[href="/setup/start/"]').click()
-        cy.contains('Unavailable').should('not.exist')
     })
 })
