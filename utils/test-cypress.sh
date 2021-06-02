@@ -114,12 +114,11 @@ function start_node {
         shift
         ;;
       --reset)
-        echo "--> Purging $BTCD_REGTEST_DATA_DIR"
-        rm -rf $BTCD_REGTEST_DATA_DIR
+        RESET=true
         shift
         ;;
       --cleanuphard)
-        addopts="--cleanuphard"
+        CLEANUPHARD=true
         shift
         ;;
       *)
@@ -130,7 +129,7 @@ function start_node {
     esac
   done
 
-  if [ "$1" = "--reset" ]; then
+  if [ "$RESET" = "true" ]; then
     if [ "$node_impl" = "bitcoind" ]; then
       echo "--> Purging $BTCD_REGTEST_DATA_DIR"
       rm -rf $BTCD_REGTEST_DATA_DIR
@@ -139,7 +138,7 @@ function start_node {
       rm -rf $ELMD_REGTEST_DATA_DIR
     fi
   fi
-  if [ "$1" = "--cleanuphard" ]; then
+  if [ "$CLEANUPHARD" = "true" ]; then
       addopts="--cleanuphard"
   fi
   if [ "$DOCKER" != "true" ]; then
