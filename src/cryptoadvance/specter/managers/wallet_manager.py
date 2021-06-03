@@ -321,7 +321,7 @@ class WalletManager:
             change_descriptor = "%s(%s)" % (el, change_descriptor)
 
         if is_liquid(self.chain):
-            blinding_key = ""
+            blinding_key = None
             if len(devices) == 1:
                 blinding_key = devices[0].blinding_key
             if not blinding_key:
@@ -337,8 +337,11 @@ class WalletManager:
                             xor[i] = xor[i] ^ chaincode[i]
                 secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
                 blinding_key = ec.PrivateKey(secret).wif()
-            recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
+            if blinding_key:
+                recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
+                change_descriptor = (
+                    f"blinded(slip77({blinding_key}),{change_descriptor})"
+                )
 
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)

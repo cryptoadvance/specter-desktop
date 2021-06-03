@@ -1154,20 +1154,23 @@ class Wallet:
             args[0]["keypool"] = True
             args[0]["range"] = [start, end]
 
-        addresses = [
-            dict(
-                address=self.get_address(idx, change=change, check_keypool=False),
-                index=idx,
-                change=change,
-            )
-            for idx in range(start, end)
-        ]
-        self._addresses.add(addresses, check_rpc=False)
+        try:
+            addresses = [
+                dict(
+                    address=self.get_address(idx, change=change, check_keypool=False),
+                    index=idx,
+                    change=change,
+                )
+                for idx in range(start, end)
+            ]
+            self._addresses.add(addresses, check_rpc=False)
+        except Exception as e:
+            logger.warn(f"Error while calculating addresses: {e}")
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
         # The "keypool" for descriptor wallets is automatically refilled
-        if not self.use_descriptors or start > 0:
+        if (not self.use_descriptors) or start == 0:
             if not self.is_multisig:
                 if self.use_descriptors:
                     r = self.rpc.importdescriptors(args)

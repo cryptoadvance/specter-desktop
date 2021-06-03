@@ -1,6 +1,9 @@
 from ..rpc import RpcError, BitcoinRPC
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LiquidRPC(BitcoinRPC):
@@ -115,7 +118,15 @@ class LiquidRPC(BitcoinRPC):
         psbt = res.get("psbt", None)
         # check if we should blind the transaction
         if psbt and blind:
-            blinded = self.blindpsbt(psbt)
+            # blindpsbt is used on master branch
+            try:
+                blinded = self.blindpsbt(psbt)
+                logger.info("transaction blinded")
+            except Exception as e:
+                # in pset branch (achow/pset) walletprocesspsbt is used instead
+                logger.warn(e)
+                # blind without signing
+                blinded = self.walletprocesspsbt(psbt, False)["psbt"]
             # res["unblinded"] = psbt
             res["psbt"] = blinded
         return res
