@@ -2,6 +2,7 @@ from ..rpc import RpcError, BitcoinRPC
 from embit.liquid.descriptor import LDescriptor
 from embit.liquid.pset import PSET
 from embit.descriptor.checksum import add_checksum
+from embit.liquid.addresses import addr_decode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,19 @@ class LiquidRPC(BitcoinRPC):
         psbt = res.get("psbt", None)
         # check if we should blind the transaction
         if psbt and blind:
+            # check that change is also blinded - fixes a bug in pset branch
+            tx = PSET.from_string(psbt)
+            der = None
+            changepos = res["changepos"]
+            if len(args) >= 2:
+                addr = args[1].get("changeAddress", None)
+                if addr:
+                    _, bpub = addr_decode(addr)
+                    der = tx.outputs[changepos].bip32_derivations
+                    if bpub and (tx.outputs[changepos].blinding_pubkey is None):
+                        tx.outputs[changepos].blinding_pubkey = bpub.sec()
+                    res["psbt"] = str(tx)
+                    psbt = str(tx)
             # blindpsbt is used on master branch
             try:
                 blinded = self.blindpsbt(psbt)
@@ -128,7 +142,6 @@ class LiquidRPC(BitcoinRPC):
                 logger.warn(e)
                 # blind without signing
                 blinded = self.walletprocesspsbt(psbt, False)["psbt"]
-            # res["unblinded"] = psbt
             res["psbt"] = blinded
         return res
 
@@ -140,7 +153,7 @@ class LiquidRPC(BitcoinRPC):
             if "tx" not in decoded:
                 decoded["tx"] = self.decoderawtransaction(str(pset.tx))
             if "fee" not in decoded:
-                decoded["fee"] = pset.fee()*1e-8
+                decoded["fee"] = pset.fee() * 1e-8
         for out in decoded["outputs"]:
             if "value" not in out:
                 out["value"] = -1

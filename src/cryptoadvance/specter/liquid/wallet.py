@@ -188,7 +188,8 @@ class LWallet(Wallet):
                 ]
             else:
                 extra_inputs = [
-                    {"txid": inp["previous_txid"], "vout": inp["previous_vout"]} for inp in psbt["inputs"]
+                    {"txid": inp["previous_txid"], "vout": inp["previous_vout"]}
+                    for inp in psbt["inputs"]
                 ]
             if "changeAddress" in psbt:
                 options["changeAddress"] = psbt["changeAddress"]
