@@ -145,6 +145,61 @@ class LiquidRPC(BitcoinRPC):
             res["psbt"] = blinded
         return res
 
+    def combinepsbt(self, psbts, *args, **kwargs):
+        if len(psbts) == 0:
+            raise RpcError("Provide at least one psbt")
+        tx = PSET.from_string(psbts[0])
+        for b64 in psbts[1:]:
+            t2 = PSET.from_string(b64)
+            tx.version = tx.version or t2.version
+            tx.tx_version = tx.tx_version or t2.tx_version
+            tx.locktime = tx.locktime or t2.locktime
+            tx.xpubs.update(t2.xpubs)
+            tx.unknown.update(t2.unknown)
+
+
+            for i in range(len(tx.inputs)):
+                inp1 = tx.inputs[i]
+                inp2 = t2.inputs[i]
+                inp1.value = inp1.value or inp2.value
+                inp1.value_blinding_factor = inp1.value_blinding_factor or inp2.value_blinding_factor
+                inp1.asset = inp1.asset or inp2.asset
+                inp1.asset_blinding_factor = inp1.asset_blinding_factor or inp2.asset_blinding_factor
+                inp1.txid = inp1.txid or inp2.txid
+                inp1.vout = inp1.vout or inp2.vout
+                inp1.sequence = inp1.sequence or inp2.sequence
+                inp1.non_witness_utxo = inp1.non_witness_utxo or inp2.non_witness_utxo
+                inp1.sighash_type = inp1.sighash_type or inp2.sighash_type
+                inp1.redeem_script = inp1.redeem_script or inp2.redeem_script
+                inp1.witness_script = inp1.witness_script or inp2.witness_script
+                inp1.final_scriptsig = inp1.final_scriptsig or inp2.final_scriptsig
+                inp1.final_scriptwitness = inp1.final_scriptwitness or inp2.final_scriptwitness
+                inp1.partial_sigs.update(inp2.partial_sigs)
+                inp1.bip32_derivations.update(inp2.bip32_derivations)
+                inp1.unknown.update(inp2.unknown)
+
+            for i in range(len(tx.outputs)):
+                out1 = tx.outputs[i]
+                out2 = t2.outputs[i]
+                out1.value_commitment = out1.value_commitment or out2.value_commitment
+                out1.value_blinding_factor = out1.value_blinding_factor or out2.value_blinding_factor
+                out1.asset_commitment = out1.asset_commitment or out2.asset_commitment
+                out1.asset_blinding_factor = out1.asset_blinding_factor or out2.asset_blinding_factor
+                out1.range_proof = out1.range_proof or out2.range_proof
+                out1.surjection_proof = out1.surjection_proof or out2.surjection_proof
+                out1.ecdh_pubkey = out1.ecdh_pubkey or out2.ecdh_pubkey
+                out1.blinding_pubkey = out1.blinding_pubkey or out2.blinding_pubkey
+                out1.asset = out1.asset or out2.asset
+
+                out1.value = out1.value or out2.value
+                out1.script_pubkey = out1.script_pubkey or out2.script_pubkey
+                out1.unknown = out1.unknown or out2.unknown
+                out1.redeem_script = out1.redeem_script or out2.redeem_script
+                out1.witness_script = out1.witness_script or out2.witness_script
+                out1.bip32_derivations.update(out2.bip32_derivations)
+                out1.unknown.update(out2.unknown)
+        return str(tx)
+
     def decodepsbt(self, b64psbt, *args, **kwargs):
         decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
         # pset branch - no fee and global tx fields...
