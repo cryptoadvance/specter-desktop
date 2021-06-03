@@ -1184,7 +1184,7 @@ class Wallet:
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
         # The "keypool" for descriptor wallets is automatically refilled
-        if not self.use_descriptors or start > 0:
+        if (not self.use_descriptors) or start == 0:
             if not self.is_multisig:
                 if self.use_descriptors:
                     r = self.rpc.importdescriptors(args)
