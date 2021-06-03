@@ -1,5 +1,6 @@
 from ..rpc import RpcError, BitcoinRPC
 from embit.liquid.descriptor import LDescriptor
+from embit.liquid.pset import PSET
 from embit.descriptor.checksum import add_checksum
 import logging
 
@@ -130,6 +131,23 @@ class LiquidRPC(BitcoinRPC):
             # res["unblinded"] = psbt
             res["psbt"] = blinded
         return res
+
+    def decodepsbt(self, b64psbt, *args, **kwargs):
+        decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
+        # pset branch - no fee and global tx fields...
+        if "tx" not in decoded or "fee" not in decoded:
+            pset = PSET.from_string(b64psbt)
+            if "tx" not in decoded:
+                decoded["tx"] = self.decoderawtransaction(str(pset.tx))
+            if "fee" not in decoded:
+                decoded["fee"] = pset.fee()*1e-8
+        for out in decoded["outputs"]:
+            if "value" not in out:
+                out["value"] = -1
+        for out in decoded["tx"]["vout"]:
+            if "value" not in out:
+                out["value"] = -1
+        return decoded
 
     def decoderawtransaction(self, tx):
         unblinded = self.unblindrawtransaction(tx)["hex"]
