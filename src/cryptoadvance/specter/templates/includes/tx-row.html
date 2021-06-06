@@ -127,7 +127,7 @@
                 this.amount = parseFloat(this.tx.amount.toFixed(8));
             }
 
-            if (!this.price || !this.symbol || this.hideSensitiveInfo) {
+            if (!this.price || !this.symbol || this.amount == 1e-8 || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -139,11 +139,15 @@
                 this.amountPrice.classList.remove('hidden');
             }
 
-            if (this.btcUnit == 'sat') {
+            if (this.btcUnit == 'sat' && this.amount != 1e-8) {
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+            if (this.amount == 1e-8) {
+                this.amountText.innerText = 'Confidential';
+            } else {
+                this.amountText.innerText = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+            }
 
             // Set confirmations
             if (this.tx.confirmations > 0) {

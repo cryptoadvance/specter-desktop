@@ -16,6 +16,7 @@ from typing import Callable
 from flask import current_app as app
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
 from hwilib.devices.bitbox02 import Bitbox02Client
+from .devices.hwi.specter_diy import SpecterClient
 
 logger = logging.getLogger(__name__)
 
@@ -322,6 +323,8 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
+            if isinstance(client, SpecterClient):
+                return client.sign_b64psbt(psbt)
             status = hwi_commands.signtx(client, psbt)
             if "error" in status:
                 raise Exception(status["error"])
