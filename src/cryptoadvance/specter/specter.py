@@ -461,15 +461,7 @@ class Specter:
 
     @property
     def is_liquid(self):
-        return is_liquid(self.chain)
-
-    @property
-    def is_liquid(self):
-        return is_liquid(self.chain)
-
-    @property
-    def is_liquid(self):
-        return is_liquid(self.chain)
+        return is_liquid(self.node.chain)
 
     @property
     def user_config(self):

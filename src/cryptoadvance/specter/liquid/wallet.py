@@ -2,10 +2,61 @@ from ..wallet import *
 from ..addresslist import Address
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
-
+from ..helpers import get_asset_label
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+
+    def get_balance(self):
+        try:
+            full_balance = (
+                self.rpc.getbalances(assetlabel=None)["mine"]
+                if self.use_descriptors
+                else self.rpc.getbalances(assetlabel=None)["watchonly"]
+            )
+            balance = {"assets": {}}
+            assets = {"bitcoin",}
+            # get all assets
+            for k in full_balance:
+                for asset in full_balance[k].keys():
+                    assets.add(asset)
+            # get balances for every asset
+            for asset in assets:
+                asset_balance = {}
+                for cat in full_balance:
+                    v = full_balance[cat].get(asset, 0)
+                    asset_balance[cat] = v
+                if asset == "bitcoin":
+                    balance.update(asset_balance)
+                else:
+                    balance["assets"][asset] = asset_balance
+
+            # calculate available balance
+            available = {}
+            available.update(balance)
+            # locked_utxo = self.rpc.listlockunspent()
+            # we need better tx decoding here to include assets
+            # for tx in locked_utxo:
+            #     tx_data = self.gettransaction(tx["txid"])
+            #     raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
+            #     delta = raw_tx["vout"][tx["vout"]]["value"]
+            #     if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
+            #         available["untrusted_pending"] -= delta
+            #     else:
+            #         available["trusted"] -= delta
+            #         available["trusted"] = round(available["trusted"], 8)
+            # available["untrusted_pending"] = round(available["untrusted_pending"], 8)
+            balance["available"] = available
+        except:
+            balance = {
+                "trusted": 0,
+                "untrusted_pending": 0,
+                "immature": 0,
+                "available": {"trusted": 0, "untrusted_pending": 0},
+                "assets": {},
+            }
+        self.balance = balance
+        return self.balance
 
     def fetch_transactions(self):
         return
@@ -23,7 +74,26 @@ class LWallet(Wallet):
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
         # TODO: only from RPC for now
-        return self.rpc.listtransactions("*", 10000, 0, True)
+        txs = self.rpc.listtransactions("*", 10000, 0, True)
+        asset_labels = self.rpc.dumpassetlabels()
+        assets = {}
+        for k in asset_labels:
+            assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+        for tx in txs:
+            if "asset" in tx:
+                tx["assetlabel"] = get_asset_label(tx["asset"], known_assets=assets)
+        return txs
+
+    def check_utxo(self):
+        super().check_utxo()
+        asset_labels = self.rpc.dumpassetlabels()
+        assets = {}
+        for k in asset_labels:
+            assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+        for tx in self.full_utxo:
+            if "asset" in tx:
+                tx["assetlabel"] = get_asset_label(tx["asset"], known_assets=assets)
+        return self.full_utxo
 
     def gettransaction(self, txid, blockheight=None, decode=False):
         # TODO: only from RPC for now

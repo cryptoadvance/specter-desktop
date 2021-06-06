@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import current_app as app
 from flask import Blueprint
 from jinja2 import contextfilter
-from ..helpers import to_ascii20
+from ..helpers import to_ascii20, get_asset_label
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -86,3 +86,10 @@ def altunit(context, value):
 def bytessize(context, value):
     value = float(value)
     return "{:,.0f}".format(value / float(1 << 30)) + " GB"
+
+@contextfilter
+@filters_bp.app_template_filter("assetlabel")
+def assetlabel(context, asset):
+    if app.specter.hide_sensitive_info:
+        return "####"
+    return get_asset_label(asset)

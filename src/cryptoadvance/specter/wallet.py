@@ -1129,6 +1129,7 @@ class Wallet:
             balance = {
                 "trusted": 0,
                 "untrusted_pending": 0,
+                "immature": 0,
                 "available": {"trusted": 0, "untrusted_pending": 0},
             }
         self.balance = balance
