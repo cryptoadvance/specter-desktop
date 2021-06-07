@@ -21,16 +21,37 @@
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
 			{% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
+			{% set balance = specter.wallet_manager.joined_balance() %}
             <span id="fullbalance_amount">{{ fullbalance | btcunitamount }}</span>
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
-				{% if specter.chain !='main' %}t{%endif%}BTC
+				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
 			{% endif %}
         </span><br>
 		<span class="note">{{ fullbalance | altunit }}</span>
-        {% if specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') > 0 %}<br>
-            <small>( {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.trusted') | btcunitamount }} confirmed, {{ specter.wallet_manager.wallets.values() | sum(attribute='balance.untrusted_pending') | btcunitamount }} pending )</small>
+        {% if balance.get("untrusted_pending", 0) or balance.get("immature", 0) %}<br>
+            <small>( {{ balance.get("trusted", 0) | btcunitamount }} confirmed,
+                     {% if balance.get("untrusted_pending", 0) %}
+                        {{ balance.get("untrusted_pending", 0) | btcunitamount }} pending
+                     {% endif %}
+                     {% if balance.get("immature", 0) %}
+                        {{ balance.get("immature", 0) | btcunitamount }} immature
+                     {% endif %}
+            )</small>
+        {% endif %}
+        {% if specter.is_liquid and balance.get("assets", {}) %}
+        <div>
+            <small style="line-height:30px">Assets:<br>
+            {% for asset in balance.get("assets",{}) %}
+                {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
+                <div style="margin: 0 10px; display: inline-block;">
+                    {{ (asset_balance.get("trusted", 0) + asset_balance.get("untrusted_pending", 0) + asset_balance.get("immature", 0)) | btcamount }}
+                    <span title="{{asset}}" style="cursor:help">{{asset | assetlabel}}</span>
+                </div>
+            {% endfor %}
+            </small>
+        </div>
         {% endif %}
     </h1>
     <div class="table-holder">

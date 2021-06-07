@@ -87,6 +87,7 @@ def bytessize(context, value):
     value = float(value)
     return "{:,.0f}".format(value / float(1 << 30)) + " GB"
 
+
 @contextfilter
 @filters_bp.app_template_filter("assetlabel")
 def assetlabel(context, asset):

@@ -4,6 +4,7 @@ from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 from ..helpers import get_asset_label
 
+
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
 
@@ -15,7 +16,9 @@ class LWallet(Wallet):
                 else self.rpc.getbalances(assetlabel=None)["watchonly"]
             )
             balance = {"assets": {}}
-            assets = {"bitcoin",}
+            assets = {
+                "bitcoin",
+            }
             # get all assets
             for k in full_balance:
                 for asset in full_balance[k].keys():
