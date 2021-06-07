@@ -194,6 +194,8 @@ function start_specter {
   echo "--> Starting specter ..."
   python3 -m cryptoadvance.specter $DEBUG server --config $SPECTER_CONFIG --debug > /dev/null &
   specter_pid=$!
+  # Simulate slower machines with uncommenting this (-l 10 means using 10% cpu):
+  #cpulimit -p $specter_pid -l 10 -b
   $(npm bin)/wait-on http://localhost:${PORT}
 }
 
