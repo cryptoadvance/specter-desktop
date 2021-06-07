@@ -19,7 +19,7 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
+from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
@@ -478,6 +478,18 @@ class Specter:
     @property
     def explorer_id(self):
         return self.user_config.get("explorer_id", {}).get(self.chain, "CUSTOM")
+
+    @property
+    def asset_labels(self):
+        user_assets = self.user_config.get("asset_labels", {}).get(self.chain, {})
+        node_assets = self.node.asset_labels
+        asset_labels = {}
+        deep_update(asset_labels, node_assets)
+        deep_update(asset_labels, user_assets)
+        return asset_labels
+
+    def asset_label(self, asset):
+        return get_asset_label(asset, known_assets=self.asset_labels)
 
     @property
     def fee_estimator(self):

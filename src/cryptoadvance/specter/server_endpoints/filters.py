@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import current_app as app
 from flask import Blueprint
 from jinja2 import contextfilter
-from ..helpers import to_ascii20, get_asset_label
+from ..helpers import to_ascii20
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -93,4 +93,4 @@ def bytessize(context, value):
 def assetlabel(context, asset):
     if app.specter.hide_sensitive_info:
         return "####"
-    return get_asset_label(asset)
+    return app.specter.asset_label(asset)

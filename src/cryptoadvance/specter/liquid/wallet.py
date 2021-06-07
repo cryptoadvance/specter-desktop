@@ -2,7 +2,6 @@ from ..wallet import *
 from ..addresslist import Address
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
-from ..helpers import get_asset_label
 
 
 class LWallet(Wallet):
@@ -77,26 +76,7 @@ class LWallet(Wallet):
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
         # TODO: only from RPC for now
-        txs = self.rpc.listtransactions("*", 10000, 0, True)
-        asset_labels = self.rpc.dumpassetlabels()
-        assets = {}
-        for k in asset_labels:
-            assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
-        for tx in txs:
-            if "asset" in tx:
-                tx["assetlabel"] = get_asset_label(tx["asset"], known_assets=assets)
-        return txs
-
-    def check_utxo(self):
-        super().check_utxo()
-        asset_labels = self.rpc.dumpassetlabels()
-        assets = {}
-        for k in asset_labels:
-            assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
-        for tx in self.full_utxo:
-            if "asset" in tx:
-                tx["assetlabel"] = get_asset_label(tx["asset"], known_assets=assets)
-        return self.full_utxo
+        return self.rpc.listtransactions("*", 10000, 0, True)
 
     def gettransaction(self, txid, blockheight=None, decode=False):
         # TODO: only from RPC for now

@@ -1773,9 +1773,9 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
                 else search in tx["address"]
             )
             or (
-                any(search in label for label in tx["label"])
-                if isinstance(tx["label"], list)
-                else search in tx["label"]
+                any(search in label for label in tx.get("label", ""))
+                if isinstance(tx.get("label", ""), list)
+                else search in tx.get("label", "")
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
@@ -1810,6 +1810,10 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
         txlist = txlist[limit * idx : limit * (idx + 1)]
     else:
         page_count = 1
+    # add assets
+    for tx in txlist:
+        if "asset" in tx:
+            tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
