@@ -489,6 +489,8 @@ class Specter:
         return asset_labels
 
     def asset_label(self, asset):
+        if asset == "":
+            return ""
         return get_asset_label(asset, known_assets=self.asset_labels)
 
     @property

@@ -789,7 +789,11 @@ def send_new(wallet_alias):
         or not rbf
         or selected_coins
     )
-
+    wallet_utxo = wallet.utxo
+    if app.specter.is_liquid:
+        for tx in wallet_utxo + rbf_utxo:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx.get("asset"))
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
@@ -805,6 +809,7 @@ def send_new(wallet_alias):
         show_advanced_settings=show_advanced_settings,
         rbf_utxo=rbf_utxo,
         rbf_tx_id=rbf_tx_id,
+        wallet_utxo=wallet_utxo,
         fee_estimation=fee_rate,
         fee_estimation_data=fee_estimation_data,
         wallet_alias=wallet_alias,
@@ -1811,9 +1816,10 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
     else:
         page_count = 1
     # add assets
-    for tx in txlist:
-        if "asset" in tx:
-            tx["assetlabel"] = app.specter.asset_label(tx["asset"])
+    if app.specter.is_liquid:
+        for tx in txlist:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
