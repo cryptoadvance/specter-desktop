@@ -1020,7 +1020,7 @@ def combine(wallet_alias):
         # if electrum then it's base43
         try:
             decoded = b43_decode(psbt)
-            if decoded.startswith(b"psbt\xff"):
+            if decoded[:5] in [b"psbt\xff", b"pset\xff"]:
                 psbt = b2a_base64(decoded).decode()
             else:
                 psbt = decoded.hex()
@@ -1154,7 +1154,10 @@ def decoderawtx(wallet_alias):
             if tx["confirmations"] == 0:
                 tx["is_purged"] = wallet.is_tx_purged(txid)
                 try:
-                    if wallet._transactions[txid].get("category", "") == "receive":
+                    if (
+                        wallet.gettransaction(txid, decode=True).get("category", "")
+                        == "receive"
+                    ):
                         tx["fee"] = (
                             wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
                         )
@@ -1164,12 +1167,10 @@ def decoderawtx(wallet_alias):
                         f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
                     )
 
-            if wallet.data_source == "rpc":
-                # From RPC
-                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
-            else:
-                # From CSV
+            try:
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+            except:
+                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
 
             return {
                 "success": True,
