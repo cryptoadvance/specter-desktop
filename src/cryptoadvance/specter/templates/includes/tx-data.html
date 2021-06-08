@@ -104,7 +104,7 @@
             <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
             `;
             if (tx.fee) {
-                fee = tx.fee;
+                let fee = tx.fee;
                 if(typeof tx.fee == "object"){
                     if("bitcoin" in tx.fee){
                         fee = tx.fee.bitcoin;
