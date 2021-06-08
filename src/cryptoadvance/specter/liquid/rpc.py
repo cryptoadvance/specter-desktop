@@ -40,7 +40,7 @@ class LiquidRPC(BitcoinRPC):
         include_watchonly=True,
         avoid_reuse=False,
         assetlabel="bitcoin",  # pass None to get all
-        **kwargs
+        **kwargs,
     ):
         """
         Bitcoin-like getbalance rpc call without assets,
@@ -146,9 +146,9 @@ class LiquidRPC(BitcoinRPC):
 
             # generate all blinding stuff ourselves in deterministic way
             bpk = bytes.fromhex(self.dumpmasterblindingkey())
-            tx.unblind(PrivateKey(bpk)) # get values and blinding factors for inputs
+            tx.unblind(PrivateKey(bpk))  # get values and blinding factors for inputs
             seed = tagged_hash("liquid/blinding_seed", bpk)
-            tx.blind(seed) # generate all blinding factors etc
+            tx.blind(seed)  # generate all blinding factors etc
             # proprietary fields for Specter - 00 is global blinding seed
             tx.unknown[b"\xfc\x07specter\x00"] = seed
 
@@ -156,26 +156,28 @@ class LiquidRPC(BitcoinRPC):
             if changepos is not None:
                 txseed = tx.txseed(seed)
                 # blinding seed to calculate per-output nonces
-                message = b"\x01\x00\x20"+txseed
+                message = b"\x01\x00\x20" + txseed
                 for i, out in enumerate(tx.outputs):
                     # skip unblinded and change address itself
                     if out.blinding_pubkey is None or i == changepos:
                         continue
                     # key 01<i> is blinding pubkey for output i
-                    message += b"\x05\x01" + i.to_bytes(4, 'little')
+                    message += b"\x05\x01" + i.to_bytes(4, "little")
                     # message is blinding pubkey
                     message += bytes([len(out.blinding_pubkey)]) + out.blinding_pubkey
                 # extra message for rangeproof - proprietary field
                 tx.outputs[changepos].unknown[b"\xfc\x07specter\x01"] = message
                 # re-generate rangeproof with extra message
-                nonce = tagged_hash("liquid/range_proof", txseed+changepos.to_bytes(4,'little'))
+                nonce = tagged_hash(
+                    "liquid/range_proof", txseed + changepos.to_bytes(4, "little")
+                )
                 tx.outputs[changepos].reblind(nonce, extra_message=message)
 
             res["psbt"] = str(tx)
         return res
 
     def _cleanpsbt(self, psbt):
-        """ Removes stuff that Core doesn't like """
+        """Removes stuff that Core doesn't like"""
         tx = PSET.from_string(psbt)
         for inp in tx.inputs:
             inp.value = None
@@ -303,15 +305,17 @@ class LiquidRPC(BitcoinRPC):
                 o = outputs[i]
                 if isinstance(out.value, int):
                     if "value" in o:
-                        assert o["value"] == round(out.value*1e-8,8)
+                        assert o["value"] == round(out.value * 1e-8, 8)
                     else:
-                        o["value"] = round(out.value*1e-8,8)
+                        o["value"] = round(out.value * 1e-8, 8)
                     if "asset" in o:
                         assert o["asset"] == bytes(reversed(out.asset[-32:])).hex()
                     else:
                         o["asset"] = bytes(reversed(out.asset[-32:])).hex()
                     try:
-                        o["scriptPubKey"]["addresses"] = [liquid_address(out.script_pubkey, network=net)]
+                        o["scriptPubKey"]["addresses"] = [
+                            liquid_address(out.script_pubkey, network=net)
+                        ]
                     except:
                         pass
                     if out.script_pubkey.data == b"":
@@ -323,15 +327,17 @@ class LiquidRPC(BitcoinRPC):
                     res = out.unblind(pk.secret, message_length=1000)
                     value, asset, vbf, abf, extra, min_value, max_value = res
                     if "value" in o:
-                        assert o["value"] == round(value*1e-8,8)
+                        assert o["value"] == round(value * 1e-8, 8)
                     else:
-                        o["value"] = round(value*1e-8,8)
+                        o["value"] = round(value * 1e-8, 8)
                     if "asset" in o:
                         assert o["asset"] == bytes(reversed(asset[-32:])).hex()
                     else:
                         o["asset"] = bytes(reversed(asset[-32:])).hex()
                     try:
-                        o["scriptPubKey"]["addresses"] = [liquid_address(out.script_pubkey, pk, network=net)]
+                        o["scriptPubKey"]["addresses"] = [
+                            liquid_address(out.script_pubkey, pk, network=net)
+                        ]
                     except:
                         pass
                     if len(extra.rstrip(b"\x00")) > 0:
@@ -352,8 +358,8 @@ class LiquidRPC(BitcoinRPC):
                     if len(k) == 0:
                         break
                     v = read_string(s)
-                    if k[0] == 1 and len(k)==5:
-                        idx = int.from_bytes(k[1:], 'little')
+                    if k[0] == 1 and len(k) == 5:
+                        idx = int.from_bytes(k[1:], "little")
                         pubkeys[idx] = v
                     elif k == b"\x01\x00":
                         txseed = v
@@ -361,21 +367,36 @@ class LiquidRPC(BitcoinRPC):
             for i, out in enumerate(outputs):
                 o = out
                 if i in pubkeys and len(pubkeys[i]) in [33, 65]:
-                    nonce = tagged_hash("liquid/range_proof", txseed+i.to_bytes(4,'little'))
+                    nonce = tagged_hash(
+                        "liquid/range_proof", txseed + i.to_bytes(4, "little")
+                    )
                     if b.vout[i].ecdh_pubkey == PrivateKey(nonce).sec():
                         try:
-                            res = unblind(pubkeys[i], nonce, b.vout[i].witness.range_proof.data, b.vout[i].value, b.vout[i].asset, b.vout[i].script_pubkey)
+                            res = unblind(
+                                pubkeys[i],
+                                nonce,
+                                b.vout[i].witness.range_proof.data,
+                                b.vout[i].value,
+                                b.vout[i].asset,
+                                b.vout[i].script_pubkey,
+                            )
                             value, asset, vbf, abf, extra, min_value, max_value = res
                             if "value" in o:
-                                assert o["value"] == round(value*1e-8,8)
+                                assert o["value"] == round(value * 1e-8, 8)
                             else:
-                                o["value"] = round(value*1e-8,8)
+                                o["value"] = round(value * 1e-8, 8)
                             if "asset" in o:
                                 assert o["asset"] == bytes(reversed(asset[-32:])).hex()
                             else:
                                 o["asset"] = bytes(reversed(asset[-32:])).hex()
                             try:
-                                o["scriptPubKey"]["addresses"] = [liquid_address(b.vout[i].script_pubkey, PublicKey.parse(pubkeys[i]), network=net)]
+                                o["scriptPubKey"]["addresses"] = [
+                                    liquid_address(
+                                        b.vout[i].script_pubkey,
+                                        PublicKey.parse(pubkeys[i]),
+                                        network=net,
+                                    )
+                                ]
                             except:
                                 pass
                         except Exception as e:
@@ -383,7 +404,7 @@ class LiquidRPC(BitcoinRPC):
                     else:
                         logger.warn(f"Failed at unblinding: {e}")
             if fee != 0:
-                obj["fee"] = round(-fee*1e-8, 8)
+                obj["fee"] = round(-fee * 1e-8, 8)
         except Exception as e:
             logger.warn(f"Failed at unblinding transaction: {e}")
         return obj
