@@ -6,7 +6,8 @@
       "spec_configures_nodes.js",
       "spec_node_configured.js",
       "spec_wallet_send.js",
-      "spec_wallet_utxo.js"
+      "spec_wallet_utxo.js",
+      "spec_elm_wallet_send.js"
     ],
     "baseUrl": "http://localhost:25444"
 }

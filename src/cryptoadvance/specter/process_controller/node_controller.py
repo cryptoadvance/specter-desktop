@@ -228,7 +228,9 @@ class NodeController:
         logger.debug("balance:" + str(balance))
         default_address = default_rpc.getnewaddress("")
         if self.node_impl == "elements":
-            default_address = rpc.getaddressinfo(default_address)["unconfidential"]
+            default_address = default_rpc.getaddressinfo(default_address)[
+                "unconfidential"
+            ]
         if balance < amount:
             rpc.generatetoaddress(102, default_address)
         default_rpc.sendtoaddress(address, amount)

@@ -310,7 +310,7 @@ function sub_run {
     # Run $spec_file and all of the others coming later!
     #$(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
     # Run $spec_file and only that spec-file!
-    $(npm bin)/cypress run --spec $spec_file
+    $(npm bin)/cypress run --spec ./cypress/integration/${spec_file}
   else 
     start_bitcoind --reset
     start_elementsd --reset

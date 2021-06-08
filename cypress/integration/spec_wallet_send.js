@@ -1,9 +1,9 @@
-describe('Send transactions from wallets', () => {
-    it('Creates a single sig wallet on specter and send transaction', () => {
+describe('Send transactions from bitcoin hotwallets', () => {
+    it('Creates a single sig bitcoin hotwallet on specter and send transaction', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         // empty so far
-        cy.addHotDevice("Hot Device 1")
+        cy.addHotDevice("Hot Device 1","bitcoin")
         cy.get('body').then(($body) => {
             if ($body.text().includes('Test Hot Wallet 1')) {
                 cy.get('#wallets_list > .item > svg').click()
@@ -23,7 +23,7 @@ describe('Send transactions from wallets', () => {
         //cy.get('#pdf-wallet-download > img').click()
         cy.get('#btn_continue').click()
         cy.get('#btn_transactions').click()
-        cy.task("node:mine")
+        cy.task("btc:mine")
         cy.wait(10000)
         cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
         cy.get('#fullbalance_amount')
@@ -70,7 +70,7 @@ describe('Send transactions from wallets', () => {
         cy.get('body').contains("New wallet was created successfully!")
         cy.get('#page_overlay_popup_cancel_button').click()
         // Send transaction
-        cy.task("node:mine")
+        cy.task("btc:mine")
         cy.wait(10000)
         cy.get('#btn_transactions').click()
         cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()

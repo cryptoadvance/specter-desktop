@@ -53,20 +53,55 @@ Cypress.Commands.add("addDevice", (name) => {
       })
 })
 
-Cypress.Commands.add("addHotDevice", (name) => { 
+Cypress.Commands.add("addHotDevice", (name, node_type) => { 
+  // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
+      cy.task("delete:elements-hotwallet")
       if ($body.text().includes(name)) {
         cy.get('#devices_list > .item > div').click()
         cy.get('#forget_device').click()
       } 
       cy.get('#side-content').click()
       cy.get('#btn_new_device').click()
-      // Creating a Device
       cy.contains('Select Your Device Type')
-      cy.get('#bitcoincore_device_card').click()
+      cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
       cy.get('#devices_list > .item > div').contains(name)
+    })
+})
+
+Cypress.Commands.add("addHotWallet", (name, node_type, single_multi) => { 
+  cy.get('body').then(($body) => {
+      if ($body.text().includes(name)) {
+        cy.contains(name).click()
+        cy.get('#btn_settings' ).click( {force: true})
+        cy.get('#advanced_settings_tab_btn').click()
+        cy.get('#delete_wallet').click()
+      }
+       
+      cy.get('#side-content').click()
+      
+      cy.get('#btn_new_wallet').click()
+      cy.get('[href="./simple/"]').click()
+      cy.get('#hot_elements_device_1').click()
+      cy.get('#wallet_name').type(name)
+      cy.get('#keysform > .centered').click()
+      cy.get('body').contains("New wallet was created successfully!")
+      // // Download PDF
+      // // unfortunately this results in weird effects in cypress run
+      // //cy.get('#pdf-wallet-download > img').click()
+      cy.get('#btn_continue').click()
+      cy.get('#btn_transactions').click()
+      cy.task("elm:mine")
+      cy.wait(4000)
+      cy.reload()
+      cy.get('#fullbalance_amount')
+          .should(($div) => {
+            const n = parseFloat($div.text())
+            expect(n).to.be.gt(0).and.be.lte(50)
+          })
+
     })
 })
