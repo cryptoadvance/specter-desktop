@@ -42,12 +42,10 @@
                             Node unreachable...
                         {% endif %}
                     </small>
-                </div>
-                {% if node.alias == specter.node.alias %}
-                    <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}" style="text-align: right; width: 100%px;">
-                        <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white" style="width: 40px; margin-right: 10px;"/>
-                    </a>
-                {% endif %}
+                </div> 
+                <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}" style="text-align: right; width: 100%px;">
+                    <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white" style="width: 40px; margin-right: 10px;"/>
+                </a>
             </div>
         </form>
     {% endfor %}

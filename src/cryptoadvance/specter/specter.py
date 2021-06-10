@@ -175,6 +175,8 @@ class Specter:
         try:
             return self.node_manager.active_node
         except SpecterError as e:
+            logger.error("SpecterError while accessing active_node")
+            logger.exception(e)
             self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
             return self.node_manager.active_node
 

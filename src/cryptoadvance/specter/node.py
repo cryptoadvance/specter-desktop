@@ -166,7 +166,11 @@ class Node:
                 rpc = LiquidRPC.from_bitcoin_rpc(rpc)
         except Exception as e:
             return rpc
-        return rpc
+        if rpc.test_connection():
+            return rpc
+        else:
+            logger.debug(f"{rpc} fails test_connection() returning None")
+            return None
 
     def update_rpc(
         self,
@@ -215,7 +219,7 @@ class Node:
     def check_info(self):
         self._is_configured = self.rpc is not None
         self._is_running = False
-        if self._is_configured:
+        if self.rpc is not None and self.rpc.test_connection():
             try:
                 res = [
                     r["result"]
@@ -252,7 +256,8 @@ class Node:
                 self._info = {"chain": None}
                 self._network_info = {"subversion": "", "version": 999999}
                 self._network_parameters = get_network("main")
-                logger.error("Exception %s while check_info()" % e)
+                logger.error(f"Could not configure node! {self.rpc}")
+                logger.exception("Exception %s while check_info()" % e)
         else:
             self._info = {"chain": None}
             self._network_info = {"subversion": "", "version": 999999}

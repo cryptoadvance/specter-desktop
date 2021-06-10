@@ -30,7 +30,7 @@ class LiquidRPC(BitcoinRPC):
         include_watchonly=True,
         avoid_reuse=False,
         assetlabel="bitcoin",  # pass None to get all
-        **kwargs
+        **kwargs,
     ):
         """
         Bitcoin-like getbalance rpc call without assets,
@@ -229,6 +229,9 @@ class LiquidRPC(BitcoinRPC):
     def decoderawtransaction(self, tx):
         unblinded = self.unblindrawtransaction(tx)["hex"]
         return super().__getattr__("decoderawtransaction")(unblinded)
+
+    def __repr__(self) -> str:
+        return f"<LiquidRpc {self.url}>"
 
     @classmethod
     def from_bitcoin_rpc(cls, rpc):
