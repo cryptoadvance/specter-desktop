@@ -1,3 +1,7 @@
+## v1.4.3 June 10, 2021
+- Bugfix: add some liquid fixes #1194 (Stepan Snigirev)
+- Feature: Fully unblind liquid transactions sent by Specter #1220 (Stepan Snigirev)
+
 ## v1.4.2 June 01, 2021
 - Bugfix: unconventional derivations fail regexes #1204 (Stepan Snigirev)
 - Chore: Simplify emptiness checks in txlist #1202 (Roman Zeyde)
