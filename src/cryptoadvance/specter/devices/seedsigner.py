@@ -8,7 +8,7 @@ class SeedSignerDevice(Device):
 
     sd_card_support = False
     qr_code_support = True
-    qr_code_frame_rate = 2 # 500 ms per frame
+    qr_code_frame_rate = 2  # 500 ms per frame
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         super().__init__(name, alias, keys, blinding_key, fullpath, manager)
