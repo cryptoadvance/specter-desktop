@@ -14,12 +14,12 @@ describe('Send transactions from elements wallets', () => {
         cy.get('#label_0').type("Burn address")
         cy.get('#send_max_0').click()
         cy.get('#create_psbt_btn').click()
-        cy.get('body').contains("Paste signed transaction")
+        // To be done:
+        /* cy.get('body').contains("Paste signed transaction")
         cy.get('#hot_elements_device_1_tx_sign_btn').click()
         cy.get('#hot_elements_device_1_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
-        // To be done:
-        /* cy.get('#broadcast_local_btn').click()
+        cy.get('#broadcast_local_btn').click()
         cy.get('#fullbalance_amount')
         .should(($div) => {
             const n = parseFloat($div.text())
