@@ -256,9 +256,28 @@ class Node:
                 self._info = {"chain": None}
                 self._network_info = {"subversion": "", "version": 999999}
                 self._network_parameters = get_network("main")
-                logger.error(f"Could not configure node! {self.rpc}")
+                logger.error(f"connection {self.rpc} could not suceed check_info")
                 logger.exception("Exception %s while check_info()" % e)
         else:
+            if self.rpc is None:
+                logger.error(f"connection of {self} is None in check_info")
+            elif not self.rpc.test_connection():
+                logger.error(
+                    f"connection {self.rpc} failed tect_connection in check_info"
+                )
+                try:
+                    self.rpc.multi(
+                        [
+                            ("getblockchaininfo", None),
+                            ("getnetworkinfo", None),
+                            ("getmempoolinfo", None),
+                            ("uptime", None),
+                            ("getblockhash", 0),
+                            ("scantxoutset", "status", []),
+                        ]
+                    )
+                except Exception as e:
+                    logger.exception(e)
             self._info = {"chain": None}
             self._network_info = {"subversion": "", "version": 999999}
 
