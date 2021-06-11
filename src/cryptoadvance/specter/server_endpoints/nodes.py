@@ -88,6 +88,9 @@ def node_settings(node_alias):
                 arr = host.split("://")
                 protocol = arr[0]
                 host = arr[1]
+            else:
+                protocol = "http"
+
             if not node_alias:
                 node.name = request.form["name"]
 

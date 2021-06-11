@@ -123,7 +123,7 @@ def init_app(app, hwibridge=False, specter=None):
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
-                # in pytest, the app is created anew for ech test
+                # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
                 # --> View function mapping is overwriting an existing endpoint function
                 # see archblog for more about this nasty workaround

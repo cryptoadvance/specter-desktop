@@ -118,7 +118,7 @@ class TxList(dict):
         self._file_exists = file_exists
 
     def save(self):
-        if len(list(self.keys())) > 0:
+        if self:
             write_csv(self.path, list(self.values()), TxItem)
         self._file_exists = True
 
@@ -236,7 +236,7 @@ class TxList(dict):
                         and not self._addresses[address].change
                     ]
                     # use new list only if it's not empty
-                    if len(addresses2) > 0:
+                    if addresses2:
                         addresses = addresses2
                 else:
                     category = "send"
@@ -265,7 +265,7 @@ class TxList(dict):
             tx["category"] = category
             tx["address"] = addresses
             tx["amount"] = amounts
-            if len(addresses) == 0:
+            if not addresses:
                 tx["ismine"] = False
             else:
                 tx["ismine"] = True

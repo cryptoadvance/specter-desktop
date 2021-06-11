@@ -104,9 +104,15 @@
             <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
             `;
             if (tx.fee) {
+                let fee = tx.fee;
+                if(typeof tx.fee == "object"){
+                    if("bitcoin" in tx.fee){
+                        fee = tx.fee.bitcoin;
+                    }
+                }
                 rawtxHTML += `
-                    <tr><td>Fee:</td><td>${parseInt(-1e8 * tx.fee)} sats</td></tr>
-                    <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * tx.fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
+                    <tr><td>Fee:</td><td>${parseInt(-1e8 * fee)} sats</td></tr>
+                    <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
                 `;
             }
             if (tx.confirmations && tx.confirmations > 0) {
@@ -149,17 +155,20 @@
                     }
 
 
-                    let value = parseFloat(spentOutput.value.toFixed(8));
-                    let price = ''
-                    if (self.price && self.symbol) {
-                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
-                    }
+                    let value = "Confidential";
+                    let price = '';
+                    if (spentOutput.value) {
+                        value = parseFloat(spentOutput.value.toFixed(8));
+                        if (self.price && self.symbol) {
+                            price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                        }
 
-                    if (self.btcUnit == 'sat') {
-                        value = parseInt(value * 1e8)
-                    }
+                        if (self.btcUnit == 'sat') {
+                            value = parseInt(value * 1e8)
+                        }
 
-                    value = `${numberWithCommas(value.toString())}`;
+                        value = `${numberWithCommas(value.toString())}`;
+                    }
 
                     addressAndValue = `<br>
                         Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>

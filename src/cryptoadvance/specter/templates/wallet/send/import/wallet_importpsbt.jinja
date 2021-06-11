@@ -63,7 +63,7 @@
 		            reader.onload = function(e) {
 		                let str = reader.result;
 		                // if raw bytes
-		                if(reader.result.startsWith("psbt")){
+		                if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
 		                    str = btoa(reader.result);
 		                }
 		                txt.value = str;

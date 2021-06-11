@@ -3,17 +3,18 @@ import time
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, is_liquid, get_address_from_dict
+from .helpers import der_to_bytes, get_address_from_dict
 from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
 from embit.liquid.networks import get_network
+from embit.psbt import PSBT, DerivationPath
+from embit.transaction import Transaction
+
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
 from .persistence import write_json_file, delete_file
-from hwilib.tx import CTransaction
-from hwilib.psbt import PSBT, KeyOriginInfo
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
@@ -27,6 +28,8 @@ LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
 class Wallet:
+    # if the wallet is old we import 300 addresses
+    IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
@@ -90,7 +93,6 @@ class Wallet:
             os.path.join(self.manager.rpc_path, self.alias)
         )
         self.last_block = last_block
-        self.data_source = "rpc" if is_liquid(self.manager.chain) else "csv"
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
         self._addresses = AddressList(addr_path, self.rpc)
@@ -134,11 +136,6 @@ class Wallet:
 
     def fetch_transactions(self):
         """Load transactions from Bitcoin Core"""
-        # From RPC
-        if self.data_source == "rpc":
-            return
-
-        # From CSV
         arr = []
         idx = 0
         # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
@@ -642,11 +639,6 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
-        # From RPC
-        if self.data_source == "rpc":
-            return self.rpc.listtransactions("*", 10000, 0, True)
-
-        # From CSV
         if fetch_transactions or (
             self.use_descriptors
             and len(
@@ -745,13 +737,6 @@ class Wallet:
 
     def gettransaction(self, txid, blockheight=None, decode=False):
         try:
-            # From RPC
-            if self.data_source == "rpc":
-                tx_data = self.rpc.gettransaction(txid)
-                if decode:
-                    return self.rpc.decoderawtransaction(tx_data["hex"])
-                return tx_data
-            # From CSV
             tx_data = self._transactions.gettransaction(txid, blockheight)
             if decode:
                 return decoderawtransaction(tx_data["hex"], self.manager.chain)
@@ -1169,20 +1154,23 @@ class Wallet:
             args[0]["keypool"] = True
             args[0]["range"] = [start, end]
 
-        addresses = [
-            dict(
-                address=self.get_address(idx, change=change, check_keypool=False),
-                index=idx,
-                change=change,
-            )
-            for idx in range(start, end)
-        ]
-        self._addresses.add(addresses, check_rpc=False)
+        try:
+            addresses = [
+                dict(
+                    address=self.get_address(idx, change=change, check_keypool=False),
+                    index=idx,
+                    change=change,
+                )
+                for idx in range(start, end)
+            ]
+            self._addresses.add(addresses, check_rpc=False)
+        except Exception as e:
+            logger.warn(f"Error while calculating addresses: {e}")
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
         # The "keypool" for descriptor wallets is automatically refilled
-        if not self.use_descriptors or start > 0:
+        if (not self.use_descriptors) or start == 0:
             if not self.is_multisig:
                 if self.use_descriptors:
                     r = self.rpc.importdescriptors(args)
@@ -1550,17 +1538,16 @@ class Wallet:
         )
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
-        psbt = PSBT()
-        psbt.deserialize(b64psbt)
+        psbt = PSBT.from_string(b64psbt)
+
         if non_witness:
             for i, inp in enumerate(psbt.tx.vin):
-                txid = inp.prevout.hash.to_bytes(32, "big").hex()
+                txid = psbt.tx.vin[0].txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    stream = BytesIO(bytes.fromhex(res["hex"]))
-                    prevtx = CTransaction()
-                    prevtx.deserialize(stream)
-                    psbt.inputs[i].non_witness_utxo = prevtx
+                    psbt.inputs[i].non_witness_utxo = Transaction.from_string(
+                        res["hex"]
+                    )
                 except:
                     logger.error(
                         "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
@@ -1575,7 +1562,7 @@ class Wallet:
             # for multisig add xpub fields
             if len(self.keys) > 1:
                 for k in self.keys:
-                    key = base58.decode_check(k.xpub)
+                    key = bip32.HDKey.from_string(k.xpub)
                     if k.fingerprint != "":
                         fingerprint = bytes.fromhex(k.fingerprint)
                     else:
@@ -1584,10 +1571,10 @@ class Wallet:
                         der = bip32.parse_path(k.derivation)
                     else:
                         der = []
-                    psbt.xpub[key] = KeyOriginInfo(fingerprint, der)
+                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
         else:
-            psbt.xpub = {}
-        return psbt.serialize()
+            psbt.xpubs = {}
+        return psbt.to_string()
 
     def get_signed_devices(self, decodedpsbt):
         signed_devices = []
