@@ -1,22 +1,9 @@
 <form id="{{ device.alias }}_sign_tx_qr" class="flex-center flex-column hidden">
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-    <nav class="row">
-        <label>
-            <input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
-            <div class="btn radio left" style="width:200px">Device PSBT</div>
-        </label>
-        <label>
-            <input autocomplete="off" type="radio" name="psbt_type" value="full_psbt" class="hidden">
-            <div class="btn radio right" style="width:200px">Standard PSBT</div>
-        </label>
-    </nav>
-
-    <div class="row" style="min-height: 400px;">
+    <h2>Scan this QR code with your {{device.name}}.</h2>
+    <div class="row" style="min-height: 400px; margin-top:20px">
         <span id="compressed_psbt" style="margin: auto;">
-            <qr-code class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
-        </span>
-        <span id="full_psbt" style="display: none; margin: auto;">
-            <qr-code class='center' value="{{ psbt['base64'] }}" width="400" scalable></qr-code>
+            <qr-code frame-rate="{{device.qr_code_frame_rate}}" class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">
@@ -24,22 +11,6 @@
             <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white"> Scan signed transaction
         </a>
     </qr-scanner>
-    <script>
-    document.addEventListener("DOMContentLoaded", function(){
-        document.getElementById('{{ device.alias }}_sign_tx_qr').elements.psbt_type.forEach((o)=>{
-            o.addEventListener('change', e => {
-                ["compressed_psbt","full_psbt"].forEach(id => {
-                    let el = document.getElementById(id);
-                    if (id == document.getElementById('{{ device.alias }}_sign_tx_qr').elements.psbt_type.value) {
-                        el.style.display = "flex";
-                    } else {
-                        el.style.display = "none";
-                    }
-                });
-            })
-        });
-    });
-    </script>
 
     <script type="module">
         document.getElementById("{{ device.alias }}_qr_scan_btn")

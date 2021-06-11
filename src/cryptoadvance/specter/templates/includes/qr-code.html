@@ -176,6 +176,7 @@ class QRCodeElement extends HTMLElement {
     this.isQRlarge = true;
     this.isQRtoolarge = false;
     this.idx = 0;
+    this.frameRate = 300;
 
     this.copybtn = clone.querySelector(".copy");
 
@@ -199,6 +200,28 @@ class QRCodeElement extends HTMLElement {
         }
       }
     });
+    const animate = () => {
+      // repeat
+      window.setTimeout(animate, this.frameRate);
+      // check if it's visible
+      if(this.offsetParent==null){
+        return;
+      }
+      if((this.qrcode==null) || this.chunks.length<=1){
+        return;
+      }
+      if(this.animate && this.isQRlarge){
+        this.qrcode.makeCode(this.chunks[this.idx]);
+        this.idx = (this.idx+1) % this.chunks.length;
+        let prefix = "";
+        if(!this.isQRtoolarge){
+          prefix = "Click to stop. ";
+        }
+        this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
+      }
+    }
+    window.setTimeout(animate, this.frameRate);
+
     this.copybtn.addEventListener('click', e=>{
       e.cancelBubble = true;
       var value = this.getAttribute('value');
@@ -218,27 +241,9 @@ class QRCodeElement extends HTMLElement {
       this.sizeSlider.value = Number(this.sizeSlider.value) + 50;
       this.setAttribute('width', this.sizeSlider.value);
     });
-    window.setInterval(()=>{
-      // check if it's visible
-      if(this.offsetParent==null){
-        return;
-      }
-      if((this.qrcode==null) || this.chunks.length<=1){
-        return;
-      }
-      if(this.animate && this.isQRlarge){
-        this.qrcode.makeCode(this.chunks[this.idx]);
-        this.idx = (this.idx+1) % this.chunks.length;
-        let prefix = "";
-        if(!this.isQRtoolarge){
-          prefix = "Click to stop. ";
-        }
-        this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
-      }
-    },300);
   }
   static get observedAttributes() {
-    return ['value','width'];
+    return ['value', 'width', 'frame-rate'];
   }
   maybe_remove_checksum(value){
     // this is bc-ur, remove checksum for static QR
@@ -290,9 +295,15 @@ class QRCodeElement extends HTMLElement {
     }
   }
   connectedCallback() {
+    let frameRateInSec = parseFloat(this.getAttribute('frame-rate'));
+    if(isNaN(frameRateInSec)){
+      this.frameRate = 300;
+    }else{
+      this.frameRate = Math.round(frameRateInSec*1000);
+    }
     if (this.getAttribute('scalable') !== null) {
       let defaultSize = parseInt(this.getAttribute('width').replace("px",""))
-      if(defaultSize == NaN){
+      if(isNaN(defaultSize)){
         defaultSize = 400;
       }
       this.sizeSlider.setAttribute('value', defaultSize);
@@ -307,9 +318,15 @@ class QRCodeElement extends HTMLElement {
   }
   attributeChangedCallback(attrName, oldValue, newValue) {
     if(newValue !== oldValue){
+      let frameRateInSec = parseFloat(this.getAttribute('frame-rate'));
+      if(isNaN(frameRateInSec)){
+        this.frameRate = 300;
+      }else{
+        this.frameRate = Math.round(frameRateInSec*1000);
+      }
       var value = this.getAttribute('value');
       var width = parseInt(this.getAttribute('width').replace("px",""));
-      if(width==NaN){
+      if(isNaN(width)){
         width=400;
       }
       if (window.innerWidth < 600)
