@@ -176,7 +176,7 @@ class QRCodeElement extends HTMLElement {
     this.isQRlarge = true;
     this.isQRtoolarge = false;
     this.idx = 0;
-    this.frameRate = 300;
+    this.framePeriod = 300;
 
     this.copybtn = clone.querySelector(".copy");
 
@@ -202,7 +202,7 @@ class QRCodeElement extends HTMLElement {
     });
     const animate = () => {
       // repeat
-      window.setTimeout(animate, this.frameRate);
+      window.setTimeout(animate, this.framePeriod);
       // check if it's visible
       if(this.offsetParent==null){
         return;
@@ -220,7 +220,7 @@ class QRCodeElement extends HTMLElement {
         this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
       }
     }
-    window.setTimeout(animate, this.frameRate);
+    window.setTimeout(animate, this.framePeriod);
 
     this.copybtn.addEventListener('click', e=>{
       e.cancelBubble = true;
@@ -295,11 +295,11 @@ class QRCodeElement extends HTMLElement {
     }
   }
   connectedCallback() {
-    let frameRateInSec = parseFloat(this.getAttribute('frame-rate'));
-    if(isNaN(frameRateInSec)){
-      this.frameRate = 300;
+    let frameRate = parseFloat(this.getAttribute('frame-rate'));
+    if(isNaN(frameRate)){
+      this.framePeriod = 300;
     }else{
-      this.frameRate = Math.round(frameRateInSec*1000);
+      this.framePeriod = Math.round(1000/frameRate);
     }
     if (this.getAttribute('scalable') !== null) {
       let defaultSize = parseInt(this.getAttribute('width').replace("px",""))
@@ -318,11 +318,11 @@ class QRCodeElement extends HTMLElement {
   }
   attributeChangedCallback(attrName, oldValue, newValue) {
     if(newValue !== oldValue){
-      let frameRateInSec = parseFloat(this.getAttribute('frame-rate'));
-      if(isNaN(frameRateInSec)){
-        this.frameRate = 300;
+      let frameRate = parseFloat(this.getAttribute('frame-rate'));
+      if(isNaN(frameRate)){
+        this.framePeriod = 300;
       }else{
-        this.frameRate = Math.round(frameRateInSec*1000);
+        this.framePeriod = Math.round(1000/frameRate);
       }
       var value = this.getAttribute('value');
       var width = parseInt(this.getAttribute('width').replace("px",""));
