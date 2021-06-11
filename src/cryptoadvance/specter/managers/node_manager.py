@@ -106,6 +106,7 @@ class NodeManager:
         setup_bitcoind_thread(specter, version)
         for node in (node for node in self.nodes.values() if not node.external_node):
             node.version = version
+            logger.info(f"persisting {node} in update_bitcoind_version")
             write_node(node, node.fullpath)
         for node_alias in stopped_nodes:
             self.get_by_alias(node_alias).start(timeout=60)
@@ -148,6 +149,7 @@ class NodeManager:
             fullpath,
             self,
         )
+        logger.info(f"persisting {node} in add_node")
         write_node(node, fullpath)
         self.update()  # reload files
         logger.info("Added new node {}".format(node.alias))
@@ -187,6 +189,7 @@ class NodeManager:
             network,
             self.internal_bitcoind_version,
         )
+        logger.info(f"persisting {node} in add_internal_node")
         write_node(node, fullpath)
         self.update()  # reload files
         logger.info("Added new internal node {}".format(node.alias))
