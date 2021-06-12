@@ -476,6 +476,15 @@ def hwi():
     )
 
 
+@settings_endpoint.route("/assets/set_label", methods=["POST"])
+@login_required
+def set_asset_label():
+    asset = request.form["asset"]
+    label = request.form["label"].rstrip()
+    app.specter.update_asset_label(asset, label)
+    return {"success": True}
+
+
 ################## Settings util endpoints #######################
 
 # Specter backup file

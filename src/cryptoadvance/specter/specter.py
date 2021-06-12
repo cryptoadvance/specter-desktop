@@ -493,6 +493,9 @@ class Specter:
             return ""
         return get_asset_label(asset, known_assets=self.asset_labels)
 
+    def update_asset_label(self, asset, label):
+        self.config_manager.update_asset_label(asset, label, self.chain, self.user)
+
     @property
     def fee_estimator(self):
         return self.user_config.get("fee_estimator", "mempool")

@@ -17,6 +17,7 @@
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
+		{% include "includes/asset-label.html" %}
 	{% endif %}
 	{% include "includes/message-box.html" %}
 	{% include "includes/tool-tip.html" %}

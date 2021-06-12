@@ -43,11 +43,11 @@
         {% if specter.is_liquid and balance.get("assets", {}) %}
         <div>
             <small style="line-height:30px">Assets:<br>
-            {% for asset in balance.get("assets",{}) %}
+            {% for asset in balance.get("assets",{}).keys() | sort %}
                 {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
                 <div style="margin: 0 10px; display: inline-block;">
                     {{ (asset_balance.get("trusted", 0) + asset_balance.get("untrusted_pending", 0) + asset_balance.get("immature", 0)) | btcamount }}
-                    <span title="{{asset}}" style="cursor:help">{{asset | assetlabel}}</span>
+                    <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
                 </div>
             {% endfor %}
             </small>
