@@ -1176,6 +1176,11 @@ def decoderawtx(wallet_alias):
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
             except:
                 rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
+            # add assets
+            if app.specter.is_liquid:
+                for v in rawtx["vin"] + rawtx["vout"]:
+                    if "asset" in v:
+                        v["assetlabel"] = app.specter.asset_label(v["asset"])
 
             return {
                 "success": True,
