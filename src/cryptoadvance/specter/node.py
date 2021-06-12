@@ -383,3 +383,7 @@ class Node:
                 assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
             self._asset_labels = assets
         return self._asset_labels
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
