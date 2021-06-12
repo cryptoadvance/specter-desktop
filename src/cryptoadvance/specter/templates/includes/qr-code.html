@@ -244,7 +244,7 @@ class QRCodeElement extends HTMLElement {
     });
   }
   static get observedAttributes() {
-    return ['value', 'width', 'frame-rate'];
+    return ['value', 'width', 'frame-rate', 'animate'];
   }
   maybe_remove_checksum(value){
     // this is bc-ur, remove checksum for static QR
