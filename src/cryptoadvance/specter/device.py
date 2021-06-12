@@ -4,7 +4,7 @@ from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Device:
@@ -21,8 +21,10 @@ class Device:
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
     hot_wallet = False
+    bitcoin_core_support = True
+    liquid_support = False
 
-    def __init__(self, name, alias, keys, fullpath, manager):
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         """
         From child classes call super().__init__ and also set
         support for communication methods
@@ -31,6 +33,7 @@ class Device:
         self.alias = alias
         self.keys = keys
         self.fullpath = fullpath
+        self.blinding_key = blinding_key
         self.manager = manager
 
     def create_psbts(self, base64_psbt, wallet):
@@ -42,14 +45,26 @@ class Device:
         return {}
 
     @classmethod
-    def from_json(cls, device_dict, manager, default_alias="", default_fullpath=""):
+    def from_json(
+        cls,
+        device_dict,
+        manager,
+        default_alias="",
+        default_fullpath="",
+        default_blinding_key="",
+    ):
         name = device_dict["name"] if "name" in device_dict else ""
         alias = device_dict["alias"] if "alias" in device_dict else default_alias
         keys = [Key.from_json(key_dict) for key_dict in device_dict["keys"]]
+        blinding_key = (
+            device_dict["blinding_key"]
+            if "blinding_key" in device_dict
+            else default_blinding_key
+        )
         fullpath = (
             device_dict["fullpath"] if "fullpath" in device_dict else default_fullpath
         )
-        return cls(name, alias, keys, fullpath, manager)
+        return cls(name, alias, keys, blinding_key, fullpath, manager)
 
     @property
     def json(self):
@@ -58,6 +73,7 @@ class Device:
             "alias": self.alias,
             "type": self.device_type,
             "keys": [key.json for key in self.keys],
+            "blinding_key": self.blinding_key,
             "fullpath": self.fullpath,
         }
 
@@ -92,6 +108,12 @@ class Device:
 
     def set_type(self, device_type):
         self.device_type = device_type
+
+        write_json_file(self.json, self.fullpath)
+        self.manager.update()
+
+    def set_blinding_key(self, blinding_key):
+        self.blinding_key = blinding_key
 
         write_json_file(self.json, self.fullpath)
         self.manager.update()

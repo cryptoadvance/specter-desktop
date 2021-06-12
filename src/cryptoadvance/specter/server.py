@@ -27,7 +27,7 @@ csrf = CSRFProtect()
 
 
 def calc_module_name(config):
-    """ tiny helper to make passing configs more convenient """
+    """tiny helper to make passing configs more convenient"""
     if "." in config:
         return config
     else:
@@ -75,7 +75,7 @@ def create_app(config=None):
 
 
 def init_app(app, hwibridge=False, specter=None):
-    """  see blogpost 19nd Feb 2020 """
+    """see blogpost 19nd Feb 2020"""
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     app.secret_key = app.config["SECRET_KEY"]
@@ -85,6 +85,7 @@ def init_app(app, hwibridge=False, specter=None):
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
+            internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
 
     # version checker
@@ -122,7 +123,7 @@ def init_app(app, hwibridge=False, specter=None):
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
-                # in pytest, the app is created anew for ech test
+                # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
                 # --> View function mapping is overwriting an existing endpoint function
                 # see archblog for more about this nasty workaround

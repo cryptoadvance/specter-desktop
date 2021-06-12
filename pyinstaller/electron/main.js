@@ -138,7 +138,7 @@ app.whenReady().then(() => {
       if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...')
+        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
         updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {
@@ -185,7 +185,7 @@ function initMainWindow(specterURL) {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg('Fetching the Specter binary...')
+  updatingLoaderMsg('Fetching the Specter binary...<br>This might take a minute...')
   updateSpecterdStatus('Fetching Specter binary...')
   console.log("Using version ", appSettings.specterdVersion);
   console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);

@@ -6,6 +6,8 @@ import json
 from flask_login import UserMixin
 from .specter_error import SpecterError
 from .persistence import read_json_file, write_json_file, delete_folder
+from .managers.wallet_manager import WalletManager
+from .managers.device_manager import DeviceManager
 
 
 def hash_password(password):
@@ -39,6 +41,7 @@ class User(UserMixin):
         self.password = password
         self.config = config
         self.is_admin = is_admin
+        self.uid = specter.config["uid"]
         self.specter = specter
         self.wallet_manager = None
         self.device_manager = None
@@ -86,6 +89,49 @@ class User(UserMixin):
             user_dict["config"] = self.config
         return user_dict
 
+    def check(self):
+        self.check_device_manager()
+        self.check_wallet_manager()
+
+    def check_wallet_manager(self):
+        """Updates wallet manager for this user"""
+        # if chain, user or data folder changed
+        wallet_manager = self.wallet_manager
+        wallets_rpcpath = "specter%s" % self.uid
+        wallets_folder = os.path.join(
+            self.specter.data_folder, f"wallets{self.folder_id}"
+        )
+        if (
+            wallet_manager is None
+            or wallet_manager.data_folder != wallets_folder
+            or wallet_manager.rpc_path != wallets_rpcpath
+            or wallet_manager.chain != self.specter.chain
+        ):
+
+            wallet_manager = WalletManager(
+                self.specter.bitcoin_core_version_raw,
+                wallets_folder,
+                self.specter.rpc,
+                self.specter.chain,
+                self.device_manager,
+                path=wallets_rpcpath,
+            )
+            self.wallet_manager = wallet_manager
+        else:
+            wallet_manager.update(
+                wallets_folder, self.specter.rpc, chain=self.specter.chain
+            )
+
+    def check_device_manager(self, user=None):
+        """Updates device manager for this user"""
+        devices_folder = os.path.join(
+            self.specter.data_folder, f"devices{self.folder_id}"
+        )
+        if self.device_manager is None:
+            self.device_manager = DeviceManager(devices_folder)
+        else:
+            self.device_manager.update(data_folder=devices_folder)
+
     def save_info(self, delete=False):
         if self.manager is None:
             self.manager = self.specter.user_manager
@@ -131,6 +177,10 @@ class User(UserMixin):
 
     def set_price_check(self, price_check_bool):
         self.config["price_check"] = price_check_bool
+        self.save_info()
+
+    def set_hide_sensitive_info(self, hide_sensitive_info_bool):
+        self.config["hide_sensitive_info"] = hide_sensitive_info_bool
         self.save_info()
 
     def set_price_provider(self, price_provider):

@@ -1,6 +1,6 @@
 {
   "name": "specter-desktop",
-  "version": "v1.2.0",
+  "version": "v1.3.0",
   "description": "Specter Desktop Electron application",
   "main": "main.js",
   "scripts": {

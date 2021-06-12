@@ -16,8 +16,8 @@
 		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
 		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
 		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
-			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
 	</nav><br>
 	<div id="wallet_info_settings_tab" style="width: 100%">
@@ -65,12 +65,7 @@
 						<tbody>
 							<tr>
 								<td>
-									{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-									{% if key.xpub.startswith("xpub") %}
-										{{ bitcoin_svg('main', 16) }} Main
-									{% else %}
-										{{ bitcoin_svg('test', 16) }} Test
-									{% endif %}
+									{% include "components/network_label.jinja" %}
 								</td>
 								<td>{{ purposes[key.key_type] }}</td>
 								<td class="optional">{{ key.derivation }}</td>
@@ -85,7 +80,7 @@
 	</div>
 	<div class="hidden" id="wallet_export_settings_tab">
 		<h1 style="font-size: 1.7em;">Export Wallet</h1>
-		<div class="card">
+		<div class="card center">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
 				{# check if export_wallet is not None #}
@@ -134,13 +129,16 @@
 			It is recommended that you print and save this wallet backup file with each of your devices.
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
-			<div style="margin: 0 auto;" class="center">
+			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">Advanced &#9654;</span>
+			<br>
+			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
 				<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
 				<label class="switch">
 				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
 			</div>
+			<br>
 			<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
 			<p style="max-width: 500px;" class="note center">
 			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
@@ -293,6 +291,18 @@
 				for (zpub of zpubs) {
 					zpub.style.display = 'none';
 				}
+			}
+		}
+
+		function togglePDFExportAdvanced() {
+			let advancedButton = document.getElementById(`advanced_pdf_export_toggle`);
+			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
+			if (advancedSettings.classList.contains("hidden")) {
+				advancedSettings.classList.remove("hidden");
+				advancedButton.innerHTML = 'Advanced &#9660;';
+			} else {
+				advancedSettings.classList.add("hidden");
+				advancedButton.innerHTML = 'Advanced &#9654;';
 			}
 		}
 

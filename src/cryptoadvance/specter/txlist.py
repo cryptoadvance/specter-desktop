@@ -3,6 +3,7 @@ Manages the list of addresses for the wallet, including labels and derivation pa
 """
 import os
 from .persistence import write_csv, read_csv
+from .helpers import get_address_from_dict
 from embit.transaction import Transaction
 from embit.networks import NETWORKS
 import json
@@ -117,7 +118,7 @@ class TxList(dict):
         self._file_exists = file_exists
 
     def save(self):
-        if len(list(self.keys())) > 0:
+        if self:
             write_csv(self.path, list(self.values()), TxItem)
         self._file_exists = True
 
@@ -200,10 +201,11 @@ class TxList(dict):
                     break
                 if vin["txid"] in self:
                     try:
-                        address = decoderawtransaction(
-                            self[vin["txid"]]["hex"],
-                            self.chain,
-                        )["vout"][vin["vout"]]["addresses"][0]
+                        address = get_address_from_dict(
+                            decoderawtransaction(self[vin["txid"]]["hex"], self.chain,)[
+                                "vout"
+                            ][vin["vout"]]
+                        )
                         address_info = self._addresses.get(address, None)
                         if address_info and not address_info.is_external:
                             inputs_mine_count += 1
@@ -213,7 +215,7 @@ class TxList(dict):
             outputs_mine_count = 0
             for out in raw_tx["vout"]:
                 try:
-                    address = out["addresses"][0]
+                    address = get_address_from_dict(out)
                 except Exception:
                     # couldn't get address...
                     continue
@@ -234,7 +236,7 @@ class TxList(dict):
                         and not self._addresses[address].change
                     ]
                     # use new list only if it's not empty
-                    if len(addresses2) > 0:
+                    if addresses2:
                         addresses = addresses2
                 else:
                     category = "send"
@@ -263,7 +265,7 @@ class TxList(dict):
             tx["category"] = category
             tx["address"] = addresses
             tx["amount"] = amounts
-            if len(addresses) == 0:
+            if not addresses:
                 tx["ismine"] = False
             else:
                 tx["ismine"] = True

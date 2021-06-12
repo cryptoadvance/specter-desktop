@@ -20,7 +20,7 @@
 			Specter Data Backup:
 			<br><br>
 			<div class="row">
-				<a href="{{ url_for('settings_endpoint.backup_file') }}" download class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
+				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
 			</div>
 			<br>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
@@ -71,7 +71,12 @@
 			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
 			<br><br>
 			{% if current_user.is_admin %}
-			Log Level:<br>
+			Log Level:
+			<tool-tip title="Logging" style="float: right;">
+				Specter-Desktop created a Logfile in <code>{{ config.SPECTER_LOGFILE}}</code>. The Debug-Level will
+				create a lot of data, so make sure to avoid that if you don't have a reason.
+			</tool-tip>
+			<br>
 			<select name="loglevel">
 				<option value="WARN" {% if loglevel=="WARN" %} selected="selected"{% endif %}>WARN</option>
 				<option value="INFO" {% if loglevel=="INFO" %} selected="selected"{% endif %}>INFO</option>
@@ -81,9 +86,6 @@
 			{% endif %}
 
 			Validate Merkle Proofs:
-			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
-			    {% include "includes/merkletooltip.html" %}
-			</div>
 			<div class="note">
 			    Cannot enable when using a pruned bitcoin node
 			</div>
@@ -91,8 +93,16 @@
 			    <label class="switch">
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
 				<span class="slider"></span>
-			    </label>
-			</div><br>
+			    </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="note explorer-link" style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">What's this?</span>
+			</div>
+			<div class="warning hidden" id="merkle-info-details">
+				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+				 Specter-Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.<br><br>
+				However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain!
+				If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well.
+			</div>
+			<br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="save">Save</button>
 			</div>
@@ -101,6 +111,14 @@
 {% endblock %}
 {% block scripts %}
 	<script type="text/javascript">
+	function toggleHidden(elementId) {
+		let el = document.getElementById(elementId);
+		if (el.classList.contains("hidden")) {
+			el.classList.remove('hidden');
+		} else {
+			el.classList.add('hidden');
+		}
+	}
 	function updateFeeEstimator() {
 			if (document.getElementById('fee_estimator_custom_option').checked) {
 				document.getElementById('fee_estimator_custom_url').classList.remove('hidden');

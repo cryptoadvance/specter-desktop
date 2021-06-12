@@ -8,13 +8,15 @@ from .util.descriptor import AddChecksum
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
-from embit import bip32, networks
+from embit import bip32
+from embit.liquid import networks
 import logging
 import bitbox02
 from typing import Callable
 from flask import current_app as app
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
 from hwilib.devices.bitbox02 import Bitbox02Client
+from .devices.hwi.specter_diy import SpecterClient
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +65,7 @@ class HWIBridge(JSONRPC):
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
+            "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
         # Running enumerate after beginning an interaction with a specific device
@@ -233,19 +236,18 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            if not chain:
-                try:
-                    client.chain = (
-                        Chain.TEST
-                        if derivation.split("/")[2].startswith("1")
-                        else Chain.MAIN
-                    )
-                except:
-                    client.chain = Chain.MAIN
-            else:
-                client.chain = Chain.argparse(chain)
+            try:
+                client.chain = (
+                    Chain.TEST
+                    if derivation.split("/")[2].startswith("1")
+                    else Chain.MAIN
+                )
+            except:
+                client.chain = Chain.MAIN
 
-            network = networks.NETWORKS["test" if str(client.chain) else "main"]
+            network = networks.get_network(
+                "main" if client.chain == Chain.MAIN else "test"
+            )
 
             master_fpr = client.get_master_fingerprint().hex()
 
@@ -264,7 +266,7 @@ class HWIBridge(JSONRPC):
     @locked(hwilock)
     def display_address(
         self,
-        descriptor="",
+        descriptor={},
         device_type=None,
         path=None,
         fingerprint=None,
@@ -283,13 +285,9 @@ class HWIBridge(JSONRPC):
         ) as client:
             if descriptor.get("xpubs_descriptor", None):
                 try:
-                    # fix the sortedmulti bug in HWI descriptor parsing
-                    desc = AddChecksum(
-                        descriptor["xpubs_descriptor"]
-                        .replace("sortedmulti", "multi")
-                        .split("#")[0]
+                    status = hwi_commands.displayaddress(
+                        client, desc=descriptor["xpubs_descriptor"]
                     )
-                    status = hwi_commands.displayaddress(client, desc=desc)
                 except Exception:
                     status = hwi_commands.displayaddress(
                         client, desc=descriptor.get("descriptor", "")
@@ -325,6 +323,8 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
+            if isinstance(client, SpecterClient):
+                return client.sign_b64psbt(psbt)
             status = hwi_commands.signtx(client, psbt)
             if "error" in status:
                 raise Exception(status["error"])
@@ -361,6 +361,29 @@ class HWIBridge(JSONRPC):
             else:
                 raise Exception("Failed to sign message with device: Unknown Error")
 
+    @locked(hwilock)
+    def extract_master_blinding_key(
+        self,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.get_master_blinding_key()
+            except Exception as e:
+                logger.warning(
+                    f"Failed to get the master blinding key from the device. Error: {e}"
+                )
+
     def bitbox02_pairing(self, chain=""):
         config = hwi_get_config(app.specter)
         return {"code": config.get("bitbox02_pairing_code", "")}
@@ -391,6 +414,8 @@ class HWIBridge(JSONRPC):
                     "The device was identified but could not be reached.  Please check it is properly connected and try again"
                 )
             try:
+                if chain == "liquidv1":
+                    chain = "main"
                 client.chain = Chain.argparse(chain)
                 yield client
             finally:

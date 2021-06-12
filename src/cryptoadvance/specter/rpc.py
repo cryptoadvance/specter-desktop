@@ -7,7 +7,14 @@ logger = logging.getLogger(__name__)
 
 # TODO: redefine __dir__ and help
 
-RPC_PORTS = {"test": 18332, "regtest": 18443, "main": 8332, "signet": 38332}
+RPC_PORTS = {
+    "testnet": 18332,
+    "test": 18332,
+    "regtest": 18443,
+    "main": 8332,
+    "mainnet": 8332,
+    "signet": 38332,
+}
 
 
 def get_default_datadir():
@@ -250,7 +257,7 @@ class BitcoinRPC:
         self.session = session
 
     def wallet(self, name=""):
-        return BitcoinRPC(
+        return type(self)(
             user=self.user,
             password=self.password,
             port=self.port,
@@ -277,7 +284,7 @@ class BitcoinRPC:
         self._create_session()
 
     def test_connection(self):
-        """ returns a boolean depending on whether getblockchaininfo() succeeds """
+        """returns a boolean depending on whether getblockchaininfo() succeeds"""
         try:
             self.getblockchaininfo()
             return True
@@ -287,7 +294,7 @@ class BitcoinRPC:
     def clone(self):
         """
         Returns a clone of self.
-        Usefull if you want to mess with the properties
+        Useful if you want to mess with the properties
         """
         return BitcoinRPC(
             self.user,

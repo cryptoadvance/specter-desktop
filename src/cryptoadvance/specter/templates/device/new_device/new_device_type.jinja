@@ -1,0 +1,49 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <h1 style="font-size: 2em;">Add Device</h1><br>
+    <div id="device_setup_wizard" class="card center" style="width: auto; min-width: 90%; margin: 40px;">
+        <div id="device-type-container">
+            <h1 style="font-size: 1.8em;">Select Your Device Type</h1>
+            <input id="device-type-searchbar" type="text" placeholder="Filter devices..." style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)" {% if (specter.device_manager.supported_devices_for_chain(specter)|length) < 8 %}class="hidden"{% endif %}>
+            <div id="devices_list" class="row overflow">
+                {% for cls in specter.device_manager.supported_devices_for_chain(specter) %}
+                    {% if not cls.hot_wallet or specter.rpc %}
+                        <a id="label_device_type_{{ cls.name | replace(' ', '') }}" href="{{ url_for('devices_endpoint.new_device_keys', device_type=cls.device_type) if not cls.hot_wallet else url_for('devices_endpoint.new_device_mnemonic', device_type=cls.device_type) }}" style="text-decoration: none;">
+                            <div class="small-card radio" id="{{ cls.device_type }}_device_card" style="transform: scale(0.85); margin: 3px;">
+                                <img src="{{ url_for('static', filename='img/devices/' ~ cls.icon) }}" width="18px">
+                                {{ cls.name }}
+                            </div>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <a class="note center" style="text-decoration: underline; cursor: pointer;" href="{{ url_for('devices_endpoint.new_device_manual') }}">Manual configuration</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function filterDeviceTypes(text) {
+            let devicesLabels = []
+            {% for cls in specter.device_manager.supported_devices_for_chain(specter) %}
+                {% if not cls.hot_wallet or specter.rpc %}
+                    devicesLabels.push('label_device_type_{{ cls.name | replace(' ', '') }}')
+                {% endif %}
+            {% endfor %}
+            if (text) {
+                for (let deviceLabel of devicesLabels) {
+                    if (deviceLabel.split('label_device_type_')[1].toLowerCase().includes(text.toLowerCase())) {                                        
+                        document.getElementById(deviceLabel).style.display = 'flex';
+                    } else {
+                        document.getElementById(deviceLabel).style.display = 'none';
+                    }
+                }
+            } else {
+                for (let deviceLabel of devicesLabels) {
+                    document.getElementById(deviceLabel).style.display = 'flex';
+                }
+            }
+        }
+    </script>
+{% endblock %}

@@ -266,7 +266,13 @@ svg.core .main{
 svg.core.test .main{
     fill: var(--test-color);
 }
+svg.core.testnet .main{
+    fill: var(--test-color);
+}
 svg.core.main .main{
+    fill: var(--main-color);
+}
+svg.core.mainnet .main{
     fill: var(--main-color);
 }
 svg.core.regtest .main{
@@ -299,7 +305,13 @@ small, .small{
 .rescan_progress.test > div{
 	background: #00F100;
 }
+.rescan_progress.testnet > div{
+	background: #00F100;
+}
 .rescan_progress.main > div{
+	background: #FF9A00;
+}
+.rescan_progress.mainnet > div{
 	background: #FF9A00;
 }
 .rescan_progress.regtest > div{
@@ -941,6 +953,10 @@ a:focus + .tool-tip .tool-tip__info {
 .key-qr-code {
     width: 400px;
 }
+
+.svg-white {
+    filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
+ }
 
 /************** Mobile styles ********************************/
 #side-expand{

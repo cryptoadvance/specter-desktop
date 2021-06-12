@@ -71,6 +71,7 @@ def cli():
     help="By default SSL encryption will not be used. Use -ssl to create a self-signed certificate for SSL encryption. You can also specify encryption via --cert and --key.",
 )
 @click.option("--debug/--no-debug", default=None)
+@click.option("--filelog/--no-filelog", default=True)
 @click.option("--tor", is_flag=True)
 @click.option(
     "--hwibridge",
@@ -98,6 +99,7 @@ def server(
     key,
     ssl,
     debug,
+    filelog,
     tor,
     hwibridge,
     specter_data_folder,
@@ -134,6 +136,16 @@ def server(
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
+
+    if filelog:
+        # again logging: Creating a logfile in SPECTER_DATA_FOLDER (which needs to exist)
+        app.config["SPECTER_LOGFILE"] = os.path.join(
+            app.specter.data_folder, "specter.log"
+        )
+        fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+        formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
+        fh.setFormatter(formatter)
+        logging.getLogger().addHandler(fh)
 
     # This stuff here is deprecated
     # When we remove it, we should imho keep the pid_file thing which can be very useful!
@@ -266,7 +278,7 @@ def server(
 
 
 def configure_ssl(kwargs, app_config, ssl):
-    """ accepts kwargs and adjust them based on the config and ssl """
+    """accepts kwargs and adjust them based on the config and ssl"""
     # If we should create a cert but it's not specified where, let's specify the location
 
     if not ssl and app_config["CERT"] is None:

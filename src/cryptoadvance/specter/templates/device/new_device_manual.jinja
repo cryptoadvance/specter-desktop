@@ -12,7 +12,7 @@
 		<form action="./" method="POST" onsubmit="{% if not device %}return checkType();{% endif %}">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if not device %}
-				<label>Name it:<label>
+				<label>Name it:</label>
 				<div class="row">
 					<input type="text" id="device_name" name="device_name" value="{{ device_name }}" placeholder="Name your device">
 				</div>
@@ -40,7 +40,7 @@
 				<div class="row">
 					<qr-scanner id="xpub-scan" style="width:50%">
 						<a slot="button" href="#" class="btn" style="margin: 8px;">
-							<img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Scan
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white"> Scan
 							<div class="tool-tip">
 								<i class="tool-tip__icon">i</i>
 								<p class="tool-tip__info">
@@ -55,6 +55,7 @@
 					</qr-scanner>
 					<input type="file" id="file" class="inputfile" multiple/>
 					<label for="file" class="btn" style="margin: 8px;">
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
 						Choose files
 						<div class="tool-tip">
 							<i class="tool-tip__icon">i</i>
@@ -73,7 +74,7 @@
 				</div>
 				<div class="row">
 					<button type="button" class="btn" style="margin: 8px;" id="askhwi">
-						<img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" height="12px">Get over USB
+						<img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white"> Get over USB
 					</button>
 				</div>
 				<p class="note center" style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">Specify account number (advanced)</p>
@@ -92,11 +93,7 @@
 upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 			</pre>
 				</div><br>
-{% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">Continue</button>
-{% else %}
-				<button type="submit" class="btn centered" name="action" value="morekeys" onsubmit="showPacman()">Continue</button>
-{% endif %}
 			</div>
 {% endif %}
 {% if not device or device.hot_wallet %}
@@ -168,11 +165,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 				<br>
 				</div>
 				<br><br>
-				{% if not device %}
 				<button type="submit" class="btn centered" name="action" value="newhotdevice">Continue</button>
-{% else %}
-				<button type="submit" class="btn centered" name="action" value="morekeys">Continue</button>
-{% endif %}
 			</div>
 {% endif %}
 		</form>

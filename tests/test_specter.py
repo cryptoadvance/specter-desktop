@@ -3,9 +3,9 @@ from decimal import Decimal
 from cryptoadvance.specter.helpers import alias, generate_mnemonic
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.specter import get_rpc, Specter
+from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.wallet_manager import WalletManager
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 
 def test_alias():
@@ -14,37 +14,20 @@ def test_alias():
     assert alias("Wurst$ 1") == "wurst_1"
 
 
-@pytest.mark.skip(reason="no idea why this does not pass on gitlab exclusively")
-def test_get_rpc(specter_regtest_configured):
-    specter_regtest_configured.check()
-    rpc_config_data = {
-        "autodetect": False,
-        "user": "bitcoin",
-        "password": "secret",
-        "port": specter_regtest_configured.config["rpc"]["port"],
-        "host": "localhost",
-        "protocol": "http",
-    }
-    print("rpc_config_data: {}".format(rpc_config_data))
-    rpc = get_rpc(rpc_config_data)
-    assert rpc.getblockchaininfo()
-    assert isinstance(rpc, BitcoinRPC)
-    # ToDo test autodetection-features
-
-
 def test_specter(specter_regtest_configured, caplog):
     caplog.set_level(logging.DEBUG)
     specter_regtest_configured.check()
     assert specter_regtest_configured.wallet_manager is not None
     assert specter_regtest_configured.device_manager is not None
-    assert specter_regtest_configured.config["rpc"]["host"] != "None"
-    logging.debug("out {}".format(specter_regtest_configured.test_rpc()))
-    json_return = json.loads(specter_regtest_configured.test_rpc()["out"])
+    assert specter_regtest_configured.node.host != "None"
+    logging.debug("out {}".format(specter_regtest_configured.node.test_rpc()))
+    json_return = json.loads(specter_regtest_configured.node.test_rpc()["out"])
     # that might only work if your chain is fresh
     # assert json_return['blocks'] == 100
     assert json_return["chain"] == "regtest"
 
 
+@pytest.mark.slow
 def test_abandon_purged_tx(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
@@ -85,6 +68,7 @@ def test_abandon_purged_tx(
     config = {
         "rpc": {
             "autodetect": False,
+            "datadir": "",
             "user": rpcconn.rpcuser,
             "password": rpcconn.rpcpassword,
             "port": rpcconn.rpcport,
@@ -98,8 +82,7 @@ def test_abandon_purged_tx(
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     specter.check()
 
-    specter.check_node_info()
-    assert specter._info["mempool_info"]["maxmempool"] == 5 * 1000 * 1000  # 5MB
+    assert specter.info["mempool_info"]["maxmempool"] == 5 * 1000 * 1000  # 5MB
 
     # Largely copy-and-paste from test_wallet_manager.test_wallet_createpsbt.
     # TODO: Make a test fixture in conftest.py that sets up already funded wallets

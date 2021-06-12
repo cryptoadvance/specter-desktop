@@ -37,7 +37,7 @@ def which(program):
             if is_exe(exe_file):
                 logger.debug("Found %s executable in %s" % (program, path))
                 return exe_file
-    raise Exception("Couldn't find executable %s" % program)
+    raise Exception(f"Couldn't find executable {program} cwd={os.getcwd()}")
 
 
 # should work in all python versions
@@ -53,3 +53,11 @@ def run_shell(cmd):
         return {"code": proc.returncode, "out": stdout, "err": stderr}
     except Exception as e:
         return {"code": 0xF00DBABE, "out": b"", "err": e}
+
+
+def get_last_lines_from_file(file_localtion, x=50):
+    """returns an array of the last x lines of a file"""
+    with open(file_localtion, "r") as the_file:
+        lines = the_file.readlines()
+        last_lines = lines[-x:]
+    return last_lines

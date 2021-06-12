@@ -22,8 +22,8 @@ class BitcoinCore(Device):
 
     hot_wallet = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        Device.__init__(self, name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        Device.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
 
     def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
@@ -43,6 +43,10 @@ class BitcoinCore(Device):
         keys_range=[0, 1000],
         keys_purposes=[],
     ):
+        if type(keys_range[0]) == str:
+            keys_range[0] = int(keys_range[0])
+        if type(keys_range[1]) == str:
+            keys_range[1] = int(keys_range[1])
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
         network = networks.NETWORKS["test" if testnet else "main"]

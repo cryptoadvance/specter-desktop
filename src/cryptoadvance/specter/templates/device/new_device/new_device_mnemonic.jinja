@@ -1,0 +1,191 @@
+{% extends "base.jinja" %}
+{% block main %}
+    {% include "includes/hwi/hwi.jinja" %}
+    {% include "includes/qr-scanner.html" %}
+    <style>
+        td {
+            text-align: left;
+        }
+
+        @media screen and (max-width:720px) {
+            #device_setup_wizard th, #device_setup_wizard td { 
+                display: block;
+                width: 100%;
+            }
+            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
+                display: none;
+                margin: auto;
+            }
+            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
+                text-align: center;
+                width: 100%;
+                margin: auto;
+            }
+            #device_setup_wizard .xpub {
+                padding: 10px;
+            }
+            #device_setup_wizard #edit-xpubs-table-btn {
+                margin: auto;
+            }
+        }
+        .xpubs_edit {
+            visibility: hidden;
+        }
+    </style>
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+        <div class="card center" style="width: auto; margin: 40px;" >
+            <h1 style="font-size: 2em;">Add {% if existing_device %}Keys{% else %}Device{% endif %}</h1><br>
+            {% if existing_device %}
+                <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
+            {% endif %}
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div>
+                <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
+                    <br>
+                    <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+                        <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
+                        This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.<br>
+                        Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.
+                    </p>
+                    <p>Enter your mnemonic here{% if not existing_device %} or use the randomly generated one{% endif %}:</p>
+                    {% if not existing_device %}<p><b>Make sure to backup these words!</b></p>{% endif %}
+                    {% set wordslist = mnemonic.split(' ') %}
+                    {% if not existing_device %}
+                    <nav class="row">
+                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> Generate </button>
+                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> Import </button>
+                    </nav>
+                    {% endif %}
+                    <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder="Enter your mnemonic here"></textarea>
+                    <div id="generated_mnemonic" {% if existing_device %}class="hidden"{% endif %}>
+                        <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
+                            <fieldset style="border:none; display: inline;"> 
+                                <select name="strength" id="strength">
+                                    <option value="128">12 words</option>
+                                    <option value="256">24 words</option>
+                                </select>
+                            </fieldset>
+                            <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">Generate New Mnemonic</button>
+                        </div>
+                        <br>
+                        <table id="mnemonic_table">
+                            {% for i in range(wordslist|length // 4) %}
+                                <tr>
+                                    <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
+                                    <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
+                                    <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
+                                    <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+				<br>
+                <span id="toggle-advanced" style="cursor: pointer;" onclick="toggleAdvanced()">Advanced &#9654;</span>
+				<br>
+				<br>
+                <div id="advanced-settings" class="hidden" style="width: 400px; margin: auto;">
+                    <label>Encrypt Wallet File: </label>
+                    <input type="password" name="file_password" class="inline" placeholder="password">
+                    <br>
+                    <br>
+                    <label>BIP39 passphrase (optional): </label>
+                    <input type="password" name="passphrase" class="inline" placeholder="passphrase">
+                    <br>
+                    <p style="margin-bottom: 10px;">Addresses range to import: </p>
+                    From: <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+                    to: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+                    <br>
+                </div>
+            </div>
+        </div>
+        <button type="submit" id="submit-mnemonic" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">Continue</button>
+        <br><br>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            {% if existing_device %}
+                setMnemonicView('import');
+            {% endif %}
+        });
+
+        function setMnemonicView(view) {
+            var generatedMnemonic = document.getElementById("generated_mnemonic");
+            var importMnemonic = document.getElementById("import_mnemonic");
+            var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
+            var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+            var mnemonicValue = document.getElementById("mnemonic_value");
+            if (view == 'generate') {
+                generatedMnemonic.style.display = 'block';
+                importMnemonic.style.display = 'none';
+                generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
+                importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+                mnemonicValue.value = '{{ mnemonic }}'
+            } else {
+                generatedMnemonic.style.display = 'none';
+                importMnemonic.style.display = 'block';
+                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                mnemonicValue.value = importMnemonic.value;
+                importMnemonic.addEventListener("input", function() {
+                    mnemonicValue.value = importMnemonic.value;
+                });
+            }
+        }
+
+        async function generateMnemonic() {
+			let url = `{{ url_for('generatemnemonic') }}`;
+            var formData = new FormData(document.getElementById('form'));
+			try {
+				const response = await fetch(
+					url,
+					{
+						method: 'POST',
+						body: formData
+					}
+				);
+				if(response.status != 200){
+					showError(await response.text());
+					return;
+				}
+				const jsonResponse = await response.json();
+                let mnemonic = jsonResponse.mnemonic;
+
+                document.getElementById("mnemonic_value").value = mnemonic;
+                let wordslist = mnemonic.split(' ');
+                let mnemonicTable = document.getElementById("mnemonic_table");
+                mnemonicTable.innerHTML = ``;
+    
+                for(let i=0; i < wordslist.length / 4; i++) {
+                    mnemonicTable.innerHTML += `
+                        <tr>
+                            <td id="mnemonicwo">${ 4 * i + 1 }. ${ wordslist[4 * i] }</td>
+                            <td>${ 4 * i + 2 }. ${ wordslist[4 * i + 1] }</td>
+                            <td>${ 4 * i + 3 }. ${ wordslist[4 * i + 2] }</td>
+                            <td>${ 4 * i + 4 }. ${ wordslist[4 * i + 3] }</td>
+                        </tr>
+                    `
+                }
+			} catch(e) {
+				console.log("Caught error: ", e);
+				showError(e);
+			}
+		}
+
+        function toggleAdvanced() {
+            let advancedButton = document.getElementById('toggle-advanced');
+            let advancedSettings = document.getElementById('advanced-settings');
+            if (advancedSettings.style.display === 'block') {
+                advancedSettings.style.display = 'none';
+                advancedButton.innerHTML = 'Advanced &#9654;';
+            } else {
+                advancedSettings.style.display = 'block';
+                advancedButton.innerHTML = 'Advanced &#9660;';
+            }
+        }
+    </script>
+{% endblock %}

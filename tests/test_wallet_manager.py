@@ -1,12 +1,16 @@
-import json, os
-from conftest import instantiate_bitcoind_controller
+import json
+import os
+
+import pytest
+from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
-from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.wallet_manager import WalletManager
+from conftest import instantiate_bitcoind_controller
 
 
+@pytest.mark.slow
 def test_WalletManager(docker, request, devices_filled_data_folder, device_manager):
     # Instantiate a fresh bitcoind instance to isolate this test.
     bitcoind_controller = instantiate_bitcoind_controller(
@@ -82,6 +86,7 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
     bitcoind_controller.stop_bitcoind()
 
 
+@pytest.mark.slow
 def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_manager):
     # Instantiate a fresh bitcoind instance to isolate this test.
     bitcoind_controller = instantiate_bitcoind_controller(

@@ -1,4 +1,6 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
+{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+{% include "includes/sidebar/components/node_select_popup.jinja" %}
 <style>
     #wallets_overview_link {
         text-transform: none;
@@ -10,6 +12,20 @@
     #wallets_overview_link:hover {
         text-decoration: underline;
         color: #fff;
+    }
+
+    #node-switch-icon {
+        padding: 5px;
+        float: right;
+        width: 30px;
+        position: absolute;
+        left: 210px;
+        top: 5px;
+        border-radius: 10px;
+    }
+
+    #node-switch-icon:hover {
+        background-color: #737f98;
     }
 
     @keyframes spin {
@@ -24,21 +40,27 @@
 <div id="side-content">
     <nav class="side">
         {% if specter.info["initialblockdownload"] %}
-            <p class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core is still syncing...<br>(data might be outdated)</p>
+            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core is still syncing...<br>(data might be outdated)</p>
         {% endif %}
         {% if specter.network_info.version < 190000 %}
-            <p class="warning"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
+            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).</p>
         {% endif %}
-        {% if specter.chain %}
-            <div onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
+            <div 
+                id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" 
+                class="item core" style="cursor: pointer;">
+
+            {% if specter.is_liquid %}
+                {% from "components/liquid_svg.jinja" import liquid_svg %}
+                {{ liquid_svg(specter.info.chain, 40) }}
             {% else %}
-            <a href="{{ url_for('settings_endpoint.settings') }}" class="item core" style="color: #fff; text-decoration: none;">
-        {% endif %}
-            {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-            {{ bitcoin_svg(specter.info.chain, 40) }}
+                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                {{ bitcoin_svg(specter.info.chain, 40) }}
+            {% endif %}
             {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
             <div>
-                Bitcoin Core<br>
+                <span style="max-width: 140px;">{{ specter.node.name }}</span>
+                <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
+                <br>
                 <small>
                     {% if specter.chain %}
                         {% if specter.bitcoin_core_version != '' %}
@@ -55,11 +77,8 @@
                     {% endif %}
                 </small>
             </div>
-        {% if specter.chain %}
-            </div>
-        {% else %}
-            </a>
-        {% endif %}
+
+        </div>
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
             <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
@@ -106,6 +125,9 @@
             setTimeout(fetchUTXORescanProgress, 1000);
         </script>
         {% endif %}
+        {% if specter.setup_status.stage != "start" and specter.rpc is none %}
+            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
+        {% endif %}
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
@@ -122,7 +144,7 @@
             <span id="wallets-loading-done" class="note hidden" style="text-align: left; margin: 5px 5px 5px 20px;">
                 Finished updating your wallets
                 <br>
-                <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" style="text-decoration: underline;">
+                <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" style="text-decoration: underline; margin-left: 20px;">
                     Click here to refresh
                 </span>
             </span>
@@ -170,17 +192,18 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-            {% else %}
+            {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
                 <p class="warning" style="border: 1px solid #fff;">
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
                 <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
                 {% if current_user.is_admin %}
-                <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('settings_endpoint.bitcoin_core') }}">
-                    <img src="{{ url_for('static', filename='img/settings-status-bar.svg') }}" style="width: 13px;"/>Configure Node
+                <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">Configure Node
                 </a>
                 {% endif %}
                 </p>
             {% endif %}
+
         </div>
 
         <div class="separator">
@@ -191,7 +214,7 @@
             {% for device_name in specter.device_manager.devices_names %}
                     {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
             {% endfor %}
-            {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device','btn_new_device') }}
+            {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), 'Add new device','btn_new_device') }}
         </div>
         <br>
         <div class="footer">
@@ -220,7 +243,7 @@
             } else {
                 document.getElementById("wallets-loading-indicator").classList.add("hidden");
                 {% if not specter.wallet_manager.failed_load_wallets %}
-                if ('{{wallet_alias}}') {
+                if ('{{wallet_alias}}' && window.location.href.endsWith('history/')) {
                     document.getElementById("wallets-loading-done").classList.remove("hidden");
                 }
                 {% endif %}

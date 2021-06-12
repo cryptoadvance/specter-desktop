@@ -1,0 +1,49 @@
+{% extends "setup/setup_page.jinja" %}
+
+{% block setup %}
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
+    <br>Setup Tor daemon</h1>
+    <br><br>
+    <div class="row">
+        {% if nextURL == 'setup_endpoint.node_type'%}
+            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">Skip</a>
+        {% endif %}
+        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor</button>
+    </div>
+{% endblock %}
+
+{% block setup_scripts %}
+    <script>
+        async function setupTorDaemon() {
+            let url = "{{ url_for('setup_endpoint.setup_tor') }}";
+            var formData = new FormData();
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if ("success" in jsonResponse) {
+                    showNotification(jsonResponse.success);
+                    document.getElementById('setup-tor-button').classList.add('hidden');
+                    startProgressCheck('torbrowser', "{{ url_for(nextURL) }}");
+                    return;
+                } if (jsonResponse.error == "Tor is already installed") {
+                    window.location.href = "{{ url_for(nextURL) }}";
+                }
+                showError(jsonResponse.error, 4000);
+            }  catch(e) {
+                showError("Failed to download Tor daemon...");
+                showError(e);
+            }
+        }
+    </script>
+{% endblock %}

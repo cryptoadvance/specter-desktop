@@ -46,7 +46,7 @@ class HWIBridge {
     async enumerate(passphrase="", useTimeout){
         return await this.fetch("enumerate", { 
             passphrase
-        }, (useTimeout ? 5000 : 0));
+        }, (useTimeout ? 60000 : 0));
     }
     async detectDevice(type, rescan=true){
         // TODO: fingerprint, path, type
@@ -156,6 +156,18 @@ class HWIBridge {
         return await this.fetch('extract_xpub', {
             device_type: device.type,
             derivation: derivation,
+            path: device.path,
+            passphrase: device.passphrase,
+            chain: chain,
+        });
+    }
+
+    async getMasterBlindingKey(device, passphrase="", chain=""){
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.fetch('extract_master_blinding_key', {
+            device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
             chain: chain,

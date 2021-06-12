@@ -70,6 +70,14 @@ class SpecterClient(HardwareWalletClient):
         """
         return bytes.fromhex(self.query("fingerprint", timeout=self.TIMEOUT))
 
+    def get_master_blinding_key(self) -> str:
+        """
+        Get the master blinding key as WIF string (according to SLIP77 format).
+
+        :return: The master blinding key as WIF string
+        """
+        return self.query("slip77")
+
     def get_pubkey_at_path(self, bip32_path: str) -> ExtendedKey:
         """
         Get the public key at the BIP 32 derivation path.
@@ -86,6 +94,11 @@ class SpecterClient(HardwareWalletClient):
             b"\x04\x88\xb2\x1e" if self.chain == Chain.MAIN else b"\x04\x35\x87\xcf"
         )
         return hd
+
+    def sign_b64psbt(self, psbt: str) -> str:
+        # works with both PSBT and PSET
+        print("sign %s" % psbt)
+        return self.query("sign %s" % psbt)
 
     def sign_tx(self, psbt: PSBT) -> PSBT:
         """
