@@ -18,6 +18,11 @@ class Device:
     qr_code_support = False
     qr_code_support_verify = False
     qr_code_frame_rate = 3  # ~300 ms per frame
+    # QR code animation options:
+    # - "auto": click to animate if data is large
+    # - "on": animate psbt by default
+    # - "off": don't animate psbt even if it is huge
+    qr_code_animate = "auto"
     hwi_support = False
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False

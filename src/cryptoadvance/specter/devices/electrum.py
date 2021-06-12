@@ -11,6 +11,7 @@ class Electrum(Device):
 
     sd_card_support = True
     qr_code_support = True
+    qr_code_animate = "off"
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         super().__init__(name, alias, keys, blinding_key, fullpath, manager)

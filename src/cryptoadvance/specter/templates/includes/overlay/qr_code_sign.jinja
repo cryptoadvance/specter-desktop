@@ -3,7 +3,7 @@
     <h2>Scan this QR code with your {{device.name}}.</h2>
     <div class="row" style="min-height: 400px; margin-top:20px">
         <span id="compressed_psbt" style="margin: auto;">
-            <qr-code frame-rate="{{device.qr_code_frame_rate}}" class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
+            <qr-code animate="{{device.qr_code_animate}}" frame-rate="{{device.qr_code_frame_rate}}" class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">

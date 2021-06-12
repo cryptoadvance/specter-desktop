@@ -177,6 +177,7 @@ class QRCodeElement extends HTMLElement {
     this.isQRtoolarge = false;
     this.idx = 0;
     this.framePeriod = 300;
+    this.mode = 'auto';
 
     this.copybtn = clone.querySelector(".copy");
 
@@ -212,12 +213,12 @@ class QRCodeElement extends HTMLElement {
       }
       if(this.animate && this.isQRlarge){
         this.qrcode.makeCode(this.chunks[this.idx]);
-        this.idx = (this.idx+1) % this.chunks.length;
         let prefix = "";
         if(!this.isQRtoolarge){
           prefix = "Click to stop. ";
         }
-        this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
+        this.note.innerHTML = `${prefix}Part ${this.idx+1} of ${this.chunks.length}`;
+        this.idx = (this.idx+1) % this.chunks.length;
       }
     }
     window.setTimeout(animate, this.framePeriod);
@@ -301,6 +302,10 @@ class QRCodeElement extends HTMLElement {
     }else{
       this.framePeriod = Math.round(1000/frameRate);
     }
+    let mode = this.getAttribute('animate');
+    if(mode){
+      this.mode = mode;
+    }
     if (this.getAttribute('scalable') !== null) {
       let defaultSize = parseInt(this.getAttribute('width').replace("px",""))
       if(isNaN(defaultSize)){
@@ -324,6 +329,10 @@ class QRCodeElement extends HTMLElement {
       }else{
         this.framePeriod = Math.round(1000/frameRate);
       }
+      let mode = this.getAttribute('animate');
+      if(mode){
+        this.mode = mode;
+      }
       var value = this.getAttribute('value');
       var width = parseInt(this.getAttribute('width').replace("px",""));
       if(isNaN(width)){
@@ -340,20 +349,34 @@ class QRCodeElement extends HTMLElement {
         return;
       }
       this.split(value);
-      if(this.chunks.length == 1){
-        this.isQRlarge = false;
-        this.note.innerHTML = "";
-      }else{
-        this.isQRlarge = true;
-        this.note.innerHTML = "Click to animate";
-      }
-      // we have to use chunks
-      if(this.isQRtoolarge){
-        value = this.chunks[0];
-        this.animate = true;
-      }else{
-        // if this is bc-ur, remove checksum for static QR
+      if(this.mode == 'off'){
         value = this.maybe_remove_checksum(value);
+      }else{
+        if(this.chunks.length == 1){
+          this.isQRlarge = false;
+          this.note.innerHTML = "";
+        }else{
+          this.isQRlarge = true;
+          this.note.innerHTML = "Click to animate";
+        }
+        // we have to use chunks
+        if(this.isQRtoolarge){
+          value = this.chunks[0];
+          this.animate = true;
+        }else{
+          // if this is bc-ur, remove checksum for static QR
+          value = this.maybe_remove_checksum(value);
+        }
+        if(this.mode == 'on'){
+          this.animate = true;
+          value = this.chunks[0];
+          this.idx = 0;
+          let prefix = "";
+          if(!this.isQRtoolarge){
+            prefix = "Click to stop. ";
+          }
+          this.note.innerHTML = `${prefix}Part ${this.idx+1} of ${this.chunks.length}`;
+        }
       }
       this.qrcode = new QRCode(this.el, {
         "text":   value,
