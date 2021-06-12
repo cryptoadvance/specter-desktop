@@ -372,3 +372,7 @@ class Node:
     @property
     def is_testnet(self):
         return is_testnet(self.chain)
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
