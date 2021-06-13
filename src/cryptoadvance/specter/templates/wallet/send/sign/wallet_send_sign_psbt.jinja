@@ -160,7 +160,6 @@
 								{% set amount = psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1) %}
 								<b>Amount:</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
 							{% endif %}
-							<script type="text/javascript">console.log(`{{psbt['inputs'][loop.index0] | safe}}`)</script>
 						{% endif %}
 					</p>
 				{% endfor %}

@@ -316,7 +316,6 @@ class LiquidRPC(BitcoinRPC):
                 inp2["value"] = v
             if "asset" not in inp2:
                 inp2["asset"] = a
-        logger.warn(decoded)
         return decoded
 
     def decoderawtransaction(self, tx):
