@@ -389,7 +389,9 @@ class NodePlainController(NodeController):
             self.cleanup_node(cleanup_hard, datadir)
 
         if cleanup_at_exit:
-            logger.info("Register function cleanup_node for atexit, SIGINT, and SIGTERM")
+            logger.info(
+                "Register function cleanup_node for atexit, SIGINT, and SIGTERM"
+            )
             atexit.register(cleanup_node)
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, cleanup_node)

@@ -283,7 +283,7 @@ def parse_wallet_data_import(wallet_data):
         if "derivation" in wallet_data["x1/"]:
             wallet_type = wallet_type_by_derivation(wallet_data["x1/"]["derivation"])
         else:
-            raise Exception("\"derivation\" not found in \"x1/\" in Electrum backup json")
+            raise Exception('"derivation" not found in "x1/" in Electrum backup json')
 
         required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
         recv_descriptor = "{}(sortedmulti({}, {}))".format(
@@ -296,9 +296,13 @@ def parse_wallet_data_import(wallet_data):
         wallet_name = wallet_data["keystore"]["label"]
 
         if "derivation" in wallet_data["keystore"]:
-            wallet_type = wallet_type_by_derivation(wallet_data["keystore"]["derivation"])
+            wallet_type = wallet_type_by_derivation(
+                wallet_data["keystore"]["derivation"]
+            )
         else:
-            raise Exception("\"derivation\" not found in \"keystore\" in Electrum backup json")
+            raise Exception(
+                '"derivation" not found in "keystore" in Electrum backup json'
+            )
         recv_descriptor = "{}({})".format(
             wallet_type,
             "[{}]{}/0/*,".format(
@@ -308,7 +312,12 @@ def parse_wallet_data_import(wallet_data):
                 wallet_data["keystore"]["xpub"],
             ),
         )
-        cosigners_types = [{"type": wallet_data["keystore"]["hw_type"], "label": wallet_data["keystore"]["label"]}]
+        cosigners_types = [
+            {
+                "type": wallet_data["keystore"]["hw_type"],
+                "label": wallet_data["keystore"]["label"],
+            }
+        ]
 
     # Current Specter backups
     else:

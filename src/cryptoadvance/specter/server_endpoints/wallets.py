@@ -148,7 +148,11 @@ def new_wallet(wallet_type):
                 # Only need to un-escape the descriptor, if there is one (Specter format
                 #   has it but Electrum backup does not.
                 if "descriptor" in wallet_data:
-                    wallet_data["descriptor"] = wallet_data.get("descriptor").replace("\\'", "").replace("'", "h")
+                    wallet_data["descriptor"] = (
+                        wallet_data.get("descriptor")
+                        .replace("\\'", "")
+                        .replace("'", "h")
+                    )
 
                 (
                     wallet_name,
@@ -206,7 +210,7 @@ def new_wallet(wallet_type):
                         sigs_required=descriptor.multisig_M,
                         key_type=descriptor.address_type,
                         keys=keys,
-                        devices=cosigners
+                        devices=cosigners,
                     )
                 except Exception as e:
                     flash("Failed to create wallet: %r" % e, "error")
@@ -220,12 +224,16 @@ def new_wallet(wallet_type):
                     # if the node is still syncing
                     # and the first block with tx is not there yet
                     startblock = min(
-                        wallet_data.get("blockheight", app.specter.info.get("blocks", 0)),
+                        wallet_data.get(
+                            "blockheight", app.specter.info.get("blocks", 0)
+                        ),
                         app.specter.info.get("blocks", 0),
                     )
                     # check if pruned
                     if app.specter.info.get("pruned", False):
-                        newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
+                        newstartblock = max(
+                            startblock, app.specter.info.get("pruneheight", 0)
+                        )
                         if newstartblock > startblock:
                             flash(
                                 f"Using pruned node - we will only rescan from block {newstartblock}",

@@ -431,7 +431,6 @@ class Descriptor:
 
         return AddChecksum(descriptor_open + base + descriptor_close)
 
-
     def parse_signers(self, devices, cosigners_types):
         from cryptoadvance.specter.key import Key
 
@@ -457,9 +456,7 @@ class Descriptor:
                 for key in cosigner.keys:
                     if key.fingerprint + key.derivation.replace(
                         "m", ""
-                    ) == self.origin_fingerprint[i] + self.origin_path[
-                        i
-                    ].replace(
+                    ) == self.origin_fingerprint[i] + self.origin_path[i].replace(
                         "'", "h"
                     ):
                         keys.append(key)
@@ -499,6 +496,3 @@ def sort_descriptor(descriptor, index=None):
     sorted_desc = desc.derive(index, keep_xpubs=True)
     sorted_desc.sort_keys = False
     return sorted_desc.serialize()
-
-
-    
