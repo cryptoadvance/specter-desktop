@@ -75,14 +75,19 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="tx_info">
 			{% for i in range(psbt['address']|length) %}
-				<div style="word-break: break-all;">Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
-					{% if specter.unit == 'sat' %}
-						sats
+				<div style="word-break: break-all;">
+					{% if "asset" in psbt %}
+						Sending <b>{{ psbt["amount"][i] | btcamount }}</b> {{ psbt["asset"][i] | assetlabel }}
 					{% else %}
-						{% if specter.chain !='main' %}t{%endif%}BTC
-					{% endif %}
-					{% if specter.price_check %}
-						<span class="note">({{ psbt["amount"][i] | altunit }})</span>
+						Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
+						{% if specter.unit == 'sat' %}
+							sats
+						{% else %}
+							{% if specter.is_testnet %}t{%endif%}BTC
+						{% endif %}
+						{% if specter.price_check %}
+							<span class="note">({{ psbt["amount"][i] | altunit }})</span>
+						{% endif %}
 					{% endif %}
 					to<b>
 						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
@@ -147,7 +152,15 @@
 									<br>
 								{% endif %}
 							{% endif %}
-							<b>Amount:</b> {{ psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1)|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['inputs'][loop.index0].get('witness_utxo', {}).get('amount', -1) | altunit }})</span>{% endif %}
+							{% if specter.is_liquid %}
+								{% set amount = psbt['inputs'][loop.index0].get('value', -1) %}
+								{% set asset = psbt['inputs'][loop.index0].get('asset', "") %}
+								<b>Amount:</b> {{ amount|btcamount }} {{ asset | assetlabel }}
+							{% else %}
+								{% set amount = psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1) %}
+								<b>Amount:</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
+							{% endif %}
+							<script type="text/javascript">console.log(`{{psbt['inputs'][loop.index0] | safe}}`)</script>
 						{% endif %}
 					</p>
 				{% endfor %}

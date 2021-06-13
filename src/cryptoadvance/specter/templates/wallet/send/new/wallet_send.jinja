@@ -31,7 +31,7 @@
 			{% if specter.unit == 'sat' %}
 				sats
 			{% else %}
-				{% if specter.chain !='main' %}t{%endif%}BTC
+				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
 			{% endif %}<br>
 			{% if specter.price_check %}
 				<span class="note">{{ wallet.full_available_balance | altunit }}</span>
@@ -304,6 +304,9 @@
 					document.getElementById('converted_unit_alt_' + i).innerHTML = '';
 				}
 			{% endif %}
+			}else{
+				document.getElementById('converted_unit_amount_' + i).innerHTML = '&nbsp;';
+				document.getElementById('converted_unit_alt_' + i).innerHTML = '&nbsp;';
 			}
 			
 			validateForm();

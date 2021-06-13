@@ -100,11 +100,6 @@ class LiquidRPC(BitcoinRPC):
                 res[k][kk] = v
         return res
 
-    def decodepsbt(self, *args, **kwargs):
-        res = super().__getattr__("decodepsbt")(*args, **kwargs)
-        res["fee"] = res["fees"]["bitcoin"]
-        return res
-
     def getreceivedbyaddress(self, address, minconf=1, assetlabel="bitcoin", **kwargs):
         args = [address, minconf]
         if assetlabel is not None:
@@ -272,6 +267,7 @@ class LiquidRPC(BitcoinRPC):
 
     def decodepsbt(self, b64psbt, *args, **kwargs):
         tx = PSET.from_string(b64psbt)
+        inputs = [(inp.value, inp.asset) for inp in tx.inputs]
         for inp in tx.inputs:
             inp.value = None
             inp.asset = None
@@ -305,6 +301,22 @@ class LiquidRPC(BitcoinRPC):
         for out in decoded["tx"]["vout"]:
             if "value" not in out:
                 out["value"] = -1
+        for i, (v, a) in enumerate(inputs):
+            inp = decoded["tx"]["vin"][i]  # old psbt
+            inp2 = decoded["inputs"][i]  # new psbt
+            if "utxo_rangeproof" in inp2:
+                inp2.pop("utxo_rangeproof")
+            a = bytes(reversed(a[-32:])).hex()
+            v = round(v * 1e-8, 8)
+            if "value" not in inp:
+                inp["value"] = v
+            if "asset" not in inp:
+                inp["asset"] = a
+            if "value" not in inp2:
+                inp2["value"] = v
+            if "asset" not in inp2:
+                inp2["asset"] = a
+        logger.warn(decoded)
         return decoded
 
     def decoderawtransaction(self, tx):

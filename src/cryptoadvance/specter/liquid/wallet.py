@@ -293,6 +293,8 @@ class LWallet(Wallet):
         psbt["base64"] = b64psbt
         psbt["amount"] = amounts
         psbt["address"] = addresses
+        if assets:
+            psbt["asset"] = assets
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
         if not readonly:
