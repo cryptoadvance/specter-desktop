@@ -206,7 +206,7 @@ class Wallet:
         ##################### Remove from here after dropping Core v0.19 support #####################
         check_blockheight = False
         for tx in txs.values():
-            if tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+            if tx and tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
                 check_blockheight = True
                 break
         if check_blockheight:
@@ -956,9 +956,9 @@ class Wallet:
     @property
     def account_map(self):
         account_map_dict = {
-            "label": self.name.replace("'", "_").replace('"', "_"),
+            "label": self.name,
             "blockheight": self.blockheight,
-            "descriptor": self.recv_descriptor.replace("/", "\\/"),
+            "descriptor": self.recv_descriptor,
             "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
         }
         return json.dumps(account_map_dict)

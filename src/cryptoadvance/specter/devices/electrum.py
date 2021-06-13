@@ -1,11 +1,12 @@
 from binascii import a2b_base64
-from ..util.base43 import b43_encode
 from typing import List
+from . import DeviceTypes
+from ..util.base43 import b43_encode
 from ..device import Device
 
 
 class Electrum(Device):
-    device_type = "electrum"
+    device_type = DeviceTypes.ELECTRUM
     name = "Electrum"
     icon = "electrum_icon.svg"
 

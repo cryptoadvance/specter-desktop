@@ -241,16 +241,32 @@ def generate_mnemonic(strength=256):
     return words
 
 
+def wallet_type_by_derivation(derivation):
+    simple_derivation = derivation.replace("'", "").replace("h", "")
+    if simple_derivation.startswith("m/49"):
+        return "sh-wpkh"
+    elif simple_derivation.startswith("m/84"):
+        return "wpkh"
+    elif simple_derivation.startswith("m/48") and simple_derivation.endswith("/1"):
+        return "sh-wsh"
+    elif simple_derivation.startswith("m/48") and simple_derivation.endswith("/2"):
+        return "wsh"
+    else:
+        raise Exception(f"Unrecognized derivation: {derivation}")
+
+
 def parse_wallet_data_import(wallet_data):
     """Parses wallet JSON for import, takes JSON in a supported format
     and returns a tuple of wallet name, wallet descriptor, and cosigners types (electrum and newer Specter backups)
     Supported formats: Specter, Electrum, Account Map (Fully Noded, Gordian, Sparrow etc.)
     """
     cosigners_types = []
-    # specter format
+
+    # Specter-DIY format
     if "recv_descriptor" in wallet_data:
         wallet_name = wallet_data.get("name", "Imported Wallet")
         recv_descriptor = wallet_data.get("recv_descriptor", None)
+
     # Electrum multisig
     elif "x1/" in wallet_data:
         i = 1
@@ -260,29 +276,29 @@ def parse_wallet_data_import(wallet_data):
             xpubs += "[{}]{}/0/*,".format(
                 d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
             )
-            cosigners_types.append({"type": d["hw_type"], "label": None})
+            cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
             i += 1
         xpubs = xpubs.rstrip(",")
-        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
-            "addresses"
-        ]["receiving"][0].startswith("tb"):
-            wallet_type = "wsh"
+
+        if "derivation" in wallet_data["x1/"]:
+            wallet_type = wallet_type_by_derivation(wallet_data["x1/"]["derivation"])
         else:
-            wallet_type = "sh-wsh"
+            raise Exception("\"derivation\" not found in \"x1/\" in Electrum backup json")
+
         required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
         recv_descriptor = "{}(sortedmulti({}, {}))".format(
             wallet_type, required_sigs, xpubs
         )
         wallet_name = "Electrum {} of {}".format(required_sigs, i - 1)
+
     # Electrum singlesig
     elif "keystore" in wallet_data:
         wallet_name = wallet_data["keystore"]["label"]
-        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
-            "addresses"
-        ]["receiving"][0].startswith("tb"):
-            wallet_type = "wpkh"
+
+        if "derivation" in wallet_data["keystore"]:
+            wallet_type = wallet_type_by_derivation(wallet_data["keystore"]["derivation"])
         else:
-            wallet_type = "sh-wpkh"
+            raise Exception("\"derivation\" not found in \"keystore\" in Electrum backup json")
         recv_descriptor = "{}({})".format(
             wallet_type,
             "[{}]{}/0/*,".format(
@@ -292,7 +308,9 @@ def parse_wallet_data_import(wallet_data):
                 wallet_data["keystore"]["xpub"],
             ),
         )
-        cosigners_types = [{"type": wallet_data["keystore"]["hw_type"], "label": None}]
+        cosigners_types = [{"type": wallet_data["keystore"]["hw_type"], "label": wallet_data["keystore"]["label"]}]
+
+    # Current Specter backups
     else:
         # Newer exports are able to reinitialize device types but stay backwards
         #   compatible with older backups.
@@ -301,6 +319,7 @@ def parse_wallet_data_import(wallet_data):
 
         wallet_name = wallet_data.get("label", "Imported Wallet")
         recv_descriptor = wallet_data.get("descriptor", None)
+
     return (wallet_name, recv_descriptor, cosigners_types)
 
 

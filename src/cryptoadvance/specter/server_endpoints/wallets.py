@@ -143,9 +143,13 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             try:
-                wallet_data = json.loads(
-                    request.form["wallet_data"].replace("\\'", "").replace("'", "h")
-                )
+                wallet_data = json.loads(request.form["wallet_data"])
+
+                # Only need to un-escape the descriptor, if there is one (Specter format
+                #   has it but Electrum backup does not.
+                if "descriptor" in wallet_data:
+                    wallet_data["descriptor"] = wallet_data.get("descriptor").replace("\\'", "").replace("'", "h")
+
                 (
                     wallet_name,
                     recv_descriptor,

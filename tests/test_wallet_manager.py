@@ -349,8 +349,8 @@ def test_wallet_change_addresses(
 
 def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     """
-        Single-sig and multisig wallets should be able to be backed up and re-imported
-        with or without the "devices" attr in the json backup.
+        Single-sig wallets should be able to be backed up and re-imported with or without
+        the "devices" attr in the json backup.
     """
     caplog.set_level(logging.INFO)
 
@@ -383,7 +383,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert balance["trusted"] > 0.0
 
     # Save the json backup
-    wallet_backup = json.loads(wallet.account_map.replace("\\\\", "").replace("'", "h"))
+    wallet_backup = json.loads(wallet.account_map)
     assert "devices" in wallet_backup
 
     # Clear everything out as if we've never seen this wallet or device before
@@ -392,7 +392,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
 
-    # Parse the backed up wallet (code copied from the new_wallet endpoint)
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
     (
         wallet_name,
         recv_descriptor,
@@ -433,8 +433,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         devices=cosigners,
     )
 
-    # Sync the new wallet in bitcoincore to its existing utxos
-    # Do we need to add a sleep() to ensure the rescan completes?
+    # Sync the new wallet in bitcoincore to its existing utxos.
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
@@ -449,7 +448,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
 
-    # Parse the backed up wallet (code copied from the new_wallet endpoint)
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
     (
         wallet_name,
         recv_descriptor,
@@ -490,7 +489,6 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     )
 
     # Sync the new wallet in bitcoincore to its existing utxos
-    # Do we need to add a sleep() to ensure the rescan completes?
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
@@ -516,7 +514,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         if key.key_type == 'wsh' and key.xpub.startswith("tpub"):
             break
 
-    # Create the bitcoin core hot wallet
+    # Create a pair of hot wallet signers
     hot_wallet_1_device = device_manager.add_device(
         name="hot_key_1", device_type=DeviceTypes.BITCOINCORE, keys=[]
     )
@@ -546,7 +544,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         keys_purposes=[]
     )
 
-    # create a wallet
+    # create the multisig wallet
     wallet = wallet_manager.create_wallet(
         name="my_test_wallet",
         sigs_required=2,
@@ -573,7 +571,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
 
-    # Parse the backed up wallet (code copied from the new_wallet endpoint)
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
     (
         wallet_name,
         recv_descriptor,
@@ -619,7 +617,6 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     )
 
     # Sync the new wallet in bitcoincore to its existing utxos
-    # Do we need to add a sleep() to ensure the rescan completes?
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
@@ -636,7 +633,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
 
-    # Parse the backed up wallet (code copied from the new_wallet endpoint)
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
     (
         wallet_name,
         recv_descriptor,
@@ -655,6 +652,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         unknown_cosigners_types,
     ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
 
+    # Now we don't know any of the cosigners' types
     assert len(cosigners_types) == 0
     assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
 
@@ -679,9 +677,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     )
 
     # Sync the new wallet in bitcoincore to its existing utxos
-    # Do we need to add a sleep() to ensure the rescan completes?
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
-    logging.debug(wallet.get_balance())
     assert wallet.get_balance()["trusted"] > 0.0
