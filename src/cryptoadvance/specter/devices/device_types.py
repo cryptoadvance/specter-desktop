@@ -1,0 +1,10 @@
+class DeviceTypes:
+    BITBOX02 = "bitbox02"
+    BITCOINCORE = "bitcoincore"
+    COBO = "cobo"
+    COLDCARD = "coldcard"
+    ELECTRUM = "electrum"
+    GENERICDEVICE = "other"
+    KEEPKEY = "keepkey"
+    SPECTER = "specter"
+    TREZOR = "trezor"
