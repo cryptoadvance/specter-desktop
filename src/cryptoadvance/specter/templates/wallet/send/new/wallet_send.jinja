@@ -337,18 +337,30 @@
 				showError('Please first enter a valid address');
 				return;
 			}
-			let subtract = document.getElementById('subtract');
-			subtract.checked = true;
-			if (amounts.length > 1) {
-				document.getElementById('subtract_from').style.display = 'block';
-				document.getElementById('subtract_from_input').value = i + 1;
+			if(units[i] == 'sat' || units[i] == 'btc'){
+				let subtract = document.getElementById('subtract');
+				subtract.checked = true;
+				if (amounts.length > 1) {
+					document.getElementById('subtract_from').style.display = 'block';
+					document.getElementById('subtract_from_input').value = i + 1;
+				}
 			}
 			let othersAmount = 0;
 			for(let j in amounts) {
 				if (j != i) {
 					let unit = units[j];
 					let amount = amounts[j];
-					othersAmount += (unit == 'sat' ? amount / 1e8 : amount);
+					// assets
+					if(units[i] != 'sat' || units[i] != 'btc'){
+						if(unit == units[i]){
+							othersAmount += amount;
+						}
+					// btc
+					}else{
+						if(unit == 'sat' || unit == 'btc'){
+							othersAmount += (unit == 'sat' ? amount / 1e8 : amount);
+						}
+					}
 				}
 			}
 			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));

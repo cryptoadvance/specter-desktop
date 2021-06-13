@@ -43,7 +43,7 @@
                 spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
             }else{
                 if(unit in assetBalances){
-                    return assetBalances[unit];
+                    return assetBalances[unit].balance;
                 }else{
                     return 0;
                 }
