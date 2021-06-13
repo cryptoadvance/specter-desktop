@@ -4,8 +4,11 @@ import os
 import time
 
 import pytest
-from cryptoadvance.specter.helpers import (is_testnet, parse_wallet_data_import,
-    generate_mnemonic)
+from cryptoadvance.specter.helpers import (
+    is_testnet,
+    parse_wallet_data_import,
+    generate_mnemonic,
+)
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.devices import DeviceTypes
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
@@ -349,8 +352,8 @@ def test_wallet_change_addresses(
 
 def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     """
-        Single-sig wallets should be able to be backed up and re-imported with or without
-        the "devices" attr in the json backup.
+    Single-sig wallets should be able to be backed up and re-imported with or without
+    the "devices" attr in the json backup.
     """
     caplog.set_level(logging.INFO)
 
@@ -362,7 +365,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
 
     # Get the 'wkph' testnet key
     for key in device.keys:
-        if key.key_type == 'wpkh' and key.xpub.startswith("tpub"):
+        if key.key_type == "wpkh" and key.xpub.startswith("tpub"):
             break
 
     # create a wallet
@@ -371,7 +374,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         sigs_required=1,
         key_type=key.key_type,
         keys=[key],
-        devices=[device]
+        devices=[device],
     )
 
     # Fund the wallet
@@ -495,11 +498,10 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert wallet.get_balance()["trusted"] > 0.0
 
 
-
 def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     """
-        Multisig wallets should be able to be backed up and re-imported
-        with or without the "devices" attr in the json backup.
+    Multisig wallets should be able to be backed up and re-imported
+    with or without the "devices" attr in the json backup.
     """
     caplog.set_level(logging.INFO)
 
@@ -511,7 +513,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
 
     # Get the multisig 'wsh' testnet key
     for key in device.keys:
-        if key.key_type == 'wsh' and key.xpub.startswith("tpub"):
+        if key.key_type == "wsh" and key.xpub.startswith("tpub"):
             break
 
     # Create a pair of hot wallet signers
@@ -527,7 +529,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         wallet_manager=wallet_manager,
         testnet=True,
         keys_range=[0, 1000],
-        keys_purposes=[]
+        keys_purposes=[],
     )
     hot_wallet_2_device = device_manager.add_device(
         name="hot_key_2", device_type=DeviceTypes.BITCOINCORE, keys=[]
@@ -541,7 +543,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         wallet_manager=wallet_manager,
         testnet=True,
         keys_range=[0, 1000],
-        keys_purposes=[]
+        keys_purposes=[],
     )
 
     # create the multisig wallet
@@ -550,7 +552,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         sigs_required=2,
         key_type=key.key_type,
         keys=[key, hot_wallet_1_device.keys[0], hot_wallet_2_device.keys[0]],
-        devices=[device, hot_wallet_1_device, hot_wallet_2_device]
+        devices=[device, hot_wallet_1_device, hot_wallet_2_device],
     )
 
     # Fund the wallet
