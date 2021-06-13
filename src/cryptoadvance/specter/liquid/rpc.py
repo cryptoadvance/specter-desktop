@@ -271,6 +271,26 @@ class LiquidRPC(BitcoinRPC):
         return str(tx)
 
     def decodepsbt(self, b64psbt, *args, **kwargs):
+        tx = PSET.from_string(b64psbt)
+        for inp in tx.inputs:
+            inp.value = None
+            inp.asset = None
+            inp.value_blinding_factor = None
+            inp.asset_blinding_factor = None
+
+        for out in tx.outputs:
+            if out.asset and out.value:
+                # out.asset = None
+                out.asset_blinding_factor = None
+                # out.value = None
+                out.value_blinding_factor = None
+                out.asset_commitment = None
+                out.value_commitment = None
+                out.range_proof = None
+                out.surjection_proof = None
+                out.ecdh_pubkey = None
+        b64psbt = str(tx)
+
         decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
         # pset branch - no fee and global tx fields...
         if "tx" not in decoded or "fee" not in decoded:

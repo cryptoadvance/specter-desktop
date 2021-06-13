@@ -159,6 +159,7 @@ class LWallet(Wallet):
         rbf=True,
         existing_psbt=None,
         rbf_edit_mode=False,
+        assets=None,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -166,40 +167,43 @@ class LWallet(Wallet):
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
+        # FIXME: stupid scale of the fee rate for now
+        fee_rate = 2 * fee_rate
+
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
 
         if not existing_psbt:
-            if not rbf_edit_mode:
-                if self.full_available_balance < sum(amounts):
-                    raise SpecterError(
-                        "The wallet does not have sufficient funds to make the transaction."
-                    )
+            # if not rbf_edit_mode:
+            #     if self.full_available_balance < sum(amounts):
+            #         raise SpecterError(
+            #             "The wallet does not have sufficient funds to make the transaction."
+            #         )
 
-            if selected_coins != []:
-                still_needed = sum(amounts)
-                for coin in selected_coins:
-                    coin_txid = coin.split(",")[0]
-                    coin_vout = int(coin.split(",")[1])
-                    coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
-                        coin_vout
-                    ]["value"]
-                    extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
-                    still_needed -= coin_amount
-                    if still_needed < 0:
-                        break
-                if still_needed > 0:
-                    raise SpecterError(
-                        "Selected coins does not cover Full amount! Please select more coins!"
-                    )
-            elif self.available_balance["trusted"] <= sum(amounts):
-                txlist = self.rpc.listunspent(0, 0)
-                b = sum(amounts) - self.available_balance["trusted"]
-                for tx in txlist:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                    b -= tx["amount"]
-                    if b < 0:
-                        break
+            # if selected_coins != []:
+            #     still_needed = sum(amounts)
+            #     for coin in selected_coins:
+            #         coin_txid = coin.split(",")[0]
+            #         coin_vout = int(coin.split(",")[1])
+            #         coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
+            #             coin_vout
+            #         ]["value"]
+            #         extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
+            #         still_needed -= coin_amount
+            #         if still_needed < 0:
+            #             break
+            #     if still_needed > 0:
+            #         raise SpecterError(
+            #             "Selected coins does not cover Full amount! Please select more coins!"
+            #         )
+            # elif self.available_balance["trusted"] <= sum(amounts):
+            #     txlist = self.rpc.listunspent(0, 0)
+            #     b = sum(amounts) - self.available_balance["trusted"]
+            #     for tx in txlist:
+            #         extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+            #         b -= tx["amount"]
+            #         if b < 0:
+            #             break
 
             # subtract fee from amount of this output:
             # currently only one address is supported, so either
@@ -208,7 +212,8 @@ class LWallet(Wallet):
 
             options = {
                 "includeWatching": True,
-                "changeAddress": self.change_address,
+                # FIXME: get back change addresses
+                # "changeAddress": self.change_address,
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
             }
@@ -224,7 +229,10 @@ class LWallet(Wallet):
             # don't reuse change addresses - use getrawchangeaddress instead
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
-                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
+                [
+                    {addresses[i]: amounts[i], "asset": assets[i]}
+                    for i in range(len(addresses))
+                ],  # output
                 0,  # locktime
                 options,  # options
                 True,  # bip32-der

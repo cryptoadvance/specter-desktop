@@ -39,7 +39,15 @@
     function getSpendableAmount(unit) {
         let spendableAmount;
         if (!isCoinSelectionActive()) {
-            spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
+            if(unit == 'btc' || unit == 'sat'){
+                spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
+            }else{
+                if(unit in assetBalances){
+                    return assetBalances[unit];
+                }else{
+                    return 0;
+                }
+            }
         } else {
             spendableAmount = coinSelectAmount;
         }

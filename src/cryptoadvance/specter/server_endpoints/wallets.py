@@ -620,7 +620,10 @@ def send_new(wallet_alias):
                     if isnan(amount):
                         amount = 0.0
                     amounts.append(amount)
-                    amount_units.append(request.form["amount_unit_{}".format(i)])
+                    unit = request.form["amount_unit_{}".format(i)]
+                    if unit in ["sat", "btc"]:
+                        unit = app.specter.asset_labels.get("bitcoin", None)
+                    amount_units.append(unit)
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
                         wallet.setlabel(addresses[i], labels[i])
@@ -636,7 +639,9 @@ def send_new(wallet_alias):
                     labels.append("")
             addresses = [
                 address.lower()
-                if address.startswith(("BC1", "TB1", "BCRT1"))
+                if address.startswith(
+                    ("BC1", "TB1", "BCRT1", "EL1", "ERT1", "EX1", "LQ1")
+                )
                 else address
                 for address in addresses
             ]
@@ -652,18 +657,20 @@ def send_new(wallet_alias):
             rbf = bool(request.form.get("rbf", False))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
+            kwargs = {
+                "subtract": subtract,
+                "subtract_from": subtract_from - 1,
+                "fee_rate": fee_rate,
+                "rbf": rbf,
+                "selected_coins": selected_coins,
+                "readonly": "estimate_fee" in request.form,
+                "rbf_edit_mode": (rbf_tx_id != ""),
+            }
+            # add assets
+            if app.specter.is_liquid:
+                kwargs["assets"] = amount_units
             try:
-                psbt = wallet.createpsbt(
-                    addresses,
-                    amounts,
-                    subtract=subtract,
-                    subtract_from=subtract_from - 1,
-                    fee_rate=fee_rate,
-                    rbf=rbf,
-                    selected_coins=selected_coins,
-                    readonly="estimate_fee" in request.form,
-                    rbf_edit_mode=(rbf_tx_id != ""),
-                )
+                psbt = wallet.createpsbt(addresses, amounts, **kwargs)
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
                 else:

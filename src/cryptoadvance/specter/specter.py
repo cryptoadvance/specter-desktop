@@ -421,7 +421,10 @@ class Specter:
         return res
 
     def estimatesmartfee(self, blocks):
-        return self.rpc.estimatesmartfee(blocks)
+        res = self.rpc.estimatesmartfee(blocks)
+        if "feerate" not in res and self.is_liquid:
+            return 0.000001
+        return res
 
     @property
     def bitcoind_path(self):
