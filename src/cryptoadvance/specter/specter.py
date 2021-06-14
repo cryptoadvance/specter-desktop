@@ -179,6 +179,10 @@ class Specter:
             return self.node_manager.active_node
 
     @property
+    def default_node(self):
+        return self.node_manager.default_node()
+
+    @property
     def rpc(self):
         return self.node.rpc
 
