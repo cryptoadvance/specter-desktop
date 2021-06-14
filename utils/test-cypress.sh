@@ -11,7 +11,11 @@ export SPECTER_DATA_FOLDER=~/.specter-cypress
 # We'll might change that on the "dev-function"
 export SPECTER_CONFIG=CypressTestConfig
 
-. ./.env/bin/activate
+if [ -z "$VIRTUAL_ENV" ]; then
+  # activate virtualenv. This is e.g. not needed in CI
+  source ./.env/bin/activate
+fi
+
 function check_consistency {
   if ! npm version 2> /dev/null 1>&2 ; then
     echo "npm is not on the PATH. Please install node and bring on the PATH"
@@ -22,7 +26,9 @@ function check_consistency {
       sleep 5
       ps | grep python && (echo "please investigate or kill " && exit 1)
   fi
+  $(npm bin)/cypress verify
 }
+
 check_consistency
 
 function sub_default {

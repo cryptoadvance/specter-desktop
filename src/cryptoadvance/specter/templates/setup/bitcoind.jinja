@@ -1,0 +1,45 @@
+{% extends "setup/setup_page.jinja" %}
+
+{% block setup %}
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
+    <br>Setup Bitcoin Core</h1><br>
+    <div class="row">
+        <button type="button" class="btn wizard-btn action" id="setup-bitcoind-button" onclick="setupBitcoind()">Start the Setup!</button>
+    </div>
+{% endblock %}
+
+{% block setup_scripts %}
+    <script>
+        async function setupBitcoind(override=false) {
+            let url = "{{ url_for('setup_endpoint.setup_bitcoind') }}";
+            var formData = new FormData();
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if ("success" in jsonResponse) {
+                    showNotification(jsonResponse.success);
+                    document.getElementById('setup-bitcoind-button').classList.add('hidden');
+                    startProgressCheck('bitcoind', "{{ url_for('setup_endpoint.bitcoind_datadir') }}");
+                    return;
+                } if (jsonResponse.error == "Bitcoin Core is already installed") {
+                    window.location.href = "{{ url_for('setup_endpoint.bitcoind_datadir') }}";
+                }
+                showError(jsonResponse.error, 4000);
+            }  catch(e) {
+                showError("Failed to download Bitcoin Core...");
+                showError(e);
+            }
+        }
+    </script>
+{% endblock %}

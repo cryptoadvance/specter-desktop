@@ -584,6 +584,7 @@ textarea{
 .btn.radio:hover{
     background: #304052;
 }
+
 input[type="radio"].hidden{
     position: absolute;
     top: -100px;

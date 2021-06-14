@@ -11,6 +11,7 @@
 </style>
 <div class="hidden" id="key_export_qr">
     <form class="flex-center flex-column">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
             <span id='key_qr_code'></span>
             <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, 'Coppied full key')">{{ key }}</pre>

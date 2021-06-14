@@ -5,18 +5,20 @@
     Parameters:
     - unspents: List of wallet UTXOs
     - explorer: explorer link
+    - selected_coins: List of UXTOs previously selected (if any)
+    - rbf_tx_id: tx id to skip because the editor is used to edit it in RBF (empty string if not RBF editing)
  #}
-{% macro coin_selection_table(unspents, explorer) -%}
-    <table style="table-layout: fixed; display: none; max-width:98%;" id="coin_selection_table">
+{% macro coin_selection_table(unspents, explorer, selected_coins, rbf_tx_id) -%}
+    <table style="table-layout: fixed; display: {% if selected_coins %}block{% else %}none{% endif %}; max-width:98%;" id="coin_selection_table">
         <thead>
         <tr>
             <th></th><th>TxID</th><th>Address</th><th>Amount</th>
         </tr>
         </thead>
         <tbody>
-            {% for tx in unspents %}
+            {% for tx in unspents if tx['txid'] != rbf_tx_id %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer) }}
+                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer, "{}, {}".format(tx['txid'], tx['vout']) in selected_coins) }}
             {% endfor %}
         </tbody>
     </table>

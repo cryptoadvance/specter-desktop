@@ -1,7 +1,8 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST">
-		<h1 id="title" class="settings-title">Authentication settings - Specter Desktop {{ current_version }}</h1>
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}
 		<div class="card" style="margin: 20px auto;">
@@ -11,7 +12,7 @@
 					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
 					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
 					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
-					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.config.rpc.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.node.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
 				</select>
 				<br><br>
 			{% endif %}
@@ -35,6 +36,7 @@
 					<h2>Users:</h2>
 					{% for user in users %}
 						<form action="?" method="POST">
+							<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
 								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>Username:</b> {{ user.username }}</span>
 								<br class="mobile-only">

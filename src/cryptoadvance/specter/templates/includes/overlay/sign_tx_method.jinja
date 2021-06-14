@@ -15,7 +15,7 @@
         </div>
         {% if device.hwi_support %}
             <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/usb_tiny.svg') }}" height="12px">Sign via USB (HWI)
+                <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">Sign via USB (HWI)
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
@@ -37,7 +37,7 @@
         {% if device.sd_card_support %}
             {% include "includes/overlay/sd_card_sign.jinja" %}
             <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                Sign with SD Card file
+                <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Sign with SD Card file
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
@@ -50,7 +50,7 @@
         {% if device.qr_code_support %}
             {% include "includes/overlay/qr_code_sign.jinja" %}
             <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                Sign with QR codes
+                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Sign with QR codes
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
@@ -62,8 +62,13 @@
         {% endif %}
         {% if device.hot_wallet %}
             <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+                {% if device.device_type == "bitcoincore" %}
+                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                    {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+                {% else %}
+                    {% from "components/liquid_svg.jinja" import liquid_svg %}
+                    {{ liquid_svg(chain, 16) }} Sign with Elements Core
+                {% endif %}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
@@ -79,7 +84,8 @@
                 {% else %}
                 <h2>Proceed with signing</h2>
                 {% endif %}
-                <form action="?" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
+                <form action="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <br/>
                     <div>
                         {% if is_encrypted %}

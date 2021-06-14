@@ -4,7 +4,7 @@ from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class Device:
@@ -21,8 +21,10 @@ class Device:
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
     hot_wallet = False
+    bitcoin_core_support = True
+    liquid_support = False
 
-    def __init__(self, name, alias, keys, fullpath, manager):
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         """
         From child classes call super().__init__ and also set
         support for communication methods
@@ -31,6 +33,7 @@ class Device:
         self.alias = alias
         self.keys = keys
         self.fullpath = fullpath
+        self.blinding_key = blinding_key
         self.manager = manager
 
     def create_psbts(self, base64_psbt, wallet):
@@ -42,14 +45,26 @@ class Device:
         return {}
 
     @classmethod
-    def from_json(cls, device_dict, manager, default_alias="", default_fullpath=""):
+    def from_json(
+        cls,
+        device_dict,
+        manager,
+        default_alias="",
+        default_fullpath="",
+        default_blinding_key="",
+    ):
         name = device_dict["name"] if "name" in device_dict else ""
         alias = device_dict["alias"] if "alias" in device_dict else default_alias
         keys = [Key.from_json(key_dict) for key_dict in device_dict["keys"]]
+        blinding_key = (
+            device_dict["blinding_key"]
+            if "blinding_key" in device_dict
+            else default_blinding_key
+        )
         fullpath = (
             device_dict["fullpath"] if "fullpath" in device_dict else default_fullpath
         )
-        return cls(name, alias, keys, fullpath, manager)
+        return cls(name, alias, keys, blinding_key, fullpath, manager)
 
     @property
     def json(self):
@@ -58,6 +73,7 @@ class Device:
             "alias": self.alias,
             "type": self.device_type,
             "keys": [key.json for key in self.keys],
+            "blinding_key": self.blinding_key,
             "fullpath": self.fullpath,
         }
 
@@ -96,6 +112,12 @@ class Device:
         write_json_file(self.json, self.fullpath)
         self.manager.update()
 
+    def set_blinding_key(self, blinding_key):
+        self.blinding_key = blinding_key
+
+        write_json_file(self.json, self.fullpath)
+        self.manager.update()
+
     def key_types(self, network="main"):
         test = is_testnet(network)
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
@@ -110,6 +132,24 @@ class Device:
                 if key_type in ["", "sh-wpkh", "wpkh"]:
                     return True
         return "" in self.key_types(network)
+
+    def no_key_found_reason(self, wallet_type, network="main"):
+        if self.has_key_types(wallet_type, network=network):
+            return ""
+        reverse_network = "main" if is_testnet(network) else "test"
+        if wallet_type == "multisig":
+            for key_type in self.key_types(reverse_network):
+                if key_type in ["", "sh-wsh", "wsh"]:
+                    return "Multisig compatible keys were found, but for the wrong network, make sure to add keys for the right network."
+        elif wallet_type == "simple":
+            for key_type in self.key_types(reverse_network):
+                if key_type in ["", "sh-wpkh", "wpkh"]:
+                    return "Single-sig compatible keys were found, but for the wrong network, make sure to add keys for the right network.".format(
+                        "Single key" if wallet_type == "simple" else "Multisig"
+                    )
+        return "No keys found with the correct derivation type for a {} wallet.".format(
+            "single key" if wallet_type == "simple" else "multisig"
+        )
 
     def __eq__(self, other):
         if other is None:

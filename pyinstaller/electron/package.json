@@ -1,6 +1,6 @@
 {
   "name": "specter-desktop",
-  "version": "v0.8.2-pre1",
+  "version": "v1.3.0",
   "description": "Specter Desktop Electron application",
   "main": "main.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "author": "Specter",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^10.1.3",
+    "electron": "^10.2.0",
     "electron-builder": "^22.9.1"
   },
   "build": {
@@ -43,7 +43,6 @@
     }
   },
   "dependencies": {
-    "@deadcanaries/granax": "^3.2.5",
     "electron-context-menu": "^2.3.0",
     "electron-default-menu": "^1.0.2",
     "extract-zip": "^2.0.1",

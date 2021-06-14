@@ -22,8 +22,8 @@ class BitcoinCore(Device):
 
     hot_wallet = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        Device.__init__(self, name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        Device.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
 
     def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
@@ -43,6 +43,10 @@ class BitcoinCore(Device):
         keys_range=[0, 1000],
         keys_purposes=[],
     ):
+        if type(keys_range[0]) == str:
+            keys_range[0] = int(keys_range[0])
+        if type(keys_range[1]) == str:
+            keys_range[1] = int(keys_range[1])
         seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
         root = bip32.HDKey.from_seed(seed)
         network = networks.NETWORKS["test" if testnet else "main"]
@@ -144,7 +148,7 @@ class BitcoinCore(Device):
     def create_psbts(self, base64_psbt, wallet):
         return {"core": base64_psbt}
 
-    def sign_psbt(self, base64_psbt, wallet, file_password):
+    def sign_psbt(self, base64_psbt, wallet, file_password=None):
         # Load the wallet if not loaded
         self._load_wallet(wallet.manager)
         rpc = wallet.manager.rpc.wallet(
@@ -160,6 +164,19 @@ class BitcoinCore(Device):
         if file_password:
             rpc.walletlock()
         return signed_psbt
+
+    def sign_raw_tx(self, raw_tx, wallet, file_password=None):
+        # Load the wallet if not loaded
+        self._load_wallet(wallet.manager)
+        rpc = wallet.manager.rpc.wallet(
+            os.path.join(wallet.manager.rpc_path + "_hotstorage", self.alias)
+        )
+        if file_password:
+            rpc.walletpassphrase(file_password, 60)
+        signed_tx = rpc.signrawtransactionwithwallet(raw_tx)
+        if file_password:
+            rpc.walletlock()
+        return signed_tx
 
     def delete(
         self, wallet_manager, bitcoin_datadir=get_default_datadir(), chain="main"

@@ -1,4 +1,5 @@
 <form id="{{ device.alias }}_sign_tx_qr" class="flex-center flex-column hidden">
+    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
     <nav class="row">
         <label>
             <input autocomplete="off" type="radio" name="psbt_type" value="compressed_psbt" class="hidden" checked>
@@ -20,7 +21,7 @@
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">
         <a slot="button" class="btn flex-item" style="width: 250px; margin: 15px auto;">
-            <img src="{{ url_for('static', filename='img/qr_tiny.svg') }}"> Scan signed transaction
+            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white"> Scan signed transaction
         </a>
     </qr-scanner>
     <script>

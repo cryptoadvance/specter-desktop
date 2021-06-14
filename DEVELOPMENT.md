@@ -4,13 +4,20 @@
 
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
-  - [Howto run the tests](#howto-run-the-tests)
+    - [Install dependencies:](#install-dependencies)
+      - [Ubuntu/Debian](#ubuntudebian)
+      - [macOS](#macos)
+      - [Windows](#windows)
+    - [Set up virtualenv](#set-up-virtualenv)
+  - [How to run the tests](#how-to-run-the-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
     - [bitcoin-specific stuff](#bitcoin-specific-stuff)
     - [Cypress UI-testing](#cypress-ui-testing)
   - [Flask specific stuff](#flask-specific-stuff)
   - [More on the bitcoind requirements](#more-on-the-bitcoind-requirements)
+    - [Automatically mine and deposit test coins](#automatically-mine-and-deposit-test-coins)
+    - [Manually mine and deposit test coins](#manually-mine-and-deposit-test-coins)
   - [IDE-specific Configuration (might be outdated)](#ide-specific-configuration-might-be-outdated)
     - [Visual Studio Code](#visual-studio-code)
       - [Debugging](#debugging)
@@ -30,49 +37,98 @@
 
 ## How to run the Application
 
-Install dependencies:
+### Install dependencies:
 
-* Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev`
-* macOS: `brew install libusb`
+#### Ubuntu/Debian
+`sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
 
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv`, .e.g `virtualenv --python3.8 .env`.
+#### macOS
+`brew install libusb`
+
+#### Windows
+* Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
+
+    _Do NOT install python from the Microsoft Store! It runs in a different execution environment that creates enormous headaches!_
+
+    Confirm your installation in Windows PowerShell:
+    ```
+    python --version
+    ```
+
+* Must have [Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/) installed. Be sure to select Visual C++ during installation.
+
+* Download [libusb-1.0.dll](https://libusb.info). Use [7-Zip](https://7-zip.org) to decompress the .7z file. Copy `libusb-1.0.dll` from `VS2019/MS64/dll` to your `/Windows/System32` directory.
+
+* Configure Windows PowerShell to run scripts. See: [About Execution Policies](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1). In a PowerShell window run:
+    ```
+    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+    ```
+
+
+### Set up virtualenv
+Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
 cd specter-desktop
+pip3 install virtualenv
 virtualenv --python=python3 .env 
 source .env/bin/activate
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e .
 ```
 
+_note: invoking commands in the Windows PowerShell is slightly different:_
+```
+# use 'python' instead of 'python3'
+virtualenv --python=python .env
+
+# activating virtualenv
+.env\Scripts\activate
+```
+
 Run the server:
 
 ```sh
 cd specter-desktop
-python3 -m cryptoadvance.specter server
+python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
-## Howto run the tests
-Run the tests (still very limited):
 
+## How to run the tests
+_TODO: Need more thorough tests!_
+
+Set up the dependencies:
 ```sh
 pip3 install -r test_requirements.txt
 pip3 install -e .
+```
 
-# needs a bitcoind on your path
+If you have a local bitcoind already installed:
+```
+# Run all the tests
 pytest 
+```
 
-# needs a working docker-setup (but not bitcoind)
-# prerequsisite: 
-# docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:latest
+OR run against bitcoind in Docker:
+```
+# Pull the bitcoind image if you haven't already:
+docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
+
+# Run all the tests against the docker bitcoind image
 pytest --docker 
+```
 
-# Run all the tests in a specific test-file
-pytest tests/test_specter
+Running specific test subsets:
+```
+# Run all the tests in a specific test file
+pytest tests/test_specter.py
 
 # Run all tests in a specific file matching "Manager"
-pytest tests/test_specter -k Manager 
+pytest tests/test_specter.py -k Manager 
+
+# Run a specific test
+pytest tests/test_specter.py::test_specter
 ```
 
 Check the cypress-section on how to run cypress-frontend-tests.
@@ -80,7 +136,7 @@ Check the cypress-section on how to run cypress-frontend-tests.
 ## Code-Style
 
 Before your create a PR, make sure to [blackify](https://github.com/psf/black) all your changes. In order to automate that,
-there is a git pre-commit hook which you can simply install like this:
+there is a git [pre-commit hook](https://ljvmiranda921.github.io/notebook/2018/06/21/precommits-using-black-and-flake8/) which you can simply install like this:
 ```
 pre-commit install
 ```
@@ -139,9 +195,10 @@ If Someone could figure out a better way to do that avoiding this strange this .
 Developing against a bitcoind-API makes most sense with the [Regtest Mode](https://bitcoin.org/en/developer-examples#regtest-mode). Depending on preferences and usecases, there are three major ways on how this dependency can be fullfilled:
 * Easiest way via Docker
 * The unittests on Travis-CI are using a script which is installing and compiling bitcoind
-* bitcoind is manually started (out of scope for this document)
+* Manually run local bitcoind in Regtest
 
-In order to make the "docker-way" even easier, there is a python-script which detects a running-docker-bitcoind and/or is booting one up. Use it like this:
+### Automatically mine and deposit test coins
+In order to make the "docker-way" even easier, there is a python-script which detects a running-docker-bitcoind and/or is boots one up. Use it like this:
 
 ```
 python3 -m cryptoadvance.specter bitcoind
@@ -158,6 +215,42 @@ After that, you can configure the bitcoin-core-connection in specter-desktop lik
 * Password: secret
 * Host: localhost
 * Port: 18443
+
+### Manually mine and deposit test coins
+If you're not using the integrated Docker method above, start your local bitcoind in regtest mode:
+```
+bitcoind -regtest -fallbackfee=0.0001
+```
+
+In another terminal initialize a default wallet to mine to:
+```
+bitcoin-cli -regtest createwallet satoshiswallet
+```
+
+Get a new address to deposit newly mined coins:
+```
+bitcoin-cli -regtest getnewaddress
+```
+
+Mine coins to the new address
+```
+bitcoin-cli -regtest generatetoaddress 101 <address>
+```
+
+Create a wallet in Specter and send test coins to a receive addr for the new wallet
+```
+bitcoin-cli -regtest sendtoaddress <address> <amount>
+```
+
+Mine the next block when you want a pending tx to be confirmed
+```
+bitcoin-cli -regtest generatetoaddress 1 <address>
+```
+
+Cleanup: Stop your local regtest instance
+```
+bitcoin-cli -regtest stop
+```
 
 ## IDE-specific Configuration (might be outdated)
 

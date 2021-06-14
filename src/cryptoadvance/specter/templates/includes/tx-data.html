@@ -5,12 +5,12 @@
             text-align: left;
         }
         .tx_info {
-			padding: 1em;
-			border: 1px solid #506072;
-			border-radius: 4px;
-			text-align: center;
-			margin-bottom: 2em;
-		}
+            padding: 1em;
+            border: 1px solid #506072;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 2em;
+        }
     </style>
     <div class="tx-data">
         <h2>Transaction details</h2><br>
@@ -27,7 +27,6 @@
             var shadow = this.attachShadow({mode: 'open'});
             var style = document.getElementById('tx-data').content;
             var clone = style.cloneNode(true);
-            var txidHeader = clone.querySelector(".txid");
 
             this.el = clone.querySelector(".tx-data");
             this.note = clone.querySelector(".note");
@@ -44,10 +43,11 @@
             shadow.appendChild(clone);
         }
     }
-    async function fetchTxData(self) {
+    async function fetchRawTx(self, txid) {
         let url = `{{ url_for('wallets_endpoint.decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
         var formData = new FormData();
-        formData.append('txid', self.txid)
+        formData.append('txid', txid);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             const response = await fetch(
                 url,
@@ -58,72 +58,160 @@
             );
             if(response.status != 200){
                 showError(await response.text());
-                return;
+                return null;
             }
             const jsonResponse = await response.json();
-            if (jsonResponse.success) {
-                console.log(jsonResponse);
-                let rawtx = jsonResponse.rawtx;
-                let walletName = jsonResponse.walletName;
-                let tx = jsonResponse.tx;
-                let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-                let rawtxHTML = `
-                <table class="tx-data-table">
-                <tbody>
-                <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
-                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
-                `;
-                if (tx.fee) {
-                    rawtxHTML += `
-                        <tr><td>Fee:</td><td>${parseInt(-1e8 * tx.fee)} sats</td></tr>
-                        <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * tx.fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
-                    `;
-                }
-                if (tx.confirmations) {
-                    rawtxHTML += `
-                        <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
-                        <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
-                        <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
-                    `;
-                }
+            return jsonResponse;
+        } catch(e) {
+            self.note.innerText = "Failed to load transaction details...";
+            console.log("Caught error fetching decoded transaction: ", e);
+            showError('Failed to fetch data. Please refresh the page and retry.');
+        }
+        return null;
+    }
+    async function fetchTxData(self) {
+        let jsonResponse = await fetchRawTx(self, self.txid);
+        if (jsonResponse !== null && jsonResponse.success) {
+            console.log(jsonResponse);
+            let rawtx = jsonResponse.rawtx;
+            let walletName = jsonResponse.walletName;
+            let tx = jsonResponse.tx;
+            let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+            let rawtxHTML = "";
+            if(tx.is_purged) {
                 rawtxHTML += `
-                    <tr><td>Inputs count:</td><td>${rawtx.vin.length}</td></tr>
-                    <tr><td>Outputs count:</td><td>${rawtx.vout.length}</td></tr>
+                <div class="warning">
+                    <p><b>This transaction (aka "tx") could not be found in your node's mempool!</b></p>
+                    <p style="text-align:left;">If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.</p>
+                    <p style="text-align:left;">A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.</p>
+                    <p style="text-align:left;">But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.</p>
+
+                    <br/><br/>
+                    <form method="POST" action="${walletLink}history/">
+                        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="abandon_tx"/>
+                        <input type="hidden" name="txid" value="${self.txid}"/>
+                        <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">Abandon transaction</button>
+                    </form>
+                </div>
                 `;
-                rawtxHTML += `
-                 </tbody>
-                 </table>
-                `;
-                rawtxHTML += `<h3>Inputs</h3>`;
-                for (let i in rawtx.vin) {
-                    if ('coinbase' in rawtx.vin[i]) {
-                        rawtxHTML += `
-                        <p class="tx_info" style="text-align: left; background-color: #131a24;">
-                            <b>Input #${i}</b><br><br>
-                            <b>Coinbase transaction</b>
-                            <br>
-                        </p>
-                        `;
-                        continue;
+            }
+            rawtxHTML += `
+            <table class="tx-data-table">
+            <tbody>
+            <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+            <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
+            <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
+            `;
+            if (tx.fee) {
+                let fee = tx.fee;
+                if(typeof tx.fee == "object"){
+                    if("bitcoin" in tx.fee){
+                        fee = tx.fee.bitcoin;
                     }
-                    rawtxHTML += `
-                        <p class="tx_info" style="text-align: left; background-color: #131a24;">
-                            <b>Input #${i}</b><br><br>
-                            Transaction id: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            Output # ${rawtx.vin[i].vout}
-                        </p>
-                    `;
+                }
+                rawtxHTML += `
+                    <tr><td>Fee:</td><td>${parseInt(-1e8 * fee)} sats</td></tr>
+                    <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
+                `;
+            }
+            if (tx.confirmations && tx.confirmations > 0) {
+                rawtxHTML += `
+                    <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
+                    <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
+                    <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
+                `;
+            }
+            rawtxHTML += `
+                <tr><td>Inputs count:</td><td>${rawtx.vin.length}</td></tr>
+                <tr><td>Outputs count:</td><td>${rawtx.vout.length}</td></tr>
+            `;
+            rawtxHTML += `
+             </tbody>
+             </table>
+            `;
+            rawtxHTML += `<h3>Inputs</h3>`;
+            for (let i in rawtx.vin) {
+                console.log(JSON.stringify(rawtx.vin[i]));
+
+                let bgColor = '#131a24';
+                let addressAndValue = '';
+                let jsonResponse = await fetchRawTx(self, rawtx.vin[i].txid);
+                if (jsonResponse !== null && jsonResponse.success) {
+                    let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
+                    let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
+                    if (address == 'Unknown') {
+                        address = (spentOutput.scriptPubKey.addresses && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
+                    }
+                    if (address == 'Unknown') {
+                        address = spentOutput.scriptPubKey.address ? spentOutput.scriptPubKey.address : 'Unknown';
+                    }
+                    if (address == 'Unknown') {
+                        address = spentOutput.address ? spentOutput.address : 'Unknown';
+                    }
+                    let isMine = await fetchAddressIsMine(self, address);
+                    if (isMine) {
+                        bgColor = '#925d07';
+                    }
+
+
+                    let value = "Confidential";
+                    let price = '';
+                    if (spentOutput.value) {
+                        value = parseFloat(spentOutput.value.toFixed(8));
+                        if (self.price && self.symbol) {
+                            price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                        }
+
+                        if (self.btcUnit == 'sat') {
+                            value = parseInt(value * 1e8)
+                        }
+
+                        value = `${numberWithCommas(value.toString())}`;
+                    }
+
+                    addressAndValue = `<br>
+                        Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                        Value: ${value} ${price}`;
                 }
 
-                rawtxHTML += `<h3>Outputs</h3>`;
-                for (let i in rawtx.vout) {
-                    let address = ('addresses' in rawtx.vout[i] && rawtx.vout[i].addresses.length == 1) ? rawtx.vout[i].addresses[0] : 'Unknown';
-                    if (address == 'Unknown') {
-                        address = ('addresses' in rawtx.vout[i].scriptPubKey && rawtx.vout[i].scriptPubKey.addresses.length == 1) ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
-                    }
-                    let value = parseFloat(rawtx.vout[i].value.toFixed(8));
-                    let price = '';
+                if ('coinbase' in rawtx.vin[i]) {
+                    rawtxHTML += `
+                    <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
+                        <b>Input #${i}</b><br><br>
+                        <b>Coinbase transaction</b>
+                        <br>
+                    </p>
+                    `;
+                    continue;
+                }
+                rawtxHTML += `
+                    <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
+                        <b>Input #${i}</b><br><br>
+                        Transaction id: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
+                        Output # ${rawtx.vin[i].vout}
+                        ${addressAndValue}
+                    </p>
+                `;
+            }
+
+            rawtxHTML += `<h3>Outputs</h3>`;
+            for (let i in rawtx.vout) {
+                let address = rawtx.vout[i].addresses && rawtx.vout[i].addresses.length == 1 ? rawtx.vout[i].addresses[0] : 'Unknown';
+                if (address == 'Unknown') {
+                    address = rawtx.vout[i].scriptPubKey.addresses && rawtx.vout[i].scriptPubKey.addresses.length == 1 ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
+                
+                }
+                if (address == 'Unknown') {
+                    address = rawtx.vout[i].scriptPubKey.address ? rawtx.vout[i].scriptPubKey.address : 'Unknown';
+                }
+                if (address == 'Unknown') {
+                    address = rawtx.vout[i].address ? rawtx.vout[i].address : 'Unknown';
+                }
+                let value = "Confidential";
+                let price = '';
+                if (rawtx.vout[i].value) {
+                    value = parseFloat(rawtx.vout[i].value.toFixed(8));
                     if (self.price && self.symbol) {
                         price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
                     }
@@ -133,26 +221,55 @@
                     }
 
                     value = `${numberWithCommas(value.toString())}`;
-
-                    rawtxHTML += `
-                    <p class="tx_info" style="text-align: left; background-color: #131a24;">
-                        <b>Output #${i}</b><br><br>
-                        Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                        Value: ${value} ${price}
-                    </p>
-                    `;
                 }
-                
-                self.info.innerHTML = rawtxHTML;
-                self.note.innerText = "";
-                return
 
-            };
-            self.note.innerText = "Failed to load transaction details...";
-        } catch(e) {
-            self.note.innerText = "Failed to load transaction details...";
+                let bgColor = '#131a24';
+                let isMine = await fetchAddressIsMine(self, address);
+                if (isMine) {
+                    bgColor = '#154984';
+                }
+
+                rawtxHTML += `
+                <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
+                    <b>Output #${i}</b><br><br>
+                    Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                    Value: ${value} ${price}
+                </p>
+                `;
+            }
+            
+            self.info.innerHTML = rawtxHTML;
+            self.note.innerText = "";
+            return;
+        };
+        self.note.innerText = "Failed to load transaction details...";
+    }
+    async function fetchAddressIsMine(self, address) {
+        let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        var formData = new FormData();
+        formData.append('address', address)
+        formData.append('csrf_token', '{{ csrf_token() }}');
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return false;
+            }
+            const jsonResponse = await response.json();
+            if (jsonResponse.success) {
+                return jsonResponse.isMine;
+            }
+        }  catch(e) {
+            showError("Failed to load address data...");
             showError(e);
         }
+        return false;
     }
     customElements.define('tx-data', TxDataElement);
 </script>

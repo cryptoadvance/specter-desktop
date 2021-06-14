@@ -1,7 +1,8 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<form action="?" method="POST" onsubmit="showPacman()">
-		<h1 id="title" class="settings-title">Tor settings - Specter Desktop {{ current_version }}</h1>
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('tor', current_user) }}
 		<div class="card" style="margin: 20px auto;">
@@ -9,6 +10,24 @@
 			<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
 			Tor configurations
 			</h1>
+			<div class="card center">
+				<h2>Specter built-in Tor</h2><br>
+				{% if torbrowser_installed %}
+					<b><h2 id="tor-status-text">Status: {% if torbrowser_running %}Running{% else %}Down{% endif %}</h2></b>
+					<br>
+					<div class="row">
+						<button type="submit" class="btn" name="action" value="uninstalltor">Uninstall Tor</button>&nbsp;&nbsp;
+						{% if torbrowser_running %}
+							<button type="submit" class="btn" name="action" value="stoptor">Stop Tor</button>
+						{% else %}
+							<button type="submit" class="btn" name="action" value="starttor">Start Tor</button>
+						{% endif %}
+					</div>
+				{% else %}
+					<a href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">Setup Tor</a>
+				{% endif %}
+			</div>
+			<br><br>
 			Use Tor proxy running at: 
 			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
 			<br>
@@ -63,8 +82,16 @@
                         </span>
                     </b></p>
                 {% endif %}
+                {% if specter.config.auth.method == "none" %}
+                    <p class="warning" style="max-width:700px;">
+                        <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+                        Enabling Tor hidden service will expose your Specter for remote access.
+                        It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>
+                        Please go to Settings -> Authentication and set up an authentication method and retry.
+                    </p>
+                {% endif %}
                 <div class="row">
-                    <button type="submit" class="btn" name="action" value="toggle_hidden_service">
+                    <button type="submit" class="btn" name="action" value="toggle_hidden_service" {% if specter.config.auth.method == "none" %} disabled style="background-color:#303c49;"{% endif %}>
                     {% if tor_service_id %} Stop {% else %} Start {% endif %}
                     </button>
                 </div><br>
@@ -72,5 +99,4 @@
 		</div>
 	</form>
 {% endblock %}
-{% block scripts %}
-{% endblock %}
+

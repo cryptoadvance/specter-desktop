@@ -7,14 +7,18 @@ describe('Completely empty specter-home', () => {
     cy.viewport(1200,660)
     cy.visit('/')
     cy.contains('Welcome to Specter Desktop')
+    cy.get('#node-switch-icon').click()
+    cy.get('[href="/nodes/node/default/"]').first().click()
+    cy.contains('Bitcoin Core')
     cy.get('[href="/settings/"] > img').click()
-    cy.contains('Bitcoin Core settings - Specter Desktop custom')
-    cy.get('[href="/settings/general"]').click()
-    cy.contains('General settings - Specter Desktop custom')
+    cy.contains('Backup and Restore')
     cy.get('[href="/settings/auth"]').click()
-    cy.contains('Authentication settings - Specter Desktop custom')
+    cy.contains('Authentication:')
     cy.get('[href="/settings/hwi"]').click()
-    cy.contains('HWI Bridge settings - Specter Desktop custom')
+    cy.contains('Hardware Devices Bridge')
+    // Hidden in Cypress behind the price 
+    // cy.get('[href="/settings/tor"]').click()
+    // cy.contains('Tor configurations')
   })
 
   it('Creates a device in Specter', () => {
@@ -26,7 +30,8 @@ describe('Completely empty specter-home', () => {
   it('Configures the node in Specter', () => {
     cy.viewport(1200,660)
     cy.visit('/')
-    cy.get('[href="/settings/"] > img').click()
+    cy.get('#node-switch-icon').click()
+    cy.get('[href="/nodes/node/default/"]').first().click()
     cy.get('#datadir-container').then(($datadir) => {
       cy.log($datadir)
       if (!Cypress.dom.isVisible($datadir)) {
@@ -50,6 +55,7 @@ describe('Completely empty specter-home', () => {
     cy.get('[value="test"]').click()
     cy.get(':nth-child(2) > button > div').should('have.css', 'color', 'rgb(0, 128, 0)') // connectable: green
     cy.get(':nth-child(5) > button > div').should('have.css', 'color', 'rgb(255, 0, 0)') // Credentials: red
+    cy.get('message-box').shadow().find('div.error > a').click()
     cy.get('#password').clear()
     cy.get('#password').type("secret")
     cy.get('[value="test"]').click()
@@ -57,6 +63,7 @@ describe('Completely empty specter-home', () => {
     cy.get(':nth-child(5) > button > div').should('have.css', 'color', 'rgb(0, 128, 0)') // Credentials: green
     cy.get(':nth-child(8) > button > div').should('have.css', 'color', 'rgb(0, 128, 0)') // Version green
     cy.get(':nth-child(11) > button > div').should('have.css', 'color', 'rgb(0, 128, 0)') // Walletsenabled green
+    cy.get('message-box').shadow().find('div.main > a').click()
     cy.get('[value="save"]').click()
 
   })

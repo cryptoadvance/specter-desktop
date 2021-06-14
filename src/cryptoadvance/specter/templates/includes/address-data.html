@@ -1,0 +1,140 @@
+<template id="address-data">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .address-data-table td {
+            text-align: left;
+            margin-top: 0;
+        }
+        .descriptor {
+            max-width: 500px;
+            white-space: -moz-pre-wrap;
+            white-space: -o-pre-wrap;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: auto;
+        }
+    </style>
+    <div class="address-data">
+        <h1>Address details</h1><br>
+        <div class="address-data-info"></div>
+        <div class="note"></div>
+    </div>
+</template>
+  
+<script type="text/javascript">
+    class AddressDataElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('address-data').content;
+            var clone = style.cloneNode(true);
+
+            this.el = clone.querySelector(".address-data");
+            this.note = clone.querySelector(".note");
+            this.info = clone.querySelector(".address-data-info");
+            this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
+            this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
+            this.used = (this.getAttribute('data-used') == 'true');
+            this.utxo = this.getAttribute('data-utxo');
+            this.amount = this.getAttribute('data-amount');
+            this.amountPrice = this.getAttribute('data-amount-price');
+            this.address = this.getAttribute('data-address');
+            this.wallet = this.getAttribute('data-address-wallet');
+            this.note.innerText = `Loading address: ${this.address} details...`;
+            fetchAddressData(this);
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+    }
+
+    async function fetchAddressData(self) {
+        let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+        var formData = new FormData();
+        formData.append('address', self.address);
+        formData.append('csrf_token', '{{ csrf_token() }}');
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            if (jsonResponse.success) {
+                console.log(jsonResponse);
+                let descriptor = jsonResponse.descriptor;
+                let addressIndex = jsonResponse.index;
+                let isChange = jsonResponse.change;
+                let walletName = jsonResponse.walletName;
+                let address = jsonResponse.address;
+                let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+                let addressInfoHTML = `
+                <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
+                <table class="address-data-table">
+                <tbody>
+                <tr><td>Address:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                <tr><td>Label:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br></td></tr>
+                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
+                <tr><td>Address index:</td><td>${addressIndex}</td></tr>
+                <tr><td>Is change address:</td><td>${isChange ? 'Yes' : 'No'}</td></tr>
+                <tr><td>Used:</td><td>${self.used ? 'Yes' : 'No'}</td></tr>
+                <tr><td>UTXO count:</td><td>${self.utxo}</td></tr>
+                <tr><td>Amount:</td><td>${self.amount} <span class="amount-price note ${self.amountPrice ? '' : 'hidden'}">${self.amountPrice}</span></td></tr>
+                </tbody>
+                </table>
+                `
+
+                if (self.isVerifyHwi) { 
+                    addressInfoHTML += `
+                    <br>
+                    <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", unescape("${escape(JSON.stringify(descriptor))}"))' class="btn" style="min-width:200px; max-width:300px; margin: auto;">Verify address on device</button>`;
+                }
+
+                if (self.isVerifyQR) { 
+                    addressInfoHTML += `
+                    <p>Or scan this QR code:</p>
+                    <qr-code value="bitcoin:${address}?index=${addressIndex}" width="256" scalable></qr-code><br>`;
+                }
+
+                addressInfoHTML += `
+                <br>
+                <h2>Address descriptor</h2>
+                <br>
+                <div>
+                    <span class="switch-text">Show raw public keys&nbsp;</span>
+                    <label class="switch">
+                        <input type="checkbox" class="descriptor-switch" checked>
+                        <span class="slider"></span>
+                    </label><br><br>
+                </div>
+                <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "Copied address descriptor")'>${descriptor.descriptor}</code></pre>
+                `;
+                self.info.innerHTML = addressInfoHTML;
+                self.note.innerText = "";
+
+                self.info.querySelector('.descriptor-switch').onchange = (e) => {
+                    if (e.target.checked) {
+                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "Copied address descriptor")'>${descriptor.descriptor}</code>`;
+                    } else {
+                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.xpubs_descriptor)}"), "Copied address descriptor")'>${descriptor.xpubs_descriptor}</code>`;
+                    }
+                }
+
+                return;
+            }
+            self.note.innerText = "Failed to load address details...";
+        } catch(e) {
+            self.note.innerText = "Failed to load address details...";
+            console.error(e);
+        }
+    }
+
+    customElements.define('address-data', AddressDataElement);
+</script>

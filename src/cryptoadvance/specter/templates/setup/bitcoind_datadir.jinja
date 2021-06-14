@@ -1,0 +1,188 @@
+{% extends "setup/setup_page.jinja" %}
+
+{% block setup %}
+    <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg(network, 60) }}<br>
+    <br>Configure your node</h1>
+    <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>QuickSync?&nbsp;&nbsp;
+        <label class="switch" id="quicksync-switch">
+            <input type="checkbox" name="quicksync" id="quicksync" onchange="toggleNodeTypeSelect()" checked>
+            <span class="slider"></span>
+        </label>&nbsp;&nbsp;
+        <tool-tip title="What is QuickSync?">
+            QuickSync will set up your new node from a trusted state of the blockchain.<br><br>
+            This means all block validation will be skipped until the most recent block in the snapshot.<br><br>
+            Later blocks will be normally validated like with a regular full node.
+        </tool-tip>
+    </p>
+    <div {% if network == 'main' %}class="hidden"{% endif %} id="select-node-type-div">
+        <br>
+        <h1>Select node type:</h1>
+        <div class="row">
+            <label style="position: relative;">
+                <input type="radio" name="node-type" id="node-type-archival" class="hidden" value="archival" {% if network != 'main' %}checked{% endif %}>
+                <div class="small-card radio">
+                    <span style="font-size: 1.2em; font-weight: bold;">Archival Node</span><br>
+                    {% if network == 'main' %}
+                    Requires about 400GB of available storage
+                    {% elif network == 'testnet' %}
+                    Requires about 30GB of available storage<br><br>
+                    {% else %}
+                    Requires a few MB of available storage<br><br>
+                    {% endif %}
+                </div>
+            </label>
+            <label style="position: relative;">
+                <input type="radio" name="node-type" class="hidden" value="pruned" {% if network == 'main' %}checked{% endif %}>
+                <div class="small-card radio">
+                    <span style="font-size: 1.2em; font-weight: bold;">Pruned Node</span><br>
+                    {% if network == 'main' %}
+                    Requires about 10GB of available storage<br><br>
+                    {% elif network == 'testnet' %}
+                    Requires about 3GB of available storage<br><br>
+                    {% else %}
+                    Requires a few MB of available storage<br><br>
+                    {% endif %}
+                </div>
+            </label>
+        </div>
+    </div>
+    <p class="hidden warning" id="helper-text">
+        Now that you have Bitcoin Core installed, your next step will be to sync with the network.<br><br>
+        Specter allows you to choose between normal syncing (IBD) - which will download and validate the entire history of the blockchain, or downloading a trusted snapshot of the current state of the network.<br><br>
+        This snapshot is produced and signed by Specter team - which means you will be trusting it to get the present state of the blockchain, instead of verifying the history yourself.<br><br>
+        It takes about 5GB to download and will setup a fully synced pruned node for you to use.
+        You can also disable the QuickSync option, and choose between setting up an archival node (which keeps the entire history) or a pruned node.<br><br>
+        <b>Please note: it is recommended to use a full archival node, or if storage is a constraint, a pruned node synced from scratch. The option for QuickSync is useful for getting started quickly, but is not recommended in the long term or when using Specter with large amounts.</b>
+    </p>
+    <div class="row center">
+        <p class="explorer-link" id="helper" onclick="toggleHelper()">Unsure? Click here for more info!</p>
+        <a class="explorer-link hidden" id="support" href="https://t.me/spectersupport" target="_blank">Still need help?</a>
+
+    </div>
+    <br>
+    {% if specter.only_tor  %}
+    You have activated to only connect via Tor. This will significantly slow down the download-process and is not recommended.
+    <br>
+    {% endif %}
+    <span id="toggle_advanced" style="cursor: pointer;" onclick="toggleAdvanced()">Advanced &#9654;</span>
+    <br>
+    <br>
+    <div id="advanced_settings" class="card hidden">
+        <h2 style="text-decoration: underline;">Advanced configurations</h2><br>
+        Node Network: <button id="select-network-btn" type="button" onclick="showPageOverlay('switch-network-popup')" class="btn centered">{{ network | title }} (switch)</button>
+        <p style="text-align: left;">
+        Bitcoin Core data directory path:<br>
+        <input type="text" id="bitcoin_core_datadir" name="bitcoin_core_datadir" type="text" value="" placeholder="default">
+        <br><br>
+        </p>
+    </div>
+    <br>
+    <div class="row">
+        <button type="button" class="btn wizard-btn action" id="setup-bitcoind-dir-button" onclick="setupBitcoindDirectory()">Start Syncing!</button>
+    </div>
+    <div id="override-data-folder-popup" class="hidden" style="margin: auto;">
+        <p>Your Bitcoin Core data folder seems to be already used.<br>
+        Would you like to override it or select a different folder path?
+        </p><br>
+        <div class="row">
+            <button type="button" class="btn" onclick="hidePageOverlay()">Edit path</button>&nbsp;&nbsp;
+            <button type="button" class="btn" onclick="hidePageOverlay();setupBitcoindDirectory(true)">Override existing</button>
+        </div>
+    </div>
+    <div id="switch-network-popup" class="hidden" style="margin: auto;">
+        <h1> Select Network to setup </h1>
+        <div class="row overflow">
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='main') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('main', 40) }}
+                    <br>
+                    Mainnet
+                </div>
+            </a>
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='testnet') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('test', 40) }}
+                    <br>
+                    Testnet
+                </div>
+            </a>
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='signet') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('signet', 40) }}
+                    <br>
+                    Signet
+                </div>
+            </a>
+            <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='regtest') }}" style="color: #fff; text-decoration: none;">
+                <div class="small-card radio" style="min-width: 150px;">
+                    {{ bitcoin_svg('regtest', 40) }}
+                    <br>
+                    Regtest
+                </div>
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block setup_scripts %}
+    <script>
+        let network = '{{ network }}';
+        document.addEventListener("DOMContentLoaded", function(){
+            if ('{{specter.setup_status["bitcoind"]["stage_progress"]}}' != '-1') {
+                document.getElementById('setup-bitcoind-dir-button').classList.add('hidden');
+                startProgressCheck('bitcoind', "{{ url_for('setup_endpoint.end') }}");
+            }
+        });
+        function toggleNodeTypeSelect() {
+            let nodeTypeDiv = document.getElementById('select-node-type-div');
+            if (document.getElementById('quicksync').checked) {
+                nodeTypeDiv.classList.add('hidden');
+            } else {
+                nodeTypeDiv.classList.remove('hidden');
+            }
+        }
+
+        async function setupBitcoindDirectory(override=false) {
+            let url = "{{ url_for('setup_endpoint.setup_bitcoind_datadir') }}"
+            var formData = new FormData();
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            formData.append('quicksync', network == 'main' ? document.getElementById('quicksync').checked : false);
+            formData.append('nodetype', document.getElementById('node-type-archival').checked ? 'archival' : 'pruned');
+            // Advanced settings
+            formData.append('network', network);
+            formData.append('bitcoin_core_datadir', document.getElementById('bitcoin_core_datadir').value);
+            formData.append('override_data_folder', override);
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if ("success" in jsonResponse) {
+                    showNotification(jsonResponse.success);
+                    document.getElementById('setup-bitcoind-dir-button').classList.add('hidden');
+                    startProgressCheck('bitcoind', "{{ url_for('setup_endpoint.end') }}");
+                    return;
+                } else if (jsonResponse.error == "data folder already exists") {
+                    let advancedSettings = document.getElementById(`advanced_settings`);
+                    if (advancedSettings.classList.contains("hidden")) {
+                        toggleAdvanced();
+                    }
+                    showPageOverlay("override-data-folder-popup");
+                    return;
+                }
+                showError(jsonResponse.error, 4000);
+            }  catch(e) {
+                showError("Failed to start Bitcoin Core...");
+                showError(e);
+            }
+        }
+    </script>
+{% endblock %}

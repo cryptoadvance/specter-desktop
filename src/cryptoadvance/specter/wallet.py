@@ -3,13 +3,18 @@ import time
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes
-from .util.base58 import decode_base58
+from .helpers import der_to_bytes, get_address_from_dict
+from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
+from embit.liquid.networks import get_network
+from embit.psbt import PSBT, DerivationPath
+from embit.transaction import Transaction
+
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
 from .persistence import write_json_file, delete_file
-from hwilib.serializations import PSBT, CTransaction
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
@@ -18,14 +23,14 @@ from math import ceil
 from .addresslist import AddressList
 from .txlist import TxList
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
 
 
 class Wallet:
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
-    # a gap of 20 addresses is what many wallets do
+    # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
@@ -49,6 +54,7 @@ class Wallet:
         devices,
         sigs_required,
         pending_psbts,
+        frozen_utxo,
         fullpath,
         device_manager,
         manager,
@@ -80,6 +86,7 @@ class Wallet:
             raise Exception("A device used by this wallet could not have been found!")
         self.sigs_required = int(sigs_required)
         self.pending_psbts = pending_psbts
+        self.frozen_utxo = frozen_utxo
         self.fullpath = fullpath
         self.manager = manager
         self.rpc = self.manager.rpc.wallet(
@@ -131,12 +138,32 @@ class Wallet:
         """Load transactions from Bitcoin Core"""
         arr = []
         idx = 0
+        # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
+        # Until v0.21, it listed there consolidations to a receive address, but not change address
+        # Since v0.21, it does not list there consolidations at all
+        # Therefore we need to check here if a transaction might got confirmed
+        # NOTE: This might be a problem in case of re-org...
+        # More details: https://github.com/cryptoadvance/specter-desktop/issues/996
+        unconfirmed_selftransfers = [
+            txid
+            for txid in self._transactions
+            if self._transactions[txid].get("category", "") == "selftransfer"
+            and not self._transactions[txid].get("blockhash", None)
+        ]
+        unconfirmed_selftransfers_txs = []
+        if unconfirmed_selftransfers:
+            unconfirmed_selftransfers_txs = self.rpc.multi(
+                [("gettransaction", txid) for txid in unconfirmed_selftransfers]
+            )
         while True:
-            res = self.rpc.listtransactions(
-                "*",
-                LISTTRANSACTIONS_BATCH_SIZE,
-                LISTTRANSACTIONS_BATCH_SIZE * idx,
-                True,
+            res = (
+                self.rpc.listtransactions(
+                    "*",
+                    LISTTRANSACTIONS_BATCH_SIZE,
+                    LISTTRANSACTIONS_BATCH_SIZE * idx,
+                    True,
+                )
+                + [tx["result"] for tx in unconfirmed_selftransfers_txs]
             )
             res = [
                 tx
@@ -189,6 +216,45 @@ class Wallet:
                     tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
         ##################### Remove until here after dropping Core v0.19 support #####################
         self._transactions.add(txs)
+        if self.use_descriptors:
+            while (
+                len(
+                    [
+                        tx
+                        for tx in self._transactions
+                        if self._transactions[tx]["category"] != "send"
+                        and not self._transactions[tx]["address"]
+                    ]
+                )
+                != 0
+            ):
+                addresses = [
+                    dict(
+                        address=self.get_address(
+                            idx, change=False, check_keypool=False
+                        ),
+                        index=idx,
+                        change=False,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=False),
+                        self._addresses.max_index(change=False) + self.GAP_LIMIT,
+                    )
+                ]
+                change_addresses = [
+                    dict(
+                        address=self.get_address(idx, change=True, check_keypool=False),
+                        index=idx,
+                        change=True,
+                    )
+                    for idx in range(
+                        self._addresses.max_index(change=True),
+                        self._addresses.max_index(change=True) + self.GAP_LIMIT,
+                    )
+                ]
+                self._addresses.add(addresses, check_rpc=False)
+                self._addresses.add(change_addresses, check_rpc=False)
+                self._transactions.add(txs)
 
     def update(self):
         self.getdata()
@@ -217,7 +283,7 @@ class Wallet:
                 obj = self.rpc.listsinceblock()
         txs = obj["transactions"]
         last_block = obj["lastblock"]
-        addresses = [tx["address"] for tx in txs]
+        addresses = [tx["address"] for tx in txs if "address" in tx]
         # remove duplicates
         addresses = list(dict.fromkeys(addresses))
         max_recv = self.address_index - 1
@@ -266,7 +332,7 @@ class Wallet:
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["recv_descriptor"]
         ):
-            new_dict["recv_descriptor"] = AddChecksum(
+            new_dict["recv_descriptor"] = add_checksum(
                 new_dict["recv_descriptor"]
                 .replace("multi", "sortedmulti")
                 .split("#")[0]
@@ -276,7 +342,7 @@ class Wallet:
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["change_descriptor"]
         ):
-            new_dict["change_descriptor"] = AddChecksum(
+            new_dict["change_descriptor"] = add_checksum(
                 new_dict["change_descriptor"]
                 .replace("multi", "sortedmulti")
                 .split("#")[0]
@@ -318,6 +384,7 @@ class Wallet:
         change_keypool = wallet_dict.get("change_keypool", 0)
         sigs_required = wallet_dict.get("sigs_required", 1)
         pending_psbts = wallet_dict.get("pending_psbts", {})
+        frozen_utxo = wallet_dict.get("frozen_utxo", [])
         fullpath = wallet_dict.get("fullpath", default_fullpath)
         last_block = wallet_dict.get("last_block", None)
 
@@ -350,6 +417,7 @@ class Wallet:
             devices,
             sigs_required,
             pending_psbts,
+            frozen_utxo,
             fullpath,
             device_manager,
             manager,
@@ -360,19 +428,33 @@ class Wallet:
     def get_info(self):
         try:
             self.info = self.rpc.getwalletinfo()
-        except Exception:
-            self.info = {}
+        except Exception as e:
+            raise SpecterError(e)
         return self.info
 
     def check_utxo(self):
         try:
+            locked_utxo = self.rpc.listlockunspent()
+            if locked_utxo:
+                self.rpc.lockunspent(True, locked_utxo)
             utxo = self.rpc.listunspent(0)
+            if locked_utxo:
+                self.rpc.lockunspent(False, locked_utxo)
+                for tx in utxo:
+                    if [
+                        _tx
+                        for _tx in locked_utxo
+                        if _tx["txid"] == tx["txid"] and _tx["vout"] == tx["vout"]
+                    ]:
+                        tx["locked"] = True
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
             for tx in utxo:
                 tx_data = self.gettransaction(tx["txid"], 0)
                 tx["time"] = tx_data["time"]
                 tx["category"] = "send"
+                if "locked" not in tx:
+                    tx["locked"] = False
                 try:
                     # get category from the descriptor - recv or change
                     idx = tx["desc"].split("[")[1].split("]")[0].split("/")[-2]
@@ -380,10 +462,10 @@ class Wallet:
                         tx["category"] = "receive"
                 except:
                     pass
-            self.utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
-            logger.error(f"Failed to load utxos, {e}")
-            self.utxo = []
+            self.full_utxo = []
+            raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
         self.fetch_transactions()
@@ -407,6 +489,10 @@ class Wallet:
         if value_on_address > 0:
             self.change_index += 1
             self.getnewaddress(change=True)
+
+    @property
+    def utxo(self):
+        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
 
     @property
     def json(self):
@@ -435,6 +521,7 @@ class Wallet:
             o["labels"] = self.export_labels()
         else:
             o["pending_psbts"] = self.pending_psbts
+            o["frozen_utxo"] = self.frozen_utxo
             o["last_block"] = self.last_block
         return o
 
@@ -449,8 +536,18 @@ class Wallet:
         delete_file(self._transactions.path)
 
     @property
+    def use_descriptors(self):
+        if not hasattr(self, "info") or self.info != {}:
+            self.get_info()
+        return "descriptors" in self.info and self.info["descriptors"] == True
+
+    @property
     def is_multisig(self):
         return len(self.keys) > 1
+
+    @property
+    def keys_count(self):
+        return len(self.keys)
 
     @property
     def locked_amount(self):
@@ -473,6 +570,34 @@ class Wallet:
         if txid in self.pending_psbts:
             del self.pending_psbts[txid]
             self.save_to_file()
+
+    def toggle_freeze_utxo(self, utxo_list):
+        # utxo = ["txid:vout", "txid:vout"]
+        for utxo in utxo_list:
+            if utxo in self.frozen_utxo:
+                try:
+                    self.rpc.lockunspent(
+                        True,
+                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
+                    )
+                except Exception as e:
+                    # UTXO was spent
+                    print(e)
+                    pass
+                self.frozen_utxo.remove(utxo)
+            else:
+                try:
+                    self.rpc.lockunspent(
+                        False,
+                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
+                    )
+                except Exception as e:
+                    # UTXO was spent
+                    print(e)
+                    pass
+                self.frozen_utxo.append(utxo)
+
+        self.save_to_file()
 
     def update_pending_psbt(self, psbt, txid, raw):
         if txid in self.pending_psbts:
@@ -514,10 +639,25 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
-        if fetch_transactions:
+        if fetch_transactions or (
+            self.use_descriptors
+            and len(
+                [
+                    tx
+                    for tx in self._transactions
+                    if self._transactions[tx]["category"] != "send"
+                    and not self._transactions[tx]["address"]
+                ]
+            )
+            != 0
+        ):
             self.fetch_transactions()
         try:
-            _transactions = [tx.__dict__().copy() for tx in self._transactions.values()]
+            _transactions = [
+                tx.__dict__().copy()
+                for tx in self._transactions.values()
+                if tx["ismine"]
+            ]
             transactions = sorted(
                 _transactions, key=lambda tx: tx["time"], reverse=True
             )
@@ -554,7 +694,9 @@ class Wallet:
                     tx.get("confirmations") == 0
                     and tx.get("bip125-replaceable", "no") == "yes"
                 ):
-                    tx["fee"] = self.rpc.gettransaction(tx["txid"]).get("fee", 1)
+                    rpc_tx = self.rpc.gettransaction(tx["txid"])
+                    tx["fee"] = rpc_tx.get("fee", 1)
+                    tx["confirmations"] = rpc_tx.get("confirmations", 0)
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
@@ -601,6 +743,30 @@ class Wallet:
             return tx_data
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
+
+    def is_tx_purged(self, txid):
+        # Is tx unconfirmed and no longer in the mempool?
+        try:
+            tx = self.rpc.gettransaction(txid)
+
+            # Do this quick test first to avoid the costlier rpc call
+            if tx["confirmations"] > 0:
+                return False
+
+            return txid not in self.rpc.getrawmempool()
+        except Exception as e:
+            logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
+
+    def abandontransaction(self, txid):
+        # Sanity checks: tx must be unconfirmed and cannot be in the mempool
+        tx = self.rpc.gettransaction(txid)
+        if tx["confirmations"] != 0:
+            raise SpecterError("Cannot abandon a transaction that has a confirmation.")
+        elif txid in self.rpc.getrawmempool():
+            raise SpecterError(
+                "Cannot abandon a transaction that is still in the mempool."
+            )
+        self.rpc.abandontransaction(txid)
 
     def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
         delete_file(self._transactions.path)
@@ -754,6 +920,7 @@ class Wallet:
                         )
                     except:
                         logger.warning(f"Failed to fetch data from block explorer: {e}")
+        self.fetch_transactions()
         self.check_addresses()
 
     @property
@@ -820,7 +987,11 @@ class Wallet:
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
-        return Descriptor.parse(desc).address(index, self.manager.chain)
+        return (
+            LDescriptor.from_string(desc.split("#")[0])
+            .derive(index)
+            .address(get_network(self.manager.chain))
+        )
 
     def get_descriptor(self, index=None, change=False, address=None):
         """
@@ -850,8 +1021,12 @@ class Wallet:
         except:
             return None
 
+    def is_address_mine(self, address):
+        addrinfo = self.get_address_info(address)
+        return addrinfo and not addrinfo.is_external
+
     def get_electrum_file(self):
-        """ Exports the wallet data as Electrum JSON format """
+        """Exports the wallet data as Electrum JSON format"""
         electrum_devices = [
             "bitbox02",
             "coldcard",
@@ -930,7 +1105,11 @@ class Wallet:
 
     def get_balance(self):
         try:
-            balance = self.rpc.getbalances()["watchonly"]
+            balance = (
+                self.rpc.getbalances()["mine"]
+                if self.use_descriptors
+                else self.rpc.getbalances()["watchonly"]
+            )
             # calculate available balance
             locked_utxo = self.rpc.listlockunspent()
             available = {}
@@ -957,59 +1136,78 @@ class Wallet:
 
     def keypoolrefill(self, start, end=None, change=False):
         if end is None:
+            # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
+
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
             {
                 "desc": desc,
                 "internal": change,
-                "range": [start, end],
                 "timestamp": "now",
-                "keypool": True,
                 "watchonly": True,
             }
         ]
-        addresses = [
-            dict(
-                address=self.get_address(idx, change=change, check_keypool=False),
-                index=idx,
-                change=change,
-            )
-            for idx in range(start, end)
-        ]
-        self._addresses.add(addresses, check_rpc=False)
-
-        if not self.is_multisig:
-            r = self.rpc.importmulti(args, {"rescan": False})
-        # bip67 requires sorted public keys for multisig addresses
+        if self.use_descriptors:
+            args[0]["active"] = True
         else:
-            # try if sortedmulti is supported
-            r = self.rpc.importmulti(args, {"rescan": False})
-            # doesn't raise, but instead returns "success": False
-            if not r[0]["success"]:
-                # first import normal multi
-                # remove checksum
-                desc = desc.split("#")[0]
-                # switch to multi
-                desc = desc.replace("sortedmulti", "multi")
-                # add checksum
-                desc = AddChecksum(desc)
-                # update descriptor
-                args[0]["desc"] = desc
-                r = self.rpc.importmulti(args, {"rescan": False})
-                # make a batch of single addresses to import
-                arg = args[0]
-                # remove range key
-                arg.pop("range")
-                batch = []
-                for i in range(start, end):
-                    sorted_desc = sort_descriptor(desc, index=i)
-                    # create fresh object
-                    obj = {}
-                    obj.update(arg)
-                    obj.update({"desc": sorted_desc})
-                    batch.append(obj)
-                r = self.rpc.importmulti(batch, {"rescan": False})
+            args[0]["keypool"] = True
+            args[0]["range"] = [start, end]
+
+        try:
+            addresses = [
+                dict(
+                    address=self.get_address(idx, change=change, check_keypool=False),
+                    index=idx,
+                    change=change,
+                )
+                for idx in range(start, end)
+            ]
+            self._addresses.add(addresses, check_rpc=False)
+        except Exception as e:
+            logger.warn(f"Error while calculating addresses: {e}")
+
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for descriptor wallets is automatically refilled
+        if (not self.use_descriptors) or start == 0:
+            if not self.is_multisig:
+                if self.use_descriptors:
+                    r = self.rpc.importdescriptors(args)
+                else:
+                    r = self.rpc.importmulti(args, {"rescan": False})
+            # bip67 requires sorted public keys for multisig addresses
+            else:
+                if self.use_descriptors:
+                    self.rpc.importdescriptors(args)
+                else:
+                    # try if sortedmulti is supported
+                    r = self.rpc.importmulti(args, {"rescan": False})
+                    # doesn't raise, but instead returns "success": False
+                    if not r[0]["success"]:
+                        # first import normal multi
+                        # remove checksum
+                        desc = desc.split("#")[0]
+                        # switch to multi
+                        desc = desc.replace("sortedmulti", "multi")
+                        # add checksum
+                        desc = AddChecksum(desc)
+                        # update descriptor
+                        args[0]["desc"] = desc
+                        r = self.rpc.importmulti(args, {"rescan": False})
+                        # make a batch of single addresses to import
+                        arg = args[0]
+                        # remove range key
+                        arg.pop("range")
+                        batch = []
+                        for i in range(start, end):
+                            sorted_desc = sort_descriptor(desc, index=i)
+                            # create fresh object
+                            obj = {}
+                            obj.update(arg)
+                            obj.update({"desc": sorted_desc})
+                            batch.append(obj)
+                        r = self.rpc.importmulti(batch, {"rescan": False})
         if change:
             self.change_keypool = end
         else:
@@ -1076,6 +1274,7 @@ class Wallet:
         readonly=False,
         rbf=True,
         existing_psbt=None,
+        rbf_edit_mode=False,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -1087,25 +1286,20 @@ class Wallet:
         extra_inputs = []
 
         if not existing_psbt:
-            if self.full_available_balance < sum(amounts):
-                raise SpecterError(
-                    "The wallet does not have sufficient funds to make the transaction."
-                )
+            if not rbf_edit_mode:
+                if self.full_available_balance < sum(amounts):
+                    raise SpecterError(
+                        "The wallet does not have sufficient funds to make the transaction."
+                    )
 
-            if self.available_balance["trusted"] <= sum(amounts):
-                txlist = self.rpc.listunspent(0, 0)
-                b = sum(amounts) - self.available_balance["trusted"]
-                for tx in txlist:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-                    b -= tx["amount"]
-                    if b < 0:
-                        break
-            elif selected_coins != []:
+            if selected_coins != []:
                 still_needed = sum(amounts)
                 for coin in selected_coins:
                     coin_txid = coin.split(",")[0]
                     coin_vout = int(coin.split(",")[1])
-                    coin_amount = float(coin.split(",")[2])
+                    coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
+                        coin_vout
+                    ]["value"]
                     extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
                     still_needed -= coin_amount
                     if still_needed < 0:
@@ -1114,6 +1308,14 @@ class Wallet:
                     raise SpecterError(
                         "Selected coins does not cover Full amount! Please select more coins!"
                     )
+            elif self.available_balance["trusted"] <= sum(amounts):
+                txlist = self.rpc.listunspent(0, 0)
+                b = sum(amounts) - self.available_balance["trusted"]
+                for tx in txlist:
+                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    b -= tx["amount"]
+                    if b < 0:
+                        break
 
             # subtract fee from amount of this output:
             # currently only one address is supported, so either
@@ -1126,6 +1328,10 @@ class Wallet:
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
             }
+
+            # 209900 is pre-v21 for Elements Core
+            if self.manager.bitcoin_core_version_raw >= 209900:
+                options["add_inputs"] = selected_coins == []
 
             if fee_rate > 0:
                 # bitcoin core needs us to convert sat/B to BTC/kB
@@ -1195,7 +1401,96 @@ class Wallet:
 
         return psbt
 
-    def send_rbf_tx(self, txid, fee_rate):
+    def get_rbf_utxo(self, rbf_tx_id):
+        decoded_tx = self.decode_tx(rbf_tx_id)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        rbf_utxo = [
+            {
+                "txid": tx["txid"],
+                "vout": tx["vout"],
+                "details": self.gettransaction(tx["txid"], decode=True)["vout"][
+                    tx["vout"]
+                ],
+            }
+            for tx in decoded_tx["used_utxo"]
+        ]
+        return [
+            {
+                "txid": utxo["txid"],
+                "vout": utxo["vout"],
+                "amount": utxo["details"]["value"],
+                "address": get_address_from_dict(utxo["details"]),
+                "label": self.getlabel(get_address_from_dict(utxo["details"])),
+            }
+            for utxo in rbf_utxo
+        ]
+
+    def decode_tx(self, txid):
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        return {
+            "addresses": [
+                get_address_from_dict(vout["scriptPubKey"])
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                )
+                or not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                ).change
+            ],
+            "amounts": [
+                vout["value"]
+                for i, vout in enumerate(psbt["tx"]["vout"])
+                if not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                )
+                or not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                ).change
+            ],
+            "used_utxo": [
+                {"txid": vin["txid"], "vout": vin["vout"]} for vin in psbt["tx"]["vin"]
+            ],
+        }
+
+    def canceltx(self, txid, fee_rate):
+        self.check_unused()
+        raw_tx = self.gettransaction(txid)["hex"]
+        raw_psbt = self.rpc.utxoupdatepsbt(
+            self.rpc.converttopsbt(raw_tx, True),
+            [self.recv_descriptor, self.change_descriptor],
+        )
+
+        psbt = self.rpc.decodepsbt(raw_psbt)
+        decoded_tx = self.decode_tx(txid)
+        selected_coins = [
+            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
+        ]
+        return self.createpsbt(
+            addresses=[self.address],
+            amounts=[
+                sum(
+                    vout["witness_utxo"]["amount"]
+                    for i, vout in enumerate(psbt["inputs"])
+                )
+            ],
+            subtract=True,
+            fee_rate=float(fee_rate),
+            selected_coins=selected_coins,
+            readonly=False,
+            rbf=True,
+            rbf_edit_mode=True,
+        )
+
+    def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
         raw_psbt = self.rpc.utxoupdatepsbt(
             self.rpc.converttopsbt(raw_tx, True),
@@ -1204,10 +1499,12 @@ class Wallet:
 
         psbt = self.rpc.decodepsbt(raw_psbt)
         psbt["changeAddress"] = [
-            vout["scriptPubKey"]["addresses"][0]
+            get_address_from_dict(vout["scriptPubKey"])
             for i, vout in enumerate(psbt["tx"]["vout"])
-            if self.get_address_info(vout["scriptPubKey"]["addresses"][0])
-            and self.get_address_info(vout["scriptPubKey"]["addresses"][0]).change
+            if self.get_address_info(get_address_from_dict(vout["scriptPubKey"]))
+            and self.get_address_info(
+                get_address_from_dict(vout["scriptPubKey"])
+            ).change
         ]
         if psbt["changeAddress"]:
             psbt["changeAddress"] = psbt["changeAddress"][0]
@@ -1215,19 +1512,23 @@ class Wallet:
             raise Exception("Cannot RBF a transaction with no change output")
         return self.createpsbt(
             addresses=[
-                vout["scriptPubKey"]["addresses"][0]
+                get_address_from_dict(vout["scriptPubKey"])
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             amounts=[
                 vout["value"]
                 for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(vout["scriptPubKey"]["addresses"][0])
+                if not self.get_address_info(
+                    get_address_from_dict(vout["scriptPubKey"])
+                )
                 or not self.get_address_info(
-                    vout["scriptPubKey"]["addresses"][0]
+                    get_address_from_dict(vout["scriptPubKey"])
                 ).change
             ],
             fee_rate=fee_rate,
@@ -1237,17 +1538,16 @@ class Wallet:
         )
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
-        psbt = PSBT()
-        psbt.deserialize(b64psbt)
+        psbt = PSBT.from_string(b64psbt)
+
         if non_witness:
             for i, inp in enumerate(psbt.tx.vin):
-                txid = inp.prevout.hash.to_bytes(32, "big").hex()
+                txid = psbt.tx.vin[0].txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    stream = BytesIO(bytes.fromhex(res["hex"]))
-                    prevtx = CTransaction()
-                    prevtx.deserialize(stream)
-                    psbt.inputs[i].non_witness_utxo = prevtx
+                    psbt.inputs[i].non_witness_utxo = Transaction.from_string(
+                        res["hex"]
+                    )
                 except:
                     logger.error(
                         "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
@@ -1262,18 +1562,19 @@ class Wallet:
             # for multisig add xpub fields
             if len(self.keys) > 1:
                 for k in self.keys:
-                    key = b"\x01" + decode_base58(k.xpub)
+                    key = bip32.HDKey.from_string(k.xpub)
                     if k.fingerprint != "":
                         fingerprint = bytes.fromhex(k.fingerprint)
                     else:
                         fingerprint = get_xpub_fingerprint(k.xpub)
                     if k.derivation != "":
-                        der = der_to_bytes(k.derivation)
+                        der = bip32.parse_path(k.derivation)
                     else:
-                        der = b""
-                    value = fingerprint + der
-                    psbt.unknown[key] = value
-        return psbt.serialize()
+                        der = []
+                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
+        else:
+            psbt.xpubs = {}
+        return psbt.to_string()
 
     def get_signed_devices(self, decodedpsbt):
         signed_devices = []
@@ -1308,10 +1609,11 @@ class Wallet:
             if (
                 "addresses" not in out["scriptPubKey"]
                 or len(out["scriptPubKey"]["addresses"]) == 0
+                or "address" not in out["scriptPubKey"]
             ):
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
-            addr = out["scriptPubKey"]["addresses"][0]
+            addr = get_address_from_dict(out["scriptPubKey"])
             info = self.get_address_info(addr)
             # check if it's a change
             if info and info.change:
@@ -1374,7 +1676,9 @@ class Wallet:
             addr_utxo = 0
             addr_amount = 0
 
-            for utxo in [utxo for utxo in self.utxo if utxo["address"] == addr.address]:
+            for utxo in [
+                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+            ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 

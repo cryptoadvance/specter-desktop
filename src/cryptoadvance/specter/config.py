@@ -3,6 +3,7 @@ import configparser
 import datetime
 import os
 import random
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -37,6 +38,13 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    # Logging
+    # SPECTER_LOGFILE will get created dynamically in server.py
+    # using:
+    SPECTER_LOGFORMAT = os.getenv(
+        "SPECTER_LOGFORMAT", "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
+
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
@@ -46,6 +54,11 @@ class BaseConfig(object):
     # only used by cli_bitcoind.py, we want to have that static for the same reason
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_btc_regtest_plain_datadir"
+    )
+
+    # only used by cli_node.py, we want to have that static for the same reason
+    ELMD_REGTEST_DATA_DIR = os.getenv(
+        "ELMD_REGTEST_DATA_DIR", "/tmp/specter_elm_regtest_plain_datadir"
     )
 
     # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
@@ -65,11 +78,39 @@ class BaseConfig(object):
     SPECTER_SSL_CERT_SERIAL_NUMBER = int(
         os.getenv("SPECTER_SSL_CERT_SERIAL_NUMBER", random.randrange(1, 100000))
     )
+    INTERNAL_BITCOIND_VERSION = os.getenv("INTERNAL_BITCOIND_VERSION", "0.21.1")
+
+    # Block explorers URLs
+    EXPLORERS_LIST = {
+        "MEMPOOL_SPACE": {
+            "name": "Mempool.space",
+            "url": "https://mempool.space/",
+        },
+        "MEMPOOL_SPACE_ONION": {
+            "name": "Mempool.space Tor hidden service",
+            "url": "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/",
+        },
+        "BLOCKSTREAM_INFO": {
+            "name": "Blockstream.info",
+            "url": "https://blockstream.info/",
+        },
+        "BLOCKSTREAM_INFO_ONION": {
+            "name": "Blockstream.info Tor hidden service",
+            "url": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/",
+        },
+        "CUSTOM": {
+            "name": "Custom",
+            "url": "",
+        },
+    }
 
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
+    )
 
 
 class TestConfig(BaseConfig):
@@ -91,4 +132,4 @@ class CypressTestConfig(TestConfig):
 
 
 class ProductionConfig(BaseConfig):
-    pass
+    SECRET_KEY = secrets.token_urlsafe(16)

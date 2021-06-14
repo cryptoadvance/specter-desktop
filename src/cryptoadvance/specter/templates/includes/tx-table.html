@@ -83,11 +83,19 @@
             max-width: 200px;
             margin: auto;
         }
+        .selected-rows-action-box {
+            float: right;
+        }
+        .selected-rows-action-box .btn {
+            width: 200px;
+            margin: 5px;
+            height: 38px;
+        }
     </style>
     <nav class="row">
         <button
             type="button"
-            class="txlist-view-btn btn radio left checked">
+            class="txlist-view-btn btn radio left">
             History
         </button>
         <button
@@ -111,6 +119,22 @@
         <input class="search" type="text" placeholder="Search..." />
         <!--Placeholder for right part of the toolbar-->
         <div style="flex: 1;"></div>
+    </div>
+    <div class="selected-rows-action-box row hidden">
+        <form class="freeze-tx-form" method="POST">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="button" class="btn freeze-tx-btn">
+                <tool-tip title="Freezing UTXOs">
+                    Freezing a UTXO will make Specter disallow spending it.<br><br>
+                    This is useful especially for dealing with dust attack, where you don't want to accidentally spend the dust received.
+                </tool-tip>&nbsp;&nbsp;
+                Un/Freeze UTXOs
+            </button>
+        </form>
+        <form class="compose-tx-form" method="POST">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="button" class="btn compose-tx-btn">Create new transaction</button>
+        </form>
     </div>
     <div class="export-container hidden">
         <h1>Export transactions to CSV</h1>
@@ -137,7 +161,7 @@
                 <th value="time" class="time-header">Time<div class="time-arrow up-arrow"></div></th>
                 <th value="confirmations" class="confirmations-header">Confirmations<div class="confirmations-arrow"></div></th>
                 <th value="blockhash" class="optional hidden blockhash-header">
-                    <div class="tool-tip">{% include "includes/merkletooltip.html" %}</div>
+                    {% include "includes/merkletooltip.html" %}
                     Block Hash
                 </th>
                 <th style="width: 50px; padding: 10px;"><button type="button" class="export-btn btn" style="width: 50px;">Export</button></th>
@@ -248,7 +272,14 @@
             this.export = clone.querySelector(".export");
             this.exportPricesSwitch = clone.querySelector(".export-prices");
 
-            // Setup tabs switching
+            // Selected rows
+            this.selectedRowsActionBox = clone.querySelector(".selected-rows-action-box");
+            this.composeTxForm = clone.querySelector(".compose-tx-form");
+            this.composeTxBtn = clone.querySelector(".compose-tx-btn");
+            this.freezeTxForm = clone.querySelector(".freeze-tx-form");
+            this.freezeTxBtn = clone.querySelector(".freeze-tx-btn");
+            this.selectedRows = [];
+            
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
 					this.utxoViewBtn.classList.remove("checked");
@@ -368,12 +399,33 @@
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
+            this.composeTxBtn.onclick = () => {
+                for (let tx of this.selectedRows) {
+                    this.composeTxForm.innerHTML += `
+                        <input type="checkbox" checked class="hidden" name="coinselect" value="${tx.txid}, ${tx.vout}">
+                    `
+                }
+                this.composeTxForm.action = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                this.composeTxForm.submit();
+            }
+
+            this.freezeTxBtn.onclick = () => {
+                for (let tx of this.selectedRows) {
+                    this.freezeTxForm.innerHTML += `
+                        <input type="checkbox" checked class="hidden" name="selected_utxo" value="${tx.txid}:${tx.vout}">
+                    `
+                }
+                this.freezeTxForm.innerHTML += `<input type="hidden" name="action" value="freezeutxo"/>`
+                this.freezeTxForm.action = `{{ url_for('wallets_endpoint.history', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                this.freezeTxForm.submit();
+            }
+
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'wallet'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet'];
         }
 
         /**
@@ -383,6 +435,7 @@
          * - price: BTC price for price calculations
          * - symbol: Currency symbol for price calculations
          * - type: Transactions list type to load. Either "txlist" or "utxo"
+         * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
@@ -401,6 +454,7 @@
                 this.price != this.getAttribute('price') ||
                 this.symbol != this.getAttribute('symbol') ||
                 this.listType != this.getAttribute('type') ||
+                this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info') ||
                 this.wallet != this.getAttribute('wallet')
             ) {
                 this.blockhash = this.getAttribute('blockhash');
@@ -408,6 +462,7 @@
                 this.price = this.getAttribute('price');
                 this.symbol = this.getAttribute('symbol');
                 this.listType = this.getAttribute('type');
+                this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
                 this.wallet = this.getAttribute('wallet');
                 if (!this.listType) {
                     return
@@ -432,6 +487,12 @@
         if (!self.listType) {
             self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
             return
+        }
+
+        if (self.listType == "txlist") {
+            self.txlistViewBtn.classList.add("checked");
+        } else {
+            self.utxoViewBtn.classList.add("checked");
         }
 
         // Select the correct URL based on the list type and selected wallet
@@ -472,6 +533,7 @@
         formData.append('search', self.search);
         formData.append('sortby', self.sortby);
         formData.append('sortdir', self.sortdir);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         try {
             let callId = self.callId;
             const response = await fetch(
@@ -499,17 +561,19 @@
                     let summaryAmount = 0;
                     let summaryPrice = 0;
                     for (let tx of txlist) {
-                        let txRow = `
+                        let txRow = document.createRange().createContextualFragment(`
                         <tx-row
                             data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
                             data-price="${self.price ? self.price : 0}"
                             data-symbol="${self.symbol ? self.symbol : ''}"
                             data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                             data-wallet="${(self.wallet ? self.wallet : tx.wallet_alias)}"
-                            data-show-blockhash="${showBlockhash}">
+                            data-show-blockhash="${showBlockhash}"
+                            data-mode="${self.getAttribute('type') + (self.wallet ? "" : "-overview")}"
+                            data-hide-sensitive-info="${self.hideSensitiveInfo}">
                             </tx-row>
-                        `
-                        self.tbody.innerHTML += txRow;
+                        `)
+                        self.tbody.append(txRow);
                         summaryTxCount++;
                         summaryAmount += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
                         summaryPrice += parseFloat(self.tbody.children[self.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${self.symbol}`, '').replace(')', '').replace(',', ''));
@@ -564,6 +628,29 @@
                     } else {
                         self.paginationNext.classList.remove('pagination-disabled');
                     }
+
+                    self.selectedRows = [];
+                    self.selectedRowsActionBox.classList.add('hidden');
+
+                    for (let txRow of self.shadowRoot.querySelectorAll('tx-row')) {
+                        txRow.addEventListener('txRowSelected', e=>{
+                            let selectedRow = e.target;
+                            if (e.detail.selected) {
+                                self.selectedRows.push({
+                                    txid: e.detail.txid,
+                                    vout: e.detail.vout,
+                                    amount: e.detail.amount.toFixed(8)
+                                });
+                            } else {
+                                self.selectedRows = self.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
+                            }
+                            if (self.selectedRows.length == 0) {
+                                self.selectedRowsActionBox.classList.add('hidden');
+                            } else {
+                                self.selectedRowsActionBox.classList.remove('hidden');
+                            }
+						});
+                    }
                 }
                 return
             };
@@ -576,7 +663,6 @@
 
     /**
      * Shows a <tx-data> element popup for specified txid.
-     * @param btcUnit 
      * @param btcUnit - Bitcoin unit to display amounts with. Either "btc" or "sat"
      * @param price - BTC price for price calculations
      * @param symbol - Currency symbol for price calculations
@@ -598,6 +684,14 @@
         } else {
             copyText(txid, `Copied transaction: ${ txid }`);
         }
+    }
+
+    /**
+     * Triggered when a tx-row is marked as selected/ unselected .
+     * 
+    */
+    function txRowToggled(txRow) {
+        // if ()
     }
 
     customElements.define('tx-table', TxTableElement);

@@ -14,13 +14,14 @@ describe('Node Configured', () => {
         cy.get('#btn_new_wallet').click()
         cy.get('[href="./simple/"]').click()
         cy.get('#testdevice_ghost').click()
-        cy.get('#keysform > :nth-child(2) > .inline').type("Testwallet Ghost")
+        cy.get('#wallet_name').type("Testwallet Ghost")
         cy.get('#keysform > .centered').click()
         cy.get('body').contains("New wallet was created successfully!")
         // Download PDF
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
-        cy.task("node:mine") 
+        cy.task("node:mine")
+        cy.wait(10000)
         cy.get('#btn_continue').click()
         cy.get('#btn_transactions').click()
         cy.get('#fullbalance_amount')

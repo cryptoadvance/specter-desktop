@@ -1,0 +1,219 @@
+{% extends "base.jinja" %}
+{% block main %}
+	{% include "includes/qr-scanner.html" %}
+	
+		{% if node_alias %}
+			<h1 id="title">{{ node.name }}</h1>
+			{% from 'components/editable_title.jinja' import editable_title %}
+			{{ editable_title(node.name) }}
+			<form action="?" method="POST">
+		{% else %}
+			<form action="?" method="POST">
+				<h1 id="title">Configure new node</h1>
+				<label style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">Name your new node:</label>
+				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder="Name your new node" style="width: auto; display: block; margin: auto; width: 70%;">
+		{% endif %}
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
+		<div class="card" style="margin: 20px auto 20px;">
+			<h2>Bitcoin JSON-RPC configuration</h2>
+			<br>
+			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
+			<label class="switch">
+				<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
+				<span class="slider"></span>
+			</label>
+			<span id="datadir-container">
+			<div class="tool-tip" style="float: right;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">Setting Bitcoin Core Data Directory<br></span><br>
+						When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or 
+						attempt to automatically locate your Bitcoin data directory and load your node configurations from it.<br><br>
+						However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.<br><br>
+						If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.
+					</span>
+				</p>
+			</div>
+			<br><br>
+				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
+			</span>
+			<br><br>
+			<div id="rpc_settings">
+				<div id="lock" class="center">
+					<p style="text-align: center; margin: auto; ">&#128274;</p>
+					<span class="note centered"> (disable auto-detect to configure manually)</span>
+				</div>
+				Username:<br><input type="text" id="username" name="username" value="{{ node.user }}">
+				<br><br>
+				Password:<br><input type="password" id="password" name="password" value="{{ node.password }}">
+				<br><br>
+				Host:<br><input type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
+				<br>
+				<qr-scanner id="scan_rpc" style="margin: 10px;">
+					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
+						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
+						Connect with QR
+					</a>
+				</qr-scanner>
+			</div>
+			Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
+			<div class="note">
+				Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid
+			</div>
+			<br><br>
+			<div class="row">
+				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
+				<button type="submit" class="btn" name="action" value="save">Save</button>
+			</div>
+			{% if test %}
+				<br><div class="log"><b>Test results:</b><br><br>
+				<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
+					{% macro tick_or_cross(my_boolean) %}
+					<button style="background: #fff; border: none;" disabled> 
+						{% if my_boolean %}
+							<div style="color: green; font-size: 1.5em;">&#x2714;</div> 
+						{% else %} 
+							<div style="color: red; font-size: 1.5em;">&#x274C;</div>  
+						{% endif %}
+					</button>
+					{% endmacro %}
+					{% if 'connectable' in test['tests'] %}
+						<div>Connectable</div>
+						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
+						{% if not test['tests']['connectable'] %} 
+							<tool-tip title="Your Node can't be reached" style="float: right;">
+								There are a lot of potential issues preventing the connection.
+								Please doublecheck the Host and the Port. Make sure you can reach
+								the host and make sure that Bitcoin-Core is listening at the port
+								you have specified. 
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
+					{% endif %}
+
+					{% if 'credentials' in test['tests'] %}
+						<div>Credentials</div>
+						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
+						{% if not test['tests']['credentials'] %}
+							<tool-tip title="Your Credentials don't work" style="float: right;">
+								Please doublecheck the user and the Password. Look at the bitcoin.conf
+								for the correct values in that field.
+								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
+					{% endif %}
+
+					{% if 'recent_version' in test['tests'] %}
+						<div>Version recent enough</div>
+						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
+						{% if not test['tests']['recent_version'] %}
+							<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
+									Specter is working well up from Bitcoin Core version 0.17.
+									The version of your Node is too low, unfortunatley.
+									Please upgrade!
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
+					{% endif %}
+					
+					{% if 'wallets' in test['tests'] %}
+						<div>Wallets enabled</div>
+						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
+						{% if not test['tests']['wallets'] %}
+							<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
+								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
+								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
+							</tool-tip>
+						{% else %}
+							<div></div>
+						{% endif %}
+					{% endif %}
+
+				</div>
+
+				<br>
+					<code>
+						<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
+					</code>
+				</div>
+			{% endif %}
+		</div>
+		{% if specter.node_manager.nodes | length > 1 and node_alias %}
+			<button style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">Forget node</button>
+		{% endif %}
+	</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	document.addEventListener("DOMContentLoaded", function(){
+		var autodetect = document.getElementById("autodetect");
+		if (autodetect != null) {
+			function toggleAutoDetectMode() {
+				var rpcSettings = document.getElementById("rpc_settings");
+				var scanRpc = document.getElementById("scan_rpc");
+				var lock = document.getElementById("lock");
+				var datadirContainer = document.getElementById("datadir-container");
+				if (autodetect.checked) {
+					lock.style.removeProperty('display');
+					datadirContainer.style.removeProperty('display');
+					rpcSettings.style['pointer-events'] = 'none';
+					rpcSettings.style['background-color'] = '#8881';
+					rpcSettings.style['padding'] = '10px';
+					rpcSettings.style['border-radius'] = '10px';
+
+					scanRpc.style.display = 'none';
+					document.getElementById("username").value = '{{ node.user }}';
+					document.getElementById("password").value = '{{ node.password }}';
+				} else {
+					lock.style['display'] = 'none';
+					datadirContainer.style['display'] = 'none';
+					rpcSettings.style.removeProperty('background-color');
+					rpcSettings.style.removeProperty('pointer-events');
+					rpcSettings.style.removeProperty('padding');
+					rpcSettings.style.removeProperty('border-radius');
+					scanRpc.style.removeProperty('display');
+				}
+			}
+
+			autodetect.addEventListener("change", function() {
+				toggleAutoDetectMode();
+			}, false);
+			toggleAutoDetectMode();
+		}
+	});
+
+</script>
+
+<script type="text/javascript">
+	let scanner = document.getElementById('scan_rpc');
+	if(scanner != null) {
+		scanner.addEventListener('scan', e=>{
+			let result = e.detail.result;
+			if(result==null){
+				return;
+			}
+			try {
+				let data = result.split('btcrpc://')[1].split(':')
+				let username = data[0];
+				let password = data[1].split('@')[0];
+				let host = data[1].split('@')[1];
+				let port = data[2].split('?')[0].split('/')[0];
+				document.getElementById('username').value = username;
+				document.getElementById('password').value = password;
+				document.getElementById('host').value = host;
+				document.getElementById('port').value = port;
+			} catch {
+				showError('Failed to read connection data from the QR', 3000)
+			}
+		});
+	}
+</script>
+{% endblock %}

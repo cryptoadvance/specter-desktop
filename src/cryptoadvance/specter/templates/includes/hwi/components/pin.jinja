@@ -2,7 +2,7 @@
     <h2>Enter PIN</h2>
     <div class="row">
         <div id="hwi_pin_stars" style="margin-top: 20px; font-size: 20px; height: 25px; width: 100%; padding-left: 30px;"></div>
-        <img id="hwi_pin_delete" src="{{ url_for('static', filename='img/backspace.svg') }}" width="18px" style="margin-top: 20px; height: 25px; margin-left: 10px; cursor: pointer;">
+        <img id="hwi_pin_delete" src="{{ url_for('static', filename='img/clear-character.svg') }}" width="24px" style="margin-top: 20px; height: 25px; margin-left: 10px; cursor: pointer;" class="svg-white">
     </div>
     <br>
     <div id="hwi_pin_container" class="flex-center flex-column">
@@ -22,7 +22,7 @@
             }
             console.log(result);
             if(!overlayIsActive()){
-                showNotification("HWI is ready again", 10000);
+                // showNotification("HWI is ready again", 10000);
                 // no need to proceed at all
                 return null;
             }
@@ -91,7 +91,7 @@
         }
         console.log(result);
         if(!overlayIsActive()){
-            showNotification("HWI is ready again", 10000);
+            // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }

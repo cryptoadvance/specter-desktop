@@ -1,7 +1,5 @@
 from .hwi_device import HWIDevice
-
-# a hack that verifies multisig
-from .hwi import keepkey
+from .hwi.keepkey import KeepkeyClient
 
 
 class Keepkey(HWIDevice):
@@ -12,9 +10,9 @@ class Keepkey(HWIDevice):
     supports_hwi_toggle_passphrase = True
     supports_hwi_multisig_display_address = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        HWIDevice.__init__(self, name, alias, keys, fullpath, manager)
+    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
+        HWIDevice.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
 
     @classmethod
     def get_client(cls, *args, **kwargs):
-        return keepkey.KeepkeyClient(*args, **kwargs)
+        return KeepkeyClient(*args, **kwargs)

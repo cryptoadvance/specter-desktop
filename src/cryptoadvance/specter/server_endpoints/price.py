@@ -26,7 +26,9 @@ def update():
                 return {"success": True}
         else:
             price_provider = request.form.get("price_provider", "")
+            weight_unit = request.form.get("weight_unit", "oz")
             app.specter.update_price_provider(price_provider, current_user)
+            app.specter.update_weight_unit(weight_unit, current_user)
             if not app.specter.price_checker.running:
                 app.specter.price_checker.start()
             return {"success": update_price(app.specter, current_user)}

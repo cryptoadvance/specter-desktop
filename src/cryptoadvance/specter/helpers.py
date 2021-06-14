@@ -11,7 +11,11 @@ import subprocess
 import sys
 from collections import OrderedDict
 from mnemonic import Mnemonic
-from hwilib.serializations import PSBT, CTransaction
+from embit.script import Script
+from embit.psbt import PSBT
+from embit.transaction import Transaction
+from embit.liquid.pset import PSET
+from embit.liquid.transaction import LTransaction
 from .persistence import read_json_file, write_json_file
 from .util.bcur import bcur_decode
 import threading
@@ -25,7 +29,11 @@ defaultlock = threading.Lock()
 
 
 def is_testnet(chain):
-    return chain in ["test", "regtest", "signet"]
+    return chain not in ["main", "liquidv1", "None", "none", None, ""]
+
+
+def is_liquid(chain):
+    return chain not in ["main", "regtest", "test", "signet", "None", "none", None, ""]
 
 
 def locked(customlock=defaultlock):
@@ -64,14 +72,8 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
-def migrate_config(config):
-    # migrate old "auth" string into new "auth" json subtree
-    if "auth" in config:
-        if isinstance(config["auth"], str):
-            config["auth"] = dict(method=config["auth"])
-
-
 def deep_update(d, u):
+    """updates the dict d with the dict u"""
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
         if not isinstance(dv, collections.abc.Mapping):
@@ -169,7 +171,7 @@ def der_to_bytes(derivation):
 def get_devices_with_keys_by_type(app, cosigners, wallet_type):
     devices = []
     prefix = "tpub"
-    if app.specter.chain == "main":
+    if not is_testnet(app.specter.chain):
         prefix = "xpub"
     for cosigner in cosigners:
         device = copy.deepcopy(cosigner)
@@ -178,23 +180,28 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
             allowed_types += ["sh-wpkh", "wpkh"]
         elif wallet_type == "multisig":
             allowed_types += ["sh-wsh", "wsh"]
-        device.keys = [
-            key
-            for key in device.keys
-            if key.xpub.startswith(prefix)
-            and (key.key_type in allowed_types or wallet_type == "*")
-        ]
+        device.keys = sorted(
+            [
+                key
+                for key in device.keys
+                if key.xpub.startswith(prefix)
+                and (key.key_type in allowed_types or wallet_type == "*")
+            ],
+            key=lambda k: k.original == k.xpub,
+        )
         devices.append(device)
     return devices
 
 
 def clean_psbt(b64psbt):
-    psbt = PSBT()
-    psbt.deserialize(b64psbt)
+    try:
+        psbt = PSBT.from_string(b64psbt)
+    except:
+        psbt = PSET.from_string(b64psbt)
     for inp in psbt.inputs:
         if inp.witness_utxo is not None and inp.non_witness_utxo is not None:
             inp.non_witness_utxo = None
-    return psbt.serialize()
+    return psbt.to_string()
 
 
 def bcur2base64(encoded):
@@ -203,13 +210,13 @@ def bcur2base64(encoded):
 
 
 def get_txid(tx):
-    b = BytesIO(bytes.fromhex(tx))
-    t = CTransaction()
-    t.deserialize(b)
+    try:
+        t = Transaction.from_string(tx)
+    except:
+        t = LTransaction.from_string(tx)
     for inp in t.vin:
-        inp.scriptSig = b""
-    t.rehash()
-    return t.hash
+        inp.scriptSig = Script(b"")
+    return t.txid().hex()
 
 
 def get_startblock_by_chain(specter):
@@ -320,3 +327,13 @@ def is_ip_private(ip):
         or priv_16.match(ip)
     )
     return res is not None
+
+
+def get_address_from_dict(data_dict):
+    # TODO: Remove this helper function in favor of simple ["address"]
+    # when support for Bitcoin Core version < 22 is dropped
+    return (
+        data_dict["addresses"][0]
+        if "addresses" in data_dict and data_dict["addresses"][0]
+        else data_dict["address"]
+    )

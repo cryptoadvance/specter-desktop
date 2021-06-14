@@ -177,6 +177,13 @@ class AddressList(dict):
         if need_save:
             self.save()
 
+    def max_index(self, change=False):
+        return max(
+            0,
+            0,
+            *[addr.index for addr in self.values() if addr.change == change],
+        )
+
     def max_used_index(self, change=False):
         return max(
             -1,

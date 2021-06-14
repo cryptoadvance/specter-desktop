@@ -1,12 +1,25 @@
 <template id="address-row">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        @media (max-width: 690px){
+            .index {
+                max-width: 10px;
+            }
+            .address {
+                max-width: 160px;
+            }
+        }
+    </style>
     <tr class="address-row">
         <td class="index"></td>
-        <td class="address"></td>
-        <td class="label"></td>
-        <td class="used"></td>
-        <td class="utxo"></td>
-        <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
+        <td class="scroll address">
+            <span class="explorer-link"></span>
+        </td>
+        <td class="label optional"></td>
+        <td class="used optional"></td>
+        <td class="utxo optional"></td>
+        <td class="optional"><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
+        <td class="verify optional"><button type="button" class="btn" style="width:150px; max-width:150px;margin: 0px;">Verify on device</button></td>
         <td></td>
     </tr>
 </template>
@@ -30,13 +43,13 @@
             this.el = clone.querySelector(".address-row");
 
             this.index = clone.querySelector(".index");
-            this.address = clone.querySelector(".address");
+            this.address = clone.querySelector(".address .explorer-link");
             this.label = clone.querySelector(".label");
             this.used = clone.querySelector(".used");
             this.utxo = clone.querySelector(".utxo");
             this.amountText = clone.querySelector(".amount");
             this.amountPrice = clone.querySelector(".amount-price");
-
+            this.verify = clone.querySelector(".verify");
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
@@ -46,29 +59,75 @@
          * (can be called many times if an element is repeatedly added/removed)
         */
         connectedCallback() {
+            this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
+            this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
             this.addressData = JSON.parse(this.getAttribute('data-address'));
             this.wallet = this.getAttribute('data-wallet');
             this.btcUnit = this.getAttribute('data-btc-unit');
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
+            this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             this.index.innerText = `#${this.addressData.index}`;
-            this.address.innerText = this.addressData.address;
+            this.address.innerText = this.hideSensitiveInfo ? '###########################' : this.addressData.address;
+            if (!this.hideSensitiveInfo) {
+                this.address.onclick = () => {
+                    showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);
+                }
+            }
 
-            this.label.innerHTML =
-                `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} data-wallet="${this.wallet}"></address-label>`;
+            this.label.innerHTML = this.hideSensitiveInfo ? '############' : `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} data-wallet="${this.wallet}"></address-label>`;
 
-            this.used.innerText = `${this.addressData.used ? 'Yes' : 'No'}`;
+            this.used.innerText = this.hideSensitiveInfo ? '###' : `${this.addressData.used ? 'Yes' : 'No'}`;
 
-            this.utxo.innerText = this.addressData.utxo;
+            this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
 
             this.amount = parseFloat(this.addressData.amount.toFixed(8));
 
-            if (!this.price || !this.symbol) {
+            if (!this.isVerifyQR && !this.isVerifyHwi) {
+                this.verify.classList.add('hidden');
+            } else {
+                this.verify.onclick = async () => {
+                    let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                    var formData = new FormData();
+                    formData.append('address', this.addressData.address)
+                    formData.append('csrf_token', '{{ csrf_token() }}');
+                    try {
+                        const response = await fetch(
+                            url,
+                            {
+                                method: 'POST',
+                                body: formData
+                            }
+                        );
+                        if(response.status != 200){
+                            showError(await response.text());
+                            return;
+                        }
+                        const jsonResponse = await response.json();
+                        if (jsonResponse.success) {
+                            console.log(jsonResponse);
+                            let descriptor = jsonResponse.descriptor;
+                            displayAddressOnDevice(this.addressData.address, JSON.stringify(descriptor));
+                            return;
+                        }
+                        showError("Failed to load address data to display...");
+                    }  catch(e) {
+                        showError("Failed to load address data to display...");
+                        showError(e);
+                    }
+                }
+            }
+
+            if (!this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                if (this.symbol == "$" || this.symbol == "£") {
+                    this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
+                } else {
+                    this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
+                }
                 this.amountPrice.classList.remove('hidden');
             }
 
@@ -76,7 +135,7 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = `${numberWithCommas(this.amount.toString())}`;
+            this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
 
             if (this.addressData.used > 0) {
                 this.el.classList.add('unconfirmed');

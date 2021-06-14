@@ -6,6 +6,9 @@
         const doc = new jsPDF();
         const pageHeight = 297;
         const pageWidth = 210;
+        doc.addFont("{{ url_for('static', filename='fonts/RobotoMono-Regular.ttf') }}", "Roboto", "normal");
+        doc.addFont("{{ url_for('static', filename='fonts/RobotoMono-Bold.ttf') }}", "Roboto", "bold");
+        doc.setFont("Roboto", "normal");
         let useSlip132 = document.getElementById("use_slip_132_pdf").checked;
         let currentHeight = 15;
         doc.setFontSize(18);
@@ -16,11 +19,11 @@
         currentHeight += 11;
 
         doc.setFontSize(18);
-        doc.setFont(undefined, 'bold');
+        doc.setFont("Roboto", "bold");
         doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
         currentHeight += {{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n").split('\n').length * 10;
 
-        doc.setFont(undefined, 'normal');
+        doc.setFont("Roboto", "normal");
         doc.setFontSize(16);
         {% if wallet.is_multisig %}
             if ('{{ wallet.address_type }}' == 'bech32') {
@@ -58,7 +61,7 @@
         let deviceType = '';
         let xpubLines = [];
         {% for key in wallet.keys %}
-            if (currentHeight + 30 >= pageHeight) {
+            if (currentHeight + 50 >= pageHeight) {
                 doc.addPage();
                 currentHeight = 20;
             }
@@ -72,28 +75,28 @@
             {% endfor %}
             
             doc.setFontSize(16)
-            doc.setFont(undefined, 'bold')
+            doc.setFont("Roboto", "bold");
             doc.text(deviceName, 15, currentHeight)
             currentHeight += 8
             
-            doc.setFont(undefined, 'normal')
+            doc.setFont("Roboto", "normal");
             doc.text('Device type: ' + deviceType, 15, currentHeight);
             currentHeight += 8
-            doc.text("Master fingerprint:   {{ key.fingerprint }}", 15, currentHeight);
+            doc.text("Master fingerprint: {{ key.fingerprint }}", 15, currentHeight);
             currentHeight += 8
-            doc.text("Derivation path:       {{ key.derivation }}", 15, currentHeight);
+            doc.text("Derivation path: {{ key.derivation }}", 15, currentHeight);
             currentHeight += 8
 
             if (useSlip132)
-                xpubLines = "{{ key.original }}".split(/(.{40})/g);
+                xpubLines = "{{ key.original }}".split(/(.{36})/g);
             else 
-                xpubLines = "{{ key.xpub }}".split(/(.{40})/g);
+                xpubLines = "{{ key.xpub }}".split(/(.{36})/g);
             
             xpubLines = xpubLines.filter(line => line !== '');
-            doc.text('Master public key:   ' + xpubLines[0], 15, currentHeight);
+            doc.text('Master public key: ' + xpubLines[0], 15, currentHeight);
             for (var i = 1; i < xpubLines.length; i++) {
                 currentHeight += 7
-                doc.text(xpubLines[i], 65, currentHeight);
+                doc.text(xpubLines[i], 79, currentHeight);
             }
             currentHeight += 13
         {% endfor %}
@@ -109,7 +112,7 @@
         currentHeight += 13;
 
         doc.setFontSize(20);
-        if (currentHeight + 40 + '{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
+        if (currentHeight + 40 + '{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -121,10 +124,10 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text('{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += '{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+        doc.text('{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += '{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
-        if (currentHeight + 20 + "{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
+        if (currentHeight + 20 + "{{ wallet.recv_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -134,10 +137,10 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text("{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += "{{ wallet.recv_descriptor }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+        doc.text("{{ wallet.recv_descriptor|safe }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += "{{ wallet.recv_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
-        if (currentHeight + 20 + "{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
+        if (currentHeight + 20 + "{{ wallet.change_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -147,8 +150,8 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text("{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += "{{ wallet.change_descriptor }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+        doc.text("{{ wallet.change_descriptor|safe }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += "{{ wallet.change_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
         doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
     }

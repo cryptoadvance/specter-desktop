@@ -2,18 +2,19 @@
     <h1>Import Wallet</h1>
     <p>Import an existing wallet into Specter by either pasting its data, scanning its QR code or uploading its data file.</p>
     <form action="./import_wallet/" method="POST">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <textarea id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
         <div class="row">
             <a href="#" class="btn" id="scanme" style="margin: 2px;">
-                <img src="{{ url_for('static', filename='img/qr_icon.svg') }}" height="12px"> Scan
+                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Scan
             </a>
             <input type="file" id="file" class="inputfile" multiple/>
             <label for="file" class="btn" style="margin: 2px;">
-                Choose files
+                <img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Choose files
             </label>
         </div><br>
         <button type="submit" class="btn centered" name="action" value="importwallet">Continue</button>
-    <form>
+    </form>
 </div>
 <div class="popup" id="popup">
 	<video muted playsinline id="qr-video" class="video"></video>

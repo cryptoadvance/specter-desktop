@@ -1,8 +1,8 @@
 import os
 from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.device_manager import DeviceManager
-from cryptoadvance.specter.wallet_manager import WalletManager
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 
 def test_DeviceManager(empty_data_folder):
@@ -107,7 +107,12 @@ def test_DeviceManager(empty_data_folder):
 
 def test_device_wallets(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        devices_filled_data_folder, bitcoin_regtest.get_rpc(), "regtest", device_manager
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
+        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     assert len(device.wallets(wm)) == 0
