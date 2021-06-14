@@ -1,4 +1,4 @@
-# Spanish translations for PROJECT.
+# French translations for PROJECT.
 # Copyright (C) 2021 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
@@ -8,11 +8,11 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-14 16:09-0500\n"
-"PO-Revision-Date: 2021-06-13 21:29-0500\n"
-"Last-Translator: \n"
-"Language: es\n"
-"Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"PO-Revision-Date: 2021-06-14 16:10-0500\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -23,7 +23,7 @@ msgstr ""
 #: src/cryptoadvance/specter/server_endpoints/devices.py:303
 #: src/cryptoadvance/specter/server_endpoints/devices.py:425
 msgid "Device name cannot be empty"
-msgstr "El nombre del dispositivo no debe estar vacío"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:65
 #: src/cryptoadvance/specter/server_endpoints/devices.py:287
@@ -38,7 +38,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:88
 msgid "No paths were specified, please provide at least one."
-msgstr "No se especificaron rutas, proporcione al menos una."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:132
 #: src/cryptoadvance/specter/server_endpoints/devices.py:347
@@ -69,7 +69,7 @@ msgstr ""
 #: src/cryptoadvance/specter/server_endpoints/devices.py:245
 #: src/cryptoadvance/specter/server_endpoints/devices.py:381
 msgid "Device not found"
-msgstr "Dispositivo no encontrado"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:254
 msgid "Master blinding key was added successfully"
@@ -118,7 +118,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:143
 msgid "Bitcoin Core is already installed"
-msgstr "Bitcoin Core ya está instalado"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:145
 msgid "Bitcoin Core installation is still under progress"
@@ -126,11 +126,11 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:146
 msgid "Starting Bitcoin Core setup!"
-msgstr "¡Iniciando la configuración de Bitcoin Core!"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:70
 msgid "Welcome to Specter Desktop"
-msgstr "Bienvenido a Specter Desktop"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:73
 msgid ""
@@ -139,23 +139,18 @@ msgid ""
 "special focus on multisignature setups for different hardware wallets and"
 " air-gapped signing devices."
 msgstr ""
-"Specter Desktop es una interfaz de billetera conveniente para usar mejor "
-"su nodo Bitcoin Core. Es bueno para carteras individuales, pero viene con"
-" un enfoque especial en configuraciones de firmas múltiples para "
-"diferentes carteras de hardware y dispositivos de firma con espacio de "
-"aire."
 
 #: src/cryptoadvance/specter/templates/base.jinja:76
 msgid "Get started!"
-msgstr "Iniciemos!"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:76
 msgid "Continue setup"
-msgstr "Continuar con la configuración"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:79
 msgid "Getting Started"
-msgstr "Empezando"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Using Specter from a remote machine?"
@@ -355,16 +350,16 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:201
 msgid "Configure Node"
-msgstr "Configurar Nodo"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:210
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:279
 msgid "Devices"
-msgstr "Dispositivos"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:217
 msgid "Add new device"
-msgstr "Agrega un nuevo dispositivo"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:223
 msgid "About Specter"
@@ -372,7 +367,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
 msgid "Wallets"
-msgstr "Carteras"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/general_settings.jinja:9
 msgid "Backup and Restore"
@@ -518,10 +513,6 @@ msgid "Authentication"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/components/settings_menu.jinja:13
-#, fuzzy
 msgid "USB Devices"
-msgstr "Dispositivos"
-
-#~ msgid "Device name must not be empty"
-#~ msgstr "El nombre del dispositivo no debe estar vacío"
+msgstr ""
 

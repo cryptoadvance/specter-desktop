@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-13 21:27-0500\n"
+"POT-Creation-Date: 2021-06-14 16:09-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,20 +18,20 @@ msgstr ""
 "Generated-By: Babel 2.9.1\n"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:63
-#: src/cryptoadvance/specter/server_endpoints/devices.py:281
-#: src/cryptoadvance/specter/server_endpoints/devices.py:299
-#: src/cryptoadvance/specter/server_endpoints/devices.py:405
+#: src/cryptoadvance/specter/server_endpoints/devices.py:285
+#: src/cryptoadvance/specter/server_endpoints/devices.py:303
+#: src/cryptoadvance/specter/server_endpoints/devices.py:425
 msgid "Device name cannot be empty"
 msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:65
-#: src/cryptoadvance/specter/server_endpoints/devices.py:283
-#: src/cryptoadvance/specter/server_endpoints/devices.py:301
+#: src/cryptoadvance/specter/server_endpoints/devices.py:287
+#: src/cryptoadvance/specter/server_endpoints/devices.py:305
 msgid "Device with this name already exists"
 msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:83
-#: src/cryptoadvance/specter/server_endpoints/devices.py:289
+#: src/cryptoadvance/specter/server_endpoints/devices.py:293
 msgid "Failed to parse these xpubs"
 msgstr ""
 
@@ -39,67 +39,67 @@ msgstr ""
 msgid "No paths were specified, please provide at least one."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:131
-#: src/cryptoadvance/specter/server_endpoints/devices.py:341
+#: src/cryptoadvance/specter/server_endpoints/devices.py:132
+#: src/cryptoadvance/specter/server_endpoints/devices.py:347
 msgid "Failed to setup hot wallet. Error"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:139
+#: src/cryptoadvance/specter/server_endpoints/devices.py:141
 msgid "xpubs list must not be empty"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:192
-#: src/cryptoadvance/specter/server_endpoints/devices.py:303
+#: src/cryptoadvance/specter/server_endpoints/devices.py:194
+#: src/cryptoadvance/specter/server_endpoints/devices.py:307
 msgid ""
 "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 "
 "words."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:195
-#: src/cryptoadvance/specter/server_endpoints/devices.py:308
+#: src/cryptoadvance/specter/server_endpoints/devices.py:199
+#: src/cryptoadvance/specter/server_endpoints/devices.py:314
 msgid "Invalid mnemonic entered."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:199
-#: src/cryptoadvance/specter/server_endpoints/devices.py:312
+#: src/cryptoadvance/specter/server_endpoints/devices.py:203
+#: src/cryptoadvance/specter/server_endpoints/devices.py:318
 msgid "Invalid address range selected."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:241
-#: src/cryptoadvance/specter/server_endpoints/devices.py:375
+#: src/cryptoadvance/specter/server_endpoints/devices.py:245
+#: src/cryptoadvance/specter/server_endpoints/devices.py:381
 msgid "Device not found"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:250
+#: src/cryptoadvance/specter/server_endpoints/devices.py:254
 msgid "Master blinding key was added successfully"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:286
+#: src/cryptoadvance/specter/server_endpoints/devices.py:290
 msgid "xpubs name cannot be empty"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:384
+#: src/cryptoadvance/specter/server_endpoints/devices.py:391
 msgid "Device could not be removed since it is used in wallets"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:384
+#: src/cryptoadvance/specter/server_endpoints/devices.py:393
 msgid "You must delete those wallets before you can remove this device."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:384
-#: src/cryptoadvance/specter/server_endpoints/devices.py:399
+#: src/cryptoadvance/specter/server_endpoints/devices.py:397
+#: src/cryptoadvance/specter/server_endpoints/devices.py:418
 msgid "You can delete a wallet from its Settings -> Advanced page."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:397
+#: src/cryptoadvance/specter/server_endpoints/devices.py:412
 msgid "Key could not be removed since it is used in wallets"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:399
+#: src/cryptoadvance/specter/server_endpoints/devices.py:416
 msgid "You must delete those wallets before you can remove this key."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:409
+#: src/cryptoadvance/specter/server_endpoints/devices.py:429
 msgid "Device already exists"
 msgstr ""
 
