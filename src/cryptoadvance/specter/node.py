@@ -376,6 +376,9 @@ class Node:
     def check_blockheight(self):
         return self.info["blocks"] != self.rpc.getblockcount()
 
+    def is_liquid(self):
+        return is_liquid(self.chain)
+
     @property
     def is_running(self):
         return self._is_running
