@@ -6,75 +6,72 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
-			<h1> Backup and Restore </h1>
+			<h1>{{ _("Backup and Restore") }}</h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
-						<span class="info__title">Backing up Your Specter Data<br><br></span>
-						It is recommended that you keep your backup files private, as sharing them will result in privacy leaks.<br><br>
-						Backups are recommended to ensure that access to funds remain, even in the event that a multisig wallet is lost.
+						<span class="info__title">{{ _("Backing up Your Specter Data") }}<br><br></span>
+						{{ _("It is recommended that you keep your backup files private, as sharing them will result in privacy leaks.") }}<br><br>
+						{{ _("Backups are recommended to ensure that access to funds remain, even in the event that a multisig wallet is lost.") }}
 					</span>
 				</p>
 			</div>
-			Specter Data Backup:
+			{{ _("Specter Data Backup") }}:
 			<br><br>
 			<div class="row">
-				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">Download Specter backup files</a>
+				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">{{ _("Download Specter backup files") }}</a>
 			</div>
 			<br>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
-						<span class="info__title">Restoring Specter from backup<br><br></span>
-						Here you can restore your wallets and devices from an existing Specter backup.<br>
-						Please make sure to unzip the backup file first, then select the extracted folder for upload.<br>
-						Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.
+						<span class="info__title">{{ _("Restoring Specter from backup") }}<br><br></span>
+						{{ _("Here you can restore your wallets and devices from an existing Specter backup.") }}<br>
+						{{ _("Please make sure to unzip the backup file first, then select the extracted folder for upload.") }}<br>
+						{{ _("Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones.") }}
 					</span>
 				</p>
 			</div>
-			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span><br><br>
+			<span style="margin: auto 5px auto 0px;">{{ _("Load Specter backup") }}:</span><br><br>
 			<div class="row">
 				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
 				<input type="hidden" id="restorewallets" name="restorewallets"/>
 				<input type="hidden" id="restoredevices" name="restoredevices"/>
 				<label for="file" class="btn" style="margin-top: -5px;">
-					Choose backup folder
+					{{ _("Choose backup folder") }}
 				</label>
 			</div>
 			<span id="filesloaded"></span>
 			<div class="row" style="margin-top: 5px;">
-				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">Load Specter backup</button>
+				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
 			</div><br><br>
-			<h1> Miscellaneous </h1>
-			Bitcoin unit to use (BTC/sats):
+			<h1>{{ _("Miscellaneous") }} </h1>
+			{{ _("Bitcoin unit to use") }} (BTC/sats):
 			<select name="unit">
 				<option value="btc" {% if unit!="sat" %} selected="selected"{% endif %}>BTC</option>
 				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
 			</select>
 			<br><br>
-			Block explorer URL ({{ specter.chain }}):<br>
+			{{ _("Block explorer URL") }} ({{ specter.chain }}):<br>
 			{% include "components/explorer_select.jinja" %}
 			<div class="warning">
 				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-				Specter does not use the block explorer to get any data whatsoever.
-				This setting is only to allow opening transactions and addresses in a block explorer directly from Specter.
-				All data Specter uses comes directly from your own connected full node.
+				{{ _("Specter does not use the block explorer to get any data whatsoever. This setting is only to allow opening transactions and addresses in a block explorer directly from Specter. All data Specter uses comes directly from your own connected full node.") }}
 			</div>
 			<br>
-			Fees estimation source:<br>
+			{{ _("Fees estimation source") }}:<br>
 			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="mempool" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="mempool" %}checked{% endif %}>Mempool.space</label><br>
 			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  name="fee_estimator" value="bitcoin_core" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="bitcoin_core" %}checked{% endif %}>Bitcoin Core</label><br>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="custom" onclick="updateFeeEstimator()" id="fee_estimator_custom_option" {% if specter.fee_estimator=="custom" %}checked{% endif %}>Self hosted mempool.space</label>
+			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="custom" onclick="updateFeeEstimator()" id="fee_estimator_custom_option" {% if specter.fee_estimator=="custom" %}checked{% endif %}>{{ _("Self hosted mempool.space") }}</label>
 			<br>
 			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
 			<br><br>
 			{% if current_user.is_admin %}
-			Log Level:
+			{{ _("Log Level") }}:
 			<tool-tip title="Logging" style="float: right;">
-				Specter-Desktop created a Logfile in <code>{{ config.SPECTER_LOGFILE}}</code>. The Debug-Level will
-				create a lot of data, so make sure to avoid that if you don't have a reason.
+				{{ _("Specter-Desktop created a Logfile in") }} <code>{{ config.SPECTER_LOGFILE}}</code>. {{ _("The Debug-Level will create a lot of data, so make sure to avoid that if you don't have a reason.") }}
 			</tool-tip>
 			<br>
 			<select name="loglevel">
@@ -85,26 +82,25 @@
 			<br><br>
 			{% endif %}
 
-			Validate Merkle Proofs:
+			{{ _("Validate Merkle Proofs") }}:
 			<div class="note">
-			    Cannot enable when using a pruned bitcoin node
+			    {{ _("Cannot enable when using a pruned bitcoin node") }}
 			</div>
 			<div class="row">
 			    <label class="switch">
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
 				<span class="slider"></span>
 			    </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				<span class="note explorer-link" style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">What's this?</span>
+				<span class="note explorer-link" style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">{{ _("What's this?") }}</span>
 			</div>
 			<div class="warning hidden" id="merkle-info-details">
 				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-				 Specter-Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.<br><br>
-				However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain!
-				If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well.
+				{{ _('Specter-Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that displayed as confirmed have been included in the specified block hash.') }}<br><br>
+				{{ _("However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain! If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well.") }}
 			</div>
 			<br>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="save">Save</button>
+				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
 			</div>
 		</div>
 	</form>

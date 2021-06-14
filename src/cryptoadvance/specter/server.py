@@ -5,7 +5,8 @@ import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, request, url_for
+from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
 
@@ -71,6 +72,7 @@ def create_app(config=None):
     )
     csrf.init_app(app)
     app.csrf = csrf
+
     return app
 
 
@@ -141,6 +143,12 @@ def init_app(app, hwibridge=False, specter=None):
         if app.config["DEBUG"]:
             return dict(tor_service_id="", tor_enabled=False)
         return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
+
+    babel = Babel(app)
+
+    @babel.localeselector
+    def get_locale():
+        return request.accept_languages.best_match(app.config["LANGUAGES"].keys())
 
     return app
 

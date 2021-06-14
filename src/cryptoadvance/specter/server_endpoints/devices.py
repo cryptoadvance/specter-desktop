@@ -60,9 +60,9 @@ def new_device_keys(device_type):
         else:
             device_name = request.form.get("device_name", "")
             if not device_name:
-                err = "Device name must not be empty"
+                err = _("Device name cannot be empty")
             elif device_name in app.specter.device_manager.devices_names:
-                err = "Device with this name already exists"
+                err = _("Device with this name already exists")
         xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
         keys = []
         paths = []
@@ -80,12 +80,12 @@ def new_device_keys(device_type):
                 try:
                     keys.append(Key.parse_xpub(xpub, purpose=purpose))
                 except:
-                    err = "Failed to parse these xpubs:\n" + "\n".join(xpub)
+                    err = _("Failed to parse these xpubs") + ":\n" + "\n".join(xpub)
                     break
         if not keys and not err:
             if device_type in ["bitcoincore", "elementscore"]:
                 if not paths:
-                    err = "No paths were specified, please provide at lease one."
+                    err = _("No paths were specified, please provide at least one.")
                 if err is None:
                     if existing_device:
                         device.add_hot_wallet_keys(
@@ -128,7 +128,9 @@ def new_device_keys(device_type):
                         )
                     except Exception as e:
                         handle_exception(e)
-                        flash(f"Failed to setup hot wallet. Error: {e}", "error")
+                        flash(
+                            _("Failed to setup hot wallet. Error") + f": {e}", "error"
+                        )
                         app.specter.device_manager.remove_device(
                             device,
                             app.specter.wallet_manager,
@@ -136,7 +138,7 @@ def new_device_keys(device_type):
                             chain=app.specter.chain,
                         )
             else:
-                err = "xpubs list must not be empty"
+                err = _("xpubs list must not be empty")
         elif not err:
             if existing_device:
                 device.add_keys(keys)
@@ -189,14 +191,16 @@ def new_device_mnemonic(device_type):
     existing_device = None
     if request.method == "POST":
         if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
-            err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+            err = _(
+                "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+            )
         mnemo = Mnemonic("english")
         if not mnemo.check(request.form["mnemonic"]):
-            err = "Invalid mnemonic entered."
+            err = _("Invalid mnemonic entered.")
         range_start = int(request.form["range_start"])
         range_end = int(request.form["range_end"])
         if range_start > range_end:
-            err = "Invalid address range selected."
+            err = _("Invalid address range selected.")
         mnemonic = request.form["mnemonic"]
         passphrase = request.form["passphrase"]
         file_password = request.form["file_password"]
@@ -238,7 +242,7 @@ def device_blinding_key(device_alias):
         device = app.specter.device_manager.get_by_alias(device_alias)
     except:
         return render_template(
-            "base.jinja", error="Device not found", specter=app.specter, rand=rand
+            "base.jinja", error=_("Device not found"), specter=app.specter, rand=rand
         )
     if not device:
         return redirect(url_for("index"))
@@ -247,7 +251,7 @@ def device_blinding_key(device_alias):
         blinding_key = request.form.get("blinding_key")
         device.set_blinding_key(blinding_key)
         if not new_device:
-            flash("Master blinding key was added successfully")
+            flash(_("Master blinding key was added successfully"))
         return redirect(
             url_for("devices_endpoint.device", device_alias=device.alias)
             + ("?newdevice=true" if new_device else "")
@@ -278,15 +282,15 @@ def new_device_manual():
         device_name = request.form["device_name"]
         if action == "newcolddevice":
             if not device_name:
-                err = "Device name must not be empty"
+                err = _("Device name cannot be empty")
             elif device_name in app.specter.device_manager.devices_names:
-                err = "Device with this name already exists"
+                err = _("Device with this name already exists")
             xpubs = request.form["xpubs"]
             if not xpubs:
-                err = "xpubs name must not be empty"
+                err = _("xpubs name cannot be empty")
             keys, failed = Key.parse_xpubs(xpubs)
             if len(failed) > 0:
-                err = "Failed to parse these xpubs:\n" + "\n".join(failed)
+                err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
             if err is None:
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=keys
@@ -296,18 +300,22 @@ def new_device_manual():
                 )
         elif action == "newhotdevice":
             if not device_name:
-                err = "Device name must not be empty"
+                err = _("Device name cannot be empty")
             elif device_name in app.specter.device_manager.devices_names:
-                err = "Device with this name already exists"
+                err = _("Device with this name already exists")
             if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
-                err = "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+                err = _(
+                    "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+                )
+
+            # TODO: Support for multi-language mnemonic phrases
             mnemo = Mnemonic("english")
             if not mnemo.check(request.form["mnemonic"]):
-                err = "Invalid mnemonic entered."
+                err = _("Invalid mnemonic entered.")
             range_start = int(request.form["range_start"])
             range_end = int(request.form["range_end"])
             if range_start > range_end:
-                err = "Invalid address range selected."
+                err = _("Invalid address range selected.")
             if err is None:
                 mnemonic = request.form["mnemonic"]
                 paths = [
@@ -336,7 +344,7 @@ def new_device_manual():
                     )
                 except Exception as e:
                     handle_exception(e)
-                    flash(f"Failed to setup hot wallet. Error: {e}", "error")
+                    flash(_("Failed to setup hot wallet. Error") + f": {e}", "error")
                     app.specter.device_manager.remove_device(
                         device,
                         app.specter.wallet_manager,
@@ -370,7 +378,7 @@ def device(device_alias):
         device = app.specter.device_manager.get_by_alias(device_alias)
     except:
         return render_template(
-            "base.jinja", error="Device not found", specter=app.specter, rand=rand
+            "base.jinja", error=_("Device not found"), specter=app.specter, rand=rand
         )
     if not device:
         return redirect(url_for("index"))
@@ -379,8 +387,14 @@ def device(device_alias):
         action = request.form["action"]
         if action == "forget":
             if len(wallets) != 0:
-                err = "Device could not be removed since it is used in wallets: {}.<br>You must delete those wallets before you can remove this device.<br>You can delete a wallet from its Settings -> Advanced page.".format(
-                    [wallet.name for wallet in wallets]
+                err = (
+                    _("Device could not be removed since it is used in wallets")
+                    + ": {}.<br>".format([wallet.name for wallet in wallets])
+                    + _(
+                        "You must delete those wallets before you can remove this device."
+                    )
+                    + "<br>"
+                    + _("You can delete a wallet from its Settings -> Advanced page.")
                 )
             else:
                 app.specter.device_manager.remove_device(
@@ -394,19 +408,25 @@ def device(device_alias):
             key = Key.from_json({"original": request.form["key"]})
             wallets_with_key = [w for w in wallets if key in w.keys]
             if len(wallets_with_key) != 0:
-                err = "Key could not be removed since it is used in wallets: {}.<br>You must delete those wallets before you can remove this key.<br>You can delete a wallet from its Settings -> Advanced page.".format(
-                    ", ".join([wallet.name for wallet in wallets_with_key])
+                err = (
+                    _("Key could not be removed since it is used in wallets")
+                    + ": {}.<br>".format(
+                        ", ".join([wallet.name for wallet in wallets_with_key])
+                    )
+                    + _("You must delete those wallets before you can remove this key.")
+                    + "<br>"
+                    + _("You can delete a wallet from its Settings -> Advanced page.")
                 )
             else:
                 device.remove_key(key)
         elif action == "rename":
             device_name = request.form["newtitle"]
             if not device_name:
-                flash("Device name must not be empty", "error")
+                flash(_("Device name cannot be empty"), "error")
             elif device_name == device.name:
                 pass
             elif device_name in app.specter.device_manager.devices_names:
-                flash("Device already exists", "error")
+                flash(_("Device already exists"), "error")
             else:
                 device.rename(device_name)
         elif action == "add_keys":

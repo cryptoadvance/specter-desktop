@@ -104,6 +104,12 @@ class BaseConfig(object):
         },
     }
 
+    # Babel config
+    LANGUAGES = {"en": "English", "es": "Español"}
+    PHRASEAPP_ENABLED = True
+    PHRASEAPP_PREFIX = "{{__"
+    PHRASEAPP_SUFFIX = "__}}"
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
