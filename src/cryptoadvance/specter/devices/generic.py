@@ -8,9 +8,6 @@ class GenericDevice(Device):
     sd_card_support = True
     qr_code_support = True
 
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
-
     def create_psbts(self, base64_psbt, wallet):
         # in QR codes keep only xpubs
         qr_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=True)

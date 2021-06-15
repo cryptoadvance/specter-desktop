@@ -13,9 +13,6 @@ class Electrum(Device):
     qr_code_support = True
     qr_code_animate = "off"
 
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
-
     def create_psbts(self, base64_psbt, wallet):
         # remove non_witness utxo for QR code
         updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
