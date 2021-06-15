@@ -5,6 +5,13 @@
 
   If the QR code data is larger than 300 bytes it will enable "click to animate" feature.
   If the QR code data is larger than 2300 bytes it will switch to animated-only mode.
+
+  Optional attributes:
+  `frame-rate="3"` - set framerate of the QR codes animation in fps.
+  `animate="auto"` - animation behaviour:
+  - `auto` - animate automatically after 2300 bytes, will remain static before that size.
+  - `on` - animate by default even if QR code size is reasonably small, can be stopped on click.
+  - `off` - don't animate by default even if QR code is too large, can be animated on click.
 -->
 <template id="qr-code">
   <style>
