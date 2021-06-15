@@ -20,3 +20,13 @@ class Jade(HWIDevice):
     @classmethod
     def enumerate(cls, *args, **kwargs):
         return enumerate(*args, **kwargs)
+
+    def has_key_types(self, wallet_type, network="main"):
+        if wallet_type == "multisig":
+            return False
+        return super().has_key_types(wallet_type, network)
+
+    def no_key_found_reason(self, wallet_type, network="main"):
+        if wallet_type == "multisig":
+            return "Jade does not yet support multisig wallets."
+        return super().no_key_found_reason(wallet_type, network)

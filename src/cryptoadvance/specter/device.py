@@ -124,8 +124,6 @@ class Device:
 
     def has_key_types(self, wallet_type, network="main"):
         if wallet_type == "multisig":
-            if self.device_type == "jade":
-                return False
             for key_type in self.key_types(network):
                 if key_type in ["", "sh-wsh", "wsh"]:
                     return True
@@ -136,8 +134,6 @@ class Device:
         return "" in self.key_types(network)
 
     def no_key_found_reason(self, wallet_type, network="main"):
-        if self.device_type == "jade":
-            return "Jade does not yet support multisig wallets."
         if self.has_key_types(wallet_type, network=network):
             return ""
         reverse_network = "main" if is_testnet(network) else "test"
