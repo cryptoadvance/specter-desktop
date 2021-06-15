@@ -7,11 +7,8 @@ class Jade(HWIDevice):
     name = "Jade"
     icon = "jade_icon.svg"
 
-    supports_hwi_toggle_passphrase = True
-    supports_hwi_multisig_display_address = True
-
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        HWIDevice.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
+    supports_hwi_toggle_passphrase = False
+    supports_hwi_multisig_display_address = False
 
     @classmethod
     def get_client(cls, *args, **kwargs):
