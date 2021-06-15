@@ -14,7 +14,7 @@ When Github Desktop starts up it'll ask you to log in to your github account. If
 ### Clone the Specter Desktop repo
 Now you're going to grab a copy of the full Specter Desktop source code, which includes the translation files.
 
-Open the Github Desktop app and add the Specter Desktop repo via "Clone a Repository". On the "URL" tab type in -"cryptoadvance/specter-desktop"- (for now we have to point to my work-in-progress repo) "kdmukai/specter-desktop":
+Open the Github Desktop app and add the Specter Desktop repo via "Clone a Repository". On the "URL" tab type in ~~"cryptoadvance/specter-desktop"~~ (**for now we have to point to my work-in-progress repo: "kdmukai/specter-desktop"**):
 
 <img src="img/add_repo.png">
 
@@ -55,11 +55,13 @@ Add or update translations, then save your changes.
 
 
 ### Submitting your changes
-The updated `messages.po` file should now show up in Github Desktop as having changes.
+The updated `messages.po` file should now show up in Github Desktop as having changes. 
 
 <img src="img/github_desktop_1.png">
 
-*_The next steps will break from typical `git` procedures in order to keep things simple for our non-programmer translators._*
+_Note: You'll see the app offering to "create a fork". Do not create a fork! We want your local copy of the Specter Desktop code to remain connected to our repo, not a forked version that you'll have to manage._
+
+**_The next steps will break from typical `git` procedures in order to keep things simple for our non-programmer translators._**
 
 In a web browser go to github's latest version of the translation file you were just working on. Remember that the directories are organized by the two-letter language codes. So for Spanish ("es"):
 [https://github.com/kdmukai/specter-desktop/tree/babel_integration/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](https://github.com/kdmukai/specter-desktop/tree/babel_integration/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)
@@ -70,7 +72,7 @@ Click on the pencil icon to edit the translation file:
 
 You can now directly edit the file. But we want to use the version you just updated in Poedit.
 
-On your computer, navigate to the `messages.po` file and open it with a simple text editor (macOS: TextEdit; win: Notepad). We have to make sure that the text editor doesn't change the file when it opens it (more complex editors might try to reformat the file). Copy the entire contents of the file.
+On your computer, navigate to the `messages.po` file and open it with a simple text editor (macOS: TextEdit; Windows: Notepad). We have to make sure that the text editor doesn't change the file when it opens it (more complex editors might try to reformat the file). Copy the entire contents of the file.
 
 Back in your browser, delete all the content in the editing window (click into the editing area and CTRL-A to select all, then delete), then paste your latest text into the online editing window.
 
