@@ -125,11 +125,11 @@
 										</div>
 										<div id="local-node-help-popup" class="hidden">
 											<h1>{{ _('Connecting Specter to your local Bitcoin Core node') }}</h1>
-											<p>{{ _("If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.<br>
-											In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.<br>
-											Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.<br><br>
-											<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.<br>
-											If you don't have that, add it and restart Bitcoin Core.") }}"
+											<p>{{ _("If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.") }}<br>
+											{{ _("In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.") }}<br>
+											{{ _("Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.") }}<br><br>
+											{{ _("<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.") }}<br>
+											{{ _("If you don't have that, add it and restart Bitcoin Core.") }}"
 											</p>
 											<br><br>
 											{{ _("In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop") }}:<br><br>
@@ -143,11 +143,11 @@
 											<h1>{{ _("Connecting Specter to your remote Bitcoin Core node") }}</h1>
 											<h3>{{ _('Connecting to a "node in a box"') }}</h3>
 											<p style="font-size: 1.05em;">
-												{{ _("Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy.<br>
-												RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually.<br><br>
-												If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually.") }}"
+												{{ _("Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy.") }}<br>
+												{{ _("RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually.") }}<br><br>
+												{{ _("If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually.") }}"
 											</p>
-											<h3>Connecting over Tor</h3>
+											<h3>{{ _("Connecting over Tor") }}</h3>
 											<p style="font-size: 1.05em;">{{ _("Connecting over Tor requires that you first configure Tor on your local machine.") }}<br>
 											You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;" target="_blank">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" target="_blank" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" target="_blank" style="color: #fff;">Window</a><br>
 											</p>
@@ -206,7 +206,7 @@
 					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">Help wanted: Do you like Specter?</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
 					<div class="spacer"></div>
 					<div class="footer">
-						Supported and maintained by:<br>
+						{{ _("Supported and maintained by") }}:<br>
 						<a href="https://specter.solutions/" target="_blank" style="color: #fff;">
 							Specter.Solutions
 						</a>

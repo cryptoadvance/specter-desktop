@@ -144,11 +144,14 @@ def init_app(app, hwibridge=False, specter=None):
             return dict(tor_service_id="", tor_enabled=False)
         return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
+    # --------------------- Babel integration ---------------------
     babel = Babel(app)
 
     @babel.localeselector
     def get_locale():
         return request.accept_languages.best_match(app.config["LANGUAGES"].keys())
+
+    # --------------------- Babel integration ---------------------
 
     return app
 

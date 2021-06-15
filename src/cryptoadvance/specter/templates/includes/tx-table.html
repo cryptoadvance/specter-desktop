@@ -96,7 +96,7 @@
         <button
             type="button"
             class="txlist-view-btn btn radio left">
-            History
+            {{ _("History") }}
         </button>
         <button
             type="button"
@@ -106,7 +106,7 @@
     </nav>
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
@@ -125,51 +125,51 @@
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="button" class="btn freeze-tx-btn">
                 <tool-tip title="Freezing UTXOs">
-                    Freezing a UTXO will make Specter disallow spending it.<br><br>
-                    This is useful especially for dealing with dust attack, where you don't want to accidentally spend the dust received.
+                    {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}"
                 </tool-tip>&nbsp;&nbsp;
                 Un/Freeze UTXOs
             </button>
         </form>
         <form class="compose-tx-form" method="POST">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="button" class="btn compose-tx-btn">Create new transaction</button>
+            <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
         </form>
     </div>
     <div class="export-container hidden">
-        <h1>Export transactions to CSV</h1>
+        <h1>{{ _("Export transactions to CSV") }}</h1>
         <div class="{% if not specter.price_check or not (specter.alt_rate and specter.alt_symbol) %}hidden{% endif %}">
-        Fetch historical price data:
+        {{ _("Fetch historical price data") }}:
         <label class="switch">
         <input type="checkbox" class="export-prices">
         <span class="slider"></span>
         </label><br><br>
         <div class="note">
-            If enabled, specter will try to fetch historical prices for each transaction date from the configured price provider.
-            <br><b>This has privacy implications!</b>
+            {{ _("If enabled, specter will try to fetch historical prices for each transaction date from the configured price provider.") }}
+            <br><b>{{ _("This has privacy implications!") }}</b>
         </div><br>
         </div>
-        <a class="export btn" download>Export</a>
+        <a class="export btn" download>{{ _("Export") }}</a>
     </div>
     <table class="tx-table">
         <thead>
             <tr>
                 <th value="category" class="category-header"><div class="category-arrow"></div></th>
                 <th value="txid" class="optional txid-header">TxID<div class="txid-arrow"></div></th>
-                <th value="label" class="optional label-header">Label<div class="label-arrow"></div></th>
-                <th value="amount" class="amount-header">Amount<div class="amount-arrow"></div></th>
-                <th value="time" class="time-header">Time<div class="time-arrow up-arrow"></div></th>
-                <th value="confirmations" class="confirmations-header">Confirmations<div class="confirmations-arrow"></div></th>
+                <th value="label" class="optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
+                <th value="amount" class="amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
+                <th value="time" class="time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                <th value="confirmations" class="confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                 <th value="blockhash" class="optional hidden blockhash-header">
                     {% include "includes/merkletooltip.html" %}
-                    Block Hash
+                    {{ _("Block Hash") }}
                 </th>
-                <th style="width: 50px; padding: 10px;"><button type="button" class="export-btn btn" style="width: 50px;">Export</button></th>
+                <th style="width: 50px; padding: 10px;"><button type="button" class="export-btn btn" style="width: 50px;">{{ _("Export") }}</button></th>
             </tr>
     </thead>
     <tr class="empty">
         <td></td>
-        <td>Fetching transactions...</td>
+        <td>{{ _("Fetching transactions...") }}</td>
         <td class="optional"></td>
         <td class="optional"></td>
         <td></td>
@@ -481,11 +481,11 @@
         self.callId++;
         // Clean up from existing transaction list
         self.summaryRow.classList.add('hidden');
-        self.emptyRow.children[1].innerText = "Fetching transactions...";
+        self.emptyRow.children[1].innerText = '{{ _("Fetching transactions...") }}';
         self.emptyRow.classList.remove('hidden');
         self.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
         if (!self.listType) {
-            self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
+            self.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }}';
             return
         }
 
@@ -518,7 +518,7 @@
                 break
             default:
                 self.export.href = ``
-                self.emptyRow.children[1].innerText = "Failed to fetch transactions...";
+                self.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }} ';
                 return
         }
 
@@ -592,7 +592,7 @@
                     // Show empty row if no transaction found
                     if (self.pageCount == 0 || txlist.length == 0) {
                         self.emptyRow.classList.remove('hidden');
-                        self.emptyRow.children[1].innerText = "No transactions found...";
+                        self.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
                         self.pageCount = 1;
                     } else {
                         self.emptyRow.classList.add('hidden');
@@ -654,10 +654,10 @@
                 }
                 return
             };
-            showError('Failed to fetch transactions list.')
+            showError('{{ _("Failed to fetch transactions list.") }}')
         } catch(e) {
             console.log("Caught error: ", e);
-            showError(`Failed to fetch transactions list: ${e}`);
+            showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
         }
     }
 
@@ -682,7 +682,7 @@
             </tx-data>`;
             showPageOverlay('tx-popup');
         } else {
-            copyText(txid, `Copied transaction: ${ txid }`);
+            copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
         }
     }
 

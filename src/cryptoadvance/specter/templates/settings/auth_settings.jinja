@@ -7,30 +7,30 @@
 		{{ settings_menu('auth', current_user) }}
 		<div class="card" style="margin: 20px auto;">
 			{% if method == "none" or current_user.is_admin %}
-				Authentication:<br>
+				{{ _("Authentication") }}:<br>
 				<select name="method" onchange="toggleUsernamePassword(this)">
-					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>None</option>
-					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>Password Protection</option>
-					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>Multiple Users</option>
-					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.node.autodetect %}disabled{% endif %}{% endif %}>RPC password as Pin</option>
+					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>{{ _("None") }}</option>
+					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>{{ _("Password Protection") }}</option>
+					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>{{ _("Multiple Users") }}</option>
+					<option value="rpcpasswordaspin" {% if method=="rpcpasswordaspin" %} selected="selected"{% else %}{% if specter.rpc is none or specter.node.autodetect %}disabled{% endif %}{% endif %}>{{ _("RPC password as Pin") }}</option>
 				</select>
 				<br><br>
 			{% endif %}
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
-				Rate Limiting (seconds between login/register attempts):<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
+				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
 			</div>
 			<div id="passwordonly" class="{% if method != 'passwordonly' %}hidden{% endif %}">
-				Specter Password:<br><input id="specter_password_only" type="password" name="specter_password_only" placeholder="Set new password">
-				<br><span class="note">(default: admin)</span><br>
+				{{ _("Specter Password") }}:<br><input id="specter_password_only" type="password" name="specter_password_only" placeholder="Set new password">
+				<br><span class="note">({{ _("default") }}: admin)</span><br>
 				<br>
 			</div>
 			<div id="usernamepassword" class="{% if method != 'usernamepassword' %}hidden{% endif %}">
 				{% if current_user.is_admin %}
-					Registration Link Timeout (hours):<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
-					<span class="note">Default is username: admin, password: admin.</span><br>
+					{{ _("Registration Link Timeout (hours)") }}:<br><input id="registration_link_timeout" type="number" name="registration_link_timeout" min="0" step="1" value="{{ registration_link_timeout }}"><br><br>
+					<span class="note">{{ _("Default username is 'admin', password 'admin'.") }}</span><br>
 				{% endif %}
-				Specter Username:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
-				Specter Password:<br><input id="specter_password" type="password" name="specter_password" type="text" placeholder="Set new password"><br>
+				{{ _("Specter Username") }}:<br><input id="specter_username" type="text" name="specter_username" type="text" value="{{ current_user.username }}"><br><br>
+				{{ _("Specter Password") }}:<br><input id="specter_password" type="password" name="specter_password" type="text" placeholder="Set new password"><br>
 				<br><br>
 				{% if users %}
 					<h2>Users:</h2>
@@ -38,9 +38,9 @@
 						<form action="?" method="POST">
 							<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
-								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>Username:</b> {{ user.username }}</span>
+								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>{{ _("Username") }}:</b> {{ user.username }}</span>
 								<br class="mobile-only">
-								<button type="submit" name="action" value="deleteuser" style="float: right; max-width: 250px;" class="btn danger">Delete User</button>
+								<button type="submit" name="action" value="deleteuser" style="float: right; max-width: 250px;" class="btn danger">{{ _("Delete User") }}</button>
 								<input type="hidden" name="deleteuser" value="{{ user.id }}">
 								<br class="mobile-only">
 								<br class="mobile-only">
@@ -50,12 +50,12 @@
 				{% endif %}
 			</div>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="save">Save</button>
+				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
 			</div>
 			{% if method == "usernamepassword" and current_user.is_admin %}
 			<br>
 			<div id="generateregistrationlink" class="row{% if method != 'usernamepassword' %} hidden{% endif %}">
-				<button type="submit" class="btn" name="action" value="adduser">Generate New Registration Link</button>
+				<button type="submit" class="btn" name="action" value="adduser">{{ _("Generate New Registration Link") }}</button>
 			</div>
 			{% endif %}
 		</div>
