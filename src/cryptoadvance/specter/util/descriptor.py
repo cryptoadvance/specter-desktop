@@ -280,7 +280,7 @@ class Descriptor:
         elif self.sh_wsh:
             return "sh-wsh"
         elif self.sh:
-            return "sh-wsh"
+            return "sh"
         else:
             return "pkh"
 
