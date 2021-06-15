@@ -2,6 +2,7 @@ import logging
 import re
 from embit import bip32, ec, networks, script
 from embit.liquid.networks import get_network
+from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.specter_error import SpecterError
 
 # Based on hwilib by achow101: https://github.com/bitcoin-core/HWI/blob/1.2.1/hwilib/descriptor.py which is from
@@ -432,8 +433,6 @@ class Descriptor:
         return AddChecksum(descriptor_open + base + descriptor_close)
 
     def parse_signers(self, devices, cosigners_types):
-        from cryptoadvance.specter.key import Key
-
         keys = []
         cosigners = []
         unknown_cosigners = []
