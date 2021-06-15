@@ -37,11 +37,11 @@ class JadeSerialImpl:
         logger.info("Connected")
 
     def disconnect(self):
-        assert self.ser is not None
-        self.ser.__exit__()
+        if self.ser is not None:
+            self.ser.__exit__()
 
-        # Reset state
-        self.ser = None
+            # Reset state
+            self.ser = None
 
     def write(self, bytes_):
         assert self.ser is not None

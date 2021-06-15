@@ -100,8 +100,18 @@ class JadeClient(HardwareWalletClient):
 
         # Do the PIN thing if required
         # NOTE: uses standard 'requests' networking to connect to blind pinserver
-        while not self.jade.auth_user(self._network()):
-            logging.debug("Incorrect PIN provided")
+        try:
+            while not self.jade.auth_user(self._network()):
+                logging.debug("Incorrect PIN provided")
+        except:
+            try:
+                self.chain = Chain.TEST
+                while not self.jade.auth_user(self._network()):
+                    logging.debug("Incorrect PIN provided")
+            except:
+                self.chain = Chain.REGTEST
+                while not self.jade.auth_user(self._network()):
+                    logging.debug("Incorrect PIN provided")
 
     # Retrieves the public key at the specified BIP 32 derivation path
     @jade_exception
