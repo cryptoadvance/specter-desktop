@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     bc libevent-2.1-7
 
 # Stuff needed for Elements (compilation)
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install  --no-install-recommends -y bsdmainutils libboost-test-dev libboost-filesystem-dev libboost-thread-dev libsqlite3-dev git
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install  --no-install-recommends -y bsdmainutils libboost-test-dev libboost-filesystem-dev libboost-thread-dev libsqlite3-dev git libevent-pthreads-2.1-7
 
 
 WORKDIR /test
