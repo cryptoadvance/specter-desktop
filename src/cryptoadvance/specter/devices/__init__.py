@@ -7,6 +7,7 @@ from .bitbox02 import BitBox02
 from .keepkey import Keepkey
 from .specter import Specter
 from .cobo import Cobo
+from .jade import Jade
 from .generic import GenericDevice
 from .electrum import Electrum
 from .bitcoin_core import BitcoinCore
@@ -21,6 +22,7 @@ __all__ = [
     ColdCard,
     Keepkey,
     Cobo,
+    Jade,
     Electrum,
     BitcoinCore,
     ElementsCore,
