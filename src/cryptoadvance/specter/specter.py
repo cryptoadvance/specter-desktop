@@ -190,6 +190,10 @@ class Specter:
     def utxorescanwallet(self):
         return self.node.utxorescanwallet
 
+    @utxorescanwallet.setter
+    def utxorescanwallet(self, value):
+        self.node.utxorescanwallet = value
+
     @property
     def config(self):
         """A convenience property simply redirecting to the config_manager"""
