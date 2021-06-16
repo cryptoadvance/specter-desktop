@@ -1,11 +1,11 @@
 describe('Send transactions from wallets', () => {
     it('Freeze and unfreeze UTXO', () => {
         cy.viewport(1200,660)
-        cy.task("node:mine")
+        cy.task("btc:mine")
         cy.wait(10000)
-        cy.task("node:mine")
+        cy.task("btc:mine")
         cy.wait(10000)
-        cy.task("node:mine")
+        cy.task("btc:mine")
         cy.wait(10000)
 
         cy.visit('/wallets/wallet/test_hot_wallet_1/history')

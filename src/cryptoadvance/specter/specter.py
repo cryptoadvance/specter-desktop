@@ -176,6 +176,8 @@ class Specter:
         try:
             return self.node_manager.active_node
         except SpecterError as e:
+            logger.error("SpecterError while accessing active_node")
+            logger.exception(e)
             self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
             return self.node_manager.active_node
 
@@ -660,6 +662,7 @@ class Specter:
                 "mainnet",
                 "0.20.1",
             )
+            logger.info(f"persisting {internal_node} in migrate_old_node_format")
             write_node(
                 internal_node,
                 os.path.join(
@@ -685,6 +688,7 @@ class Specter:
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
                 self,
             )
+            logger.info(f"persisting {node} in migrate_old_node_format")
             write_node(
                 node,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
