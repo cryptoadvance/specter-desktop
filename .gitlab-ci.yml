@@ -1,6 +1,6 @@
 # this image contains python, bitcoind and docker
 # check docker/python-bitcoind on how it's built
-image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
+image: registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
 
 variables:
   # Cache documentation: https://docs.gitlab.com/ee/ci/caching/
@@ -39,6 +39,7 @@ test:
  # tem deactivated as it did not work as expected
  #only:
  #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
+ image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
@@ -48,7 +49,7 @@ test:
    - py.test --cov-report term --cov cryptoadvance --docker
 
 test-cypress:
-  image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:focal
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
   stage: testing
   script:
     # start the server in the background
