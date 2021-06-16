@@ -1,4 +1,4 @@
-## v1.4.4 June 16, 2021
+## v1.4.5 June 16, 2021
 - Feature: Add Blockstream Jade support #1234 (benk10)
 - Feature: Add SeedSigner device #1225 (Stepan Snigirev)
 - Feature: Show Liquid icon on node manager #1224 (benk10)
