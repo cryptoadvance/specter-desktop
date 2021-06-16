@@ -19,14 +19,12 @@ stages:
   - releasing
 
 before_script:
-  - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
   - docker info || echo "no docker-command found" # Print out docker version for debugging
   - echo CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
   - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-  - ./tests/install_bitcoind.sh --debug --bitcoin compile
   - ./tests/install_bitcoind.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
@@ -41,7 +39,6 @@ before_script:
  # tem deactivated as it did not work as expected
  #only:
  #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
- image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
@@ -51,14 +48,14 @@ before_script:
    - py.test --cov-report term --cov cryptoadvance --docker
 
 .test-cypress:
-  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:20210424
   stage: testing
   script:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
     - npm i
-    - ./utils/test-cypress.sh --debug run
+    - ./utils/test-cypress.sh --docker --debug run
     - docker ps || echo "probably no docker available anyway"
   artifacts:
     when: always
