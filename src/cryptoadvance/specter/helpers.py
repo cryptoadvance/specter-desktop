@@ -241,18 +241,24 @@ def generate_mnemonic(strength=256):
     return words
 
 
-def wallet_type_by_derivation(derivation):
-    simple_derivation = derivation.replace("'", "").replace("h", "")
-    if simple_derivation.startswith("m/49"):
+def wallet_type_by_slip132_xpub(xpub):
+    """
+    see: https://github.com/satoshilabs/slips/blob/master/slip-0132.md
+    Electrum backups use SLIP-132 but note that other wallets don't make the same
+    guarantee.
+    """
+    if xpub.startswith("xpub") or xpub.startswith("tpub"):
+        return "sh"
+    elif xpub.startswith("ypub") or xpub.startswith("upub"):
         return "sh-wpkh"
-    elif simple_derivation.startswith("m/84"):
+    elif xpub.startswith("zpub") or xpub.startswith("vpub"):
         return "wpkh"
-    elif simple_derivation.startswith("m/48") and simple_derivation.endswith("/1"):
+    elif xpub.startswith("Ypub") or xpub.startswith("Upub"):
         return "sh-wsh"
-    elif simple_derivation.startswith("m/48") and simple_derivation.endswith("/2"):
+    elif xpub.startswith("Zpub") or xpub.startswith("Vpub"):
         return "wsh"
     else:
-        raise Exception(f"Unrecognized derivation: {derivation}")
+        raise Exception(f"Unhandled xpub type: {xpub}")
 
 
 def parse_wallet_data_import(wallet_data):
@@ -280,10 +286,10 @@ def parse_wallet_data_import(wallet_data):
             i += 1
         xpubs = xpubs.rstrip(",")
 
-        if "derivation" in wallet_data["x1/"]:
-            wallet_type = wallet_type_by_derivation(wallet_data["x1/"]["derivation"])
+        if "xpub" in wallet_data["x1/"]:
+            wallet_type = wallet_type_by_slip132_xpub(wallet_data["x1/"]["xpub"])
         else:
-            raise Exception('"derivation" not found in "x1/" in Electrum backup json')
+            raise Exception('"xpub" not found in "x1/" in Electrum backup json')
 
         required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
         recv_descriptor = "{}(sortedmulti({}, {}))".format(
@@ -295,14 +301,10 @@ def parse_wallet_data_import(wallet_data):
     elif "keystore" in wallet_data:
         wallet_name = wallet_data["keystore"]["label"]
 
-        if "derivation" in wallet_data["keystore"]:
-            wallet_type = wallet_type_by_derivation(
-                wallet_data["keystore"]["derivation"]
-            )
+        if "xpub" in wallet_data["keystore"]:
+            wallet_type = wallet_type_by_slip132_xpub(wallet_data["keystore"]["xpub"])
         else:
-            raise Exception(
-                '"derivation" not found in "keystore" in Electrum backup json'
-            )
+            raise Exception('"xpub" not found in "keystore" in Electrum backup json')
         recv_descriptor = "{}({})".format(
             wallet_type,
             "[{}]{}/0/*,".format(

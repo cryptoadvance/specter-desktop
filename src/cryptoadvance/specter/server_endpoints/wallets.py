@@ -149,9 +149,7 @@ def new_wallet(wallet_type):
                 #   has it but Electrum backup does not.
                 if "descriptor" in wallet_data:
                     wallet_data["descriptor"] = (
-                        wallet_data.get("descriptor")
-                        .replace("\\'", "")
-                        .replace("'", "h")
+                        wallet_data["descriptor"].replace("\\'", "").replace("'", "h")
                     )
 
                 (
