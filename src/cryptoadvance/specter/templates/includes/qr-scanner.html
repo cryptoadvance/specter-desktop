@@ -101,7 +101,7 @@ class QRScannerElement extends HTMLElement {
         let re2 = /UR:BYTES\/(\d+)OF(\d+)\/(.*)/;
         let p2 = result.match(re2);
         // check if it is a bcur2 fountain stuff
-        // expected: crypto-account, crypto-psbt
+        // expected: crypto-psbt
         let re3 = /UR:CRYPTO-(.*)/;
         let p3 = result.match(re3);
         if(p3){

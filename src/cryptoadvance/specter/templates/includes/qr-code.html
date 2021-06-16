@@ -370,7 +370,7 @@ class QRCodeElement extends HTMLElement {
       // supported: crypto-psbt only for now
       if(value.startsWith("crypto-psbt:")){
         let payload = value.split(":")[1];
-        let data = window.buffer.Buffer.from(payload, "base64");
+        let data = window.URlib.default.from_base64(payload);
         this.urdata = new window.URlib.CryptoPSBT(data);
         this.encoder = this.urdata.toUREncoder();
         let firstPart = this.encoder.nextPart().toUpperCase();
