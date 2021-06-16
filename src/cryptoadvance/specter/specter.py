@@ -53,6 +53,7 @@ class Specter:
 
     # use this lock for all fs operations
     lock = threading.Lock()
+    _default_asset = None
 
     def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
         if data_folder.startswith("~"):
@@ -490,6 +491,16 @@ class Specter:
         deep_update(asset_labels, node_assets)
         deep_update(asset_labels, user_assets)
         return asset_labels
+
+    @property
+    def default_asset(self):
+        """returns hash of LBTC"""
+        if self._default_asset is None:
+            for asset, lbl in self.asset_labels.items():
+                if lbl == "LBTC":
+                    self._default_asset = asset
+                    return asset
+        return self._default_asset
 
     def asset_label(self, asset):
         if asset == "":

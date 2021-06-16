@@ -621,8 +621,8 @@ def send_new(wallet_alias):
                         amount = 0.0
                     amounts.append(amount)
                     unit = request.form["amount_unit_{}".format(i)]
-                    if unit in ["sat", "btc"]:
-                        unit = app.specter.asset_labels.get("bitcoin", None)
+                    if app.specter.is_liquid and unit in ["sat", "btc"]:
+                        unit = app.specter.default_asset
                     amount_units.append(unit)
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
