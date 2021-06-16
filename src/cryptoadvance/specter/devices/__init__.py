@@ -5,6 +5,7 @@ from .ledger import Ledger
 from .bitbox02 import BitBox02
 from .keepkey import Keepkey
 from .specter import Specter
+from .keystone import Keystone
 from .cobo import Cobo
 from .jade import Jade
 from .generic import GenericDevice
@@ -21,6 +22,7 @@ __all__ = [
     Specter,
     ColdCard,
     Keepkey,
+    Keystone,
     Cobo,
     Jade,
     SeedSignerDevice,
