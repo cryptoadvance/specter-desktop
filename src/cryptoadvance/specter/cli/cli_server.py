@@ -256,7 +256,10 @@ def server(
     # check if we should run a daemon or not
     if daemon or restart:
         print("Starting server in background...")
-        print(" * Running on %s://%s:%d/" % (protocol, host, port))
+        protocol = "http"
+        if "ssl_context" in kwargs:
+            protocol = "https"
+        print(" * Running on %s://%s:%d/" % (protocol, host, app.config["PORT"]))
         # macOS + python3.7 is buggy
         if sys.platform == "darwin" and (
             sys.version_info.major == 3 and sys.version_info.minor < 8
