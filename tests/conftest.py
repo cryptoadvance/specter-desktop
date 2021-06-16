@@ -16,6 +16,9 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
 from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
     BitcoindDockerController,
 )
+from cryptoadvance.specter.process_controller.elementsd_controller import (
+    ElementsPlainController,
+)
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 
@@ -88,9 +91,41 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
     return bitcoind_controller
 
 
+def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
+    if os.path.isfile("tests/elements/src/elementsd"):
+        elementsd_controller = ElementsPlainController(
+            elementsd_path="tests/elements/src/elementsd", rpcport=rpcport
+        )  # always prefer the self-compiled bitcoind if existing
+    elif os.path.isfile("tests/elements/bin/elementsd"):
+        elementsd_controller = ElementsPlainController(
+            elementsd_path="tests/elements/bin/elementsd", rpcport=rpcport
+        )  # next take the self-installed binary if existing
+    else:
+        elementsd_controller = ElementsPlainController(
+            rpcport=rpcport
+        )  # Alternatively take the one on the path for now
+    elementsd_controller.start_elementsd(
+        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+    )
+    running_version = elementsd_controller.version()
+    requested_version = request.config.getoption("--elementsd-version")
+    assert running_version == requested_version, (
+        "Please make sure that the elementsd-version (%s) matches with the version in pytest.ini (%s)"
+        % (running_version, requested_version)
+    )
+    return elementsd_controller
+
+
 @pytest.fixture(scope="module")
 def bitcoin_regtest(docker, request):
-    return instantiate_bitcoind_controller(docker, request, extra_args=None)
+    bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+    yield bitcoind_regtest
+    bitcoin_regtest: BitcoindPlainController.stop_bitcoind()
+
+
+@pytest.fixture(scope="module")
+def elements_elreg(request):
+    return instantiate_elementsd_controller(request, extra_args=None)
 
 
 @pytest.fixture
@@ -267,8 +302,6 @@ def device_manager(devices_filled_data_folder):
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = "./test_specter_data_3456778"
-    shutil.rmtree(data_folder, ignore_errors=True)
     config = {
         "rpc": {
             "autodetect": False,
@@ -287,7 +320,6 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     specter.check()
     assert not specter.wallet_manager.working_folder is None
     yield specter
-    shutil.rmtree(data_folder, ignore_errors=True)
 
 
 @pytest.fixture

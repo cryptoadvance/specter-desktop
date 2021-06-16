@@ -1539,16 +1539,17 @@ class Wallet:
         psbt = PSBT.from_string(b64psbt)
 
         if non_witness:
-            for i, inp in enumerate(psbt.tx.vin):
-                txid = psbt.tx.vin[0].txid.hex()
+            for inp in psbt.inputs:
+                # we don't need to fill what is already filled
+                if inp.non_witness_utxo is not None:
+                    continue
+                txid = inp.txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    psbt.inputs[i].non_witness_utxo = Transaction.from_string(
-                        res["hex"]
-                    )
-                except:
+                    inp.non_witness_utxo = Transaction.from_string(res["hex"])
+                except Exception as e:
                     logger.error(
-                        "Can't find previous transaction in the wallet. Signing might not be possible for certain devices..."
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
                     )
         else:
             # remove non_witness_utxo if we don't want them

@@ -287,7 +287,7 @@ def noded(
     echo(f"user, password: { my_node.rpcconn.rpcuser }, secret")
     echo(f"    host, port: localhost, {my_node.rpcconn.rpcport}")
     echo(
-        f"   {node_impl}-cli: {node_impl}-cli -regtest -rpcport={my_node.rpcconn.rpcport} -rpcuser={ node_impl } -rpcpassword=secret getblockchaininfo "
+        f"   {node_impl}-cli: {node_impl}-cli -regtest -rpcport={my_node.rpcconn.rpcport} -rpcuser={ my_node.rpcconn.rpcuser } -rpcpassword=secret getblockchaininfo "
     )
 
     if create_conn_json:
@@ -296,6 +296,7 @@ def noded(
         conn["specter_data_folder"] = config_obj[
             "SPECTER_DATA_FOLDER"
         ]  # e.g. cypress might want to know where we're mining to
+        conn[f"{node_impl}_data_dir"] = data_dir
         conn_file = f"{'btcd' if node_impl == 'bitcoin' else 'elmd'}-conn.json"
         with open(conn_file, "w") as file:
             file.write(json.dumps(conn))
