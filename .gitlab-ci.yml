@@ -32,7 +32,7 @@ before_script:
   - virtualenv --python=python3 .env
   - source .env/bin/activate
 
-test:
+.test:
  stage: testing
  # We assume here that people who want to get code into the master-branch are
  # relying on PRs and people who are working on gitlab-forks are working
@@ -50,7 +50,7 @@ test:
    # - python3 tests/conftest.py 
    - py.test --cov-report term --cov cryptoadvance --docker
 
-test-cypress:
+.test-cypress:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:latest
   stage: testing
   script:
