@@ -19,6 +19,7 @@ stages:
   - releasing
 
 before_script:
+  - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
   - docker info || echo "no docker-command found" # Print out docker version for debugging
   - echo CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
   - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
