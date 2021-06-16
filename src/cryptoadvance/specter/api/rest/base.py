@@ -8,7 +8,7 @@ from cryptoadvance.specter.api import auth
 
 
 class BaseResource(Resource):
-    """ A baseClass for rsources which returns Method not allowed by default """
+    """A baseClass for rsources which returns Method not allowed by default"""
 
     def get(self, *args, **kwargs):
         abort(405)
@@ -27,17 +27,17 @@ class BaseResource(Resource):
 
 
 class SecureResource(BaseResource):
-    """ A REST-resource which makes sure that the user is Authenticated """
+    """A REST-resource which makes sure that the user is Authenticated"""
 
     method_decorators = [auth.login_required]
 
 
 class AdminResource(BaseResource):
-    """ A REST-resource which makes sure that the user is an admin """
+    """A REST-resource which makes sure that the user is an admin"""
 
     method_decorators = [require_admin]
 
 
 def rest_resource(resource_cls):
-    """ Decorator for adding resources to Api App """
+    """Decorator for adding resources to Api App"""
     api_rest.add_resource(resource_cls, *resource_cls.endpoints)

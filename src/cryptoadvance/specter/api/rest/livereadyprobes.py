@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @rest_resource
 class ResourceLiveness(BaseResource):
-    """ /api/healthz/liveness """
+    """/api/healthz/liveness"""
 
     endpoints = ["/healthz/liveness"]
 
@@ -24,7 +24,7 @@ class ResourceLiveness(BaseResource):
 
 @rest_resource
 class ResourceReadyness(BaseResource):
-    """ /api/healthz/readyness """
+    """/api/healthz/readyness"""
 
     endpoints = ["/healthz/readyness"]
 

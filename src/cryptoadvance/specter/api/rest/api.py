@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @rest_resource
 class ResourceSpecter(SecureResource):
-    """ /api/v1alpha/specter """
+    """/api/v1alpha/specter"""
 
     endpoints = ["/v1alpha/specter"]
 
@@ -60,7 +60,7 @@ class ResourceSpecter(SecureResource):
 
 @rest_resource
 class ResourceTXlist(SecureResource):
-    """ /api/v1alpha/full_txlist """
+    """/api/v1alpha/full_txlist"""
 
     endpoints = ["/v1alpha/full_txlist/"]
 
@@ -92,7 +92,7 @@ class ResourceTXlist(SecureResource):
 
 @rest_resource
 class ResourceWallet(SecureResource):
-    """ /api/v1alpha/wallet_info/<wallet_alias>/ """
+    """/api/v1alpha/wallet_info/<wallet_alias>/"""
 
     endpoints = ["/v1alpha/wallet_info/<wallet_alias>/"]
 

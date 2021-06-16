@@ -34,10 +34,11 @@ def verify_password(username, password):
 
 
 def require_admin(func):
-    """ User needs Admin-rights method decorator """
+    """User needs Admin-rights method decorator"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        """ this needs to get implemented properly """
+        """this needs to get implemented properly"""
         # Verify if User is Admin
         app.logger.debug("User is :" + str(g.user))
         if g.user == None:
