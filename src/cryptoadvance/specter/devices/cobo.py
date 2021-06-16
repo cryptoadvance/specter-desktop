@@ -22,9 +22,6 @@ class Cobo(ColdCard):
     exportable_to_wallet = True
     wallet_export_type = "qr"
 
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
-
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
         # make sure nonwitness and xpubs are not there

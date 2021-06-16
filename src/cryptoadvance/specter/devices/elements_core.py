@@ -14,9 +14,6 @@ class ElementsCore(BitcoinCore):
     bitcoin_core_support = False
     liquid_support = True
 
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        BitcoinCore.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
-
     def add_hot_wallet_keys(
         self,
         mnemonic,
