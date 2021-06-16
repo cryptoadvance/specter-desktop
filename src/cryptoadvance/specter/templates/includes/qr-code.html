@@ -374,7 +374,7 @@ class QRCodeElement extends HTMLElement {
           // if this is bc-ur, remove checksum for static QR
           value = this.maybe_remove_checksum(value);
         }
-        if(this.mode == 'on'){
+        if((this.mode == 'on') && (this.chunks.length > 1)){
           this.animate = true;
           value = this.chunks[0];
           this.idx = 0;
