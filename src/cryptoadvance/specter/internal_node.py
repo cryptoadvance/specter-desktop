@@ -65,17 +65,16 @@ class InternalNode(Node):
                 "/testnet3"
             ):
                 self.datadir = os.path.join(self.datadir, "testnet3")
-                write_node(self, self.fullpath)
             elif self.bitcoind_network == "regtest" and not self.datadir.endswith(
                 "/regtest"
             ):
                 self.datadir = os.path.join(self.datadir, "regtest")
-                write_node(self, self.fullpath)
             elif self.bitcoind_network == "signet" and not self.datadir.endswith(
                 "/signet"
             ):
                 self.datadir = os.path.join(self.datadir, "signet")
-                write_node(self, self.fullpath)
+            logger.info(f"persisting {self} in __init__")
+            write_node(self, self.fullpath)
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):

@@ -38,7 +38,7 @@ def test_elements(caplog):
         print(result.exception, file=sys.stderr)
     assert result.exit_code == 0
     assert (
-        "elements-cli: elements-cli -regtest -rpcport=18555 -rpcuser=elements -rpcpassword=secret getblockchaininfo"
+        "elements-cli: elements-cli -regtest -rpcport=18555 -rpcuser=liquid -rpcpassword=secret getblockchaininfo"
         in result.output
     )
     # This might take a lot of time because we're waiting on the bitcoind to terminate
