@@ -241,29 +241,33 @@ def generate_mnemonic(strength=256):
     return words
 
 
-def wallet_type_by_slip132_xpub(xpub):
+def wallet_type_by_slip132_xpub(xpub, is_multisig=True):
     """
     see: https://github.com/satoshilabs/slips/blob/master/slip-0132.md
     Electrum backups use SLIP-132 but note that other wallets don't make the same
     guarantee.
     """
-    if xpub.startswith("xpub") or xpub.startswith("tpub"):
-        return "sh"
-    elif xpub.startswith("ypub") or xpub.startswith("upub"):
-        return "sh-wpkh"
-    elif xpub.startswith("zpub") or xpub.startswith("vpub"):
-        return "wpkh"
-    elif xpub.startswith("Ypub") or xpub.startswith("Upub"):
-        return "sh-wsh"
-    elif xpub.startswith("Zpub") or xpub.startswith("Vpub"):
-        return "wsh"
+    if is_multisig:
+        if xpub.startswith("xpub") or xpub.startswith("tpub"):
+            return "sh"
+        elif xpub.startswith("Ypub") or xpub.startswith("Upub"):
+            return "sh-wsh"
+        elif xpub.startswith("Zpub") or xpub.startswith("Vpub"):
+            return "wsh"
     else:
-        raise Exception(f"Unhandled xpub type: {xpub}")
+        if xpub.startswith("xpub") or xpub.startswith("tpub"):
+            return "pkh"
+        elif xpub.startswith("ypub") or xpub.startswith("upub"):
+            return "sh-wpkh"
+        elif xpub.startswith("zpub") or xpub.startswith("vpub"):
+            return "wpkh"
+    raise Exception(f"Unhandled xpub type: {xpub}")
 
 
 def parse_wallet_data_import(wallet_data):
     """Parses wallet JSON for import, takes JSON in a supported format
-    and returns a tuple of wallet name, wallet descriptor, and cosigners types (electrum and newer Specter backups)
+    and returns a tuple of wallet name, wallet descriptor, and cosigners types (electrum
+    and newer Specter backups).
     Supported formats: Specter, Electrum, Account Map (Fully Noded, Gordian, Sparrow etc.)
     """
     cosigners_types = []
@@ -302,7 +306,9 @@ def parse_wallet_data_import(wallet_data):
         wallet_name = wallet_data["keystore"]["label"]
 
         if "xpub" in wallet_data["keystore"]:
-            wallet_type = wallet_type_by_slip132_xpub(wallet_data["keystore"]["xpub"])
+            wallet_type = wallet_type_by_slip132_xpub(
+                wallet_data["keystore"]["xpub"], is_multisig=False
+            )
         else:
             raise Exception('"xpub" not found in "keystore" in Electrum backup json')
         recv_descriptor = "{}({})".format(
