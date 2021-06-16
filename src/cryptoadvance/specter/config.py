@@ -130,6 +130,10 @@ class CypressTestConfig(TestConfig):
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_btc_regtest_plain_datadir"
     )
 
+    BTCD_REGTEST_DATA_DIR = os.getenv(
+        "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
+    )
+
 
 class ProductionConfig(BaseConfig):
     SECRET_KEY = secrets.token_urlsafe(16)

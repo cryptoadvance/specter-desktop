@@ -409,6 +409,9 @@ class LiquidRPC(BitcoinRPC):
             logger.warn(f"Failed at unblinding transaction: {e}")
         return obj
 
+    def __repr__(self) -> str:
+        return f"<LiquidRpc {self.url}>"
+
     @classmethod
     def from_bitcoin_rpc(cls, rpc):
         """Convert BitcoinRPC to LiquidRPC"""
