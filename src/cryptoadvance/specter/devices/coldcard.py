@@ -1,3 +1,4 @@
+import logging
 import urllib
 from .sd_card_device import SDCardDevice
 from ..util.xpub import get_xpub_fingerprint
@@ -6,6 +7,8 @@ from embit.psbt import PSBT, DerivationPath
 from embit import bip32
 from binascii import b2a_base64, a2b_base64
 from collections import OrderedDict
+
+logger = logging.getLogger(__name__)
 
 CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
 
@@ -19,14 +22,9 @@ class ColdCard(SDCardDevice):
     wallet_export_type = "file"
     supports_hwi_multisig_display_address = True
 
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        SDCardDevice.__init__(self, name, alias, keys, blinding_key, fullpath, manager)
-
     def create_psbts(self, base64_psbt, wallet):
-        psbts = SDCardDevice.create_psbts(self, base64_psbt, wallet)
-        psbts["sdcard"] = wallet.fill_psbt(
-            psbts["sdcard"], non_witness=False, xpubs=True
-        )
+        psbts = super().create_psbts(base64_psbt, wallet)
+        psbts["sdcard"] = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=True)
         return psbts
 
     def export_wallet(self, wallet):

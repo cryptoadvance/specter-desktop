@@ -12,6 +12,9 @@ bitbox02==5.3.0 \
     --hash=sha256:797e6904d431f6d2ef711f169e7ce8fffc125cc8c5b3efb8187fd451f45635e1 \
     --hash=sha256:fe0e8aeb9b32fd7d76bb3e9838895973a74dfd532a8fb8ac174a1a60214aee26
     # via hwi
+cbor==1.0.0 \
+    --hash=sha256:13225a262ddf5615cbd9fd55a76a0d53069d18b07d2e9f19c39e6acb8609bbb6
+    # via -r requirements.in
 certifi==2019.9.11 \
     --hash=sha256:e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50 \
     --hash=sha256:fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef
@@ -97,8 +100,8 @@ ecdsa==0.16.1 \
     # via
     #   bitbox02
     #   hwi
-embit==0.4.1 \
-    --hash=sha256:0d4df81f8bddb2b5e6529bb8a26db872e54ce89d59593acbb4f71a7c0d03e476
+embit==0.4.2 \
+    --hash=sha256:d67fc0f7fbdb7588c3eb24441bf8e05770056260bc8e5537399a1b3ce5ccf12a
     # via -r requirements.in
 flask-cors==3.0.9 \
     --hash=sha256:6bcfc100288c5d1bcb1dbb854babd59beee622ffd321e444b05f24d6d58466b8 \

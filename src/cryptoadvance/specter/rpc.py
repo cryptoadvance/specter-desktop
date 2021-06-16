@@ -208,6 +208,7 @@ class RpcError(Exception):
             self.error_code = error["error"]["code"]
             self.error_msg = error["error"]["message"]
         except Exception as e:
+            self.error_code = -99
             self.error = "UNKNOWN API-ERROR:%s" % response.text
 
 
@@ -351,6 +352,9 @@ class BitcoinRPC:
             return r["result"]
 
         return fn
+
+    def __repr__(self) -> str:
+        return f"<BitcoinRpc {self.url}>"
 
 
 if __name__ == "__main__":

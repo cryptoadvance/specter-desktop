@@ -1,3 +1,14 @@
+## v1.4.4 June 16, 2021
+- Feature: Add Blockstream Jade support #1234 (benk10)
+- Feature: Add SeedSigner device #1225 (Stepan Snigirev)
+- Feature: Show Liquid icon on node manager #1224 (benk10)
+- Bugfix: `non_witness_utxo` hash mismatch problem #1235 (Stepan Snigirev)
+- Bugfix: RPC-password as pin for multiple nodes #1231 (Kim Neunert)
+- Bugfix: Missing prop setter bugfix #1228 (kdmukai)
+- Bugfix: "NameError: name 'protocol' is not defined" #1229 (DerM007)
+- Chore: Elements testing #1212 (Kim Neunert)
+
+
 ## v1.4.3 June 10, 2021
 - Bugfix: add some liquid fixes #1194 (Stepan Snigirev)
 - Feature: Fully unblind liquid transactions sent by Specter #1220 (Stepan Snigirev)

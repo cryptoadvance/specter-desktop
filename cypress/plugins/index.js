@@ -19,12 +19,14 @@ const fs = require('fs');
 
 module.exports = (on, config) => {
   // `config` is the resolved Cypress config
-  const conn_file = fs.readFileSync('btcd-conn.json');
-  const conn = JSON.parse(conn_file);
+  const btc_conn_file = fs.readFileSync('btcd-conn.json');
+  const btc_conn = JSON.parse(btc_conn_file);
+  const elm_conn_file = fs.readFileSync('elmd-conn.json');
+  const elm_conn = JSON.parse(elm_conn_file);
   on('task', {
     'clear:specter-home': () => {
-      console.log('Removing and recreating Specter-data-folder %s', conn["specter_data_folder"])
-      const specter_home=conn["specter_data_folder"];
+      console.log('Removing and recreating Specter-data-folder %s', btc_conn["specter_data_folder"])
+      const specter_home=btc_conn["specter_data_folder"];
       var rimraf = require("rimraf");
       rimraf.sync(specter_home);
       fs.mkdirSync(specter_home);
@@ -36,11 +38,32 @@ module.exports = (on, config) => {
   })
 
   on('task', {
-    'node:mine': () => {
+    'delete:elements-hotwallet': (name) => {
+      console.log('connection details: %s', elm_conn)
+      const elements_data_dir=elm_conn["elements_data_dir"];
+      var rimraf = require("rimraf");
+      console.log('Removing all wallets in %s', elements_data_dir+"/elreg/wallets/specter123456_hotstorage")
+      rimraf.sync(elements_data_dir+"/elreg/wallets/specter123456_hotstorage");
+      return null
+    }
+  })
+
+  on('task', {
+    'btc:mine': () => {
       // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets
       // See the signal-handler in bitcoind
-      console.log('Sending SIGUSR1 to '+conn["pid"])
-      process.kill(parseInt(conn["pid"], 10), 'SIGUSR1');
+      console.log('Sending SIGUSR1 to '+btc_conn["pid"]+ ' to mine some btc')
+      process.kill(parseInt(btc_conn["pid"], 10), 'SIGUSR1');
+      return null
+    }
+  })
+
+  on('task', {
+    'elm:mine': () => {
+      // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets
+      // See the signal-handler in bitcoind
+      console.log('Sending SIGUSR1 to '+elm_conn["pid"] + ' to mine some lbtc')
+      process.kill(parseInt(elm_conn["pid"], 10), 'SIGUSR1');
       return null
     }
   })
