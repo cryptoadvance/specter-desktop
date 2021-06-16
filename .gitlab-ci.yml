@@ -25,6 +25,7 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
+  - ./tests/install_bitcoind.sh --debug --bitcoin compile
   - ./tests/install_bitcoind.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
@@ -56,7 +57,7 @@ test-cypress:
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
     - npm i
-    - ./utils/test-cypress.sh --docker --debug run
+    - ./utils/test-cypress.sh --debug run
     - docker ps || echo "probably no docker available anyway"
   artifacts:
     when: always
