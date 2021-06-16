@@ -30,3 +30,5 @@ btcd-conn.json
 tests/bitcoin
 tests/bitcoin.binary
 tests/bitcoin.compile
+bla
+blub
