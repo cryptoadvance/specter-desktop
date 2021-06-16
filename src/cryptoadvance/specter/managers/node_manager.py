@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 class NodeManager:
     # chain is required to manage wallets when bitcoind is not running
+    DEFAULT_ALIAS = "default"
+
     def __init__(
         self,
         proxy_url="socks5h://localhost:9050",
@@ -70,7 +72,7 @@ class NodeManager:
                 host="localhost",
                 protocol="http",
                 external_node=True,
-                default_alias="default",
+                default_alias=self.DEFAULT_ALIAS,
             )
         else:
             self.nodes = nodes
@@ -86,6 +88,9 @@ class NodeManager:
     def switch_node(self, node_alias):
         # this will throw an error if the node doesn't exist
         self._active_node = self.get_by_alias(node_alias).alias
+
+    def default_node(self):
+        return self.get_by_alias(self.DEFAULT_ALIAS)
 
     def get_by_alias(self, alias):
         for node_name in self.nodes:

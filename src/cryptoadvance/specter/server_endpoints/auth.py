@@ -35,8 +35,11 @@ def login():
             return redirect_login(request)
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
-            if app.specter.rpc is None:
-                if app.specter.node.password == request.form["password"]:
+            if (
+                app.specter.default_node.rpc is None
+                or not app.specter.default_node.rpc.test_connection()
+            ):
+                if app.specter.default_node.password == request.form["password"]:
                     app.login("admin")
                     app.logger.info(
                         "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
@@ -55,7 +58,7 @@ def login():
                     ),
                     401,
                 )
-            rpc = app.specter.rpc.clone()
+            rpc = app.specter.default_node.rpc.clone()
             rpc.password = request.form["password"]
             if rpc.test_connection():
                 app.login("admin")
