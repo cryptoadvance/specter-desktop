@@ -17,7 +17,7 @@ from ..util.shell import which, get_last_lines_from_file
 from ..rpc import RpcError
 from ..rpc import BitcoinRPC
 from ..helpers import load_jsons
-from ..specter_error import ExtProcTimeoutException
+from ..specter_error import ExtProcTimeoutException, SpecterError
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 from requests.exceptions import ConnectionError
 
@@ -119,7 +119,7 @@ class NodeController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
-            logger.warn(f"Reusing existing {self.node_impl}d")
+            logger.warning(f"Reusing existing {self.node_impl}d")
             return self.rpcconn
 
         logger.debug(f"Starting {self.node_impl}d")
@@ -228,7 +228,9 @@ class NodeController:
         logger.debug("balance:" + str(balance))
         default_address = default_rpc.getnewaddress("")
         if self.node_impl == "elements":
-            default_address = rpc.getaddressinfo(default_address)["unconfidential"]
+            default_address = default_rpc.getaddressinfo(default_address)[
+                "unconfidential"
+            ]
         if balance < amount:
             rpc.generatetoaddress(102, default_address)
         default_rpc.sendtoaddress(address, amount)
@@ -373,7 +375,7 @@ class NodePlainController(NodeController):
         )
         time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
-            raise Exception(f"Could not start node due to:" + self.get_debug_log())
+            raise SpecterError(f"Could not start node due to:" + self.get_debug_log())
         logger.debug(
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )

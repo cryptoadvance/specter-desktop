@@ -100,8 +100,13 @@ class WalletManager:
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
             pathlib.Path(self.working_folder).mkdir(parents=True, exist_ok=True)
-        if rpc is not None:
+        if rpc is not None and rpc.test_connection():
             self.rpc = rpc
+        else:
+            if rpc:
+                logger.error(
+                    f"Prevented Trying to update wallet_Manager with broken {rpc}"
+                )
         self.wallets_update_list = {}
         if self.working_folder is not None and self.rpc is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
@@ -285,6 +290,21 @@ class WalletManager:
     @property
     def wallets_names(self):
         return sorted(self.wallets.keys())
+
+    @property
+    def rpc(self):
+        if not hasattr(self, "_rpc"):
+            return None
+        else:
+            return self._rpc
+
+    @rpc.setter
+    def rpc(self, value):
+        if hasattr(self, "_rpc") and self._rpc != value:
+            logger.debug(f"Updating WalletManager rpc {self._rpc} with {value}")
+        if hasattr(self, "_rpc") and value == None:
+            logger.debug(f"Updating WalletManager rpc {self._rpc} with None")
+        self._rpc = value
 
     def create_wallet(self, name, sigs_required, key_type, keys, devices):
         try:
