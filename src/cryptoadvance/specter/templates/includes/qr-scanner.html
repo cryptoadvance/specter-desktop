@@ -108,7 +108,9 @@ class QRScannerElement extends HTMLElement {
           this.bcur2decoder.receivePart(result);
           if(this.bcur2decoder.isComplete()){
             result = this.bcur2decoder.resultUR();
+            this.progress.innerHTML = "";
           }else{
+            this.progress.innerHTML = `Progress: ${this.bcur2decoder.getProgress()}%`;
             return;
           }
         } else if(p1 || p2) {
