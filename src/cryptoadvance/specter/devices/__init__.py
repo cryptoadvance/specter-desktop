@@ -11,6 +11,7 @@ from .generic import GenericDevice
 from .electrum import Electrum
 from .bitcoin_core import BitcoinCore
 from .elements_core import ElementsCore
+from .seedsigner import SeedSignerDevice
 
 # all device types
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     Keepkey,
     Cobo,
     Jade,
+    SeedSignerDevice,
     Electrum,
     BitcoinCore,
     ElementsCore,
