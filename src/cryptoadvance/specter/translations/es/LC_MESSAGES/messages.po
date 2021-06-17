@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-14 22:35-0500\n"
-"PO-Revision-Date: 2021-06-16 11:29-0500\n"
+"PO-Revision-Date: 2021-06-18 00:55+0200\n"
 "Last-Translator: \n"
 "Language: es\n"
 "Language-Team: es <LL@li.org>\n"
@@ -358,7 +358,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:176
 msgid "Create your first wallet!"
-msgstr ""
+msgstr "Crea tu primer monedero!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "And when you are all set: Get the whitepaper from the timechain."
