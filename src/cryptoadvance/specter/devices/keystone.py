@@ -1,3 +1,4 @@
+from . import DeviceTypes
 from .cobo import Cobo
 from ..helpers import to_ascii20
 from ..util.xpub import get_xpub_fingerprint
@@ -5,7 +6,7 @@ from binascii import b2a_base64
 
 
 class Keystone(Cobo):
-    device_type = "keystone"
+    device_type = DeviceTypes.KEYSTONE
     name = "Keystone"
     icon = "keystone_icon.svg"
 

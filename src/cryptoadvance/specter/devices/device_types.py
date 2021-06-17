@@ -12,3 +12,4 @@ class DeviceTypes:
     SEEDSIGNER = "seedsigner"
     SPECTERDIY = "specter"
     TREZOR = "trezor"
+    KEYSTONE = "keystone"
