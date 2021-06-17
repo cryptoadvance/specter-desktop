@@ -148,7 +148,7 @@
             } else {
                 this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
                 if("assetlabel" in this.tx){
-                    this.amountText.innerHTML += ` <span title="${this.tx.asset}" style="cursor:help">${this.tx.assetlabel}</span>`;
+                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
                 }
             }
 

@@ -11,8 +11,10 @@
             max-width: 80%;
             outline: none;
         }
-
-        .edit {
+        .help{
+            cursor: help;
+        }
+        .edit, .cancel, .update {
             background: none;
             border: none;
             padding: 0;
@@ -20,21 +22,6 @@
             width: 18px;
             cursor: pointer;
         }
-        .cancel, .update {
-            background: var(--cmap-border);
-            border: 1px solid transparent;
-            border-radius: 4px;
-            padding: 8px 15px 8px 10px;
-            color: #fff;
-            font-size: 0.75em;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            min-height: 33px;
-            margin-left: 5px;
-        }
-
         .hidden {
             display: none;
         }
@@ -42,13 +29,23 @@
         .svg-white {
             filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
         }
+        .hover .btn.edit{
+            visibility: hidden;
+        }
+        .hover:hover .btn.edit{
+            visibility: visible;
+        }
+        img{
+            width: 22px;
+            margin-bottom:-5px;
+        }
     </style>
     <form class="asset-label-form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <span class="label" autocomplete="off" spellcheck="false">Fetching asset label...</span>
-        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" style="width: 22px; margin-bottom:-5px;" class="svg-white"/></button>
-        <button type="button" class="btn update hidden">Update</button>
-        <button type="button" class="btn cancel hidden">Cancel</button>
+        <span class="label help" autocomplete="off" spellcheck="false">Fetching asset label...</span>
+        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" class="svg-white"/></button>
+        <button type="button" class="btn update hidden"><img src="{{ url_for('static', filename='img/checkbox-tick.svg') }}" />&nbsp;</button>
+        <button type="button" class="btn cancel hidden"><img src="{{ url_for('static', filename='img/cross_thick.svg') }}" class="svg-white"/></button>
     </form>
 </template>
 
@@ -73,6 +70,18 @@
         connectedCallback() {
             this.asset = this.getAttribute('data-asset');
             this.labelValue = this.getAttribute('data-label');
+            // edit-mode can be 'hover', 'disabled', 'enabled'
+            this.mode = this.getAttribute('edit-mode');
+            console.log(this.mode);
+            if(!this.mode){
+                this.mode = 'hover';
+            }
+            if(this.mode == 'disabled'){
+                this.edit.classList.add('hidden');
+            }else if(this.mode == 'hover'){
+                this.el.classList.add('hover');
+            }
+            console.log(this.mode);
             this.label.title = this.asset;
             this.isEditing = false;
 
@@ -100,7 +109,16 @@
                 event.preventDefault();
                 document.execCommand('inserttext', false, event.clipboardData.getData('text/plain'));
             });
-
+            this.label.addEventListener("keypress", (event) => {
+              // Number 13 is the "Enter" key on the keyboard
+              if (event.keyCode === 13) {
+                // Cancel the default action, if needed
+                event.preventDefault();
+                this.label.innerText = this.label.innerText.replaceAll("\n","");
+                // Trigger the button element with a click
+                this.update.click();
+              }
+            });
             this.edit.onclick = () => {
                 this.label.setAttributeNode(document.createAttribute('contenteditable'));
                 if (this.isTitle) {
@@ -109,9 +127,18 @@
                 this.label.style['border-bottom'] = '1px solid #ccc';
                 this.labelValue = this.label.innerText;
                 this.edit.classList.add('hidden');
+                this.label.classList.remove('help')
                 this.cancel.classList.remove('hidden');
                 this.update.classList.remove('hidden');
                 this.isEditing = true;
+                // focus
+                this.label.focus();
+                // select content
+                let sel = window.getSelection();
+                let range = document.createRange();
+                range.selectNodeContents(this.label);
+                sel.removeAllRanges();
+                sel.addRange(range);
             }
 
             this.cancel.onclick = () => {
@@ -136,7 +163,7 @@
                 }
             }
         
-            this.addEventListener("updateAssetLabel", function (e) {
+            document.addEventListener("updateAssetLabel", (e) => {
                 if (this.asset != e.detail.asset) {
                     return
                 }
@@ -157,6 +184,7 @@
             }
             this.label.style.border = 'none';
             this.edit.classList.remove('hidden');
+            this.label.classList.add('help')
             this.cancel.classList.add('hidden');
             this.update.classList.add('hidden');
             this.isEditing = false;

@@ -77,7 +77,7 @@
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
 					{% if "asset" in psbt %}
-						Sending <b>{{ psbt["amount"][i] | btcamount }}</b> {{ psbt["asset"][i] | assetlabel }}
+						Sending <b>{{ psbt["amount"][i] | btcamount }}</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}
 						Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
 						{% if specter.unit == 'sat' %}
@@ -155,7 +155,7 @@
 							{% if specter.is_liquid %}
 								{% set amount = psbt['inputs'][loop.index0].get('value', -1) %}
 								{% set asset = psbt['inputs'][loop.index0].get('asset', "") %}
-								<b>Amount:</b> {{ amount|btcamount }} {{ asset | assetlabel }}
+								<b>Amount:</b> {{ amount|btcamount }} <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
 							{% else %}
 								{% set amount = psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1) %}
 								<b>Amount:</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}

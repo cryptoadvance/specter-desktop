@@ -43,7 +43,7 @@
 					{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
 					<span style="margin: 0 10px;">
 						{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-						<span title="{{asset}}" style="cursor: help;">{{asset | assetlabel}}</span>
+						<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
 					</span>
 				{% endfor %}
 			</span>
