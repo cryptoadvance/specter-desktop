@@ -33,16 +33,16 @@
 			<h1>Unknown cosigners devices:</h1>
 			<p>These devices will be added automatically to your list of devices. Click on a device to add information about it.</p>
 			<div class="row overflow">
-				{% for unknown_cosigner in unknown_cosigners %}
+				{% for (unknown_cosigner, label) in unknown_cosigners %}
 					<div class="small-card radio" onclick="showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')">
 						<img src="{{ url_for('static', filename='img/devices/' ~ unknown_cosigners_types[loop.index0] ~ '_icon.svg') }}" width="18px">
-						<input id="unknown_cosigner_{{ loop.index0 }}_name_input" type="hidden" name="unknown_cosigner_{{ loop.index0 }}_name" value="{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}">
+						<input id="unknown_cosigner_{{ loop.index0 }}_name_input" type="hidden" name="unknown_cosigner_{{ loop.index0 }}_name" value="{% if label %}{{ label }}{% else %}{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}{% endif %}">
 						<input type="hidden" name="unknown_cosigner_{{ loop.index0 }}_type" value="{{ unknown_cosigners_types[loop.index0] }}">
-						<span id="unknown_cosigner_{{ loop.index0 }}_name">{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}</span>
+						<span id="unknown_cosigner_{{ loop.index0 }}_name">{% if label %}{{ label }}{% else %}{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}{% endif %}</span>
 					</div>
 					<div id="unknown_cosigner_{{ loop.index0 }}_details" class="hidden">
 						<h2>Cosigner name</h2><br>
-						<input onchange="document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText=this.value;document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value=this.value;" type="text" value="{{ wallet_name }} Cosigner {{ loop.index }}" placeholder="The cosigner device name">
+						<input onchange="document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText=this.value;document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value=this.value;" type="text" value="{% if label %}{{ label }}{% else %}{{ wallet_name }} Cosigner {{ loop.index }}{% endif %}" placeholder="The cosigner device name">
 						<br><br>
 						<h2>Cosigner Key</h2>
 <pre style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">{{ unknown_cosigner }}</pre><br>

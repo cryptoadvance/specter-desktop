@@ -27,6 +27,9 @@ cypress/videos
 cypress/screenshots
 node_modules
 btcd-conn.json
+elmd-conn.json
 tests/bitcoin
 tests/bitcoin.binary
 tests/bitcoin.compile
+bla
+blub

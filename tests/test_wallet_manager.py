@@ -1,11 +1,20 @@
 import json
+import logging
 import os
+import time
 
 import pytest
+from cryptoadvance.specter.helpers import (
+    is_testnet,
+    parse_wallet_data_import,
+    generate_mnemonic,
+)
 from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.devices import DeviceTypes
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.wallet import Wallet
 from conftest import instantiate_bitcoind_controller
 
@@ -341,4 +350,336 @@ def test_wallet_change_addresses(
     # See: https://github.com/bitcoin/bitcoin/issues/14654
 
 
-# TODO: Add more tests of the Wallet object
+def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured):
+    """
+    Single-sig wallets should be able to be backed up and re-imported with or without
+    the "devices" attr in the json backup.
+    """
+    caplog.set_level(logging.INFO)
+
+    device_manager = specter_regtest_configured.device_manager
+    wallet_manager = specter_regtest_configured.wallet_manager
+
+    device = device_manager.get_by_alias("trezor")
+    device_type = device.device_type
+
+    # Get the 'wkph' testnet key
+    for key in device.keys:
+        if key.key_type == "wpkh" and key.xpub.startswith("tpub"):
+            break
+
+    # create a wallet
+    wallet = wallet_manager.create_wallet(
+        name="my_test_wallet",
+        sigs_required=1,
+        key_type=key.key_type,
+        keys=[key],
+        devices=[device],
+    )
+
+    # Fund the wallet
+    address = wallet.getnewaddress()
+    wallet.rpc.generatetoaddress(101, address)
+
+    # update the wallet data
+    balance = wallet.get_balance()
+    assert balance["trusted"] > 0.0
+
+    # Save the json backup
+    wallet_backup = json.loads(wallet.account_map)
+    assert "devices" in wallet_backup
+
+    # Clear everything out as if we've never seen this wallet or device before
+    wallet_manager.delete_wallet(wallet)
+    device_manager.remove_device(device, wallet_manager=wallet_manager)
+    assert wallet.name not in wallet_manager.wallets_names
+    assert device.name not in device_manager.devices_names
+
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
+    (
+        wallet_name,
+        recv_descriptor,
+        cosigners_types,
+    ) = parse_wallet_data_import(wallet_backup)
+
+    descriptor = Descriptor.parse(
+        AddChecksum(recv_descriptor.split("#")[0]),
+        testnet=is_testnet(specter_regtest_configured.chain),
+    )
+
+    (
+        keys,
+        cosigners,
+        unknown_cosigners,
+        unknown_cosigners_types,
+    ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
+
+    device_name = cosigners_types[0]["label"]
+    assert device_name == "Trezor"
+    assert unknown_cosigners_types[0] == device_type
+
+    # Re-create the device
+    new_device = device_manager.add_device(
+        name=device_name,
+        device_type=unknown_cosigners_types[0],
+        keys=[unknown_cosigners[0][0]],
+    )
+
+    keys.append(unknown_cosigners[0][0])
+    cosigners.append(new_device)
+
+    wallet = wallet_manager.create_wallet(
+        name=wallet_name,
+        sigs_required=descriptor.multisig_M,
+        key_type=descriptor.address_type,
+        keys=keys,
+        devices=cosigners,
+    )
+
+    # Sync the new wallet in bitcoincore to its existing utxos.
+    wallet.rpc.rescanblockchain(0)
+
+    # We restored the wallet's utxos
+    assert wallet.get_balance()["trusted"] > 0.0
+
+    # Now do it again, but without the newer "devices" attr
+    del wallet_backup["devices"]
+
+    # Clear everything out as if we've never seen this wallet or device before
+    wallet_manager.delete_wallet(wallet)
+    device_manager.remove_device(device, wallet_manager=wallet_manager)
+    assert wallet.name not in wallet_manager.wallets_names
+    assert device.name not in device_manager.devices_names
+
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
+    (
+        wallet_name,
+        recv_descriptor,
+        cosigners_types,
+    ) = parse_wallet_data_import(wallet_backup)
+
+    descriptor = Descriptor.parse(
+        AddChecksum(recv_descriptor.split("#")[0]),
+        testnet=is_testnet(specter_regtest_configured.chain),
+    )
+
+    (
+        keys,
+        cosigners,
+        unknown_cosigners,
+        unknown_cosigners_types,
+    ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
+
+    assert len(cosigners_types) == 0
+    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+
+    # Re-create the device
+    new_device = device_manager.add_device(
+        name=device_name,
+        device_type=unknown_cosigners_types[0],
+        keys=[unknown_cosigners[0][0]],
+    )
+
+    keys.append(unknown_cosigners[0][0])
+    cosigners.append(new_device)
+
+    wallet = wallet_manager.create_wallet(
+        name=wallet_name,
+        sigs_required=descriptor.multisig_M,
+        key_type=descriptor.address_type,
+        keys=keys,
+        devices=cosigners,
+    )
+
+    # Sync the new wallet in bitcoincore to its existing utxos
+    wallet.rpc.rescanblockchain(0)
+
+    # We restored the wallet's utxos
+    assert wallet.get_balance()["trusted"] > 0.0
+
+
+def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
+    """
+    Multisig wallets should be able to be backed up and re-imported
+    with or without the "devices" attr in the json backup.
+    """
+    caplog.set_level(logging.INFO)
+
+    device_manager = specter_regtest_configured.device_manager
+    wallet_manager = specter_regtest_configured.wallet_manager
+
+    device = device_manager.get_by_alias("trezor")
+    device_type = device.device_type
+
+    # Get the multisig 'wsh' testnet key
+    for key in device.keys:
+        if key.key_type == "wsh" and key.xpub.startswith("tpub"):
+            break
+
+    # Create a pair of hot wallet signers
+    hot_wallet_1_device = device_manager.add_device(
+        name="hot_key_1", device_type=DeviceTypes.BITCOINCORE, keys=[]
+    )
+    hot_wallet_1_device.setup_device(file_password=None, wallet_manager=wallet_manager)
+    hot_wallet_1_device.add_hot_wallet_keys(
+        mnemonic=generate_mnemonic(strength=128),
+        passphrase="",
+        paths=["m/48h/1h/0h/2h"],
+        file_password=None,
+        wallet_manager=wallet_manager,
+        testnet=True,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    )
+    hot_wallet_2_device = device_manager.add_device(
+        name="hot_key_2", device_type=DeviceTypes.BITCOINCORE, keys=[]
+    )
+    hot_wallet_2_device.setup_device(file_password=None, wallet_manager=wallet_manager)
+    hot_wallet_2_device.add_hot_wallet_keys(
+        mnemonic=generate_mnemonic(strength=128),
+        passphrase="",
+        paths=["m/48h/1h/0h/2h"],
+        file_password=None,
+        wallet_manager=wallet_manager,
+        testnet=True,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    )
+
+    # create the multisig wallet
+    wallet = wallet_manager.create_wallet(
+        name="my_test_wallet",
+        sigs_required=2,
+        key_type=key.key_type,
+        keys=[key, hot_wallet_1_device.keys[0], hot_wallet_2_device.keys[0]],
+        devices=[device, hot_wallet_1_device, hot_wallet_2_device],
+    )
+
+    # Fund the wallet
+    address = wallet.getnewaddress()
+    wallet.rpc.generatetoaddress(101, address)
+
+    # update the wallet data
+    balance = wallet.get_balance()
+    assert balance["trusted"] > 0.0
+
+    # Save the json backup
+    wallet_backup = json.loads(wallet.account_map.replace("\\\\", "").replace("'", "h"))
+    assert "devices" in wallet_backup
+
+    # Clear everything out as if we've never seen this wallet or device before
+    wallet_manager.delete_wallet(wallet)
+    device_manager.remove_device(device, wallet_manager=wallet_manager)
+    assert wallet.name not in wallet_manager.wallets_names
+    assert device.name not in device_manager.devices_names
+
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
+    (
+        wallet_name,
+        recv_descriptor,
+        cosigners_types,
+    ) = parse_wallet_data_import(wallet_backup)
+
+    descriptor = Descriptor.parse(
+        AddChecksum(recv_descriptor.split("#")[0]),
+        testnet=is_testnet(specter_regtest_configured.chain),
+    )
+
+    (
+        keys,
+        cosigners,
+        unknown_cosigners,
+        unknown_cosigners_types,
+    ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
+
+    assert cosigners_types[0]["label"] == "Trezor"
+    assert cosigners_types[0]["type"] == device_type
+
+    assert cosigners_types[1]["label"] == "hot_key_1"
+    assert cosigners_types[1]["type"] == DeviceTypes.BITCOINCORE
+
+    assert cosigners_types[2]["label"] == "hot_key_2"
+    assert cosigners_types[2]["type"] == DeviceTypes.BITCOINCORE
+
+    # Re-create the Trezor device
+    new_device = device_manager.add_device(
+        name=unknown_cosigners[0][1],
+        device_type=unknown_cosigners_types[0],
+        keys=[unknown_cosigners[0][0]],
+    )
+    keys.append(unknown_cosigners[0][0])
+    cosigners.append(new_device)
+
+    wallet = wallet_manager.create_wallet(
+        name=wallet_name,
+        sigs_required=descriptor.multisig_M,
+        key_type=descriptor.address_type,
+        keys=keys,
+        devices=cosigners,
+    )
+
+    # Sync the new wallet in bitcoincore to its existing utxos
+    wallet.rpc.rescanblockchain(0)
+
+    # We restored the wallet's utxos
+    assert wallet.get_balance()["trusted"] > 0.0
+
+    # Now do it again, but without the newer "devices" attr
+    del wallet_backup["devices"]
+
+    # Clear everything out as if we've never seen this wallet or device before
+    wallet_manager.delete_wallet(wallet)
+    for device_names in device_manager.devices:
+        device = device_manager.devices[device_names]
+        device_manager.remove_device(device, wallet_manager=wallet_manager)
+    assert wallet.name not in wallet_manager.wallets_names
+    assert device.name not in device_manager.devices_names
+
+    # Parse the backed up wallet (code adapted from the new_wallet endpoint)
+    (
+        wallet_name,
+        recv_descriptor,
+        cosigners_types,
+    ) = parse_wallet_data_import(wallet_backup)
+
+    descriptor = Descriptor.parse(
+        AddChecksum(recv_descriptor.split("#")[0]),
+        testnet=is_testnet(specter_regtest_configured.chain),
+    )
+
+    (
+        keys,
+        cosigners,
+        unknown_cosigners,
+        unknown_cosigners_types,
+    ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
+
+    # Now we don't know any of the cosigners' types
+    assert len(cosigners_types) == 0
+    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+
+    # Re-create all three devices
+    for i, (unknown_cosigner_key, label) in enumerate(unknown_cosigners):
+        # 'label' will be unknown
+        assert label is None
+        new_device = device_manager.add_device(
+            name=f"{wallet_name} signer {i + 1}",
+            device_type=unknown_cosigners_types[i],
+            keys=[unknown_cosigner_key],
+        )
+        keys.append(unknown_cosigner_key)
+        cosigners.append(new_device)
+
+    wallet = wallet_manager.create_wallet(
+        name=wallet_name,
+        sigs_required=descriptor.multisig_M,
+        key_type=descriptor.address_type,
+        keys=keys,
+        devices=cosigners,
+    )
+
+    # Sync the new wallet in bitcoincore to its existing utxos
+    wallet.rpc.rescanblockchain(0)
+
+    # We restored the wallet's utxos
+    assert wallet.get_balance()["trusted"] > 0.0

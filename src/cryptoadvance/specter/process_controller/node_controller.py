@@ -17,7 +17,7 @@ from ..util.shell import which, get_last_lines_from_file
 from ..rpc import RpcError
 from ..rpc import BitcoinRPC
 from ..helpers import load_jsons
-from ..specter_error import ExtProcTimeoutException
+from ..specter_error import ExtProcTimeoutException, SpecterError
 from urllib3.exceptions import NewConnectionError, MaxRetryError
 from requests.exceptions import ConnectionError
 
@@ -119,7 +119,7 @@ class NodeController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
-            logger.warn(f"Reusing existing {self.node_impl}d")
+            logger.warning(f"Reusing existing {self.node_impl}d")
             return self.rpcconn
 
         logger.debug(f"Starting {self.node_impl}d")
@@ -228,7 +228,9 @@ class NodeController:
         logger.debug("balance:" + str(balance))
         default_address = default_rpc.getnewaddress("")
         if self.node_impl == "elements":
-            default_address = rpc.getaddressinfo(default_address)["unconfidential"]
+            default_address = default_rpc.getaddressinfo(default_address)[
+                "unconfidential"
+            ]
         if balance < amount:
             rpc.generatetoaddress(102, default_address)
         default_rpc.sendtoaddress(address, amount)
@@ -270,16 +272,22 @@ class NodeController:
             time.sleep(0.5)
             i = i + 1
             if i % 10 == 0:
-                logger.info(f"Timeout reached in {timeout - i/2} seconds")
+                logger.info(f"Node timeout in {timeout - i/2} seconds")
             if i > (2 * timeout):
                 try:
                     NodeController.check_node(rpcconn, raise_exception=True)
                 except Exception as e:
-                    raise ExtProcTimeoutException(
-                        f"Timeout while trying to reach node {rpcconn.render_url(password_mask=True)} because {e}".format(
-                            rpcconn
+                    if "Verifying blocks..." in str(e) or "Loading wallet..." in str(e):
+                        # Timed out too soon while node is still spinning up
+                        logger.info("Giving node more time to restart...")
+                        i = 0
+                        pass
+                    else:
+                        raise ExtProcTimeoutException(
+                            f"Timeout while trying to reach node {rpcconn.render_url(password_mask=True)} because {e}".format(
+                                rpcconn
+                            )
                         )
-                    )
 
     @staticmethod
     def render_rpc_options(rpcconn):
@@ -373,18 +381,20 @@ class NodePlainController(NodeController):
         )
         time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
-            raise Exception(f"Could not start node due to:" + self.get_debug_log())
+            raise SpecterError(f"Could not start node due to:" + self.get_debug_log())
         logger.debug(
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )
 
         # This function is redirecting to the class.member as it needs a fixed parameterlist: (signal_number, stack)
-        def cleanup_node(signal_number, stack):
+        def cleanup_node(signal_number=None, stack=None):
             self.cleanup_node(cleanup_hard, datadir)
 
         if cleanup_at_exit:
-            logger.info("Register function cleanup_node for SIGINT and SIGTERM")
-            # atexit.register(cleanup_bitcoind)
+            logger.info(
+                "Register function cleanup_node for atexit, SIGINT, and SIGTERM"
+            )
+            atexit.register(cleanup_node)
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, cleanup_node)
             # This is for kill $pid --> SIGTERM
@@ -414,11 +424,14 @@ class NodePlainController(NodeController):
             f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{datadir})"
         )
         if cleanup_hard:
-            self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
-            logger.info(
-                f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
-            )
-            shutil.rmtree(self.datadir, ignore_errors=True)
+            try:
+                self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+                logger.info(
+                    f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
+                )
+                shutil.rmtree(self.datadir, ignore_errors=True)
+            except Exception as e:
+                logger.debug(e)
         else:
             try:
                 self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
@@ -469,7 +482,7 @@ def find_node_executable(node_impl):
         return f"tests/{node_impl}/bin/{node_impl}d"
     else:
         # First list files in the folders above:
-        logger.warn(f"Couldn't find reasonable executable for {node_impl}")
+        logger.warning(f"Couldn't find reasonable executable for {node_impl}")
         # hmmm, maybe we have a bitcoind on the PATH
         return which(f"{node_impl}d")
 
