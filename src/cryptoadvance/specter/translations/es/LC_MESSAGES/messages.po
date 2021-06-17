@@ -358,7 +358,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:176
 msgid "Create your first wallet!"
-msgstr "Crea tu primer monedero !"
+msgstr "Crea tu primer monedero!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "And when you are all set: Get the whitepaper from the timechain."
