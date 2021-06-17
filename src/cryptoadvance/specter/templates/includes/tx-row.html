@@ -136,7 +136,9 @@
                 } else {
                     this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
                 }
-                this.amountPrice.classList.remove('hidden');
+                if(!("assetlabel" in this.tx) || this.tx.assetlabel == "LBTC"){
+                    this.amountPrice.classList.remove('hidden');
+                }
             }
 
             if (this.btcUnit == 'sat' && this.amount != 1e-8) {

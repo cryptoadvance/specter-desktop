@@ -72,16 +72,18 @@
             this.labelValue = this.getAttribute('data-label');
             // edit-mode can be 'hover', 'disabled', 'enabled'
             this.mode = this.getAttribute('edit-mode');
-            console.log(this.mode);
             if(!this.mode){
                 this.mode = 'hover';
+            }
+            // disallow changing LBTC label
+            if(this.labelValue == "LBTC" || this.labelValue == "tLBTC"){
+                this.mode = 'disabled';
             }
             if(this.mode == 'disabled'){
                 this.edit.classList.add('hidden');
             }else if(this.mode == 'hover'){
                 this.el.classList.add('hover');
             }
-            console.log(this.mode);
             this.label.title = this.asset;
             this.isEditing = false;
 

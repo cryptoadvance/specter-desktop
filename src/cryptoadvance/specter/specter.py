@@ -518,6 +518,8 @@ class Specter:
         return get_asset_label(asset, known_assets=self.asset_labels)
 
     def update_asset_label(self, asset, label):
+        if asset == self.default_asset:
+            raise SpecterError("LBTC should stay LBTC")
         self.config_manager.update_asset_label(asset, label, self.chain, self.user)
 
     @property

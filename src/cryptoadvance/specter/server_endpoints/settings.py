@@ -483,7 +483,10 @@ def set_asset_label():
     label = request.form["label"].rstrip()
     if label.lower() in ["btc", "bitcoin", "sat", "lbtc"]:
         return f'Label "{label}" is not allowed', 500
-    app.specter.update_asset_label(asset, label)
+    try:
+        app.specter.update_asset_label(asset, label)
+    except Exception as e:
+        return str(e), 500
     return {"success": True}
 
 
