@@ -1,4 +1,5 @@
 import hashlib
+from . import DeviceTypes
 from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
@@ -10,7 +11,7 @@ from binascii import a2b_base64, b2a_base64
 
 
 class Specter(SDCardDevice):
-    device_type = "specter"
+    device_type = DeviceTypes.SPECTERDIY
     name = "Specter-DIY"
     icon = "specter_icon.svg"
 

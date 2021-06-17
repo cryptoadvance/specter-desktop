@@ -206,7 +206,7 @@ class Wallet:
         ##################### Remove from here after dropping Core v0.19 support #####################
         check_blockheight = False
         for tx in txs.values():
-            if tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+            if tx and tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
                 check_blockheight = True
                 break
         if check_blockheight:
@@ -479,7 +479,7 @@ class Wallet:
             # Could happen if address not in wallet (wallet was imported)
             # try adding keypool
             logger.info(
-                f"Didn't get transactions on address {self.change_address}. Refilling keypool."
+                f"Didn't get transactions on change address {self.change_address}. Refilling keypool."
             )
             self.keypoolrefill(0, end=self.keypool, change=False)
             self.keypoolrefill(0, end=self.change_keypool, change=True)
@@ -955,15 +955,13 @@ class Wallet:
 
     @property
     def account_map(self):
-        return (
-            '{ "label": "'
-            + self.name.replace("'", "\\'")
-            + '", "blockheight": '
-            + str(self.blockheight)
-            + ', "descriptor": "'
-            + self.recv_descriptor.replace("/", "\\/")
-            + '" }'
-        )
+        account_map_dict = {
+            "label": self.name,
+            "blockheight": self.blockheight,
+            "descriptor": self.recv_descriptor,
+            "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
+        }
+        return json.dumps(account_map_dict)
 
     def getnewaddress(self, change=False, save=True):
         if change:
