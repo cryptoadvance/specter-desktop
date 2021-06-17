@@ -73,10 +73,16 @@ def test_node_running_elements(caplog, docker, request):
         # The NodeController is not available on docker
         return
     else:
-        my_elementsd = ElementsPlainController(
-            elementsd_path=find_node_executable(node_impl="elements"),
-            rpcport=18123,  # Non-standardport to not interfer
-        )
+        try:
+            my_elementsd = ElementsPlainController(
+                elementsd_path=find_node_executable(node_impl="elements"),
+                rpcport=18123,  # Non-standardport to not interfer
+            )
+        except Exception as e:
+            if "Couldn't find executable elementsd" in str(e):
+                pytest.skip(str(e))
+            else:
+                raise e
 
     rpcconn = my_elementsd.start_node(cleanup_at_exit=True, cleanup_hard=True)
     requested_version = request.config.getoption("--elementsd-version")

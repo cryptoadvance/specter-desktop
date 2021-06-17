@@ -1,8 +1,9 @@
+from . import DeviceTypes
 from ..device import Device
 
 
 class SeedSignerDevice(Device):
-    device_type = "seedsigner"
+    device_type = DeviceTypes.SEEDSIGNER
     name = "SeedSigner"
     icon = "seedsigner_icon.svg"
 
