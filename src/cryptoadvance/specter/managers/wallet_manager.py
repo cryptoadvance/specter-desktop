@@ -34,27 +34,6 @@ from embit.descriptor.checksum import add_checksum
 
 logger = logging.getLogger(__name__)
 
-purposes = OrderedDict(
-    {
-        None: "General",
-        "wpkh": "Single (Segwit)",
-        "sh-wpkh": "Single (Nested)",
-        "pkh": "Single (Legacy)",
-        "wsh": "Multisig (Segwit)",
-        "sh-wsh": "Multisig (Nested)",
-        "sh": "Multisig (Legacy)",
-    }
-)
-
-addrtypes = {
-    "pkh": "legacy",
-    "sh-wpkh": "p2sh-segwit",
-    "wpkh": "bech32",
-    "sh": "legacy",
-    "sh-wsh": "p2sh-segwit",
-    "wsh": "bech32",
-}
-
 
 class WalletManager:
     # chain is required to manage wallets when bitcoind is not running
@@ -322,82 +301,19 @@ class WalletManager:
             wallet_alias = alias("%s %d" % (name, i))
             i += 1
 
-        arr = key_type.split("-")
-        descs = [key.metadata["combined"] for key in keys]
-        recv_descs = ["%s/0/*" % desc for desc in descs]
-        change_descs = ["%s/1/*" % desc for desc in descs]
-        if len(keys) > 1:
-            recv_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(recv_descs)
-            )
-            change_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(change_descs)
-            )
-        else:
-            recv_descriptor = recv_descs[0]
-            change_descriptor = change_descs[0]
-        for el in arr[::-1]:
-            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
-            change_descriptor = "%s(%s)" % (el, change_descriptor)
-
-        if is_liquid(self.chain):
-            blinding_key = None
-            if len(devices) == 1:
-                blinding_key = devices[0].blinding_key
-            if not blinding_key:
-                desc = Descriptor.from_string(recv_descriptor.split("#")[0])
-                # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
-                # where chaincodes are corresponding to xpub of the first receiving address
-                xor = bytearray(32)
-                desc_keys = desc.derive(0).keys
-                for k in desc_keys:
-                    if k.is_extended:
-                        chaincode = k.key.chain_code
-                        for i in range(32):
-                            xor[i] = xor[i] ^ chaincode[i]
-                secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
-                blinding_key = ec.PrivateKey(secret).wif()
-            if blinding_key:
-                recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-                change_descriptor = (
-                    f"blinded(slip77({blinding_key}),{change_descriptor})"
-                )
-
-        recv_descriptor = AddChecksum(recv_descriptor)
-        change_descriptor = AddChecksum(change_descriptor)
-
-        # v20.99 is pre-v21 Elements Core for descriptors
-        if self.bitcoin_core_version_raw >= 209900:
-            # Use descriptor wallet
-            self.rpc.createwallet(
-                os.path.join(self.rpc_path, wallet_alias), True, True, "", False, True
-            )
-        else:
-            self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
-
-        w = self.WalletClass(
-            name,
-            wallet_alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
-            if len(keys) > 1
-            else purposes[key_type],
-            addrtypes[key_type],
-            "",
-            -1,
-            "",
-            -1,
-            0,
-            0,
-            recv_descriptor,
-            change_descriptor,
-            keys,
-            devices,
-            sigs_required,
-            {},
-            [],
-            os.path.join(self.working_folder, "%s.json" % wallet_alias),
+        w = self.WalletClass.create(
+            self.rpc,
+            self.rpc_path,
+            self.working_folder,
             self.device_manager,
             self,
+            name,
+            wallet_alias,
+            sigs_required,
+            key_type,
+            keys,
+            devices,
+            self.bitcoin_core_version_raw,
         )
         # save wallet file to disk
         if w and self.working_folder is not None:
