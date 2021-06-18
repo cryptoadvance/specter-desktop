@@ -5,12 +5,14 @@ from cryptoadvance.specter.api.rest.base import (
     SecureResource,
     rest_resource,
 )
-from flask_restful import reqparse
+from flask_restful import reqparse, abort
 from flask import current_app as app
 from ...wallet import Wallet
 from ...util.fee_estimation import get_fees
 
 from .. import auth
+
+from ...specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -28,15 +30,21 @@ class ResourcePsbt(SecureResource):
     def get(self, wallet_alias):
         # ToDo: check whether the user has access to the wallet
         user = auth.current_user()
-        user.wallet_manager.wulb
+        logger.debug(f"User: {user}")
         try:
-            wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+            wallet: Wallet = app.specter.user_manager.get_user(
+                user
+            ).wallet_manager.get_by_alias(wallet_alias)
             pending_psbts = wallet.pending_psbts
+            return pending_psbts or []
+        except SpecterError as se:
+            return abort(403)
         except Exception as e:
             logger.error(e)
-            return {"result": "error", "message": str(e)}
-
-        return pending_psbts or []
+            logger.debug(
+                f" all wallets: {app.specter.user_manager.get_user(user).wallet_manager.wallets_names}"
+            )
+            return abort(500)
 
     def post(self, wallet_alias):
         try:

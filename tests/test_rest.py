@@ -39,7 +39,9 @@ def test_rr_psbt_get(client, caplog):
         "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
     )
     assert result.status_code == 403
-    assert result.data == b"[]\n"
+    assert json.loads(result.data)["message"].startswith(
+        "You don't have the permission to access the requested resource."
+    )
 
     # Proper authorized
     headers = {
