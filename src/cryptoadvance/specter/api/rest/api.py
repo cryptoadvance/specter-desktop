@@ -14,7 +14,9 @@ from flask import current_app as app
 from datetime import datetime
 from ...specter_error import SpecterError
 
-from .. import auth
+from ...util.fee_estimation import get_fees
+
+from .resource_psbt import ResourcePsbt
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +27,14 @@ class ResourceSpecter(SecureResource):
 
     endpoints = ["/v1alpha/specter"]
 
-    def get(self):
+    def get(self, wallet_alias):
         specter_data = app.specter
 
         return_dict = {
             "data_folder": specter_data.data_folder,
-            "file_config": specter_data.file_config,
             "config": specter_data.config,
-            "is_configured": specter_data._is_configured,
-            "is_running": specter_data._is_running,
-            "info": specter_data._info,
-            "network_info": specter_data._network_info,
+            "info": specter_data.info,
+            "network_info": specter_data.network_info,
             "device_manager_datafolder": specter_data.device_manager.data_folder,
             "devices_names": specter_data.device_manager.devices_names,
             "wallets_names": specter_data.wallet_manager.wallets_names,
@@ -55,7 +54,7 @@ class ResourceSpecter(SecureResource):
         return_dict["alias_name"] = alias_name
         return_dict["name_alias"] = name_alias
         return_dict["wallets_alias"] = wallets_alias
-        return json.dumps(return_dict)
+        return return_dict
 
 
 @rest_resource
@@ -87,7 +86,7 @@ class ResourceTXlist(SecureResource):
             message = "API error: %s" % se
             app.logger.error(message)
             flat_list = message
-        return json.dumps(flat_list)
+        return flat_list
 
 
 @rest_resource

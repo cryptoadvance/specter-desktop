@@ -119,7 +119,7 @@ class NodeController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if self.check_existing() != None:
-            logger.warn(f"Reusing existing {self.node_impl}d")
+            logger.warning(f"Reusing existing {self.node_impl}d")
             return self.rpcconn
 
         logger.debug(f"Starting {self.node_impl}d")
