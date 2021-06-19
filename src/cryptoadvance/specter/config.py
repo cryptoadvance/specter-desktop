@@ -118,6 +118,9 @@ class DevelopmentConfig(BaseConfig):
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
     )
 
+    # Env vars take priority over config settings so ensure that this is set
+    os.environ["FLASK_ENV"] = "development"
+
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"

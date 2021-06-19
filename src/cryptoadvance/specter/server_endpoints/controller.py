@@ -5,6 +5,7 @@ from flask import make_response
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed
 from flask import render_template, request, redirect, url_for, flash, Markup
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
@@ -206,7 +207,11 @@ def wallets_loading():
 @app.route("/generatemnemonic/", methods=["GET", "POST"])
 @login_required
 def generatemnemonic():
-    return {"mnemonic": generate_mnemonic(strength=int(request.form["strength"]))}
+    return {
+        "mnemonic": generate_mnemonic(
+            strength=int(request.form["strength"]), language_code=app.get_locale()
+        )
+    }
 
 
 ################ RPC data utils ####################

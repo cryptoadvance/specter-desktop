@@ -16,6 +16,7 @@ import requests
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 
 from ..helpers import (

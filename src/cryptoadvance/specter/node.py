@@ -3,6 +3,7 @@ import logging
 import os
 
 from embit.liquid.networks import get_network
+from flask_babel import lazy_gettext as _
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -308,10 +309,11 @@ class Node:
         """tests the rpc-connection and returns a dict which helps
         to derive what might be wrong with the config
         ToDo: list an example here.
+        TODO: Return error codes to move user-facing text into the template.
         """
         rpc = self.get_rpc()
         if rpc is None:
-            return {"out": "", "err": "Connection to node failed", "code": -1}
+            return {"out": "", "err": _("Connection to node failed"), "code": -1}
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""
@@ -321,7 +323,7 @@ class Node:
                 int(rpc.getnetworkinfo()["version"]) >= 170000
             )
             if not r["tests"]["recent_version"]:
-                r["err"] = "Core Node might be too old"
+                r["err"] = _("Core Node might be too old")
 
             r["tests"]["connectable"] = True
             r["tests"]["credentials"] = True
@@ -338,7 +340,7 @@ class Node:
             logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
-            r["err"] = "Failed to connect!"
+            r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
             logger.error("Caught an RpcError while test_rpc: %s", rpce)
@@ -347,7 +349,7 @@ class Node:
             r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
-                r["err"] = "RPC authentication failed!"
+                r["err"] = _("RPC authentication failed!")
             else:
                 r["err"] = str(rpce.status_code)
         except Exception as e:
@@ -361,7 +363,7 @@ class Node:
                 r["err"] = rpc.r["error"]
                 r["code"] = rpc.r.status_code
             else:
-                r["err"] = "Failed to connect"
+                r["err"] = _("Failed to connect")
                 r["code"] = -1
         return r
 

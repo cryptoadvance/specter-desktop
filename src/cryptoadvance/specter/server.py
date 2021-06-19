@@ -27,6 +27,14 @@ load_dotenv(env_path)
 csrf = CSRFProtect()
 
 
+class SpecterFlask(Flask):
+    def get_locale(self):
+        """
+        Helper for Babel and other related language selection tasks.
+        """
+        return request.accept_languages.best_match(self.config["LANGUAGES"].keys())
+
+
 def calc_module_name(config):
     """tiny helper to make passing configs more convenient"""
     if "." in config:
@@ -59,11 +67,13 @@ def create_app(config=None):
         template_folder = os.path.join(sys._MEIPASS, "templates")
         static_folder = os.path.join(sys._MEIPASS, "static")
         logger.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
-        app = Flask(
+        app = SpecterFlask(
             __name__, template_folder=template_folder, static_folder=static_folder
         )
     else:
-        app = Flask(__name__, template_folder="templates", static_folder="static")
+        app = SpecterFlask(
+            __name__, template_folder="templates", static_folder="static"
+        )
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
@@ -149,7 +159,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     @babel.localeselector
     def get_locale():
-        return request.accept_languages.best_match(app.config["LANGUAGES"].keys())
+        return app.get_locale()
 
     # --------------------- Babel integration ---------------------
 

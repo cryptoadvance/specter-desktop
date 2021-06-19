@@ -10,13 +10,14 @@ from flask import (
     jsonify,
     flash,
 )
-from flask_login import login_required, current_user
 from flask import current_app as app
+from flask_babel import lazy_gettext as _
+from flask_login import login_required, current_user
 from mnemonic import Mnemonic
-from ..helpers import is_testnet, generate_mnemonic
+from ..devices.bitcoin_core import BitcoinCore
+from ..helpers import is_testnet, generate_mnemonic, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
-from ..devices.bitcoin_core import BitcoinCore
 from ..managers.wallet_manager import purposes
 from ..specter_error import handle_exception
 
@@ -187,15 +188,14 @@ def new_device_keys(device_type):
 def new_device_mnemonic(device_type):
     err = None
     strength = 128
-    mnemonic = generate_mnemonic(strength=strength)
+    mnemonic = generate_mnemonic(strength=strength, language_code=app.get_locale())
     existing_device = None
     if request.method == "POST":
         if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
             err = _(
                 "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
             )
-        mnemo = Mnemonic("english")
-        if not mnemo.check(request.form["mnemonic"]):
+        if not validate_mnemonic(words=request.form["mnemonic"]):
             err = _("Invalid mnemonic entered.")
         range_start = int(request.form["range_start"])
         range_end = int(request.form["range_end"])
@@ -275,7 +275,7 @@ def new_device_manual():
     device_name = ""
     xpubs = ""
     strength = 128
-    mnemonic = generate_mnemonic(strength=strength)
+    mnemonic = generate_mnemonic(strength=strength, language_code=app.get_locale())
     if request.method == "POST":
         action = request.form["action"]
         device_type = request.form["device_type"]
@@ -308,9 +308,7 @@ def new_device_manual():
                     "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
                 )
 
-            # TODO: Support for multi-language mnemonic phrases
-            mnemo = Mnemonic("english")
-            if not mnemo.check(request.form["mnemonic"]):
+            if not validate_mnemonic(words=request.form["mnemonic"]):
                 err = _("Invalid mnemonic entered.")
             range_start = int(request.form["range_start"])
             range_end = int(request.form["range_end"])
@@ -353,7 +351,9 @@ def new_device_manual():
                     )
         elif action == "generatemnemonic":
             strength = int(request.form["strength"])
-            mnemonic = generate_mnemonic(strength=strength)
+            mnemonic = generate_mnemonic(
+                strength=strength, language_code=app.get_locale()
+            )
     return render_template(
         "device/new_device_manual.jinja",
         device_type=device_type,
@@ -431,7 +431,9 @@ def device(device_alias):
                 device.rename(device_name)
         elif action == "add_keys":
             strength = 128
-            mnemonic = generate_mnemonic(strength=strength)
+            mnemonic = generate_mnemonic(
+                strength=strength, language_code=app.get_locale()
+            )
             if device.hot_wallet:
                 return render_template(
                     "device/new_device/new_device_mnemonic.jinja",
