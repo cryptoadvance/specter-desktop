@@ -422,7 +422,24 @@
                                     data += s;
                                 }
                             } else {
-                                data += str+"\n";
+                                str.split("\n").forEach((line)=>{
+                                    if(line.indexOf("(") >= 0){
+                                        let arr = line.split("(");
+                                        let args = arr[arr.length-1].split(")")[0];
+                                        // if multisig
+                                        args.split(",").forEach((arg) => {
+                                            // must have pub in xpub
+                                            if(arg.indexOf("pub") > 0){
+                                                let re = /(.*pub[^/]*).*/g.exec(arg);
+                                                if(re){
+                                                    data += re[re.length-1].replaceAll("'","h") + "\n";
+                                                }
+                                            }
+                                        });
+                                    }else{
+                                        data += line+"\n";
+                                    }
+                                });
                             }
                             addXpubs(data);
                         }
@@ -437,13 +454,56 @@
     <script type="text/javascript">
         let scanner = document.getElementById('xpub-scan');
         if(scanner != null) {
-            scanner.addEventListener('scan', e=>{
+            scanner.addEventListener('scan', async (e) => {
                 let result = e.detail.result;
                 if(result==null){
                     return;
                 }
-                // cobo uses json format
-                if(result.includes("{")){
+                // keystone returns bcur2 result
+                if(result.type == "crypto-account"){
+                    let account = window.URlib.CryptoAccount.fromCBOR(result.cbor);
+                    let mfp = window.buffer.Buffer.from(account.getMasterFingerprint()).toString("hex");
+                    let txtkeys = "";
+                    account.getOutputDescriptors().forEach( async (e) => {
+                        let k = e.getHDKey();
+                        let path = k.getOrigin().getPath().replaceAll("'","h");
+                        let is_testnet = false;
+                        if (k.getOrigin().getDepth() >= 2){
+                            is_testnet = (k.getOrigin().getComponents()[1].getIndex() == 1);
+                        }
+                        // version, depth, fgp, childnumber, chaincode, key, checksum
+                        let xpub = new Uint8Array(4+1+4+4+32+33+4);
+                        if(is_testnet){
+                            // testnet version
+                            xpub.set(new Uint8Array([0x04, 0x35, 0x87, 0xcf]), 0);
+                        }else{
+                            // mainnet version
+                            xpub.set(new Uint8Array([0x04, 0x88, 0xb2, 0x1e]), 0);
+                        }
+                        let key = k.getKey();
+                        xpub[4] = k.getOrigin().getDepth();
+                        xpub.set(k.getParentFingerprint(), 5);
+                        let der = k.getOrigin().getComponents();
+                        let childnum = der[der.length-1];
+                        let num = childnum.getIndex();
+                        if(childnum.isHardened()){
+                            num += 0x80000000;
+                        }
+                        for(let i = 0; i < 4; i++){
+                            xpub[9+3-i] = (num % 256);
+                            num = (num >>> 8);
+                        }
+                        xpub.set(k.getChainCode(), 13);
+                        xpub.set(key, 13+32);
+                        // calc checksum
+                        let checksum = await crypto.subtle.digest('SHA-256',
+                                        await crypto.subtle.digest('SHA-256', xpub.slice(0,78))
+                        );
+                        xpub.set(new Uint8Array(checksum).slice(0,4), 78);
+                        addXpubs(`[${mfp}/${path}]${Base58.encode(xpub)}`);
+                    });
+                } else if(result.includes("{")){
+                    // cobo uses json format
                     let obj = JSON.parse(result);
                     if(("ExtPubKey" in obj) && 
                         ("AccountKeyPath" in obj) && 
