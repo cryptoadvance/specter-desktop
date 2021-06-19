@@ -1,0 +1,7 @@
+<select name="language_code" onchange="changeLanguage(this)">
+	<option value="en" {% if session["language_code"] == "en" %}selected{% endif %}>English</option>
+	<option value="es" {% if session["language_code"] == "es" %}selected{% endif %}>Español</option>
+	<option value="fr" {% if session["language_code"] == "fr" %}selected{% endif %}>Français</option>
+	<option value="de" disabled {% if session["language_code"] == "de" %}selected{% endif %}>Deutsch</option>
+	<option value="iw" disabled {% if session["language_code"] == "iw" %}selected{% endif %}>עִברִית</option>
+</select>

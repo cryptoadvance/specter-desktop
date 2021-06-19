@@ -5,7 +5,7 @@ import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, request, url_for
+from flask import Flask, redirect, request, url_for, jsonify, session
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
@@ -28,11 +28,23 @@ csrf = CSRFProtect()
 
 
 class SpecterFlask(Flask):
-    def get_locale(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.supported_languages = ["en", "es", "fr"]
+
+    def get_language_code(self):
         """
         Helper for Babel and other related language selection tasks.
         """
-        return request.accept_languages.best_match(self.config["LANGUAGES"].keys())
+        if "language_code" in session:
+            # Explicit selection
+            return session["language_code"]
+        else:
+            # autodetect
+            return request.accept_languages.best_match(self.config["LANGUAGES"].keys())
+
+    def set_language_code(self, language_code):
+        session["language_code"] = language_code
 
 
 def calc_module_name(config):
@@ -158,8 +170,22 @@ def init_app(app, hwibridge=False, specter=None):
     babel = Babel(app)
 
     @babel.localeselector
-    def get_locale():
-        return app.get_locale()
+    def get_language_code():
+        # Enables Babel to auto-detect current language
+        return app.get_language_code()
+
+    @app.route("/set_language", methods=["POST"])
+    def set_language_code():
+        json_data = request.get_json()
+        print(json_data)
+        if (
+            "language_code" in json_data
+            and json_data["language_code"] in app.supported_languages
+        ):
+            app.set_language_code(json_data["language_code"])
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False})
 
     # --------------------- Babel integration ---------------------
 

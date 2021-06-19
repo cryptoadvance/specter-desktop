@@ -188,7 +188,9 @@ def new_device_keys(device_type):
 def new_device_mnemonic(device_type):
     err = None
     strength = 128
-    mnemonic = generate_mnemonic(strength=strength, language_code=app.get_locale())
+    mnemonic = generate_mnemonic(
+        strength=strength, language_code=app.get_language_code()
+    )
     existing_device = None
     if request.method == "POST":
         if len(request.form["mnemonic"].split(" ")) not in [12, 15, 18, 21, 24]:
@@ -275,7 +277,9 @@ def new_device_manual():
     device_name = ""
     xpubs = ""
     strength = 128
-    mnemonic = generate_mnemonic(strength=strength, language_code=app.get_locale())
+    mnemonic = generate_mnemonic(
+        strength=strength, language_code=app.get_language_code()
+    )
     if request.method == "POST":
         action = request.form["action"]
         device_type = request.form["device_type"]
@@ -352,7 +356,7 @@ def new_device_manual():
         elif action == "generatemnemonic":
             strength = int(request.form["strength"])
             mnemonic = generate_mnemonic(
-                strength=strength, language_code=app.get_locale()
+                strength=strength, language_code=app.get_language_code()
             )
     return render_template(
         "device/new_device_manual.jinja",
@@ -432,7 +436,7 @@ def device(device_alias):
         elif action == "add_keys":
             strength = 128
             mnemonic = generate_mnemonic(
-                strength=strength, language_code=app.get_locale()
+                strength=strength, language_code=app.get_language_code()
             )
             if device.hot_wallet:
                 return render_template(

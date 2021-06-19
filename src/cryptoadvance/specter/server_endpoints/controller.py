@@ -209,7 +209,8 @@ def wallets_loading():
 def generatemnemonic():
     return {
         "mnemonic": generate_mnemonic(
-            strength=int(request.form["strength"]), language_code=app.get_locale()
+            strength=int(request.form["strength"]),
+            language_code=app.get_language_code(),
         )
     }
 

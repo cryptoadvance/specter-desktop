@@ -6,6 +6,11 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
+
+			<h1>{{ _("Language") }}</h1>
+			{% include "includes/language/language_select.jinja" %}<br/>
+			<br><br>
+
 			<h1>{{ _("Backup and Restore") }}</h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
@@ -47,6 +52,7 @@
 			<div class="row" style="margin-top: 5px;">
 				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
 			</div><br><br>
+
 			<h1>{{ _("Miscellaneous") }} </h1>
 			{{ _("Bitcoin unit to use") }} (BTC/sats):
 			<select name="unit">
@@ -105,6 +111,8 @@
 		</div>
 	</form>
 {% endblock %}
+
+
 {% block scripts %}
 	<script type="text/javascript">
 	function toggleHidden(elementId) {
@@ -160,5 +168,8 @@
 				});
 			}
 		});
+
+	{% include "includes/language/language_select.jinja" %}
+
 	</script>
 {% endblock %}
