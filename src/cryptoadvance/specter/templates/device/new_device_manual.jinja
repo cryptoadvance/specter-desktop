@@ -375,7 +375,24 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 								data += s;
 							}
 						} else {
-							data += str+"\n";
+							str.split("\n").forEach((line)=>{
+								if(line.indexOf("(") >= 0){
+									let arr = line.split("(");
+									let args = arr[arr.length-1].split(")")[0];
+									// if multisig
+									args.split(",").forEach((arg) => {
+										// must have pub in xpub
+										if(arg.indexOf("pub") > 0){
+											let re = /(.*pub[^/]*).*/g.exec(arg);
+											if(re){
+												data += re[re.length-1].replaceAll("'","h") + "\n";
+											}
+										}
+									});
+								}else{
+									data += line+"\n";
+								}
+							});
 						}
 						addKeys(data);
 						setDeviceType('coldcard');
