@@ -319,7 +319,7 @@ class Node:
         r["code"] = 0
         try:
             r["tests"]["recent_version"] = (
-                int(rpc.getnetworkinfo()["version"]) >= 170000
+                int(rpc.getnetworkinfo()["version"]) >= 200000
             )
             if not r["tests"]["recent_version"]:
                 r["err"] = "Core Node might be too old"
