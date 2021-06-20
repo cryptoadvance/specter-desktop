@@ -171,7 +171,7 @@ This may take a few hours to complete."
         specter=app.specter,
         current_version=current_version,
         rand=rand,
-        language_code=app.get_language_code(),
+        supported_languages=app.supported_languages,
     )
 
 
