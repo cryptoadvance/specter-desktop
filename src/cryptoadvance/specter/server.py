@@ -30,7 +30,11 @@ csrf = CSRFProtect()
 class SpecterFlask(Flask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.supported_languages = ["en", "es", "fr"]
+        self.supported_languages = {
+            "en": "English",
+            "es": "Español",
+            "fr": "Français",
+        }
 
     def get_language_code(self):
         """

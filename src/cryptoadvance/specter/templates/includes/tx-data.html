@@ -242,7 +242,7 @@
             self.note.innerText = "";
             return;
         };
-        self.note.innerText = ;'{{ _("Failed to load transaction details...") }}';
+        self.note.innerText = '{{ _("Failed to load transaction details...") }}';
     }
     async function fetchAddressIsMine(self, address) {
         let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);

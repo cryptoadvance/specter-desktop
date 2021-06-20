@@ -1,7 +1,10 @@
+{#
+	Relies on `supported_languages=app.supported_languages` being injected into the context
+#}
 <select name="language_code" onchange="changeLanguage(this)">
-	<option value="en" {% if session["language_code"] == "en" %}selected{% endif %}>English</option>
-	<option value="es" {% if session["language_code"] == "es" %}selected{% endif %}>Español</option>
-	<option value="fr" {% if session["language_code"] == "fr" %}selected{% endif %}>Français</option>
+	{% for language_code, language in supported_languages.items() %}
+		<option value="{{ language_code }}" {% if session["language_code"] == language_code %}selected{% endif %}>{{ language }}</option>
+	{% endfor %}
 	<option value="de" disabled {% if session["language_code"] == "de" %}selected{% endif %}>Deutsch</option>
 	<option value="iw" disabled {% if session["language_code"] == "iw" %}selected{% endif %}>עִברִית</option>
 </select>

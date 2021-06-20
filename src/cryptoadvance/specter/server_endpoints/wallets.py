@@ -1353,7 +1353,7 @@ def addresses_list(wallet_alias):
     )
 
     return jsonify(
-        addressesList=result["addressesList"],
+        addressesList=json.dumps(result["addressesList"]),
         pageCount=result["pageCount"],
     )
 
@@ -1368,14 +1368,14 @@ def addressinfo(wallet_alias):
         if address:
             descriptor = wallet.get_descriptor(address=address)
             address_info = wallet.get_address_info(address=address)
-            return jsonify(
-                success=True,
-                address=address,
-                descriptor=descriptor,
-                walletName=wallet.name,
-                isMine=not address_info.is_external,
+            return {
+                "success": True,
+                "address": address,
+                "descriptor": descriptor,
+                "walletName": wallet.name,
+                "isMine": not address_info.is_external,
                 **address_info,
-            )
+            }
     except Exception as e:
         app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
     return jsonify(success=False)
@@ -1826,7 +1826,7 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
         txlist = txlist[limit * idx : limit * (idx + 1)]
     else:
         page_count = 1
-    return jsonify(txlist=txlist, pageCount=page_count)
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
 def process_addresses_list(
@@ -1860,4 +1860,4 @@ def process_addresses_list(
     else:
         page_count = 1
 
-    return jsonify(addressesList=addresses_list, pageCount=page_count)
+    return {"addressesList": addresses_list, "pageCount": page_count}

@@ -184,7 +184,12 @@ def about():
             app.specter.reset_setup("bitcoind")
             app.specter.reset_setup("torbrowser")
 
-    return render_template("base.jinja", specter=app.specter, rand=rand)
+    return render_template(
+        "base.jinja",
+        specter=app.specter,
+        rand=rand,
+        supported_languages=app.supported_languages,
+    )
 
 
 # TODO: Move all these below to REST API
