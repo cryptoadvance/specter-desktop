@@ -4,8 +4,8 @@ from collections import OrderedDict
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, get_address_from_dict, is_liquid
-from embit import base58, bip32, ec
+from .helpers import der_to_bytes, get_address_from_dict
+from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
 from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum

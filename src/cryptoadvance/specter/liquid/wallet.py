@@ -1,5 +1,6 @@
 from ..wallet import *
 from ..addresslist import Address
+from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 
