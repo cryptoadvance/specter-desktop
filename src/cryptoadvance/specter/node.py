@@ -72,6 +72,7 @@ class Node:
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
         self.rpc = self.get_rpc()
+        self._asset_labels = None
 
         self.check_info()
 
@@ -421,6 +422,20 @@ class Node:
     @property
     def is_testnet(self):
         return is_testnet(self.chain)
+
+    @property
+    def asset_labels(self):
+        if self._asset_labels is None:
+            asset_labels = self.rpc.dumpassetlabels()
+            assets = {}
+            for k in asset_labels:
+                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+            self._asset_labels = assets
+        return self._asset_labels
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def rpc(self):

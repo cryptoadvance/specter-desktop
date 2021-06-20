@@ -9,7 +9,7 @@ import hashlib
 from collections import OrderedDict
 from io import BytesIO
 
-from ..helpers import alias, load_jsons, is_liquid
+from ..helpers import alias, load_jsons, is_liquid, add_dicts
 from ..persistence import delete_file, delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
@@ -438,6 +438,17 @@ class WalletManager:
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()
+
+    def joined_balance(self):
+        """
+        Joined balance of all wallets.
+        I don't call it full balance because
+        full balance is different - see wallet.fullbalance...
+        """
+        balance = {}
+        for wallet in self.wallets.values():
+            add_dicts(balance, wallet.balance)
+        return balance
 
     def full_txlist(
         self,

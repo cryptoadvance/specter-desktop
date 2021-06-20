@@ -19,7 +19,7 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
+from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
@@ -53,6 +53,7 @@ class Specter:
 
     # use this lock for all fs operations
     lock = threading.Lock()
+    _default_asset = None
 
     def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
         if data_folder.startswith("~"):
@@ -431,7 +432,10 @@ class Specter:
         return res
 
     def estimatesmartfee(self, blocks):
-        return self.rpc.estimatesmartfee(blocks)
+        res = self.rpc.estimatesmartfee(blocks)
+        if "feerate" not in res and self.is_liquid:
+            return 0.000001
+        return res
 
     @property
     def bitcoind_path(self):
@@ -488,6 +492,35 @@ class Specter:
     @property
     def explorer_id(self):
         return self.user_config.get("explorer_id", {}).get(self.chain, "CUSTOM")
+
+    @property
+    def asset_labels(self):
+        user_assets = self.user_config.get("asset_labels", {}).get(self.chain, {})
+        node_assets = self.node.asset_labels
+        asset_labels = {}
+        deep_update(asset_labels, node_assets)
+        deep_update(asset_labels, user_assets)
+        return asset_labels
+
+    @property
+    def default_asset(self):
+        """returns hash of LBTC"""
+        if self._default_asset is None:
+            for asset, lbl in self.asset_labels.items():
+                if lbl == "LBTC":
+                    self._default_asset = asset
+                    return asset
+        return self._default_asset
+
+    def asset_label(self, asset):
+        if asset == "":
+            return ""
+        return get_asset_label(asset, known_assets=self.asset_labels)
+
+    def update_asset_label(self, asset, label):
+        if asset == self.default_asset:
+            raise SpecterError("LBTC should stay LBTC")
+        self.config_manager.update_asset_label(asset, label, self.chain, self.user)
 
     @property
     def fee_estimator(self):

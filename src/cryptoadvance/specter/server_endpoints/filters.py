@@ -86,3 +86,11 @@ def altunit(context, value):
 def bytessize(context, value):
     value = float(value)
     return "{:,.0f}".format(value / float(1 << 30)) + " GB"
+
+
+@contextfilter
+@filters_bp.app_template_filter("assetlabel")
+def assetlabel(context, asset):
+    if app.specter.hide_sensitive_info:
+        return "####"
+    return app.specter.asset_label(asset)

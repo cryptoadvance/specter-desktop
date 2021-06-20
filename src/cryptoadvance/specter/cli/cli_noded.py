@@ -264,9 +264,9 @@ def noded(
         )
         sys.exit(1)
     except Exception as e:
-        if e.startswith("There is already a node running!"):
+        if str(e).startswith("There is already a node running!"):
             echo(f"{e} please reset via:")
-            echo(f"python3 -m cryptoadvacne.specter {node_impl}d --reset")
+            echo(f"python3 -m cryptoadvance.specter {node_impl}d --reset")
     if not nodocker:
         tags_of_image = [
             image.split(":")[-1] for image in my_node.btcd_container.image.tags

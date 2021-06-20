@@ -17,6 +17,11 @@
         document.getElementById("{{ device.alias }}_qr_scan_btn")
                 .addEventListener("scan", e =>{
             let result = e.detail.result;
+            // if the result is bcur thingy:
+            if(result.type == 'crypto-psbt'){
+                let urpsbt = window.URlib.CryptoPSBT.fromCBOR(result.cbor);
+                result = urpsbt.getPSBT().toString("base64");
+            }
             if(result){
                 hidePageOverlay();
                 combine(result);

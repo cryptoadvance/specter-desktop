@@ -132,8 +132,6 @@
             `;
             rawtxHTML += `<h3>Inputs</h3>`;
             for (let i in rawtx.vin) {
-                console.log(JSON.stringify(rawtx.vin[i]));
-
                 let bgColor = '#131a24';
                 let addressAndValue = '';
                 let jsonResponse = await fetchRawTx(self, rawtx.vin[i].txid);
@@ -157,22 +155,28 @@
 
                     let value = "Confidential";
                     let price = '';
+                    let assetlabel = "";
+                    if("assetlabel" in spentOutput){
+                        assetlabel = spentOutput.assetlabel;
+                    }
                     if (spentOutput.value) {
                         value = parseFloat(spentOutput.value.toFixed(8));
-                        if (self.price && self.symbol) {
-                            price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
-                        }
+                        if(assetlabel == "LBTC" || assetlabel == ""){
+                            if (self.price && self.symbol) {
+                                price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                            }
 
-                        if (self.btcUnit == 'sat') {
-                            value = parseInt(value * 1e8)
+                            if (self.btcUnit == 'sat') {
+                                assetlabel = "sat";
+                                value = parseInt(value * 1e8);
+                            }
                         }
-
                         value = `${numberWithCommas(value.toString())}`;
                     }
 
                     addressAndValue = `<br>
-                        {{ _("Address") }}: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                        {{ _("Value") }}: ${value} ${price}`;
+                        {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                        {{ _("Value:") }} ${value} ${assetlabel} ${price}`;
                 }
 
                 if ('coinbase' in rawtx.vin[i]) {
@@ -210,16 +214,22 @@
                 }
                 let value = "Confidential";
                 let price = '';
+                let assetlabel = "";
+                if("assetlabel" in rawtx.vout[i]){
+                    assetlabel = rawtx.vout[i].assetlabel;
+                }
                 if (rawtx.vout[i].value) {
                     value = parseFloat(rawtx.vout[i].value.toFixed(8));
-                    if (self.price && self.symbol) {
-                        price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
-                    }
+                    if(assetlabel == "LBTC" || assetlabel == ""){
+                        if (self.price && self.symbol) {
+                            price = `<span class="note">(${self.symbol}${numberWithCommas((parseFloat(self.price) * value).toFixed(2))})</span>`;
+                        }
 
-                    if (self.btcUnit == 'sat') {
-                        value = parseInt(value * 1e8)
+                        if (self.btcUnit == 'sat') {
+                            assetlabel = "sat";
+                            value = parseInt(value * 1e8)
+                        }
                     }
-
                     value = `${numberWithCommas(value.toString())}`;
                 }
 
@@ -231,9 +241,9 @@
 
                 rawtxHTML += `
                 <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                    <b>{{ _("Output #") }}${i}</b><br><br>
-                    {{ _("Address") }}: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                    {{ _("Value") }}: ${value} ${price}
+                    <b>{{ _("Output #${i}") }}</b><br><br>
+                    {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                    {{ _("Value:") }} ${value} ${assetlabel} ${price}
                 </p>
                 `;
             }

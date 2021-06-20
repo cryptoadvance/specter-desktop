@@ -4,6 +4,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_fees(specter, config):
+    if specter.is_liquid:
+        return {
+            "fastestFee": 0.1,
+            "halfHourFee": 0.1,
+            "hourFee": 0.1,
+            "minimumFee": 0.1,
+            "failed": False,
+        }
     if specter.fee_estimator == "mempool":
         # Try first with Tor hidden service
         try:

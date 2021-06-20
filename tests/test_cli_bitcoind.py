@@ -1,15 +1,16 @@
 import logging
+import mock
+import pytest
+import sys
+import traceback
 
 from cryptoadvance.specter.cli import bitcoind, elementsd
 from click.testing import CliRunner
-import sys
-import traceback
-import mock
 from mock import patch, MagicMock, call
 
 
 def test_bitcoind(caplog):
-    # caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG)
 
     runner = CliRunner()
     result = runner.invoke(bitcoind, ["--no-mining", "--nodocker", "--cleanuphard"])
@@ -27,12 +28,15 @@ def test_bitcoind(caplog):
 
 
 def test_elements(caplog):
-    # caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG)
 
     runner = CliRunner()
     result = runner.invoke(elementsd, ["--no-mining", "--cleanuphard"])
     print(result.output)
     if result.exception != None:
+        if "Couldn't find executable elementsd" in str(result.exception):
+            pytest.skip(str(result.exception))
+
         # Makes searching for issues much more convenient
         traceback.print_tb(result.exception.__traceback__)
         print(result.exception, file=sys.stderr)

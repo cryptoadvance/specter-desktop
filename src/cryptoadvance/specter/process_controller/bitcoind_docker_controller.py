@@ -93,6 +93,9 @@ class BitcoindDockerController(NodeController):
             )
         else:
             self.rpcconn = rpcconn
+
+        logger.info("Started docker bitcoind")
+
         return
 
     def stop_bitcoind(self):

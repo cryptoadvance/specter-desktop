@@ -496,6 +496,20 @@ def hwi():
     )
 
 
+@settings_endpoint.route("/assets/set_label", methods=["POST"])
+@login_required
+def set_asset_label():
+    asset = request.form["asset"]
+    label = request.form["label"].rstrip()
+    if label.lower() in ["btc", "bitcoin", "sat", "lbtc"]:
+        return f'Label "{label}" is not allowed', 500
+    try:
+        app.specter.update_asset_label(asset, label)
+    except Exception as e:
+        return str(e), 500
+    return {"success": True}
+
+
 ################## Settings util endpoints #######################
 
 # Specter backup file
