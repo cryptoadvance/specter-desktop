@@ -183,9 +183,9 @@ def init_app(app, hwibridge=False, specter=None):
             and json_data["language_code"] in app.supported_languages
         ):
             app.set_language_code(json_data["language_code"])
-            return jsonify({"success": True})
+            return jsonify(success=True)
         else:
-            return jsonify({"success": False})
+            return jsonify(success=False)
 
     # --------------------- Babel integration ---------------------
 

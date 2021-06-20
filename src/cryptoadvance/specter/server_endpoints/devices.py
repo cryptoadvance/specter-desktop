@@ -99,7 +99,7 @@ def new_device_keys(device_type):
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
                         )
-                        flash("{} keys were added successfully".format(len(paths)))
+                        flash(_("{} keys were added successfully").format(len(paths)))
                         return redirect(
                             url_for(
                                 "devices_endpoint.device", device_alias=device.alias
@@ -120,7 +120,7 @@ def new_device_keys(device_type):
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
                         )
-                        flash("{} was added successfully!".format(device_name))
+                        flash(_("{} was added successfully!").format(device_name))
                         return redirect(
                             url_for(
                                 "devices_endpoint.device", device_alias=device.alias
@@ -130,7 +130,8 @@ def new_device_keys(device_type):
                     except Exception as e:
                         handle_exception(e)
                         flash(
-                            _("Failed to setup hot wallet. Error") + f": {e}", "error"
+                            _("Failed to setup hot wallet. Error: {}").format(e),
+                            "error",
                         )
                         app.specter.device_manager.remove_device(
                             device,
@@ -143,7 +144,7 @@ def new_device_keys(device_type):
         elif not err:
             if existing_device:
                 device.add_keys(keys)
-                flash("{} keys were added successfully".format(len(keys)))
+                flash(_("{} keys were added successfully").format(len(keys)))
                 return redirect(
                     url_for("devices_endpoint.device", device_alias=device.alias)
                 )
@@ -160,7 +161,7 @@ def new_device_keys(device_type):
                     rand=rand,
                 )
             else:
-                flash("{} was added successfully!".format(device_name))
+                flash(_("{} was added successfully!").format(device_name))
                 return redirect(
                     url_for("devices_endpoint.device", device_alias=device.alias)
                     + "?newdevice=true"
@@ -346,7 +347,7 @@ def new_device_manual():
                     )
                 except Exception as e:
                     handle_exception(e)
-                    flash(_("Failed to setup hot wallet. Error") + f": {e}", "error")
+                    flash(_("Failed to setup hot wallet. Error: {}").format(e), "error")
                     app.specter.device_manager.remove_device(
                         device,
                         app.specter.wallet_manager,
@@ -392,8 +393,10 @@ def device(device_alias):
         if action == "forget":
             if len(wallets) != 0:
                 err = (
-                    _("Device could not be removed since it is used in wallets")
-                    + ": {}.<br>".format([wallet.name for wallet in wallets])
+                    _(
+                        "Device could not be removed since it is used in wallets: {}"
+                    ).format([wallet.name for wallet in wallets])
+                    + "<br>"
                     + _(
                         "You must delete those wallets before you can remove this device."
                     )
@@ -413,10 +416,10 @@ def device(device_alias):
             wallets_with_key = [w for w in wallets if key in w.keys]
             if len(wallets_with_key) != 0:
                 err = (
-                    _("Key could not be removed since it is used in wallets")
-                    + ": {}.<br>".format(
-                        ", ".join([wallet.name for wallet in wallets_with_key])
-                    )
+                    _(
+                        "Key could not be removed since it is used in wallets: {}"
+                    ).format(", ".join([wallet.name for wallet in wallets_with_key]))
+                    + "<br>"
                     + _("You must delete those wallets before you can remove this key.")
                     + "<br>"
                     + _("You can delete a wallet from its Settings -> Advanced page.")
