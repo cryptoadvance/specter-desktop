@@ -8,6 +8,7 @@ from .specter_error import SpecterError
 from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
+from .helpers import deep_update
 
 
 def hash_password(password):
@@ -144,6 +145,12 @@ class User(UserMixin):
         if existing and delete:
             self.specter.delete_user(self)
         self.manager.save()
+
+    def update_asset_label(self, asset, label, chain):
+        if "asset_labels" not in self.config:
+            self.config["asset_labels"] = {}
+        deep_update(self.config["asset_labels"], {chain: {asset: label}})
+        self.save_info()
 
     def set_explorer(self, explorer_id, explorer):
         if "explorers" not in self.config:

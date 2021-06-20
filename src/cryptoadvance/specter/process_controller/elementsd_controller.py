@@ -10,7 +10,7 @@ class ElementsPlainController(NodePlainController):
 
     def __init__(
         self,
-        elementsd_path="elements",
+        elementsd_path="elementsd",
         rpcport=18555,
         network="regtest",
         rpcuser="liquid",
