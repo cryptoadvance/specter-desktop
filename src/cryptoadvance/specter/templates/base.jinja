@@ -15,6 +15,10 @@
 	<body>
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
+		<!-- BC-UR2 QR code stuff -->
+		<script type="text/javascript" src="{{ url_for('static', filename='bcur/buffer.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='bcur/urlib.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='bcur/base58.min.js') }}"></script>
 		{% include "includes/overlay/overlay.html" %}
 		{% include "includes/qr-code.html" %}
 	{% endif %}

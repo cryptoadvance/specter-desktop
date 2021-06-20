@@ -1,34 +1,21 @@
-import hashlib
-
-# from ..device import Device
 from . import DeviceTypes
-from .coldcard import ColdCard
-from hwilib.psbt import PSBT
-from binascii import a2b_base64
-from ..util import bcur
-from ..util.xpub import get_xpub_fingerprint
+from .cobo import Cobo
 from ..helpers import to_ascii20
+from ..util.xpub import get_xpub_fingerprint
+from binascii import b2a_base64
 
 
-class Cobo(ColdCard):
-    device_type = DeviceTypes.COBO
-    name = "Cobo Vault"
-    icon = "cobo_icon.svg"
-
-    hwi_support = False
-    sd_card_support = True
-    qr_code_support = True
-    exportable_to_wallet = True
-    wallet_export_type = "qr"
+class Keystone(Cobo):
+    device_type = DeviceTypes.KEYSTONE
+    name = "Keystone"
+    icon = "keystone_icon.svg"
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
         # make sure nonwitness and xpubs are not there
-        psbts["qrcode"] = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
-        raw_psbt = a2b_base64(psbts["qrcode"])
-        enc, hsh = bcur.bcur_encode(raw_psbt)
-        qrpsbt = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
-        psbts["qrcode"] = qrpsbt
+        qr_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        # add a hint to <qr-code> tag that this should be encoded as crypto-psbt
+        psbts["qrcode"] = f"crypto-psbt:{qr_psbt}"
         return psbts
 
     def export_wallet(self, wallet):
@@ -64,6 +51,5 @@ Format: {}
             if fingerprint == "":
                 fingerprint = get_xpub_fingerprint(k.xpub).hex()
             cc_file += "{}: {}\n".format(fingerprint.upper(), k.xpub)
-        enc, hsh = bcur.bcur_encode(cc_file.encode())
-        cobo_qr = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
-        return cobo_qr
+        walletdata = b2a_base64(cc_file.encode()).decode()
+        return f"ur-bytes:{walletdata}"
