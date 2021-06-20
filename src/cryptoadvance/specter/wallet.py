@@ -687,7 +687,8 @@ class Wallet:
         for psbt in self.pending_psbts:
             amount += sum(
                 [
-                    utxo["witness_utxo"]["amount"]
+                    utxo.get("witness_utxo", {}).get("amount", 0)
+                    or utxo.get("value", 0)
                     for utxo in self.pending_psbts[psbt]["inputs"]
                 ]
             )
@@ -1259,6 +1260,7 @@ class Wallet:
             balance = {
                 "trusted": 0,
                 "untrusted_pending": 0,
+                "immature": 0,
                 "available": {"trusted": 0, "untrusted_pending": 0},
             }
         self.balance = balance
