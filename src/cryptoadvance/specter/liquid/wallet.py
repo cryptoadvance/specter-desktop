@@ -71,9 +71,7 @@ class LWallet(Wallet):
             blinding_key = ec.PrivateKey(secret).wif()
         if blinding_key:
             recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-            change_descriptor = (
-                f"blinded(slip77({blinding_key}),{change_descriptor})"
-            )
+            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
 
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
