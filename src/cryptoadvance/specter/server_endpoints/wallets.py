@@ -584,7 +584,10 @@ def send_new(wallet_alias):
                     if isnan(amount):
                         amount = 0.0
                     amounts.append(amount)
-                    amount_units.append(request.form["amount_unit_{}".format(i)])
+                    unit = request.form["amount_unit_{}".format(i)]
+                    if app.specter.is_liquid and unit in ["sat", "btc"]:
+                        unit = app.specter.default_asset
+                    amount_units.append(unit)
                     labels.append(request.form["label_{}".format(i)])
                     if request.form["label_{}".format(i)] != "":
                         wallet.setlabel(addresses[i], labels[i])
@@ -600,7 +603,9 @@ def send_new(wallet_alias):
                     labels.append("")
             addresses = [
                 address.lower()
-                if address.startswith(("BC1", "TB1", "BCRT1"))
+                if address.startswith(
+                    ("BC1", "TB1", "BCRT1", "EL1", "ERT1", "EX1", "LQ1")
+                )
                 else address
                 for address in addresses
             ]
@@ -616,18 +621,20 @@ def send_new(wallet_alias):
             rbf = bool(request.form.get("rbf", False))
             selected_coins = request.form.getlist("coinselect")
             app.logger.info("selected coins: {}".format(selected_coins))
+            kwargs = {
+                "subtract": subtract,
+                "subtract_from": subtract_from - 1,
+                "fee_rate": fee_rate,
+                "rbf": rbf,
+                "selected_coins": selected_coins,
+                "readonly": "estimate_fee" in request.form,
+                "rbf_edit_mode": (rbf_tx_id != ""),
+            }
+            # add assets
+            if app.specter.is_liquid:
+                kwargs["assets"] = amount_units
             try:
-                psbt = wallet.createpsbt(
-                    addresses,
-                    amounts,
-                    subtract=subtract,
-                    subtract_from=subtract_from - 1,
-                    fee_rate=fee_rate,
-                    rbf=rbf,
-                    selected_coins=selected_coins,
-                    readonly="estimate_fee" in request.form,
-                    rbf_edit_mode=(rbf_tx_id != ""),
-                )
+                psbt = wallet.createpsbt(addresses, amounts, **kwargs)
                 if psbt is None:
                     err = "Probably you don't have enough funds, or something else..."
                 else:
@@ -753,7 +760,11 @@ def send_new(wallet_alias):
         or not rbf
         or selected_coins
     )
-
+    wallet_utxo = wallet.utxo
+    if app.specter.is_liquid:
+        for tx in wallet_utxo + rbf_utxo:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx.get("asset"))
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
@@ -769,6 +780,7 @@ def send_new(wallet_alias):
         show_advanced_settings=show_advanced_settings,
         rbf_utxo=rbf_utxo,
         rbf_tx_id=rbf_tx_id,
+        wallet_utxo=wallet_utxo,
         fee_estimation=fee_rate,
         fee_estimation_data=fee_estimation_data,
         wallet_alias=wallet_alias,
@@ -1135,6 +1147,11 @@ def decoderawtx(wallet_alias):
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
             except:
                 rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
+            # add assets
+            if app.specter.is_liquid:
+                for v in rawtx["vin"] + rawtx["vout"]:
+                    if "asset" in v:
+                        v["assetlabel"] = app.specter.asset_label(v["asset"])
 
             return {
                 "success": True,
@@ -1737,9 +1754,9 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
                 else search in tx["address"]
             )
             or (
-                any(search in label for label in tx["label"])
-                if isinstance(tx["label"], list)
-                else search in tx["label"]
+                any(search in label for label in tx.get("label", ""))
+                if isinstance(tx.get("label", ""), list)
+                else search in tx.get("label", "")
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
@@ -1774,6 +1791,11 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
         txlist = txlist[limit * idx : limit * (idx + 1)]
     else:
         page_count = 1
+    # add assets
+    if app.specter.is_liquid:
+        for tx in txlist:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 

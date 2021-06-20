@@ -8,7 +8,7 @@
     - explorer: explorer url.
     - selected: The coin was selected previously
  #}
-{% macro coin_selection_item(txid, vout, amount, address, label, explorer, selected) -%}
+{% macro coin_selection_item(txid, vout, amount, address, label, explorer, selected, assetlabel="") -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr>
         <td>
@@ -27,6 +27,6 @@
         <td class="tx scroll">
             <address-label data-address="{{ address }}" data-label="{{ label if label else address }}" data-wallet="{{ wallet_alias }}"></address-label>
         </td>
-        <td>{{ amount | btcunitamount }}</td>
+        <td>{{ amount | btcunitamount }} {{assetlabel}}</td>
     </tr>
 {%- endmacro %}

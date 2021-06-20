@@ -18,7 +18,16 @@
         <tbody>
             {% for tx in unspents if tx['txid'] != rbf_tx_id %}
                 {% from 'wallet/send/new/components/coin_selection_item.jinja' import coin_selection_item %}
-                {{ coin_selection_item(tx['txid'], tx['vout'], tx['amount'], tx['address'], tx['label'], explorer, "{}, {}".format(tx['txid'], tx['vout']) in selected_coins) }}
+                {{ coin_selection_item(
+                        tx['txid'],
+                        tx['vout'],
+                        tx['amount'],
+                        tx['address'],
+                        tx['label'],
+                        explorer,
+                        "{}, {}".format(tx['txid'], tx['vout']) in selected_coins,
+                        tx.get("assetlabel",""),
+                    ) }}
             {% endfor %}
         </tbody>
     </table>

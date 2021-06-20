@@ -136,7 +136,9 @@
                 } else {
                     this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
                 }
-                this.amountPrice.classList.remove('hidden');
+                if(!("assetlabel" in this.tx) || this.tx.assetlabel == "LBTC"){
+                    this.amountPrice.classList.remove('hidden');
+                }
             }
 
             if (this.btcUnit == 'sat' && this.amount != 1e-8) {
@@ -146,7 +148,10 @@
             if (this.amount == 1e-8) {
                 this.amountText.innerText = 'Confidential';
             } else {
-                this.amountText.innerText = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+                this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+                if("assetlabel" in this.tx){
+                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                }
             }
 
             // Set confirmations
