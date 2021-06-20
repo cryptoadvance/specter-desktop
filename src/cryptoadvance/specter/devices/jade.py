@@ -1,9 +1,10 @@
+from . import DeviceTypes
 from .hwi_device import HWIDevice
 from .hwi.jade import JadeClient, enumerate
 
 
 class Jade(HWIDevice):
-    device_type = "jade"
+    device_type = DeviceTypes.JADE
     name = "Jade"
     icon = "jade_icon.svg"
 

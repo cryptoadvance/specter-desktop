@@ -1,6 +1,7 @@
 import os
 import shutil
 from embit import bip39, bip32, networks
+from . import DeviceTypes
 from ..device import Device
 from ..helpers import alias
 from ..util.descriptor import AddChecksum
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
-    device_type = "bitcoincore"
+    device_type = DeviceTypes.BITCOINCORE
     name = "Bitcoin Core (hot wallet)"
     icon = "bitcoincore_icon.svg"
 

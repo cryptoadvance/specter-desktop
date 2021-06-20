@@ -1,0 +1,224 @@
+<template id="asset-label">
+    <style>
+        .asset-label-form {
+            display: inline;
+        }
+        .label {
+            word-break: break-all;
+            background: none;
+            color: #fff;
+            font-size: 1em;
+            max-width: 80%;
+            outline: none;
+        }
+        .help{
+            cursor: help;
+        }
+        .edit, .cancel, .update {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            width: 18px;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .svg-white {
+            filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
+        }
+        .hover .btn.edit{
+            visibility: hidden;
+        }
+        .hover:hover .btn.edit{
+            visibility: visible;
+        }
+        img{
+            width: 22px;
+            margin-bottom:-5px;
+        }
+    </style>
+    <form class="asset-label-form">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+        <span class="label help" autocomplete="off" spellcheck="false">Fetching asset label...</span>
+        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" class="svg-white"/></button>
+        <button type="button" class="btn update hidden"><img src="{{ url_for('static', filename='img/check_thick.svg') }}" class="svg-white"/>&nbsp;</button>
+        <button type="button" class="btn cancel hidden"><img src="{{ url_for('static', filename='img/cross_thick.svg') }}" class="svg-white"/></button>
+    </form>
+</template>
+
+<script type="text/javascript">
+    class AssetLabelElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('asset-label').content;
+            var clone = style.cloneNode(true);
+            this.el = clone.querySelector(".asset-label-form");
+            this.label = clone.querySelector(".label");
+            this.update = clone.querySelector(".update");
+            this.cancel = clone.querySelector(".cancel");
+            this.edit = clone.querySelector(".edit");
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.asset = this.getAttribute('data-asset');
+            this.labelValue = this.getAttribute('data-label');
+            // edit-mode can be 'hover', 'disabled', 'enabled'
+            this.mode = this.getAttribute('edit-mode');
+            if(!this.mode){
+                this.mode = 'hover';
+            }
+            // disallow changing LBTC label
+            if(this.labelValue == "LBTC" || this.labelValue == "tLBTC"){
+                this.mode = 'disabled';
+            }
+            if(this.mode == 'disabled'){
+                this.edit.classList.add('hidden');
+            }else if(this.mode == 'hover'){
+                this.el.classList.add('hover');
+            }
+            this.label.title = this.asset;
+            this.isEditing = false;
+
+            // Set the label - fetch if not specified
+            if (this.labelValue) {
+                this.label.innerText = this.labelValue;
+            } else {
+                this.label.innerText = this.asset;
+                // fetchAssetLabel(this);
+            }
+
+            // Set title mode for asset-label element
+            if (this.getAttribute('date-size') == 'title') {
+                this.isTitle = true;
+                this.label.style.fontSize = '1.5em';
+                this.el.style.fontSize = '1.2em';
+                this.edit.style.width = '30px';
+                this.edit.children[0].style.width = '30px';
+            } else {
+                this.isTitle = false;
+            }
+
+            // Ensure text pasted is not formatted with special formatting.
+            this.label.addEventListener('paste', function (event) {
+                event.preventDefault();
+                document.execCommand('inserttext', false, event.clipboardData.getData('text/plain'));
+            });
+            this.label.addEventListener("keypress", (event) => {
+              // Number 13 is the "Enter" key on the keyboard
+              if (event.keyCode === 13) {
+                // Cancel the default action, if needed
+                event.preventDefault();
+                this.label.innerText = this.label.innerText.replaceAll("\n","");
+                // Trigger the button element with a click
+                this.update.click();
+              }
+            });
+            this.edit.onclick = () => {
+                this.label.setAttributeNode(document.createAttribute('contenteditable'));
+                if (this.isTitle) {
+                    this.label.style['font-size'] = '1.1em';
+                }
+                this.label.style['border-bottom'] = '1px solid #ccc';
+                this.labelValue = this.label.innerText;
+                this.edit.classList.add('hidden');
+                this.label.classList.remove('help')
+                this.cancel.classList.remove('hidden');
+                this.update.classList.remove('hidden');
+                this.isEditing = true;
+                // focus
+                this.label.focus();
+                // select content
+                let sel = window.getSelection();
+                let range = document.createRange();
+                range.selectNodeContents(this.label);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+            this.cancel.onclick = () => {
+                this.label.innerText = this.labelValue;
+                this.closeEditMode();
+            }
+
+            this.update.onclick = async () => {
+                if (await this.setAssetLabel()) {
+                    this.labelValue = this.label.innerText;
+                    this.closeEditMode(this);
+                    let event = new CustomEvent('updateAssetLabel', { detail: {
+                        label: this.labelValue,
+                        asset: this.asset,
+                    }});
+                    document.dispatchEvent(event);
+                    if (!this.labelValue) {
+                        this.label.innerText = this.asset
+                    }
+                } else {
+                    showError('Failed to update asset label. Please refresh the page and try again.')
+                }
+            }
+        
+            document.addEventListener("updateAssetLabel", (e) => {
+                if (this.asset != e.detail.asset) {
+                    return
+                }
+                this.labelValue = e.detail.label
+                if (!this.isEditing) {
+                    if (e.detail.label) {
+                        this.label.innerText = e.detail.label
+                    } else {
+                        this.label.innerText = e.detail.asset
+                    }
+                }
+            });
+        }
+        closeEditMode() {
+            this.label.removeAttribute('contenteditable')
+            if (this.isTitle) {
+                this.label.style['font-size'] = '1.5em';
+            }
+            this.label.style.border = 'none';
+            this.edit.classList.remove('hidden');
+            this.label.classList.add('help')
+            this.cancel.classList.add('hidden');
+            this.update.classList.add('hidden');
+            this.isEditing = false;
+        }
+
+        async setAssetLabel() {
+            let url = `{{ url_for('settings_endpoint.set_asset_label') }}`;
+            var formData = new FormData();
+            formData.append('asset', this.asset);
+            formData.append('label', this.label.innerText);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                return jsonResponse.success;
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+                return false;
+            }
+        }
+    }
+
+    customElements.define('asset-label', AssetLabelElement);
+</script>
