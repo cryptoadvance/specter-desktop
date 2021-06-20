@@ -175,36 +175,15 @@ class Wallet:
             recv_descriptor = "%s(%s)" % (el, recv_descriptor)
             change_descriptor = "%s(%s)" % (el, change_descriptor)
 
-        if is_liquid(wallet_manager.chain):
-            blinding_key = None
-            if len(devices) == 1:
-                blinding_key = devices[0].blinding_key
-            if not blinding_key:
-                desc = LDescriptor.from_string(recv_descriptor)
-                # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
-                # where chaincodes are corresponding to xpub of the first receiving address.
-                # It's not a standard but we use that until musig(blinding_xpubs) is implemented
-                xor = bytearray(32)
-                desc_keys = desc.derive(0).keys
-                for k in desc_keys:
-                    if k.is_extended:
-                        chaincode = k.key.chain_code
-                        for i in range(32):
-                            xor[i] = xor[i] ^ chaincode[i]
-                secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
-                blinding_key = ec.PrivateKey(secret).wif()
-            if blinding_key:
-                recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-                change_descriptor = (
-                    f"blinded(slip77({blinding_key}),{change_descriptor})"
-                )
-
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
         assert recv_descriptor != change_descriptor
 
-        use_descriptors = core_version >= 209900
-        # v20.99 is pre-v21 Elements Core for descriptors
+        # get Core version if we don't know it
+        if core_version is None:
+            core_version = rpc.getnetworkinfo().get("version", 0)
+
+        use_descriptors = core_version >= 210000
         if use_descriptors:
             # Use descriptor wallet
             rpc.createwallet(os.path.join(rpc_path, alias), True, True, "", False, True)
@@ -234,18 +213,10 @@ class Wallet:
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
         # The "keypool" for descriptor wallets is automatically refilled
-        if not is_multisig:
-            if use_descriptors:
-                res = wallet_rpc.importdescriptors(args)
-            else:
-                res = wallet_rpc.importmulti(args, {"rescan": False})
-        # bip67 requires sorted public keys for multisig addresses
+        if use_descriptors:
+            res = wallet_rpc.importdescriptors(args)
         else:
-            if use_descriptors:
-                res = wallet_rpc.importdescriptors(args)
-            else:
-                # try if sortedmulti is supported
-                res = wallet_rpc.importmulti(args, {"rescan": False})
+            res = wallet_rpc.importmulti(args, {"rescan": False})
 
         assert all([r["success"] for r in res])
 
@@ -1147,7 +1118,7 @@ class Wallet:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         desc = self.change_descriptor if change else self.recv_descriptor
         return (
-            LDescriptor.from_string(desc.split("#")[0])
+            LDescriptor.from_string(desc)
             .derive(index)
             .address(get_network(self.manager.chain))
         )
@@ -1329,48 +1300,14 @@ class Wallet:
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
         # The "keypool" for descriptor wallets is automatically refilled
-        if (not self.use_descriptors) or start == 0:
-            if not self.is_multisig:
-                if self.use_descriptors:
-                    r = self.rpc.importdescriptors(args)
-                else:
-                    r = self.rpc.importmulti(args, {"rescan": False})
-            # bip67 requires sorted public keys for multisig addresses
-            else:
-                if self.use_descriptors:
-                    self.rpc.importdescriptors(args)
-                else:
-                    # try if sortedmulti is supported
-                    r = self.rpc.importmulti(args, {"rescan": False})
-                    # doesn't raise, but instead returns "success": False
-                    if not r[0]["success"]:
-                        # first import normal multi
-                        # remove checksum
-                        desc = desc.split("#")[0]
-                        # switch to multi
-                        desc = desc.replace("sortedmulti", "multi")
-                        # add checksum
-                        desc = AddChecksum(desc)
-                        # update descriptor
-                        args[0]["desc"] = desc
-                        r = self.rpc.importmulti(args, {"rescan": False})
-                        # make a batch of single addresses to import
-                        arg = args[0]
-                        # remove range key
-                        arg.pop("range")
-                        batch = []
-                        for i in range(start, end):
-                            sorted_desc = sort_descriptor(desc, index=i)
-                            # create fresh object
-                            obj = {}
-                            obj.update(arg)
-                            obj.update({"desc": sorted_desc})
-                            batch.append(obj)
-                        r = self.rpc.importmulti(batch, {"rescan": False})
+        if not self.use_descriptors:
+            r = self.rpc.importmulti(args, {"rescan": False})
+
         if change:
             self.change_keypool = end
         else:
             self.keypool = end
+
         self.save_to_file()
         return end
 

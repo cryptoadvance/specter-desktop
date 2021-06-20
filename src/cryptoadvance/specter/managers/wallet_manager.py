@@ -14,7 +14,7 @@ from ..persistence import delete_file, delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
 from ..util.descriptor import AddChecksum
-from ..wallet import Wallet
+from ..wallet import Wallet, purposes
 from ..liquid.wallet import LWallet
 
 from embit import ec
