@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-14 22:35-0500\n"
-"PO-Revision-Date: 2021-06-18 00:55+0200\n"
+"PO-Revision-Date: 2021-06-20 12:18-0500\n"
 "Last-Translator: \n"
 "Language: es\n"
 "Language-Team: es <LL@li.org>\n"
@@ -290,43 +290,52 @@ msgstr ""
 msgid ""
 "In case it isn't, you might need to specify the Bitcoin Core data folder path "
 "in Specter's settings page."
-msgstr ""
+msgstr "En caso que no, tal vez tenga que "
 
 #: src/cryptoadvance/specter/templates/base.jinja:130
 msgid ""
 "Alternatively, you can switch off auto-detect from the settings and provide "
 "the Bitcoin Core RPC credentials and host URL manually."
 msgstr ""
+"Alternativamente, puedes apagar la auto-detección en las configuraciones y "
+"proveer las credenciales RPC y dirección (URL) de tu nodo Bitcoin Core de "
+"forma manual."
 
 #: src/cryptoadvance/specter/templates/base.jinja:131
 msgid ""
 "<b>Please note:</b><br>Your node must be configured with <code>server=1</"
 "code> line in the <code>bitcoin.conf</code> file."
 msgstr ""
+"<b>Por favor tener presente:</b><br>Tu nodo debe estar configurado con la "
+"línea <code>server=1</code> en el archivo <code>bitcoin.conf</code>."
 
 #: src/cryptoadvance/specter/templates/base.jinja:132
 msgid "If you don't have that, add it and restart Bitcoin Core."
-msgstr ""
+msgstr "Si no tienes eso, agrégala y reinicia Bitcoin Core."
 
 #: src/cryptoadvance/specter/templates/base.jinja:135
 msgid ""
 "In addition, you can check out these video tutorials for setting up Bitcoin "
 "Core with Specter Desktop"
 msgstr ""
+"Adicionalmente, puedes verificar estos video tutoriales para aprender a "
+"configurar Bitcoin Core con la versión escritorio de Specter"
 
 #: src/cryptoadvance/specter/templates/base.jinja:143
 msgid "Connecting Specter to your remote Bitcoin Core node"
-msgstr ""
+msgstr "Conectándose a tu nodo Bitcoin Core remoto"
 
 #: src/cryptoadvance/specter/templates/base.jinja:144
 msgid "Connecting to a \"node in a box\""
-msgstr ""
+msgstr "Conectándose a: \"nodo en la caja\""
 
 #: src/cryptoadvance/specter/templates/base.jinja:146
 msgid ""
 "Specter can be used with a remote Bitcoin Core node running on a machine like "
 "RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
 msgstr ""
+"Specter puede usarse con un nodo remoto de Bitcoin Core en una máquina como "
+"RaspiBlitz, MyNode, Nodl, Umbrel, and Embassy."
 
 #: src/cryptoadvance/specter/templates/base.jinja:147
 msgid ""
@@ -334,6 +343,9 @@ msgid ""
 "directly, which means it's possible to use it and skip setting up connection "
 "manually."
 msgstr ""
+"RaspiBlitz y myNode actualmente permiten correr directamente Specter en una "
+"máquina remota, lo que significa que puedes usarlo y saltarte la "
+"configuración manual."
 
 #: src/cryptoadvance/specter/templates/base.jinja:148
 msgid ""
@@ -351,50 +363,54 @@ msgid ""
 "Connecting over Tor requires that you first configure Tor on your local "
 "machine."
 msgstr ""
+"Conectarse por medio de Tor requiere que primero configures Tor en tu máquina "
+"local."
 
 #: src/cryptoadvance/specter/templates/base.jinja:164
 msgid "Add signing devices you wish to use."
-msgstr ""
+msgstr "Agrega los dispositivos que pueden firmar y que quieras usar."
 
 #: src/cryptoadvance/specter/templates/base.jinja:176
 msgid "Create your first wallet!"
-msgstr "Crea tu primer monedero!"
+msgstr "Crea tu primer billetera!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "And when you are all set: Get the whitepaper from the timechain."
-msgstr ""
+msgstr "Cuando estés listo: Coge el whitepaper desde la cadena de tiempo."
 
 #: src/cryptoadvance/specter/templates/base.jinja:209
 msgid "Supported and maintained by"
-msgstr ""
+msgstr "Soportado y mantenido por"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:11
 msgid "HWI Bridge Settings"
-msgstr ""
+msgstr "Configuraciones del puente HWI"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:15
 msgid "HWI Bridge is also accessible over Tor"
-msgstr ""
+msgstr "El puente HWI también es accesible desde Tor"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:16
 msgid "Copied Tor hidden service address"
-msgstr ""
+msgstr "Dirección Tor de servicio oculto copiada"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:21
 msgid "Whitelisted domains"
-msgstr ""
+msgstr "Lista blanca de dominios"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:24
 msgid ""
 "To whitelist multiple domains, just list them one after another, each in a "
 "new line, for example"
 msgstr ""
+"Para tener varios dominios en lista blanca, sencillamente lístalos uno tras "
+"otro, cada uno en una línea nueva, por ejemplo"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:21
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:30
 #: src/cryptoadvance/specter/templates/includes/address-label.html:65
 msgid "Update"
-msgstr ""
+msgstr "Actualizar"
 
 #: src/cryptoadvance/specter/templates/login.jinja:8
 msgid "Login to Specter"
