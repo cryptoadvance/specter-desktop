@@ -97,10 +97,16 @@ A reviewer on the Specter Desktop team will review your changes and (hopefully) 
 All you have to do in your code is wrap each piece of English text with the `ugettext` shorthand `_()`:
 * Wrap jinja template text: `<p>Hello, world!</p>` becomes `<p>{{ _('Hello, world!') }}</p>`
 * Wrap python strings: `error="No device was selected."` becomes `error=_("No device was selected.")`
+* Use `.format()` to wrap strings with variable injections:
+    ```
+    mystr = f"My dad's name is {dad.name} and my name is {self.name}."
+    mystr = _("My dad's name is {} and my name is {}").format(dad.name, self.name)
+    ```
 
-There are more complex workarounds for strings that are dynamically constructed as well as locale-specific date and number formatting.
-
-TODO: Link to resource
+    If there are a lot of variables to inject, placeholder names can be used:
+    ```
+    mystr = _("My dad's name is {dad_name} and my name is {my_name}").format(dad_name=dad.name, my_name=self.name)
+    ```
 
 
 ### Rescanning for text that needs translations
@@ -112,8 +118,9 @@ This will rescan all wrapped text, picking up new strings as well as updating ex
 
 Then run `update`:
 ```
-pybabel update -i babel/messages.pot -d src/cryptoadvance/specter/translations
+pybabel update -N -i babel/messages.pot -d src/cryptoadvance/specter/translations
 ```
+_note: the `-N` flag prevents babel from trying to use fuzzy matching to re-use existing translations for new strings. The fuzzy matching does not seem to do what we would want so we keep it disabled._
 
 Any newly wrapped text strings will be added to each `messages.po` file. Altered strings will be flagged as needing review to see if the existing translations can still be used.
 
