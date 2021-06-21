@@ -21,6 +21,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 )
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.user import User
 
 pytest_plugins = ["ghost_machine"]
 
@@ -275,13 +276,13 @@ def wallets_filled_data_folder(devices_filled_data_folder):
     "change_keypool": 5,
     "type": "simple",
     "description": "Single (Segwit)",
-    "key": {
+    "keys": [{
         "derivation": "m/84h/1h/0h",
         "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
         "fingerprint": "1ef4e492",
         "type": "wpkh",
         "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
-    },
+    }],
     "recv_descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr",
     "change_descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/1/*)#h4z73prm",
     "device": "Trezor",
@@ -300,7 +301,7 @@ def device_manager(devices_filled_data_folder):
 
 
 @pytest.fixture
-def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
+def specter_regtest_configured(bitcoin_regtest, wallets_filled_data_folder):
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     config = {
         "rpc": {
@@ -316,7 +317,21 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
             "method": "rpcpasswordaspin",
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(data_folder=wallets_filled_data_folder, config=config)
+    specter.user_manager.add_user(
+        User.from_json(
+            {
+                "id": "someuser",
+                "username": "someuser",
+                "password": "somepassword",
+                "config": {},
+                "is_admin": False,
+            },
+            specter,
+        )
+    )
+
+    specter.user_manager.save()
     specter.check()
     assert not specter.wallet_manager.working_folder is None
     yield specter
