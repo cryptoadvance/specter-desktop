@@ -199,14 +199,14 @@ class QRScannerElement extends HTMLElement {
       let isopen = this.hasAttribute('open');
       if(isopen){
         if(navigator.mediaDevices === undefined && location.protocol == "http:"){
-          this.triggerError('{{ _("Can\'t get access to the camera. Specter should run on localhost or over https to enable QR code scanning.") }}');
+          this.triggerError("{{ _("Can\'t get access to the camera. Specter should run on localhost or over https to enable QR code scanning.") }}");
           return;
         }
         try{
           this.popup.style.display = 'flex';
           this.scanner.start();
         }catch(e){
-          this.triggerError('{{ _("Can\'t start the QR scanner!") }}<br>' + e);
+          this.triggerError("{{ _("Can\'t start the QR scanner!") }}<br>" + e);
         }
       }else{
         this.reset();
