@@ -220,7 +220,8 @@ class WalletImporter:
 
         return (wallet_name, recv_descriptor, cosigners_types)
 
-    def wallet_type_by_slip132_xpub(xpub, is_multisig=True):
+    @classmethod
+    def wallet_type_by_slip132_xpub(cls, xpub, is_multisig=True):
         """
         see: https://github.com/satoshilabs/slips/blob/master/slip-0132.md
         Electrum backups use SLIP-132 but note that other wallets don't make the same
