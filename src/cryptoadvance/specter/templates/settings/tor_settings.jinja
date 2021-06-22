@@ -49,7 +49,7 @@
 				<a style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">Set up</a>
 			{% endif %}
 			<div class="row">
-				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if specter.tor_type == 'builtin' %} checked {% endif %}/>
+				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
 				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Built in</h2>
 			</div>
 			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">Quick and automatic setup.</p>
@@ -57,7 +57,7 @@
 		<br>
 		<label id="custom-tor-label" for="tor_type_custom" class="card radio-btn no-bottom-border-radius" style="padding: 20px 10px 5px; display: block; margin: auto;">
 			<div class="row">
-				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if specter.tor_type == 'custom' %} checked {% endif %}/>
+				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
 				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Custom</h2>
 			</div>
 			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">Use your own Tor configuration.</p>
@@ -146,7 +146,7 @@
 			}
 
 			document.addEventListener("DOMContentLoaded", function(){
-				toggletor_type('{{ specter.tor_type }}');
+				toggletor_type('{{ tor_type }}');
 			});
 		</script>
 	</form>

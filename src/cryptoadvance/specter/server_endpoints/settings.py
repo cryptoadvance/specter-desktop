@@ -186,6 +186,7 @@ def tor():
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
+    tor_type = app.specter.tor_type
     if request.method == "POST":
         action = request.form["action"]
         tor_type = request.form["tor_type"]
@@ -200,6 +201,9 @@ def tor():
             if tor_type == "custom":
                 app.specter.update_proxy_url(proxy_url, current_user)
                 app.specter.update_tor_control_port(tor_control_port, current_user)
+            else:
+                proxy_url = "socks5h://localhost:9050"
+                tor_control_port = ""
 
             app.specter.update_only_tor(only_tor, current_user)
             if hidden_service != app.specter.config["tor_status"]:
@@ -279,8 +283,9 @@ def tor():
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
+                    if tor_type == "builtin":
+                        logger.error("Tor-Logs:")
+                        logger.error(app.specter.tor_daemon.get_logs())
                 else:
                     flash(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}",
@@ -289,17 +294,20 @@ def tor():
                     logger.error(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}"
                     )
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
+                    if tor_type == "builtin":
+                        logger.error("Tor-Logs:")
+                        logger.error(app.specter.tor_daemon.get_logs())
             except Exception as e:
                 flash(f"Failed to make test request over Tor.\nError: {e}", "error")
                 logger.error(f"Failed to make test request over Tor.\nError: {e}")
-                logger.error("Tor-Logs:")
-                logger.error(app.specter.tor_daemon.get_logs())
+                if tor_type == "builtin":
+                    logger.error("Tor-Logs:")
+                    logger.error(app.specter.tor_daemon.get_logs())
                 tor_connectable = False
 
     return render_template(
         "settings/tor_settings.jinja",
+        tor_type=tor_type,
         proxy_url=proxy_url,
         only_tor=only_tor,
         tor_control_port=tor_control_port,
