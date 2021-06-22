@@ -164,7 +164,7 @@ def new_wallet(wallet_type):
                 except SpecterError as se:
                     flash(str(se), "error")
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                flash("Wallet imported successfully", "info")
+                flash(_("Wallet imported successfully"), "info")
                 try:
                     wallet_importer.rescan_as_needed(app.specter)
                 except SpecterError as se:
