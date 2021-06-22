@@ -310,7 +310,6 @@ class Node:
         """tests the rpc-connection and returns a dict which helps
         to derive what might be wrong with the config
         ToDo: list an example here.
-        TODO: Return error codes to move user-facing text into the template.
         """
         rpc = self.get_rpc()
         if rpc is None:
