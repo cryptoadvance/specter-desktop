@@ -112,7 +112,7 @@
         currentHeight += 13;
 
         doc.setFontSize(20);
-        if (currentHeight + 40 + '{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
+        if (currentHeight + 40 + {{ wallet.account_map|tojson }}.replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
             currentHeight = 20;
         }
@@ -124,8 +124,8 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text('{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
-        currentHeight += '{{ wallet.account_map|safe }}'.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+        doc.text({{ wallet.account_map|tojson }}.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        currentHeight += {{ wallet.account_map|tojson }}.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
         if (currentHeight + 20 + "{{ wallet.recv_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
             doc.addPage();
