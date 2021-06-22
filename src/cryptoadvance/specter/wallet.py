@@ -177,7 +177,10 @@ class Wallet:
 
         recv_descriptor = AddChecksum(recv_descriptor)
         change_descriptor = AddChecksum(change_descriptor)
-        assert recv_descriptor != change_descriptor
+        if not recv_descriptor != change_descriptor:
+            raise SpecterError(
+                f"The recv_descriptor ({recv_descriptor}) is the same than the change_descriptor ({change_descriptor})"
+            )
 
         # get Core version if we don't know it
         if core_version is None:
@@ -208,7 +211,8 @@ class Wallet:
                 arg["keypool"] = True
                 arg["range"] = [0, cls.GAP_LIMIT]
 
-        assert args[0] != args[1]
+        if not args[0] != args[1]:
+            raise SpecterError(f"{args[0]} is equal {args[1]}")
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
@@ -218,7 +222,11 @@ class Wallet:
         else:
             res = wallet_rpc.importmulti(args, {"rescan": False})
 
-        assert all([r["success"] for r in res])
+        if not all([r["success"] for r in res]):
+            all_issues = " and ".join(
+                r["error"]["message"] for r in res if r["success"] == False
+            )
+            raise SpecterError(all_issues)
 
         return cls(
             name,

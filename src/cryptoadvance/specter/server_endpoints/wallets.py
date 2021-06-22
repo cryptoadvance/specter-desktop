@@ -21,12 +21,12 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
+
 from ..helpers import (
     bcur2base64,
     get_devices_with_keys_by_type,
     get_txid,
-    is_testnet,
-    parse_wallet_data_import,
 )
 from ..key import Key
 from ..persistence import delete_file
@@ -145,127 +145,48 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             try:
-                wallet_data = json.loads(request.form["wallet_data"])
-
-                # Only need to un-escape the descriptor, if there is one (Specter format
-                #   has it but Electrum backup does not.
-                if "descriptor" in wallet_data:
-                    wallet_data["descriptor"] = (
-                        wallet_data["descriptor"].replace("\\'", "").replace("'", "h")
-                    )
-
-                (
-                    wallet_name,
-                    recv_descriptor,
-                    cosigners_types,
-                ) = parse_wallet_data_import(wallet_data)
-            except Exception as e:
-                flash(_("Unsupported wallet import format: {}").format(e), "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            try:
-                descriptor = Descriptor.parse(
-                    AddChecksum(recv_descriptor.split("#")[0]),
-                    testnet=is_testnet(app.specter.chain),
+                wallet_importer: WalletImporter = WalletImporter(
+                    request.form["wallet_data"],
+                    app.specter,
                 )
-                if descriptor is None:
-                    flash(_("Invalid wallet descriptor"), "error")
-                    return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            except:
-                flash(_("Invalid wallet descriptor"), "error")
+            except SpecterError as se:
+                flash(str(se), "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                flash(_("Wallet with the same name already exists"), "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
-
-            (
-                keys,
-                cosigners,
-                unknown_cosigners,
-                unknown_cosigners_types,
-            ) = descriptor.parse_signers(
-                app.specter.device_manager.devices, cosigners_types
-            )
-
-            wallet_type = "multisig" if descriptor.multisig_N > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
-                wallet_name = request.form["wallet_name"]
-                for i, (unknown_cosigner_key, label) in enumerate(unknown_cosigners):
-                    unknown_cosigner_name = request.form[
-                        "unknown_cosigner_{}_name".format(i)
-                    ]
-                    unknown_cosigner_type = request.form.get(
-                        "unknown_cosigner_{}_type".format(i), "other"
-                    )
-                    device = app.specter.device_manager.add_device(
-                        name=unknown_cosigner_name,
-                        device_type=unknown_cosigner_type,
-                        keys=[unknown_cosigner_key],
-                    )
-                    keys.append(unknown_cosigner_key)
-                    cosigners.append(device)
+                # User might have renamed it
+                wallet_importer.wallet_name = request.form["wallet_name"]
+                wallet_importer.create_nonexisting_signers(
+                    app.specter.device_manager, request.form
+                )
                 try:
-                    wallet = app.specter.wallet_manager.create_wallet(
-                        name=wallet_name,
-                        sigs_required=descriptor.multisig_M,
-                        key_type=descriptor.address_type,
-                        keys=keys,
-                        devices=cosigners,
-                    )
-                except Exception as e:
-                    flash(_("Failed to create wallet: {}").format(e), "error")
+                    wallet_importer.create_wallet(app.specter.wallet_manager)
+                except SpecterError as se:
+                    flash(str(se), "error")
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
-                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
-                wallet.import_labels(wallet_data.get("labels", {}))
-                flash(_("Wallet imported successfully"), "info")
+                flash("Wallet imported successfully", "info")
                 try:
-                    # get min of the two
-                    # if the node is still syncing
-                    # and the first block with tx is not there yet
-                    startblock = min(
-                        wallet_data.get(
-                            "blockheight", app.specter.info.get("blocks", 0)
-                        ),
-                        app.specter.info.get("blocks", 0),
-                    )
-                    # check if pruned
-                    if app.specter.info.get("pruned", False):
-                        newstartblock = max(
-                            startblock, app.specter.info.get("pruneheight", 0)
-                        )
-                        if newstartblock > startblock:
-                            flash(
-                                f"Using pruned node - we will only rescan from block {newstartblock}",
-                                "error",
-                            )
-                            startblock = newstartblock
-                    wallet.rpc.rescanblockchain(startblock, timeout=1)
-                    app.logger.info("Rescanning Blockchain ...")
-                except requests.exceptions.ReadTimeout:
-                    # this is normal behavior in our usecase
-                    pass
-                except Exception as e:
-                    app.logger.error("Exception while rescanning blockchain: %r" % e)
-                    flash(
-                        _("Failed to perform rescan for wallet: {}").format(e), "error"
-                    )
-                wallet.getdata()
+                    wallet_importer.rescan_as_needed(app.specter)
+                except SpecterError as se:
+                    flash(str(se), "error")
                 return redirect(
-                    url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)
+                    url_for(
+                        "wallets_endpoint.receive",
+                        wallet_alias=wallet_importer.wallet.alias,
+                    )
                     + "?newwallet=true"
                 )
             else:
                 return render_template(
                     "wallet/new_wallet/import_wallet.jinja",
-                    wallet_data=json.dumps(wallet_data),
-                    wallet_type=wallet_type,
-                    wallet_name=wallet_name,
-                    cosigners=cosigners,
-                    unknown_cosigners=unknown_cosigners,
-                    unknown_cosigners_types=unknown_cosigners_types,
-                    sigs_required=descriptor.multisig_M,
-                    sigs_total=descriptor.multisig_N,
+                    wallet_data=wallet_importer.wallet_json,
+                    wallet_type=wallet_importer.wallet_type,
+                    wallet_name=wallet_importer.wallet_name,
+                    cosigners=wallet_importer.cosigners,
+                    unknown_cosigners=wallet_importer.unknown_cosigners,
+                    unknown_cosigners_types=wallet_importer.unknown_cosigners_types,
+                    sigs_required=wallet_importer.descriptor.multisig_M,
+                    sigs_total=wallet_importer.descriptor.multisig_N,
                     specter=app.specter,
                     rand=rand,
                 )

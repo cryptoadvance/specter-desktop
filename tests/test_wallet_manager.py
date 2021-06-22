@@ -6,7 +6,6 @@ import time
 import pytest
 from cryptoadvance.specter.helpers import (
     is_testnet,
-    parse_wallet_data_import,
     generate_mnemonic,
 )
 from cryptoadvance.specter.key import Key
@@ -15,6 +14,7 @@ from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
 from conftest import instantiate_bitcoind_controller
 
@@ -400,7 +400,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -456,7 +456,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -578,7 +578,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -640,7 +640,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
