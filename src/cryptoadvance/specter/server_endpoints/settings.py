@@ -437,9 +437,9 @@ def auth():
                 if timeout > 0:
                     expiry = now + timeout * 60 * 60
                     if timeout > 1:
-                        expiry_desc = ' _("(expires in {} hours)")'.format(timeout)
+                        expiry_desc = " " + _("(expires in {} hours)").format(timeout)
                     else:
-                        expiry_desc = ' _("(expires in 1 hour)")'
+                        expiry_desc = " " + _("(expires in 1 hour)")
                 else:
                     expiry = 0
                     expiry_desc = ""
@@ -447,8 +447,8 @@ def auth():
                     {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
                 flash(
-                    _("New user link generated{}: {}").format(
-                        expiry_desc, f"{request.url_root}auth/register?otp={new_otp}"
+                    _("New user link generated{}: {}auth/register?otp={}").format(
+                        expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )

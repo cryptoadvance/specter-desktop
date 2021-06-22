@@ -76,7 +76,11 @@
 					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
 					<p style="font-size: 1.2em; font-weight: bolder;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}</p>
-					<br><br>
+
+					<div style="max-width: 15em; text-align: center; margin-bottom: 3em; margin-left: auto; margin-right: auto;">
+						{% include "includes/language/language_select.jinja" %}
+					</div>
+
 					{% if not specter.chain %}
 						<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}{{ _('Get started!') }}{% else %}{{ _('Continue setup') }}{% endif %}</a>
 						<br><br>
@@ -97,10 +101,6 @@
 								<br>
 							</div>
 						{% endif %}
-
-						<div style="max-width: 15em; text-align: center; margin-bottom: 2em; margin-left: auto; margin-right: auto;">
-							{% include "includes/language/language_select.jinja" %}
-						</div>
 
 						<table style="width: 90%; margin: auto;">
 							<tbody>

@@ -392,6 +392,7 @@ def device(device_alias):
         action = request.form["action"]
         if action == "forget":
             if len(wallets) != 0:
+                # TODO: Long message strings like this should be moved into a template.
                 err = (
                     _(
                         "Device could not be removed since it is used in wallets: {}"
@@ -415,6 +416,7 @@ def device(device_alias):
             key = Key.from_json({"original": request.form["key"]})
             wallets_with_key = [w for w in wallets if key in w.keys]
             if len(wallets_with_key) != 0:
+                # TODO: Long message strings like this should be moved into a template.
                 err = (
                     _(
                         "Key could not be removed since it is used in wallets: {}"
