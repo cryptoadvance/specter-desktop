@@ -1,11 +1,149 @@
 from ..wallet import *
 from ..addresslist import Address
+from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+
+    @classmethod
+    def create(
+        cls,
+        rpc,
+        rpc_path,
+        working_folder,
+        device_manager,
+        wallet_manager,
+        name,
+        alias,
+        sigs_required,
+        key_type,
+        keys,
+        devices,
+        core_version=None,
+    ):
+        """Creates a wallet. If core_version is not specified - get it from rpc"""
+        # get xpubs in a form [fgp/der]xpub from all keys
+        xpubs = [key.metadata["combined"] for key in keys]
+        recv_keys = ["%s/0/*" % xpub for xpub in xpubs]
+        change_keys = ["%s/1/*" % xpub for xpub in xpubs]
+        is_multisig = len(keys) > 1
+        # we start by constructing an argument for descriptor wrappers
+        if is_multisig:
+            recv_descriptor = "sortedmulti({},{})".format(
+                sigs_required, ",".join(recv_keys)
+            )
+            change_descriptor = "sortedmulti({},{})".format(
+                sigs_required, ",".join(change_keys)
+            )
+        else:
+            recv_descriptor = recv_keys[0]
+            change_descriptor = change_keys[0]
+        # now we iterate over script-type in reverse order
+        # to get sh(wpkh(xpub)) from sh-wpkh and xpub
+        arr = key_type.split("-")
+        for el in arr[::-1]:
+            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
+            change_descriptor = "%s(%s)" % (el, change_descriptor)
+
+        # get blinding key for the wallet
+        blinding_key = None
+        if len(devices) == 1:
+            blinding_key = devices[0].blinding_key
+        # if we don't have slip77 key for a device or it is multisig
+        # we use chaincodes to generate slip77 key.
+        if not blinding_key:
+            desc = LDescriptor.from_string(recv_descriptor)
+            # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
+            # where chaincodes are corresponding to xpub of the first receiving address.
+            # It's not a standard but we use that until musig(blinding_xpubs) is implemented.
+            # Chaincodes of the first address are not used anywhere else so they can be used
+            # as a source for the blinding keys. They are also independent of the xpub's origin.
+            xor = bytearray(32)
+            desc_keys = desc.derive(0).keys
+            for k in desc_keys:
+                if k.is_extended:
+                    chaincode = k.key.chain_code
+                    for i in range(32):
+                        xor[i] = xor[i] ^ chaincode[i]
+            secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
+            blinding_key = ec.PrivateKey(secret).wif()
+        if blinding_key:
+            recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
+            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
+
+        recv_descriptor = AddChecksum(recv_descriptor)
+        change_descriptor = AddChecksum(change_descriptor)
+        assert recv_descriptor != change_descriptor
+
+        # get Core version if we don't know it
+        if core_version is None:
+            core_version = rpc.getnetworkinfo().get("version", 0)
+
+        use_descriptors = core_version >= 209900
+        # v20.99 is pre-v21 Elements Core for descriptors
+        if use_descriptors:
+            # Use descriptor wallet
+            rpc.createwallet(os.path.join(rpc_path, alias), True, True, "", False, True)
+        else:
+            rpc.createwallet(os.path.join(rpc_path, alias), True)
+
+        wallet_rpc = rpc.wallet(os.path.join(rpc_path, alias))
+        # import descriptors
+        args = [
+            {
+                "desc": desc,
+                "internal": change,
+                "timestamp": "now",
+                "watchonly": True,
+            }
+            for (change, desc) in [(False, recv_descriptor), (True, change_descriptor)]
+        ]
+        for arg in args:
+            if use_descriptors:
+                arg["active"] = True
+            else:
+                arg["keypool"] = True
+                arg["range"] = [0, cls.GAP_LIMIT]
+
+        assert args[0] != args[1]
+
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets. Use getwalletinfo to check the wallet type.
+        # The "keypool" for descriptor wallets is automatically refilled
+        if use_descriptors:
+            res = wallet_rpc.importdescriptors(args)
+        else:
+            res = wallet_rpc.importmulti(args, {"rescan": False})
+
+        assert all([r["success"] for r in res])
+
+        return cls(
+            name,
+            alias,
+            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
+            if len(keys) > 1
+            else purposes[key_type],
+            addrtypes[key_type],
+            "",
+            -1,
+            "",
+            -1,
+            0,
+            0,
+            recv_descriptor,
+            change_descriptor,
+            keys,
+            devices,
+            sigs_required,
+            {},
+            [],
+            os.path.join(working_folder, "%s.json" % alias),
+            device_manager,
+            wallet_manager,
+        )
 
     def get_balance(self):
         try:

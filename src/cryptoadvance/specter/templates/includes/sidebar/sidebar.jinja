@@ -42,8 +42,8 @@
         {% if specter.info["initialblockdownload"] %}
             <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...<br>(data might be outdated)") }}</p>
         {% endif %}
-        {% if specter.network_info.version < 190000 %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v19.0.0).") }}</p>
+        {% if specter.network_info.version < 200000 %}
+            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v20.0.0).") }}</p>
         {% endif %}
             <div 
                 id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" 
