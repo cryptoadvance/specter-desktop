@@ -1,4 +1,5 @@
 import json, requests
+from cryptoadvance.specter.devices import DeviceTypes
 
 
 def test_malformed_parse_error(client):
@@ -129,7 +130,7 @@ def test_call_not_connected_device(client):
             "method": "prompt_pin",
             "id": 1,
             "params": {
-                "device_type": "trezor",
+                "device_type": DeviceTypes.TREZOR,
                 "path": "",
                 "passphrase": "",
                 "chain": "test",
@@ -156,7 +157,7 @@ def test_call_prompt_pin_invalid_device(client):
             "method": "prompt_pin",
             "id": 1,
             "params": {
-                "device_type": "ledger",
+                "device_type": DeviceTypes.LEDGER,
                 "path": "",
                 "passphrase": "",
                 "chain": "test",
