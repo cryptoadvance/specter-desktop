@@ -9,6 +9,7 @@ from flask import (
     jsonify,
     flash,
 )
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user, logout_user
 from flask import current_app as app
 from ..helpers import alias

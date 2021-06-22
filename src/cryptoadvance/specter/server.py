@@ -28,13 +28,9 @@ csrf = CSRFProtect()
 
 
 class SpecterFlask(Flask):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.supported_languages = {
-            "en": "English",
-            "es": "Español",
-            "fr": "Français",
-        }
+    @property
+    def supported_languages(self):
+        return self.config["LANGUAGES"]
 
     def get_language_code(self):
         """
@@ -45,7 +41,7 @@ class SpecterFlask(Flask):
             return session["language_code"]
         else:
             # autodetect
-            return request.accept_languages.best_match(self.config["LANGUAGES"].keys())
+            return request.accept_languages.best_match(self.supported_languages.keys())
 
     def set_language_code(self, language_code):
         session["language_code"] = language_code
@@ -181,7 +177,6 @@ def init_app(app, hwibridge=False, specter=None):
     @app.route("/set_language", methods=["POST"])
     def set_language_code():
         json_data = request.get_json()
-        print(json_data)
         if (
             "language_code" in json_data
             and json_data["language_code"] in app.supported_languages

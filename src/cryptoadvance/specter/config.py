@@ -104,6 +104,13 @@ class BaseConfig(object):
         },
     }
 
+    # Babel integration
+    LANGUAGES = {
+        "en": "English",
+        "es": "Español",
+        "fr": "Français",
+    }
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
