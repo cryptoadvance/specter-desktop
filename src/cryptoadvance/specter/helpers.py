@@ -271,10 +271,10 @@ MNEMONIC_LANGUAGES = {
     "es": "spanish",
     "fr": "french",
     "it": "italian",
-    "jp": "japanese",
-    # korean
-    # chinese_simpilfied
-    # chinese_traditional
+    # "jp": "japanese",
+    # "ko": korean",
+    # "?": chinese_simplified",
+    # "?": chinese_traditional",
 }
 
 
@@ -294,6 +294,8 @@ def generate_mnemonic(strength=256, language_code="en"):
 
 
 def validate_mnemonic(words):
+    # We cannot assume the mnemonic will be in the same language currently active
+    #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
     mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
     return mnemo.check(words)
 
