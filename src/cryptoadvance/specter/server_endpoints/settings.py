@@ -196,6 +196,7 @@ def tor():
         hidden_service = request.form.get("hidden_service") == "on"
 
         if action == "save":
+            logger.info("Updating Tor settings...")
             app.specter.update_tor_type(tor_type, current_user)
 
             if tor_type == "custom":
@@ -246,6 +247,7 @@ def tor():
             app.specter.check()
 
         elif action == "starttor":
+            logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
                 flash("Specter has started Tor")
@@ -253,6 +255,7 @@ def tor():
                 flash(f"Failed to start Tor, error: {e}", "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
+            logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
@@ -261,6 +264,7 @@ def tor():
                 flash(f"Failed to stop Tor, error: {e}", "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
+            logger.info("Uninstalling Tor...")
             try:
                 if app.specter.is_tor_dameon_running():
                     app.specter.tor_daemon.stop_tor_daemon()
@@ -271,6 +275,7 @@ def tor():
                 flash(f"Failed to uninstall Tor, error: {e}", "error")
                 logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
+            logger.info("Testing the Tor connection...")
             try:
                 requests_session = requests.Session()
                 requests_session.proxies["http"] = proxy_url
@@ -283,9 +288,6 @@ def tor():
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
-                    if tor_type == "builtin":
-                        logger.error("Tor-Logs:")
-                        logger.error(app.specter.tor_daemon.get_logs())
                 else:
                     flash(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}",
