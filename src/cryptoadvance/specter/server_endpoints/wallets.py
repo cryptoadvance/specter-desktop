@@ -500,7 +500,7 @@ def send_new(wallet_alias):
                 recipients_amount_unit=request.form.get("amount_unit_text"),
             )
             try:
-                psbt_creator.create_psbt(wallet)
+                psbt = psbt_creator.create_psbt(wallet)
             except SpecterError as se:
                 err = str(se)
                 app.logger.error(se)
@@ -509,10 +509,10 @@ def send_new(wallet_alias):
 
             if err is None:
                 if "estimate_fee" in request.form:
-                    return jsonify(success=True, psbt=psbt_creator.psbt)
+                    return jsonify(success=True, psbt=psbt)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                    psbt=psbt_creator.psbt,
+                    psbt=psbt,
                     labels=labels,
                     wallet_alias=wallet_alias,
                     wallet=wallet,

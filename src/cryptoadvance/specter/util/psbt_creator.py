@@ -91,6 +91,7 @@ class PsbtCreator:
                             "addresses", [""]
                         ) or self.addresses[0] == v["scriptPubKey"].get("address", ""):
                             self.amounts[0] = v["value"]
+            return self.psbt
         except Exception as e:
             logger.exception(e)
             raise SpecterError(f"{e} ... check the logs for the stacktrace")
