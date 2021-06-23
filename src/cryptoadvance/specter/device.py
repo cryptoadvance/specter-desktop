@@ -2,7 +2,7 @@ import json
 from .key import Key
 from .persistence import read_json_file, write_json_file
 import logging
-from .helpers import is_testnet
+from .helpers import is_testnet, is_liquid
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,8 @@ class Device:
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
     def has_key_types(self, wallet_type, network="main"):
+        if is_liquid(network) and not self.liquid_support:
+            return False
         if wallet_type == "multisig":
             for key_type in self.key_types(network):
                 if key_type in ["", "sh-wsh", "wsh"]:
@@ -142,6 +144,8 @@ class Device:
     def no_key_found_reason(self, wallet_type, network="main"):
         if self.has_key_types(wallet_type, network=network):
             return ""
+        if is_liquid(network) and not self.liquid_support:
+            return "This device type does not yet support Liquid"
         reverse_network = "main" if is_testnet(network) else "test"
         if wallet_type == "multisig":
             for key_type in self.key_types(reverse_network):
