@@ -106,7 +106,6 @@ class PsbtCreator:
         amounts = []
         amount_units = []
         while "address_{}".format(i) in request_form:
-            logger.debug(f"ssss {request_form['address_0']}")
             addresses.append(request_form["address_{}".format(i)])
             amount = 0.0
             try:
@@ -149,6 +148,7 @@ class PsbtCreator:
                     f"Unknown recipients_amount_unit: {recipients_amount_unit}"
                 )
             labels.append("")
+        return addresses, labels, amounts, amount_units
 
     def kwargs_from_request_form(request_form):
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
