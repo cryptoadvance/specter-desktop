@@ -298,13 +298,19 @@ def tor():
                     )
                     if tor_type == "builtin":
                         logger.error("Tor-Logs:")
+                        app.specter.tor_daemon.stop_tor_daemon()
+                        time.sleep(1)
                         logger.error(app.specter.tor_daemon.get_logs())
+                        app.specter.tor_daemon.start_tor_daemon()
             except Exception as e:
                 flash(f"Failed to make test request over Tor.\nError: {e}", "error")
                 logger.error(f"Failed to make test request over Tor.\nError: {e}")
                 if tor_type == "builtin":
                     logger.error("Tor-Logs:")
+                    app.specter.tor_daemon.stop_tor_daemon()
+                    time.sleep(1)
                     logger.error(app.specter.tor_daemon.get_logs())
+                    app.specter.tor_daemon.start_tor_daemon()
                 tor_connectable = False
 
     return render_template(
