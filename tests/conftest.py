@@ -22,6 +22,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 pytest_plugins = ["ghost_machine"]
 
@@ -134,6 +135,10 @@ def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     with tempfile.TemporaryDirectory("_specter_home_tmp") as data_folder:
         yield data_folder
+        import shutil
+
+        # Maybe we want to make a copy before it's deleted:
+        # shutil.copytree(data_folder, "/tmp/.specter")
 
 
 @pytest.fixture
@@ -301,7 +306,7 @@ def device_manager(devices_filled_data_folder):
 
 
 @pytest.fixture
-def specter_regtest_configured(bitcoin_regtest, wallets_filled_data_folder):
+def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     config = {
         "rpc": {
@@ -317,8 +322,8 @@ def specter_regtest_configured(bitcoin_regtest, wallets_filled_data_folder):
             "method": "rpcpasswordaspin",
         },
     }
-    specter = Specter(data_folder=wallets_filled_data_folder, config=config)
-    specter.user_manager.add_user(
+    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    someuser: User = specter.user_manager.add_user(
         User.from_json(
             {
                 "id": "someuser",
@@ -330,6 +335,17 @@ def specter_regtest_configured(bitcoin_regtest, wallets_filled_data_folder):
             specter,
         )
     )
+    wallet_json = '{"label": "simple", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
+    wallet_importer = WalletImporter(
+        wallet_json, specter, device_manager=someuser.device_manager
+    )
+    wallet_importer.create_nonexisting_signers(
+        someuser.device_manager,
+        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
+    )
+    dm: DeviceManager = someuser.device_manager
+    print(dm.devices_names)
+    wallet_importer.create_wallet(someuser.wallet_manager)
 
     specter.user_manager.save()
     specter.check()

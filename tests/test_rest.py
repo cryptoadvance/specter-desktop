@@ -28,12 +28,10 @@ def test_rr_psbt_get(client, caplog):
         "The server could not verify that you are authorized to access the URL requested."
     )
 
-    # Proper authenticated but not authorized
+    # Admin but not authorized (admin is NOT allowed to read everything)
     headers = {
         "Authorization": "Basic "
-        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
-            "ascii"
-        )
+        + base64.b64encode(bytes("admin" + ":" + "admin", "ascii")).decode("ascii")
     }
     result = client.get(
         "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
@@ -43,10 +41,12 @@ def test_rr_psbt_get(client, caplog):
         "You don't have the permission to access the requested resource."
     )
 
-    # Proper authorized
+    # Proper authorized (the wallet is owned by someuser)
     headers = {
         "Authorization": "Basic "
-        + base64.b64encode(bytes("admin" + ":" + "admin", "ascii")).decode("ascii")
+        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
+            "ascii"
+        )
     }
     result = client.get(
         "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers

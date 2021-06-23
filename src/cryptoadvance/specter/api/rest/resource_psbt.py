@@ -30,7 +30,6 @@ class ResourcePsbt(SecureResource):
     def get(self, wallet_alias):
         # ToDo: check whether the user has access to the wallet
         user = auth.current_user()
-        logger.debug(f"User: {user}")
         try:
             wallet: Wallet = app.specter.user_manager.get_user(
                 user
@@ -38,12 +37,14 @@ class ResourcePsbt(SecureResource):
             pending_psbts = wallet.pending_psbts
             return pending_psbts or []
         except SpecterError as se:
-            return abort(403)
+            # assuming the wallet has not been found
+            logger.fatal(f"{se} <---")
+            if str(se).startswith(f"Wallet {wallet_alias} does not exist!"):
+                return abort(403)
+            logger.error(se)
+            return abort(500)
         except Exception as e:
-            logger.error(e)
-            logger.debug(
-                f" all wallets: {app.specter.user_manager.get_user(user).wallet_manager.wallets_names}"
-            )
+            logger.exception(e)
             return abort(500)
 
     def post(self, wallet_alias):
