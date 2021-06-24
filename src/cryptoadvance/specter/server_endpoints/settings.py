@@ -186,18 +186,68 @@ def tor():
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
+    tor_type = app.specter.tor_type
     if request.method == "POST":
         action = request.form["action"]
+        tor_type = request.form["tor_type"]
         proxy_url = request.form["proxy_url"]
         only_tor = request.form.get("only_tor") == "on"
         tor_control_port = request.form["tor_control_port"]
+        hidden_service = request.form.get("hidden_service") == "on"
 
         if action == "save":
-            app.specter.update_proxy_url(proxy_url, current_user)
+            logger.info("Updating Tor settings...")
+            app.specter.update_tor_type(tor_type, current_user)
+
+            if tor_type == "custom":
+                app.specter.update_proxy_url(proxy_url, current_user)
+                app.specter.update_tor_control_port(tor_control_port, current_user)
+            else:
+                proxy_url = "socks5h://localhost:9050"
+                tor_control_port = ""
+
             app.specter.update_only_tor(only_tor, current_user)
-            app.specter.update_tor_control_port(tor_control_port, current_user)
+            if hidden_service != app.specter.config["tor_status"]:
+                if not app.config["DEBUG"]:
+                    if app.specter.config["auth"].get("method", "none") == "none":
+                        flash(
+                            "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
+                            "error",
+                        )
+                    else:
+                        if hasattr(current_user, "is_admin") and current_user.is_admin:
+                            if not hidden_service:
+                                stop_hidden_services(app)
+                                app.specter.toggle_tor_status()
+                                flash(
+                                    "Tor hidden service turn off successfully", "info"
+                                )
+                            else:
+                                try:
+                                    start_hidden_service(app)
+                                    app.specter.toggle_tor_status()
+                                    flash(
+                                        "Tor hidden service turn on successfully",
+                                        "info",
+                                    )
+                                except Exception as e:
+                                    handle_exception(e)
+                                    flash(
+                                        "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
+                                            e
+                                        ),
+                                        "error",
+                                    )
+                else:
+                    flash(
+                        "Can't toggle hidden service while Specter is running in DEBUG mode",
+                        "error",
+                    )
+
             app.specter.check()
+
         elif action == "starttor":
+            logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
                 flash("Specter has started Tor")
@@ -205,6 +255,7 @@ def tor():
                 flash(f"Failed to start Tor, error: {e}", "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
+            logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
@@ -213,6 +264,7 @@ def tor():
                 flash(f"Failed to stop Tor, error: {e}", "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
+            logger.info("Uninstalling Tor...")
             try:
                 if app.specter.is_tor_dameon_running():
                     app.specter.tor_daemon.stop_tor_daemon()
@@ -223,6 +275,7 @@ def tor():
                 flash(f"Failed to uninstall Tor, error: {e}", "error")
                 logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
+            logger.info("Testing the Tor connection...")
             try:
                 requests_session = requests.Session()
                 requests_session.proxies["http"] = proxy_url
@@ -235,8 +288,6 @@ def tor():
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
                     flash("Tor requests test completed successfully!", "info")
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
                 else:
                     flash(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}",
@@ -245,55 +296,26 @@ def tor():
                     logger.error(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}"
                     )
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
+                    if tor_type == "builtin":
+                        logger.error("Tor-Logs:")
+                        app.specter.tor_daemon.stop_tor_daemon()
+                        time.sleep(1)
+                        logger.error(app.specter.tor_daemon.get_logs())
+                        app.specter.tor_daemon.start_tor_daemon()
             except Exception as e:
                 flash(f"Failed to make test request over Tor.\nError: {e}", "error")
                 logger.error(f"Failed to make test request over Tor.\nError: {e}")
-                logger.error("Tor-Logs:")
-                logger.error(app.specter.tor_daemon.get_logs())
+                if tor_type == "builtin":
+                    logger.error("Tor-Logs:")
+                    app.specter.tor_daemon.stop_tor_daemon()
+                    time.sleep(1)
+                    logger.error(app.specter.tor_daemon.get_logs())
+                    app.specter.tor_daemon.start_tor_daemon()
                 tor_connectable = False
-        elif action == "toggle_hidden_service":
-            if not app.config["DEBUG"]:
-                if app.specter.config["auth"].get("method", "none") == "none":
-                    flash(
-                        "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
-                        "error",
-                    )
-                else:
-                    if hasattr(current_user, "is_admin") and current_user.is_admin:
-                        try:
-                            current_hidden_services = (
-                                app.specter.tor_controller.list_ephemeral_hidden_services()
-                            )
-                        except Exception as e:
-                            handle_exception(e)
-                            current_hidden_services = []
-                        if len(current_hidden_services) != 0:
-                            stop_hidden_services(app)
-                            app.specter.toggle_tor_status()
-                            flash("Tor hidden service turn off successfully", "info")
-                        else:
-                            try:
-                                start_hidden_service(app)
-                                app.specter.toggle_tor_status()
-                                flash("Tor hidden service turn on successfully", "info")
-                            except Exception as e:
-                                handle_exception(e)
-                                flash(
-                                    "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
-                                        e
-                                    ),
-                                    "error",
-                                )
-            else:
-                flash(
-                    "Can't toggle hidden service while Specter is running in DEBUG mode",
-                    "error",
-                )
 
     return render_template(
         "settings/tor_settings.jinja",
+        tor_type=tor_type,
         proxy_url=proxy_url,
         only_tor=only_tor,
         tor_control_port=tor_control_port,

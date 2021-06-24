@@ -305,6 +305,14 @@ class Specter:
         self.config_manager.update_fee_estimator(fee_estimator, custom_url, user)
 
     # mark
+    def update_tor_type(self, tor_type, user):
+        """update the Tor proxy url"""
+        if tor_type == "builtin":
+            self.update_proxy_url("socks5h://localhost:9050", user)
+            self.update_tor_control_port("", user)
+        self.config_manager.update_tor_type(tor_type, user)
+
+    # mark
     def update_proxy_url(self, proxy_url, user):
         """update the Tor proxy url"""
         self.config_manager.update_proxy_url(proxy_url, user)
@@ -525,6 +533,10 @@ class Specter:
     @property
     def fee_estimator(self):
         return self.user_config.get("fee_estimator", "mempool")
+
+    @property
+    def tor_type(self):
+        return self.user_config.get("tor_type", "builtin")
 
     @property
     def proxy_url(self):
