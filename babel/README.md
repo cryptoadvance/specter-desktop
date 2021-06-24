@@ -137,3 +137,14 @@ pybabel init -i babel/messages.pot -d src/cryptoadvance/specter/translations -l 
 pybabel init -i babel/messages.pot -d src/cryptoadvance/specter/translations -l fr
 pybabel init -i babel/messages.pot -d src/cryptoadvance/specter/translations -l de
 ```
+
+Then `update` and `compile` as above.
+
+The only other step you'd have to do is to add the new language code to the LANGUAGES list in `config.py`; the UI droplist automatically populates from that list. By convention use the native way to present the language:
+```
+# wrong:
+    "he": "Hebrew",
+
+# right:
+    "he": "עברית",
+```
