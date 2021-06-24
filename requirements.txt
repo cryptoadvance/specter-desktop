@@ -221,15 +221,15 @@ markupsafe==1.1.1 \
     # via
     #   jinja2
     #   wtforms
-mnemonic==0.18 \
-    --hash=sha256:02a7306a792370f4a0c106c2cf1ce5a0c84b9dbd7e71c6792fdb9ad88a727f1d
-    # via hwi
+mnemonic==0.19 \
+    --hash=sha256:4e37eb02b2cbd56a0079cabe58a6da93e60e3e4d6e757a586d9f23d96abea931 \
+    --hash=sha256:a8d78c5100acfa7df9bab6b9db7390831b0e54490934b718ff9efd68f0d731a6
+    # via
+    #   -r requirements.in
+    #   hwi
 noiseprotocol==0.3.1 \
     --hash=sha256:2e1a603a38439636cf0ffd8b3e8b12cee27d368a28b41be7dbe568b2abb23111
     # via bitbox02
-pbkdf2==1.3 \
-    --hash=sha256:ac6397369f128212c43064a2b4878038dab78dab41875364554aaf2a684e6979
-    # via mnemonic
 pgpy==0.5.3 \
     --hash=sha256:a49c269cedcaf82ac6999bcae5fd3f543ecb1c759f9d48a15ad8d8fa4ac03987 \
     --hash=sha256:cba6fbbb44a896a8a4f5807b3d8d4943a8f7a6607be11587f4a27734c711c1dd

@@ -20,3 +20,4 @@ pyopenssl==20.0.1
 flask_wtf==0.14.3
 pgpy==0.5.3
 cbor==1.0.0
+mnemonic==0.19
