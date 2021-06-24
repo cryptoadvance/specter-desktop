@@ -130,12 +130,16 @@ Whereas, [Specter-DIY](https://github.com/cryptoadvance/specter-diy) is a do-it-
 
 ## *Is a full node necessary for using Specter-desktop?*
 
-Yes, a Bitcoin full node is needed to provide all relevant data without relying on 3rd parties, and also for its watch-only wallet capabilities. However, Specter allows you to easily setup a (pruned-) node easily within Specter.
+Yes, a Bitcoin node is needed to provide all relevant data without relying on 3rd parties, and also for its watch-only wallet capabilities. However, Specter allows you to easily setup a (pruned-) node easily within Specter. If you can, a full-node is recommended but will take a lot longer to synchronize.
 
 ## *Can I use pruned mode?*
 
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
 Since v0.8.0 there is a workaround as you can download history from an external blockexplorer which has privacy implications. Make sure to read the tooltip-hints when using that feature and also consider this question in the  [troubleshooting-section](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)..
+
+## *I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?
+
+No you don't have to worry unless you plan to run specter as a public service on the internet with a growing number of people using it. That was traditionally the use-case for web-apps: Run in the open public internet getting accessed by MANY people. However, that's not how specter is meant to be used. If people get performance issues, it's most likely not because the user-base is growing on their specter but because their raspiPi is to weak for that one user who is doing all sorts of other stuff on that raspi on top.
 
 ## *I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*
 
