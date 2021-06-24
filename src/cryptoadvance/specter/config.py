@@ -109,6 +109,7 @@ class BaseConfig(object):
         "en": "English",
         "es": "Español",
         "fr": "Français",
+        "iw": "עברית",
     }
 
 
