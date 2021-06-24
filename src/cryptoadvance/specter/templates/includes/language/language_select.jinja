@@ -5,5 +5,4 @@
 	{% for language_code, language in supported_languages.items() %}
 		<option value="{{ language_code }}" {% if session["language_code"] == language_code %}selected{% endif %}>{{ language }}</option>
 	{% endfor %}
-	<option value="de" disabled {% if session["language_code"] == "de" %}selected{% endif %}>Deutsch</option>
 </select>
