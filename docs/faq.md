@@ -12,6 +12,7 @@
   - [*What's the difference between Specter-desktop and Specter-DIY?*](#whats-the-difference-between-specter-desktop-and-specter-diy)
   - [*Is a full node necessary for using Specter-desktop?*](#is-a-full-node-necessary-for-using-specter-desktop)
   - [*Can I use pruned mode?*](#can-i-use-pruned-mode)
+  - [*I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?](#i-get-this-message-this-is-a-development-server-do-not-use-it-in-a-production-deployment-should-i-worry)
   - [*I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*](#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure)
   - [How many addresses does an HD wallet have, and are they all the same?](#how-many-addresses-does-an-hd-wallet-have-and-are-they-all-the-same)
   - [*I make unsigned transactions from my cold storage using a watching-only Electrum wallet. I use public servers instead of my own node because doing it "right" is too complicated for me. Specter may be an ideal alternative if it will connect to my **headless bitcoind node**. Will this be possible?*](#i-make-unsigned-transactions-from-my-cold-storage-using-a-watching-only-electrum-wallet-i-use-public-servers-instead-of-my-own-node-because-doing-it-right-is-too-complicated-for-me-specter-may-be-an-ideal-alternative-if-it-will-connect-to-my-headless-bitcoind-node-will-this-be-possible)
