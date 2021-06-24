@@ -24,7 +24,7 @@ def test_WalletImporter():
     """
 
     wallet_importer = WalletImporter(wallet_json, specter_mock)
-    wallet_importer.wallet_name == "MyTestMultisig"
+    assert wallet_importer.wallet_name == "MyTestMultisig"
 
     assert (
         wallet_importer.recv_descriptor

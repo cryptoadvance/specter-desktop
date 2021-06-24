@@ -20,6 +20,7 @@ from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
+from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
@@ -497,89 +498,22 @@ def send_new(wallet_alias):
         action = request.form.get("action")
         rbf_tx_id = request.form.get("rbf_tx_id", "")
         if action == "createpsbt":
-            i = 0
-            addresses = []
-            labels = []
-            amounts = []
-            amount_units = []
-            ui_option = request.form.get("ui_option", "ui")
-            if "ui" in ui_option:
-                while "address_{}".format(i) in request.form:
-                    addresses.append(request.form["address_{}".format(i)])
-                    amount = 0.0
-                    try:
-                        amount = float(request.form["btc_amount_{}".format(i)])
-                    except ValueError:
-                        pass
-                    if isnan(amount):
-                        amount = 0.0
-                    amounts.append(amount)
-                    unit = request.form["amount_unit_{}".format(i)]
-                    if app.specter.is_liquid and unit in ["sat", "btc"]:
-                        unit = app.specter.default_asset
-                    amount_units.append(unit)
-                    labels.append(request.form["label_{}".format(i)])
-                    if request.form["label_{}".format(i)] != "":
-                        wallet.setlabel(addresses[i], labels[i])
-                    i += 1
-            else:
-                recipients_txt = request.form["recipients"]
-                for output in recipients_txt.splitlines():
-                    addresses.append(output.split(",")[0].strip())
-                    if request.form.get("amount_unit_text") == "sat":
-                        amounts.append(float(output.split(",")[1].strip()) / 1e8)
-                    else:
-                        amounts.append(float(output.split(",")[1].strip()))
-                    labels.append("")
-            addresses = [
-                address.lower()
-                if address.startswith(
-                    ("BC1", "TB1", "BCRT1", "EL1", "ERT1", "EX1", "LQ1")
-                )
-                else address
-                for address in addresses
-            ]
-            subtract = bool(request.form.get("subtract", False))
-            subtract_from = int(request.form.get("subtract_from", 1))
-            fee_options = request.form.get("fee_options")
-            if fee_options:
-                if "dynamic" in fee_options:
-                    fee_rate = float(request.form.get("fee_rate_dynamic"))
-                else:
-                    if request.form.get("fee_rate"):
-                        fee_rate = float(request.form.get("fee_rate"))
-            rbf = bool(request.form.get("rbf", False))
-            selected_coins = request.form.getlist("coinselect")
-            app.logger.info("selected coins: {}".format(selected_coins))
-            kwargs = {
-                "subtract": subtract,
-                "subtract_from": subtract_from - 1,
-                "fee_rate": fee_rate,
-                "rbf": rbf,
-                "selected_coins": selected_coins,
-                "readonly": "estimate_fee" in request.form,
-                "rbf_edit_mode": (rbf_tx_id != ""),
-            }
-            # add assets
-            if app.specter.is_liquid:
-                kwargs["assets"] = amount_units
+            psbt_creator = PsbtCreator(
+                app.specter,
+                wallet,
+                request.form.get("ui_option", "ui"),
+                request_form=request.form,
+                recipients_txt=request.form["recipients"],
+                recipients_amount_unit=request.form.get("amount_unit_text"),
+            )
             try:
-                psbt = wallet.createpsbt(addresses, amounts, **kwargs)
-                if psbt is None:
-                    err = _(
-                        "Probably you don't have enough funds, or something else..."
-                    )
-                else:
-                    # calculate new amount if we need to subtract
-                    if subtract:
-                        for v in psbt["tx"]["vout"]:
-                            if addresses[0] in v["scriptPubKey"].get(
-                                "addresses", [""]
-                            ) or addresses[0] == v["scriptPubKey"].get("address", ""):
-                                amounts[0] = v["value"]
-            except Exception as e:
-                err = e
-                app.logger.error(e)
+                psbt = psbt_creator.create_psbt(wallet)
+            except SpecterError as se:
+                err = str(se)
+                app.logger.error(se)
+                if "estimate_fee" in request.form:
+                    return jsonify(success=False, error=str(err))
+
             if err is None:
                 if "estimate_fee" in request.form:
                     return jsonify(success=True, psbt=psbt)
@@ -592,9 +526,7 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
-            else:
-                if "estimate_fee" in request.form:
-                    return jsonify(success=False, error=str(err))
+
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
