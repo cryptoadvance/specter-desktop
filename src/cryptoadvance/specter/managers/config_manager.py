@@ -173,6 +173,12 @@ class ConfigManager(GenericDataManager):
             self.data["proxy_url"] = proxy_url
             self._save()
 
+    def update_tor_type(self, tor_type, user):
+        """update the Tor type to use"""
+        if self.data.get("tor_type", "builtin") != tor_type:
+            self.data["tor_type"] = tor_type
+            self._save()
+
     def toggle_tor_status(self):
         """toggle the Tor status"""
         self.data["tor_status"] = not self.data["tor_status"]
