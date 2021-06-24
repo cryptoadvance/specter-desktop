@@ -1,4 +1,5 @@
 import json
+from json.decoder import JSONDecodeError
 import logging
 from math import isnan
 
@@ -22,8 +23,7 @@ class PsbtCreator:
         request_form=None,
         recipients_txt=None,
         recipients_amount_unit=None,
-        substract=None,
-        substract_from=1,
+        request_json=None,
     ):
         """
         * depending of ui_option = (ui|text) Fill the payment-details in either of these:
@@ -50,6 +50,10 @@ class PsbtCreator:
                 specter, wallet, request_form=request_form
             )
         elif ui_option == "text":
+            if recipients_txt is None or recipients_amount_unit is None:
+                raise SpecterError(
+                    "recipients_txt and recipients_amount_unit is mandatory"
+                )
             (
                 self.addresses,
                 self.labels,
@@ -61,6 +65,21 @@ class PsbtCreator:
                 recipients_txt=recipients_txt,
                 recipients_amount_unit=recipients_amount_unit,
             )
+        elif ui_option == "json":
+            if request_json is None:
+                raise SpecterError("request_json is mandatory")
+            (
+                self.addresses,
+                self.labels,
+                self.amounts,
+                self.amount_units,
+            ) = PsbtCreator.paymentinfo_from_json(
+                specter, wallet, request_json=request_json
+            )
+        else:
+            raise SpecterError(
+                f"Unknown ui_option: {ui_option}. Valid ones are ui|text|json"
+            )
         # normalizing
         self.addresses = [
             address.lower()
@@ -69,7 +88,10 @@ class PsbtCreator:
             for address in self.addresses
         ]
         # get kwargs
-        self.kwargs = PsbtCreator.kwargs_from_request_form(request_form)
+        if ui_option == "ui" or ui_option == "text":
+            self.kwargs = PsbtCreator.kwargs_from_request_form(request_form)
+        elif ui_option == "json":
+            self.kwargs = PsbtCreator.kwargs_from_request_json(request_json)
         if specter.is_liquid:
             self.kwargs["assets"] = self.amount_units
 
@@ -139,16 +161,84 @@ class PsbtCreator:
         amounts = []
         amount_units = []
         for output in recipients_txt.splitlines():
-            addresses.append(output.split(",")[0].strip())
-            if recipients_amount_unit == "sat":
-                amounts.append(float(output.split(",")[1].strip()) / 1e8)
-            elif recipients_amount_unit == "btc":
-                amounts.append(float(output.split(",")[1].strip()))
-            else:
-                raise SpecterError(
-                    f"Unknown recipients_amount_unit: {recipients_amount_unit}"
-                )
-            labels.append("")
+            try:
+                if output.isspace() or output == "":
+                    continue
+                addresses.append(output.split(",")[0].strip())
+                if recipients_amount_unit == "sat":
+                    amounts.append(float(output.split(",")[1].strip()) / 1e8)
+                elif recipients_amount_unit == "btc":
+                    amounts.append(float(output.split(",")[1].strip()))
+                else:
+                    raise SpecterError(
+                        f"Unknown recipients_amount_unit: {recipients_amount_unit}"
+                    )
+                labels.append("")
+                amount_units.append(recipients_amount_unit)
+            except IndexError as ie:
+                logger.error(f"line does not match expected pattern: '{output}'")
+        return addresses, labels, amounts, amount_units
+
+    @classmethod
+    def paymentinfo_from_json(cls, specter, wallet, request_json):
+        """calculates the correct format needed by wallet.createpsbt() out of a json
+        Example:
+        {
+            "recipients" : [
+                {
+                    "address": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
+                    "amount": 0.1,
+                    "unit": "btc",
+                    "label": "someLabel"
+                },
+                {
+                    "address": "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
+                    "amount": 111211,
+                    "unit": "sat",
+                    "label": "someOtherLabel"
+                }
+            ],
+            "rbf_tx_id": "",
+            "subtract_from": "1",
+            "fee_rate": "64",
+            "rbf": true,
+        }
+        returns something like  (addresses, labels, amounts, amount_units) (all arrays)
+        """
+        addresses = []
+        labels = []
+        amounts = []
+        amount_units = []
+        try:
+            json_data = json.loads(request_json)
+        except JSONDecodeError as e:
+            raise SpecterError(f"Error parsing json: {e}")
+        for recipient in json_data["recipients"]:
+            try:
+                addresses.append(recipient["address"])
+                try:
+                    amount = float(recipient["amount"])
+                    if recipient["unit"] == "sat":
+                        amounts.append(float(amount / 1e8))
+                    elif recipient["unit"] == "btc":
+                        amounts.append(amount)
+                    else:
+                        raise SpecterError(
+                            f"Non-compliant json: Unknown unit {recipient['unit']}"
+                        )
+                except ValueError as e:
+                    raise SpecterError(
+                        f"Could not parse amount {recipient.get('amount')} because {e}"
+                    )
+                unit = recipient["unit"]
+                amount_units.append(unit)
+
+                label = recipient.get("label", "")
+                labels.append(label)
+                if label != "":
+                    wallet.setlabel(recipient["address"], label)
+            except KeyError as ke:
+                raise SpecterError(f"Data missing in json: {ke}")
         return addresses, labels, amounts, amount_units
 
     def kwargs_from_request_form(request_form):
@@ -179,6 +269,28 @@ class PsbtCreator:
             "selected_coins": selected_coins,
             "readonly": "estimate_fee"
             in request_form,  # determines whether the psbt gets persisted
+            "rbf_edit_mode": (rbf_tx_id != ""),
+        }
+        return kwargs
+
+    @classmethod
+    def kwargs_from_request_json(cls, request_json):
+        """calculates the needed kwargs fow wallet.createpsbt() out of a request_json"""
+        # Who pays the fees?
+        json_data = json.loads(request_json)
+        subtract = bool(json_data.get("subtract", False))
+        subtract_from = int(json_data.get("subtract_from", 1))
+
+        fee_rate = float(json_data.get("fee_rate", None))
+        rbf = bool(json_data.get("rbf", False))
+        rbf_tx_id = json_data.get("rbf_tx_id", "")
+        kwargs = {
+            "subtract": subtract,
+            "subtract_from": subtract_from - 1,
+            "fee_rate": fee_rate,
+            "rbf": rbf,
+            "selected_coins": None,
+            "readonly": False,  # determines whether the psbt gets persisted
             "rbf_edit_mode": (rbf_tx_id != ""),
         }
         return kwargs
