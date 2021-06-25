@@ -164,7 +164,7 @@ def test_PsbtCreator_json(caplog):
         "rbf": True,
         "rbf_edit_mode": False,
         "readonly": False,
-        "selected_coins": None,
+        "selected_coins": [],
         "subtract": False,
         "subtract_from": 0,
     }

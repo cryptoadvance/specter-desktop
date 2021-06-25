@@ -118,11 +118,9 @@ class NodeController:
         if bitcoind_path == docker, it'll run bitcoind via docker.
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
-        if self.check_existing() != None:
-            logger.warning(f"Reusing existing {self.node_impl}d")
-            return self.rpcconn
+        if not self.check_existing() is None:
+            raise Exception("REUSING existing node not allowed")
 
-        logger.debug(f"Starting {self.node_impl}d")
         self._start_node(
             cleanup_at_exit,
             cleanup_hard=cleanup_hard,
@@ -142,7 +140,7 @@ class NodeController:
         except Exception as e:
             self.status = "Error"
             raise e
-
+        logger.info(f"Successfully started {self.node_impl}d in {self.datadir}")
         if "" not in self.get_rpc().listwallets():
             logger.info("Creating Default-wallet")
             self.get_rpc().createwallet("", False, False, "", False, True, True)
@@ -231,7 +229,7 @@ class NodeController:
             default_address = default_rpc.getaddressinfo(default_address)[
                 "unconfidential"
             ]
-        if balance < amount:
+        while default_rpc.getbalance() < amount:
             rpc.generatetoaddress(102, default_address)
         default_rpc.sendtoaddress(address, amount)
 

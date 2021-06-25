@@ -99,24 +99,20 @@ class PsbtCreator:
         """creates the PSBT via the wallet and modifies it for if substract is true
         If there was a "estimate_fee" in the request_form, the PSBT will not get persisted
         """
-        try:
-            self.psbt = wallet.createpsbt(self.addresses, self.amounts, **self.kwargs)
-            if self.psbt is None:
-                raise SpecterError(
-                    "Probably you don't have enough funds, or something else..."
-                )
-            else:
-                # calculate new amount if we need to subtract
-                if self.kwargs["subtract"]:
-                    for v in self.psbt["tx"]["vout"]:
-                        if self.addresses[0] in v["scriptPubKey"].get(
-                            "addresses", [""]
-                        ) or self.addresses[0] == v["scriptPubKey"].get("address", ""):
-                            self.amounts[0] = v["value"]
-            return self.psbt
-        except Exception as e:
-            logger.exception(e)
-            raise SpecterError(f"{e} ... check the logs for the stacktrace")
+        self.psbt = wallet.createpsbt(self.addresses, self.amounts, **self.kwargs)
+        if self.psbt is None:
+            raise SpecterError(
+                "Probably you don't have enough funds, or something else..."
+            )
+        else:
+            # calculate new amount if we need to subtract
+            if self.kwargs["subtract"]:
+                for v in self.psbt["tx"]["vout"]:
+                    if self.addresses[0] in v["scriptPubKey"].get(
+                        "addresses", [""]
+                    ) or self.addresses[0] == v["scriptPubKey"].get("address", ""):
+                        self.amounts[0] = v["value"]
+        return self.psbt
 
     @classmethod
     def paymentinfo_from_ui(cls, specter, wallet, request_form):
@@ -210,7 +206,11 @@ class PsbtCreator:
         amounts = []
         amount_units = []
         try:
-            json_data = json.loads(request_json)
+            if isinstance(request_json, dict):
+                json_data = request_json
+            else:
+                json_data = json.loads(request_json)
+
         except JSONDecodeError as e:
             raise SpecterError(f"Error parsing json: {e}")
         for recipient in json_data["recipients"]:
@@ -277,7 +277,14 @@ class PsbtCreator:
     def kwargs_from_request_json(cls, request_json):
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_json"""
         # Who pays the fees?
-        json_data = json.loads(request_json)
+        try:
+            if isinstance(request_json, dict):
+                json_data = request_json
+            else:
+                json_data = json.loads(request_json)
+
+        except JSONDecodeError as e:
+            raise SpecterError(f"Error parsing json: {e}")
         subtract = bool(json_data.get("subtract", False))
         subtract_from = int(json_data.get("subtract_from", 1))
 
@@ -289,8 +296,12 @@ class PsbtCreator:
             "subtract_from": subtract_from - 1,
             "fee_rate": fee_rate,
             "rbf": rbf,
-            "selected_coins": None,
+            "selected_coins": [],
             "readonly": False,  # determines whether the psbt gets persisted
             "rbf_edit_mode": (rbf_tx_id != ""),
         }
         return kwargs
+
+    def __repr__(self) -> str:
+        status = "created" if hasattr(self, "psbt") else "initialized"
+        return f"<{self.__class__.__name__} amountSum={sum(self.amounts) } {status}>"

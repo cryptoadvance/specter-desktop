@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -99,6 +100,7 @@ class WalletImporter:
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=False)
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=True)
         self.wallet.import_labels(self.wallet_data.get("labels", {}))
+        return self.wallet
 
     def rescan_as_needed(self, specter):
         """will rescan the created wallet"""
@@ -188,7 +190,7 @@ class WalletImporter:
             wallet_name = wallet_data["keystore"]["label"]
 
             if "xpub" in wallet_data["keystore"]:
-                wallet_type = wallet_type_by_slip132_xpub(
+                wallet_type = cls.wallet_type_by_slip132_xpub(
                     wallet_data["keystore"]["xpub"], is_multisig=False
                 )
             else:

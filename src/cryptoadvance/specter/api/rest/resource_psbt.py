@@ -1,24 +1,21 @@
 import logging
 import json
 
-from cryptoadvance.specter.api.rest.base import (
+from .base import (
     SecureResource,
     rest_resource,
 )
 from flask_restful import reqparse, abort
-from flask import current_app as app
+from flask import current_app as app, request
 from ...wallet import Wallet
 from ...util.fee_estimation import get_fees
+from ...util.psbt_creator import PsbtCreator
 
 from .. import auth
 
 from ...specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
-
-parser = reqparse.RequestParser()
-parser.add_argument("address", help="the address to send the funds to", required=True)
-parser.add_argument("amount", help="the amount to send", required=True)
 
 
 @rest_resource
@@ -35,37 +32,50 @@ class ResourcePsbt(SecureResource):
                 user
             ).wallet_manager.get_by_alias(wallet_alias)
             pending_psbts = wallet.pending_psbts
-            return pending_psbts or []
+            return {"result": pending_psbts or []}
         except SpecterError as se:
-            # assuming the wallet has not been found
-            logger.fatal(f"{se} <---")
+            logger.error(se)
             if str(se).startswith(f"Wallet {wallet_alias} does not exist!"):
-                return abort(403)
+                return abort(403, message=f"Wallet {wallet_alias} does not exist")
             logger.error(se)
             return abort(500)
         except Exception as e:
-            logger.exception(e)
-            return abort(500)
+            app.logger.exception(e)
+            return abort(
+                500,
+                message="Can't tell you the reason of the issue. Please check the logs",
+            )
 
     def post(self, wallet_alias):
+        user = auth.current_user()
         try:
-            wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-            data = parser.parse_args()
-
-            addresses = [data["address"]]
-            amounts = [data["amount"]]
-            fee_rate = get_fees(app.specter, app.config)
-
-            psbt = wallet.createpsbt(
-                addresses,
-                amounts,
-                fee_rate=fee_rate,
+            wallet: Wallet = app.specter.user_manager.get_user(
+                user
+            ).wallet_manager.get_by_alias(wallet_alias)
+            logger.debug(f"Got a post request for creating a psbt: {request.json}")
+            psbt_creator = PsbtCreator(
+                app.specter, wallet, "json", request_json=request.json
             )
-            if psbt is None:
-                err = "Probably you don't have enough funds, or something else..."
-
+            psbt_creator.create_psbt(wallet)
+            return {"result": psbt_creator.psbt}
+        except SpecterError as se:
+            logger.error(se)
+            if str(se).startswith(f"Wallet {wallet_alias} does not exist!"):
+                return abort(403, message=f"Wallet {wallet_alias} does not exist")
+            if str(se).endswith(
+                "does not have sufficient funds to make the transaction."
+            ):
+                logger.error(
+                    f"Available Walletbalance for {wallet_alias}: {wallet.get_balance().get('available')}"
+                )
+                return abort(
+                    412,
+                    message=f"Wallet does not have sufficient funds to make the transaction.",
+                )
+            return abort(500)
         except Exception as e:
-            err = e
-            app.logger.error(e)
-            return {"result": "error"}
-        return {"result": "ok"}
+            app.logger.exception(e)
+            return abort(
+                500,
+                message="Can't tell you the reason of the issue. Please check the logs",
+            )
