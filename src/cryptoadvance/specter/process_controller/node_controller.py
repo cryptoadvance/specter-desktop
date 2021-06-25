@@ -229,8 +229,13 @@ class NodeController:
             default_address = default_rpc.getaddressinfo(default_address)[
                 "unconfidential"
             ]
-        while default_rpc.getbalance() < amount:
+        while True:
+            btc_balance = default_rpc.getbalance()
+            if isinstance(btc_balance, dict):  # elementsd
+                btc_balance = btc_balance["bitcoin"]
             rpc.generatetoaddress(102, default_address)
+            if btc_balance > amount:
+                break
         default_rpc.sendtoaddress(address, amount)
 
     @staticmethod

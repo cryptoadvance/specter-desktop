@@ -138,4 +138,3 @@ def test_device_wallets(
 
     assert len(second_device.wallets(wm)) == 1
     assert second_device.wallets(wm)[0].alias == multisig_wallet.alias
-    assert False
