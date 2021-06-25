@@ -144,15 +144,7 @@ def elements_elreg(request):
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     with tempfile.TemporaryDirectory("_specter_home_tmp") as data_folder:
-        try:
-            yield data_folder
-        finally:
-            import shutil
-
-            shutil.rmtree(data_folder, ignore_errors=True)
-
-            # Maybe we want to make a copy before it's deleted:
-            # shutil.copytree(data_folder, "/tmp/.specter", dirs_exist_ok=True)
+        yield data_folder
 
 
 @pytest.fixture
