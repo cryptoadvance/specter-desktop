@@ -47,6 +47,18 @@ Add or update translations, then save your changes.
 
 	Your translations must preserve all of the html markup. If you are unfamiliar with html markup, feel free to just skip these entries.
 
+* You'll also see passages with markers for where text will be dynamically inserted:
+    ```
+    "Hello {}, welcome back!"
+    ```
+    In this example case the user's name will be inserted in the curly brackets. Your translation must preserve the curly brackets.
+
+    This is used in a lot of our error reporting:
+    ```
+    "Wallet failed to load. {}"    
+    ```
+    The brackets at the end will display an error code, debugging info, etc.
+
 * Much of the text will include some very technical terms. If you're unfamiliar with the term in English or don't know its equivalent in your target language (e.g. "derivation path" or "hash"), review other occurrences of that word in existing translations in the `messages.po` file or ask in the Telegram group. Obviously we want to try to use the most recognizable, common term in each language, even though there won't necessarily be a standard set.
 
 	And many languages will most likely just keep many of the technical words the same (e.g. "xpub").
@@ -140,7 +152,7 @@ pybabel init -i babel/messages.pot -d src/cryptoadvance/specter/translations -l 
 
 Then `update` and `compile` as above.
 
-The only other step you'd have to do is to add the new language code to the LANGUAGES list in `config.py`; the UI droplist automatically populates from that list. By convention use the native way to present the language:
+The only other step is to add the new language to the LANGUAGES list in `config.py`; the UI droplist automatically populates from that list. By convention use the native way to present the language:
 ```
 # wrong:
     "he": "Hebrew",
