@@ -1,39 +1,42 @@
 """
-REST API Resource Routing
-
-http://flask-restful.readthedocs.io/en/latest/
+liveness and readiness probes are a semi-standard way of health-checking.
+See e.g. here:
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 """
+import json
 import logging
-import time
-from flask import current_app as app
-from cryptoadvance.specter.api.rest.base import BaseResource, rest_resource
+from os import abort
 
+from cryptoadvance.specter.api.rest.base import BaseResource, rest_resource
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
 
 @rest_resource
 class ResourceLiveness(BaseResource):
-    """/api/healthz/liveness"""
+    """/api/healthz/liveness
+    Whether the app is up and running although it might not have connection to DB/nodes etc.
+    """
 
     endpoints = ["/healthz/liveness"]
 
     def get(self):
-        return "i am alive"
+        return json.dumps({"message": "i am alive"})
 
 
 @rest_resource
 class ResourceReadyness(BaseResource):
-    """/api/healthz/readyness"""
+    """/api/healthz/readyness
+    Whether the app is up and running AND ALL its dependent services (in our case nodes) are properly functioning as well.
+    """
 
     endpoints = ["/healthz/readyness"]
 
     def get(self):
         try:
+            # Not sure whether that's enough. Probably improvable:
             app.specter.check()
         except Exception as e:
-            logger.error(f"Readyness probe failed:{e}")
-            # Would be cool to have a timeout check here to act more sophisticated e.g. warn in the logs
-            # or something but looks complicated:
-            # https://sqlalchemy.narkive.com/U4m4aqf9/set-a-query-timeout-on-a-per-query-basis
-        return "i am ready"
+            abort(500, message="Readyness probe failed")
+        return json.dumps({"message": "i am ready"})
