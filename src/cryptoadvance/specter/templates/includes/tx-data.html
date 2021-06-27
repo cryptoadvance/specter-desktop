@@ -13,7 +13,7 @@
         }
     </style>
     <div class="tx-data">
-        <h2>Transaction details</h2><br>
+        <h2>{{ _("Transaction details") }}</h2><br>
         <div class="tx-data-info"></div>
         <div class="note"></div>
     </div>
@@ -36,7 +36,7 @@
             this.btcUnit = this.getAttribute('data-btc-unit');
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
-            this.note.innerText = `Loading transaction details...\n\nTransaction ID: ${this.txid}`;
+            this.note.innerText = `{{ _("Loading transaction details...\n\nTransaction ID:") }}" ${this.txid}`;
             fetchTxData(this);
         
             // Attach the created element to the shadow dom

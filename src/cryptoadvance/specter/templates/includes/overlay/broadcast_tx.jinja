@@ -1,5 +1,5 @@
 <div id="tx_broadcast" class="hidden">
-    <h1>Transaction is Ready to Broadcast</h1>
+    <h1>{{ _("Transaction is Ready to Broadcast") }}</h1>
     <div class="flex-center flex-column">
         <button id="broadcast_local_btn" class="btn flex-item" style="width: 190px;">{{ _("Send transaction") }}</button>
         <button type="button" id="broadcast_block_explorer_btn" class="btn flex-item {% if specter.chain == 'regtest' %}hidden{% endif %}" style="width: 190px;">{{ _("Send via block explorer") }}</button>

@@ -129,7 +129,7 @@
             {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
         {% endif %}
         <div class="separator">
-            <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
+            <span id="toggle_wallets_list" style="cursor: pointer;">{{ _("Wallets") }} &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
                 <a class="note" id="wallets_overview_link" href="{{ url_for('wallets_endpoint.wallets_overview') }}" style="cursor: pointer;">
                     {{ _("Wallets overview") }}
@@ -262,15 +262,15 @@
         }
     }
 
-    function toggleList(type) {
+    function toggleList(type, display_text) {
         let titleButton = document.getElementById('toggle_' + type + '_list');
         let list = document.getElementById(type + '_list');
         if (list.style.display === 'none') {
             list.style.display = 'block';
-            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9660;';
+            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9660;';
         } else {
             list.style.display = 'none';
-            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9654;';
+            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9654;';
         }
     }
 
@@ -279,7 +279,7 @@
             document.getElementById('toggle_devices_list').innerHTML = '{{ _("Devices") }}';
         } else {
             document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
-                toggleList('devices');
+                toggleList('devices', '{{ _("Devices") }}');
             });
         }
 
@@ -287,7 +287,7 @@
             document.getElementById('toggle_wallets_list').innerHTML = '{{ _("Wallets") }}';
         } else {
             document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
-                toggleList('wallets');
+                toggleList('wallets', '{{ _("Wallets") }}');
             });
         }
 

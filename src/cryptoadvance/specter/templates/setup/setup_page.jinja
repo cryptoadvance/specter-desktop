@@ -22,9 +22,9 @@
     <div class="row">
         <form method="POST" action="{{ url_for('about') }}">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">Cancel process</button>
+            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">{{ _("Cancel process") }}</button>
         </form>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('progress-details');">View Progress</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('progress-details');">{{ _("View Progress") }}</button>
     </div>
     <h1 id="progress-details" class="hidden" style="margin: auto;"></h1>
     
@@ -47,7 +47,7 @@
                 helper.classList.add("helper-btn");
                 support.classList.add("helper-btn");
             } else {
-                helper.innerText = "Unsure? Click here for more info!";
+                helper.innerText = '{{ _("Unsure? Click here for more info!") }}';
                 helperText.classList.add("hidden");
                 support.classList.add("hidden");
                 helper.classList.remove("helper-btn");
@@ -60,10 +60,10 @@
             let advancedSettings = document.getElementById(`advanced_settings`);
             if (advancedSettings.classList.contains("hidden")) {
                 advancedSettings.classList.remove("hidden");
-                advancedButton.innerHTML = 'Advanced &#9660;';
+                advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
             } else {
                 advancedSettings.classList.add("hidden");
-                advancedButton.innerHTML = 'Advanced &#9654;';
+                advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
             }
         }
 
@@ -80,7 +80,7 @@
                     );
                     let result = await response.json();
                     if (result.error) {
-                        showError('Encountered an error:' + result.error);
+                        showError('{{ _("Encountered an error:") }}' + result.error);
                         document.getElementById('progress-details').classList.add('hidden');
                         hidePageOverlay('progress-details');
                         return;
@@ -92,7 +92,7 @@
                     }
                     document.getElementById('progress-details').innerHTML = `${stage}<br>`;
                     if (progress > 0 && progress < 100) {
-                        document.getElementById('progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">Download Progress: ${progress}%</b>`;
+                        document.getElementById('progress-details').innerHTML += `<br><br><b style="font-size:0.8em;">{{ _("Download Progress:") }}" ${progress}%</b>`;
                     }
                     setTimeout(fetchProgress, 1000);
                 } catch(e) {
@@ -104,7 +104,7 @@
             document.getElementById('show-progress-details').classList.remove('hidden');
             document.getElementById('reset-setup-process').classList.remove('hidden');
             showPageOverlay('progress-details');
-            document.getElementById('progress-details').innerHTML = 'Starting up...';
+            document.getElementById('progress-details').innerHTML = '{{ _("Starting up...") }}';
             
             setTimeout(fetchProgress, 1000);
         }

@@ -60,13 +60,13 @@
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<message-box type="error">ERROR: {{error}}</message-box>
+				<message-box type="error">{{ _("ERROR:") }} {{error}}</message-box>
 			{% endif %}
 			</div>
 
 			{% block main %}
 				{% if error %}
-					<br><br>Something went wrong :(<br><br>{{error}}
+					<br><br>{{ _("Something went wrong:") }} (<br><br>{{error}}
 				{% else %}
 					<br>
 					<div style="max-width: 60%; text-align: center;">

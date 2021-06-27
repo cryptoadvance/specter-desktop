@@ -53,42 +53,42 @@
                 {% endif %}
                 <div id="coldcard-instructions" {%if device_class.device_type != 'coldcard' %}class="hidden"{% endif %}>
                     <p>
-                    Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.<br>
+                    {{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}<br>
                     </p>
                     <span class="note">
-                    To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:<br>
+                    {{ _("To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:<br>
                     To get the single sig xpubs, go to: Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, select account number (default is 0) and confirm the export.<br>
-                    To get the multisig xpubs, go to: Settings -> Multisig Wallets -> Export XPUB and confirm the export.
+                    To get the multisig xpubs, go to: Settings -> Multisig Wallets -> Export XPUB and confirm the export.") }}
                     </span>
                 </div>
                 <div id="specter-instructions" {%if device_class.device_type != 'specter' %}class="hidden"{% endif %}>
                     <p>
-                    Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.<br>
+                    {{ _("Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.") }}<br>
                     </p>
                     <span class="note">
-                    To get the master public key QR code to scan, click on: Master public keys, then select each key type you'd like to import and scan the displayed QR code for each into Specter.
+                    {{ _("To get the master public key QR code to scan, click on: Master public keys, then select each key type you'd like to import and scan the displayed QR code for each into Specter.") }}
                     </span>
                 </div>
                 <div id="cobo-instructions" {%if device_class.device_type != 'cobo' %}class="hidden"{% endif %}>
                     <p>
-                    Scan your Cobo Vault master public key or upload a wallet export file.<br>
+                    {{ _("Scan your Cobo Vault master public key or upload a wallet export file.") }}<br>
                     </p>
                     <span class="note">
-                    To get the master public keys QR codes to scan:<br><br>
+                    {{ _("To get the master public keys QR codes to scan:<br><br>
                     For single sig, click on: Setting -> Watch-Only Wallet -> Generic Wallet, Click the top right 3 dots (...) -> Wallet Info ->Toggle Address Type, then select the wallet address type you would like to use for your wallet.<br><br>
                     For multisig, click on: Multisig Wallet -> Click the top right 3 dots (...) -> Show/Export XPUB, then select the wallet address type you would like to use for your wallet.<br>
                     Cobo Vault will then display the QR code which you should scan into Specter.<br><br>
-                    To import with SD card, click on "touch here to export the file with microSD" on the same screen as the QR code.
+                    To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}
                     </span>
                 </div>
                 <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>
-                    <p>Connect your hardware device to the computer via USB.</p>
+                    <p>{{ _("Connect your hardware device to the computer via USB.") }}</p>
                 </div>
                 <br>
                 <table>
                     <thead>
                     <tr>
-                        <th></th><th>Purpose</th><th>Derivation</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">Edit</button></th>
+                        <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
                     </tr>
                     </thead>
                     <tbody id="xpubs_table">
@@ -99,35 +99,35 @@
                 <div class="row overflow">
                     <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 10px;" class="btn {% if not device_class.hwi_support %}hidden{% endif %}">
                         <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
-                        Get via USB
+                        {{ _("Get via USB") }}
                     </div>
                     <label id="connect-sdcard" {% if not device_class.sd_card_support %}class="hidden"{% endif %}>
                         <input type="file" id="file" class="inputfile" multiple/>
                         <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
                             <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-                            Upload from SD Card
+                            {{ _("Upload from SD Card") }}
                         </div>
                     </label>
                     <qr-scanner id="xpub-scan" {% if not device_class.qr_code_support %}class="hidden"{% endif %}>
                         <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
                             <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-                            Scan QR code
+                            {{ _("Scan QR code") }}
                         </a>
                     </qr-scanner>
                     <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
                         <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
-                        Paste xpub
+                        {{ _("Paste xpub") }}
                     </button>
                     <div class="hidden" id="paste-xpub-popup">
-                        <h1>Paste xpub</h1>
+                        <h1>{{ _("Paste xpub") }}</h1>
                         <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
                         <br><br>
-                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">Add xpub</button>
+                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">{{ _("Add xpub") }}</button>
                     </div>
                 </div>
             </div>
         </div>
-        <button type="submit" id="submit-keys" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">Continue</button>
+        <button type="submit" id="submit-keys" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">{{ _("Continue") }}</button>
         <br><br>
     </form>
 {% endblock %}
@@ -155,7 +155,7 @@
             xpubsTableRowsInput.value = xpubsTableRows;
             let xpubRowHTML = `
                 <td></td>
-                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="XPUB purpose" style="width: 90%; min-width: 100px;"></td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="{{ _("XPUB purpose") }}" style="width: 90%; min-width: 100px;"></td>
                 <td id="xpubs-table-row-${xpubsTableRows}-derivation" style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
                 <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
@@ -177,9 +177,9 @@
                 } else {
                     let xpubPurpose = 'Custom'
                     if (xpub.startsWith("ypub") || xpub.startsWith("upub")) {
-                        xpubPurpose = '#0 Single Sig (Nested)';
+                        xpubPurpose = '{{ _("#0 Single Sig (Nested)") }}';
                     } else if (xpub.startsWith("vpub") || xpub.startsWith("zpub")) {
-                        xpubPurpose = '#0 Single Sig (Segwit)';
+                        xpubPurpose = '{{ _("#0 Single Sig (Segwit)") }}';
                     }
                     addXpub(xpubPurpose, 'm/', xpub)
                 }
@@ -198,8 +198,8 @@
             let xpubAddAccountRowHTML =  `
                 <td></td>
                 <td></td>
-                <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" style="width: 150px;" placeholder="Account #"></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="addAccountXpubs()">Add account</button></td>
+                <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" style="width: 150px;" placeholder="{{ _("Account #") }}"></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="addAccountXpubs()">{{ _("Add account") }}</button></td>
                 <td></td>
             `
             let xpubAddAccountRow = document.createElement('tr');
@@ -210,10 +210,10 @@
 
             let xpubAddCustomRowHTML =  `
                 <td></td>
-                <td><input id="new_xpub_purpose" type="text" placeholder="XPUB purpose"></td>
+                <td><input id="new_xpub_purpose" type="text" placeholder="{{ _("XPUB purpose") }}"></td>
                 <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
                 <td></td>
-                <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">Add</button></td>
+                <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">{{ _("Add") }}</button></td>
             `
             let xpubAddCustomRow = document.createElement('tr');
             xpubAddCustomRow.id = `edit_custom_der`;
@@ -224,8 +224,8 @@
             let xpubAddRowHTML = `
                 <td></td>
                 <td></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">Add account</button></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">Add custom derivation</button></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">{{ _("Add account") }}</button></td>
+                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">{{ _("Add custom derivation") }}</button></td>
                 <td></td>
             `
             let xpubAddRow = document.createElement('tr');
@@ -275,11 +275,11 @@
 
         function editXpubsTable(editBtn) {
             let visibility = '';
-            if (editBtn.innerHTML == 'Edit') {
-                editBtn.innerHTML = 'Done';
+            if (editBtn.innerHTML == '{{ _("Edit") }}') {
+                editBtn.innerHTML = '{{ _("Done") }}';
                 visibility = 'visible';
             } else {
-                editBtn.innerHTML = 'Edit';
+                editBtn.innerHTML = '{{ _("Edit") }}';
                 visibility = 'hidden';
             }
             document.getElementById('edit_select_add_method').style.display = 'table-row';
@@ -308,7 +308,7 @@
             }
             // this shouldn't happen actually
             if(devices.length == 0){
-                showError("No devices found :(");
+                showError('{{ _("No devices found :(") }}');
                 return;
             }
 
@@ -342,7 +342,7 @@
                     "{specter.chain}"
                 );
                 if(xpub == null){
-                    showError('Failed to retrive device data. Please try again.');
+                    showError('{{ _("Failed to retrive device data. Please try again.") }}');
                     return;
                 }
 
@@ -520,7 +520,7 @@
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
                         addXpubs(str);
                     }else{
-                        showError("Unknown key format");
+                        showError('{{ _("Unknown key format") }}');
                     }
                 }else{
                     addXpubs(result);

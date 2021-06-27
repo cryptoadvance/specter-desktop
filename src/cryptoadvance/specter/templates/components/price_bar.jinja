@@ -35,20 +35,20 @@
 <div id="price-popup" class="hidden">
     <form id="price-form">
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-    <h1>Price Settings</h1>
+    <h1>{{ _("Price Settings") }}</h1>
     {% if specter.price_check %}
         <div class="card">
-            <p>Please set custom rate or choose between the automated price provider options.</p>
+            <p>{{ _("Please set custom rate or choose between the automated price provider options.") }}</p>
             <nav class="row">
                 <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')"> Manual </button>
                 <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')"> Automatic </button>
             </nav>
             <br>
             <div id="manual_price">
-                Price:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {{ _("Price:") }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <input style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
                 <br><br>
-                Symbol:&nbsp;&nbsp;
+                {{ _("Symbol:") }}&nbsp;&nbsp;
                 <input style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
                 <br>
             </div>
@@ -58,7 +58,7 @@
                     <tbody>
                         <tr style="background: none;">
                             <td style="padding-bottom: 0px; border: none; text-align: right;">
-                                Currency:
+                                {{ _("Currency:") }}
                             </td>
                             <td style="padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
@@ -91,7 +91,7 @@
                         </tr>
                         <tr style="background: none;">
                             <td style="padding-top: 10px; padding-bottom: 0px; padding-right: 15px; border: none; text-align: right;">
-                                <p>Provider:</p>
+                                <p>{{ _("Provider:") }}</p>
                             </td>
                             <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
@@ -155,7 +155,7 @@
                         </tr>
                         <tr style="background: none;" class="hidden" id="weight_unit_row">
                             <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: right;">
-                                Weight Unit:
+                                {{ _("Weight Unit:") }}
                             </td>
                             <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
@@ -169,26 +169,26 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="note" style="max-width: 300px; margin: auto;">Price will automatically be fetched from the selected provider every 10 minutes.</p>
+                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p>
             </div>
             <br><br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
-            <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">Save</button>
+            <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">{{ _("Save") }}</button>
         </div>
         <br><br>
-        <button type="button" class="btn" onclick="togglePriceCheck(false)" style="margin: auto;" >Disable showing price</button>
+        <button type="button" class="btn" onclick="togglePriceCheck(false)" style="margin: auto;" >{{ _("Disable showing price") }}</button>
     {% else %}
-        <p>You can enable showing price feature to see the price<br>information of your Bitcoin amounts across Specter.</p>
+        <p>{{ _("You can enable showing price feature to see the price<br>information of your Bitcoin amounts across Specter.") }}</p>
         <br>
-        <button type="button" class="btn" style="margin: auto;" onclick="togglePriceCheck(true)">Enable showing price</button>
+        <button type="button" class="btn" style="margin: auto;" onclick="togglePriceCheck(true)">{{ _("Enable showing price") }}</button>
     {% endif %}
     </form>
     <script>
         async function togglePriceCheck(showPrice) {
             if (showPrice) {
-                showNotification('Turning on show price mode...', 0)
+                showNotification('{{ _("Turning on show price mode...") }}', 0)
             } else {
-                showNotification('Turning off show price mode...', 0)
+                showNotification('{{ _("Turning off show price mode...") }}', 0)
             }
             let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
@@ -209,7 +209,7 @@
                     location.reload();
                     return
                 };
-                showError('Failed to toggle price mode...')
+                showError('{{ _("Failed to toggle price mode...") }}')
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(e);
@@ -217,7 +217,7 @@
         }
 
         async function savePriceData(reload) {
-            showNotification('Updating price data...', 0)
+            showNotification('{{ _("Updating price data...") }}', 0)
             let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
@@ -237,7 +237,7 @@
                     location.reload();
                     return
                 };
-                showError('Failed to fetch price data from selected provider, please try again or select another provider.')
+                showError('{{ _("Failed to fetch price data from selected provider, please try again or select another provider.") }}')
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(e);
