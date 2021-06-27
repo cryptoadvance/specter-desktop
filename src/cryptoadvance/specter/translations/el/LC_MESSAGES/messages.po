@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-24 14:29-0500\n"
+"POT-Creation-Date: 2021-06-27 11:37-0500\n"
 "PO-Revision-Date: 2021-06-26 09:38-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: el\n"
@@ -670,6 +670,7 @@ msgid "Amount (BTC)"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:5
+#: src/cryptoadvance/specter/templates/base.jinja:5
 msgid "Specter Desktop"
 msgstr ""
 
