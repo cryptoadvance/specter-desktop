@@ -5,16 +5,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: Babel multi-language support\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-24 14:29-0500\n"
-"PO-Revision-Date: 2021-06-26 18:01-0500\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2021-06-27 10:02-0500\n"
+"Last-Translator: 2a3dex <2a3dex@protonmail.com>\n"
 "Language: es\n"
-"Language-Team: es <LL@li.org>\n"
+"Language-Team: rafa1239 2a3dex\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 "X-Generator: Poedit 3.0\n"
@@ -932,7 +932,7 @@ msgid ""
 "locally but connect remotely, you can do so by going to Settings, Bitcoin "
 "Core tab, and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr ""
-"Si usas un nodo diferente o si deseas conectarte para correr Spectre "
+"Si usas un nodo diferente o si deseas conectarte para correr Specter "
 "localmente pero conectarte remotamente, puede hacerlo ajustando las "
 "configuraciones en la pestaña de Bitcoin Core, proporcione las credenciales "
 "RPC de Bitcoin Core y la URL del host manualmente."
@@ -997,7 +997,7 @@ msgstr "Actualizar"
 
 #: src/cryptoadvance/specter/templates/login.jinja:8
 msgid "Login to Specter"
-msgstr "Iniciar sesión en Spectre"
+msgstr "Iniciar sesión en Specter"
 
 #: src/cryptoadvance/specter/templates/login.jinja:11
 #: src/cryptoadvance/specter/templates/register.jinja:11
@@ -1015,7 +1015,7 @@ msgstr "Sesion"
 
 #: src/cryptoadvance/specter/templates/register.jinja:8
 msgid "Register to the Specter Node"
-msgstr "Regístrese en el nodo Spectre"
+msgstr "Regístrese en el nodo Specter"
 
 #: src/cryptoadvance/specter/templates/register.jinja:13
 msgid "Password"
@@ -1359,155 +1359,158 @@ msgstr "Formato de llave desconocido"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:18
 msgid "Address details"
-msgstr ""
+msgstr "Detalles de la dirección"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:44
 msgid "Loading address"
-msgstr ""
+msgstr "Cargando dirección"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:44
 msgid "details"
-msgstr ""
+msgstr "detalles"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:84
 msgid "From wallet"
-msgstr ""
+msgstr "De la billetera"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "Address index"
-msgstr ""
+msgstr "Índice de la dirección"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:86
 msgid "Is change address"
-msgstr ""
+msgstr "Es una dirección de cambio (vueltos)"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:86
 msgid "Yes"
-msgstr ""
+msgstr "Sí"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:86
 msgid "No"
-msgstr ""
+msgstr "No"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:88
 msgid "UTXO count"
-msgstr ""
+msgstr "Cuenta UTXO"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:89
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:148
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:160
 msgid "Amount"
-msgstr ""
+msgstr "Cantidad"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:97
 msgid "Verify address on device"
-msgstr ""
+msgstr "Verificar la dirección en el dispositivo"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:102
 msgid "Or scan this QR code"
-msgstr ""
+msgstr "O escanea este código QR"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:108
 msgid "Address descriptor"
-msgstr ""
+msgstr "Descriptor de dirección"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:111
 msgid "Show raw public keys"
-msgstr ""
+msgstr "Mostrar claves públicas sin procesar (RAW)"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:117
 #: src/cryptoadvance/specter/templates/includes/address-data.html:124
 msgid "Copied address descriptor"
-msgstr ""
+msgstr "Descriptor de dirección copiado"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:126
 msgid "Copied address descripto"
-msgstr ""
+msgstr "Descriptor de dirección copiado"
 
 #: src/cryptoadvance/specter/templates/includes/address-data.html:132
 #: src/cryptoadvance/specter/templates/includes/address-data.html:134
 msgid "Failed to load address details..."
-msgstr ""
+msgstr "No se pudieron cargar los detalles de la dirección ..."
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:63
 msgid "Fetching address label..."
-msgstr ""
+msgstr "Obteniendo etiqueta de dirección ..."
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:66
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:157
 msgid "Failed to update address label. Please refresh the page and try again."
 msgstr ""
+"No se pudo actualizar la etiqueta de la dirección. Actualice la página y "
+"vuelva a intentarlo."
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:198
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:550
 msgid "Copied address"
-msgstr ""
+msgstr "Dirección copiada"
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:234
 #: src/cryptoadvance/specter/templates/includes/address-label.html:237
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:68
 msgid "Failed to fetch data. Please refresh the page and retry."
 msgstr ""
+"No se pudieron recuperar los datos. Actualice la página y vuelva a intentarlo."
 
 #: src/cryptoadvance/specter/templates/includes/address-label.html:236
 msgid "Caught error fetching address label"
-msgstr ""
+msgstr "Se ha detectado un error al recuperar la etiqueta de dirección"
 
 #: src/cryptoadvance/specter/templates/includes/address-row.html:22
 msgid "Verify on device"
-msgstr ""
+msgstr "Verificar en el dispositivo"
 
 #: src/cryptoadvance/specter/templates/includes/address-row.html:114
 #: src/cryptoadvance/specter/templates/includes/address-row.html:116
 msgid "Failed to load address data to display..."
-msgstr ""
+msgstr "No se pudieron cargar los datos de la dirección para mostrar ..."
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:98
 msgid "Receive Addresses"
-msgstr ""
+msgstr "Direcciones de recibo"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:101
 msgid "Change Addresses"
-msgstr ""
+msgstr "Direcciones de cambio (vueltos)"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:107
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:109
 msgid "Page"
-msgstr ""
+msgstr "Página"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:116
 msgid "Export addresses to CSV"
-msgstr ""
+msgstr "Exportar direcciones a CSV"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:161
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:405
 msgid "Fetching addresses..."
-msgstr ""
+msgstr "Obteniendo direcciones ..."
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:409
 msgid "Failed to fetch addresses..."
-msgstr ""
+msgstr "No se pudieron recuperar las direcciones ..."
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
 msgid "Only receive addresses"
-msgstr ""
+msgstr "Solo direcciones de recibo"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:421
 msgid "Only change addresses"
-msgstr ""
+msgstr "Solo direcciones de cambio (vueltos)"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:481
 msgid "No addresses found..."
-msgstr ""
+msgstr "No se encontraron direcciones ..."
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:520
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:523
 msgid "Failed to fetch addresses list"
-msgstr ""
+msgstr "No se pudo recuperar la lista de direcciones"
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:2
 msgid ""
@@ -1516,12 +1519,19 @@ msgid ""
 "your full node <strong>guaranteeing</strong> that transactions displayed as "
 "confirmed have been included in the specified block hash."
 msgstr ""
+"Specter-Desktop valida las <a href=\"https://github.com/bitcoin/bips/blob/"
+"master/bip-0037.mediawiki\" target=\"_blank\"> BIP 37 </a> Merkle Proofs "
+"desde tu nodo completo < strong> garantizando </strong> que las transacciones "
+"mostradas como confirmadas se hayan incluido en el hash del bloque "
+"especificado."
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:3
 msgid ""
 "However, a compromised full node could return a fake block that was never "
 "mined into Bitcoin's blockchain!"
 msgstr ""
+"Sin embargo, un nodo completo comprometido podría devolver un bloque falso "
+"que nunca se extrajo de la cadena de bloques de Bitcoin!"
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:4
 msgid ""
@@ -1530,53 +1540,66 @@ msgid ""
 "strong>, then you can be sure this transaction exists in their blockchain as "
 "well."
 msgstr ""
+"Si el hash del bloque que se muestra lo encuentras en otras ubicaciones "
+"(otros nodos, exploradores de bloques, etc.) <strong> y confías en que "
+"Specter Desktop no te este mintiendo </strong>, entonces puedes estar seguro "
+"de que esta transacción existe en su cadena de bloques también."
 
 #: src/cryptoadvance/specter/templates/includes/page-limit-select.html:15
 msgid "Page limit"
-msgstr ""
+msgstr "Limite de página"
 
 #: src/cryptoadvance/specter/templates/includes/page-limit-select.html:22
 msgid "All"
-msgstr ""
+msgstr "Todo"
 
 #: src/cryptoadvance/specter/templates/includes/qr-code.html:207
 msgid "Click to animate"
-msgstr ""
+msgstr "Haga clic para animar"
 
 #: src/cryptoadvance/specter/templates/includes/qr-scanner.html:128
 msgid "Number of frames in QR code mismatch!"
-msgstr ""
+msgstr "El número de marcos en el código QR no coincide!"
 
 #: src/cryptoadvance/specter/templates/includes/qr-scanner.html:202
 msgid ""
 "Can't get access to the camera. Specter should run on localhost or over https "
 "to enable QR code scanning."
 msgstr ""
+"No se puede acceder a la cámara. Specter debe ejecutarse en localhost o sobre "
+"https para habilitar el escaneo de códigos QR."
 
 #: src/cryptoadvance/specter/templates/includes/qr-scanner.html:209
 msgid "Can't start the QR scanner!"
-msgstr ""
+msgstr "No se puede iniciar el escáner QR!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:66
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:255
 msgid "Failed to load transaction details..."
-msgstr ""
+msgstr "No se pudieron cargar los detalles de la transacción ..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:84
 msgid "This transaction (aka \"tx\") could not be found in your node's mempool!"
 msgstr ""
+"Esta transacción (también conocida como \"tx\") no se pudo encontrar en el "
+"mempool de su nodo!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:85
 msgid ""
 "If the bitcoin network is very busy, nodes will start purging the pending txs "
 "with the lowest fees. Txs older than two weeks are also purged."
 msgstr ""
+"Si la red bitcoin está muy ocupada, los nodos comenzarán a purgar los tx "
+"pendientes con las tarifas más bajas. Los Tx de más de dos semanas también se "
+"purgan."
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:86
 msgid ""
 "A purged tx will never complete. Abandoning this tx will clear it from your "
 "wallet, making those funds spendable once again."
 msgstr ""
+"Un tx purgado nunca se completará. Abandonar este tx lo borrará de su "
+"billetera, lo que hará que esos fondos se puedan gastar una vez más."
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:87
 msgid ""
@@ -1584,219 +1607,228 @@ msgid ""
 "into a public block explorer (warning: slight privacy leak). If the tx cannot "
 "be found, it is safe to abandon this tx."
 msgstr ""
+"Pero primero verifique que otros nodos también hayan purgado su tx! Ingrese "
+"el tx id en un explorador de bloques público (advertencia: leve fuga de "
+"privacidad). Si no se puede encontrar el tx, es seguro abandonar este tx."
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:94
 msgid "Abandon transaction"
-msgstr ""
+msgstr "Abandonar transacción"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:102
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:195
 msgid "Transaction id"
-msgstr ""
+msgstr "id de Transacción"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:114
 msgid "Fee"
-msgstr ""
+msgstr "Tarifa"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:115
 msgid "Fee rate"
-msgstr ""
+msgstr "Tasa de tarifa"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:120
 msgid "Mined at block"
-msgstr ""
+msgstr "Minado en el bloque"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:121
 msgid "Block hash"
-msgstr ""
+msgstr "hash del Bloque"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:122
 msgid "Block time"
-msgstr ""
+msgstr "tiempo del Bloque"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:126
 msgid "Inputs count"
-msgstr ""
+msgstr "cantidad de entradas"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:127
 msgid "Outputs count"
-msgstr ""
+msgstr "cantidad de salidas"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:178
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:245
 msgid "Address:"
-msgstr ""
+msgstr "Dirección:"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:179
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:246
 msgid "Value:"
-msgstr ""
+msgstr "Valor:"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:185
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:194
 msgid "Input #"
-msgstr ""
+msgstr "Entrada #"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:186
 msgid "Coinbase transaction"
-msgstr ""
+msgstr "transacción Coinbase"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:196
 msgid "Output #"
-msgstr ""
+msgstr "Salida #"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:202
 msgid "Outputs"
-msgstr ""
+msgstr "Salidas"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:244
 msgid "Output #${i}"
-msgstr ""
+msgstr "Salida #${i}"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:279
 msgid "Failed to load address data..."
-msgstr ""
+msgstr "No se pudieron cargar los datos de la dirección ..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:33
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "Speed up"
-msgstr ""
+msgstr "Acelerar"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:34
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:248
 msgid "Cancel transaction"
-msgstr ""
+msgstr "Cancelar transacción"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:118
 msgid "Recipients"
-msgstr ""
+msgstr "Destinatarios"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:149
 msgid "Confidential"
-msgstr ""
+msgstr "Confidencial"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:159
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:162
 msgid "Confirmations"
-msgstr ""
+msgstr "Confirmaciones"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:162
 msgid "Unconfirmed"
-msgstr ""
+msgstr "Inconfirmado"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:164
 msgid "Cancelled (replaced by sender)"
-msgstr ""
+msgstr "Cancelado (reemplazado por el remitente)"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "the Transaction"
-msgstr ""
+msgstr "la transacción"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:242
 msgid "You can"
-msgstr ""
+msgstr "Tu puedes"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:5
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:242
 msgid "cancel"
-msgstr ""
+msgstr "cancelar"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:242
 msgid "speed up"
-msgstr ""
+msgstr "acelerar"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:242
 msgid "the transaction by increasing its fee rate"
-msgstr ""
+msgstr "la transacción aumentando su tasa de tarifa"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:242
 msgid "and sending the funds back to yourself"
-msgstr ""
+msgstr "y enviarte los fondos a ti mismo"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:248
 msgid "Speed up!"
-msgstr ""
+msgstr "acelerar!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:252
 msgid ""
 "If you would like further customization, you can click here to fully edit the "
 "transaction."
 msgstr ""
+"Si desea una mayor personalización, puedes hacer clic aquí para editar "
+"completamente la transacción."
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:252
 msgid "(advanced, not recommended for new users)"
-msgstr ""
+msgstr "(avanzado, no recomendado para nuevos usuarios)"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:253
 msgid "Edit the transaction (advanced)"
-msgstr ""
+msgstr "Editar la transacción (avanzado)"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:99
 msgid "History"
-msgstr ""
+msgstr "Historial"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:128
 msgid "Freezing a UTXO will make Specter disallow spending it."
-msgstr ""
+msgstr "Congelar un UTXO hará que Specter no permita gastarlo."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:129
 msgid ""
 "This is useful especially for dealing with a dust attack, where you don't "
 "want to accidentally spend the dust received."
 msgstr ""
+"Esto es útil especialmente para lidiar con un ataque de polvo (dust attack), "
+"donde no desea gastar accidentalmente el polvo recibido."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:136
 msgid "Create new transaction"
-msgstr ""
+msgstr "Crear nueva transacción"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:140
 msgid "Export transactions to CSV"
-msgstr ""
+msgstr "Exportar transacciones a CSV"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:142
 msgid "Fetch historical price data"
-msgstr ""
+msgstr "Obtener datos históricos de precios"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:148
 msgid ""
 "If enabled, specter will try to fetch historical prices for each transaction "
 "date from the configured price provider."
 msgstr ""
+"Si está habilitado, specter intentará obtener precios históricos para cada "
+"fecha de transacción del proveedor de precios configurado."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:149
 msgid "This has privacy implications!"
-msgstr ""
+msgstr "Esto tiene implicaciones de privacidad!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:161
 msgid "Time"
-msgstr ""
+msgstr "Tiempo"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:165
 msgid "Block Hash"
-msgstr ""
+msgstr "Hash del Bloque"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:172
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:484
 msgid "Fetching transactions..."
-msgstr ""
+msgstr "Obteniendo transacciones ..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:488
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:521
 msgid "Failed to fetch transactions..."
-msgstr ""
+msgstr "No se pudieron recuperar las transacciones ..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:595
 msgid "No transactions found..."
-msgstr ""
+msgstr "No se encontraron transacciones..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:657
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:660
 msgid "Failed to fetch transactions list."
-msgstr ""
+msgstr "No se pudo recuperar la lista de transacciones."
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:685
 msgid "Copied transaction"
-msgstr ""
+msgstr "Transacción copiada"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
@@ -1805,49 +1837,53 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:14
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:50
 msgid "Processing..."
-msgstr ""
+msgstr "Procesando..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:15
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:50
 msgid "Keep your wallet connected."
-msgstr ""
+msgstr "Mantenga su billetera conectada."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:19
 msgid ""
 "If your device does not show up, ensure the Specter USB settings are "
 "correctly configured."
 msgstr ""
+"Si su dispositivo no aparece, asegúrese de que las configuraciones USB de "
+"Specter estén configuradas correctamente."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:21
 msgid "View USB settings"
-msgstr ""
+msgstr "Ver configuraciones USB"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:28
 msgid "Do you really want to use your Coldcard over USB (no airgap)?"
-msgstr ""
+msgstr "Realmente desea utilizar su Coldcard a través de USB (sin airgap)?"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:30
 msgid "Yes, I am living on the edge!"
-msgstr ""
+msgstr "Sí, estoy viviendo al límite!"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:33
 msgid ""
 "No, I'll use the address explorer on the Coldcard. Get me to the coinkite "
 "site for more info."
 msgstr ""
+"No, usaré el explorador de direcciones en la Coldcard. Llévame al sitio de "
+"Coinkite para obtener más información."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:85
 msgid "Detecting..."
-msgstr ""
+msgstr "Detectando..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:85
 msgid "Plug in your device"
-msgstr ""
+msgstr "Conecta tu dispositivo"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
 msgid "Pairing Code"
-msgstr ""
+msgstr "Código de emparejamiento"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
@@ -1856,15 +1892,18 @@ msgid ""
 "<br><br>It could take up to 20 seconds to continue after approving the "
 "pairing on the device, please be patient."
 msgstr ""
+"Confirma que el código coincide con el que se muestra en tu dispositivo "
+"BitBox02. <br> <br> Después de aprobar el emparejamiento en el dispositivo, "
+"podría tardar hasta 20 segundos en continuar. Ten paciencia."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:163
 msgid "Extracting public keys..."
-msgstr ""
+msgstr "Extrayendo llaves públicas ..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
 msgid "It may take a while."
-msgstr ""
+msgstr "Puede que tarde un poco."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
@@ -1873,7 +1912,7 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
 msgid "Keep your"
-msgstr ""
+msgstr "Mantener su"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
@@ -1882,181 +1921,186 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
 msgid "connected"
-msgstr ""
+msgstr "conectado"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:183
 msgid "Extracting public key..."
-msgstr ""
+msgstr "Extrayendo llaves públicas ..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:203
 msgid "Extracting master blinding key..."
-msgstr ""
+msgstr "Extrayendo llave maestra cegadora ..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
 msgid "Please confirm action on your"
-msgstr ""
+msgstr "Confirme la acción en su"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
 msgid "device"
-msgstr ""
+msgstr "dispositivo"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/passphrase.jinja:2
 msgid "Enter Passphrase"
-msgstr ""
+msgstr "Ingrese la passphrase"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/passphrase.jinja:22
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:62
 msgid "Submit"
-msgstr ""
+msgstr "Enviar"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:2
 msgid "Enter PIN"
-msgstr ""
+msgstr "Ingrese PIN"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:2
 msgid "Select USB Wallet"
-msgstr ""
+msgstr "Seleccionar billetera USB"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:78
 msgid "Failed to unlock device! Invalid PIN code?"
-msgstr ""
+msgstr "No se pudo desbloquear el dispositivo! Código PIN no válido?"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:125
 msgid "passphrase toggled successfully"
-msgstr ""
+msgstr "passphrase activada correctamente"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:140
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:38
 msgid "Selected device does not have matching signing key."
-msgstr ""
+msgstr "El dispositivo seleccionado no tiene una llave de firma coincidente."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:143
 msgid "Signing message..."
-msgstr ""
+msgstr "Firmando mensaje ..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:143
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:41
 msgid "Confirm on your"
-msgstr ""
+msgstr "Confirme en su"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:4
 msgid "Confirm Address"
-msgstr ""
+msgstr "Confirmar Dirección"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:6
 msgid ""
 "Please confirm address matches on your <span id=\"hwi_device_name\">device</"
 "span>"
 msgstr ""
+"Confirma las coincidencias de direcciones en tu <span id = \"hwi_device_name"
+"\"> dispositivo </span>"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:7
 msgid "Expected address"
-msgstr ""
+msgstr "Dirección esperada"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:41
 msgid "Signing transaction..."
-msgstr ""
+msgstr "Firmando transacción ..."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:90
 msgid ""
 "Addresses did not match! Be careful! Please contact support and beware of "
 "using the displayed address!"
 msgstr ""
+"Las direcciones no coinciden! Ten cuidado! Póngase en contacto con el "
+"servicio de asistencia y tenga cuidado con el uso de la dirección mostrada!"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:93
 msgid "Address displayed successfully! Please check the device screen."
 msgstr ""
+"Dirección mostrada correctamente! Comprueba la pantalla del dispositivo."
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:95
 msgid "Address was verified successfully!"
-msgstr ""
+msgstr "La dirección se verificó correctamente!"
 
 #: src/cryptoadvance/specter/templates/includes/language/language_js.jinja:24
 msgid "Failed to change language"
-msgstr ""
+msgstr "No se pudo cambiar el idioma"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:4
 msgid "Send transaction"
-msgstr ""
+msgstr "Enviar transacción"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:5
 msgid "Send via block explorer"
-msgstr ""
+msgstr "Enviar a través del explorador de bloques"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:6
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:8
 msgid "Send via blockstream.info"
-msgstr ""
+msgstr "Enviar a través de blockstream.info"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:7
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:9
 msgid "Send via mempool.space"
-msgstr ""
+msgstr "Enviar vía mempool.space"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:8
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:9
 msgid "over Tor hidden service"
-msgstr ""
+msgstr "a través de servicio oculto de Tor"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:10
 msgid "Back to options"
-msgstr ""
+msgstr "Volver a opciones"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:11
 msgid "Save as pending"
-msgstr ""
+msgstr "Guardar como pendiente"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:12
 msgid "Copy raw transaction"
-msgstr ""
+msgstr "Copiar transacción sin procesar (Raw)"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:17
 msgid "Copied full key"
-msgstr ""
+msgstr "Llave completa copiada"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:23
 msgid "Show derivation path"
-msgstr ""
+msgstr "Mostrar ruta de derivación"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:34
 msgid "Use SLIP-132"
-msgstr ""
+msgstr "Utilice SLIP-132"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:14
 msgid "Loading... It may take a while..."
-msgstr ""
+msgstr "Cargando ... Puede que tarde un poco ..."
 
 #: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:4
 msgid "Scan this QR code with your"
-msgstr ""
+msgstr "Escanee este código QR con su"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:12
 msgid "Scan signed transaction"
-msgstr ""
+msgstr "Escanear transacción firmada"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:29
 msgid "Scan failed, please try again..."
-msgstr ""
+msgstr "Error al escanear, inténtelo de nuevo ..."
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:2
 msgid "Sign Transaction with file"
-msgstr ""
+msgstr "Firmar transacción con archivo"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:3
 msgid "Save transaction to file"
-msgstr ""
+msgstr "Guardar transacción en archivo"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:5
 msgid "Load signed transaction from file"
-msgstr ""
+msgstr "Cargar transacción firmada desde archivo"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:12
 msgid "Sign Transaction"
-msgstr ""
+msgstr "Firmar Transacción"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:14
 msgid "Please choose a signing method for your"
-msgstr ""
+msgstr "Elija un método de firma para su"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:18
 msgid "Sign via USB (HWI)"
