@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-27 12:36-0500\n"
-"PO-Revision-Date: 2021-06-15 12:22-0500\n"
+"PO-Revision-Date: 2021-06-28 16:30-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
 "Language-Team: pt <LL@li.org>\n"
@@ -3644,79 +3644,4 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:148
 msgid "You can always download this file later from the wallet Settings tab."
 msgstr ""
-
-#~ msgid "Failed to setup hot wallet. Error"
-#~ msgstr ""
-
-#~ msgid "Device could not be removed since it is used in wallets"
-#~ msgstr ""
-
-#~ msgid "Key could not be removed since it is used in wallets"
-#~ msgstr ""
-
-#~ msgid "Tor installation is still under progress"
-#~ msgstr ""
-
-#~ msgid "Bitcoin Core installation is still under progress"
-#~ msgstr ""
-
-#~ msgid "Value"
-#~ msgstr ""
-
-#~ msgid "Device PSBT"
-#~ msgstr ""
-
-#~ msgid "Standard PSBT"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Enabling Tor hidden service will expose"
-#~ " your Specter for remote access.<br>It "
-#~ "is therefore required that you set "
-#~ "up authentication tab for Specter first"
-#~ " to prevent unauthorized access.<br><br>Please"
-#~ " go to Settings -> Authentication and"
-#~ " set up an authentication method and"
-#~ " retry."
-#~ msgstr ""
-
-#~ msgid "Tor hidden service turn off successfully"
-#~ msgstr ""
-
-#~ msgid "Tor hidden service turn on successfully"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Failed to start Tor hidden service. "
-#~ "Make sure you have Tor running "
-#~ "with ControlPort configured and try "
-#~ "again. Error returned: {}"
-#~ msgstr ""
-
-#~ msgid "Can't toggle hidden service while Specter is running in DEBUG mode"
-#~ msgstr ""
-
-#~ msgid "New user link generated{}: {}"
-#~ msgstr ""
-
-#~ msgid "Unsupported wallet import format: {}"
-#~ msgstr ""
-
-#~ msgid "Invalid wallet descriptor"
-#~ msgstr ""
-
-#~ msgid "Wallet with the same name already exists"
-#~ msgstr ""
-
-#~ msgid "Failed to create wallet: {}"
-#~ msgstr ""
-
-#~ msgid "Probably you don't have enough funds, or something else..."
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Bitcoin Core version is outdated.<br>Some "
-#~ "features might not work...<br>(minimum "
-#~ "required: v19.0.0)."
-#~ msgstr ""
 
