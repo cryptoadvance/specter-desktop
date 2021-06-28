@@ -35,7 +35,7 @@ check:
   stage: testing
   # We simply check here whether all the tests on github are completed and green
   script:
-    - ./utils/release wait_on_master || exit 1 # that command will have a non-0 exit-value if not everything is green
+    - ./utils/release.sh wait_on_master || exit 1 # that command will have a non-0 exit-value if not everything is green
 
 # jobs with a preceding . like .test are hidden jobs and are not executed. I leave them in here as
 # we might want to reactivate them in the case that github explodes or something.
