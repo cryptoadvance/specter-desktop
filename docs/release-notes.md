@@ -1,4 +1,4 @@
-## v1.5.0 June 28, 2021
+## v1.4.6 June 28, 2021
 - Feature: Add Keystone device #1237 (Stepan Snigirev)
 - Feature: Export device types and labels #1226 (kdmukai)
 - Feauture: Liquid - asset support #1216 (Stepan Snigirev)
