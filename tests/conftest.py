@@ -111,6 +111,7 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
     elementsd_controller.start_elementsd(
         cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
     )
+    assert not elementsd_controller.datadir is None
     running_version = elementsd_controller.version()
     requested_version = request.config.getoption("--elementsd-version")
     assert running_version == requested_version, (
@@ -124,8 +125,9 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
 def bitcoin_regtest(docker, request):
     bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
     try:
-        yield bitcoind_regtest
+        assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
+        yield bitcoind_regtest
     finally:
         bitcoind_regtest.stop_bitcoind()
 
@@ -143,7 +145,7 @@ def elements_elreg(request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    with tempfile.TemporaryDirectory("_specter_home_tmp") as data_folder:
+    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
         yield data_folder
 
 
@@ -329,7 +331,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
-
+    assert specter.chain == "regtest"
     # Create a User
     someuser: User = specter.user_manager.add_user(
         User.from_json(
@@ -345,6 +347,8 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     )
     specter.user_manager.save()
     specter.check()
+
+    assert not someuser.wallet_manager.working_folder is None
 
     # Create a Wallet
     wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '

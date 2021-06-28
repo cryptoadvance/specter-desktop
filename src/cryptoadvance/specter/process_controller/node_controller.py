@@ -390,18 +390,21 @@ class NodePlainController(NodeController):
         )
 
         # This function is redirecting to the class.member as it needs a fixed parameterlist: (signal_number, stack)
-        def cleanup_node(signal_number=None, stack=None):
+        def cleanup_node_callback(signal_number=None, stack=None):
             self.cleanup_node(cleanup_hard, datadir)
+
+        # If the node is shutdown via self.stop_node() (e.g. pytests) we need to know how hard we should do that
+        self.cleanup_hard = cleanup_hard
 
         if cleanup_at_exit:
             logger.info(
                 "Register function cleanup_node for atexit, SIGINT, and SIGTERM"
             )
-            atexit.register(cleanup_node)
+            atexit.register(cleanup_node_callback)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, cleanup_node)
+            signal.signal(signal.SIGINT, cleanup_node_callback)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, cleanup_node)
+            signal.signal(signal.SIGTERM, cleanup_node_callback)
 
     def get_debug_log(self):
         try:
@@ -416,6 +419,11 @@ class NodePlainController(NodeController):
             return ""
 
     def cleanup_node(self, cleanup_hard=None, datadir=None):
+        """KILLS or TERMINATES the node-process depending on cleanup_hard
+        removes the datadir in case of KILL
+        """
+        if datadir is None:
+            datadir = self.datadir
         if not hasattr(self, "node_proc"):
             logger.info("node process was not running")
             if cleanup_hard:
@@ -424,7 +432,7 @@ class NodePlainController(NodeController):
             return
         timeout = 50  # in secs
         logger.info(
-            f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{datadir})"
+            f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{self.datadir})"
         )
         if cleanup_hard:
             try:
