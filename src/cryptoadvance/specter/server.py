@@ -136,10 +136,11 @@ def init_app(app, hwibridge=False, specter=None):
         def index():
             return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
-    app.logger.info("Initializing REST ...")
-    from cryptoadvance.specter.api import api_bp
+    if app.config["SPECTER_API_ACTIVE"]:
+        app.logger.info("Initializing REST ...")
+        from cryptoadvance.specter.api import api_bp
 
-    app.register_blueprint(api_bp)
+        app.register_blueprint(api_bp)
 
     @app.context_processor
     def inject_tor():

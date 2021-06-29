@@ -35,7 +35,7 @@ class SecureResource(BaseResource):
 class AdminResource(BaseResource):
     """A REST-resource which makes sure that the user is an admin"""
 
-    method_decorators = [require_admin]
+    method_decorators = [require_admin, auth.login_required]
 
 
 def rest_resource(resource_cls):

@@ -13,5 +13,4 @@ api_rest = Api(api_bp, decorators=[app.csrf.exempt])
 auth = HTTPBasicAuth()
 
 from . import views
-from .rest import livereadyprobes
 from .rest import api

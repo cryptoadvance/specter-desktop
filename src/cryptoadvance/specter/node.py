@@ -283,7 +283,7 @@ class Node:
             if self.rpc is None:
                 logger.error(f"connection of {self} is None in check_info")
             elif not self.rpc.test_connection():
-                logger.error(
+                logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
                 )
                 try:

@@ -5,7 +5,7 @@ from .base import (
     SecureResource,
     rest_resource,
 )
-from flask_restful import reqparse, abort
+from flask_restful import abort
 from flask import current_app as app, request
 from ...wallet import Wallet
 from ...util.fee_estimation import get_fees
