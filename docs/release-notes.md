@@ -1,3 +1,19 @@
+## v1.4.6 June 28, 2021
+- Feature: Add Keystone device #1237 (Stepan Snigirev)
+- Feature: Export device types and labels #1226 (kdmukai)
+- Feauture: Liquid - asset support #1216 (Stepan Snigirev)
+- UIUX: Redesign the Tor settings screen #1245 (benk10)
+- Bugfix: Apostrophes in device labels need proper escaping in PDF export template #1246 (kdmukai)
+- Bugfix: cleanup annoying test_artifacts #1236 (Kim Neunert)
+- Bugfix: Filter non liquid devices from create liquid wallet #1243 (benk10)
+- Bugfix: fix elementsd process #1240 (Stepan Snigirev)
+- Chore: Bump normalize-url from 4.5.0 to 4.5.1 in /pyinstaller/electron #1223 (dependabot[bot])
+- Chore: Bump urllib3 from 1.25.10 to 1.26.5 #1211 (dependabot[bot])
+- Chore: Wallet new refactoring #1244 (Kim Neunert)
+- Chore: del elm comp from gitlab + ensure master green #1250 (Kim Neunert)
+- Chore: refactor psbt-creation #1249 (Kim Neunert)
+- Chore: Refactor wallet creation to Wallet.create method #1242 (Stepan Snigirev)
+
 ## v1.4.5 June 16, 2021
 - Feature: Add Blockstream Jade support #1234 (benk10)
 - Feature: Add SeedSigner device #1225 (Stepan Snigirev)
