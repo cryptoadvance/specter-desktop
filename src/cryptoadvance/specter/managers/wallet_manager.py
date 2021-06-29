@@ -119,7 +119,6 @@ class WalletManager:
             logger.info(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
-        assert not self.working_folder is None
 
     def _update(self, data_folder=None, rpc=None, chain=None):
         # list of wallets in the dict
