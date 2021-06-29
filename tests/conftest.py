@@ -315,7 +315,7 @@ def device_manager(devices_filled_data_folder):
 
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
-    # Make sure that this folder never ever gets a reasonable non-testing use-case
+    assert bitcoin_regtest.get_rpc().test_connection()
     config = {
         "rpc": {
             "autodetect": False,

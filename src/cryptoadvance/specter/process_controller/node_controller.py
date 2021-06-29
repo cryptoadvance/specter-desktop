@@ -424,6 +424,8 @@ class NodePlainController(NodeController):
         """
         if datadir is None:
             datadir = self.datadir
+        if cleanup_hard == None:
+            cleanup_hard = self.cleanup_hard
         if not hasattr(self, "node_proc"):
             logger.info("node process was not running")
             if cleanup_hard:
@@ -432,7 +434,7 @@ class NodePlainController(NodeController):
             return
         timeout = 50  # in secs
         logger.info(
-            f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{self.datadir})"
+            f"Cleaning up (cleanup_hard:{cleanup_hard} , datadir:{self.datadir})"
         )
         if cleanup_hard:
             try:
