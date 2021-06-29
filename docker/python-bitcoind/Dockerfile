@@ -32,7 +32,7 @@ RUN wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8+
         wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8++_4.8.30-artful3_amd64.deb
 RUN dpkg -i *.deb && rm *.deb
 
-RUN apt update && apt install libevent-dev libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev -y
+RUN apt update && apt install libevent-dev libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev jq -y
 
 COPY --from=0 /usr/local/bin/bitcoind /usr/local/bin
 COPY --from=0 /usr/local/bin/bitcoin-cli /usr/local/bin
