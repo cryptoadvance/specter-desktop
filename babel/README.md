@@ -20,6 +20,10 @@ Open the Github Desktop app and add the Specter Desktop repo via "Clone a Reposi
 
 Select where you want to save the source code on your local computer and hit "Clone".
 
+If you're presented with the following choice, select "For my own purposes":
+
+<img src="img/github_desktop_setup_01.jpg">
+
 _When the clone is finished, click on the "Current Branch" button at the top middle and change to "origin/babel_integration" to point to my work-in-progress branch_
 
 
@@ -94,11 +98,13 @@ If everything went correctly, you should just see your edits when you click the 
 
 Any changed lines will be highlighted. Red highlights are deletions, green are additions.
 
-Scroll to the bottom of that web page to the "Commit changes section". If your update addresses a specific issue that was raised in the repo's "Issues" section, reference it by number in the optional extended description box using this format: "Fixes #1234" (using the actual issue number, obv). Select the option to create a new branch and submit your change as a pull request:
+Scroll to the bottom of that web page to the "Commit changes section". If your update addresses a specific issue that was raised in the repo's "Issues" section, reference it by number in the optional extended description box using this format: "Fixes #1234" (using the actual issue number, obv). 
+
+Select the option to "Create a new branch" and then click "Propose changes":
 
 <img src="img/github_edit_3.png">
 
-Follow the prompts to finish submitting your pull request.
+Then on the next screen follow the prompts to create your pull request and submit it to the project.
 
 A reviewer on the Specter Desktop team will review your changes and (hopefully) accept the changes. Your contributions will be merged into the main Specter Desktop code repository. You will officially be a Specter Desktop open source contributor!
 
