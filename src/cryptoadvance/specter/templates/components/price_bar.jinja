@@ -40,8 +40,8 @@
         <div class="card">
             <p>{{ _("Please set custom rate or choose between the automated price provider options.") }}</p>
             <nav class="row">
-                <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')"> Manual </button>
-                <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')"> Automatic </button>
+                <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')">{{ _("Manual") }}</button>
+                <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')">{{ _("Automatic") }}</button>
             </nav>
             <br>
             <div id="manual_price">
@@ -53,7 +53,7 @@
                 <br>
             </div>
             <div id="automatic_price" class="hidden">
-                <h2>Select price provider:</h2>
+                <h2>{{ _("Select price provider:") }}</h2>
                 <table id="auto-price-table" style="border: none; margin: auto;">
                     <tbody>
                         <tr style="background: none;">
