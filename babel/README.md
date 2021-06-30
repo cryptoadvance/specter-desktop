@@ -130,7 +130,7 @@ This will rescan all wrapped text, picking up new strings as well as updating ex
 
 Then run `update`:
 ```
-pybabel update -N -i babel/messages.pot -d src/cryptoadvance/specter/translations
+pybabel update -N --width=79 -i babel/messages.pot -d src/cryptoadvance/specter/translations
 ```
 _note: the `-N` flag prevents babel from trying to use fuzzy matching to re-use existing translations for new strings. The fuzzy matching does not seem to do what we would want so we keep it disabled._
 
