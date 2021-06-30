@@ -1,25 +1,25 @@
 """ Stuff to control a bitcoind-instance.
 """
 import atexit
+import json
 import logging
 import os
-import signal
-import psutil
+import platform
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
-import json
-import platform
 
-
-from ..util.shell import which, get_last_lines_from_file
-from ..rpc import RpcError
-from ..rpc import BitcoinRPC
-from ..helpers import load_jsons
-from ..specter_error import ExtProcTimeoutException, SpecterError
-from urllib3.exceptions import NewConnectionError, MaxRetryError
+import psutil
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from requests.exceptions import ConnectionError
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+
+from ..helpers import load_jsons
+from ..rpc import BitcoinRPC, RpcError
+from ..specter_error import ExtProcTimeoutException, SpecterError
+from ..util.shell import get_last_lines_from_file, which
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,14 @@ class Btcd_conn:
     """An object to easily store connection data to bitcoind-comatible nodes (Bitcoin/Elements)"""
 
     def __init__(
-        self, rpcuser="bitcoin", rpcpassword="secret", rpcport=18543, ipaddress=None
+        self,
+        node_impl="bitcoin",
+        rpcuser="bitcoin",
+        rpcpassword="secret",
+        rpcport=18543,
+        ipaddress=None,
     ):
+        self.node_impl = node_impl
         self.rpcport = rpcport
         self.rpcuser = rpcuser
         self.rpcpassword = rpcpassword
@@ -48,10 +54,16 @@ class Btcd_conn:
 
     def get_rpc(self):
         """returns a BitcoinRPC"""
-        # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
-        rpc = BitcoinRPC(
-            self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
-        )
+        if self.node_impl == "bitcoin":
+            rpc = BitcoinRPC(
+                self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
+            )
+        elif self.node_impl == "elements":
+            rpc = LiquidRPC(
+                self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
+            )
+        else:
+            raise SpecterError(f"Unknown node_impl: {self.node_impl}")
         rpc.getblockchaininfo()
         return rpc
 
@@ -96,7 +108,10 @@ class NodeController:
     ):
         try:
             self.rpcconn = Btcd_conn(
-                rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
+                node_impl=node_impl,
+                rpcuser=rpcuser,
+                rpcpassword=rpcpassword,
+                rpcport=rpcport,
             )
             self.network = network
             self.node_impl = node_impl
@@ -231,8 +246,6 @@ class NodeController:
             ]
         while True:
             btc_balance = default_rpc.getbalance()
-            if isinstance(btc_balance, dict):  # elementsd
-                btc_balance = btc_balance["bitcoin"]
             rpc.generatetoaddress(102, default_address)
             if btc_balance > amount:
                 break
