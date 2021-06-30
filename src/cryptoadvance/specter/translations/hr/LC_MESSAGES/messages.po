@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-30 14:01-0500\n"
+"POT-Creation-Date: 2021-06-30 17:34-0500\n"
 "PO-Revision-Date: 2021-06-30 15:51-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: hr\n"
@@ -424,15 +424,15 @@ msgstr ""
 msgid "SpecterError while {}: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:109
-msgid "Failed to delete failed wallet: {}"
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:108
+msgid "Failed to delete wallet: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:121
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:120
 msgid "Configure Bitcoin Core to create wallets"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:127
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:126
 msgid ""
 "<p><br>Configure Bitcoin Core is running with wallets "
 "disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 "
@@ -444,168 +444,168 @@ msgid ""
 "white;\">here</a> for more information.</p>"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:141
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:140
 msgid "Unknown wallet type requested"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:168
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:167
 msgid "Wallet imported successfully"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:204
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:203
 msgid "No device was selected. Please select a device to create the wallet for."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:213
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:212
 msgid "Device {} doesn't have keys matching this wallet type"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:241
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:827
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:240
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:826
 msgid "Wallet already exists"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:276
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:275
 msgid "No keys were selected for device, please try adding keys first"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:302
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:301
 msgid "Failed to create wallet. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:492
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:491
 msgid "Failed to fetch fee estimations. Please use the manual fee calculation."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:545
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:578
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:544
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:577
 msgid "Failed to perform RBF. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:562
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:561
 msgid "Failed to cancel transaction with RBF. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:601
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:600
 msgid "Failed to sign PSBT: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:604
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:603
 msgid "Device already signed the PSBT"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:620
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:619
 msgid "Failed to get RBF coins. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:674
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:673
 msgid "Could not delete Pending PSBT!"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:712
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:711
 msgid "Could not import PSBT: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:786
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:785
 msgid "Failed to abort rescan. Maybe already complete?"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:823
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:822
 msgid "Wallet name cannot be empty"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:859
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:858
 msgid "Cannot parse empty data as PSBT"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:883
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:882
 msgid "Invalid transaction format"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:899
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:898
 msgid "Unknown error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:916
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:973
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:915
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:972
 msgid ""
 "Failed to broadcast transaction: transaction is invalid\n"
 "{}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:945
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:944
 msgid "Failed to broadcast transaction. Network not supported."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:954
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:953
 msgid "Failed to broadcast transaction. Block explorer not supported."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:968
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:967
 msgid "Failed to broadcast transaction with error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1067
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1066
 msgid "Exception trying to get address label: Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1275
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1274
 msgid "Failed to export addresses list. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1344
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1343
 msgid "Failed to export wallet utxo. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1379
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1378
 msgid "Failed to export wallets overview history. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1411
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1410
 msgid "Failed to export wallets overview utxo. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1436
 msgid "Date"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
 #: src/cryptoadvance/specter/templates/includes/address-data.html:83
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
 msgid "Label"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
 msgid "Category"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
 msgid "Amount ({})"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
 msgid "Value ({})"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1442
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
 msgid "Rate (BTC/{})"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
 msgid "Rate ({}/SAT)"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 msgid "TxID"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
 #: src/cryptoadvance/specter/templates/includes/address-data.html:82
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
@@ -613,59 +613,59 @@ msgstr ""
 msgid "Address"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Block Height"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 msgid "Timestamp"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1449
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
 msgid "Raw Transaction"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1452
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
 msgid "Wallet"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
 msgid "Index"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
 #: src/cryptoadvance/specter/templates/includes/address-data.html:87
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 msgid "Used"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1531
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
 msgid "Current balance"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1546
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
 msgid "(external)"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1550
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
 msgid " (change)"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1555
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
 msgid "unknown (external address)"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
 msgid "Type"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
 msgid "UTXO"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1584
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
 msgid "Amount (BTC)"
 msgstr ""
 
@@ -4516,4 +4516,7 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
 msgid "Hide keys details"
 msgstr ""
+
+#~ msgid "Failed to delete failed wallet: {}"
+#~ msgstr ""
 
