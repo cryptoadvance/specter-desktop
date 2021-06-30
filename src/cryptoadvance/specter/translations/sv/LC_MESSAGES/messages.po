@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-30 14:01-0500\n"
-"PO-Revision-Date: 2021-06-30 22:38+0200\n"
+"PO-Revision-Date: 2021-06-30 22:55+0200\n"
 "Language: sv\n"
 "Language-Team: sv <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
-"Last-Translator: \n"
+"Last-Translator: Kryptoministern <krypto@ministern.se>\n"
 "X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
@@ -690,7 +690,7 @@ msgstr "(utomstående)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1550
 msgid " (change)"
-msgstr "(växel)"
+msgstr " (växel)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1555
 msgid "unknown (external address)"
@@ -1017,7 +1017,7 @@ msgid ""
 "To whitelist multiple domains, just list them one after another, each in a new "
 "line, for example"
 msgstr ""
-"För att vitlista flera domän, lägg till dem en efter en i separata rader, t.ex."
+"För att vitlista flera domän, lägg till dem en efter en i separata rader, t.ex"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:11
 #: src/cryptoadvance/specter/templates/device/device.jinja:21
@@ -1039,7 +1039,7 @@ msgstr "Användarnamn"
 
 #: src/cryptoadvance/specter/templates/login.jinja:13
 msgid "password"
-msgstr "Lösenord"
+msgstr "lösenord"
 
 #: src/cryptoadvance/specter/templates/login.jinja:19
 msgid "Login"
@@ -1336,7 +1336,7 @@ msgstr "Scanna, klistra in eller ladda xpub-strängar"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:35
 msgid "You will be able add more keys later from the device menu."
-msgstr "Du kan lägga till fler nycklar genom enhetsmenyn"
+msgstr "Du kan lägga till fler nycklar genom enhetsmenyn."
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:38
 msgid "One line per xpub. Ideally with derivation path in the form"
