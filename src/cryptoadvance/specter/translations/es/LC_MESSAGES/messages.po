@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Babel multi-language support\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-30 14:01-0500\n"
+"POT-Creation-Date: 2021-06-30 17:34-0500\n"
 "PO-Revision-Date: 2021-06-29 23:23-0500\n"
 "Last-Translator: 2a3dex <2a3dex@protonmail.com>\n"
 "Language: es\n"
@@ -450,15 +450,15 @@ msgstr "Bitcoin Core no está instalado pero es necesario para este paso"
 msgid "SpecterError while {}: {}"
 msgstr "SpecterError mientras {}: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:109
-msgid "Failed to delete failed wallet: {}"
-msgstr "Ha fallado la eliminación de la billetera fallida: {}"
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:108
+msgid "Failed to delete wallet: {}"
+msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:121
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:120
 msgid "Configure Bitcoin Core to create wallets"
 msgstr "Configura Bitcoin Core para poder crear billeteras"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:127
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:126
 msgid ""
 "<p><br>Configure Bitcoin Core is running with wallets "
 "disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 "
@@ -479,96 +479,96 @@ msgstr ""
 "mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: "
 "white;\">acá</a> para mayor información.</p>"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:141
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:140
 msgid "Unknown wallet type requested"
 msgstr "Se solicitó un tipo de billetera desconocido"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:168
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:167
 msgid "Wallet imported successfully"
 msgstr "Billetera importada exitosamente"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:204
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:203
 msgid "No device was selected. Please select a device to create the wallet for."
 msgstr ""
 "Ningun dispositivo fue seleccionado. Por favor seleccionar un dispositivo "
 "para crear una billetera para."
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:213
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:212
 msgid "Device {} doesn't have keys matching this wallet type"
 msgstr "Dispositivo {} no tiene llaves para este tipo de billetera"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:241
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:827
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:240
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:826
 msgid "Wallet already exists"
 msgstr "Billetera ya existe"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:276
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:275
 msgid "No keys were selected for device, please try adding keys first"
 msgstr ""
 "Ninguna llave fue seleccionada para el dispositivo, por favor intenta "
 "primero agregar unas llaves"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:302
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:301
 msgid "Failed to create wallet. Error: {}"
 msgstr "No se pudo crear la billetera. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:492
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:491
 msgid "Failed to fetch fee estimations. Please use the manual fee calculation."
 msgstr ""
 "No se lograron obtener las estimaciones de tarifas. Utilice el cálculo "
 "manual de tarifas."
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:545
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:578
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:544
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:577
 msgid "Failed to perform RBF. Error: {}"
 msgstr "No se pudo realizar RBF. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:562
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:561
 msgid "Failed to cancel transaction with RBF. Error: {}"
 msgstr "Error al cancelar la transacción con RBF. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:601
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:600
 msgid "Failed to sign PSBT: {}"
 msgstr "Error al firmar PSBT: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:604
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:603
 msgid "Device already signed the PSBT"
 msgstr "Dispositivo ya ha firmado PSBT"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:620
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:619
 msgid "Failed to get RBF coins. Error: {}"
 msgstr "No se pudieron obtener las monedas RBF. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:674
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:673
 msgid "Could not delete Pending PSBT!"
 msgstr "No se pudo borrar PSBT pendiente!"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:712
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:711
 msgid "Could not import PSBT: {}"
 msgstr "No se pudo importar PSBT: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:786
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:785
 msgid "Failed to abort rescan. Maybe already complete?"
 msgstr "Ha fallado la cancelación del re-escaneo. Tal vez ya este completo?"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:823
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:822
 msgid "Wallet name cannot be empty"
 msgstr "Nombre de billetera no puede estar vacío"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:859
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:858
 msgid "Cannot parse empty data as PSBT"
 msgstr "No se puede analizar información vacía como PSBT"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:883
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:882
 msgid "Invalid transaction format"
 msgstr "Formato de transacción invalido"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:899
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:898
 msgid "Unknown error: {}"
 msgstr "Error desconocido: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:916
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:973
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:915
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:972
 msgid ""
 "Failed to broadcast transaction: transaction is invalid\n"
 "{}"
@@ -576,79 +576,79 @@ msgstr ""
 "Error al transmitir la transacción: transacción es inválida\n"
 "{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:945
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:944
 msgid "Failed to broadcast transaction. Network not supported."
 msgstr "Error al transmitir la transacción. Red no soportada."
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:954
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:953
 msgid "Failed to broadcast transaction. Block explorer not supported."
 msgstr "Error al transmitir la transacción. Explorador de bloques no soportado."
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:968
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:967
 msgid "Failed to broadcast transaction with error: {}"
 msgstr "No se pudo transmitir la transacción con el error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1067
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1066
 msgid "Exception trying to get address label: Error: {}"
 msgstr "Excepción al intentar obtener la etiqueta de la dirección: Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1275
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1274
 msgid "Failed to export addresses list. Error: {}"
 msgstr "No se pudo exportar la lista de direcciones. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1344
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1343
 msgid "Failed to export wallet utxo. Error: {}"
 msgstr "No se pudo exportar utxo de la billetera. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1379
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1378
 msgid "Failed to export wallets overview history. Error: {}"
 msgstr "No se pudo exportar el historial general de las billeteras. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1411
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1410
 msgid "Failed to export wallets overview utxo. Error: {}"
 msgstr "No se pudo exportar la descripción general utxo de las billeteras. Error: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1436
 msgid "Date"
 msgstr "Fecha"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
 #: src/cryptoadvance/specter/templates/includes/address-data.html:83
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
 msgid "Label"
 msgstr "Etiqueta"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
 msgid "Category"
 msgstr "Categoría"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
 msgid "Amount ({})"
 msgstr "Monto ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
 msgid "Value ({})"
 msgstr "Valor ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1442
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
 msgid "Rate (BTC/{})"
 msgstr "Tarifa (BTC / {})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
 msgid "Rate ({}/SAT)"
 msgstr "Tarifa ({} / SAT)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 msgid "TxID"
 msgstr "TxID"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
 #: src/cryptoadvance/specter/templates/includes/address-data.html:82
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
@@ -656,59 +656,59 @@ msgstr "TxID"
 msgid "Address"
 msgstr "Dirección"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Block Height"
 msgstr "Altura del bloque"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 msgid "Timestamp"
 msgstr "Marca de tiempo"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1449
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
 msgid "Raw Transaction"
 msgstr "Transacción sin procesar"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1452
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
 msgid "Wallet"
 msgstr "Billetera"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
 msgid "Index"
 msgstr "Índice"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
 #: src/cryptoadvance/specter/templates/includes/address-data.html:87
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 msgid "Used"
 msgstr "Usado"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1531
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
 msgid "Current balance"
 msgstr "Balance actual"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1546
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
 msgid "(external)"
 msgstr "(externo)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1550
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
 msgid " (change)"
 msgstr " (cambio)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1555
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
 msgid "unknown (external address)"
 msgstr "desconocido (dirección externa)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
 msgid "Type"
 msgstr "Tipo"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
 msgid "UTXO"
 msgstr "UTXO"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1584
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
 msgid "Amount (BTC)"
 msgstr "Cantidad (BTC)"
 
@@ -4891,4 +4891,7 @@ msgstr ""
 
 #~ msgid "Bitcoin Core installation is still under progress"
 #~ msgstr "Instalación de Bitcoin Core está en progreso"
+
+#~ msgid "Failed to delete failed wallet: {}"
+#~ msgstr "Ha fallado la eliminación de la billetera fallida: {}"
 
