@@ -105,8 +105,7 @@ def failed_wallets():
                 delete_file(fullpath.replace(".json", "_txs.csv"))
                 app.specter.wallet_manager.update()
             except Exception as e:
-
-                flash(_("Failed to delete failed wallet: {}").format(str(e)), "error")
+                flash(_("Failed to delete wallet: {}").format(str(e)), "error")
     return redirect("/")
 
 
