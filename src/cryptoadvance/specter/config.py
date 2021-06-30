@@ -104,10 +104,11 @@ class BaseConfig(object):
         },
     }
 
-    # Babel integration
+    # Babel integration. English listed first; other alphabetical by language code
     LANGUAGES = {
         "en": "English",
         "de": "Deutsch",
+        "el": "Ελληνικά",
         "es": "Español",
         "fr": "Français",
         "he": "עברית",
