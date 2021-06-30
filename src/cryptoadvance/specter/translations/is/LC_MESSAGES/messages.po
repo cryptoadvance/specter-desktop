@@ -1,4 +1,4 @@
-# French translations for PROJECT.
+# Icelandic translations for PROJECT.
 # Copyright (C) 2021 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
@@ -8,11 +8,11 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-30 09:48-0500\n"
-"PO-Revision-Date: 2021-06-21 13:27+0200\n"
-"Last-Translator: \n"
-"Language: fr\n"
-"Language-Team: fr <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"PO-Revision-Date: 2021-06-30 09:17-0500\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: is\n"
+"Language-Team: is <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n%10==1 && n%100!=11 ? 0 : 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -113,22 +113,22 @@ msgstr ""
 #: src/cryptoadvance/specter/server_endpoints/devices.py:308
 #: src/cryptoadvance/specter/server_endpoints/devices.py:434
 msgid "Device name cannot be empty"
-msgstr "Le nom de l’appareil ne peut pas être vide."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:66
 #: src/cryptoadvance/specter/server_endpoints/devices.py:292
 #: src/cryptoadvance/specter/server_endpoints/devices.py:310
 msgid "Device with this name already exists"
-msgstr "Un appareil avec ce nom existe déjà."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:84
 #: src/cryptoadvance/specter/server_endpoints/devices.py:298
 msgid "Failed to parse these xpubs"
-msgstr "Échec de l’analyse de ces xpubs (clés publiques)"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:89
 msgid "No paths were specified, please provide at least one."
-msgstr "Aucun chemin n’a été spécifié, veuillez en fournir au moins un."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:102
 #: src/cryptoadvance/specter/server_endpoints/devices.py:147
@@ -147,38 +147,35 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:143
 msgid "xpubs list must not be empty"
-msgstr "La liste des xpubs ne doit pas être vide"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:198
 #: src/cryptoadvance/specter/server_endpoints/devices.py:312
 msgid "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
 msgstr ""
-"Clé Mnémonique introduie non valide : doit contenir : 12, 15, 18, 21 ou 24 "
-"mots."
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:202
 #: src/cryptoadvance/specter/server_endpoints/devices.py:317
 msgid "Invalid mnemonic entered."
-msgstr "Clé Mnémonique entrée non validée."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:206
 #: src/cryptoadvance/specter/server_endpoints/devices.py:321
 msgid "Invalid address range selected."
-msgstr "Plage d’adresses sélectionnée non valide."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:248
 #: src/cryptoadvance/specter/server_endpoints/devices.py:386
 msgid "Device not found"
-msgstr "Appareil non trouvé"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:257
-#, fuzzy
 msgid "Master blinding key was added successfully"
-msgstr "La “clé master blinging” a été ajoutée avec succès"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:295
 msgid "xpubs name cannot be empty"
-msgstr "Le nom xpubs ne peut pas être vide"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:397
 msgid "Device could not be removed since it is used in wallets: {}"
@@ -187,13 +184,11 @@ msgstr ""
 #: src/cryptoadvance/specter/server_endpoints/devices.py:401
 msgid "You must delete those wallets before you can remove this device."
 msgstr ""
-"Vous devez supprimer ces portefeuilles avant de pouvoir supprimer ce "
-"dispositif."
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:405
 #: src/cryptoadvance/specter/server_endpoints/devices.py:427
 msgid "You can delete a wallet from its Settings -> Advanced page."
-msgstr "Vous pouvez supprimer un portefeuille depuis la page Paramètres -> Avancé."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:421
 msgid "Key could not be removed since it is used in wallets: {}"
@@ -201,11 +196,11 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:425
 msgid "You must delete those wallets before you can remove this key."
-msgstr "Vous devez supprimer ces portefeuilles avant de pouvoir supprimer cette clé."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:438
 msgid "Device already exists"
-msgstr "L’appareil existe déjà"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:47
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:228
@@ -396,7 +391,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:124
 msgid "Tor is already installed"
-msgstr "Tor est déjà installé"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:126
 msgid "Tor installation is still in progress"
@@ -404,11 +399,11 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:127
 msgid "Starting Tor setup!"
-msgstr "Démarrage de l’installation de Tor !"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:144
 msgid "Bitcoin Core is already installed"
-msgstr "Bitcoin Core est déjà installé"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:146
 #: src/cryptoadvance/specter/server_endpoints/setup.py:208
@@ -418,7 +413,7 @@ msgstr ""
 #: src/cryptoadvance/specter/server_endpoints/setup.py:147
 #: src/cryptoadvance/specter/server_endpoints/setup.py:209
 msgid "Starting Bitcoin Core setup!"
-msgstr "Démarrage de la configuration de Bitcoin Core !"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:206
 msgid "Bitcoin Core in not installed but required for this step"
@@ -674,68 +669,58 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:5
 #: src/cryptoadvance/specter/templates/base.jinja:5
 msgid "Specter Desktop"
-msgstr "Specter pour ordinateur"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:18
 msgid "Server error!"
-msgstr "Erreur du serveur!"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:19
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:19
 msgid "Exception"
-msgstr "Exception"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:21
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:21
 msgid "Back to the main page"
-msgstr "Retour à la page principale"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:23
 msgid "Details"
-msgstr "Détails"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500.jinja:26
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:31
-#, fuzzy
 msgid ""
 "Please let us know! Create an <a href=\"https://github.com/cryptoadvance"
 "/specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a "
 "href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix "
 "it."
 msgstr ""
-"S’il vous plaît faites-nous savoir! Créer un <a "
-"href=“https://github.com/cryptoadvance/specter-desktop/issues” "
-"target=“_blank”>problème</a> ou contactez-nous sur <a "
-"href=“https://t.me/spectersupport” target=“_blank”>Telegram</a> pour le "
-"réparer."
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:18
 msgid "Timeout Error!"
-msgstr "Erreur dans le délai d’attente !"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:23
 msgid ""
 "Please have a look in the below log. There are effectively two ways to "
 "resolve this:"
 msgstr ""
-"Veuillez consulter le journal ci-dessous. Il y a  deux manières de résoudre "
-"efficacement ce problème :"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:25
 msgid "Either the process was just slow and Specter was too impatient"
-msgstr "Soit le processus était juste lent et Spectre était trop impatient"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:26
 msgid ""
 "The process is in trouble which should be reflected by the content of the "
 "logs below"
 msgstr ""
-"Le processus est en difficulté, ce qui devrait être reflété par le contenu "
-"des “logs” ci-dessous"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:28
 msgid "Details from the log file"
-msgstr "Détails du fichier de registre"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:63
 msgid "ERROR:"
@@ -747,7 +732,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:75
 msgid "Welcome to Specter Desktop"
-msgstr "Bienvenue à Specter pour ordinateur"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:78
 msgid ""
@@ -756,103 +741,84 @@ msgid ""
 "on multisignature setups for different hardware wallets and air-gapped "
 "signing devices."
 msgstr ""
-"L’édition Specter pour Ordinateur est un porteffeuille pratique pour "
-"utilliser au mieux votre nœud Bitcoin. Pratique pour les porteffeuilles à "
-"signature simple, il porte néanmoins une atention spéciale aux portefeuilles"
-" à signature multiple en propasant une multitude de configurations pour les "
-"portefeuille matériels et d’autres dispositifs de signature à distance."
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Get started!"
-msgstr "Démarrer!"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Continue setup"
-msgstr "Continuer avec la configuration"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:88
 msgid "Getting Started"
-msgstr "Commencer."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:94
 msgid "Using Specter from a remote machine?"
-msgstr "Utiliser Specter depuis un autre dispositif ?"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:96
 msgid ""
 "If you run Specter on a remote machine, like Umbrel or a myNode, you need to"
 " update settings to connect hardware wallets via USB."
 msgstr ""
-"SI vous voulez démarrer Specter depuis un autre dispositif comme Umbrel ou "
-"myNode, vous devez mettre à jour les paramètres pour connecter les "
-"portefeuilles matériels via USB."
 
 #: src/cryptoadvance/specter/templates/base.jinja:98
 msgid "Update your settings"
-msgstr "Mettre à jour les paramètres"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:113
 msgid "Connect Specter with Bitcoin Core node."
-msgstr "Connectez Specter à votre nœud Bitcoin Core."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:120
 msgid "Connecting Specter to your Bitcoin Core node"
-msgstr "Connection de Specter à votre nœud Bitcoin Core"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:122
 msgid "I don't have a Bitcoin Core node yet."
-msgstr "Je n’ai pas encore de nœud Bitcoin Core."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:123
 msgid "I have Bitcoin Core on this computer."
-msgstr "J’ai Bitcoin Core sur cet ordinateur."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:124
 msgid "I have a remote Bitcoin Core node."
-msgstr "Je posséde un nœud Bitcoin Core à distance."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:128
 msgid "Installing and Setting Up Bitcoin Core"
-msgstr "Installation et configuration de Bitcoin Core"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:129
 msgid ""
 "Check out these video tutorials on downloading and setting up Bitcoin Core "
 "with Specter Desktop"
 msgstr ""
-"Découvrez ces tutoriels sur le téléchargement et la configuration de votre "
-"Bitcoin Core avec Specter pour ordinateur."
 
 #: src/cryptoadvance/specter/templates/base.jinja:137
 msgid "Connecting Specter to your local Bitcoin Core node"
-msgstr "Connection de Specter à votre nœud Bitcoin Core local."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:138
 msgid ""
 "If you're running a local Bitcoin Core node, Specter should be able to auto-"
 "detect it if its data folder is located at the default location."
 msgstr ""
-"Si vous exécutez un nœud Bitcoin Core local, Specter devrait pouvoir le "
-"détecter automatiquement si son dossier de données se trouve à l’emplacement"
-" par défaut."
 
 #: src/cryptoadvance/specter/templates/base.jinja:139
 msgid ""
 "In case it isn't, you might need to specify the Bitcoin Core data folder "
 "path in Specter's settings page."
 msgstr ""
-"Dans le cas contraire, vous devez spécifier le chemin du dossier de données "
-"Bitcoin Core dans la page des paramètres de Specter."
 
 #: src/cryptoadvance/specter/templates/base.jinja:140
-#, fuzzy
 msgid ""
 "Alternatively, you can switch off auto-detect from the settings and provide "
 "the Bitcoin Core RPC credentials and host URL manually."
 msgstr ""
-"Vous pouvez également désactiver la détection automatique à partir des "
-"paramètres et fournir manuellement les informations d’identification Bitcoin"
-" Core RPC et l’URL de l’hôte."
 
 #: src/cryptoadvance/specter/templates/base.jinja:141
 msgid ""
@@ -862,23 +828,21 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:142
 msgid "If you don't have that, add it and restart Bitcoin Core."
-msgstr "Si vous ne l’avez pas, ajoutez-le et redémarrez Bitcoin Core."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:145
 msgid ""
 "In addition, you can check out these video tutorials for setting up Bitcoin "
 "Core with Specter Desktop"
 msgstr ""
-"Vous pouvez aussi consulter ces tutoriels pour configurer Bitcoin Core avec "
-"Specter pour ordinateur."
 
 #: src/cryptoadvance/specter/templates/base.jinja:153
 msgid "Connecting Specter to your remote Bitcoin Core node"
-msgstr "Connection de Specter à votre nœud Bitcoin Core distant."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "Connecting to a \"node in a box\""
-msgstr "Connection à un “node in a box”"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:156
 msgid ""
@@ -910,20 +874,18 @@ msgid ""
 "Connecting over Tor requires that you first configure Tor on your local "
 "machine."
 msgstr ""
-"La connexion via Tor nécessite que vous configuriez d’abord Tor sur votre "
-"machine locale."
 
 #: src/cryptoadvance/specter/templates/base.jinja:174
 msgid "Add signing devices you wish to use."
-msgstr "Rajoutez les dispositifs de signature que vous souhaitez utiliser."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:186
 msgid "Create your first wallet!"
-msgstr "Créez votre premier portefeuille !"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:199
 msgid "And when you are all set: Get the whitepaper from the timechain."
-msgstr "Et lorsque out est prêt : Obtenez le whitepaper depuis la chaîne temporelle."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/base.jinja:220
 msgid "Supported and maintained by"
@@ -3189,7 +3151,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/components/settings_menu.jinja:13
 msgid "USB Devices"
-msgstr "Périphériques USB"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/setup/bitcoind.jinja:5
 msgid "Setup Bitcoin Core"
@@ -3672,23 +3634,3 @@ msgstr ""
 msgid "You can always download this file later from the wallet Settings tab."
 msgstr ""
 
-#~ msgid "Failed to setup hot wallet. Error"
-#~ msgstr "Échec lors de la configuration du portefeuille chaud. Erreur."
-
-#~ msgid "Device could not be removed since it is used in wallets"
-#~ msgstr ""
-#~ "L’appareil n’a pas pu être supprimé "
-#~ "car il est utilisé dans les "
-#~ "portefeuilles"
-
-#~ msgid "Key could not be removed since it is used in wallets"
-#~ msgstr ""
-#~ "La clé n’a pas pu être supprimée "
-#~ "car elle est utilisée par les "
-#~ "portefeuilles"
-
-#~ msgid "Tor installation is still under progress"
-#~ msgstr "L’installation de Tor est toujours en cours"
-
-#~ msgid "Bitcoin Core installation is still under progress"
-#~ msgstr "L’installation de Bitcoin Core est toujours en cours"
