@@ -107,6 +107,7 @@ class BaseConfig(object):
     # Babel integration
     LANGUAGES = {
         "en": "English",
+        "de": "Deutsch",
         "es": "Español",
         "fr": "Français",
         "he": "עברית",

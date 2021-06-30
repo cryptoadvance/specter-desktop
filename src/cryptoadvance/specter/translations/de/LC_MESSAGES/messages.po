@@ -4008,6 +4008,7 @@ msgstr "Geräte PSBT"
 msgid "Standard PSBT"
 msgstr "Standard PSBT"
 
+
 msgid ""
 "Enabling Tor hidden service will expose your Specter for remote access."
 "<br>It is therefore required that you set up authentication tab for Specter "
