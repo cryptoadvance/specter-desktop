@@ -112,6 +112,7 @@ class BaseConfig(object):
         "es": "Español",
         "fr": "Français",
         "he": "עברית",
+        "nl": "Nederlands",
     }
 
 
