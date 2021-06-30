@@ -380,7 +380,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 @pytest.fixture
 def app(specter_regtest_configured):
     """the Flask-App, but uninitialized"""
-    app = create_app()
+    app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True
     app.testing = True
