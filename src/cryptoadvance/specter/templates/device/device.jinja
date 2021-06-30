@@ -40,7 +40,7 @@
 						{% if specter.hide_sensitive_info %}
 							<td></td>
 						{% else %}
-							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="Show key QR code" style="cursor: pointer;">
+							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}" style="cursor: pointer;">
 								<img style="margin-top: 5px; width: 40px;" src="{{ url_for('static', filename='img/qr-code.svg') }}" class="svg-white"/>
 							</td>
 						{% endif %}

@@ -195,7 +195,7 @@
             {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
                 <p class="warning" style="border: 1px solid #fff;">
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
-                <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
+                <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br>
                 {% if current_user.is_admin %}
                 <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
                     <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }}
@@ -218,7 +218,7 @@
         </div>
         <br>
         <div class="footer">
-	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
+	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
             <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('about') }}">
             {{ _("About Specter") }}<br>
             <img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 35px;"/>

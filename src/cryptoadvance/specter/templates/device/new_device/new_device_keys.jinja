@@ -46,9 +46,9 @@
                 <input type="hidden" name="range_end" value="{{ range_end }}"/>
             {% endif %}
             <div>
-                <h1 style="font-size: 1.8em;">Upload Keys</h1>
+                <h1 style="font-size: 1.8em;">{{ _("Upload Keys") }}</h1>
                 {% if not existing_device %}
-                    <h2 style="max-width: 500px; margin: auto;">Name your Device: <input type="text" name="device_name" placeholder="My device" id="device_name" required/></h2>
+                    <h2 style="max-width: 500px; margin: auto;">{{ _("Name your Device: ") }}<input type="text" name="device_name" placeholder="My device" id="device_name" required/></h2>
                     <br>
                 {% endif %}
                 <div id="coldcard-instructions" {%if device_class.device_type != 'coldcard' %}class="hidden"{% endif %}>
