@@ -113,6 +113,8 @@ class BaseConfig(object):
         "fr": "Français",
         "he": "עברית",
         "nl": "Nederlands",
+        "pl": "Polski",
+        "sv": "Svenska",
     }
 
 
