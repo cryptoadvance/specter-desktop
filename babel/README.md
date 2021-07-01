@@ -34,6 +34,10 @@ You'll be working with a `messages.po` file for each specific language. This fil
 
 The `messages.po` text format is fairly straightforward but can be a little hard to work with, especially for multi-line phrases. Instead, we recommend that translators use the free tool [Poedit](https://poedit.net/download).
 
+Once it's installed, go to Poedit preferences and uncheck "Wrap at":
+
+<img src="img/poedit_01.png">
+
 Navigate to the directory where you cloned the repo. The translation files can be found organized by two-letter language code (e.g. Spanish = "es") under `src/cryptoadvance/specter/translations`.
 
 In Poedit open the `messages.po` file for your target langage (e.g. Spanish: [src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](../src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)).
@@ -67,7 +71,7 @@ Add or update translations, then save your changes.
 
 	And many languages will most likely just keep many of the technical words the same (e.g. "xpub").
 
-* The strings are presented out of context and a word may have many possible translations. If you can't figure out the right usage, ask for help in the Telegram group. Each string includes the exact line number where it was found in the code. Include this info and others can help you get a better sense of how it's being used in that context. You can also directly review that line of code yourself but that may be bewildering if you are not a developer.
+* The strings are presented out of context and a word may have many possible translations. If you can't figure out the right usage, ask for help in the Telegram group. Each string includes the exact line number where it was found in the code (right-click on it in Poedit and you'll see "Code Occurrences"). Include this info and others can help you get a better sense of how it's being used in that context. You can also directly review that line of code yourself (click on the entry in "Code Occurrences") but that may be bewildering if you are not a developer.
 
 
 ### Submitting your changes
@@ -136,7 +140,10 @@ This will rescan all wrapped text, picking up new strings as well as updating ex
 
 Then run `update`:
 ```
-pybabel update -N --width=79 -i babel/messages.pot -d src/cryptoadvance/specter/translations
+pybabel update -N --no-wrap -i babel/messages.pot -d src/cryptoadvance/specter/translations
+
+# Or target a specific language code:
+pybabel update -N --no-wrap -i babel/messages.pot -d src/cryptoadvance/specter/translations -l es
 ```
 _note: the `-N` flag prevents babel from trying to use fuzzy matching to re-use existing translations for new strings. The fuzzy matching does not seem to do what we would want so we keep it disabled._
 
@@ -145,6 +152,9 @@ Any newly wrapped text strings will be added to each `messages.po` file. Altered
 Once the next round of translations is complete, recompile the results:
 ```
 pybabel compile -d src/cryptoadvance/specter/translations
+
+# Or target a specific language code:
+pybabel compile -d src/cryptoadvance/specter/translations -l es
 ```
 
 
