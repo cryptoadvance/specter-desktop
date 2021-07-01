@@ -22,7 +22,7 @@ class ResourceLiveness(BaseResource):
     endpoints = ["/healthz/liveness"]
 
     def get(self):
-        return json.dumps({"message": "i am alive"})
+        return {"message": "i am alive"}
 
 
 @rest_resource
@@ -39,4 +39,4 @@ class ResourceReadyness(BaseResource):
             app.specter.check()
         except Exception as e:
             abort(500, message="Readyness probe failed")
-        return json.dumps({"message": "i am ready"})
+        return {"message": "i am ready"}

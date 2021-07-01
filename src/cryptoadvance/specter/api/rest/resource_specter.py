@@ -1,18 +1,11 @@
 import logging
-import json
 
-import cryptoadvance.specter as specter
 from cryptoadvance.specter.api.rest.base import (
     AdminResource,
     rest_resource,
 )
-from cryptoadvance.specter.api.security import require_admin, verify_password
 from flask import current_app as app
 from datetime import datetime
-
-
-from ...util.fee_estimation import get_fees
-
 
 logger = logging.getLogger(__name__)
 
