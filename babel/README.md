@@ -20,7 +20,7 @@ Open the Github Desktop app and add the Specter Desktop repo via "Clone a Reposi
 
 Select where you want to save the source code on your local computer and hit "Clone".
 
-If you're presented with the following choice, select "For my own purposes":
+When you're presented with the following choice, select "For my own purposes":
 
 <img src="img/github_desktop_setup_01.jpg">
 
