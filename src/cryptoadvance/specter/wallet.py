@@ -1716,8 +1716,7 @@ class Wallet:
             if (
                 "addresses" not in out["scriptPubKey"]
                 or len(out["scriptPubKey"]["addresses"]) == 0
-                or "address" not in out["scriptPubKey"]
-            ):
+            ) and "address" not in out["scriptPubKey"]:
                 # TODO: we need to handle it somehow differently
                 raise SpecterError("Sending to raw scripts is not supported yet")
             addr = get_address_from_dict(out["scriptPubKey"])
