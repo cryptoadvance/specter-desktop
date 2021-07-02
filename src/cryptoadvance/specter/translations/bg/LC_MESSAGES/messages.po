@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-06-30 17:34-0500\n"
-"PO-Revision-Date: 2021-06-30 14:40-0500\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2021-07-01 23:55-0400\n"
 "Language: bg\n"
 "Language-Team: bg <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+"Last-Translator: \n"
+"X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
 msgid "Connection to node failed"
@@ -489,27 +490,27 @@ msgstr "Не можа да се изтрие предстояща частичн
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:711
 msgid "Could not import PSBT: {}"
-msgstr ""
+msgstr "Не можа да се внесе частично подписана биткойн транзакция (PSBT): {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:785
 msgid "Failed to abort rescan. Maybe already complete?"
-msgstr ""
+msgstr "Не успя да се абортира ресканиране. Може би е приключило?"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:822
 msgid "Wallet name cannot be empty"
-msgstr ""
+msgstr "Името на портмонето не може да бъде празно"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:858
 msgid "Cannot parse empty data as PSBT"
-msgstr ""
+msgstr "Не може да се прочете непопълнена информация като частично подписана биткойн транзакция (PSBT)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:882
 msgid "Invalid transaction format"
-msgstr ""
+msgstr "Невалиден формат на транзакция"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:898
 msgid "Unknown error: {}"
-msgstr ""
+msgstr "Непозната грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:915
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:972
@@ -517,42 +518,44 @@ msgid ""
 "Failed to broadcast transaction: transaction is invalid\n"
 "{}"
 msgstr ""
+"Не успя да излъчи транзакцията: транзакцията не е валидна\n"
+"{}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:944
 msgid "Failed to broadcast transaction. Network not supported."
-msgstr ""
+msgstr "Не успя да излъчи транзакцията. Мрежата не е поддържана."
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:953
 msgid "Failed to broadcast transaction. Block explorer not supported."
-msgstr ""
+msgstr "Не успя да излъчи транзакцията. Блок изследователя не е поддържан."
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:967
 msgid "Failed to broadcast transaction with error: {}"
-msgstr ""
+msgstr "Не успя да излъчи транзакцията с грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1066
 msgid "Exception trying to get address label: Error: {}"
-msgstr ""
+msgstr "Изключение опитвайки да се вземе етикет на адрес: Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1274
 msgid "Failed to export addresses list. Error: {}"
-msgstr ""
+msgstr "Не успя да експортира списък с адреси. Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1343
 msgid "Failed to export wallet utxo. Error: {}"
-msgstr ""
+msgstr "Не успя да експортира utxo на портмонето. Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1378
 msgid "Failed to export wallets overview history. Error: {}"
-msgstr ""
+msgstr "Не успя да експортира исторически преглед на портмонентата. Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1410
 msgid "Failed to export wallets overview utxo. Error: {}"
-msgstr ""
+msgstr "Не успя да експортира преглед на utxo на портмонентата. Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1436
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
@@ -561,32 +564,32 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
 msgid "Label"
-msgstr ""
+msgstr "Етикет"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
 msgid "Category"
-msgstr ""
+msgstr "Категория"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
 msgid "Amount ({})"
-msgstr ""
+msgstr "Количество ({})"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
 msgid "Value ({})"
-msgstr ""
+msgstr "Стойност ({})"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
 msgid "Rate (BTC/{})"
-msgstr ""
+msgstr "Курс (BTC/{})"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
 msgid "Rate ({}/SAT)"
-msgstr ""
+msgstr "Курс ({}/SAT)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 msgid "TxID"
-msgstr ""
+msgstr "TxID"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
@@ -596,288 +599,288 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Address"
-msgstr ""
+msgstr "Адрес"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Block Height"
-msgstr ""
+msgstr "Блок Височина"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 msgid "Timestamp"
-msgstr ""
+msgstr "Времеви печат"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
 msgid "Raw Transaction"
-msgstr ""
+msgstr "Необработена транзакция"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
 msgid "Wallet"
-msgstr ""
+msgstr "Портмоне"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
 msgid "Index"
-msgstr ""
+msgstr "Индекс"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
 #: src/cryptoadvance/specter/templates/includes/address-data.html:87
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 msgid "Used"
-msgstr ""
+msgstr "Използван"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
 msgid "Current balance"
-msgstr ""
+msgstr "Текущ баланс"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
 msgid "(external)"
-msgstr ""
+msgstr "(външен)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
 msgid " (change)"
-msgstr ""
+msgstr "(промяна)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
 msgid "unknown (external address)"
-msgstr ""
+msgstr "непознат (външен адрес)"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
 msgid "Type"
-msgstr ""
+msgstr "Тип"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
 msgid "UTXO"
-msgstr ""
+msgstr "UTXO"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
 msgid "Amount (BTC)"
-msgstr ""
+msgstr "Количество (BTC)"
 
 #: src/cryptoadvance/specter/templates/500.jinja:5
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:5
 #: src/cryptoadvance/specter/templates/base.jinja:5
 msgid "Specter Desktop"
-msgstr ""
+msgstr "Спектър Десктоп"
 
 #: src/cryptoadvance/specter/templates/500.jinja:18
 msgid "Server error!"
-msgstr ""
+msgstr "Грешка в сървъра!"
 
 #: src/cryptoadvance/specter/templates/500.jinja:19
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:19
 msgid "Exception"
-msgstr ""
+msgstr "Изключение"
 
 #: src/cryptoadvance/specter/templates/500.jinja:21
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:21
 msgid "Back to the main page"
-msgstr ""
+msgstr "Върни се към главната страница"
 
 #: src/cryptoadvance/specter/templates/500.jinja:23
 msgid "Details"
-msgstr ""
+msgstr "Детайли"
 
 #: src/cryptoadvance/specter/templates/500.jinja:26
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:31
 msgid "Please let us know! Create an <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix it."
-msgstr ""
+msgstr "Моля споделете с нас! Създайте <a href=“https://github.com/cryptoadvance/specter-desktop/issues” target=“_blank”>билетче</a> или ни цъкнете съобщение на <a href=“https://t.me/spectersupport” target=“_blank”>Телеграм</a> да оправим проблема."
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:18
 msgid "Timeout Error!"
-msgstr ""
+msgstr "Грешка: твърде много време отнема!"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:23
 msgid "Please have a look in the below log. There are effectively two ways to resolve this:"
-msgstr ""
+msgstr "Моля погледнете в записките долу. Има ефективно два начина да се разреши това:"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:25
 msgid "Either the process was just slow and Specter was too impatient"
-msgstr ""
+msgstr "Или процесът беше бавен или Спектър беше твърде нетърпелив"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:26
 msgid "The process is in trouble which should be reflected by the content of the logs below"
-msgstr ""
+msgstr "Има проблеми с процеса, които би трябвало да бъдат описани в записките отдолу"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:28
 msgid "Details from the log file"
-msgstr ""
+msgstr "Детайли от файла с записки"
 
 #: src/cryptoadvance/specter/templates/base.jinja:63
 msgid "ERROR:"
-msgstr ""
+msgstr "ГРЕШКА:"
 
 #: src/cryptoadvance/specter/templates/base.jinja:69
 msgid "Something went wrong:"
-msgstr ""
+msgstr "Нещо не е както трябва:"
 
 #: src/cryptoadvance/specter/templates/base.jinja:75
 msgid "Welcome to Specter Desktop"
-msgstr ""
+msgstr "А добре дошъл в Спектър Десктоп"
 
 #: src/cryptoadvance/specter/templates/base.jinja:78
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
-msgstr ""
+msgstr "Спектър Десктоп е угоден интерфейс за портмонета, който позволява по-пълноценно да използвате вашия Биткойн Core възел. Върши добра работа за портмонета с един подпис, но идва със специален фокус върху портмонета с многократни подписи за различни хардуерни устройства и “въздушно отцепени” устройства за подпис."
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Get started!"
-msgstr ""
+msgstr "Започнете!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Continue setup"
-msgstr ""
+msgstr "Продължи инсталацията"
 
 #: src/cryptoadvance/specter/templates/base.jinja:88
 msgid "Getting Started"
-msgstr ""
+msgstr "Начало"
 
 #: src/cryptoadvance/specter/templates/base.jinja:94
 msgid "Using Specter from a remote machine?"
-msgstr ""
+msgstr "Използвате Спектър Десктоп от задочна машина?"
 
 #: src/cryptoadvance/specter/templates/base.jinja:96
 msgid "If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB."
-msgstr ""
+msgstr "Ако използвате Спектър на задочна машина, като Umbrel  или myNode, трябва да промените настройките да се свържете с хардуерни портмонета чрез USB."
 
 #: src/cryptoadvance/specter/templates/base.jinja:98
 msgid "Update your settings"
-msgstr ""
+msgstr "Променете вашите настройки"
 
 #: src/cryptoadvance/specter/templates/base.jinja:113
 msgid "Connect Specter with Bitcoin Core node."
-msgstr ""
+msgstr "Свържете Спектр с Биткойн Core възел."
 
 #: src/cryptoadvance/specter/templates/base.jinja:120
 msgid "Connecting Specter to your Bitcoin Core node"
-msgstr ""
+msgstr "Свързва се Спектър с Биткойн Core възел."
 
 #: src/cryptoadvance/specter/templates/base.jinja:122
 msgid "I don't have a Bitcoin Core node yet."
-msgstr ""
+msgstr "Все още нямам Биткойн Core възел."
 
 #: src/cryptoadvance/specter/templates/base.jinja:123
 msgid "I have Bitcoin Core on this computer."
-msgstr ""
+msgstr "Имам Биткойн Core на този компютър."
 
 #: src/cryptoadvance/specter/templates/base.jinja:124
 msgid "I have a remote Bitcoin Core node."
-msgstr ""
+msgstr "Имам задочен Биткойн Core възел."
 
 #: src/cryptoadvance/specter/templates/base.jinja:128
 msgid "Installing and Setting Up Bitcoin Core"
-msgstr ""
+msgstr "Инсталира се и се наглася Биткойн Core"
 
 #: src/cryptoadvance/specter/templates/base.jinja:129
 msgid "Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop"
-msgstr ""
+msgstr "Погледнете тези видео уроци за изтегляне и настройване на Биткойн Core със Спектър Десктоп"
 
 #: src/cryptoadvance/specter/templates/base.jinja:137
 msgid "Connecting Specter to your local Bitcoin Core node"
-msgstr ""
+msgstr "Свържете Спектър с вашия локален Биткойн Core възел"
 
 #: src/cryptoadvance/specter/templates/base.jinja:138
 msgid "If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location."
-msgstr ""
+msgstr "Ако използвате локален Биткойн Core възел, Спектър би трябвало автоматично да провери дали “data” папката се намира в преконфигурираното място."
 
 #: src/cryptoadvance/specter/templates/base.jinja:139
 msgid "In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page."
-msgstr ""
+msgstr "В случай че не е, е възможно да трябва да уточните пътеката на Биткойн Core “data” папката в страницата на настройки в Спектър."
 
 #: src/cryptoadvance/specter/templates/base.jinja:140
 msgid "Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually."
-msgstr ""
+msgstr "Алтернативно, може да изгасите автоматична"
 
 #: src/cryptoadvance/specter/templates/base.jinja:141
 msgid "<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file."
-msgstr ""
+msgstr "<b>Моля забележете:</b><br>Вашият възел трябва да бъде конфигуриран с <code>server=1</code> ред в файла <code>bitcoin.conf</code>."
 
 #: src/cryptoadvance/specter/templates/base.jinja:142
 msgid "If you don't have that, add it and restart Bitcoin Core."
-msgstr ""
+msgstr "Ако това не е дадено, моля добавете го и рестартирайте Биткойн Core."
 
 #: src/cryptoadvance/specter/templates/base.jinja:145
 msgid "In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop"
-msgstr ""
+msgstr "Допълнително може да проверите тези видео упътвания за настройване на Биткойн Core със Спектър Десктоп"
 
 #: src/cryptoadvance/specter/templates/base.jinja:153
 msgid "Connecting Specter to your remote Bitcoin Core node"
-msgstr ""
+msgstr "Свързвам Спектър с вашия задочен Биткойн Core възел"
 
 #: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "Connecting to a \"node in a box\""
-msgstr ""
+msgstr "Правя връзка с “възел в кутия”"
 
 #: src/cryptoadvance/specter/templates/base.jinja:156
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
-msgstr ""
+msgstr "Спектър може да бъде използван със задочен Биткойн Core възел, който върви на машинка като RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
 
 #: src/cryptoadvance/specter/templates/base.jinja:157
 msgid "RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually."
-msgstr ""
+msgstr "RaspiBlitz и myNode в момента позволяват Спектър да върви директно в задочна машина, което означава че е възможно да се използва избягвайки нуждата сами да се свържете."
 
 #: src/cryptoadvance/specter/templates/base.jinja:158
 msgid "If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually."
-msgstr ""
+msgstr "Амк използвате разиличен възел или бихте искали да се пуснете Спектър локално, може го направете ходейки до Настройки, Биткойн Core папка и да въведете сами Биткойн Core RPC логин информация и host URL."
 
 #: src/cryptoadvance/specter/templates/base.jinja:160
 msgid "Connecting over Tor"
-msgstr ""
+msgstr "Свързва се чрез Тор"
 
 #: src/cryptoadvance/specter/templates/base.jinja:161
 msgid "Connecting over Tor requires that you first configure Tor on your local machine."
-msgstr ""
+msgstr "Връзката чрез Тор изисква първо да настроите Тор на вашата локална машина"
 
 #: src/cryptoadvance/specter/templates/base.jinja:174
 msgid "Add signing devices you wish to use."
-msgstr ""
+msgstr "Добавете устройства за подписване, които вие искате да използвате."
 
 #: src/cryptoadvance/specter/templates/base.jinja:186
 msgid "Create your first wallet!"
-msgstr ""
+msgstr "Създайте вашото първо портмоне!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:199
 msgid "And when you are all set: Get the whitepaper from the timechain."
-msgstr ""
+msgstr "И когато сте готови: Вземете “белия документ” от времевия блок."
 
 #: src/cryptoadvance/specter/templates/base.jinja:211
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
-msgstr ""
+msgstr "Имате проблеми? Опитайте се да прочетете <a href=“https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md” target=“_blank” style=“color: #fff; font-size: 1.05em; font-weight: bolder;”> ЧЗВ</a>"
 
 #: src/cryptoadvance/specter/templates/base.jinja:212
 msgid "Still having issues?"
-msgstr ""
+msgstr "Все още имате проблеми?"
 
 #: src/cryptoadvance/specter/templates/base.jinja:213
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
-msgstr ""
+msgstr "Моля <a href=“https://github.com/cryptoadvance/specter-desktop/issues/new” target=“_blank” style=“color: #fff;”>отворете билетче в GitHub</a> или питайте <a href=“https://t.me/spectersupport” target=“_blank” style=“color: #fff;”>Спектър общвествен телеграм чат</a>"
 
 #: src/cryptoadvance/specter/templates/base.jinja:217
 msgid "Help wanted: Do you like Specter?"
-msgstr ""
+msgstr "Търси се помощ! Харесвате ли Спектър?"
 
 #: src/cryptoadvance/specter/templates/base.jinja:220
 msgid "Supported and maintained by"
-msgstr ""
+msgstr "Подкрепяно и поддържано от"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:11
 msgid "HWI Bridge Settings"
-msgstr ""
+msgstr "Мост-интерфейс са хардуерно портмоне (HWI Bridge) Настройки"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:15
 msgid "HWI Bridge is also accessible over Tor"
-msgstr ""
+msgstr "Мост-интерфейс са хардуерно портмоне (HWI Bridge) е също достъпен чрез Тор"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:16
 msgid "Copied Tor hidden service address"
-msgstr ""
+msgstr "Копиран е адреса за Тор скрити сервизи"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:21
 msgid "Whitelisted domains"
-msgstr ""
+msgstr "Домейни в “белия списък”"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:24
 msgid "To whitelist multiple domains, just list them one after another, each in a new line, for example"
-msgstr ""
+msgstr "За да добавите множество домейни в “белия списък”, просто ги опишете един след друг, всеки на нов ред, примерно"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:11
 #: src/cryptoadvance/specter/templates/device/device.jinja:21
@@ -885,92 +888,92 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/includes/address-label.html:65
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:10
 msgid "Update"
-msgstr ""
+msgstr "Актуализация"
 
 #: src/cryptoadvance/specter/templates/login.jinja:8
 msgid "Login to Specter"
-msgstr ""
+msgstr "Логин в Спектър"
 
 #: src/cryptoadvance/specter/templates/login.jinja:11
 #: src/cryptoadvance/specter/templates/register.jinja:11
 #: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:41
 msgid "Username"
-msgstr ""
+msgstr "Профил"
 
 #: src/cryptoadvance/specter/templates/login.jinja:13
 msgid "password"
-msgstr ""
+msgstr "парола"
 
 #: src/cryptoadvance/specter/templates/login.jinja:19
 msgid "Login"
-msgstr ""
+msgstr "Вход"
 
 #: src/cryptoadvance/specter/templates/register.jinja:8
 msgid "Register to the Specter Node"
-msgstr ""
+msgstr "Регистрирай към възела на Спектър"
 
 #: src/cryptoadvance/specter/templates/register.jinja:13
 msgid "Password"
-msgstr ""
+msgstr "Парола"
 
 #: src/cryptoadvance/specter/templates/register.jinja:19
 msgid "Register"
-msgstr ""
+msgstr "Регистрирай се"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:12
 #: src/cryptoadvance/specter/templates/includes/address-label.html:66
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:11
 msgid "Cancel"
-msgstr ""
+msgstr "Отказ"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:13
 msgid "Edit Name"
-msgstr ""
+msgstr "Промяна на Име"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:38
 msgid "Price Settings"
-msgstr ""
+msgstr "Ценови Настройки"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:41
 msgid "Please set custom rate or choose between the automated price provider options."
-msgstr ""
+msgstr "Моля нагласете сами курс или изберете помежду опцийте за автоматичнен източник на курс."
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:43
 msgid "Manual"
-msgstr ""
+msgstr "Направи си сам"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:44
 msgid "Automatic"
-msgstr ""
+msgstr "Автоматик"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:48
 msgid "Price:"
-msgstr ""
+msgstr "Цена:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
 msgid "Symbol:"
-msgstr ""
+msgstr "Символ:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:56
 msgid "Select price provider:"
-msgstr ""
+msgstr "Избери източник на курс:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:61
 msgid "Currency:"
-msgstr ""
+msgstr "Валута:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:94
 msgid "Provider:"
-msgstr ""
+msgstr "Източник:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:158
 msgid "Weight Unit:"
-msgstr ""
+msgstr "Единица Тежест:"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:172
 msgid "Price will automatically be fetched from the selected provider every 10 minutes."
-msgstr ""
+msgstr "Курсът ше бъде автоматично изтеглен от избрания източник всеки 10 минути."
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:176
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:67
@@ -978,53 +981,53 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/settings/general_settings.jinja:109
 #: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
 msgid "Save"
-msgstr ""
+msgstr "Запази"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:179
 msgid "Disable showing price"
-msgstr ""
+msgstr "Отмени показване на курс"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:181
 msgid "You can enable showing price feature to see the price<br>information of your Bitcoin amounts across Specter."
-msgstr ""
+msgstr "Можеш да включите показване на курс, за да видите курсова <br>информация на вашите Биткойн количества в Спектър."
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:183
 msgid "Enable showing price"
-msgstr ""
+msgstr "Включи показване на курс"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
 msgid "Turning on show price mode..."
-msgstr ""
+msgstr "Включва се режим показване на курс…"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
 msgid "Turning off show price mode..."
-msgstr ""
+msgstr "Отменя се се режим показване на курс…"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:212
 msgid "Failed to toggle price mode..."
-msgstr ""
+msgstr "Неуспешен опит да са смени режим показване на курс…"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
 msgid "Updating price data..."
-msgstr ""
+msgstr "Актуализация на курсова информация…"
 
 #: src/cryptoadvance/specter/templates/components/price_bar.jinja:240
 msgid "Failed to fetch price data from selected provider, please try again or select another provider."
-msgstr ""
+msgstr "Неуспешен опит да се вземе курсова информация от избрания източник, моля опитайте отново или изберете нов източник."
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:12
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:122
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:59
 msgid "Network"
-msgstr ""
+msgstr "Мрежа"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:123
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:60
 msgid "Purpose"
-msgstr ""
+msgstr "Предназначение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
@@ -1032,7 +1035,7 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:124
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:61
 msgid "Derivation"
-msgstr ""
+msgstr "Derivation"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:130
@@ -1042,109 +1045,109 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:17
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:125
 msgid "Export"
-msgstr ""
+msgstr "Експортирай"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:125
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:62
 msgid "Key"
-msgstr ""
+msgstr "Ключ"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:126
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Actions"
-msgstr ""
+msgstr "Действия"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:43
 msgid "Show key QR code"
-msgstr ""
+msgstr "Покажи QR код на ключа"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:58
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_item.jinja:40
 msgid "Delete"
-msgstr ""
+msgstr "Изтрий"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:69
 msgid "Add more keys"
-msgstr ""
+msgstr "Добави допълнителни ключове"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:73
 #: src/cryptoadvance/specter/templates/device/device.jinja:81
 msgid "Sign message on device"
-msgstr ""
+msgstr "Подпиши съобщение на устройство"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:75
 msgid "Derivation path"
-msgstr ""
+msgstr "Derivation пътека"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:76
 msgid "Message"
-msgstr ""
+msgstr "Съобщение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:78
 msgid "Message signature"
-msgstr ""
+msgstr "Подпис на съобщение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:79
 msgid "Copy message signature"
-msgstr ""
+msgstr "Копирай подпис на съобщение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:79
 msgid "Copied message signature"
-msgstr ""
+msgstr "Копирано е подпис на съобщение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:86
 msgid "Update master blinding key"
-msgstr ""
+msgstr "Актуализирай главен “слепеещ” ключ"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:90
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:25
 msgid "Toggle device passphrase"
-msgstr ""
+msgstr "Смени на устройството"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:95
 msgid "Forget the device"
-msgstr ""
+msgstr "Забрави устойството"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:100
 msgid "Wallets Using This Device"
-msgstr ""
+msgstr "Портмонета, които използват това устройство"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:113
 msgid "New device was added successfully!"
-msgstr ""
+msgstr "Ново устройство е успешно добавено!"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:118
 msgid "Add another device"
-msgstr ""
+msgstr "Добави допълнително устройство"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:128
 msgid "Create single key wallet"
-msgstr ""
+msgstr "Създай портмоне с единичен ключ"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:136
 msgid "Create multisignature wallet"
-msgstr ""
+msgstr "Създай портмоне с многобройни ключове (multisignature)"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:176
 msgid "Message was signed successfully!"
-msgstr ""
+msgstr "Съобщението бе успешно подписано!"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:9
 msgid "Get the master blinding key"
-msgstr ""
+msgstr "Вземи главния “слепеещ” ключ"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:15
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:102
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:77
 msgid "Get via USB"
-msgstr ""
+msgstr "Вземи чрез USB"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:20
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:114
 msgid "Scan QR code"
-msgstr ""
+msgstr "Сканирай QR код"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:25
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:28
@@ -4206,5 +4209,3 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
 msgid "Hide keys details"
 msgstr ""
-
-
