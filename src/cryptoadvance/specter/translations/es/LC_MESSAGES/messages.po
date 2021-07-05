@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Babel multi-language support\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-06-29 23:23-0500\n"
 "Last-Translator: 2a3dex <2a3dex@protonmail.com>\n"
 "Language: es\n"
@@ -2892,7 +2892,7 @@ msgid "Before changing these settings"
 msgstr "Antes de cambiar estas configuraciones"
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
-msgid "If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely."
+msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 msgstr "Si aún no lo ha hecho, diríjase a \"Preferencias\" en su aplicación de escritorio (que se encuentra en la barra de navegación superior). Seleccione la opción para conectarse de forma remota."
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83

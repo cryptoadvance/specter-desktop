@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-07-01 10:51+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: sv\n"
@@ -2891,7 +2891,7 @@ msgid "Before changing these settings"
 msgstr "Innan du ändrar de här inställningarna"
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
-msgid "If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely."
+msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 msgstr "Om du inte redan gjort det, gå till \"Inställningar\" på din desktopapp (du hittar detta i navigationsraden längst upp). Välj att ansluta till annan dator."
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83

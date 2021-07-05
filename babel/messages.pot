@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3086,8 +3086,8 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
 msgid ""
-"If you haven’t done so already, head to “Preferences” on your desktop app"
-" (found on the top navigation). Select the option to connect remotely."
+"If you haven’t done so already, head to \"Preferences\" on your desktop "
+"app (found on the top navigation). Select the option to connect remotely."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83
