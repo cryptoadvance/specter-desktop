@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-07-03 00:08+0200\n"
 "Last-Translator: \n"
 "Language: nl\n"
@@ -685,7 +685,7 @@ msgstr "Details"
 #: src/cryptoadvance/specter/templates/500.jinja:26
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:31
 msgid "Please let us know! Create an <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix it."
-msgstr "Gelieve ons iets te laten weten! Maak een <a href=“https://github.com/cryptoadvance/specter-desktop/issues” target=“_blank”>issue aan</a> of contacteer ons op <a href=“https://t.me/spectersupport” target=“_blank”>Telegram</a> om het op te lossen."
+msgstr "Gelieve ons iets te laten weten! Maak een <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">issue aan</a> of contacteer ons op <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> om het op te lossen."
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:18
 msgid "Timeout Error!"
@@ -809,7 +809,7 @@ msgstr "Verbinden van Specter met uw remote Bitcoin Core node"
 
 #: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "Connecting to a \"node in a box\""
-msgstr "Connecteren met een “node in a box”"
+msgstr "Connecteren met een \"node in a box\""
 
 #: src/cryptoadvance/specter/templates/base.jinja:156
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
@@ -845,7 +845,7 @@ msgstr "En als u klaar bent: Haal de whitepaper op via de timechain."
 
 #: src/cryptoadvance/specter/templates/base.jinja:211
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
-msgstr "Problemen? Probeer <a href=“https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md” target=“_blank” style=“color: #fff; font-size: 1.05em; font-weight: bolder;”>de FAQ</a> na te lezen"
+msgstr "Problemen? Probeer <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">de FAQ</a> na te lezen"
 
 #: src/cryptoadvance/specter/templates/base.jinja:212
 msgid "Still having issues?"
@@ -853,7 +853,7 @@ msgstr "Nog steeds problemen?"
 
 #: src/cryptoadvance/specter/templates/base.jinja:213
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
-msgstr "Voel u vrij om <a href=“https://github.com/cryptoadvance/specter-desktop/issues/new” target=“_blank” style=“color: #fff;”>een issue te openen op de Github</a> of stel een vraag in de <a href=“https://t.me/spectersupport” target=“_blank” style=“color: #fff;”>Specter Community telegram chat</a>"
+msgstr "Voel u vrij om <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">een issue te openen op de Github</a> of stel een vraag in de <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
 
 #: src/cryptoadvance/specter/templates/base.jinja:217
 msgid "Help wanted: Do you like Specter?"
@@ -1278,7 +1278,7 @@ msgstr "Een opmerking over hot wallets"
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:47
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:104
 msgid "This will create a <a style=\"color: #ddd;\" href=\"https://en.bitcoin.it/wiki/Hot_wallet\" target=\"_blank\">hot wallet</a> on your Bitcoin Core node."
-msgstr "Dit zal een <a style=“color: #ddd;” href=“https://en.bitcoin.it/wiki/Hot_wallet” target=“_blank”>hot wallet</a> aanmaken op u Bitcoin Core node."
+msgstr "Dit zal een <a style=\"color: #ddd;\" href=\"https://en.bitcoin.it/wiki/Hot_wallet\" target=\"_blank\">hot wallet</a> aanmaken op u Bitcoin Core node."
 
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:48
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:105
@@ -1435,7 +1435,7 @@ msgstr ""
 "                    Voor single sig, klik op: Instellingen -> Watch-Only Wallet -> Generic Wallet, Klik op de 3 punten (…) rechts bovenaan -> Wallet Info -> Toggle Address Type, vervolgens selecteert u het wallet adres type dat u wilt gebruiken voor uw wallet.<br><br>\n"
 "                    Voor multisig, klik op: Multisig Wallet -> Klik op de 3 punten (…) rechts bovenaan -> Show/Export XPUB, vervolgens selecteert u het wallet adres type dat u wilt gebruiken voor uw wallet.<br>\n"
 "                    Cobo Vault zal vervolgens een QR code tonen die u moet inscannen in Specter.<br><br>\n"
-"                    Om te importeren met SD kaart, klik op “touch here to export the file with microSD” op hetzelfde scherm als de QR code."
+"                    Om te importeren met SD kaart, klik op \"touch here to export the file with microSD\" op hetzelfde scherm als de QR code."
 
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:85
 msgid "Connect your hardware device to the computer via USB."
@@ -1696,7 +1696,7 @@ msgstr "Ophalen adreslijst gefaald"
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:2
 msgid "Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash."
-msgstr "Specter-Desktop valideert <a href=“https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki” target=“_blank”>BIP 37</a> Merkle Proofs van uw volledige node wat <strong>garandeert</strong> dat transacties die als bevestigd getoond worden geïntegreerd zijn in de gespecifieerde blok hash."
+msgstr "Specter-Desktop valideert <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs van uw volledige node wat <strong>garandeert</strong> dat transacties die als bevestigd getoond worden geïntegreerd zijn in de gespecifieerde blok hash."
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:3
 msgid "However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain!"
@@ -1751,7 +1751,7 @@ msgstr "Laden transactie details gefaald…"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:84
 msgid "This transaction (aka \"tx\") could not be found in your node's mempool!"
-msgstr "Deze transactie (aka “tx”) werd niet gevonden in de mempool van uw node!"
+msgstr "Deze transactie (aka \"tx\") werd niet gevonden in de mempool van uw node!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:85
 msgid "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged."
@@ -2119,7 +2119,7 @@ msgstr "Bevestig Adres"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:6
 msgid "Please confirm address matches on your <span id=\"hwi_device_name\">device</span>"
-msgstr "Gelieve te bevestigen of adres overeenkomt op uw <span id=“hwi_device_name”>apparaat</span>"
+msgstr "Gelieve te bevestigen of adres overeenkomt op uw <span id=\"hwi_device_name\">apparaat</span>"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:7
 msgid "Expected address"
@@ -2508,7 +2508,7 @@ msgstr "Terugkeren"
 
 #: src/cryptoadvance/specter/templates/node/internal_node_logs.jinja:18
 msgid "If this is an issue, please let us know! Create an <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\" style=\"color: #fff;\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Telegram</a> to fix it."
-msgstr "Als dit een issue is, gelieve het ons te laten weten! Maak een <a href=“https://github.com/cryptoadvance/specter-desktop/issues” target=“_blank” style=“color: #fff;”>issue</a> aan of contacteer ons op <a href=“https://t.me/spectersupport” target=“_blank” style=“color: #fff;”>Telegram</a> om dit op te lossen."
+msgstr "Als dit een issue is, gelieve het ons te laten weten! Maak een <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\" style=\"color: #fff;\">issue</a> aan of contacteer ons op <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Telegram</a> om dit op te lossen."
 
 #: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:9
 msgid "Built-in Bitcoin Node Status:"
@@ -2644,7 +2644,7 @@ msgstr "Er zijn veel mogelijke problemen die de connectie kunnen verhinderen. Ge
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:87
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:101
 msgid "For more hints, please look at this <a style=\"color:grey\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md\" target=\"_blank\">article</a>."
-msgstr "Voor meer hints, gelieve dit <a style=“color:grey” href=“https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md” target=“_blank”>artikel</a> na te kijken."
+msgstr "Voor meer hints, gelieve dit <a style=\"color:grey\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md\" target=\"_blank\">artikel</a> na te kijken."
 
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:98
 msgid "Your Credentials don't work"
@@ -2892,7 +2892,7 @@ msgid "Before changing these settings"
 msgstr "Voor het wijzigingen van deze instellingen"
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
-msgid "If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely."
+msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 msgstr "Indien u dit nog niet gedaan heeft, ga naar \"Voorkeuren\" om uw desktop applicatie (in de navigatiebalk bovenaan). Selecteer hier de optie om op afstand te kunnen verbinden."
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83
@@ -4232,5 +4232,5 @@ msgstr "Verberg sleutel details"
 #~ msgstr "Node met deze naam bestaat al, kies een andere naam."
 
 #~ msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
-#~ msgstr "<p><br>Configuur Bitcoin Core met wallet functionaliteit uitgeschakeld<br><br>Zorg ervoor dat disablewallet uitstaat (voeg disablewallet=0 toe aan uw bitcoin.conf file), herstart Bitcoin Core en probeer opnieuw.<br>Zie <a href=“https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure” target=“_blank” style=“color: white;”>hier</a> voor meer informatie.</p>"
+#~ msgstr "<p><br>Configuur Bitcoin Core met wallet functionaliteit uitgeschakeld<br><br>Zorg ervoor dat disablewallet uitstaat (voeg disablewallet=0 toe aan uw bitcoin.conf file), herstart Bitcoin Core en probeer opnieuw.<br>Zie <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">hier</a> voor meer informatie.</p>"
 

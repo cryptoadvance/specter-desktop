@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-07-05 16:42+0200\n"
 "Last-Translator: \n"
 "Language: fr\n"
@@ -173,7 +173,7 @@ msgstr "Appareil introuvable"
 #: src/cryptoadvance/specter/server_endpoints/devices.py:257
 #, fuzzy
 msgid "Master blinding key was added successfully"
-msgstr "La “clé master blinding” a été ajoutée avec succès"
+msgstr "La \"clé master blinding\" a été ajoutée avec succès"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:295
 msgid "xpubs name cannot be empty"
@@ -701,7 +701,7 @@ msgstr "Détails"
 #: src/cryptoadvance/specter/templates/500.jinja:26
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:31
 msgid "Please let us know! Create an <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix it."
-msgstr "S’il vous plaît faites-nous savoir! Créez un <a href=“https://github.com/cryptoadvance/specter-desktop/issues” target=“_blank”>problème</a> ou contactez-nous sur <a href=“https://t.me/spectersupport” target=“_blank”>Telegram</a> pour le réparer."
+msgstr "S’il vous plaît faites-nous savoir! Créez un <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">problème</a> ou contactez-nous sur <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> pour le réparer."
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:18
 msgid "Timeout Error!"
@@ -717,7 +717,7 @@ msgstr "Soit le processus était juste lent et Specter était trop impatient"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:26
 msgid "The process is in trouble which should be reflected by the content of the logs below"
-msgstr "Le processus est en difficulté, ce qui devrait être reflété par le contenu des “logs” ci-dessous"
+msgstr "Le processus est en difficulté, ce qui devrait être reflété par le contenu des \"logs\" ci-dessous"
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:28
 msgid "Details from the log file"
@@ -831,7 +831,7 @@ msgstr "Connection de Specter à votre nœud Bitcoin Core distant"
 
 #: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "Connecting to a \"node in a box\""
-msgstr "Connection à un “node in a box”"
+msgstr "Connection à un \"node in a box\""
 
 #: src/cryptoadvance/specter/templates/base.jinja:156
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
@@ -2904,7 +2904,7 @@ msgid "Before changing these settings"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
-msgid "If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely."
+msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83

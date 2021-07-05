@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 12:41-0500\n"
+"POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-07-01 23:55-0400\n"
 "Last-Translator: \n"
 "Language: bg\n"
@@ -135,7 +135,7 @@ msgstr "{} беше успешно добавен!"
 #: src/cryptoadvance/specter/server_endpoints/devices.py:133
 #: src/cryptoadvance/specter/server_endpoints/devices.py:350
 msgid "Failed to setup hot wallet. Error: {}"
-msgstr "Неуспешно добавяне на “горещо” портмоне. Грешка: {}"
+msgstr "Неуспешно добавяне на \"горещо\" портмоне. Грешка: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:143
 msgid "xpubs list must not be empty"
@@ -163,7 +163,7 @@ msgstr "Устройството не е намерено"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:257
 msgid "Master blinding key was added successfully"
-msgstr "Главен “слепеещ” ключ е добавен успешно"
+msgstr "Главен \"слепеещ\" ключ е добавен успешно"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:295
 msgid "xpubs name cannot be empty"
@@ -381,7 +381,7 @@ msgstr "Грешка: Само администраторът може да из
 
 #: src/cryptoadvance/specter/server_endpoints/settings.py:506
 msgid "HWIBridge URL is updated! Don't forget to whitelist Specter!"
-msgstr "Мост-интерфейс са хардуерно портмоне (HWIBridge) линк-ът е подновен! Моля не забравяйте да разрешите/сложете Спектър в “белия списък”!"
+msgstr "Мост-интерфейс са хардуерно портмоне (HWIBridge) линк-ът е подновен! Моля не забравяйте да разрешите/сложете Спектър в \"белия списък\"!"
 
 #: src/cryptoadvance/specter/server_endpoints/setup.py:124
 msgid "Tor is already installed"
@@ -683,7 +683,7 @@ msgstr "Детайли"
 #: src/cryptoadvance/specter/templates/500.jinja:26
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:31
 msgid "Please let us know! Create an <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix it."
-msgstr "Моля споделете с нас! Създайте <a href=“https://github.com/cryptoadvance/specter-desktop/issues” target=“_blank”>билетче</a> или ни цъкнете съобщение на <a href=“https://t.me/spectersupport” target=“_blank”>Телеграм</a> да оправим проблема."
+msgstr "Моля споделете с нас! Създайте <a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">билетче</a> или ни цъкнете съобщение на <a href=\"https://t.me/spectersupport\" target=\"_blank\">Телеграм</a> да оправим проблема."
 
 #: src/cryptoadvance/specter/templates/500_timeout.jinja:18
 msgid "Timeout Error!"
@@ -719,7 +719,7 @@ msgstr "А добре дошъл в Спектър Десктоп"
 
 #: src/cryptoadvance/specter/templates/base.jinja:78
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
-msgstr "Спектър Десктоп е угоден интерфейс за портмонета, който позволява по-пълноценно да използвате вашия Биткойн Core възел. Върши добра работа за портмонета с един подпис, но идва със специален фокус върху портмонета с многократни подписи за различни хардуерни устройства и “въздушно отцепени” устройства за подпис."
+msgstr "Спектър Десктоп е угоден интерфейс за портмонета, който позволява по-пълноценно да използвате вашия Биткойн Core възел. Върши добра работа за портмонета с един подпис, но идва със специален фокус върху портмонета с многократни подписи за различни хардуерни устройства и \"въздушно отцепени\" устройства за подпис."
 
 #: src/cryptoadvance/specter/templates/base.jinja:85
 msgid "Get started!"
@@ -779,11 +779,11 @@ msgstr "Свържете Спектър с вашия локален Битко�
 
 #: src/cryptoadvance/specter/templates/base.jinja:138
 msgid "If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location."
-msgstr "Ако използвате локален Биткойн Core възел, Спектър би трябвало автоматично да провери дали “data” папката се намира в преконфигурираното място."
+msgstr "Ако използвате локален Биткойн Core възел, Спектър би трябвало автоматично да провери дали \"data\" папката се намира в преконфигурираното място."
 
 #: src/cryptoadvance/specter/templates/base.jinja:139
 msgid "In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page."
-msgstr "В случай че не е, е възможно да трябва да уточните пътеката на Биткойн Core “data” папката в страницата на настройки в Спектър."
+msgstr "В случай че не е, е възможно да трябва да уточните пътеката на Биткойн Core \"data\" папката в страницата на настройки в Спектър."
 
 #: src/cryptoadvance/specter/templates/base.jinja:140
 msgid "Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually."
@@ -807,7 +807,7 @@ msgstr "Свързвам Спектър с вашия задочен Битко�
 
 #: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "Connecting to a \"node in a box\""
-msgstr "Правя връзка с “възел в кутия”"
+msgstr "Правя връзка с \"възел в кутия\""
 
 #: src/cryptoadvance/specter/templates/base.jinja:156
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
@@ -839,11 +839,11 @@ msgstr "Създайте вашото първо портмоне!"
 
 #: src/cryptoadvance/specter/templates/base.jinja:199
 msgid "And when you are all set: Get the whitepaper from the timechain."
-msgstr "И когато сте готови: Вземете “белия документ” от времевия блок."
+msgstr "И когато сте готови: Вземете \"белия документ\" от времевия блок."
 
 #: src/cryptoadvance/specter/templates/base.jinja:211
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
-msgstr "Имате проблеми? Опитайте се да прочетете <a href=“https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md” target=“_blank” style=“color: #fff; font-size: 1.05em; font-weight: bolder;”> ЧЗВ</a>"
+msgstr "Имате проблеми? Опитайте се да прочетете <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\"> ЧЗВ</a>"
 
 #: src/cryptoadvance/specter/templates/base.jinja:212
 msgid "Still having issues?"
@@ -851,7 +851,7 @@ msgstr "Все още имате проблеми?"
 
 #: src/cryptoadvance/specter/templates/base.jinja:213
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
-msgstr "Моля <a href=“https://github.com/cryptoadvance/specter-desktop/issues/new” target=“_blank” style=“color: #fff;”>отворете билетче в GitHub</a> или питайте <a href=“https://t.me/spectersupport” target=“_blank” style=“color: #fff;”>Спектър общвествен телеграм чат</a>"
+msgstr "Моля <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">отворете билетче в GitHub</a> или питайте <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Спектър общвествен телеграм чат</a>"
 
 #: src/cryptoadvance/specter/templates/base.jinja:217
 msgid "Help wanted: Do you like Specter?"
@@ -875,11 +875,11 @@ msgstr "Копиран е адреса за Тор скрити сервизи"
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:21
 msgid "Whitelisted domains"
-msgstr "Домейни в “белия списък”"
+msgstr "Домейни в \"белия списък\""
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:24
 msgid "To whitelist multiple domains, just list them one after another, each in a new line, for example"
-msgstr "За да добавите множество домейни в “белия списък”, просто ги опишете един след друг, всеки на нов ред, примерно"
+msgstr "За да добавите множество домейни в \"белия списък\", просто ги опишете един след друг, всеки на нов ред, примерно"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:11
 #: src/cryptoadvance/specter/templates/device/device.jinja:21
@@ -1098,7 +1098,7 @@ msgstr "Копирано е подпис на съобщение"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:86
 msgid "Update master blinding key"
-msgstr "Актуализирай главен “слепеещ” ключ"
+msgstr "Актуализирай главен \"слепеещ\" ключ"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:90
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:25
@@ -1135,7 +1135,7 @@ msgstr "Съобщението бе успешно подписано!"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:9
 msgid "Get the master blinding key"
-msgstr "Вземи главния “слепеещ” ключ"
+msgstr "Вземи главния \"слепеещ\" ключ"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:15
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:102
@@ -2876,7 +2876,7 @@ msgid "Before changing these settings"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
-msgid "If you haven’t done so already, head to “Preferences” on your desktop app (found on the top navigation). Select the option to connect remotely."
+msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83
