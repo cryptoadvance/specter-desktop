@@ -7,17 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-30 17:34-0500\n"
+"POT-Creation-Date: 2021-07-05 12:41-0500\n"
 "PO-Revision-Date: 2021-07-04 15:41+0200\n"
 "Last-Translator: Sergei Tikhomirov <sergey.s.tikhomirov@gmail.com>\n"
 "Language: ru\n"
 "Language-Team: ru <LL@li.org>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
-"X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
 msgid "Connection to node failed"
@@ -238,8 +237,8 @@ msgid "Test passed"
 msgstr "Тест прошел"
 
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:159
-msgid "Node with this name already exits, please choose a different name."
-msgstr "Уже есть узел с таким именем. Пожалуйста, выберите другое имя."
+msgid "Node with this name already exists, please choose a different name."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:198
 msgid "Failed connecting to the node"
@@ -429,8 +428,8 @@ msgid "Configure Bitcoin Core to create wallets"
 msgstr "Настройте Bitcoin Core, чтобы создавать кошельки"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:126
-msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
-msgstr "<p><br>Bitcoin Core запущен с выключенными кошельками.<br><br>Убедитесь, что параметр disablewallet выключен (добавьте disablewallet=0 в файл bitcoin.conf), затем перезапустите Bitcoin Core и попробуйте снова.<br>Дополнительная информация <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">здесь</a>.</p>"
+msgid "<p><br>Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:140
 msgid "Unknown wallet type requested"
@@ -4223,3 +4222,10 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
 msgid "Hide keys details"
 msgstr ""
+
+#~ msgid "Node with this name already exits, please choose a different name."
+#~ msgstr "Уже есть узел с таким именем. Пожалуйста, выберите другое имя."
+
+#~ msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
+#~ msgstr "<p><br>Bitcoin Core запущен с выключенными кошельками.<br><br>Убедитесь, что параметр disablewallet выключен (добавьте disablewallet=0 в файл bitcoin.conf), затем перезапустите Bitcoin Core и попробуйте снова.<br>Дополнительная информация <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">здесь</a>.</p>"
+
