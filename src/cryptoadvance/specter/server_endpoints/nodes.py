@@ -157,7 +157,7 @@ def node_settings(node_alias):
                 if node.name in app.specter.node_manager.nodes:
                     flash(
                         _(
-                            "Node with this name already exits, please choose a different name."
+                            "Node with this name already exists, please choose a different name."
                         ),
                         "error",
                     )
