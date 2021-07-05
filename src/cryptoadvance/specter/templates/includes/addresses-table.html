@@ -95,16 +95,16 @@
 
     <nav class="row">
         <button type="button" class="receive-addresses-view-btn btn radio left checked">
-            Receive Addresses
+            {{ _("Receive Addresses") }}
         </button>
         <button type="button" class="change-addresses-view-btn btn radio right">
-            Change Addresses
+            {{ _("Change Addresses") }}
         </button>
     </nav>
 
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
+        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
             class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
@@ -113,7 +113,7 @@
         {% include "includes/page-limit-select.html" %}
     </div>
     <div class="export-container hidden">
-        <h1>Export addresses to CSV</h1>
+        <h1>{{ _("Export addresses to CSV") }}</h1>
 
 
 
@@ -127,7 +127,7 @@
 
 
 
-        <a class="export btn" download>Export</a>
+        <a class="export btn" download>{{ _("Export") }}</a>
     </div>
 
     <table class="addresses-table">
@@ -137,28 +137,28 @@
                 <th value="index" class="index-header">
                     <div class="index-arrow down-arrow"></div>
                 </th>
-                <th value="address" class="address-header">Address<div class="address-arrow"></div>
+                <th value="address" class="address-header">{{ _("Address") }}<div class="address-arrow"></div>
                 </th>
-                <th value="label" class="label-header optional">Label<div class="label-arrow">
+                <th value="label" class="label-header optional">{{ _("Label") }}<div class="label-arrow">
                 </th>
-                <th value="used" class="used-header optional">Used<div class="used-arrow">
+                <th value="used" class="used-header optional">{{ _("Used") }}<div class="used-arrow">
                 </th>
                 <th value="utxo" class="utxo-header optional">UTXO<div class="utxo-arrow">
                 </th>
-                <th value="amount" class="amount-header optional">Amount<div class="amount-arrow">
+                <th value="amount" class="amount-header optional">{{ _("Amount") }}<div class="amount-arrow">
                 </th>
                 {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
 					<th class="optional"></th>	
                 {% endif %}
                 <th style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" style="width: 50px;">Export</button>
+                    <button type="button" class="export-btn btn" style="width: 50px;">{{ _("Export") }}</button>
                 </th>
             </tr>
         </thead>
 
         <tr class="empty">
             <td></td>
-            <td>Fetching addresses ...</td>
+            <td>{{ _("Fetching addresses...") }}</td>
             <td class="optional"></td>
             <td class="optional"></td>
             <td class="optional"></td>
@@ -402,11 +402,11 @@
     async function fetchAddressesItems(self) {
         self.callId++;
         // Clean up from existing addresses list
-        self.emptyRow.children[1].innerText = "Fetching addresses...";
+        self.emptyRow.children[1].innerText = '{{ _("Fetching addresses...") }}';
         self.emptyRow.classList.remove('hidden');
         self.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
         if (!self.listType) {
-            self.emptyRow.children[1].innerText = "Failed to fetch addresses...";
+            self.emptyRow.children[1].innerText = '{{ _("Failed to fetch addresses...") }}';
             return
         }
 
@@ -416,9 +416,9 @@
         self.export.href += `?onlyCurrentType=${self.onlyCurrentTypeSwitch.checked}&addressType=${self.listType}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
 
         if (self.listType == "receive") {
-            self.switchText.innerText = "Only receive addresses: "
+            self.switchText.innerText = '{{ _("Only receive addresses") }}: '
         } else if (self.listType == "change") {
-            self.switchText.innerText = "Only change addresses: "
+            self.switchText.innerText = '{{ _("Only change addresses") }}: '
         } else {
             self.switchText.innerText = "";
         }
@@ -478,7 +478,7 @@
                     // Show empty row if no addresses found
                     if (self.pageCount == 0 || addressesList.length == 0) {
                         self.emptyRow.classList.remove('hidden');
-                        self.emptyRow.children[1].innerText = "No addresses found...";
+                        self.emptyRow.children[1].innerText = '{{ _("No addresses found...") }}';
                         self.pageCount = 1;
                     } else {
                         self.emptyRow.classList.add('hidden');
@@ -517,10 +517,10 @@
                 }
                 return;
             }
-            showError('Failed to fetch addresses list.')
+            showError('{{ _("Failed to fetch addresses list") }}')
         } catch (e) {
             console.log("Caught error: ", e);
-            showError(`Failed to fetch addresses list: ${e}`);
+            showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
         }
 
     }
@@ -547,7 +547,7 @@
             </address-data>`;
             showPageOverlay('address-popup');
         } else {
-            copyText(address, `Copied address: ${ address }`);
+            copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }
     }
 

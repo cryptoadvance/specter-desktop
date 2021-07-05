@@ -12,10 +12,10 @@
         let useSlip132 = document.getElementById("use_slip_132_pdf").checked;
         let currentHeight = 15;
         doc.setFontSize(18);
-        doc.text('Specter Backup File', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Specter Backup File") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
         doc.setFontSize(14);
-        doc.text('(keep this information with each of your key backups)', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("(keep this information with each of your key backups)") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 11;
 
         doc.setFontSize(18);
@@ -27,16 +27,16 @@
         doc.setFontSize(16);
         {% if wallet.is_multisig %}
             if ('{{ wallet.address_type }}' == 'bech32') {
-                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, native segwit)', 105, currentHeight, {align: 'center'});
+                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} {{ _("multisig") }} (sorted, native segwit)', 105, currentHeight, {align: 'center'});
             } else {
-                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} multisig (sorted, nested segwit)', 105, currentHeight, {align: 'center'});
+                doc.text('{{ wallet.sigs_required }} of {{ wallet.keys | length }} {{ _("multisig") }} (sorted, nested segwit)', 105, currentHeight, {align: 'center'});
             }
             currentHeight += 7;
         {% else %}
             if ('{{ wallet.address_type }}' == 'bech32') {
-                doc.text('(Native Segwit)', 105, currentHeight, {align: 'center'});
+                doc.text('{{ _("(Native Segwit)") }}', 105, currentHeight, {align: 'center'});
             } else {
-                doc.text('(Nested Segwit)', 105, currentHeight, {align: 'center'});
+                doc.text('{{ _("(Nested Segwit)") }}', 105, currentHeight, {align: 'center'});
             }
             currentHeight += 7;
         {% endif %}
@@ -51,9 +51,9 @@
         currentHeight += 110;
 
         doc.setFontSize(16);
-        doc.text('Scan this QR code with Specter-Desktop', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Scan this QR code with Specter-Desktop") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 7;
-        doc.text('or any other compatible wallet.', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("or any other compatible wallet.") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 11;
         
         doc.setFontSize(16)
@@ -80,11 +80,11 @@
             currentHeight += 8
             
             doc.setFont("Roboto", "normal");
-            doc.text('Device type: ' + deviceType, 15, currentHeight);
+            doc.text('{{ _("Device type:") }}" ' + deviceType, 15, currentHeight);
             currentHeight += 8
-            doc.text("Master fingerprint: {{ key.fingerprint }}", 15, currentHeight);
+            doc.text('{{ _("Master fingerprint:") }}" {{ key.fingerprint }}', 15, currentHeight);
             currentHeight += 8
-            doc.text("Derivation path: {{ key.derivation }}", 15, currentHeight);
+            doc.text('{{ _("Derivation path:") }}" {{ key.derivation }}', 15, currentHeight);
             currentHeight += 8
 
             if (useSlip132)
@@ -116,11 +116,11 @@
             doc.addPage();
             currentHeight = 20;
         }
-        doc.text('Advanced Recovery Details', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Advanced Recovery Details") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 15;
 
         doc.setFontSize(16);
-        doc.text('Specter Desktop Raw Data', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Specter Desktop Raw Data") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
 
         doc.setFontSize(14)
@@ -133,7 +133,7 @@
         }
 
         doc.setFontSize(16);
-        doc.text('Bitcoin Core Receive Descriptor', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Bitcoin Core Receive Descriptor") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
 
         doc.setFontSize(14)
@@ -146,7 +146,7 @@
         }
 
         doc.setFontSize(16);
-        doc.text('Bitcoin Core Change Descriptor', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Bitcoin Core Change Descriptor") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
 
         doc.setFontSize(14)
