@@ -5,6 +5,7 @@ from flask import make_response
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed
 from flask import render_template, request, redirect, url_for, flash, Markup
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
@@ -50,10 +51,11 @@ def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as flash"""
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
         flash(
-            "Wallet not found. Specter reloaded all Wallets, please try again.", "error"
+            _("Wallet not found. Specter reloaded all wallets, please try again."),
+            "error",
         )
     else:
-        flash(f"BitcoinCore RpcError: {str(rpce)}", "error")
+        flash(_("Bitcoin Core RpcError: {}").format(str(rpce)), "error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
@@ -94,7 +96,9 @@ def server_error_timeout(e):
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
     flash(
-        "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below",
+        _(
+            "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
+        ),
         "warn",
     )
     return redirect(
@@ -113,7 +117,7 @@ def server_error_csrf(e):
     app.logger.error("CSRF Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash("Session expired. Please refresh and try again.", "error")
+    flash(_("Session expired. Please refresh and try again."), "error")
     return redirect(request.url)
 
 
@@ -123,7 +127,7 @@ def server_error_405(e):
     app.logger.error("405 MethodNotAllowed Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash("Session expired. Please refresh and try again.", "error")
+    flash(_("Session expired. Please refresh and try again."), "error")
     return redirect(request.url)
 
 
@@ -180,7 +184,12 @@ def about():
             app.specter.reset_setup("bitcoind")
             app.specter.reset_setup("torbrowser")
 
-    return render_template("base.jinja", specter=app.specter, rand=rand)
+    return render_template(
+        "base.jinja",
+        specter=app.specter,
+        rand=rand,
+        supported_languages=app.supported_languages,
+    )
 
 
 # TODO: Move all these below to REST API
@@ -206,7 +215,12 @@ def wallets_loading():
 @app.route("/generatemnemonic/", methods=["GET", "POST"])
 @login_required
 def generatemnemonic():
-    return {"mnemonic": generate_mnemonic(strength=int(request.form["strength"]))}
+    return {
+        "mnemonic": generate_mnemonic(
+            strength=int(request.form["strength"]),
+            language_code=app.get_language_code(),
+        )
+    }
 
 
 ################ RPC data utils ####################
@@ -300,5 +314,7 @@ def get_whitepaper():
     else:
         return render_template(
             "500.jinja",
-            error="You need a mainnet node to retrieve the whitepaper. Check your node configurations.",
+            error=_(
+                "You need a mainnet node to retrieve the whitepaper. Check your node configurations."
+            ),
         )

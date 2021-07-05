@@ -13,7 +13,7 @@
         }
     </style>
     <div class="tx-data">
-        <h2>Transaction details</h2><br>
+        <h2>{{ _("Transaction details") }}</h2><br>
         <div class="tx-data-info"></div>
         <div class="note"></div>
     </div>
@@ -36,7 +36,7 @@
             this.btcUnit = this.getAttribute('data-btc-unit');
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
-            this.note.innerText = `Loading transaction details...\n\nTransaction ID: ${this.txid}`;
+            this.note.innerText = `{{ _("Loading transaction details...\n\nTransaction ID:") }}" ${this.txid}`;
             fetchTxData(this);
         
             // Attach the created element to the shadow dom
@@ -63,9 +63,9 @@
             const jsonResponse = await response.json();
             return jsonResponse;
         } catch(e) {
-            self.note.innerText = "Failed to load transaction details...";
+            self.note.innerText = '{{ _("Failed to load transaction details...") }}';
             console.log("Caught error fetching decoded transaction: ", e);
-            showError('Failed to fetch data. Please refresh the page and retry.');
+            showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
         }
         return null;
     }
@@ -81,17 +81,17 @@
             if(tx.is_purged) {
                 rawtxHTML += `
                 <div class="warning">
-                    <p><b>This transaction (aka "tx") could not be found in your node's mempool!</b></p>
-                    <p style="text-align:left;">If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.</p>
-                    <p style="text-align:left;">A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.</p>
-                    <p style="text-align:left;">But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.</p>
+                    <p><b>{{ _( "This transaction (aka \"tx\") could not be found in your node's mempool!") }}</b></p>
+                    <p style="text-align:left;">{{ _( "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.") }}</p>
+                    <p style="text-align:left;">{{ _( "A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.") }}</p>
+                    <p style="text-align:left;">{{ _( "But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.") }}</p>
 
                     <br/><br/>
                     <form method="POST" action="${walletLink}history/">
                         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="abandon_tx"/>
                         <input type="hidden" name="txid" value="${self.txid}"/>
-                        <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">Abandon transaction</button>
+                        <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">{{ _("Abandon transaction") }}</button>
                     </form>
                 </div>
                 `;
@@ -99,7 +99,7 @@
             rawtxHTML += `
             <table class="tx-data-table">
             <tbody>
-            <tr><td><span class="optional">Transaction id:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
+            <tr><td><span class="optional">{{ _("Transaction id") }}:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${self.txid}"></explorer-link></td></tr>
             <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
             <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
             `;
@@ -111,20 +111,20 @@
                     }
                 }
                 rawtxHTML += `
-                    <tr><td>Fee:</td><td>${parseInt(-1e8 * fee)} sats</td></tr>
-                    <tr><td>Fee rate:</td><td>${parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
+                    <tr><td>{{ _("Fee") }}:</td><td>${parseInt(-1e8 * fee)} sats</td></tr>
+                    <tr><td>{{ _("Fee rate") }}:</td><td>${parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
                 `;
             }
             if (tx.confirmations && tx.confirmations > 0) {
                 rawtxHTML += `
-                    <tr><td>Mined at block:</td><td>${tx.blockheight}</td></tr>
-                    <tr><td>Block hash:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
-                    <tr><td>Block time:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
+                    <tr><td>{{ _("Mined at block") }}:</td><td>${tx.blockheight}</td></tr>
+                    <tr><td>{{ _("Block hash") }}:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
+                    <tr><td>{{ _("Block time") }}:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
                 `;
             }
             rawtxHTML += `
-                <tr><td>Inputs count:</td><td>${rawtx.vin.length}</td></tr>
-                <tr><td>Outputs count:</td><td>${rawtx.vout.length}</td></tr>
+                <tr><td>{{ _("Inputs count") }}:</td><td>${rawtx.vin.length}</td></tr>
+                <tr><td>{{ _("Outputs count") }}:</td><td>${rawtx.vout.length}</td></tr>
             `;
             rawtxHTML += `
              </tbody>
@@ -175,15 +175,15 @@
                     }
 
                     addressAndValue = `<br>
-                        Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                        Value: ${value} ${assetlabel} ${price}`;
+                        {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                        {{ _("Value:") }} ${value} ${assetlabel} ${price}`;
                 }
 
                 if ('coinbase' in rawtx.vin[i]) {
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                        <b>Input #${i}</b><br><br>
-                        <b>Coinbase transaction</b>
+                        <b>{{ _("Input #") }}${i}</b><br><br>
+                        <b>{{ _("Coinbase transaction") }}</b>
                         <br>
                     </p>
                     `;
@@ -191,15 +191,15 @@
                 }
                 rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                        <b>Input #${i}</b><br><br>
-                        Transaction id: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                        Output # ${rawtx.vin[i].vout}
+                        <b>{{ _("Input #") }}${i}</b><br><br>
+                        {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
+                        {{ _("Output #") }}" ${rawtx.vin[i].vout}
                         ${addressAndValue}
                     </p>
                 `;
             }
 
-            rawtxHTML += `<h3>Outputs</h3>`;
+            rawtxHTML += `<h3>{{ _("Outputs") }}</h3>`;
             for (let i in rawtx.vout) {
                 let address = rawtx.vout[i].addresses && rawtx.vout[i].addresses.length == 1 ? rawtx.vout[i].addresses[0] : 'Unknown';
                 if (address == 'Unknown') {
@@ -241,9 +241,9 @@
 
                 rawtxHTML += `
                 <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                    <b>Output #${i}</b><br><br>
-                    Address: <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
-                    Value: ${value} ${assetlabel} ${price}
+                    <b>{{ _("Output #${i}") }}</b><br><br>
+                    {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br>
+                    {{ _("Value:") }} ${value} ${assetlabel} ${price}
                 </p>
                 `;
             }
@@ -252,7 +252,7 @@
             self.note.innerText = "";
             return;
         };
-        self.note.innerText = "Failed to load transaction details...";
+        self.note.innerText = '{{ _("Failed to load transaction details...") }}';
     }
     async function fetchAddressIsMine(self, address) {
         let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
@@ -276,7 +276,7 @@
                 return jsonResponse.isMine;
             }
         }  catch(e) {
-            showError("Failed to load address data...");
+            showError('{{ _("Failed to load address data...") }}');
             showError(e);
         }
         return false;

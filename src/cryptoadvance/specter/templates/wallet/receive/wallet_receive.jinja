@@ -37,28 +37,27 @@
 			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
-		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', 'Copied Address: {{ wallet.address }}');">{{ wallet.address }}</p>
-		(click to copy)
+		<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText('{{ wallet.address }}', '{{ _("Copied Address:") }} {{ wallet.address }}');">{{ wallet.address }}</p>
+		{{ _("(click to copy)") }}
 		<br><br>
 		<qr-code style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
 		</div><br>
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">Get new address</button>
+			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">{{ _("Get new address") }}</button>
 			{% set supports_qr_code_verify = [] %}
 			{% for device in wallet.devices if device.qr_code_support_verify %}
 				{% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
 			{% endfor %}
 			{% if supports_qr_code_verify != [] %}
 				<div id="verify_address_qr_code" class="hidden">
-					<h1>Scan to Verify Address on Your Device</h1><br>
+					<h1>{{ _("Scan to Verify Address on Your Device") }}</h1><br>
 					<div id="verify_address_qr_code_container"></div><br>
 					<p>
-							Specter can verify this address if you scan it.<br>
-							It has an address index included in the QR code.
+							{{ _("Specter can verify this address if you scan it.<br>It has an address index included in the QR code.") }}
 					</p><br>
 				</div>
-				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">Verify address via QR code</button>
+				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
 			{% endif %}
 			{% set supports_hwi = [] %}
 			{% set supports_hwi_multisig_display_address = [] %}
@@ -69,9 +68,9 @@
 				{% set supports_hwi = supports_hwi.append(device) %}
 			{% endfor %}
 			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor()|tojson }}`)' class="btn centered optional">Display address on device</button><br>
+				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor()|tojson }}`)' class="btn centered optional">{{ _("Display address on device") }}</button><br>
 				{% if wallet.is_multisig %}
-					<p class="note center optional">Multsig address on-device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.</p>
+					<p class="note center optional">{{ _("Multsig address on-device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
 				{% endif %}
 			{% endif %}
 		</form>
@@ -84,10 +83,10 @@
 			{% set supports_export_to_device = supports_export_to_device.append(device) %}
 		{% endfor %}
 		{% if supports_export_to_device != [] %}
-			<h1>Export To Device</h1>
-			<p style="max-width: 500px;">Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.</p>
+			<h1>{{ _("Export To Device") }}</h1>
+			<p style="max-width: 500px;">{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
 			<div class="note center">
-				Import this wallet to a device by scanning its QR code or importing its data file.
+				{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
 			</div>
 
 			{% for device in wallet.devices %}
@@ -97,60 +96,60 @@
 						download="{{ wallet.name | ascii20 }}.txt"
 						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
 						{% if device.device_type == 'coldcard' %}
-							onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+							onclick="showNotification('{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}', 0)"
 						{% endif %}
 						class="btn centered padded">
-							Save {{ device.name }} file
+							{{ _("Save") }} {{ device.name }} {{ _("file") }}
 						</a>
 					{% elif device.wallet_export_type == 'qr' %}
-						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
 						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-							<h1>Scan this with your {{ device.name }} device </h1>
+							<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
 							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 							<br>
-							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">Back</button>
+							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">{{ _("Back") }}</button>
 						</div>
 					{% endif %}
 				{% endif %}
 			{% endfor %}
 			<br>
 		{% endif %}
-		<p style="max-width: 500px;">You can always do this later from the wallet Settings tab.</p>
-		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">Finish</button>
+		<p style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
+		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
 	</div>
 	<div class="hidden" id="new_wallet_popup">
-		<h1>New wallet was created successfully!</h1>
+		<h1>{{ _("New wallet was created successfully!") }}</h1>
 		<button id="pdf-wallet-download" class="btn centered action" type="button">
 			<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 30px; margin-right: 2px;" class="svg-white">
-			Save Backup PDF
+			{{ _("Save Backup PDF") }}
 		</button>
 		{% include 'wallet/components/wallet_pdf.jinja' %}
 		<br>
-		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">Advanced &#9654;</span>
+		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
 		<br>
 		<br>
 		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
-			<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
+			<label style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
 				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br><br>
 		</div>
-		<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
+		<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
 		<p style="max-width: 500px;">
-		It is recommended that you print and save this wallet backup file with each of your devices.
+		{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
 		</p>
 		<p style="max-width: 500px;" class="note">
-		This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
+		{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
 		<p>
 		<p style="max-width: 500px;" class="note">
-		It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+		{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
 		<p>
-		<p style="max-width: 500px;">You can always download this file later from the wallet Settings tab.</p>
+		<p style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
 		{% if wallet.is_multisig and supports_export_to_device != [] %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">Continue</button>
+			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
 		{% else %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">Continue</button>
+			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">{{ _("Continue") }}</button>
 		{% endif %}
 	</div>
 	<script>
@@ -171,10 +170,10 @@
 			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
 			if (advancedSettings.classList.contains("hidden")) {
 				advancedSettings.classList.remove("hidden");
-				advancedButton.innerHTML = 'Advanced &#9660;';
+				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
 			} else {
 				advancedSettings.classList.add("hidden");
-				advancedButton.innerHTML = 'Advanced &#9654;';
+				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
 			}
 		}
 

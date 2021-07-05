@@ -9,14 +9,14 @@
 			<form action="?" method="POST">
 		{% else %}
 			<form action="?" method="POST">
-				<h1 id="title">Configure new node</h1>
-				<label style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">Name your new node:</label>
-				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder="Name your new node" style="width: auto; display: block; margin: auto; width: 70%;">
+				<h1 id="title">{{ _("Configure new node") }}</h1>
+				<label style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">{{ _("Name your new node:") }}</label>
+				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder='{{ _("Name your new node") }}' style="width: auto; display: block; margin: auto; width: 70%;">
 		{% endif %}
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
 		<div class="card" style="margin: 20px auto 20px;">
-			<h2>Bitcoin JSON-RPC configuration</h2>
+			<h2>{{ _("Bitcoin JSON-RPC configuration") }}</h2>
 			<br>
 			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
 			<label class="switch">
@@ -28,22 +28,21 @@
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
-						<span class="info__title">Setting Bitcoin Core Data Directory<br></span><br>
-						When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or 
-						attempt to automatically locate your Bitcoin data directory and load your node configurations from it.<br><br>
-						However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.<br><br>
-						If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.
+						<span class="info__title">{{ _("Setting Bitcoin Core Data Directory") }}<br></span><br>
+						{{ _("When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br><br>
+						{{ _("However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.") }}<br><br>
+						{{ _("If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.") }}
 					</span>
 				</p>
 			</div>
 			<br><br>
-				Bitcoin Core data directory path:<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
+				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
 			</span>
 			<br><br>
 			<div id="rpc_settings">
 				<div id="lock" class="center">
 					<p style="text-align: center; margin: auto; ">&#128274;</p>
-					<span class="note centered"> (disable auto-detect to configure manually)</span>
+					<span class="note centered"> {{ _("(disable auto-detect to configure manually)") }}</span>
 				</div>
 				Username:<br><input type="text" id="username" name="username" value="{{ node.user }}">
 				<br><br>
@@ -54,21 +53,21 @@
 				<qr-scanner id="scan_rpc" style="margin: 10px;">
 					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
 						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
-						Connect with QR
+						{{ _("Connect with QR") }}
 					</a>
 				</qr-scanner>
 			</div>
 			Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
 			<div class="note">
-				Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid
+				{{ _("Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid") }}
 			</div>
 			<br><br>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="test">Test</button>&nbsp;
-				<button type="submit" class="btn" name="action" value="save">Save</button>
+				<button type="submit" class="btn" name="action" value="test">{{ _("Test") }}</button>&nbsp;
+				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
 			</div>
 			{% if test %}
-				<br><div class="log"><b>Test results:</b><br><br>
+				<br><div class="log"><b>{{ _("Test results:") }}</b><br><br>
 				<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
 					{% macro tick_or_cross(my_boolean) %}
 					<button style="background: #fff; border: none;" disabled> 
@@ -80,15 +79,12 @@
 					</button>
 					{% endmacro %}
 					{% if 'connectable' in test['tests'] %}
-						<div>Connectable</div>
+						<div>{{ _("Connectable") }}</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
 						{% if not test['tests']['connectable'] %} 
-							<tool-tip title="Your Node can't be reached" style="float: right;">
-								There are a lot of potential issues preventing the connection.
-								Please doublecheck the Host and the Port. Make sure you can reach
-								the host and make sure that Bitcoin-Core is listening at the port
-								you have specified. 
-								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							<tool-tip title="{{ _("Your Node can't be reached") }}" style="float: right;">
+								{{ _("There are a lot of potential issues preventing the connection. Please double check the Host and the Port. Make sure you can reach the host and make sure that Bitcoin-Core is listening at the port you have specified.") }} 
+								{{ _('For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -99,10 +95,10 @@
 						<div>Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
 						{% if not test['tests']['credentials'] %}
-							<tool-tip title="Your Credentials don't work" style="float: right;">
-								Please doublecheck the user and the Password. Look at the bitcoin.conf
-								for the correct values in that field.
-								For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.
+							<tool-tip title="{{ _("Your Credentials don't work") }}" style="float: right;">
+								{{ _("Please doublecheck the user and the Password. Look at the bitcoin.conf
+								for the correct values in that field.") }}
+								{{ _('For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -110,13 +106,11 @@
 					{% endif %}
 
 					{% if 'recent_version' in test['tests'] %}
-						<div>Version recent enough</div>
+						<div>{{ _("Version recent enough") }}</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
 						{% if not test['tests']['recent_version'] %}
-							<tool-tip title="Your Core Node might be too old" style="float: right; margin-bottom: 5px;">
-									Specter is working well up from Bitcoin Core version 0.17.
-									The version of your Node is too low, unfortunatley.
-									Please upgrade!
+							<tool-tip title='{{ _("Your Core Node might be too old") }}' style="float: right; margin-bottom: 5px;">
+									{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your Node is too low, unfortunatley. Please upgrade!") }}
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -127,9 +121,8 @@
 						<div>Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
 						{% if not test['tests']['wallets'] %}
-							<tool-tip title="Wallet Support in your Core-Node" style="float: right; margin-bottom: 5px;">
-								The RPC-Interface of your Core-Node is available, but the wallet-api is not.
-								Please make sure to have 'disablewallet=0' in your bitcoin.conf.
+							<tool-tip title='{{ _("Wallet Support in your Core-Node") }}' style="float: right; margin-bottom: 5px;">
+								{{ _("The RPC-Interface of your Core-Node is available, but the wallet-api is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -140,13 +133,13 @@
 
 				<br>
 					<code>
-						<pre>Process finished with code <b>{{ test.code }}</b>{% if test.code == 0 %} Output: {{ test.out }}{% else %}Error message: {{ test.err }}{% endif %}</pre>
+						<pre>{{ _("Process finished with code ") }}<b>{{ test.code }}</b>{% if test.code == 0 %} {{ _("Output:") }} {{ test.out }}{% else %}{{ _("Error message:") }} {{ test.err }}{% endif %}</pre>
 					</code>
 				</div>
 			{% endif %}
 		</div>
 		{% if specter.node_manager.nodes | length > 1 and node_alias %}
-			<button style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">Forget node</button>
+			<button style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>
 		{% endif %}
 	</form>
 {% endblock %}
@@ -211,7 +204,7 @@
 				document.getElementById('host').value = host;
 				document.getElementById('port').value = port;
 			} catch {
-				showError('Failed to read connection data from the QR', 3000)
+				showError('{{ _("Failed to read connection data from the QR") }}', 3000)
 			}
 		});
 	}

@@ -2,13 +2,13 @@
 
 {% block setup %}
     <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
-    <br>Setup Tor daemon</h1>
+    <br>{{ _("Setup Tor daemon") }}</h1>
     <br><br>
     <div class="row">
         {% if nextURL == 'setup_endpoint.node_type'%}
-            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">Skip</a>
+            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">{{ _("Skip") }}</a>
         {% endif %}
-        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">Setup Tor</button>
+        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
     </div>
 {% endblock %}
 
@@ -41,7 +41,7 @@
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError("Failed to download Tor daemon...");
+                showError('{{ _("Failed to download Tor daemon...") }}');
                 showError(e);
             }
         }
