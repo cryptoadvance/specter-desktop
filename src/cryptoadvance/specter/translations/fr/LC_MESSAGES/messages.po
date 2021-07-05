@@ -7,17 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-30 17:34-0500\n"
+"POT-Creation-Date: 2021-07-05 12:41-0500\n"
 "PO-Revision-Date: 2021-07-05 16:42+0200\n"
 "Last-Translator: \n"
 "Language: fr\n"
 "Language-Team: \n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
-"X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
 msgid "Connection to node failed"
@@ -249,8 +248,8 @@ msgid "Test passed"
 msgstr "Test réussi"
 
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:159
-msgid "Node with this name already exits, please choose a different name."
-msgstr "Un noeud du même nom existe déjà, veuillez choisir un nom different."
+msgid "Node with this name already exists, please choose a different name."
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/nodes.py:198
 msgid "Failed connecting to the node"
@@ -441,8 +440,8 @@ msgid "Configure Bitcoin Core to create wallets"
 msgstr "Configurez Bitcoin Core pour créer des portefeuilles"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:126
-msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
-msgstr "<p><br>La configuration Bitcoin Core est en marche et les portefeuilles sont désactivés.<br><br>Assurez-vous que disablewallet est désactivé (réglez disablewallet=0 dans le fichier bitcoin.conf), puis redémarrez Bitcoin Core et essayez de nouveau.<br>Consultez <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">ce texte</a> pour plus d'information.</p>"
+msgid "<p><br>Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
+msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:140
 msgid "Unknown wallet type requested"
@@ -4252,3 +4251,10 @@ msgstr "Cacher le détail des clés"
 
 #~ msgid "Bitcoin Core installation is still under progress"
 #~ msgstr "L’installation de Bitcoin Core est toujours en cours"
+
+#~ msgid "Node with this name already exits, please choose a different name."
+#~ msgstr "Un noeud du même nom existe déjà, veuillez choisir un nom different."
+
+#~ msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
+#~ msgstr "<p><br>La configuration Bitcoin Core est en marche et les portefeuilles sont désactivés.<br><br>Assurez-vous que disablewallet est désactivé (réglez disablewallet=0 dans le fichier bitcoin.conf), puis redémarrez Bitcoin Core et essayez de nouveau.<br>Consultez <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">ce texte</a> pour plus d'information.</p>"
+
