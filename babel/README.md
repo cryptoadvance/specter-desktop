@@ -84,7 +84,7 @@ _Note: You'll see the app offering to "create a fork". Do not create a fork! We 
 **_The next steps will break from typical `git` procedures in order to keep things simple for our non-programmer translators._**
 
 In a web browser go to github's latest version of the translation file you were just working on. Remember that the directories are organized by the two-letter language codes. So for Spanish ("es"):
-[https://github.com/cryptoadvance/specter-desktop/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](https://github.com/cryptoadvance/specter-desktop/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)
+[https://github.com/cryptoadvance/specter-desktop/tree/master/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](https://github.com/cryptoadvance/specter-desktop/tree/master/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)
 
 Click on the pencil icon to edit the translation file:
 
