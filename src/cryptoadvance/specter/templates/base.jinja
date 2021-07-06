@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
-		<title>Specter Desktop</title>
+		<title>{{ _("Specter Desktop") }}</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="format-detection" content="telephone=no">
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}?{{rand}}">
@@ -60,158 +60,164 @@
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<message-box type="error">ERROR: {{error}}</message-box>
+				<message-box type="error">{{ _("ERROR:") }} {{error}}</message-box>
 			{% endif %}
 			</div>
 
 			{% block main %}
 				{% if error %}
-					<br><br>Something went wrong :(<br><br>{{error}}
+					<br><br>{{ _("Something went wrong:") }} (<br><br>{{error}}
 				{% else %}
 					<br>
 					<div style="max-width: 60%; text-align: center;">
 					<h1 style="font-size: 1.8em;">
 					<img src="{{ url_for('static', filename='img/icon.png') }}" width="40px" style="vertical-align: top; margin-right: 20px;"/>
-					Welcome to Specter Desktop 
+					{{ _('Welcome to Specter Desktop') }} 
 					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
-					<p style="font-size: 1.2em; font-weight: bolder;">Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.</p>
-					<br><br>
+					<p style="font-size: 1.2em; font-weight: bolder;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}</p>
+
+					<div style="max-width: 15em; text-align: center; margin-bottom: 3em; margin-left: auto; margin-right: auto;">
+						{% include "includes/language/language_select.jinja" %}
+					</div>
+
 					{% if not specter.chain %}
-					<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}Get started!{% else %}Continue setup{% endif %}</a>
-					<br><br>
+						<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}{{ _('Get started!') }}{% else %}{{ _('Continue setup') }}{% endif %}</a>
+						<br><br>
 					{% else %}
-					<h2 style="font-size: 1.6em;">Getting Started</h2><br>
-					{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
-						<div style="margin: auto; display: block;">
-							<div class="card" style="margin: auto;padding: 5px 10px 15px; width: 90%;">
-								<div class="row">
-									<img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/>
-									<p style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">Using Specter from a remote machine?</p>
+						<h2 style="font-size: 1.6em;">{{ _('Getting Started') }}</h2><br>
+						{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
+							<div style="margin: auto; display: block;">
+								<div class="card" style="margin: auto;padding: 5px 10px 15px; width: 90%;">
+									<div class="row">
+										<img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/>
+										<p style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">{{ _('Using Specter from a remote machine?') }}</p>
+									</div>
+									<p style="margin-left: 30px; margin-top: -10px; margin-right: 20px; text-align: left;">{{ _('If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB.') }}</p>
+									<a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
+										<h4>{{ _("Update your settings") }}</h4>
+									</a>
 								</div>
-								<p style="margin-left: 30px; margin-top: -10px; margin-right: 20px; text-align: left;">If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB.</p>
-								<a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
-									<h4>Update your settings</h4>
-								</a>
+								<br>
 							</div>
-							<br>
-						</div>
-					{% endif %}
-					<table style="width: 90%; margin: auto;">
-						<tbody>
-							<tr>
-								<td>
-									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
-								</td>
-								<td style="text-align: left;">
-									<a href="{{ url_for('setup_endpoint.node_type') }}">
-										<h2>Connect Specter with Bitcoin Core node.</h2>
-									</a>
-								</td>
-								<td style="text-align: left;">
-									{% if not specter.chain %}
-										<button type="button" class="btn" onclick="showPageOverlay('connect-node-help-popup')">Need help?</button>
-										<div id="connect-node-help-popup" class="hidden">
-											<h1>Connecting Specter to your Bitcoin Core node</h1>
-											<div class="overflow">
-												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('no-node-help-popup')">I don't have a Bitcoin Core node yet.</button>
-												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('local-node-help-popup')">I have Bitcoin Core on this computer.</button>
-												<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('remote-node-help-popup')">I have a remote Bitcoin Core node.</button>
+						{% endif %}
+
+						<table style="width: 90%; margin: auto;">
+							<tbody>
+								<tr>
+									<td>
+										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
+									</td>
+									<td style="text-align: left;">
+										<a href="{{ url_for('setup_endpoint.node_type') }}">
+											<h2>{{ _("Connect Specter with Bitcoin Core node.") }}</h2>
+										</a>
+									</td>
+									<td style="text-align: left;">
+										{% if not specter.chain %}
+											<button type="button" class="btn" onclick="showPageOverlay('connect-node-help-popup')">Need help?</button>
+											<div id="connect-node-help-popup" class="hidden">
+												<h1>{{ _("Connecting Specter to your Bitcoin Core node") }}</h1>
+												<div class="overflow">
+													<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('no-node-help-popup')">{{ _("I don't have a Bitcoin Core node yet.") }}</button>
+													<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('local-node-help-popup')">{{ _("I have Bitcoin Core on this computer.") }}</button>
+													<button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('remote-node-help-popup')">{{ _("I have a remote Bitcoin Core node.") }}</button>
+												</div>
 											</div>
-										</div>
-										<div id="no-node-help-popup" class="hidden">
-											<h1>Installing and Setting Up Bitcoin Core</h1>
-											Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop:<br><br>
-											<ul style="text-align: left; margin: auto; line-height: 2;">
-												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
-												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
-												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
-											</ul>
-										</div>
-										<div id="local-node-help-popup" class="hidden">
-											<h1>Connecting Specter to your local Bitcoin Core node</h1>
-											<p>If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.<br>
-											In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.<br>
-											Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.<br><br>
-											<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.<br>
-											If you don't have that, add it and restart Bitcoin Core.
-											</p>
-											<br><br>
-											In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop:<br><br>
-											<ul style="text-align: left; margin: auto; line-height: 2;">
-												<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
-												<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
-												<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
-											</ul>
-										</div>
-										<div id="remote-node-help-popup" class="hidden">
-											<h1>Connecting Specter to your remote Bitcoin Core node</h1>
-											<h3>Connecting to a "node in a box"</h3>
-											<p style="font-size: 1.05em;">
-												Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy.<br>
-												RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually.<br><br>
-												If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually.
-											</p>
-											<h3>Connecting over Tor</h3>
-											<p style="font-size: 1.05em;">Connecting over Tor requires that you first configure Tor on your local machine.<br>
-											You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;" target="_blank">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" target="_blank" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" target="_blank" style="color: #fff;">Window</a><br>
-											</p>
-										</div>
-									{% endif %}
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
-								</td>
-								<td style="text-align: left;">
-									<a href="{{ url_for('devices_endpoint.new_device_type') }}">
-										<h2>Add signing devices you wish to use.</h2>
-									</a>
-								</td>
-								<td style="text-align: left;">
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
-								</td>
-								<td style="text-align: left;">
-									<a href="{{ url_for('wallets_endpoint.new_wallet_type') }}">
-										<h2>Create your first wallet!</h2>
-									</a>
-								</td>
-								<td style="text-align: left;">
-								</td>
-							</tr>
-							{% if specter.chain == 'main' %}
-							<tr>
-								<td>
-									<img src="{{ url_for('static', filename='img/ghost.png')}}" width="30px">
-								</td>
-								<td style="text-align: left;">
-									<a href="{{ url_for('get_whitepaper') }}">
-										<h2>And when you are all set: Get the whitepaper from the timechain.</h2>
-									</a>
-								</td>
-								<td style="text-align: left;">
-								</td>
-							</tr>
-							{% endif %}
-						</tbody>
-					</table>
-					<br>
+											<div id="no-node-help-popup" class="hidden">
+												<h1>{{ _("Installing and Setting Up Bitcoin Core") }}</h1>
+												{{ _("Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop") }}:<br><br>
+												<ul style="text-align: left; margin: auto; line-height: 2;">
+													<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+													<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+													<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+												</ul>
+											</div>
+											<div id="local-node-help-popup" class="hidden">
+												<h1>{{ _('Connecting Specter to your local Bitcoin Core node') }}</h1>
+												<p>{{ _("If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.") }}<br>
+												{{ _("In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.") }}<br>
+												{{ _("Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.") }}<br><br>
+												{{ _("<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.") }}<br>
+												{{ _("If you don't have that, add it and restart Bitcoin Core.") }}"
+												</p>
+												<br><br>
+												{{ _("In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop") }}:<br><br>
+												<ul style="text-align: left; margin: auto; line-height: 2;">
+													<li><a href="https://www.keepitsimplebitcoin.com/setup-bitcoin-core/" target="_blank" style="color: #fff;">KIS: Setting up Bitcoin Core</a></li>
+													<li><a href="https://www.keepitsimplebitcoin.com/how-to-use-specter-wallet-1/" target="_blank" style="color: #fff;">KIS: Setting up Specter Desktop</a></li>
+													<li><a href="https://www.youtube.com/watch?v=4koKF2MDXtk&t=2s" target="_blank" style="color: #fff;">Ministry of Nodes: Setting up Bitcoin Core and Specter on Windows</a></li>
+												</ul>
+											</div>
+											<div id="remote-node-help-popup" class="hidden">
+												<h1>{{ _("Connecting Specter to your remote Bitcoin Core node") }}</h1>
+												<h3>{{ _('Connecting to a "node in a box"') }}</h3>
+												<p style="font-size: 1.05em;">
+													{{ _("Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy.") }}<br>
+													{{ _("RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually.") }}<br><br>
+													{{ _("If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually.") }}"
+												</p>
+												<h3>{{ _("Connecting over Tor") }}</h3>
+												<p style="font-size: 1.05em;">{{ _("Connecting over Tor requires that you first configure Tor on your local machine.") }}<br>
+												You can checkout <a href="https://www.keepitsimplebitcoin.com/how-to-install-tor/" style="color: #fff;" target="_blank">this video tutorial</a>, or read the documentation for <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md" target="_blank" style="color: #fff;">Mac and Linux</a> or <a href="https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Tor/Tor.md#windows-10" target="_blank" style="color: #fff;">Window</a><br>
+												</p>
+											</div>
+										{% endif %}
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
+									</td>
+									<td style="text-align: left;">
+										<a href="{{ url_for('devices_endpoint.new_device_type') }}">
+											<h2>{{ _("Add signing devices you wish to use.") }}</h2>
+										</a>
+									</td>
+									<td style="text-align: left;">
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
+									</td>
+									<td style="text-align: left;">
+										<a href="{{ url_for('wallets_endpoint.new_wallet_type') }}">
+											<h2>{{ _("Create your first wallet!") }}</h2>
+										</a>
+									</td>
+									<td style="text-align: left;">
+									</td>
+								</tr>
+								{% if specter.chain == 'main' %}
+								<tr>
+									<td>
+										<img src="{{ url_for('static', filename='img/ghost.png')}}" width="30px">
+									</td>
+									<td style="text-align: left;">
+										<a href="{{ url_for('get_whitepaper') }}">
+											<h2>{{ _("And when you are all set: Get the whitepaper from the timechain.") }}</h2>
+										</a>
+									</td>
+									<td style="text-align: left;">
+									</td>
+								</tr>
+								{% endif %}
+							</tbody>
+						</table>
+						<br>
 					{% endif %}
-					Having issues? Try reading <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">the FAQ</a><br><br>
-					Still having issues?<br>
-					Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on the GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>
+
+					{{ _('Having issues? Try reading <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">the FAQ</a>') }}<br><br>
+					{{ _("Still having issues?") }}<br>
+					{{ _('Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on the GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>') }}
 					<br><br>
 
 					<div class="spacer"></div>
-					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">Help wanted: Do you like Specter?</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
+					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">{{ _('Help wanted: Do you like Specter?') }}</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
 					<div class="spacer"></div>
 					<div class="footer">
-						Supported and maintained by:<br>
+						{{ _("Supported and maintained by") }}:<br>
 						<a href="https://specter.solutions/" target="_blank" style="color: #fff;">
 							Specter.Solutions
 						</a>
@@ -256,6 +262,9 @@
         }
 	</script>
 	{% block scripts %}
+		<script>
+			{% include "includes/language/language_js.jinja" %}
+		</script>
 	{% endblock %}
 	</body>
 </html>

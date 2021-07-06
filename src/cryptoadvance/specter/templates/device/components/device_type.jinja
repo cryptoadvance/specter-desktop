@@ -1,9 +1,9 @@
 <div style="display: inline;">
-    <span>Device Type:</span>
+    <span>{{ _("Device Type:") }}</span>
     <br>
     <fieldset style="border:none; padding: 0px; margin: 0px;"> 
         <select name="device_type" id="device_type">
-            <option value="" selected>Select type</option>
+            <option value="" selected>{{ _("Select type") }}</option>
             {% for cls in specter.device_manager.supported_devices %}
             <option value="{{cls.device_type}}">{{cls.name}}</option>
             {% endfor %}

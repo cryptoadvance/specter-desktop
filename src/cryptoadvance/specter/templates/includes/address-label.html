@@ -60,10 +60,10 @@
     </style>
     <form class="address-label-form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">Fetching address label...</span></a>
+        <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">{{ _("Fetching address label...") }}</span></a>
         <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" style="width: 22px; margin-bottom:-5px;" class="svg-white"/></button>
-        <button type="button" class="btn update hidden">Update</button>
-        <button type="button" class="btn cancel hidden">Cancel</button>
+        <button type="button" class="btn update hidden">{{ _("Update") }}</button>
+        <button type="button" class="btn cancel hidden">{{ _("Cancel") }}</button>
     </form>
 </template>
 
@@ -154,7 +154,7 @@
                         this.label.innerText = this.address
                     }
                 } else {
-                    showError('Failed to update address label. Please refresh the page and try again.')
+                    showError('{{ _("Failed to update address label. Please refresh the page and try again.") }}')
                 }
             }
         
@@ -195,7 +195,7 @@
             self.explorerLink.onclick = () => {return true;}
         } else {
             self.explorerLink.onclick = () => {
-                copyText(self.address, `Copied address: ${ self.address }`);
+                copyText(self.address, `{{ _("Copied address") }}: ${ self.address }`);
             }
         }
     }
@@ -231,10 +231,10 @@
                 }
                 return;
             }
-            showError('Failed to fetch data. Please refresh the page and retry.');
+            showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
         } catch(e) {
-            console.log("Caught error fetching address label: ", e);
-            showError('Failed to fetch data. Please refresh the page and retry.');
+            console.log('{{ _("Caught error fetching address label") }}: ', e);
+            showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
         }
     }
 

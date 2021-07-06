@@ -265,11 +265,39 @@ def get_startblock_by_chain(specter):
 
 
 # Hot wallet helpers
-def generate_mnemonic(strength=256):
-    # Generate words list
-    mnemo = Mnemonic("english")
-    words = mnemo.generate(strength=strength)
-    return words
+
+MNEMONIC_LANGUAGES = {
+    "en": "english",
+    "es": "spanish",
+    "fr": "french",
+    "it": "italian",
+    # "jp": "japanese",
+    # "ko": korean",
+    # "?": chinese_simplified",
+    # "?": chinese_traditional",
+}
+
+
+def initialize_mnemonic(language_code):
+    if language_code not in MNEMONIC_LANGUAGES:
+        # Fall back to English if Mnemonic doesn't support the current language
+        logger.debug(
+            f"Language code '{language_code}' not supported by python-mnemonic; using English"
+        )
+        language_code = "en"
+    return Mnemonic(language=MNEMONIC_LANGUAGES[language_code])
+
+
+def generate_mnemonic(strength=256, language_code="en"):
+    mnemo = initialize_mnemonic(language_code)
+    return mnemo.generate(strength=strength)
+
+
+def validate_mnemonic(words):
+    # We cannot assume the mnemonic will be in the same language currently active
+    #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
+    mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
+    return mnemo.check(words)
 
 
 def notify_upgrade(app, flash):

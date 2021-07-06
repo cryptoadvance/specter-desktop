@@ -26,79 +26,79 @@
 		<br>
 		<h1>
 		<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
-		Tor configurations
+		{{ _("Tor configurations") }}
 		</h1>
-		<p class="note center">Enable Tor to anonymise your data connections.</p>
+		<p class="note center">{{ _("Enable Tor to anonymise your data connections.") }}</p>
 		<br>
 		<label for="tor_type_builtin" class="card radio-btn" style="padding: 20px 10px 5px; display: block; margin: auto;">
 			{% if torbrowser_installed %}
 				{% if torbrowser_running %}
 					<span style="display: inline; float: right;margin-top: 10px; margin-right: 10px;">
 					<span class="note">Running&nbsp;&nbsp;<img src="{{ url_for('static', filename='img/check.svg') }}" class="svg-check-green" style="vertical-align: middle;"/>&nbsp;&nbsp;</span>
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="stoptor">Stop</button>&nbsp;
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="test_tor">Test</button>
+					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="stoptor">{{ _("Stop") }}</button>&nbsp;
+					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="test_tor">{{ _("Test") }}</button>
 					</span>
 				{% else %}
 					<span style="display: inline; float: right; margin-top: 10px; margin-right: 10px;">
-					<span class="note">Stopped&nbsp;&nbsp;</span>
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="uninstalltor">Uninstall</button>&nbsp;
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="starttor">Start</button>
+					<span class="note">{{ _("Stopped") }}&nbsp;&nbsp;</span>
+					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="uninstalltor">{{ _("Uninstall") }}</button>&nbsp;
+					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="starttor">{{ _("Start") }}</button>
 					</span>
 				{% endif %}
 			{% else %}
-				<a style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">Set up</a>
+				<a style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">{{ _("Set up") }}</a>
 			{% endif %}
 			<div class="row">
 				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
 				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Built in</h2>
 			</div>
-			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">Quick and automatic setup.</p>
+			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Quick and automatic setup.") }}</p>
 		</label>
 		<br>
 		<label id="custom-tor-label" for="tor_type_custom" class="card radio-btn no-bottom-border-radius" style="padding: 20px 10px 5px; display: block; margin: auto;">
 			<div class="row">
 				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
-				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Custom</h2>
+				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">{{ _("Custom") }}</h2>
 			</div>
-			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">Use your own Tor configuration.</p>
+			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Use your own Tor configuration.") }}</p>
 		</label>
 		<div id="custom-tor-details" class="card" style="margin: auto;border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;">
-			Use Tor proxy running at: 
+			{{ _("Use Tor proxy running at:") }} 
 			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
 			<br>
             <p class="note">
-			Default for Tor daemon: socks5://127.0.0.1:9050<br>
-			Default for Tor Browser: socks5://127.0.0.1:9150
+			{{ _("Default for Tor daemon:") }} socks5://127.0.0.1:9050<br>
+			{{ _("Default for Tor Browser:") }} socks5://127.0.0.1:9150
 			</p>
 			<br>
-			Tor control port:
+			{{ _("Tor control port:") }}
 			<p class="note">
-			Restart Specter for change of the control port to take effect.
+			{{ _("Restart Specter for change of the control port to take effect.") }}
 			</p>
-			<input name="tor_control_port" value="{{ tor_control_port }}" type="text" placeholder='Set to custom port here, if kept empty the default (9051 and 9151) is used' />
+			<input name="tor_control_port" value="{{ tor_control_port }}" type="text" placeholder='{{ _("Set to custom port here, if kept empty the default (9051 and 9151) is used") }}' />
 			<br><br>
-			<button type="submit" class="btn" name="action" value="test_tor" style="width: 300px;">Test connection</button>
+			<button type="submit" class="btn" name="action" value="test_tor" style="width: 300px;">{{ _("Test connection") }}</button>
 		</div>
 		<br><br>
-		<h2 style="text-align: center; color: #ccc;">Additional Options</h2>
+		<h2 style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
 		<div style="width: 580px; margin: auto;">
 			{% if not debug %}
 				<tool-tip title="Tor hidden service" style="float: right; margin-top: 15px;">
-				Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.
+				{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
 				</tool-tip>
 				<label class="switch" style="float: right; margin-top: 15px;">
 					<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
 					<span class="slider"></span>
 				</label>
-				<p style="font-size: 1.1em">Enable Tor hidden service</p>
+				<p style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
 				<p class="note">
-				Allows access to Specter from anywhere.<br>
-				Requires authentication to be enabled. <a style="color: var(--cmap-blue);" href="{{ url_for('settings_endpoint.auth' ) }}">Authentication settings</a>
+				{{ _("Allows access to Specter from anywhere.") }}<br>
+				{{ _('Requires authentication to be enabled.') }} <a style="color: var(--cmap-blue);" href="{{ url_for('settings_endpoint.auth' ) }}">{{ _("Authentication settings") }}</a>
 				</p>
 				{% if tor_service_id %}
 				<p><b>
-					Specter hidden service is running at:
-					<span title="Copy Tor address" style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+					{{ _("Specter hidden service is running at:") }}
+					<span title="Copy Tor address" style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion')">
 					{{ tor_service_id }}.onion
 					</span>
 				</b></p>
@@ -106,20 +106,20 @@
 			{% endif %}
 			<br>
 			<tool-tip title="Tor Only mode" style="float: right; margin-top: 30px;">
-			Some optional Specter functionalities, like rescanning UTXO on a pruned node, or getting the Bitcoin price, might make calls to external APIs and services.<br><br>
-			Toggle this on to ensure Specter routes all these external calls over Tor proxy.<br><br>
-			Note: Some external sources may stop working if they block Tor call.
+			{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
+			{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
+			{{ _("Note: Some external sources may stop working if they block Tor call.") }}
 			</tool-tip>
 			<label class="switch" style="float: right; margin-top: 30px;">
 				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
 				<span class="slider"></span>
 			</label>
-			<p style="font-size: 1.1em">Force external calls over Tor?</p>
+			<p style="font-size: 1.1em">{{ _("Force external calls over Tor?") }}</p>
 			<p class="note">
-			Route all external calls over the Tor proxy for improved privacy.
+			{{ _("Route all external calls over the Tor proxy for improved privacy.") }}
 			</p>
 			<br><br>
-			<button type="submit" class="btn" name="action" value="save" style="width: 100%;">Save changes</button>
+			<button type="submit" class="btn" name="action" value="save" style="width: 100%;">{{ _("Save changes") }}</button>
 			<br><br>
 		</div>
 		<script type="text/javascript">
@@ -139,7 +139,7 @@
 			function checkAuthEabled() {
 				{% if specter.config.auth.method == "none" %}
 					document.getElementById('hidden_service').checked = false;
-					showError('Please set an authentication method before enabling the hidden service')
+					showError('{{ _("Please set an authentication method before enabling the hidden service") }}')
 				{% else %}
 				return true;
 				{% endif %}

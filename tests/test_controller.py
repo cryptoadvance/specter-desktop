@@ -80,7 +80,7 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
             csrf_token=csrf_token,
         ),
     )
-    assert b"Specter data was successfully loaded from backup." in result.data
+    assert b"Specter data was successfully loaded from backup" in result.data
     assert b"SimpleMyNiceDevice" in result.data
     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
     assert b"myNiceDevice" in result.data

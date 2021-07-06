@@ -15,7 +15,7 @@
         }
     </style>
     <div class="address-data">
-        <h1>Address details</h1><br>
+        <h1>{{ _("Address details") }}</h1><br>
         <div class="address-data-info"></div>
         <div class="note"></div>
     </div>
@@ -41,7 +41,7 @@
             this.amountPrice = this.getAttribute('data-amount-price');
             this.address = this.getAttribute('data-address');
             this.wallet = this.getAttribute('data-address-wallet');
-            this.note.innerText = `Loading address: ${this.address} details...`;
+            this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             fetchAddressData(this);
         
             // Attach the created element to the shadow dom
@@ -79,14 +79,14 @@
                 <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
                 <table class="address-data-table">
                 <tbody>
-                <tr><td>Address:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                <tr><td>Label:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br></td></tr>
-                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                <tr><td>Address index:</td><td>${addressIndex}</td></tr>
-                <tr><td>Is change address:</td><td>${isChange ? 'Yes' : 'No'}</td></tr>
-                <tr><td>Used:</td><td>${self.used ? 'Yes' : 'No'}</td></tr>
-                <tr><td>UTXO count:</td><td>${self.utxo}</td></tr>
-                <tr><td>Amount:</td><td>${self.amount} <span class="amount-price note ${self.amountPrice ? '' : 'hidden'}">${self.amountPrice}</span></td></tr>
+                <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${self.wallet}"></address-label><br></td></tr>
+                <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
+                <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
+                <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
+                <tr><td>{{ _("Used") }}:</td><td>${self.used ? 'Yes' : 'No'}</td></tr>
+                <tr><td>{{ _("UTXO count") }}:</td><td>${self.utxo}</td></tr>
+                <tr><td>{{ _("Amount") }}:</td><td>${self.amount} <span class="amount-price note ${self.amountPrice ? '' : 'hidden'}">${self.amountPrice}</span></td></tr>
                 </tbody>
                 </table>
                 `
@@ -94,44 +94,44 @@
                 if (self.isVerifyHwi) { 
                     addressInfoHTML += `
                     <br>
-                    <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", unescape("${escape(JSON.stringify(descriptor))}"))' class="btn" style="min-width:200px; max-width:300px; margin: auto;">Verify address on device</button>`;
+                    <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", unescape("${escape(JSON.stringify(descriptor))}"))' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
                 }
 
                 if (self.isVerifyQR) { 
                     addressInfoHTML += `
-                    <p>Or scan this QR code:</p>
+                    <p>{{ _("Or scan this QR code") }}:</p>
                     <qr-code value="bitcoin:${address}?index=${addressIndex}" width="256" scalable></qr-code><br>`;
                 }
 
                 addressInfoHTML += `
                 <br>
-                <h2>Address descriptor</h2>
+                <h2>{{ _("Address descriptor") }}</h2>
                 <br>
                 <div>
-                    <span class="switch-text">Show raw public keys&nbsp;</span>
+                    <span class="switch-text">{{ _("Show raw public keys") }}&nbsp;</span>
                     <label class="switch">
                         <input type="checkbox" class="descriptor-switch" checked>
                         <span class="slider"></span>
                     </label><br><br>
                 </div>
-                <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "Copied address descriptor")'>${descriptor.descriptor}</code></pre>
+                <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor.descriptor}</code></pre>
                 `;
                 self.info.innerHTML = addressInfoHTML;
                 self.note.innerText = "";
 
                 self.info.querySelector('.descriptor-switch').onchange = (e) => {
                     if (e.target.checked) {
-                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "Copied address descriptor")'>${descriptor.descriptor}</code>`;
+                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor.descriptor}</code>`;
                     } else {
-                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.xpubs_descriptor)}"), "Copied address descriptor")'>${descriptor.xpubs_descriptor}</code>`;
+                        self.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.xpubs_descriptor)}"), "{{ _("Copied address descripto") }}")'>${descriptor.xpubs_descriptor}</code>`;
                     }
                 }
 
                 return;
             }
-            self.note.innerText = "Failed to load address details...";
+            self.note.innerText = '{{ _("Failed to load address details...") }}';
         } catch(e) {
-            self.note.innerText = "Failed to load address details...";
+            self.note.innerText = '{{ _("Failed to load address details...") }}';
             console.error(e);
         }
     }
