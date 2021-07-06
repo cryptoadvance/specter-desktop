@@ -590,7 +590,7 @@ class Wallet:
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
             for tx in utxo:
-                tx_data = self.gettransaction(tx["txid"], 0)
+                tx_data = self.gettransaction(tx["txid"], 0, full=False)
                 tx["time"] = tx_data["time"]
                 tx["category"] = "send"
                 if "locked" not in tx:
@@ -809,7 +809,7 @@ class Wallet:
                     not tx["conflicts"]
                     or max(
                         [
-                            self.gettransaction(conflicting_tx, 0)["time"]
+                            self.gettransaction(conflicting_tx, 0, full=False)["time"]
                             for conflicting_tx in tx["conflicts"]
                         ]
                     )
@@ -876,12 +876,15 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def gettransaction(self, txid, blockheight=None, decode=False):
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+        """Gets transaction from cache
+        If full=True it will also contain "hex" key with full hex transaction.
+        If decode=True it will decode the transaction similar to Core decoderawtransaction call
+        """
         try:
-            tx_data = self._transactions.gettransaction(txid, blockheight)
-            if decode:
-                return decoderawtransaction(tx_data["hex"], self.manager.chain)
-            return tx_data
+            return self._transactions.gettransaction(
+                txid, blockheight, full=full, decode=decode
+            )
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 

@@ -74,13 +74,16 @@ class TxItem(dict):
     @property
     def tx(self):
         if not self._tx:
-            # get transaction from file:
+            # Get transaction from file if we don't have it cached.
+            # We cache transactions to self._tx
+            # only when new tx is added before dump() is called
             try:
                 if os.path.isfile(self.fname):
                     with open(self.fname, "rb") as f:
-                        self._tx = Transaction.read_from(f)
+                        return Transaction.read_from(f)
             except Exception as e:
                 logger.error(e)
+        # if we failed to load tx from file - load it from RPC
         if not self._tx:
             # get transaction from rpc
             try:
@@ -100,6 +103,8 @@ class TxItem(dict):
             os.mkdir(self.rawdir)
         with open(self.fname, "wb") as f:
             self._tx.write_to(f)
+        # clear cached tx as we saved the transaction to file
+        self._tx = None
 
     @property
     def txid(self):
@@ -161,11 +166,13 @@ class TxList(dict):
             write_csv(self.path, list(self.values()), TxItem)
         self._file_exists = True
 
-    def gettransaction(self, txid, blockheight=None):
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
         """
         Will ask Bitcoin Core for a transaction if blockheight is None or txid not known
         Provide blockheight or 0 if you don't care about confirmations number
-        to avoid RPC calls
+        to avoid RPC calls.
+        full=True will add a "hex" key
+        decode=True will decode transaction similar to Core's decoderawtransaction
         """
         if blockheight is None or txid not in self:
             tx = self.rpc.gettransaction(txid)
@@ -176,7 +183,12 @@ class TxList(dict):
                 tx["time"] = tx["timereceived"]
             return tx
         tx = self[txid]
-        return {"hex": tx.hex, "time": tx["time"]}
+        res = dict(**tx)
+        if full:
+            res["hex"] = tx.hex
+        if decode:
+            res.update(decoderawtransaction(tx.hex, self.chain))
+        return res
 
     def add(self, txs):
         """
