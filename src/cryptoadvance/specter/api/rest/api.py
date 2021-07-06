@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 @rest_resource
 class ResourceWallet(SecureResource):
-    """/api/v1alpha/wallet_info/<wallet_alias>/"""
 
     endpoints = ["/v1alpha/wallets/<wallet_alias>/"]
 
@@ -46,12 +45,10 @@ class ResourceWallet(SecureResource):
         wallet.get_balance()
         wallet.check_utxo()
         wallet.check_unused()
-        logger.info("Muuh")
 
         return_dict = {}
         address_index = wallet.address_index
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs")
-        logger.info("Meeh")
         tx_list = []
         idx = 0
         tx_len = 1
@@ -68,7 +65,6 @@ class ResourceWallet(SecureResource):
 
         # Check if scanning
         scan = wallet.rescan_progress
-        logger.info("Meeh3")
         return_dict[wallet_alias] = wallet.__dict__
         return_dict["txlist"] = flat_list
         return_dict["scan"] = scan
