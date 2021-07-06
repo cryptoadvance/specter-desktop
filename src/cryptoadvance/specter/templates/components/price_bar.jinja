@@ -1,9 +1,17 @@
 <style>
     .left-toolbar {
-        border-radius: 0 0 0 15px;
+        {% if session["language_code"] in config["RTL_LANGUAGES"] %}
+            border-radius: 0 0 15px 0;
+        {% else %}
+            border-radius: 0 0 0 15px;
+        {% endif %}
     }
     .left-toolbar:hover {
-        border-radius: 0 0 0 15px;
+        {% if session["language_code"] in config["RTL_LANGUAGES"] %}
+            border-radius: 0 0 15px 0;
+        {% else %}
+            border-radius: 0 0 0 15px;
+        {% endif %}
     }
     #price_provider option[disabled] {
         display: none;
