@@ -14,7 +14,7 @@ When Github Desktop starts up it'll ask you to log in to your github account. If
 ### Clone the Specter Desktop repo
 Now you're going to grab a copy of the full Specter Desktop source code, which includes the translation files.
 
-Open the Github Desktop app and add the Specter Desktop repo via "Clone a Repository". On the "URL" tab type in ~~"cryptoadvance/specter-desktop"~~ (**for now we have to point to my work-in-progress repo: "kdmukai/specter-desktop"**):
+Open the Github Desktop app and add the Specter Desktop repo via "Clone a Repository". On the "URL" tab type in "cryptoadvance/specter-desktop":
 
 <img src="img/add_repo.png">
 
@@ -84,7 +84,7 @@ _Note: You'll see the app offering to "create a fork". Do not create a fork! We 
 **_The next steps will break from typical `git` procedures in order to keep things simple for our non-programmer translators._**
 
 In a web browser go to github's latest version of the translation file you were just working on. Remember that the directories are organized by the two-letter language codes. So for Spanish ("es"):
-[https://github.com/kdmukai/specter-desktop/tree/babel_integration/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](https://github.com/kdmukai/specter-desktop/tree/babel_integration/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)
+[https://github.com/cryptoadvance/specter-desktop/tree/master/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po](https://github.com/cryptoadvance/specter-desktop/tree/master/src/cryptoadvance/specter/translations/es/LC_MESSAGES/messages.po)
 
 Click on the pencil icon to edit the translation file:
 
