@@ -2,7 +2,7 @@
 
 {% block setup %}
     <img style="width: 100px;" src="{{ url_for('static', filename='img/party.png') }}"/><br><br>
-    <h1 style="font-size: 1.8em;">Setup Completed Successfully!</h1>
-    <p>Your new node is up and running!</p><br>
-    <a href="{{url_for('about')}}" class="btn wizard-btn action" id="finish-setup-btn">Done</a>
+    <h1 style="font-size: 1.8em;">{{ _("Setup Completed Successfully!") }}</h1>
+    <p>{{ _("Your new node is up and running!") }}</p><br>
+    <a href="{{url_for('about')}}" class="btn wizard-btn action" id="finish-setup-btn">{{ _("Done") }}</a>
 {% endblock %}

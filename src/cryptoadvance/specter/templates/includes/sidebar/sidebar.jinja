@@ -40,10 +40,10 @@
 <div id="side-content">
     <nav class="side">
         {% if specter.info["initialblockdownload"] %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core is still syncing...<br>(data might be outdated)</p>
+            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...<br>(data might be outdated)") }}</p>
         {% endif %}
         {% if specter.network_info.version < 200000 %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v20.0.0).</p>
+            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v20.0.0).") }}</p>
         {% endif %}
             <div 
                 id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" 
@@ -73,7 +73,7 @@
                             {{ specter.info.chain }}
                         {% endif %}
                     {% else %}
-                        Unavailable. Click to configure.
+                        {{ _("Unavailable. Click to configure.") }}
                     {% endif %}
                 </small>
             </div>
@@ -126,26 +126,26 @@
         </script>
         {% endif %}
         {% if specter.setup_status.stage != "start" and specter.rpc is none %}
-            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), 'See setup progress', class='btn action', icon=false) }}
+            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
         {% endif %}
         <div class="separator">
-            <span id="toggle_wallets_list" style="cursor: pointer;">Wallets &nbsp; &#9660;</span>
+            <span id="toggle_wallets_list" style="cursor: pointer;">{{ _("Wallets") }} &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}
                 <a class="note" id="wallets_overview_link" href="{{ url_for('wallets_endpoint.wallets_overview') }}" style="cursor: pointer;">
-                    Wallets overview
+                    {{ _("Wallets overview") }}
                 </a>
             {% endif %}
         </div>
         <div id="wallets_list">
             <span id="wallets-loading-indicator" class="note {% if not specter.wallet_manager.is_loading or not specter.chain %}hidden{% endif %}" style="text-align: left; margin-left: 20px; margin-top: 5px;">
                 <img height="16px" class="spinning" id="wallet-manager-loader" style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />
-                Updating wallets data...
+                {{ _("Updating wallets data...") }}
             </span>
             <span id="wallets-loading-done" class="note hidden" style="text-align: left; margin: 5px 5px 5px 20px;">
-                Finished updating your wallets
+                {{ _("Finished updating your wallets") }}
                 <br>
                 <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" style="text-decoration: underline; margin-left: 20px;">
-                    Click here to refresh
+                    {{ _("Click here to refresh") }}
                 </span>
             </span>
             {% set loading_wallets = [] %}
@@ -159,29 +159,29 @@
                 {% endfor %}
             {% endif %}
             {% if specter.chain %}
-                {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), 'Add new wallet', 'btn_new_wallet') }}
+                {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), _('Add new wallet'), 'btn_new_wallet') }}
                 {% if specter.wallet_manager.failed_load_wallets %}
                     <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST">
                         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                         <p class="warning center">
-                            <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>Failed to load some wallets<br>
-                            <button class="btn" name="action" value="retry_loading_wallets" style="margin: auto;">Retry loading wallets</button>
-                            <button type="button" class="btn" onclick="showPageOverlay('failed_wallets_popup')" style="margin: auto; margin-top: 5px;">Show Details</button>
+                            <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Failed to load some wallets") }}<br>
+                            <button class="btn" name="action" value="retry_loading_wallets" style="margin: auto;">{{ _("Retry loading wallets") }}</button>
+                            <button type="button" class="btn" onclick="showPageOverlay('failed_wallets_popup')" style="margin: auto; margin-top: 5px;">{{ _("Show Details") }}</button>
                         </p>
                     </form>
                     <div class="hidden" id="failed_wallets_popup">
                         {% for wallet in specter.wallet_manager.failed_load_wallets %}
                             <div class="card">
-                                <h1>Wallet Name: {{wallet.name}}</h1>
-                                <h2>Error Details:</h2>
+                                <h1>{{ _("Wallet Name") }}: {{wallet.name}}</h1>
+                                <h2>{{ _("Error Details") }}:</h2>
                                 <p style="color: red">{{wallet.loading_error}}</p>
                                 <br><br>
                                 <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST" class="row center">
                                     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <input type="hidden" name="wallet_data" value='{{ wallet|tojson }}' />
-                                    <a class="btn" id="download_failed_wallet_{{wallet.alias}}" download="{{ wallet.name }}.json" style="width: 180px; height: 35px; margin-top: 1.5px;">Download wallet file</a>&nbsp;&nbsp;
-                                    <button class="btn" type="submit" name="action" value="importwallet" formaction="{{ url_for('wallets_endpoint.new_wallet', wallet_type='import_wallet') }}">Recreate the wallet</button>&nbsp;&nbsp;
-                                    <button class="btn" name="action" value="delete_failed_wallet">Delete wallet</button>
+                                    <a class="btn" id="download_failed_wallet_{{wallet.alias}}" download="{{ wallet.name }}.json" style="width: 180px; height: 35px; margin-top: 1.5px;">{{ _("Download wallet file") }}</a>&nbsp;&nbsp;
+                                    <button class="btn" type="submit" name="action" value="importwallet" formaction="{{ url_for('wallets_endpoint.new_wallet', wallet_type='import_wallet') }}">{{ _("Recreate the wallet") }}</button>&nbsp;&nbsp;
+                                    <button class="btn" name="action" value="delete_failed_wallet">{{ _("Delete wallet") }}</button>
                                 </form>
                             </div>
                             <script>
@@ -195,10 +195,10 @@
             {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
                 <p class="warning" style="border: 1px solid #fff;">
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
-                <br>Wallets are unavailable if Specter is not connected to Bitcoin Core!<br>
+                <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br>
                 {% if current_user.is_admin %}
                 <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
-                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">Configure Node
+                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }}
                 </a>
                 {% endif %}
                 </p>
@@ -207,20 +207,20 @@
         </div>
 
         <div class="separator">
-            <span id="toggle_devices_list" style="cursor: pointer;">Devices &nbsp; &#9660;</span>
+            <span id="toggle_devices_list" style="cursor: pointer;">{{ _("Devices") }} &nbsp; &#9660;</span>
         </div>
         {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
         <div id="devices_list">
             {% for device_name in specter.device_manager.devices_names %}
                     {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
             {% endfor %}
-            {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), 'Add new device','btn_new_device') }}
+            {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device') }}
         </div>
         <br>
         <div class="footer">
-	        <span>Specter Version: <strong>{{ specter.version.current }}</strong></span>
+	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
             <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('about') }}">
-            About Specter<br>
+            {{ _("About Specter") }}<br>
             <img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 35px;"/>
             </a>
         </div>
@@ -262,32 +262,32 @@
         }
     }
 
-    function toggleList(type) {
+    function toggleList(type, display_text) {
         let titleButton = document.getElementById('toggle_' + type + '_list');
         let list = document.getElementById(type + '_list');
         if (list.style.display === 'none') {
             list.style.display = 'block';
-            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9660;';
+            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9660;';
         } else {
             list.style.display = 'none';
-            titleButton.innerHTML = capitalize(type) + ' &nbsp; &#9654;';
+            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9654;';
         }
     }
 
     document.addEventListener("DOMContentLoaded", function(){
         if ('{{ specter.device_manager.devices_names | length }}' == '0') {
-            document.getElementById('toggle_devices_list').innerHTML = 'Devices';
+            document.getElementById('toggle_devices_list').innerHTML = '{{ _("Devices") }}';
         } else {
             document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
-                toggleList('devices');
+                toggleList('devices', '{{ _("Devices") }}');
             });
         }
 
         if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
-            document.getElementById('toggle_wallets_list').innerHTML = 'Wallets';
+            document.getElementById('toggle_wallets_list').innerHTML = '{{ _("Wallets") }}';
         } else {
             document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
-                toggleList('wallets');
+                toggleList('wallets', '{{ _("Wallets") }}');
             });
         }
 

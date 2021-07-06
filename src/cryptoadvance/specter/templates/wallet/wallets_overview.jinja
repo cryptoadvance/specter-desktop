@@ -15,8 +15,8 @@
 		}
 	</style>
 	{% include "includes/address-label.html" %}
-    <h1 id="title">Wallets Overview</h1>
-	<p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">Here you can see the combined balance and transactions history of all your Specter wallets.</p>
+    <h1 id="title">{{ _("Wallets Overview") }}</h1>
+	<p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">{{ _("Here you can see the combined balance and transactions history of all your Specter wallets.") }}</p>
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
@@ -31,18 +31,18 @@
         </span><br>
 		<span class="note">{{ fullbalance | altunit }}</span>
         {% if balance.get("untrusted_pending", 0) or balance.get("immature", 0) %}<br>
-            <small>( {{ balance.get("trusted", 0) | btcunitamount }} confirmed,
+            <small>( {{ balance.get("trusted", 0) | btcunitamount }} {{ _("confirmed") }},
                      {% if balance.get("untrusted_pending", 0) %}
-                        {{ balance.get("untrusted_pending", 0) | btcunitamount }} pending
+                        {{ balance.get("untrusted_pending", 0) | btcunitamount }} {{ _("pending") }}
                      {% endif %}
                      {% if balance.get("immature", 0) %}
-                        {{ balance.get("immature", 0) | btcunitamount }} immature
+                        {{ balance.get("immature", 0) | btcunitamount }} {{ _("immature") }}
                      {% endif %}
             )</small>
         {% endif %}
         {% if specter.is_liquid and balance.get("assets", {}) %}
         <div>
-            <small style="line-height:30px">Assets:<br>
+            <small style="line-height:30px">{{ _("Assets:") }}<br>
             {% for asset in balance.get("assets",{}).keys() | sort %}
                 {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
                 <div style="margin: 0 10px; display: inline-block;">

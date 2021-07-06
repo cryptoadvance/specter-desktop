@@ -1,0 +1,33 @@
+function changeLanguage(selectObj) {
+    // get the index of the selected option
+    var idx = selectObj.selectedIndex;
+
+    // get the value of the selected option
+    var language_code = selectObj.options[idx].value;
+
+    fetch(
+        "{{ url_for('set_language_code') }}", 
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },                
+            body: JSON.stringify({language_code: language_code})
+        }
+    )
+    .then(response => response.json())
+    .then(jsonResponse => {
+        if (jsonResponse.success) {
+            location.reload();
+        } else {
+            showError('{{ _("Failed to change language") }}')
+        }
+        return;
+    })
+    .catch(err => {
+        console.log("Caught error: ", err);
+        showError(err);
+    });
+
+}

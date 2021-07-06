@@ -11,26 +11,26 @@
 
 
 <div id="hwi_progress" class="hidden" style="width: 270px;">
-    <h1 id="hwi_progress_title">Processing...</h1>
-    <div class="flex-center" id="hwi_progress_text">Keep your wallet connected.</div><br>
+    <h1 id="hwi_progress_title">{{ _("Processing...") }}</h1>
+    <div class="flex-center" id="hwi_progress_text">{{ _("Keep your wallet connected.") }}</div><br>
     <p id="bitbox02-pairing-code" style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
-        If your device does not show up, ensure the Specter USB settings are correctly configured.<br><br>
+        {{ _("If your device does not show up, ensure the Specter USB settings are correctly configured.") }}<br><br>
         <a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
-            View USB settings
+            {{ _("View USB settings") }}
         </a>
     </div>
     <br>
 </div>
 
 <div class="flex-column hidden" id="coldcard_warning">
-    <p> Do you really want to use your Coldcard over USB (no airgap)? </p>
+    <p> {{ _("Do you really want to use your Coldcard over USB (no airgap)?") }} </p>
     <div class="flex-center">
-        <button onclick="coldCardNotice()" class="btn flex-center"> Yes, I am living on the edge! </button>
+        <button onclick="coldCardNotice()" class="btn flex-center"> {{ _("Yes, I am living on the edge!") }} </button>
     </div> <br>
     <div class="flex-center">
-        <button onclick = "goToCoinkite()" class="btn flex-center"> No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info. </button>
+        <button onclick = "goToCoinkite()" class="btn flex-center"> {{ _("No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info.") }} </button>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
 
 <script type="text/javascript">
 
-    function showHWIProgress(title="Processing...", text="Keep your wallet connected."){
+    function showHWIProgress(title='{{ _("Processing...") }}', text='{{ _("Keep your wallet connected.") }}'){
         document.getElementById('hwi_progress_title').innerHTML = title;
         document.getElementById('hwi_progress_text').innerHTML = text;
         showPageOverlay('hwi_progress');
@@ -82,7 +82,7 @@
                 }
         // detect device
         if (devicePath == null) {
-            showHWIProgress("Detecting...", "Plug in your device");
+            showHWIProgress('{{ _("Detecting...") }}', '{{ _("Plug in your device") }}');
         }
         let result = [];
         let retryCounter = 0;
@@ -97,7 +97,7 @@
                     // Likely bitbox02 pairing
                     let pairingCode = (await hwi.getBitbox02PairingCode()).code;
                     if (pairingCode) {
-                        document.getElementById('bitbox02-pairing-code').innerHTML = `Pairing Code:<br><br><b>${pairingCode}</b><br><br>Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.`;
+                        document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
                     }
                 }   
             }
@@ -126,7 +126,7 @@
                         // Likely bitbox02 pairing
                         let pairingCode = (await hwi.getBitbox02PairingCode()).code;
                         if (pairingCode) {
-                            document.getElementById('bitbox02-pairing-code').innerHTML = `Pairing Code:<br><br><b>${pairingCode}</b><br><br>Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.`;
+                            document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
                         }
                     }   
                 }
@@ -160,8 +160,8 @@
 
     async function getXpubs(device, account=0, passphrase=""){
         // detect device
-        showHWIProgress("Extracting public keys...", 
-            `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+        showHWIProgress('{{ _("Extracting public keys...") }}', 
+            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
             result = await hwi.getXpubs(device, account, passphrase);
@@ -180,8 +180,8 @@
 
     async function getXpub(device, derivation="", passphrase="", chain=""){
         // detect device
-        showHWIProgress("Extracting public key...<br><span style='font-size: 0.8em;'>Derivation: " + derivation + "</span>", 
-            `It may take a while.<br><br>Keep your ${capitalize(device.type)} connected.`);
+        showHWIProgress('{{ _("Extracting public key...") }}<br><span style=\'font-size: 0.8em;\'>{{ _("Derivation") }}: ' + derivation + "</span>", 
+            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
             result = await hwi.getXpub(device, derivation, passphrase, chain);
@@ -200,8 +200,8 @@
 
     async function getMasterBlindingKey(device, passphrase="", chain=""){
         // detect device
-        showHWIProgress("Extracting master blinding key...", 
-            `Please confirm action on your ${capitalize(device.type)} device.`);
+        showHWIProgress('{{ _("Extracting master blinding key...") }}', 
+            `{{ _("Please confirm action on your") }} ${capitalize(device.type)} {{ _("device") }}.`);
         let result = [];
         try {
             result = await hwi.getMasterBlindingKey(device, passphrase, chain);

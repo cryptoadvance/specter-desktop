@@ -9,7 +9,7 @@
         <img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="22px">
         <div>
             {{ device.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} keys</span>
+            <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} {{ _("keys") }}</span>
         </div>
     </a>
 {%- endmacro %}

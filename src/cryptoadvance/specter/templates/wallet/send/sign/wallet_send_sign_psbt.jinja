@@ -77,9 +77,9 @@
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
 					{% if "asset" in psbt %}
-						Sending <b>{{ psbt["amount"][i] | btcamount }}</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
+						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcamount }}</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}
-						Sending <b>{{ psbt["amount"][i] | btcunitamount }}</b>
+						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcunitamount }}</b>
 						{% if specter.unit == 'sat' %}
 							sats
 						{% else %}
@@ -89,7 +89,7 @@
 							<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 						{% endif %}
 					{% endif %}
-					to<b>
+					{{ _("to") }}<b>
 						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
 						<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 					</b>
@@ -102,32 +102,32 @@
 			{% endfor %}
 			{% if wallet.is_multisig %}
 				<div class="log" style="margin: auto;">
-					Acquired <b id="sigscount">{{ psbt['sigs_count'] }}</b> of <b>{{ wallet.sigs_required }}</b> signatures.
+					{{ _("Acquired") }} <b id="sigscount">{{ psbt['sigs_count'] }}</b> {{ _("of") }} <b>{{ wallet.sigs_required }}</b> {{ _("signatures") }}.
 				</div>
 			{% endif %}
 			<br>
 
 			<input type="checkbox" id="showdetails">
 			<label for="showdetails" class="btn togglebtn">
-				transaction details
+				{{ _("transaction details") }}
 			</label>
 			<div class="toggle" id="tx_details" style="word-break: break-all;">
 				<br>
-				<h2 class="tx_details_header">Transaction Info</h2>
+				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
-					<b>Total fee:</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
-					<b>Fee rate:</b>
+					<b>{{ _("Total fee:") }}/b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
+					<b>{{ _("Fee rate:") }}</b>
 					{% if 'tx_full_size' in psbt %}
 						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
-						<b>Estimated size:</b> {{ psbt['tx_full_size'] }} vbytes<br>
+						<b>{{ _("Estimated size:") }}</b> {{ psbt['tx_full_size'] }} vbytes<br>
 					{% else %}
 						{{ (psbt['fee'] / psbt['tx']['weight']) | feerate }} sat/vbyte<br>
-						<b>Size:</b> {{ psbt['tx']['vsize'] }} vbytes<br>
+						<b>{{ _("Size:") }}</b> {{ psbt['tx']['vsize'] }} vbytes<br>
 					{% endif %}
-					<b>Inputs count:</b> {{ psbt['tx']['vin'] | length }}<br>
-					<b>Outputs count:</b> {{ psbt['tx']['vout'] | length }}
+					<b>{{ _("Inputs count:") }}</b> {{ psbt['tx']['vin'] | length }}<br>
+					<b>{{ _("Outputs count:") }}</b> {{ psbt['tx']['vout'] | length }}
 				</p>
-				<h2 class="tx_details_header">Inputs ({{psbt['tx']['vin'] | length}})</h2>
+				<h2 class="tx_details_header">{{ _("Inputs") }} ({{psbt['tx']['vin'] | length}})</h2>
 				{% for input in psbt['tx']['vin'] %}
 					{% set tx = wallet.gettransaction(input['txid'], decode=true) %}
 					{% set bg_color = '#131a24' %}
@@ -137,17 +137,17 @@
 					{% endif %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
-						<b>Transaction id:</b><br>
+						<b>{{ _("Transaction id:") }}</b><br>
 						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
-						(Output #{{ input['vout'] }})<br>
+						({{ _("Output") }} #{{ input['vout'] }})<br>
 						{% if tx %}
 							{% if address %}
 								{% set addr_label = wallet.getlabel(address) %}
-								<b>Address:</b>
+								<b>{{ _("Address:") }}</b>
 								{{ address }}
 								<br>
 								{% if addr_label != address %}
-									<b>Label:</b>
+									<b>{{ _("Label:") }}</b>
 									<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 									<br>
 								{% endif %}
@@ -155,58 +155,58 @@
 							{% if specter.is_liquid %}
 								{% set amount = psbt['inputs'][loop.index0].get('value', -1) %}
 								{% set asset = psbt['inputs'][loop.index0].get('asset', "") %}
-								<b>Amount:</b> {{ amount|btcamount }} <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+								<b>{{ _("Amount:") }}</b> {{ amount|btcamount }} <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
 							{% else %}
 								{% set amount = psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1) %}
-								<b>Amount:</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
+								<b>{{ _("Amount:") }}</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
 							{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
-				<h2 class="tx_details_header">Outputs ({{psbt['tx']['vout']|length}})</h2>
+				<h2 class="tx_details_header">{{ _("Outputs") }} ({{psbt['tx']['vout']|length}})</h2>
 				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
 					{% set address = output['scriptPubKey']['addresses'][0] if "addresses" in output["scriptPubKey"] else output["scriptPubKey"]["address"] %}
 					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
-						<b>Output #{{loop.index0}}</b> {% if address not in psbt['address'] %}(Change){% endif %}<br><br>
+						<b>{{ _("Output") }} #{{loop.index0}}</b> {% if address not in psbt['address'] %}(Change){% endif %}<br><br>
 						{% set addr_label = wallet.getlabel(address) %}
-						<b>Address:</b>
+						<b>{{ _("Address:") }}</b>
 						{{ address }}
 						<br>
 						{% if addr_label != address %}
-							<b>Label:</b>
+							<b>{{ _("Label:") }}</b>
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
-						<b>Amount:</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
+						<b>{{ _("Amount:") }}</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
 					</p>
 				{% endfor %}
-				Raw PSBT:<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
+				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-						Save binary
+						{{ _("Save binary") }}
 					</a>&nbsp;
 					<a id="download-psbt-btn" class="btn"
 					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-						Save base64
+						{{ _("Save base64") }}
 					</a>&nbsp;
 					<a id="copy-raw-psbt-btn" class="btn">
 						<img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-						Copy Raw PSBT
+						{{ _("Copy Raw PSBT") }}
 					</a>&nbsp;
 					<a id="show-qr-psbt-btn" class="btn">
 						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-						Show QR code
+						{{ _("Show QR code") }}
 					</a>
 				</div>
 			</div>
 		</div>
 
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
-			<p style="margin-bottom: 15px; margin-top: 0px;">Sign transaction with your:</p>
+			<p style="margin-bottom: 15px; margin-top: 0px;">{{ _("Sign transaction with your:") }}</p>
 			{% for device in wallet.devices %}
 				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {{ 'disabled style=background-color:#303c49;' if psbt.get("devices_signed") and device.alias in psbt.get("devices_signed") else '' }}>
 					{{ device.name }} {% if psbt.get("devices_signed") and device.alias in psbt.get("devices_signed") %} (&#10004;) {% endif %}
@@ -217,26 +217,26 @@
 		{# ===================== Possible tx signers' outputs ===================== #}
 
 		<div id="ready_container" class="output_option {% if not psbt['raw'] %}hidden{% endif %}">
-			<p>Transaction is ready to send (&#10004;)</p>
+			<p>{{ _("Transaction is ready to send") }} (&#10004;)</p>
 			<div class="output_option">
-				<a class="btn centered" id="send_tx_btn">Send transaction</a>
+				<a class="btn centered" id="send_tx_btn">{{ _("Send transaction") }}</a>
 			</div>
 		</div>
 		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" style="margin-top:20px">
-			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="btn centered" id="pastetx">Paste signed transaction</a>
+			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="btn centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
 		</div>
 		<div class="hidden" id="paste-tx-popup">
-			<h1>Paste signed transaction</h1>
-			<input type="text" id="paste-tx-text" placeholder="Paste your transaction here">
+			<h1>{{ _("Paste signed transaction") }}</h1>
+			<input type="text" id="paste-tx-text" placeholder="{{ _('Paste your transaction here') }}">
 			<br><br>
-			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';" class="btn centered">Confirm</button>
+			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';" class="btn centered">{{ _("Confirm") }}</button>
 		</div>
 		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
 
 		<div class="row padded">
 			<input type="hidden" name="pending_psbt" value='{{psbt|tojson|safe}}'>
-			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">Delete Transaction</button>
+			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" style="margin-left: 5px;">{{ _("Delete Transaction") }}</button>
 		</div>
 	</form>
 
@@ -415,7 +415,7 @@
 		}
 
 		async function broadcastLocal(tx) {
-			showNotification("Sending transaction...");
+			showNotification("{{ _('Sending transaction...') }}");
 			let url="{{ url_for('wallets_endpoint.broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
@@ -437,15 +437,15 @@
 					hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
-					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
+					showError("{{ _('Server failed to broadcast transactions!') }}\n" + jsonResponse.error);
 				}
 			} catch(e) {
-				showError("Server failed to broadcast transactions!\n" + e);
+				showError("{{ _('Server failed to broadcast transactions!') }}\n" + e);
 			}
 		}
 
 		async function broadcastBlockExplorer(tx, explorer, useTor) {
-			showNotification("Sending transaction...", 0);
+			showNotification("{{ _('Sending transaction...') }}", 0);
 			let url = "{{ url_for('wallets_endpoint.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
 	
 
@@ -470,10 +470,10 @@
 					hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
-					showError("Server failed to broadcast transactions!\n" + jsonResponse.error);
+					showError("{{ _('Server failed to broadcast transactions!') }}\n" + jsonResponse.error);
 				}
 			} catch(e) {
-				showError("Server failed to broadcast transactions!\n" + e);
+				showError("{{ _('Server failed to broadcast transactions!') }}\n" + e);
 			}
 		}
 

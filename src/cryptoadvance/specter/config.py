@@ -105,6 +105,24 @@ class BaseConfig(object):
         },
     }
 
+    # Babel integration. English listed first; other alphabetical by language code
+    LANGUAGES = {
+        "en": "English",
+        "bg": "Български",
+        "de": "Deutsch",
+        "el": "Ελληνικά",
+        "es": "Español",
+        "fr": "Français",
+        "he": "עברית",
+        "hi": "हिंदी",
+        "nl": "Nederlands",
+        "pl": "Polski",
+        "ru": "Русский",
+        "sv": "Svenska",
+        "zh_Hans_CN": "简体中文",
+        "zh_Hant_TW": "繁體中文",
+    }
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
@@ -114,6 +132,9 @@ class DevelopmentConfig(BaseConfig):
     )
     # API active by default in dev-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
+
+    # Env vars take priority over config settings so ensure that this is set
+    os.environ["FLASK_ENV"] = "development"
 
 
 class TestConfig(BaseConfig):

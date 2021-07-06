@@ -3,12 +3,11 @@
 	<form action="./" method="POST" onsubmit="return isValidForm()">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		{% if wallet_type == 'multisig' %}
-			<h1 style="margin: 20px;">Pick the devices you want in your multisig quorum</h1>
+			<h1 style="margin: 20px;">{{ _("Pick the devices you want in your multisig quorum") }}</h1>
 		{% else %}
-			<h1 style="margin: 20px;">Pick the device you want to use</h1>
+			<h1 style="margin: 20px;">{{ _("Pick the device you want to use") }}</h1>
 		{% endif %}
 		<div class="row overflow">
-			{# Disable BitBox02 multisig for now... #}
 			{% for device_name in specter.device_manager.devices_names %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label style="position: relative;">
@@ -27,18 +26,18 @@
 			<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none; color: #fff;">
 				<div class="small-card radio">
 					<img src="{{ url_for('static', filename='img/plus.svg') }}" style="transform: scale(1.5);" class="svg-white">
-					Add new device
+					{{ _("Add new device") }}
 				</div>
 			</a>
 		</div>
-		<button id="submit-device" type="submit" name="action" value="device" class="btn centered">Continue</button>
+		<button id="submit-device" type="submit" name="action" value="device" class="btn centered">{{ _("Continue") }}</button>
 		<br>
 		<div class="note">
 			<center>
 				{% if wallet_type == 'multisig' %}
-					We use sorted multisig (BIP-67), so <b>order is NOT important.</b><br>
+					{{ _("We use sorted multisig (BIP-67), so <b>order is NOT important.</b>") }}<br>
 					<br>
-					Be aware of <a style="color: #fff" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md" target="_blank">multisig security tradeoffs</a>.<br>
+					{{ _('Be aware of <a style="color: #fff" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md" target="_blank">multisig security tradeoffs</a>.') }}<br>
 					<br>
 				{% endif %}
 			</center>
