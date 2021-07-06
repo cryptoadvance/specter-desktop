@@ -8,9 +8,9 @@
  #}
 {% macro settings_menu(active_menuitem, current_user) -%}
 	<nav class="row collapse-on-mobile">
-		{{ settings_menu_item('general', 'General', active_menuitem, isLeft=true) }}
-		{{ settings_menu_item('auth', 'Authentication', active_menuitem, isRight=false) }}
-		{{ settings_menu_item('hwi', 'USB Devices', active_menuitem, isRight=(not current_user.is_admin)) }}
+		{{ settings_menu_item('general', _('General'), active_menuitem, isLeft=true) }}
+		{{ settings_menu_item('auth', _('Authentication'), active_menuitem, isRight=false) }}
+		{{ settings_menu_item('hwi', _('USB Devices'), active_menuitem, isRight=(not current_user.is_admin)) }}
 		{% if current_user.is_admin %}
 			{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
 		{% endif %}

@@ -7,9 +7,9 @@
  #}
 {% macro editable_label(label, elementId) -%}
     <input type="text" class="label" autocomplete="off" spellcheck="false" id="{{'label' ~ elementId }}" name="label" value="{{ label }}" style="border: none; font-size: 1.5em;" disabled />
-    <button type="submit" class="btn update hidden" id="{{ 'save' ~ elementId }}" name="action" value="updatelabel">Update</button>
-    <button type="button" class="btn cancel hidden" id="{{ 'cancel' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">Cancel</button>
-    <button type="button" class="btn edit" id="{{ 'edit' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">Edit Label</button>
+    <button type="submit" class="btn update hidden" id="{{ 'save' ~ elementId }}" name="action" value="updatelabel">{{ _("Update") }}</button>
+    <button type="button" class="btn cancel hidden" id="{{ 'cancel' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">{{ _("Cancel") }}</button>
+    <button type="button" class="btn edit" id="{{ 'edit' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">{{ _("Edit Label") }}</button>
 
     <script>
         function toggleEdit(id, originalLabel) {

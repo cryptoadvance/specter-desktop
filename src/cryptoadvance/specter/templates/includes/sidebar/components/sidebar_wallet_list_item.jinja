@@ -11,11 +11,11 @@
         <img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" style="width: 45px; margin-left: 5px;">
         <div class="grow">
             {{ wallet.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} Multisig{% else %}Single Key{% endif %}</span>
+            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} {{ _("Multisig") }}{% else %}{{ _("Single Key") }}{% endif %}</span>
             {% if wallet.rescan_progress %}
                 <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;">
                 <br>
-                <span class="note" style="font-size: 0.7em;">Rescanning blockchain: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span>
+                <span class="note" style="font-size: 0.7em;">{{ _("Rescanning blockchain") }}: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span>
                 </span>
             {% endif %}
         </div>
@@ -24,7 +24,7 @@
         <img height="38px" class="spinning" spinning src="{{ url_for('static', filename='img/refresh.svg') }}" />
         <div class="grow">
             {{ wallet.name }}<br>
-            <span class="note" style="font-size: 0.75em;">Loading wallet...</span>
+            <span class="note" style="font-size: 0.75em;">{{ _("Loading wallet...") }}</span>
         </div>
     </a>
     {% if wallet.rescan_progress %}

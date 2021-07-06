@@ -1,10 +1,10 @@
 {% if wallet is defined %}
 
 <div id="hwi_display_address" class="flex-center flex-column hidden" style="overflow-wrap: break-word;">
-    <h2>Confirm Address</h2><br>
+    <h2>{{ _("Confirm Address") }}</h2><br>
     <div>
-        Please confirm address matches on your <span id="hwi_device_name">device</span><br><br>
-        Expected address:<br><span id="expected_address"></span>
+        {{ _("Please confirm address matches on your <span id=\"hwi_device_name\">device</span>") }}<br><br>
+        {{ _("Expected address") }}:<br><span id="expected_address"></span>
     </div>
     <div class="flex-center">
         <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}"/>
@@ -35,10 +35,10 @@
         }
 
         if (fingerprint && device.fingerprint != fingerprint) {
-            handleHWIError("Selected device does not have matching signing key.");
+            handleHWIError('{{ _("Selected device does not have matching signing key.") }}');
             return;
         }
-        showHWIProgress("Signing transaction...", `Confirm on your ${capitalize(device.type)}.`);
+        showHWIProgress('{{ _("Signing transaction...") }}', `{{ _("Confirm on your") }} ${capitalize(device.type)}.`);
         let signedTx = null;
         try {
             signedTx = await hwi.signTx(device, psbt);
@@ -87,12 +87,12 @@
             (("{{ specter.chain }}" != "regtest" || !result.startsWith("tb")) ||
             address.slice(0, -6) != "bcrt" + result.slice(2, -6))
         ) {
-            showError("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!");
+            showError('{{ _("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!") }}');
         } else {
             if (device.type == 'coldcard') {
-                showNotification("Address displayed successfully! Please check the device screen.", 7000);
+                showNotification('{{ _("Address displayed successfully! Please check the device screen.") }}', 7000);
             } else {
-                showNotification("Address was verified successfully!", 5000);
+                showNotification('{{ _("Address was verified successfully!") }}', 5000);
             }
         }
     }

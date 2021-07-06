@@ -204,7 +204,7 @@ class QRCodeElement extends HTMLElement {
         value = this.maybe_remove_checksum(value);
         this.qrcode.makeCode(value);
         if(this.isQRlarge){
-          this.note.innerHTML = "Click to animate";
+          this.note.innerHTML = '{{ _("Click to animate") }}';
         }
       }
     });
