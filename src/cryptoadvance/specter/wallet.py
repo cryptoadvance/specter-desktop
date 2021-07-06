@@ -57,6 +57,9 @@ class Wallet:
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
     MIN_FEE_RATE = 1.01
+    # for inheritance (to simplify LWallet logic)
+    AddressListCls = AddressList
+    TxListCls = TxList
 
     def __init__(
         self,
@@ -117,12 +120,12 @@ class Wallet:
         self.last_block = last_block
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
-        self._addresses = AddressList(addr_path, self.rpc)
+        self._addresses = self.AddressListCls(addr_path, self.rpc)
         if not self._addresses.file_exists:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = TxList(
+        self._transactions = self.TxListCls(
             txs_path, self.rpc, self._addresses, self.manager.chain
         )
 

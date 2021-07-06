@@ -3,10 +3,14 @@ from ..addresslist import Address
 from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from .txlist import LTxList
+from .addresslist import LAddressList
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+    AddressListCls = LAddressList
+    TxListCls = LTxList
 
     @classmethod
     def create(
@@ -199,33 +203,34 @@ class LWallet(Wallet):
         return self.balance
 
     def fetch_transactions(self):
+        logger.error("\x1b[31;21m fetch \x1b[0m")
         return
 
-    def txlist(
-        self,
-        fetch_transactions=True,
-        validate_merkle_proofs=False,
-        current_blockheight=None,
-    ):
-        """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
-        #Parameters:
-        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
-        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
-        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
-        """
-        # TODO: only from RPC for now
-        return self.rpc.listtransactions("*", 10000, 0, True)
+    # def txlist(
+    #     self,
+    #     fetch_transactions=True,
+    #     validate_merkle_proofs=False,
+    #     current_blockheight=None,
+    # ):
+    #     """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
+    #     #Parameters:
+    #     #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
+    #     #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
+    #     #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+    #     """
+    #     # TODO: only from RPC for now
+    #     return self.rpc.listtransactions("*", 10000, 0, True)
 
-    def gettransaction(self, txid, blockheight=None, decode=False):
-        # TODO: only from RPC for now
-        try:
-            # From RPC
-            tx_data = self.rpc.gettransaction(txid)
-            if decode:
-                return self.rpc.decoderawtransaction(tx_data["hex"])
-            return tx_data
-        except Exception as e:
-            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
+    # def gettransaction(self, txid, blockheight=None, decode=False):
+    #     # TODO: only from RPC for now
+    #     try:
+    #         # From RPC
+    #         tx_data = self.rpc.gettransaction(txid)
+    #         if decode:
+    #             return self.rpc.decoderawtransaction(tx_data["hex"])
+    #         return tx_data
+    #     except Exception as e:
+    #         logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSET.from_string(b64psbt)

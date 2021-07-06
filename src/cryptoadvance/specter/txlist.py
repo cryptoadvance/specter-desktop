@@ -5,7 +5,7 @@ import os
 from .persistence import write_csv, read_csv
 from .helpers import get_address_from_dict
 from embit.transaction import Transaction
-from embit.networks import NETWORKS
+from embit.liquid.networks import get_network
 import json
 import logging
 from .util.tx import decoderawtransaction
@@ -23,6 +23,7 @@ def parse_arr(v):
 
 
 class TxItem(dict):
+    TransactionCls = Transaction
     columns = [
         "txid",  # str, txid in hex
         "blockhash",  # str, blockhash, None if not confirmed
@@ -65,7 +66,7 @@ class TxItem(dict):
         self._tx = None
         # if we have hex in csv
         if "hex" in kwargs:
-            self._tx = Transaction.from_string(kwargs["hex"])
+            self._tx = self.TransactionCls.from_string(kwargs["hex"])
 
     @property
     def fname(self):
@@ -80,7 +81,7 @@ class TxItem(dict):
             try:
                 if os.path.isfile(self.fname):
                     with open(self.fname, "rb") as f:
-                        return Transaction.read_from(f)
+                        return self.TransactionCls.read_from(f)
             except Exception as e:
                 logger.error(e)
         # if we failed to load tx from file - load it from RPC
@@ -88,7 +89,7 @@ class TxItem(dict):
             # get transaction from rpc
             try:
                 res = self.rpc.gettransaction(self.txid)
-                self._tx = Transaction.from_string(res["hex"])
+                self._tx = self.TransactionCls.from_string(res["hex"])
             except Exception as e:
                 logger.error(e)
         return self._tx
@@ -137,6 +138,7 @@ class TxItem(dict):
 
 
 class TxList(dict):
+    ItemCls = TxItem # for inheritance
     def __init__(self, path, rpc, addresses, chain):
         self.chain = chain
         self.path = path
@@ -149,7 +151,7 @@ class TxList(dict):
         try:
             if os.path.isfile(self.path):
                 txs = read_csv(
-                    self.path, TxItem, self.rpc, self._addresses, self.rawdir
+                    self.path, self.ItemCls, self.rpc, self._addresses, self.rawdir
                 )
                 for tx in txs:
                     self[tx.txid] = tx
@@ -163,7 +165,7 @@ class TxList(dict):
         if self:
             for tx in self.values():
                 tx.dump()
-            write_csv(self.path, list(self.values()), TxItem)
+            write_csv(self.path, list(self.values()), self.ItemCls)
         self._file_exists = True
 
     def gettransaction(self, txid, blockheight=None, decode=False, full=True):
@@ -178,6 +180,7 @@ class TxList(dict):
             tx = self.rpc.gettransaction(txid)
             # save if we don't know about this tx
             if txid not in self:
+                print("add", txid, self)
                 self.add({txid: tx})
             if "time" not in tx:
                 tx["time"] = tx["timereceived"]
@@ -187,8 +190,11 @@ class TxList(dict):
         if full:
             res["hex"] = tx.hex
         if decode:
-            res.update(decoderawtransaction(tx.hex, self.chain))
+            res.update(self.decoderawtransaction(tx.hex))
         return res
+
+    def decoderawtransaction(self, txhex):
+        return decoderawtransaction(txhex, self.chain)
 
     def add(self, txs):
         """
@@ -224,18 +230,18 @@ class TxList(dict):
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
-            txitem = TxItem(self.rpc, self._addresses, self.rawdir, **obj)
+            txitem = self.ItemCls(self.rpc, self._addresses, self.rawdir, **obj)
             self[txid] = txitem
             if txitem.tx:
                 for vout in txitem.tx.vout:
                     try:
-                        addr = vout.script_pubkey.address(NETWORKS[self.chain])
+                        addr = vout.script_pubkey.address(get_network(self.chain))
                         addresses.append(addr)
                     except:
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
         for tx in [self[tx] for tx in self if tx in txs]:
-            raw_tx = decoderawtransaction(tx.hex, self.chain)
+            raw_tx = self.decoderawtransaction(tx.hex)
             tx["vsize"] = raw_tx["vsize"]
 
             category = ""
@@ -253,7 +259,7 @@ class TxList(dict):
                 if vin["txid"] in self:
                     try:
                         address = get_address_from_dict(
-                            decoderawtransaction(self[vin["txid"]]["hex"], self.chain,)[
+                            decoderawtransaction(self[vin["txid"]]["hex"])[
                                 "vout"
                             ][vin["vout"]]
                         )
