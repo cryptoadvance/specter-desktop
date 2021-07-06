@@ -1,9 +1,3 @@
-"""
-Backend Template
-
-Use this to display server debugging info during development
-
-"""
 from flask import render_template
 from cryptoadvance.specter.api import api_bp
 from flask import current_app as app

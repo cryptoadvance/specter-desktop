@@ -28,7 +28,7 @@ json.loads(response.text)
 * [Liveness](./ep_liveness.md): Is specter up and running?
 * [Readyness](./ep_readyness.md): Is specter ready to serve requests?
 * [Specter](./ep_specter.md): Get details about the instance
-* [Specter Full Tx List](./ep_specter_fulltxlist.md)
+* [Specter Full Tx List](./ep_specter_fulltxlist.md): Gives a full tx_list of all transactions.
 * [Wallet](./ep_wallets_wallet.md): Details about a specific Wallet
 * [Wallet PSBT](./ep_wallets_psbt.md): Listing and creating PSBTs
 

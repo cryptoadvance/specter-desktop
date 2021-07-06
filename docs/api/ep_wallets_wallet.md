@@ -1,5 +1,5 @@
 
-## API Endpoint: [/v1alpha/wallets/<wallet_alias>/(/v1alpha/wallets/<wallet_alias>/) (GET)
+## Wallet
 
 This API will return wallet balance details as well as transactions.
 

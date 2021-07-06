@@ -1,6 +1,7 @@
 # Full Transaction List
 
 Gives a full tx_list of all transactions. Transactions are cached within specter, so might not be 100% up-to-date.
+The result here is highly dependent on the user executing calling this resource as this is not specific to a specific wallet but returns ALL of the TXs of all the wallets.
 
 **URL** : `/api/v1alpha/specter/full_txlist`
 

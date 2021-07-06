@@ -1,4 +1,4 @@
-""" Security Related things """
+""" Security Related things for the REST-API """
 import logging
 from functools import wraps
 
