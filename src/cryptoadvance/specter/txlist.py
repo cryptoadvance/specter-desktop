@@ -1,5 +1,5 @@
 """
-Manages the list of addresses for the wallet, including labels and derivation paths
+Manages the list of transactions for the wallet
 """
 import os
 from .persistence import write_csv, read_csv
@@ -25,7 +25,6 @@ def parse_arr(v):
 class TxItem(dict):
     columns = [
         "txid",  # str, txid in hex
-        "hex",  # str, raw tx in hex
         "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
@@ -40,7 +39,6 @@ class TxItem(dict):
     type_converter = [
         str,
         str,
-        str,
         int,
         int,
         str,
@@ -52,9 +50,10 @@ class TxItem(dict):
         bool,
     ]
 
-    def __init__(self, rpc, addresses, **kwargs):
+    def __init__(self, rpc, addresses, rawdir, **kwargs):
         self.rpc = rpc
         self._addresses = addresses
+        self.rawdir = rawdir
         # copy
         kwargs = dict(**kwargs)
         # replace with None or convert
@@ -63,10 +62,44 @@ class TxItem(dict):
             kwargs[k] = None if v in ["", None] else self.type_converter[i](v)
 
         super().__init__(**kwargs)
-        # parse transaction
-        self.tx = (
-            None if not self["hex"] else Transaction.parse(bytes.fromhex(self["hex"]))
-        )
+        self._tx = None
+        # if we have hex in csv
+        if "hex" in kwargs:
+            self._tx = Transaction.from_string(kwargs["hex"])
+
+    @property
+    def fname(self):
+        return os.path.join(self.rawdir, self.txid + ".bin")
+
+    @property
+    def tx(self):
+        if not self._tx:
+            # get transaction from file:
+            try:
+                if os.path.isfile(self.fname):
+                    with open(self.fname, "rb") as f:
+                        self._tx = Transaction.read_from(f)
+            except Exception as e:
+                logger.error(e)
+        if not self._tx:
+            # get transaction from rpc
+            try:
+                res = self.rpc.gettransaction(self.txid)
+                self._tx = Transaction.from_string(res["hex"])
+            except Exception as e:
+                logger.error(e)
+        return self._tx
+
+    def dump(self):
+        """Dumps transaction in binary to the folder if it's not there"""
+        # nothing to do if file exists or we don't have binary tx
+        if os.path.isfile(self.fname) or not self.tx:
+            return
+        # create dir if it doesn't exist
+        if not os.path.isdir(self.rawdir):
+            os.mkdir(self.rawdir)
+        with open(self.fname, "wb") as f:
+            self._tx.write_to(f)
 
     @property
     def txid(self):
@@ -74,7 +107,7 @@ class TxItem(dict):
 
     @property
     def hex(self):
-        return self["hex"]
+        return str(self.tx)
 
     def __str__(self):
         return self.txid
@@ -90,7 +123,6 @@ class TxItem(dict):
             "time": self["time"],
             "conflicts": self["conflicts"],
             "bip125-replaceable": self["bip125-replaceable"],
-            "hex": self["hex"],
             "vsize": self["vsize"],
             "category": self["category"],
             "address": self["address"],
@@ -103,13 +135,17 @@ class TxList(dict):
     def __init__(self, path, rpc, addresses, chain):
         self.chain = chain
         self.path = path
+        # folder to store transactions in binary form
+        self.rawdir = path.replace(".csv", "_raw")
         self.rpc = rpc
         self._addresses = addresses
         txs = []
         file_exists = False
         try:
             if os.path.isfile(self.path):
-                txs = read_csv(self.path, TxItem, self.rpc, self._addresses)
+                txs = read_csv(
+                    self.path, TxItem, self.rpc, self._addresses, self.rawdir
+                )
                 for tx in txs:
                     self[tx.txid] = tx
                 file_exists = True
@@ -118,7 +154,10 @@ class TxList(dict):
         self._file_exists = file_exists
 
     def save(self):
+        # check if we have at least one transaction
         if self:
+            for tx in self.values():
+                tx.dump()
             write_csv(self.path, list(self.values()), TxItem)
         self._file_exists = True
 
@@ -137,7 +176,7 @@ class TxList(dict):
                 tx["time"] = tx["timereceived"]
             return tx
         tx = self[txid]
-        return {"hex": tx["hex"], "time": tx["time"]}
+        return {"hex": tx.hex, "time": tx["time"]}
 
     def add(self, txs):
         """
@@ -173,7 +212,7 @@ class TxList(dict):
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
-            txitem = TxItem(self.rpc, self._addresses, **obj)
+            txitem = TxItem(self.rpc, self._addresses, self.rawdir, **obj)
             self[txid] = txitem
             if txitem.tx:
                 for vout in txitem.tx.vout:
@@ -184,7 +223,7 @@ class TxList(dict):
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
         for tx in [self[tx] for tx in self if tx in txs]:
-            raw_tx = decoderawtransaction(tx["hex"], self.chain)
+            raw_tx = decoderawtransaction(tx.hex, self.chain)
             tx["vsize"] = raw_tx["vsize"]
 
             category = ""
@@ -288,13 +327,13 @@ class TxList(dict):
         Retuns an dict of dicts:
         {
             <txid>: {"success": True}, on success,
-            <txid>: {"error": "reason"}, if failed to import transaction
+            <txid>: {"success": False, "error": "reason"}, if failed to import transaction
         }
         """
         # TODO: how to handle unconfirmed?
         # try to get raw transactions and tx details if not present
         # self.save()
-        return [{"error": "not implemented"} for a in arr]
+        return [{"success": False, "error": "not implemented"} for a in arr]
 
     @property
     def file_exists(self):

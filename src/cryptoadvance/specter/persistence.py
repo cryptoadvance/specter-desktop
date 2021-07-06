@@ -152,17 +152,16 @@ def _write_csv(fname, objs, cls=dict):
     # if it's just a dict
     elif len(objs) > 0:
         columns = objs[0].keys()
-
     with fslock:
         with open(fname, mode="w") as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            writer = csv.DictWriter(csv_file, fieldnames=columns, extrasaction="ignore")
             writer.writeheader()
             for obj in objs:
                 writer.writerow(obj)
 
 
 def write_csv(fname, objs, cls=dict):
-    _write_csv(fname, objs, cls=dict)
+    _write_csv(fname, objs, cls)
     storage_callback()
 
 
