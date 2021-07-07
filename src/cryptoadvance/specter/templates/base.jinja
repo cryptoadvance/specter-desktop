@@ -19,9 +19,12 @@
 		<script type="text/javascript" src="{{ url_for('static', filename='bcur/buffer.min.js') }}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='bcur/urlib.min.js') }}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='bcur/base58.min.js') }}"></script>
-		{% include "includes/overlay/overlay.html" %}
-		{% include "includes/qr-code.html" %}
-		{% include "includes/asset-label.html" %}
+		{% if not hwi_bridge %}
+			{# url routes are not defined in hwi_bridge mode. Includes with `url_for` will fail. #}
+			{% include "includes/overlay/overlay.html" %}
+			{% include "includes/qr-code.html" %}
+			{% include "includes/asset-label.html" %}
+		{% endif %}
 	{% endif %}
 	{% include "includes/message-box.html" %}
 	{% include "includes/tool-tip.html" %}
@@ -231,36 +234,40 @@
 		</main>
 	</div>
 	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
-	<script>
-		async function toggleHideSensitiveInfo() {
-			showNotification('{{ "Revealing" if specter.hide_sensitive_info else "Hiding"}} sensitive info...', 0);
-            let url = `{{ url_for('toggle_hide_sensitive_info') }}`;
-            var formData = new FormData();
-			formData.append('csrf_token', '{{ csrf_token() }}');
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-                if (jsonResponse.success) {
-                    location.reload();
-                    return
-                };
-                showError('Failed to toggle sensitive info mode...')
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(e);
-            }
-        }
-	</script>
+
+	{% if not hwi_bridge %}
+		{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}
+		<script>
+			async function toggleHideSensitiveInfo() {
+				showNotification('{{ "Revealing" if specter.hide_sensitive_info else "Hiding"}} sensitive info...', 0);
+				let url = `{{ url_for('toggle_hide_sensitive_info') }}`;
+				var formData = new FormData();
+				formData.append('csrf_token', '{{ csrf_token() }}');
+				try {
+					const response = await fetch(
+						url,
+						{
+							method: 'POST',
+							body: formData
+						}
+					);
+					if(response.status != 200){
+						showError(await response.text());
+						return;
+					}
+					const jsonResponse = await response.json();
+					if (jsonResponse.success) {
+						location.reload();
+						return
+					};
+					showError('Failed to toggle sensitive info mode...')
+				} catch(e) {
+					console.log("Caught error: ", e);
+					showError(e);
+				}
+			}
+		</script>
+	{% endif %}
 	{% block scripts %}
 		<script>
 			{% include "includes/language/language_js.jinja" %}
