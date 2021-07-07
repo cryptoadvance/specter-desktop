@@ -3856,358 +3856,358 @@ msgstr ""
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:161
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:181
 msgid "Amount:"
-msgstr ""
+msgstr "Quantidade:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:190
 msgid "send max"
-msgstr ""
+msgstr "Enviar o máximo"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:337
 msgid "Please first enter a valid address"
-msgstr ""
+msgstr "Por favor, entre com uma quantidade válida"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:385
 msgid "Amount entered is invalid!"
-msgstr ""
+msgstr "A quantidade informada é inválida!"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:399
 msgid "You cannot send more than"
-msgstr ""
+msgstr "Você não pode enviar mais do que "
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:404
 msgid "You need to select more coins to match your amount!"
-msgstr ""
+msgstr "Você precisa selecionar mais moedas para corresponder ao valor!"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:409
 msgid "Invalid amount! Wrong unit?"
-msgstr ""
+msgstr "Quantidade inválida! Unidade errada?"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:445
 msgid "Please enter the amount that you wish to send"
-msgstr ""
+msgstr "Por favor, entre com a quantidade que gostaria de enviar"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:459
 msgid "Please enter a valid recipient address"
-msgstr ""
+msgstr "Por favor, entre com um endereço válido"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:585
 msgid "failed to calculate transaction fees"
-msgstr ""
+msgstr "falha ao calcular as taxas de transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:5
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:10
 msgid "Subtract fees from amount"
-msgstr ""
+msgstr "Subtraia as taxas do valor"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:11
 msgid "If checked, the transaction fees will be paid off from the transaction amount."
-msgstr ""
+msgstr "Se marcado, as taxas de transação serão pagas subtraindo o valor da transação."
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:12
 msgid "Otherwise, the fees will be paid as an added cost in addition to the amount sent."
-msgstr ""
+msgstr "Caso contrário, as taxas serão pagas como um custo adicional além do valor enviado."
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:17
 msgid "Subtract from recipient number:"
-msgstr ""
+msgstr "Subtrair do número do destinatário"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:20
 msgid "Fees:"
-msgstr ""
+msgstr "Taxas:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:21
 msgid "dynamic"
-msgstr ""
+msgstr "dinâmica"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:22
 msgid "manual"
-msgstr ""
+msgstr "manual"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:26
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:39
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:119
 msgid "Fee rate:"
-msgstr ""
+msgstr "Taxa:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:29
 msgid "leave blank to set automatically, 1 sat/vbyte is the minimal fee rate."
-msgstr ""
+msgstr "deixe em branco para definir automaticamente, 1 sat/vbyte é a taxa mínima."
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:37
 msgid "Estimated speed:"
-msgstr ""
+msgstr "Velocidade estimada:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:43
 msgid "RBF Enabled"
-msgstr ""
+msgstr "RBF Habilitado"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:69
 msgid "Very slow"
-msgstr ""
+msgstr "Muito lenta"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:71
 msgid "Slow"
-msgstr ""
+msgstr "Lenta"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:73
 msgid "Medium (1 hour)"
-msgstr ""
+msgstr "Médio (1 hora)"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:75
 msgid "Fast (30 minutes)"
-msgstr ""
+msgstr "Rápido (30 min)"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:77
 msgid "Very fast (10 minutes)"
-msgstr ""
+msgstr "Muito rápido (10 min)"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:79
 msgid "Overpaid! (10 minutes)"
-msgstr ""
+msgstr "Pago em excesso! (10 min)"
 
 #: src/cryptoadvance/specter/templates/wallet/send/pending/wallet_sendpending.jinja:6
 msgid "Transactions Awaiting Signing:"
-msgstr ""
+msgstr "Transações Esperando Assinatura:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/pending/wallet_sendpending.jinja:11
 msgid "Here you can manage PSBTs (Partially Signed Bitcoin Transactions) you have created but did not finish signing or broadcasted to the network."
-msgstr ""
+msgstr "Aqui você pode gerenciar os PSBTs (Partially Signed Bitcoin Transactions) criados, mas que não concluiu a assinatura ou não transmitiu para a rede."
 
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_item.jinja:34
 msgid "Open"
-msgstr ""
+msgstr "Aberta"
 
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Sigs"
-msgstr ""
+msgstr "Assinaturas"
 
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:31
 msgid "No transactions yet."
-msgstr ""
+msgstr "Sem transações ainda."
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:80
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:82
 msgid "Sending"
-msgstr ""
+msgstr "Enviando"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:105
 msgid "Acquired"
-msgstr ""
+msgstr "Adquirido"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:105
 msgid "signatures"
-msgstr ""
+msgstr "Assinaturas"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:112
 msgid "transaction details"
-msgstr ""
+msgstr "Detalhes da transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:116
 msgid "Transaction Info"
-msgstr ""
+msgstr "Informação da Transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:118
 msgid "Total fee:"
-msgstr ""
+msgstr "Taxas totais:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:122
 msgid "Estimated size:"
-msgstr ""
+msgstr "Tamanho estimado:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:125
 msgid "Size:"
-msgstr ""
+msgstr "Tamanho"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:127
 msgid "Inputs count:"
-msgstr ""
+msgstr "Quantidade de entradas:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:128
 msgid "Outputs count:"
-msgstr ""
+msgstr "Quantidade de saídas:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:130
 msgid "Inputs"
-msgstr ""
+msgstr "Entradas"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:140
 msgid "Transaction id:"
-msgstr ""
+msgstr "ID da transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:142
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:171
 msgid "Output"
-msgstr ""
+msgstr "Saída"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:150
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:177
 msgid "Label:"
-msgstr ""
+msgstr "Rótulo:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:184
 msgid "Raw PSBT:"
-msgstr ""
+msgstr "PSBT bruto:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:189
 msgid "Save binary"
-msgstr ""
+msgstr "Salvar em binário"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:194
 msgid "Save base64"
-msgstr ""
+msgstr "Salvar em base64"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:198
 msgid "Copy Raw PSBT"
-msgstr ""
+msgstr "Copiar PSBT bruto"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:202
 msgid "Show QR code"
-msgstr ""
+msgstr "Mostrar QR code"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:209
 msgid "Sign transaction with your:"
-msgstr ""
+msgstr "Assinar a transação com seu:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:220
 msgid "Transaction is ready to send"
-msgstr ""
+msgstr "A transação está pronta para ser enviada"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:226
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:229
 msgid "Paste signed transaction"
-msgstr ""
+msgstr "Cole sua transação assinada"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:230
 msgid "Paste your transaction here"
-msgstr ""
+msgstr "Cole sua transação aqui"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:232
 msgid "Confirm"
-msgstr ""
+msgstr "Confirmar"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:239
 msgid "Delete Transaction"
-msgstr ""
+msgstr "Excluir transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:418
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:448
 msgid "Sending transaction..."
-msgstr ""
+msgstr "Enviando transação..."
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:440
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:443
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:473
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:476
 msgid "Server failed to broadcast transactions!"
-msgstr ""
+msgstr "Falha no servidor ao transmitir as transações!"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:16
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:24
 msgid "Wallet Info"
-msgstr ""
+msgstr "Informação da Carteira"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:41
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:269
 msgid "Show keys details"
-msgstr ""
+msgstr "Mostrar detalhes das chaves"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:49
 msgid "SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub."
-msgstr ""
+msgstr "Chaves públicas extentidas do tipo SLIP-132 (xpubs) são um formato diferente de xpubs que normalmente começam com zpub ou ypub."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:82
 msgid "Export Wallet"
-msgstr ""
+msgstr "Exportar Carteira"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:121
 msgid "Export To Wallet Software"
-msgstr ""
+msgstr "Exportando Para o Software da Carteira"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:123
 msgid "Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file."
-msgstr ""
+msgstr "Importar esta carteira para outra instância Specter ou para outra carteiras escaneando o QR code ou importando usando o arquivo JSON."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:127
 msgid "Export PDF backup"
-msgstr ""
+msgstr "Exportar o backup em PDF"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:154
 msgid "Advanced Options"
-msgstr ""
+msgstr "Opções Avançadas"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:156
 msgid "Keypool control"
-msgstr ""
+msgstr "Controle da keypool"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
 msgid "Currently watching"
-msgstr ""
+msgstr "Atualmente observando"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
 msgid "receiving and"
-msgstr ""
+msgstr "recebendo e"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
 msgid "change addresses."
-msgstr ""
+msgstr "endereços de troco."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
 msgid "Watch"
-msgstr ""
+msgstr "Veja"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
 msgid "more addresses"
-msgstr ""
+msgstr "Mais endereços"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:166
 msgid "Blockchain rescan"
-msgstr ""
+msgstr "Rescaneamento da blockchain"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:172
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:196
 msgid "Abort rescan"
-msgstr ""
+msgstr "Abortar rescaneamento"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:186
 msgid "Note: You are using a pruned node. Rescan is limited by the pruned height to block:"
-msgstr ""
+msgstr "Nota: Você está usando um node prunado. O reescaneamento será limitado até a altura do bloco:"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:188
 msgid "was the first Segwit block."
-msgstr ""
+msgstr "foi o primeiro bloco Segwit"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
 msgid "UTXO rescan in process:"
-msgstr ""
+msgstr "Rescaneamento do UTXO em andamento:"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:200
 msgid "Or rescan only unspent transactions:"
-msgstr ""
+msgstr "Ou procure novamente apenas as transações não gastas:"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:203
 msgid "Rescan UTXO"
-msgstr ""
+msgstr "Rescaneando UTXO"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:208
 msgid "Rescanning UTXO set"
-msgstr ""
+msgstr "Rescaneando o conjunto do UTXO"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:209
 msgid "Only unspent transactions will be imported, so you won't see the full history, but your balance will be there."
-msgstr ""
+msgstr "Apenas as transações não gastas serão importadas, você não verá o histórico completo, mas o saldo estará lá."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
 msgid "Note:"
-msgstr ""
+msgstr "Nota:"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
 msgid "Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found."
-msgstr ""
+msgstr "Certifique-se de ter endereços suficientes no keypool, caso contrário, algumas transações não gastas podem não ser encontradas."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:255
 msgid "Delete Wallet"
-msgstr ""
+msgstr "Deletar carteira"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
 msgid "Hide keys details"
-msgstr ""
+msgstr "Esconder detalhes da carteira"
