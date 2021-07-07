@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import platform
+import re
 import shutil
 import signal
 import subprocess
@@ -115,6 +116,8 @@ class NodeController:
             )
             self.network = network
             self.node_impl = node_impl
+            # reasonable default
+            self.cleanup_hard = False
         except Exception as e:
             logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
             raise e
@@ -134,7 +137,10 @@ class NodeController:
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
         if not self.check_existing() is None:
-            raise Exception("REUSING existing node not allowed")
+            # This should not happen. For bitcoind, have a look in BitcoindController.attach_to_proc_id()
+            raise SpecterError(
+                f"While starting Node, there is already a Node running at {self.rpcconn.render_url(password_mask=True)}"
+            )
 
         self._start_node(
             cleanup_at_exit,
@@ -397,7 +403,9 @@ class NodePlainController(NodeController):
         )
         time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
-            raise SpecterError(f"Could not start node due to:" + self.get_debug_log())
+            # Might itself raise a SpecterError:
+            debug_logs = self.get_debug_log()
+            raise SpecterError(f"Could not start node due to:" + debug_logs)
         logger.debug(
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )
@@ -420,31 +428,40 @@ class NodePlainController(NodeController):
             signal.signal(signal.SIGTERM, cleanup_node_callback)
 
     def get_debug_log(self):
+
+        logfile_location = os.path.join(
+            self.datadir,
+            self.network if self.network != "testnet" else "testnet3",
+            "debug.log",
+        )
         try:
-            logfile_location = os.path.join(
-                self.datadir,
-                self.network if self.network != "testnet" else "testnet3",
-                "debug.log",
-            )
             return "".join(get_last_lines_from_file(logfile_location))
+        except FileNotFoundError as e:
+            raise SpecterError(
+                f"Could not find debug.log at {logfile_location}. Is that directory even existing?"
+            )
         except Exception as e:
             logger.exception(f"Failed to get debug logs. Error: {e}")
-            return ""
+            return "[Failed to get debug logs. Check the logs for details]"
 
     def cleanup_node(self, cleanup_hard=None, datadir=None):
         """KILLS or TERMINATES the node-process depending on cleanup_hard
         removes the datadir in case of KILL
         """
-        if datadir is None:
-            datadir = self.datadir
+        returnvalue = True  # assume only the best
+        if not hasattr(self, "datadir"):
+            self.datadir = None
+
         if cleanup_hard == None:
             cleanup_hard = self.cleanup_hard
         if not hasattr(self, "node_proc"):
             logger.info("node process was not running")
             if cleanup_hard:
                 logger.info(f"Removing node datadir: {datadir}")
+                if datadir is None:
+                    datadir = self.datadir
                 shutil.rmtree(datadir, ignore_errors=True)
-            return
+            returnvalue = False
         timeout = 50  # in secs
         logger.info(
             f"Cleaning up (cleanup_hard:{cleanup_hard} , datadir:{self.datadir})"
@@ -457,32 +474,38 @@ class NodePlainController(NodeController):
                 )
                 shutil.rmtree(self.datadir, ignore_errors=True)
             except Exception as e:
-                logger.debug(e)
+                logger.error(e)
+                returnvalue = False
         else:
             try:
-                self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-                logger.info(
-                    f"Terminated {self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-                )
-                # self.node_proc.wait() # doesn't have a timeout
-                procs = psutil.Process().children()
-                for p in procs:
-                    p.terminate()
-                _, alive = psutil.wait_procs(procs, timeout=timeout)
-                for p in alive:
+                if not hasattr(self, "node_proc"):
+                    returnvalue = False
+                else:
+                    self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                     logger.info(
-                        f"{self.node_impl} did not terminated in time, killing!"
+                        f"Terminated {self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                     )
-                    p.kill()
+                    # self.node_proc.wait() # doesn't have a timeout
+                    procs = psutil.Process().children()
+                    for p in procs:
+                        p.terminate()
+                    _, alive = psutil.wait_procs(procs, timeout=timeout)
+                    for p in alive:
+                        logger.info(
+                            f"{self.node_impl} did not terminated in time, killing!"
+                        )
+                        p.kill()
             except ProcessLookupError:
-                # Bitcoind probably never came up or crashed. Silently ignored
-                pass
+                # Bitcoind probably never came up or crashed.
+                returnvalue = False
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
+        return returnvalue
 
     def stop_node(self):
-        self.cleanup_node()
+        success = self.cleanup_node()
         self.status = "Down"
+        return success
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if a
