@@ -299,7 +299,7 @@ class Wallet:
                 [("gettransaction", txid) for txid in unconfirmed_selftransfers]
             )
         while True:
-            res = (
+            txlist = (
                 self.rpc.listtransactions(
                     "*",
                     LISTTRANSACTIONS_BATCH_SIZE,
@@ -308,9 +308,13 @@ class Wallet:
                 )
                 + [tx["result"] for tx in unconfirmed_selftransfers_txs]
             )
+            # list of transactions that we don't know about,
+            # or that it has a different blockhash (reorg / confirmed)
+            # or doesn't have an address(?)
+            # or has wallet conflicts
             res = [
                 tx
-                for tx in res
+                for tx in txlist
                 if tx["txid"] not in self._transactions
                 or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
@@ -397,7 +401,6 @@ class Wallet:
                 ]
                 self._addresses.add(addresses, check_rpc=False)
                 self._addresses.add(change_addresses, check_rpc=False)
-                self._transactions.add(txs)
 
     def update(self):
         self.getdata()

@@ -93,6 +93,7 @@ class Address(dict):
 
 class AddressList(dict):
     AddressCls = Address
+
     def __init__(self, path, rpc):
         super().__init__()
         self.path = path

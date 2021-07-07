@@ -64,8 +64,8 @@ class TxItem(dict):
 
         super().__init__(**kwargs)
         self._tx = None
-        # if we have hex in csv
-        if "hex" in kwargs:
+        # if we have hex data
+        if kwargs.get("hex"):
             self._tx = self.TransactionCls.from_string(kwargs["hex"])
 
     @property
@@ -138,7 +138,8 @@ class TxItem(dict):
 
 
 class TxList(dict):
-    ItemCls = TxItem # for inheritance
+    ItemCls = TxItem  # for inheritance
+
     def __init__(self, path, rpc, addresses, chain):
         self.chain = chain
         self.path = path
@@ -259,9 +260,9 @@ class TxList(dict):
                 if vin["txid"] in self:
                     try:
                         address = get_address_from_dict(
-                            decoderawtransaction(self[vin["txid"]]["hex"])[
-                                "vout"
-                            ][vin["vout"]]
+                            self.decoderawtransaction(self[vin["txid"]]["hex"])["vout"][
+                                vin["vout"]
+                            ]
                         )
                         address_info = self._addresses.get(address, None)
                         if address_info and not address_info.is_external:

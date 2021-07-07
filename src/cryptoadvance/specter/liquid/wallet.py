@@ -203,25 +203,147 @@ class LWallet(Wallet):
         return self.balance
 
     def fetch_transactions(self):
-        logger.error("\x1b[31;21m fetch \x1b[0m")
-        return
+        """Load transactions from Bitcoin Core"""
+        arr = []
+        idx = 0
+        # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
+        # Until v0.21, it listed there consolidations to a receive address, but not change address
+        # Since v0.21, it does not list there consolidations at all
+        # Therefore we need to check here if a transaction might got confirmed
+        # NOTE: This might be a problem in case of re-org...
+        # More details: https://github.com/cryptoadvance/specter-desktop/issues/996
+        unconfirmed_selftransfers = [
+            txid
+            for txid in self._transactions
+            if self._transactions[txid].get("category", "") == "selftransfer"
+            and not self._transactions[txid].get("blockhash", None)
+        ]
+        unconfirmed_selftransfers_txs = []
+        if unconfirmed_selftransfers:
+            unconfirmed_selftransfers_txs = self.rpc.multi(
+                [("gettransaction", txid) for txid in unconfirmed_selftransfers]
+            )
+        while True:
+            txlist = (
+                self.rpc.listtransactions(
+                    "*",
+                    LISTTRANSACTIONS_BATCH_SIZE,
+                    LISTTRANSACTIONS_BATCH_SIZE * idx,
+                    True,
+                )
+                + [tx["result"] for tx in unconfirmed_selftransfers_txs]
+            )
+            # list of transactions that we don't know about,
+            # or that it has a different blockhash (reorg / confirmed)
+            # or doesn't have an address(?)
+            # or has wallet conflicts
+            res = [
+                tx
+                for tx in txlist
+                if tx["txid"] not in self._transactions
+                or not self._transactions[tx["txid"]].get("address", None)
+                or self._transactions[tx["txid"]].get("blockhash", None)
+                != tx.get("blockhash", None)
+                or (
+                    self._transactions[tx["txid"]].get("blockhash", None)
+                    and not self._transactions[tx["txid"]].get("blockheight", None)
+                )  # Fix for Core v19 with Specter v1
+                or self._transactions[tx["txid"]].get("conflicts", [])
+                != tx.get("walletconflicts", [])
+            ]
+            # TODO: Looks like Core ignore a consolidation (self-transfer) going into the change address (in listtransactions)
+            # This means it'll show unconfirmed for us forever...
+            arr.extend(res)
+            idx += 1
+            # not sure if Core <20 returns last batch or empty array at the end
+            if (
+                len(res) < LISTTRANSACTIONS_BATCH_SIZE
+                or len(arr) < LISTTRANSACTIONS_BATCH_SIZE * idx
+            ):
+                break
+        txs = dict.fromkeys([a["txid"] for a in arr])
+        txids = list(txs.keys())
+        # get all raw transactions
+        res = self.rpc.multi([("gettransaction", txid) for txid in txids])
+        for i, r in enumerate(res):
+            txid = txids[i]
+            # check if we already added it
+            if txs.get(txid, None) is not None:
+                continue
+            txs[txid] = r["result"]
 
-    # def txlist(
-    #     self,
-    #     fetch_transactions=True,
-    #     validate_merkle_proofs=False,
-    #     current_blockheight=None,
-    # ):
-    #     """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
-    #     #Parameters:
-    #     #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
-    #     #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
-    #     #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
-    #     """
-    #     # TODO: only from RPC for now
-    #     return self.rpc.listtransactions("*", 10000, 0, True)
+        # This is a fix for Bitcoin Core versions < v0.20
+        # These do not return the blockheight as part of the `gettransaction` command
+        # So here we check if this property is lacking and if so
+        # query the current block height and manually calculate it.
+        # ##################### Remove from here after dropping Core v0.19 support #####################
+        check_blockheight = False
+        for tx in txs.values():
+            if tx and tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
+                check_blockheight = True
+                break
+        if check_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+            for tx in txs.values():
+                if tx.get("confirmations", 0) > 0:
+                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
+        # ##################### Remove until here after dropping Core v0.19 support #####################
+        self._transactions.add(txs)
+        # if self.use_descriptors:
+        #     while (
+        #         len(
+        #             [
+        #                 tx
+        #                 for tx in self._transactions
+        #                 if self._transactions[tx]["category"] != "send"
+        #                 and not self._transactions[tx]["address"]
+        #             ]
+        #         )
+        #         != 0
+        #     ):
+        #         addresses = [
+        #             dict(
+        #                 address=self.get_address(
+        #                     idx, change=False, check_keypool=False
+        #                 ),
+        #                 index=idx,
+        #                 change=False,
+        #             )
+        #             for idx in range(
+        #                 self._addresses.max_index(change=False),
+        #                 self._addresses.max_index(change=False) + self.GAP_LIMIT,
+        #             )
+        #         ]
+        #         change_addresses = [
+        #             dict(
+        #                 address=self.get_address(idx, change=True, check_keypool=False),
+        #                 index=idx,
+        #                 change=True,
+        #             )
+        #             for idx in range(
+        #                 self._addresses.max_index(change=True),
+        #                 self._addresses.max_index(change=True) + self.GAP_LIMIT,
+        #             )
+        #         ]
+        #         self._addresses.add(addresses, check_rpc=False)
+        #         self._addresses.add(change_addresses, check_rpc=False)
 
-    # def gettransaction(self, txid, blockheight=None, decode=False):
+    def txlist(
+        self,
+        fetch_transactions=True,
+        validate_merkle_proofs=False,
+        current_blockheight=None,
+    ):
+        """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
+        #Parameters:
+        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
+        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
+        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        """
+        # TODO: only from RPC for now
+        return self.rpc.listtransactions("*", 10000, 0, True)
+
+    # def gettransaction(self, txid, blockheight=None, decode=False, full=True):
     #     # TODO: only from RPC for now
     #     try:
     #         # From RPC

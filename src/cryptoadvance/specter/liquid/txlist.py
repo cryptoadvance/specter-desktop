@@ -10,13 +10,6 @@ class LTxList(TxList):
     ItemCls = LTxItem
     counter = 0
 
-    def add(self, txs):
-        print(self)
-        super().add(*args, **kwargs)
-
     def decoderawtransaction(self, txhex):
-        res = self.rpc.decoderawtransaction(txhex)
-        self.counter += 1
-        if self.counter > 20:
-            raise RuntimeError()
-        return res
+        # TODO: using rpc for now, can be moved to utils
+        return self.rpc.decoderawtransaction(txhex)
