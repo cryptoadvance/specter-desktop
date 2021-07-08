@@ -121,6 +121,9 @@ pytest --docker
 
 Running specific test subsets:
 ```
+# Run all tests but not the slow ones
+pytest -m "not slow"
+
 # Run all the tests in a specific test file
 pytest tests/test_specter.py
 
@@ -129,6 +132,9 @@ pytest tests/test_specter.py -k Manager
 
 # Run a specific test
 pytest tests/test_specter.py::test_specter
+
+# Run tests and show the fixture-setup and usage
+pytest --setup-show
 ```
 
 Check the cypress-section on how to run cypress-frontend-tests.

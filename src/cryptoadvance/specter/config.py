@@ -38,6 +38,7 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "False")
     # Logging
     # SPECTER_LOGFILE will get created dynamically in server.py
     # using:
@@ -116,6 +117,7 @@ class BaseConfig(object):
         "hi": "हिंदी",
         "nl": "Nederlands",
         "pl": "Polski",
+        "pt": "Português",
         "ru": "Русский",
         "sv": "Svenska",
         "zh_Hans_CN": "简体中文",
@@ -129,6 +131,8 @@ class DevelopmentConfig(BaseConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
     )
+    # API active by default in dev-mode
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # Env vars take priority over config settings so ensure that this is set
     os.environ["FLASK_ENV"] = "development"
@@ -136,11 +140,18 @@ class DevelopmentConfig(BaseConfig):
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"
+    # This should never be used as the data-folder is injected at runtime
+    # But let's be sure before something horrible happens:
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_testing")
+    )
+    # API active by default in test-mode
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
 
 class CypressTestConfig(TestConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
-        os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_cypress")
     )
     PORT = os.getenv("PORT", 25444)
 
