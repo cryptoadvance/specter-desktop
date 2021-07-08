@@ -1,7 +1,7 @@
 # Portuguese translations for PROJECT.
 # Copyright (C) 2021 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+# KoreaComK <koreacomk@protonmail.com>, 2021.
 #
 msgid ""
 msgstr ""
