@@ -149,6 +149,30 @@ class LWallet(Wallet):
             wallet_manager,
         )
 
+    def getdata(self):
+        self.fetch_transactions()
+        self.check_utxo()
+        self.get_info()
+        # TODO: Should do the same for the non change address (?)
+        # check if address was used already
+        try:
+            value_on_address = self.rpc.getreceivedbyaddress(self.change_address, assetlabel=None)
+        except Exception as e:
+            # Could happen if address not in wallet (wallet was imported)
+            # try adding keypool
+            logger.info(
+                f"Didn't get transactions on change address {self.change_address}. Refilling keypool."
+            )
+            logger.error(e)
+            self.keypoolrefill(0, end=self.keypool, change=False)
+            self.keypoolrefill(0, end=self.change_keypool, change=True)
+            value_on_address = {}
+
+        # if not - just return
+        if sum(value_on_address.values(), 0) > 0:
+            self.change_index += 1
+            self.getnewaddress(change=True)
+
     def get_balance(self):
         try:
             full_balance = (

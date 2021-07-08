@@ -164,6 +164,8 @@ class TxList(dict):
     def save(self):
         # check if we have at least one transaction
         if self:
+            # Dump all transactions to binary files
+            # This happens only if they have not been dumped before
             for tx in self.values():
                 tx.dump()
             write_csv(self.path, list(self.values()), self.ItemCls)
@@ -177,15 +179,16 @@ class TxList(dict):
         full=True will add a "hex" key
         decode=True will decode transaction similar to Core's decoderawtransaction
         """
+        # if we don't know blockheigth or transaction
+        # we get it from rpc
         if blockheight is None or txid not in self:
             tx = self.rpc.gettransaction(txid)
-            # save if we don't know about this tx
-            if txid not in self:
-                print("add", txid, self)
-                self.add({txid: tx})
             if "time" not in tx:
                 tx["time"] = tx["timereceived"]
-            return tx
+            # save if we don't know about this tx
+            if txid not in self:
+                self.add({txid: tx})
+        # lookup tx in cache, it should be there already
         tx = self[txid]
         res = dict(**tx)
         if full:
@@ -212,7 +215,10 @@ class TxList(dict):
             "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
         """
+        # here we store all addresses in transactions
+        # to set them used later
         addresses = []
+        # first we add all transactions to cache
         for txid in txs:
             tx = txs[txid]
             # find minimal from 3 times:
@@ -237,10 +243,12 @@ class TxList(dict):
                 for vout in txitem.tx.vout:
                     try:
                         addr = vout.script_pubkey.address(get_network(self.chain))
-                        addresses.append(addr)
+                        if addr not in addresses:
+                            addresses.append(addr)
                     except:
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
+        # detect category, amounts and addresses
         for tx in [self[tx] for tx in self if tx in txs]:
             raw_tx = self.decoderawtransaction(tx.hex)
             tx["vsize"] = raw_tx["vsize"]
@@ -267,21 +275,23 @@ class TxList(dict):
                         address_info = self._addresses.get(address, None)
                         if address_info and not address_info.is_external:
                             inputs_mine_count += 1
-                    except Exception:
+                    except Exception as e:
+                        logger.error(e)
                         continue
 
             outputs_mine_count = 0
             for out in raw_tx["vout"]:
                 try:
                     address = get_address_from_dict(out)
-                except Exception:
+                except Exception as e:
                     # couldn't get address...
+                    logger.error(e)
                     continue
                 address_info = self._addresses.get(address, None)
                 if address_info and not address_info.is_external:
                     outputs_mine_count += 1
                 addresses.append(address)
-                amounts[address] = out["value"]
+                amounts[address] = out.get("value", 0)
 
             if inputs_mine_count:
                 if outputs_mine_count == len(raw_tx["vout"]):
