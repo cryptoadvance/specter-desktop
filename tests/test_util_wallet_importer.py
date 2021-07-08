@@ -1,11 +1,15 @@
 import logging
+import time
+
 from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.descriptor import Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
 
 
-def test_WalletImporter():
+def test_WalletImporter_unit():
     specter_mock = MagicMock()
     specter_mock.chain = "regtest"
     wallet_json = """
@@ -66,3 +70,39 @@ def test_WalletImporter():
     assert wm_mock.create_wallet.called
     wm_mock.create_wallet.assert_called_once
     assert wallet_mock.keypoolrefill.called
+
+
+def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest):
+    specter = specter_regtest_configured
+    someuser: User = specter.user_manager.add_user(
+        User.from_json(
+            {
+                "id": "someuser",
+                "username": "someuser",
+                "password": "somepassword",
+                "config": {},
+                "is_admin": False,
+            },
+            specter,
+        )
+    )
+    specter.user_manager.save()
+    specter.check()
+
+    # Create a Wallet
+    wallet_json = '{"label": "another_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
+    wallet_importer = WalletImporter(
+        wallet_json, specter, device_manager=someuser.device_manager
+    )
+    wallet_importer.create_nonexisting_signers(
+        someuser.device_manager,
+        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
+    )
+    dm: DeviceManager = someuser.device_manager
+    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
+    # fund it with some coins
+    bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+    # Realize that the wallet has funds:
+    wallet.update()
+    wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
+    assert wallet.get_balance()["untrusted_pending"] == 20

@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class WalletImporter:
     """A class to create Wallets easily by json"""
 
-    def __init__(self, wallet_json, specter):
+    def __init__(self, wallet_json, specter, device_manager=None):
         """this will analyze the wallet_json and specifies self. ...:
         * wallet_name
         * recv_descriptor
@@ -26,6 +27,8 @@ class WalletImporter:
         * unknown_cosigners
         * unknown_cosigners_types
         """
+        if device_manager is None:
+            device_manager = specter.device_manager
         try:
             self.wallet_data = json.loads(wallet_json)
             (
@@ -52,9 +55,7 @@ class WalletImporter:
             self.cosigners,
             self.unknown_cosigners,
             self.unknown_cosigners_types,
-        ) = self.descriptor.parse_signers(
-            specter.device_manager.devices, self.cosigners_types
-        )
+        ) = self.descriptor.parse_signers(device_manager.devices, self.cosigners_types)
         self.wallet_type = "multisig" if self.descriptor.multisig_N > 1 else "simple"
 
     def create_nonexisting_signers(self, device_manager, request_form):
@@ -71,11 +72,13 @@ class WalletImporter:
             unknown_cosigner_type = request_form.get(
                 "unknown_cosigner_{}_type".format(i), "other"
             )
+
             device = device_manager.add_device(
                 name=unknown_cosigner_name,
                 device_type=unknown_cosigner_type,
                 keys=[unknown_cosigner_key],
             )
+            logger.info(f"Creating device {device}")
             self.keys.append(unknown_cosigner_key)
             self.cosigners.append(device)
 
@@ -93,9 +96,11 @@ class WalletImporter:
             )
         except Exception as e:
             raise SpecterError(f"Failed to create wallet: {e}")
+        logger.info(f"Created Wallet {self.wallet}")
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=False)
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=True)
         self.wallet.import_labels(self.wallet_data.get("labels", {}))
+        return self.wallet
 
     def rescan_as_needed(self, specter):
         """will rescan the created wallet"""
@@ -185,7 +190,7 @@ class WalletImporter:
             wallet_name = wallet_data["keystore"]["label"]
 
             if "xpub" in wallet_data["keystore"]:
-                wallet_type = wallet_type_by_slip132_xpub(
+                wallet_type = cls.wallet_type_by_slip132_xpub(
                     wallet_data["keystore"]["xpub"], is_multisig=False
                 )
             else:

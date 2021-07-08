@@ -31,5 +31,4 @@ elmd-conn.json
 tests/bitcoin
 tests/bitcoin.binary
 tests/bitcoin.compile
-bla
-blub
+token.sh
