@@ -224,7 +224,7 @@ class Node:
         if update_rpc:
             self.rpc = self.get_rpc()
             if self.rpc and self.rpc.test_connection():
-                logger.info(f"persisting {self} in update_rpc")
+                logger.debug(f"persisting {self} in update_rpc")
                 write_node(self, self.fullpath)
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()

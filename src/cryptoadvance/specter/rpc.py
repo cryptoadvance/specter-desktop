@@ -215,6 +215,9 @@ class RpcError(Exception):
 class BitcoinRPC:
     counter = 0
 
+    last_call_hash = None
+    last_call_hash_counter = 0
+
     def __init__(
         self,
         user="bitcoin",
@@ -240,6 +243,8 @@ class BitcoinRPC:
         self.proxy_url = proxy_url
         self.only_tor = only_tor
         self.r = None
+        self.last_call_hash = None
+        self.last_call_hash_counter = 0
         # session reuse speeds up requests
         if session is None:
             self._create_session()
@@ -333,6 +338,7 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
+        self.trace_call(url, payload)
         r = self.session.post(
             url, data=json.dumps(payload), headers=headers, timeout=timeout
         )
@@ -343,6 +349,32 @@ class BitcoinRPC:
             )
         r = r.json()
         return r
+
+    @classmethod
+    def trace_call(cls, url, payload):
+        """logs out the call and its payload, reduces noise by suppressing repeated calls"""
+        if False:  # noise-reduction
+            logger.debug(f"call({url}) payload:{payload}")
+        else:
+            current_hash = hash(
+                json.dumps({"url": url, "payload": payload}, sort_keys=True)
+            )
+            if cls.last_call_hash == None:
+                cls.last_call_hash = current_hash
+                cls.last_call_hash_counter = 0
+            elif cls.last_call_hash == current_hash:
+                cls.last_call_hash_counter = cls.last_call_hash_counter + 1
+                return
+            else:
+                if cls.last_call_hash_counter > 0:
+                    logger.debug(f"call repeated {cls.last_call_hash_counter} times")
+                    cls.last_call_hash_counter = 0
+                    cls.last_call_hash = current_hash
+                else:
+                    cls.last_call_hash = current_hash
+            logger.debug(
+                "call({: <28}) payload:{}".format("/".join(url.split("/")[3:]), payload)
+            )
 
     def __getattr__(self, method):
         def fn(*args, **kwargs):
