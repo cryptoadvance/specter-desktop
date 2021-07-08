@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 14:05-0500\n"
+"POT-Creation-Date: 2021-07-08 12:04-0500\n"
 "PO-Revision-Date: 2021-07-04 15:41+0200\n"
 "Last-Translator: Sergei Tikhomirov <sergey.s.tikhomirov@gmail.com>\n"
 "Language: ru\n"
@@ -705,159 +705,159 @@ msgstr "Процесс работает неправильно, что долж�
 msgid "Details from the log file"
 msgstr "Подробности из лога"
 
-#: src/cryptoadvance/specter/templates/base.jinja:63
+#: src/cryptoadvance/specter/templates/base.jinja:66
 msgid "ERROR:"
 msgstr "ОШИБКА:"
 
-#: src/cryptoadvance/specter/templates/base.jinja:69
+#: src/cryptoadvance/specter/templates/base.jinja:72
 msgid "Something went wrong:"
 msgstr "Что-то пошло не так:"
 
-#: src/cryptoadvance/specter/templates/base.jinja:75
+#: src/cryptoadvance/specter/templates/base.jinja:78
 msgid "Welcome to Specter Desktop"
 msgstr "Добро пожаловать в Specter Desktop"
 
-#: src/cryptoadvance/specter/templates/base.jinja:78
+#: src/cryptoadvance/specter/templates/base.jinja:81
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
 msgstr "Specter Desktop — это удобный интерфейс-кошелек, помогающий лучше использовать ваш биткоин-узел (Bitcoin Core). Он хорошо работает для кошельков с одной подписью, но уделяет особое внимание кошелькам с несколькими подписями (мультисиг), использующим аппаратные кошельки от разных производителей и не соединенные с интернетом (air-gapped) устройства для подписывания транзакций."
 
-#: src/cryptoadvance/specter/templates/base.jinja:85
+#: src/cryptoadvance/specter/templates/base.jinja:88
 msgid "Get started!"
 msgstr "Давайте начнем!"
 
-#: src/cryptoadvance/specter/templates/base.jinja:85
+#: src/cryptoadvance/specter/templates/base.jinja:88
 msgid "Continue setup"
 msgstr "Продолжить настройку"
 
-#: src/cryptoadvance/specter/templates/base.jinja:88
+#: src/cryptoadvance/specter/templates/base.jinja:91
 msgid "Getting Started"
 msgstr "Первые шаги"
 
-#: src/cryptoadvance/specter/templates/base.jinja:94
+#: src/cryptoadvance/specter/templates/base.jinja:97
 msgid "Using Specter from a remote machine?"
 msgstr "Используете Specter с удаленного компьютера?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:96
+#: src/cryptoadvance/specter/templates/base.jinja:99
 msgid "If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB."
 msgstr "Если Specter работает на удаленном устройстве, таком как Umbrel или myNode, вам нужно обновить настройки для подключения аппаратных кошельков по USB."
 
-#: src/cryptoadvance/specter/templates/base.jinja:98
+#: src/cryptoadvance/specter/templates/base.jinja:101
 msgid "Update your settings"
 msgstr "Обновите настройки"
 
-#: src/cryptoadvance/specter/templates/base.jinja:113
+#: src/cryptoadvance/specter/templates/base.jinja:116
 msgid "Connect Specter with Bitcoin Core node."
 msgstr "Подключите Specter к узлу Bitcoin Core."
 
-#: src/cryptoadvance/specter/templates/base.jinja:120
+#: src/cryptoadvance/specter/templates/base.jinja:123
 msgid "Connecting Specter to your Bitcoin Core node"
 msgstr "Подключаю Specter к вашему узлу Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:122
+#: src/cryptoadvance/specter/templates/base.jinja:125
 msgid "I don't have a Bitcoin Core node yet."
 msgstr "У меня пока нет узла Bitcoin Core."
 
-#: src/cryptoadvance/specter/templates/base.jinja:123
+#: src/cryptoadvance/specter/templates/base.jinja:126
 msgid "I have Bitcoin Core on this computer."
 msgstr "На этом компьютере есть Bitcoin Core."
 
-#: src/cryptoadvance/specter/templates/base.jinja:124
+#: src/cryptoadvance/specter/templates/base.jinja:127
 msgid "I have a remote Bitcoin Core node."
 msgstr "У меня есть Bitcoin Core на удаленном компьютере."
 
-#: src/cryptoadvance/specter/templates/base.jinja:128
+#: src/cryptoadvance/specter/templates/base.jinja:131
 msgid "Installing and Setting Up Bitcoin Core"
 msgstr "Установка и настройка Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:129
+#: src/cryptoadvance/specter/templates/base.jinja:132
 msgid "Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop"
 msgstr "Посмотрите следующие видео-инструкции о том, как скачать и настроить Bitcoin Core для работы с Specter Desktop"
 
-#: src/cryptoadvance/specter/templates/base.jinja:137
+#: src/cryptoadvance/specter/templates/base.jinja:140
 msgid "Connecting Specter to your local Bitcoin Core node"
 msgstr "Подключаю Specter к вашему локальному узлу Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:138
+#: src/cryptoadvance/specter/templates/base.jinja:141
 msgid "If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location."
 msgstr "Если вы запустили локальный узел Bitcoin Core, Specter должен автоматически это определить, если директория с данными расположена по умолчанию."
 
-#: src/cryptoadvance/specter/templates/base.jinja:139
+#: src/cryptoadvance/specter/templates/base.jinja:142
 msgid "In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page."
 msgstr "Если это не так, вам нужно задать путь к директории с данными Bitcoin Core на странице настроек Specter."
 
-#: src/cryptoadvance/specter/templates/base.jinja:140
+#: src/cryptoadvance/specter/templates/base.jinja:143
 msgid "Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr "Либо вы можете выключить авто-определение на странице настроек и задать параметры доступа к RPC Bitcoin Core и URL-адрес хоста вручную."
 
-#: src/cryptoadvance/specter/templates/base.jinja:141
+#: src/cryptoadvance/specter/templates/base.jinja:144
 msgid "<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file."
 msgstr "<b>Обратите внимание:</b><br>Ваш узел должен быть настроен со строкой <code>server=1</code> в файле <code>bitcoin.conf</code>."
 
-#: src/cryptoadvance/specter/templates/base.jinja:142
+#: src/cryptoadvance/specter/templates/base.jinja:145
 msgid "If you don't have that, add it and restart Bitcoin Core."
 msgstr "Если это не так, добавьте ее и перезапустите Bitcoin Core."
 
-#: src/cryptoadvance/specter/templates/base.jinja:145
+#: src/cryptoadvance/specter/templates/base.jinja:148
 msgid "In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop"
 msgstr "В дополнение, вы можете посмотреть эти видео-инструкции по настройке Bitcoin Core для работы с Specter Desktop"
 
-#: src/cryptoadvance/specter/templates/base.jinja:153
+#: src/cryptoadvance/specter/templates/base.jinja:156
 msgid "Connecting Specter to your remote Bitcoin Core node"
 msgstr "Подключаю Specter к вашему удаленному узлу Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:154
+#: src/cryptoadvance/specter/templates/base.jinja:157
 msgid "Connecting to a \"node in a box\""
 msgstr "Подключаюсь к \"узлу в коробке\""
 
-#: src/cryptoadvance/specter/templates/base.jinja:156
+#: src/cryptoadvance/specter/templates/base.jinja:159
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
 msgstr "Specter можно использовать с удаленным узлом Bitcoin Core, работающим на таких устройствах как RaspiBlitz, myNode, Umbrel и Embassy."
 
-#: src/cryptoadvance/specter/templates/base.jinja:157
+#: src/cryptoadvance/specter/templates/base.jinja:160
 msgid "RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually."
 msgstr "RaspiBlitz и myNode позволяют использовать Specter напрямую на удаленном устройстве. Это означает, что можно пропустить ручную настройку соединения."
 
-#: src/cryptoadvance/specter/templates/base.jinja:158
+#: src/cryptoadvance/specter/templates/base.jinja:161
 msgid "If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr "Если вы хотите использовать другой тип узла или хотите запустить Specter локально и подключаться к нему с удаленного устройства, откройте вкладку Bitcoin Core в настройках и задайте параметры доступа к Bitcoin Core RPC и URL-адрес хоста вручную."
 
-#: src/cryptoadvance/specter/templates/base.jinja:160
+#: src/cryptoadvance/specter/templates/base.jinja:163
 msgid "Connecting over Tor"
 msgstr "Подключение через Tor"
 
-#: src/cryptoadvance/specter/templates/base.jinja:161
+#: src/cryptoadvance/specter/templates/base.jinja:164
 msgid "Connecting over Tor requires that you first configure Tor on your local machine."
 msgstr "Чтобы подключиться через Tor, сначала настройте Tor на своем локальном устройстве."
 
-#: src/cryptoadvance/specter/templates/base.jinja:174
+#: src/cryptoadvance/specter/templates/base.jinja:177
 msgid "Add signing devices you wish to use."
 msgstr "Добавьте подписывающие устройства, которые хотите использовать."
 
-#: src/cryptoadvance/specter/templates/base.jinja:186
+#: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "Create your first wallet!"
 msgstr "Создайте свой первый кошелек!"
 
-#: src/cryptoadvance/specter/templates/base.jinja:199
+#: src/cryptoadvance/specter/templates/base.jinja:202
 msgid "And when you are all set: Get the whitepaper from the timechain."
 msgstr "И когда всё готово, получите статью (whitepaper) из таймчейна."
 
-#: src/cryptoadvance/specter/templates/base.jinja:211
+#: src/cryptoadvance/specter/templates/base.jinja:214
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
 msgstr "Проблемы? Почитайте <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">ответы на часто задаваемые вопросы </a>"
 
-#: src/cryptoadvance/specter/templates/base.jinja:212
+#: src/cryptoadvance/specter/templates/base.jinja:215
 msgid "Still having issues?"
 msgstr "Проблемы не решены?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:213
+#: src/cryptoadvance/specter/templates/base.jinja:216
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
 msgstr "Откройте <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">issue на сайте GitHub</a> или задайте вопрос в <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\"> телеграм-чате сообщества Specter</a>"
 
-#: src/cryptoadvance/specter/templates/base.jinja:217
+#: src/cryptoadvance/specter/templates/base.jinja:220
 msgid "Help wanted: Do you like Specter?"
 msgstr "Нужна помощь: вам нравится Specter?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:220
+#: src/cryptoadvance/specter/templates/base.jinja:223
 msgid "Supported and maintained by"
 msgstr "Поддержка осуществляется"
 
