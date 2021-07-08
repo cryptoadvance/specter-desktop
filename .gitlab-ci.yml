@@ -25,10 +25,21 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-  - ./tests/install_bitcoind.sh --debug --elements compile
+# This doesn't get cached in gitlab but we don't need it anyway for now:
+#  - ./tests/install_bitcoind.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
+
+check:
+  stage: testing
+  # We simply check here whether all the tests on github are completed and green
+  script:
+    - ./utils/release.sh wait_on_master || exit 1 # that command will have a non-0 exit-value if not everything is green
+
+# jobs with a preceding . like .test are hidden jobs and are not executed. I leave them in here as
+# we might want to reactivate them in the case that github explodes or something.
+# So effectively, gitlab is currently only used for releasing.
 
 .test:
  stage: testing

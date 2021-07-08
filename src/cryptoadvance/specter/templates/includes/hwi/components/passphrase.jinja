@@ -1,5 +1,5 @@
 <div id="hwi_passphrase" class="hidden">
-    <h2>Enter Passphrase</h2>
+    <h2>{{ _("Enter Passphrase") }}</h2>
     <div class="flex-center flex-column">
         <br/>
         <div>
@@ -19,7 +19,7 @@
         let inp = document.getElementById("hwi_passphrase_passphrase");
         let submit = document.createElement('button');
         submit.classList.add('btn');
-        submit.innerHTML = "Submit";
+        submit.innerHTML = '{{ _("Submit") }}';
         let result = null;
         submit.addEventListener('click', e=>{
             result = inp.value;
