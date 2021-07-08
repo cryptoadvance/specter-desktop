@@ -160,7 +160,7 @@ class InternalNode(Node):
             logger.info(f"bitcoind {self.name} stopped")
         else:
             logger.error(f"Failed to stop bitcoind {self.name}")
-            self.status = self.BROKEN
+            self._status = self.BROKEN
         logger.info(f"STOPPING process complete {self.name} to status {self.status}")
 
     @property
