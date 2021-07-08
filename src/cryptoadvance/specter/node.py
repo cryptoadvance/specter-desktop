@@ -226,8 +226,6 @@ class Node:
             if self.rpc and self.rpc.test_connection():
                 logger.info(f"persisting {self} in update_rpc")
                 write_node(self, self.fullpath)
-            else:
-                logger.error(f"not persisting broken {self.rpc} in update_rpc")
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
 
@@ -284,7 +282,7 @@ class Node:
             if self.rpc is None:
                 logger.error(f"connection of {self} is None in check_info")
             elif not self.rpc.test_connection():
-                logger.error(
+                logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
                 )
                 try:

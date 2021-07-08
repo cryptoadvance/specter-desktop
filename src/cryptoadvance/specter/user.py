@@ -54,6 +54,20 @@ class User(UserMixin):
             return ""
         return f"_{self.id}"
 
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        """pass a json or a plain-password here"""
+        try:
+            if value.get("salt") and value.get("pwdhash"):
+                self._password = value
+        except:
+            salted_hashed_password = hash_password(value)
+            self._password = salted_hashed_password
+
     @classmethod
     def from_json(cls, user_dict, specter):
         # TODO: Unify admin in backwards compatible way
@@ -75,8 +89,8 @@ class User(UserMixin):
                     specter,
                     is_admin=True,
                 )
-        except:
-            raise SpecterError("Unable to parse user JSON.")
+        except Exception as e:
+            raise SpecterError(f"Unable to parse user JSON.:{e}")
 
     @property
     def json(self):
@@ -211,6 +225,8 @@ class User(UserMixin):
         self.save_info(delete=True)
 
     def __eq__(self, other):
+        if other == None:
+            return False
         if isinstance(other, str):
             return self.id == other
         return self.id == other.id
