@@ -4,6 +4,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Frequently Asked Questions](#frequently-asked-questions)
 - [ABOUT THE PROJECT](#about-the-project)
   - [*Why the name Specter?*](#why-the-name-specter)
 - [GENERAL QUESTIONS](#general-questions)
@@ -416,7 +417,16 @@ Make sure you're using the right type of wallet. Specter is only supporting "Nes
 
 If you're running a pruned node, it's not possible to scan for the entire transaction history without doing a full re-download of the blockchain (IBD). Alternatively, we also support scanning for only the existing wallet balance (UTXO) which is very quick and supports both full and pruned nodes. However, for pruned nodes to support this feature, we must query some external data from an outside source (such as a block explorer, configurable by the user). This does not constitute a security risk, as the validity of the data can be verified against the hash existing on the pruned node itself, but can be a potential privacy risk, although it's possible to get the data over Tor to reduce the potential privacy leak. Yet, we still strongly recommend using a non-pruned-node (if possible) when dealing with older wallets.
 
-Also be aware that if you've use more than one "account" in your old wallet, you'd need to create the corresponding key in the device first and create a new wallet based on that account/key.
+Also be aware that if you've use more than one "account" in your old wallet-software, you'd need to create the corresponding key in the device first and create a new wallet based on that account/key. In Specter, one wallet is always tied to exactly one Bitcoin Account (other than e.g. trezor). Bitcoin accounts are actually specified at the device level. By default Specter imports the keys for just your first account. To import keys for additional accounts:
+
+* click on your device to "Add more keys"
+* click the "Edit" button at the top right
+* click the "Add account" that will have now appeared
+* Account 0 is the default that Specter imports on its own. Specify your target account number (accounts start at 0, so your second account is 1, your third account is 2, and so on).
+* click "Add account"
+* retrieve keys from your device as usual (over USB, airgapped SD card, or QR code)
+
+Now that the other account's keys have been imported, create a new wallet using the new key. After scanning this new wallet for funds, you should see your expected balance.
 
 Apart from that, your old wallet might have used non-standard derivation pathes or extended them in a non-standard-way. [https://walletsrecovery.org/](https://walletsrecovery.org/) is a good source for collecting such information about your old wallet.
 
