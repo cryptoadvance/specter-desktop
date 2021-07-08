@@ -333,7 +333,9 @@ def is_ip_private(ip):
 def get_address_from_dict(data_dict):
     # TODO: Remove this helper function in favor of simple ["address"]
     # when support for Bitcoin Core version < 22 is dropped
-    addr = data_dict.get("addresses") or data_dict.get("scriptPubKey", {}).get("addresses")
+    addr = data_dict.get("addresses")
+    if not addr:
+        addr = data_dict.get("scriptPubKey", {}).get("addresses")
     if addr:
         addr = addr[0]
     if not addr:
