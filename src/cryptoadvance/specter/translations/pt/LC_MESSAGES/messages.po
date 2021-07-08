@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-07-08 12:04-0500\n"
-"PO-Revision-Date: 2021-07-08 06:26-0300\n"
+"PO-Revision-Date: 2021-07-08 15:48-0300\n"
 "Last-Translator: \n"
 "Language: pt\n"
 "Language-Team: pt <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
+"X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
 msgid "Connection to node failed"
@@ -1732,7 +1733,7 @@ msgstr "Não é possível iniciar o leitor QR!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:16
 msgid "Transaction details"
-msgstr "Detalhes da transação"
+msgstr "detalhes da transação"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:39
 msgid ""
@@ -2446,7 +2447,7 @@ msgstr "Isso executará o comando <code>gettxoutsetinfo</code> do Bitcoin Core, 
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:37
 msgid "This might take a few minutes..."
-msgstr "Isso pode levar alguns minutos"
+msgstr "Isso pode levar alguns minutos."
 
 #: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:46
 msgid "Running the numbers... (this might take a few minutes)"
@@ -2644,7 +2645,7 @@ msgstr "Existem muitos problemas potenciais que impedem a conexão. Verifique no
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:87
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:101
 msgid "For more hints, please look at this <a style=\"color:grey\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md\" target=\"_blank\">article</a>."
-msgstr "Para obter mais dicas, consulte este <a style=\"color:grey\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md\" target=\"_blank\">artigo</a>"
+msgstr "Para obter mais dicas, consulte este <a style=\"color:grey\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md\" target=\"_blank\">artigo</a>."
 
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:98
 msgid "Your Credentials don't work"
@@ -2735,7 +2736,7 @@ msgstr "Link de registro de hibernação (horas)"
 
 #: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:30
 msgid "Default username is 'admin', password 'admin'."
-msgstr "O usuário padrão é 'admin', e a senha é 'admin'"
+msgstr "O usuário padrão é 'admin', e a senha é 'admin'."
 
 #: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:32
 msgid "Specter Username"
@@ -3269,7 +3270,7 @@ msgstr "Erro encontrado:"
 
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:95
 msgid "Download Progress:"
-msgstr "Progresso do Download"
+msgstr "Progresso do Download:"
 
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:107
 msgid "Starting up..."
@@ -3277,7 +3278,7 @@ msgstr "Começando..."
 
 #: src/cryptoadvance/specter/templates/setup/start.jinja:4
 msgid "Specter Quickstart!"
-msgstr "Configurando rapidamente o Specter"
+msgstr "Configurando rapidamente o Specter!"
 
 #: src/cryptoadvance/specter/templates/setup/start.jinja:5
 msgid "Get up and running with Specter in just a few clicks!"
@@ -3362,7 +3363,7 @@ msgstr "Arquivo de Backup da Specter"
 
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:18
 msgid "(keep this information with each of your key backups)"
-msgstr ""
+msgstr "(mantenha essas informações com cada um de seus backups das chaves)"
 
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:30
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:32
@@ -3423,7 +3424,7 @@ msgstr "Escolha o dispositivo que gostaria de utilizar"
 
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:38
 msgid "We use sorted multisig (BIP-67), so <b>order is NOT important.</b>"
-msgstr "Usamos multisig classificada (BIP-67), então <b>a ordem NÃO é importante</b>."
+msgstr "Usamos multisig classificada (BIP-67), então <b>a ordem NÃO é importante.</b>"
 
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:40
 msgid "Be aware of <a style=\"color: #fff\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md\" target=\"_blank\">multisig security tradeoffs</a>."
@@ -3761,7 +3762,7 @@ msgstr "Cole o PSBT aqui"
 
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:24
 msgid "PSBT should be base64 encoded."
-msgstr "O PSBT precisa estar codificado em base64"
+msgstr "O PSBT precisa estar codificado em base64."
 
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:32
 msgid "Choose file"
@@ -3773,7 +3774,7 @@ msgstr "Usando um arquivo"
 
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:38
 msgid "The file should contain either base64 or binary encoded PSBT."
-msgstr "O arquivo deve conter o PSBT em base64 ou binário"
+msgstr "O arquivo deve conter o PSBT em base64 ou binário."
 
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:44
 msgid "Import transaction"
@@ -3872,7 +3873,7 @@ msgstr "Quantidade:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:190
 msgid "send max"
-msgstr "Enviar o máximo"
+msgstr "enviar o máximo"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:337
 msgid "Please first enter a valid address"
@@ -3884,7 +3885,7 @@ msgstr "A quantidade informada é inválida!"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:399
 msgid "You cannot send more than"
-msgstr "Você não pode enviar mais do que "
+msgstr "Você não pode enviar mais do que"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:404
 msgid "You need to select more coins to match your amount!"
@@ -3921,7 +3922,7 @@ msgstr "Caso contrário, as taxas serão pagas como um custo adicional além do 
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:17
 msgid "Subtract from recipient number:"
-msgstr "Subtrair do número do destinatário"
+msgstr "Subtrair do número do destinatário:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:20
 msgid "Fees:"
@@ -4008,11 +4009,11 @@ msgstr "Adquirido"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:105
 msgid "signatures"
-msgstr "Assinaturas"
+msgstr "assinaturas"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:112
 msgid "transaction details"
-msgstr "Detalhes da transação"
+msgstr "detalhes da transação"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:116
 msgid "Transaction Info"
@@ -4028,7 +4029,7 @@ msgstr "Tamanho estimado:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:125
 msgid "Size:"
-msgstr "Tamanho"
+msgstr "Tamanho:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:127
 msgid "Inputs count:"
@@ -4044,7 +4045,7 @@ msgstr "Entradas"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:140
 msgid "Transaction id:"
-msgstr "ID da transação"
+msgstr "ID da transação:"
 
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:142
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:171
@@ -4169,7 +4170,7 @@ msgstr "Veja"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
 msgid "more addresses"
-msgstr "Mais endereços"
+msgstr "mais endereços"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:166
 msgid "Blockchain rescan"
@@ -4186,7 +4187,7 @@ msgstr "Nota: Você está usando um node prunado. O reescaneamento será limitad
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:188
 msgid "was the first Segwit block."
-msgstr "foi o primeiro bloco Segwit"
+msgstr "foi o primeiro bloco Segwit."
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
 msgid "UTXO rescan in process:"
@@ -4226,4 +4227,3 @@ msgstr "Esconder detalhes da carteira"
 
 #~ msgid "keep this information with each of your key backups)"
 #~ msgstr "(mantenha essas informações com cada backup das suas carteiras)"
-
