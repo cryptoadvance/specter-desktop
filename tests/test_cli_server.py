@@ -27,6 +27,7 @@ mock_config_dict = {
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_host_and_port(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -51,6 +52,7 @@ def test_server_host_and_port(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_host_and_port(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -90,6 +92,7 @@ def test_server_host_and_port(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_debug(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     runner = CliRunner()
     result = runner.invoke(server, ["--debug", "--no-filelog"])
@@ -105,6 +108,7 @@ def test_server_debug(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_datafolder(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -130,6 +134,7 @@ def test_server_datafolder(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_config(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()

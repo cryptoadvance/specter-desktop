@@ -321,6 +321,7 @@ class WalletManager:
         # get Wallet class instance
         if w:
             self.wallets[name] = w
+            logger.info(f"Successfully created Wallet {name}")
             return w
         else:
             raise ("Failed to create new wallet")

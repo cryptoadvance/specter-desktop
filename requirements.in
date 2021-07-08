@@ -6,6 +6,8 @@ Flask==1.1.2
 Flask-Babel==2.0.0
 Flask-Cors==3.0.9
 Flask-Login==0.5.0
+Flask-RESTful==0.3.8
+Flask-HTTPAuth==4.2.0
 hwi==2.0.1
 importlib_metadata==2.0.0
 pyserial==3.4
