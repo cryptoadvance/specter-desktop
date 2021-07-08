@@ -1,0 +1,11 @@
+.env
+pyinstaller
+.git
+release
+docs
+.vscode
+tests
+docker
+.pytest_cache
+build
+dist

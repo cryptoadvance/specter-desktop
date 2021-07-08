@@ -1273,13 +1273,8 @@ class Wallet:
                     available["trusted"] = round(available["trusted"], 8)
             available["untrusted_pending"] = round(available["untrusted_pending"], 8)
             balance["available"] = available
-        except:
-            balance = {
-                "trusted": 0,
-                "untrusted_pending": 0,
-                "immature": 0,
-                "available": {"trusted": 0, "untrusted_pending": 0},
-            }
+        except Exception as e:
+            raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
         return self.balance
 
@@ -1404,7 +1399,7 @@ class Wallet:
             if not rbf_edit_mode:
                 if self.full_available_balance < sum(amounts):
                     raise SpecterError(
-                        "The wallet does not have sufficient funds to make the transaction."
+                        f"Wallet {self.name} does not have sufficient funds to make the transaction."
                     )
 
             if selected_coins != []:
@@ -1810,3 +1805,6 @@ class Wallet:
             )
 
         return addresses_info
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} name={self.name } alias={self.alias}>"
