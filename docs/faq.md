@@ -4,7 +4,6 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [Frequently Asked Questions](#frequently-asked-questions)
 - [ABOUT THE PROJECT](#about-the-project)
   - [*Why the name Specter?*](#why-the-name-specter)
 - [GENERAL QUESTIONS](#general-questions)
