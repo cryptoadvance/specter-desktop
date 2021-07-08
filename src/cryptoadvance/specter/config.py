@@ -117,6 +117,7 @@ class BaseConfig(object):
         "hi": "हिंदी",
         "nl": "Nederlands",
         "pl": "Polski",
+        "pt": "Português",
         "ru": "Русский",
         "sv": "Svenska",
         "zh_Hans_CN": "简体中文",
