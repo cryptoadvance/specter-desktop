@@ -9,15 +9,14 @@ msgstr ""
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-07-05 14:05-0500\n"
 "PO-Revision-Date: 2021-07-08 06:26-0300\n"
+"Last-Translator: \n"
 "Language: pt\n"
 "Language-Team: pt <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
-"Last-Translator: \n"
-"X-Generator: Poedit 3.0\n"
 
 #: src/cryptoadvance/specter/node.py:316
 msgid "Connection to node failed"
@@ -3362,8 +3361,8 @@ msgid "Specter Backup File"
 msgstr "Arquivo de Backup da Specter"
 
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:18
-msgid (keep this information with each of your key backups)"
-msgstr "(mantenha essas informações com cada backup das suas carteiras)"
+msgid "(keep this information with each of your key backups)"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:30
 #: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:32
@@ -4224,3 +4223,7 @@ msgstr "Deletar carteira"
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
 msgid "Hide keys details"
 msgstr "Esconder detalhes da carteira"
+
+#~ msgid "keep this information with each of your key backups)"
+#~ msgstr "(mantenha essas informações com cada backup das suas carteiras)"
+
