@@ -1,4 +1,5 @@
 import os
+import logging
 from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.managers.device_manager import DeviceManager
@@ -105,7 +106,10 @@ def test_DeviceManager(empty_data_folder):
     assert some_device.keys[1] == another_key
 
 
-def test_device_wallets(bitcoin_regtest, devices_filled_data_folder, device_manager):
+def test_device_wallets(
+    bitcoin_regtest, devices_filled_data_folder, device_manager, caplog
+):
+    caplog.set_level(logging.DEBUG)
     wm = WalletManager(
         200100,
         devices_filled_data_folder,

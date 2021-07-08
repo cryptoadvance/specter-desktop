@@ -1733,7 +1733,7 @@ msgstr "Não é possível iniciar o leitor QR!"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:16
 msgid "Transaction details"
-msgstr "detalhes da transação"
+msgstr "Detalhes da transação"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:39
 msgid ""
@@ -4225,5 +4225,3 @@ msgstr "Deletar carteira"
 msgid "Hide keys details"
 msgstr "Esconder detalhes da carteira"
 
-#~ msgid "keep this information with each of your key backups)"
-#~ msgstr "(mantenha essas informações com cada backup das suas carteiras)"
