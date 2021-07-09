@@ -311,7 +311,12 @@ class Node:
         """
         rpc = self.get_rpc()
         if rpc is None:
-            return {"out": "", "err": _("Connection to node failed"), "code": -1}
+            return {
+                "out": "",
+                "err": _("Connection to node failed"),
+                "code": -1,
+                "tests": {},
+            }
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""
