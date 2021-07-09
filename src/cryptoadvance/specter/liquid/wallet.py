@@ -3,10 +3,14 @@ from ..addresslist import Address
 from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from .txlist import LTxList
+from .addresslist import LAddressList
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+    AddressListCls = LAddressList
+    TxListCls = LTxList
 
     @classmethod
     def create(
@@ -145,6 +149,32 @@ class LWallet(Wallet):
             wallet_manager,
         )
 
+    def getdata(self):
+        self.fetch_transactions()
+        self.check_utxo()
+        self.get_info()
+        # TODO: Should do the same for the non change address (?)
+        # check if address was used already
+        try:
+            value_on_address = self.rpc.getreceivedbyaddress(
+                self.change_address, assetlabel=None
+            )
+        except Exception as e:
+            # Could happen if address not in wallet (wallet was imported)
+            # try adding keypool
+            logger.info(
+                f"Didn't get transactions on change address {self.change_address}. Refilling keypool."
+            )
+            logger.error(e)
+            self.keypoolrefill(0, end=self.keypool, change=False)
+            self.keypoolrefill(0, end=self.change_keypool, change=True)
+            value_on_address = {}
+
+        # if not - just return
+        if sum(value_on_address.values(), 0) > 0:
+            self.change_index += 1
+            self.getnewaddress(change=True)
+
     def get_balance(self):
         try:
             full_balance = (
@@ -198,9 +228,6 @@ class LWallet(Wallet):
         self.balance = balance
         return self.balance
 
-    def fetch_transactions(self):
-        return
-
     def txlist(
         self,
         fetch_transactions=True,
@@ -215,17 +242,6 @@ class LWallet(Wallet):
         """
         # TODO: only from RPC for now
         return self.rpc.listtransactions("*", 10000, 0, True)
-
-    def gettransaction(self, txid, blockheight=None, decode=False):
-        # TODO: only from RPC for now
-        try:
-            # From RPC
-            tx_data = self.rpc.gettransaction(txid)
-            if decode:
-                return self.rpc.decoderawtransaction(tx_data["hex"])
-            return tx_data
-        except Exception as e:
-            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSET.from_string(b64psbt)
