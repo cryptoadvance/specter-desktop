@@ -1,4 +1,6 @@
 #!/bin/bash
+# fail early
+set -o pipefail
 
 # chenage to the directory the script is located in
 cd "$( dirname "${BASH_SOURCE[0]}" )/."
@@ -63,7 +65,7 @@ function maybe_update {
         else
             echo "    --> Pinned: $PINNED! Checkout needed!"
             git fetch
-            git checkout $PINNED || exit 1
+            git checkout $PINNED
             return 1
         fi
     fi
