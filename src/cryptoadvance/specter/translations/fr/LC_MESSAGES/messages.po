@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-08 12:04-0500\n"
+"POT-Creation-Date: 2021-07-09 16:52-0500\n"
 "PO-Revision-Date: 2021-07-05 16:42+0200\n"
 "Last-Translator: \n"
 "Language: fr\n"
@@ -22,19 +22,19 @@ msgstr ""
 msgid "Connection to node failed"
 msgstr "Échec de la connection au noeud"
 
-#: src/cryptoadvance/specter/node.py:326
+#: src/cryptoadvance/specter/node.py:329
 msgid "Core Node might be too old"
 msgstr "Le noeud Core pourrait être trop vieux"
 
-#: src/cryptoadvance/specter/node.py:343
+#: src/cryptoadvance/specter/node.py:346
 msgid "Failed to connect!"
 msgstr "Échec de la connection!"
 
-#: src/cryptoadvance/specter/node.py:352
+#: src/cryptoadvance/specter/node.py:355
 msgid "RPC authentication failed!"
 msgstr "Échec de l'authentification RPC!"
 
-#: src/cryptoadvance/specter/node.py:366
+#: src/cryptoadvance/specter/node.py:369
 msgid "Failed to connect"
 msgstr "Échec de la connection"
 
@@ -573,8 +573,8 @@ msgid "Date"
 msgstr "Date"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1521
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1574
 #: src/cryptoadvance/specter/templates/includes/address-data.html:83
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
@@ -607,8 +607,8 @@ msgid "TxID"
 msgstr "TxID"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1520
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1572
 #: src/cryptoadvance/specter/templates/includes/address-data.html:82
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
@@ -624,53 +624,49 @@ msgstr "Hauteur de bloc"
 msgid "Timestamp"
 msgstr "horodatage"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
-msgid "Raw Transaction"
-msgstr "Transaction brut"
-
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1450
 msgid "Wallet"
 msgstr "Portefeuille"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1522
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1571
 msgid "Index"
 msgstr "Index"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1523
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1575
 #: src/cryptoadvance/specter/templates/includes/address-data.html:87
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 #, fuzzy
 msgid "Used"
 msgstr "Utilisé"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1524
 msgid "Current balance"
 msgstr "Solde actuel"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1539
 msgid "(external)"
 msgstr "(externe)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1543
 #, fuzzy
 msgid " (change)"
 msgstr " (changement)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1548
 msgid "unknown (external address)"
 msgstr "inconnue (adresse externe)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1573
 msgid "Type"
 msgstr "Type"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1576
 msgid "UTXO"
 msgstr "UTXO"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
 msgid "Amount (BTC)"
 msgstr "Montant (BTC)"
 
@@ -1432,7 +1428,8 @@ msgid ""
 "To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:<br>\n"
 "                    To get the single sig xpubs, go to: Advanced -> MicroSD Card -> Export Wallet -> Generic JSON. When asked for account, select account number (default is 0) and confirm the export.<br>\n"
 "                    To get the multisig xpubs, go to: Settings -> Multisig Wallets -> Export XPUB and confirm the export."
-msgstr "Pour exporter les données du portefeuille depuis la ColdCard, insérez votre carte micro SD dans l'appareil, puis:<br>\n"
+msgstr ""
+"Pour exporter les données du portefeuille depuis la ColdCard, insérez votre carte micro SD dans l'appareil, puis:<br>\n"
 "                    Pour obtenir le single sig xpubs, aller à: Avancé -> MicroSD Card -> Exporter portefeuile -> Generic JSON. Lorsqu’un compte est demandé, selectionner le numéro de compte (defaut est 0) et confirmer l'export.<br>\n"
 "                    Pour obtenir le multisig xpubs, aller à: Réglages -> Multisig Wallets -> Exporter XPUB et confirmer l'export."
 
@@ -1759,8 +1756,8 @@ msgid ""
 "Loading transaction details...\n"
 "\n"
 "Transaction ID:"
-msgstr "Chargement des détails de la transaction...n"
-"\n"
+msgstr ""
+"Chargement des détails de la transaction...n\n"
 "Identifiant de transation:"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:66
@@ -4261,4 +4258,7 @@ msgstr "Cacher le détail des clés"
 
 #~ msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
 #~ msgstr "<p><br>La configuration Bitcoin Core est en marche et les portefeuilles sont désactivés.<br><br>Assurez-vous que disablewallet est désactivé (réglez disablewallet=0 dans le fichier bitcoin.conf), puis redémarrez Bitcoin Core et essayez de nouveau.<br>Consultez <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">ce texte</a> pour plus d'information.</p>"
+
+#~ msgid "Raw Transaction"
+#~ msgstr "Transaction brut"
 
