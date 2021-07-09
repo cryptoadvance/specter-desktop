@@ -138,8 +138,7 @@ class Specter:
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
-        # Doesn't seem to be the case anymore?!
-        # exit(0)
+        exit(0)
 
     def check(self, user=None, check_all=False):
         """
