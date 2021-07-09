@@ -1445,7 +1445,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         _("Address"),
         _("Block Height"),
         _("Timestamp"),
-        _("Raw Transaction"),
     )
     if not wallet:
         row = (_("Wallet"),) + row
@@ -1467,10 +1466,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         if label == tx["address"]:
             label = ""
         tx_raw = _wallet.gettransaction(tx["txid"])
-        if tx_raw:
-            tx_hex = tx_raw["hex"]
-        else:
-            tx_hex = ""
         if not tx.get("blockheight", None):
             if tx_raw.get("blockheight", None):
                 tx["blockheight"] = tx_raw["blockheight"]
@@ -1507,7 +1502,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["address"],
             tx["blockheight"],
             tx["time"],
-            tx_hex,
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
