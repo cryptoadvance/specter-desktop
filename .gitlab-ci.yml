@@ -26,7 +26,7 @@ before_script:
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
 # This doesn't get cached in gitlab but we don't need it anyway for now:
-#  - ./tests/install_bitcoind.sh --debug --elements compile
+#  - ./tests/install_noded.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate

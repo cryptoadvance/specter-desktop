@@ -115,7 +115,7 @@ function build_node_impl {
     # but we're optimizing for mem-allocation. 1 thread is quite slow, let's try 4 (we have 4GB and need to find the sweet-spot)
     make -j3
     cd ../.. #travis is sourcing this script
-    echo "    --> Finished build bitcoind"
+    echo "    --> Finished build $node_impl"
 
 
 }
@@ -129,8 +129,23 @@ function sub_help {
 
 }
 
+function check_compile_prerequisites {
+    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
+    for REQUIRED_PKG in $REQUIRED_PKGS; do
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+        echo Checking for $REQUIRED_PKG: $PKG_OK
+        if [ "" = "$PKG_OK" ]; then
+            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+            apt-get --yes install $REQUIRED_PKG 
+        fi
+    done
+
+}
+
 function sub_compile {
     START=$(date +%s.%N)
+    check_compile_prerequisites
     node_impl=$1
     echo "    --> install_node.sh Start $(date) (compiling for $node_impl)"
     echo "        checkout ..."
@@ -147,7 +162,7 @@ function sub_compile {
 }
 
 function sub_binary {
-    echo "    --> install_bitcoind.sh Start $(date) (binary)"
+    echo "    --> install_noded.sh Start $(date) (binary)"
     START=$(date +%s.%N)
     cd tests
     # todo: Parametrize this
@@ -165,7 +180,7 @@ function sub_binary {
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_bitcoind.sh End $(date) took $DIFF"
+    echo "    --> install_noded.sh End $(date) took $DIFF"
 }
 
 function parse_and_execute() {
