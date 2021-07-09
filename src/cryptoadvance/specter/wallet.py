@@ -57,6 +57,9 @@ class Wallet:
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
     MIN_FEE_RATE = 1.01
+    # for inheritance (to simplify LWallet logic)
+    AddressListCls = AddressList
+    TxListCls = TxList
 
     def __init__(
         self,
@@ -117,12 +120,12 @@ class Wallet:
         self.last_block = last_block
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
-        self._addresses = AddressList(addr_path, self.rpc)
+        self._addresses = self.AddressListCls(addr_path, self.rpc)
         if not self._addresses.file_exists:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = TxList(
+        self._transactions = self.TxListCls(
             txs_path, self.rpc, self._addresses, self.manager.chain
         )
 
@@ -296,7 +299,7 @@ class Wallet:
                 [("gettransaction", txid) for txid in unconfirmed_selftransfers]
             )
         while True:
-            res = (
+            txlist = (
                 self.rpc.listtransactions(
                     "*",
                     LISTTRANSACTIONS_BATCH_SIZE,
@@ -305,9 +308,13 @@ class Wallet:
                 )
                 + [tx["result"] for tx in unconfirmed_selftransfers_txs]
             )
+            # list of transactions that we don't know about,
+            # or that it has a different blockhash (reorg / confirmed)
+            # or doesn't have an address(?)
+            # or has wallet conflicts
             res = [
                 tx
-                for tx in res
+                for tx in txlist
                 if tx["txid"] not in self._transactions
                 or not self._transactions[tx["txid"]].get("address", None)
                 or self._transactions[tx["txid"]].get("blockhash", None)
@@ -394,7 +401,6 @@ class Wallet:
                 ]
                 self._addresses.add(addresses, check_rpc=False)
                 self._addresses.add(change_addresses, check_rpc=False)
-                self._transactions.add(txs)
 
     def update(self):
         self.getdata()
@@ -590,7 +596,7 @@ class Wallet:
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
             for tx in utxo:
-                tx_data = self.gettransaction(tx["txid"], 0)
+                tx_data = self.gettransaction(tx["txid"], 0, full=False)
                 tx["time"] = tx_data["time"]
                 tx["category"] = "send"
                 if "locked" not in tx:
@@ -809,7 +815,7 @@ class Wallet:
                     not tx["conflicts"]
                     or max(
                         [
-                            self.gettransaction(conflicting_tx, 0)["time"]
+                            self.gettransaction(conflicting_tx, 0, full=False)["time"]
                             for conflicting_tx in tx["conflicts"]
                         ]
                     )
@@ -876,12 +882,15 @@ class Wallet:
             logging.error("Exception while processing txlist: {}".format(e))
             return []
 
-    def gettransaction(self, txid, blockheight=None, decode=False):
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+        """Gets transaction from cache
+        If full=True it will also contain "hex" key with full hex transaction.
+        If decode=True it will decode the transaction similar to Core decoderawtransaction call
+        """
         try:
-            tx_data = self._transactions.gettransaction(txid, blockheight)
-            if decode:
-                return decoderawtransaction(tx_data["hex"], self.manager.chain)
-            return tx_data
+            return self._transactions.gettransaction(
+                txid, blockheight, full=full, decode=decode
+            )
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
