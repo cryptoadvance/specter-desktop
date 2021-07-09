@@ -2,7 +2,6 @@ import logging
 import click
 from .cli_server import server
 from .cli_noded import bitcoind, elementsd
-from ..util.logging import DuplicateFilter
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,6 @@ logger = logging.getLogger(__name__)
 def entry_point(config_home, debug=False, tracerpc=False):
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    ch.addFilter(DuplicateFilter())
 
     if debug:
         # No need for timestamps while developing
