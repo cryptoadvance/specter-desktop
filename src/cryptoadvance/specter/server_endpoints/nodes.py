@@ -146,7 +146,7 @@ def node_settings(node_alias):
 
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
-                if False in list(test["tests"].values()):
+                if not test["tests"] or False in list(test["tests"].values()):
                     flash(_("Test failed: {}").format(test["err"]), "error")
                 else:
                     flash(_("Test passed"), "info")
