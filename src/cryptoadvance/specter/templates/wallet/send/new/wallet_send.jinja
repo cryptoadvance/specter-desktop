@@ -97,7 +97,9 @@
 				<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 30px;">
 					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> {{ _("Add recipient") }} </button>
 				{% if wallet.utxo | length > 0 %}
+					{% if not specter.is_liquid %}
 					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">{{ _("Select coins") }}<span class="optional">&nbsp;{{ _("manually") }}</span></button>
+					{% endif %}
 				{% endif %}
 				</div><br>
 				{% with selected_coins=selected_coins %}
@@ -112,6 +114,13 @@
 
 {% block scripts %}
 	<script>
+		{% if specter.is_liquid %}
+		const MIN_FEE_RATE = 0.1;
+		const FEE_RATE_STEP = 0.01;
+		{% else %}
+		const MIN_FEE_RATE = 1;
+		const FEE_RATE_STEP = 0.5;
+		{% endif %}
 		// Amounts and units
 		var units = [];
 		var amounts = [];
@@ -545,9 +554,9 @@
 				if (!feeOptionManual.checked) {
 					feeOptionManual.checked = true;
 					showFeeOption(feeOptionManual);
-					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value * 2) / 2;
-					if (manualRate < 1) {
-						manualRate = 1;
+					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value / FEE_RATE_STEP) * FEE_RATE_STEP;
+					if (manualRate < MIN_FEE_RATE) {
+						manualRate = MIN_FEE_RATE;
 					}
 					document.getElementById('fee_rate').value = manualRate;
 				}
@@ -581,7 +590,8 @@
 				} else {
 					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}
-			} catch {
+			} catch (e) {
+				console.log(e);
 				document.getElementById('calculated_tx_fee').innerText = `: {{ _("failed to calculate transaction fees") }}`;
 			}
 			return -1;
