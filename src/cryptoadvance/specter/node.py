@@ -224,7 +224,7 @@ class Node:
         if update_rpc:
             self.rpc = self.get_rpc()
             if self.rpc and self.rpc.test_connection():
-                logger.info(f"persisting {self} in update_rpc")
+                logger.debug(f"persisting {self} in update_rpc")
                 write_node(self, self.fullpath)
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
@@ -311,7 +311,12 @@ class Node:
         """
         rpc = self.get_rpc()
         if rpc is None:
-            return {"out": "", "err": _("Connection to node failed"), "code": -1}
+            return {
+                "out": "",
+                "err": _("Connection to node failed"),
+                "code": -1,
+                "tests": {},
+            }
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""

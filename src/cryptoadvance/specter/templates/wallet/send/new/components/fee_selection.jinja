@@ -24,9 +24,10 @@
     <br>
     <div id = "fee_manual" style="display: {% if fee_options_dynamic %}none{% else %}block{% endif %}">
         {{ _("Fee rate:") }}<br>
-        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="1" step="any" autocomplete="off" {% if not fee_options_dynamic %}value="{{ fee_rate }}"{% endif %}> sat/vbyte
+        {% set min_fee = 0.1 if specter.is_liquid else 1 %}
+        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="any" autocomplete="off" {% if not fee_options_dynamic %}value="{{ fee_rate }}"{% endif %}> sat/vbyte
         <div class="note">
-            {{ _("leave blank to set automatically, 1 sat/vbyte is the minimal fee rate.") }}
+            {{ _("leave blank to set automatically, {} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
         </div>
     </div>
     <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
