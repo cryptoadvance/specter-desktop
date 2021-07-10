@@ -1,8 +1,24 @@
 from ..addresslist import *
-from embit.liquid.addresses import addr_decode, address
+from embit.liquid.addresses import addr_decode, to_unconfidential
+
+
+class LAddress(Address):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._unconfidential = to_unconfidential(self.address)
+
+    @property
+    def unconfidential(self):
+        return self._unconfidential or self.address
+
+    @property
+    def is_confidential(self):
+        return self.address == self.unconfidential
 
 
 class LAddressList(AddressList):
+    AddressCls = LAddress
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # scriptpubkey dict for lookups of unconf addresses

@@ -5,6 +5,7 @@ from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 from .txlist import LTxList
 from .addresslist import LAddressList
+from embit.liquid.addresses import to_unconfidential
 
 
 class LWallet(Wallet):
@@ -453,7 +454,7 @@ class LWallet(Wallet):
         # TODO: handle non-blind outputs differently
         num_blinded_outs = len(psbt["outputs"]) - 1
         # estimate final size: add weight of inputs and outputs
-        # out witness weight is 4245 (from random tx)
+        # out witness weight is 4245 (from some random tx)
         # commitments in blinded tx: 33 for nonce and 33 for value
         commitment_size = 33 + 33
         tx_full_size = ceil(
@@ -469,3 +470,7 @@ class LWallet(Wallet):
             * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
             * (tx_full_size / psbt["tx"]["vsize"])
         )
+
+    @property
+    def unconfidential_address(self):
+        return to_unconfidential(self.address)
