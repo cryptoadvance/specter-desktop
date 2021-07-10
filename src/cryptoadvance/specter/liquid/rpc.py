@@ -319,8 +319,15 @@ class LiquidRPC(BitcoinRPC):
         return decoded
 
     def decoderawtransaction(self, tx):
+        blinded = super().__getattr__("decoderawtransaction")(tx)
         unblinded = self.unblindrawtransaction(tx)["hex"]
         obj = super().__getattr__("decoderawtransaction")(unblinded)
+        if "vsize" in blinded:
+            obj["vsize"] = blinded["vsize"]
+        if "size" in blinded:
+            obj["size"] = blinded["size"]
+        if "weight" in blinded:
+            obj["weight"] = blinded["weight"]
         try:
             # unblind the rest of outputs
             b = LTransaction.from_string(tx)
