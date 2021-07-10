@@ -1,13 +1,13 @@
 <style>
     .left-toolbar {
-        {% if session["language_code"] in config["RTL_LANGUAGES"] %}
+        {% if session["is_language_rtl"] %}
             border-radius: 0 0 15px 0;
         {% else %}
             border-radius: 0 0 0 15px;
         {% endif %}
     }
     .left-toolbar:hover {
-        {% if session["language_code"] in config["RTL_LANGUAGES"] %}
+        {% if session["is_language_rtl"] %}
             border-radius: 0 0 15px 0;
         {% else %}
             border-radius: 0 0 0 15px;

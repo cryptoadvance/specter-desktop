@@ -20,7 +20,7 @@
         float: right;
         width: 30px;
         position: absolute;
-        {% if session["language_code"] in config["RTL_LANGUAGES"] %}
+        {% if session["is_language_rtl"] %}
         right: 210px;
         {% else %}
         left: 210px;
