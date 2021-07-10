@@ -34,3 +34,9 @@ class LAddressList(AddressList):
         if sc in self._scripts:
             return self._scripts[sc]
         return super().__getitem__(addr)
+
+    def get(self, addr, default=None):
+        try:
+            return self[addr]
+        except KeyError:
+            return default
