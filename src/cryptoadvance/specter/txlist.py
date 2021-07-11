@@ -287,7 +287,7 @@ class TxList(dict):
                     # couldn't get address...
                     logger.error(e)
                     continue
-                address_info = self._addresses.get(address, None)
+                address_info = self._addresses.get(address)
                 if address_info and not address_info.is_external:
                     outputs_mine_count += 1
                 addresses.append(address)
