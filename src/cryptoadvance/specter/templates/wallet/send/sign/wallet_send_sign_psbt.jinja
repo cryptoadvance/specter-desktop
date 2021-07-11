@@ -115,7 +115,7 @@
 				<br>
 				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
 				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
-					<b>{{ _("Total fee:") }}/b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
+					<b>{{ _("Total fee:") }}</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>{{ _("Fee rate:") }}</b>
 					{% if 'tx_full_size' in psbt %}
 						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
