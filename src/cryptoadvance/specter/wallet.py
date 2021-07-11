@@ -1164,10 +1164,7 @@ class Wallet:
         return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
 
     def get_address_info(self, address):
-        try:
-            return self._addresses[address]
-        except:
-            return None
+        return self._addresses.get(address)
 
     def is_address_mine(self, address):
         addrinfo = self.get_address_info(address)
