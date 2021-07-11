@@ -268,7 +268,7 @@ class TxList(dict):
                 if vin["txid"] in self:
                     try:
                         address = get_address_from_dict(
-                            self.decoderawtransaction(self[vin["txid"]]["hex"])["vout"][
+                            self.decoderawtransaction(self[vin["txid"]].hex)["vout"][
                                 vin["vout"]
                             ]
                         )
