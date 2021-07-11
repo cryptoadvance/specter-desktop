@@ -13,7 +13,7 @@ class LAddress(Address):
 
     @property
     def is_confidential(self):
-        return self.address == self.unconfidential
+        return self.address != self.unconfidential
 
 
 class LAddressList(AddressList):
