@@ -269,6 +269,40 @@ class LWallet(Wallet):
             psbt.xpub = {}
         return psbt.to_string()
 
+    def delete_pending_psbt(self, txid, tx=None):
+        # liquid txid is different for blinded transaction
+        # so we go through all inputs and outputs and if they match - delete psbt
+        # This can cause side-effects if there are multiple psbts spending the same inputs to the same outputs
+        if txid not in self.pending_psbts and tx is not None:
+            try:
+                decoded = self.rpc.decoderawtransaction(tx)
+                for psbt_txid in self.pending_psbts:
+                    psbt = self.pending_psbts[psbt_txid]
+                    mismatch = False
+                    if len(psbt["inputs"]) != len(decoded["vin"]):
+                        continue
+                    if len(psbt["outputs"]) != len(decoded["vout"]):
+                        continue
+                    # check inputs
+                    for i1, i2 in zip(psbt["inputs"], decoded["vin"]):
+                        if i1["previous_txid"] != i2["txid"]:
+                            mismatch = True
+                            break
+                        if i1["previous_vout"] != i2["vout"]:
+                            mismatch = True
+                            break
+                    for o1, o2 in zip(psbt["outputs"], decoded["vout"]):
+                        if o1["script"]["hex"] != o2["scriptPubKey"]["hex"]:
+                            mismatch = True
+                            continue
+                    if mismatch:
+                        continue
+                    else:
+                        return super().delete_pending_psbt(psbt_txid, tx)
+            except Exception as e:
+                logger.warn(e)
+        return super().delete_pending_psbt(txid, tx)
+
     def get_address_info(self, address):
         try:
             res = self.rpc.getaddressinfo(address)
