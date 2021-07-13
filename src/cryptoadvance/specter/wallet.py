@@ -713,7 +713,7 @@ class Wallet:
             )
         return amount
 
-    def delete_pending_psbt(self, txid):
+    def delete_pending_psbt(self, txid, tx=None):
         try:
             self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
         except:
