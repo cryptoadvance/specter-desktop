@@ -84,7 +84,7 @@ def test_rr_psbt_post(client, caplog):
         {
             "recipients" : [
                 { 
-                    "address": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
+                    "address": "bcrt1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
                     "amount": 0.1,
                     "unit": "btc",
                     "label": "someLabel"

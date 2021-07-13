@@ -226,7 +226,7 @@ class NodeController:
                 address = "el1qqf6tv4n8qp55qc04v4xts5snd9v5uurkry4vskef6lmecahj6c42jt9lnj0432287rs67z9vzq2zvuer036s5mahptwxgyd8k"
         self.get_rpc().generatetoaddress(block_count, address)
 
-    def testcoin_faucet(self, address, amount=20):
+    def testcoin_faucet(self, address, amount=20, confirm_payment=True):
         """an easy way to get some testcoins"""
         rpc = self.get_rpc()
         try:
@@ -256,6 +256,9 @@ class NodeController:
             if btc_balance > amount:
                 break
         default_rpc.sendtoaddress(address, amount)
+        if confirm_payment:
+            # confirm it
+            rpc.generatetoaddress(1, default_address)
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):
