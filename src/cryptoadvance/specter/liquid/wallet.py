@@ -294,7 +294,7 @@ class LWallet(Wallet):
                     for o1, o2 in zip(psbt["outputs"], decoded["vout"]):
                         if o1["script"]["hex"] != o2["scriptPubKey"]["hex"]:
                             mismatch = True
-                            continue
+                            break
                     if mismatch:
                         continue
                     else:
