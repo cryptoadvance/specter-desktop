@@ -208,7 +208,7 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
         device = copy.deepcopy(cosigner)
         allowed_types = ["", wallet_type]
         if wallet_type == "simple":
-            allowed_types += ["sh-wpkh", "wpkh"]
+            allowed_types += ["sh-wpkh", "wpkh", "tr"]
         elif wallet_type == "multisig":
             allowed_types += ["sh-wsh", "wsh"]
         device.keys = sorted(

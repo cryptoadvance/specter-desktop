@@ -36,6 +36,7 @@ purposes = OrderedDict(
         "wsh": "Multisig (Segwit)",
         "sh-wsh": "Multisig (Nested)",
         "sh": "Multisig (Legacy)",
+        "tr": "Taproot",
     }
 )
 
@@ -46,6 +47,7 @@ addrtypes = {
     "sh": "legacy",
     "sh-wsh": "p2sh-segwit",
     "wsh": "bech32",
+    "tr": "taproot",  # not sure it'll work, but I don't think we are using it anyway
 }
 
 

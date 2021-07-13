@@ -29,6 +29,7 @@ class Device:
     hot_wallet = False
     bitcoin_core_support = True
     liquid_support = False
+    taproot_support = False
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         """

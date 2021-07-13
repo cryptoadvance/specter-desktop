@@ -22,6 +22,7 @@ class BitcoinCore(Device):
     icon = "bitcoincore_icon.svg"
 
     hot_wallet = True
+    taproot_support = True
 
     def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
