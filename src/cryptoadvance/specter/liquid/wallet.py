@@ -398,6 +398,11 @@ class LWallet(Wallet):
                 # bitcoin core needs us to convert sat/B to BTC/kB
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
+            # looks like change_type is required in nested segwit wallets
+            # but not in native segwit
+            if "changeAddress" not in options and "sh(" in self.change_descriptor:
+                options["change_type"] = "p2sh-segwit"
+
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
@@ -426,8 +431,15 @@ class LWallet(Wallet):
             # FIXME: get back change addresses
             # if "changeAddress" in psbt:
             #     options["changeAddress"] = psbt["changeAddress"]
+            #     if "change_type" in options:
+            #         options.pop("change_type")
             if "base64" in psbt:
                 b64psbt = psbt["base64"]
+
+        # looks like change_type is required in nested segwit wallets
+        # but not in native segwit
+        if "changeAddress" not in options and "sh(" in self.change_descriptor:
+            options["change_type"] = "p2sh-segwit"
 
         if fee_rate > 0.0:
             if not existing_psbt:
