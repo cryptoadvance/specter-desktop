@@ -12,10 +12,9 @@ describe('Send transactions from elements wallets', () => {
         cy.get('#btn_send').click()
         cy.get('#address_0').type("el1qqdsywea5scrn7t9q83fd540pw447h0uae30pdp82rzgkl7yzvjz6gra9ls8qu6sslw4s0ck48we06zhqd6kwjy2quh69zwxwn")
         cy.get('#label_0').type("Burn address")
-        cy.get('#send_max_0').click()
+        //cy.get('#send_max_0').click()
+        cy.get('#amount_0').type("1.5")
         cy.get('#create_psbt_btn').click()
-        // To be done:
-        /* cy.get('body').contains("Paste signed transaction")
         cy.get('#hot_elements_device_1_tx_sign_btn').click()
         cy.get('#hot_elements_device_1_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
@@ -23,7 +22,7 @@ describe('Send transactions from elements wallets', () => {
         cy.get('#fullbalance_amount')
         .should(($div) => {
             const n = parseFloat($div.text())
-            expect(n).to.be.equals(0)
-        }) */
+            expect(n).to.be.equals(18.49999739)
+        })
     })
 })
