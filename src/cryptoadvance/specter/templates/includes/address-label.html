@@ -172,98 +172,96 @@
                 }
             });
         }
-    }
 
-    function closeEditMode(self) {
-        self.label.removeAttribute('contenteditable')
-        if (self.isTitle) {
-            self.label.style['font-size'] = '1.5em';
-        }
-        self.label.style.border = 'none';
-        self.edit.classList.remove('hidden');
-        self.cancel.classList.add('hidden');
-        self.update.classList.add('hidden');
-        self.isEditing = false;
-        enableExplorerLink(self);
-    }
-
-    function enableExplorerLink(self) {
-        self.explorerLink.classList.add('explorer-link');
-        self.explorerLink.style.removeProperty('text-decoration')
-        if (self.explorer) {
-            self.explorerLink.href = `${ self.explorer }address/${ self.address }`
-            self.explorerLink.onclick = () => {return true;}
-        } else {
-            self.explorerLink.onclick = () => {
-                copyText(self.address, `{{ _("Copied address") }}: ${ self.address }`);
+        closeEditMode() {
+            this.label.removeAttribute('contenteditable')
+            if (this.isTitle) {
+                this.label.style['font-size'] = '1.5em';
             }
+            this.label.style.border = 'none';
+            this.edit.classList.remove('hidden');
+            this.cancel.classList.add('hidden');
+            this.update.classList.add('hidden');
+            this.isEditing = false;
+            enableExplorerLink(this);
         }
-    }
 
-    function disableExplorerLink(self) {
-        self.explorerLink.classList.remove('explorer-link');
-        self.explorerLink.style['text-decoration'] = 'none';
-        self.explorerLink.onclick = () => {return false;}
-    }
-        
-
-    async function fetchAddressLabel(self) {
-        let url = `{{ url_for('wallets_endpoint.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        var formData = new FormData();
-        formData.append('address', self.address);
-        formData.append('csrf_token', '{{ csrf_token() }}');
-        try {
-            const response = await fetch(
-                url,
-                {
-                    method: 'POST',
-                    body: formData
+        enableExplorerLink() {
+            this.explorerLink.classList.add('explorer-link');
+            this.explorerLink.style.removeProperty('text-decoration')
+            if (this.explorer) {
+                this.explorerLink.href = `${ this.explorer }address/${ this.address }`
+                this.explorerLink.onclick = () => {return true;}
+            } else {
+                this.explorerLink.onclick = () => {
+                    copyText(this.address, `{{ _("Copied address") }}: ${ this.address }`);
                 }
-            );
-            if(response.status != 200){
-                showError(await response.text());
-                return;
             }
-            const jsonResponse = await response.json();
-            if ("label" in jsonResponse) {
-                if (jsonResponse.label) {
-                    self.label.innerText = jsonResponse.label;
+        }
+
+        disableExplorerLink() {
+            this.explorerLink.classList.remove('explorer-link');
+            this.explorerLink.style['text-decoration'] = 'none';
+            this.explorerLink.onclick = () => {return false;}
+        }
+
+        async fetchAddressLabel() {
+            let url = `{{ url_for('wallets_endpoint.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            var formData = new FormData();
+            formData.append('address', this.address);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
                 }
-                return;
+                const jsonResponse = await response.json();
+                if ("label" in jsonResponse) {
+                    if (jsonResponse.label) {
+                        this.label.innerText = jsonResponse.label;
+                    }
+                    return;
+                }
+                showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
+            } catch(e) {
+                console.log('{{ _("Caught error fetching address label") }}: ', e);
+                showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
             }
-            showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
-        } catch(e) {
-            console.log('{{ _("Caught error fetching address label") }}: ', e);
-            showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
+        }
+
+        async setAddressLabel() {
+            let url = `{{ url_for('wallets_endpoint.set_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            var formData = new FormData();
+            formData.append('address', this.address);
+            formData.append('label', this.label.innerText);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                return jsonResponse.success;
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+                return false;
+            }
         }
     }
-
-    async function setAddressLabel(self) {
-        let url = `{{ url_for('wallets_endpoint.set_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        var formData = new FormData();
-        formData.append('address', self.address);
-        formData.append('label', self.label.innerText);
-        formData.append('csrf_token', '{{ csrf_token() }}');
-        try {
-            const response = await fetch(
-                url,
-                {
-                    method: 'POST',
-                    body: formData
-                }
-            );
-            if(response.status != 200){
-                showError(await response.text());
-                return;
-            }
-            const jsonResponse = await response.json();
-            return jsonResponse.success;
-        } catch(e) {
-            console.log("Caught error: ", e);
-            showError(e);
-            return false;
-        }
-    }
-
     customElements.define('address-label', AddressLabelElement);
 </script>

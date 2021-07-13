@@ -393,145 +393,143 @@
                 fetchAddressesItems(this);
             }
         }
-    }
 
-    /**
-     * Fetches addresses list from the Specter API and loads the result into AddressRowElement
-     * @param self - The AddressTableElement itself.
-    */
-    async function fetchAddressesItems(self) {
-        self.callId++;
-        // Clean up from existing addresses list
-        self.emptyRow.children[1].innerText = '{{ _("Fetching addresses...") }}';
-        self.emptyRow.classList.remove('hidden');
-        self.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
-        if (!self.listType) {
-            self.emptyRow.children[1].innerText = '{{ _("Failed to fetch addresses...") }}';
-            return
-        }
+        /**
+         * Fetches addresses list from the Specter API and loads the result into AddressRowElement
+        */
+        async fetchAddressesItems(this) {
+            this.callId++;
+            // Clean up from existing addresses list
+            this.emptyRow.children[1].innerText = '{{ _("Fetching addresses...") }}';
+            this.emptyRow.classList.remove('hidden');
+            this.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
+            if (!this.listType) {
+                this.emptyRow.children[1].innerText = '{{ _("Failed to fetch addresses...") }}';
+                return
+            }
 
-        const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
+            const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-        self.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        self.export.href += `?onlyCurrentType=${self.onlyCurrentTypeSwitch.checked}&addressType=${self.listType}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
+            this.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            this.export.href += `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
 
-        if (self.listType == "receive") {
-            self.switchText.innerText = '{{ _("Only receive addresses") }}: '
-        } else if (self.listType == "change") {
-            self.switchText.innerText = '{{ _("Only change addresses") }}: '
-        } else {
-            self.switchText.innerText = "";
-        }
+            if (this.listType == "receive") {
+                this.switchText.innerText = '{{ _("Only receive addresses") }}: '
+            } else if (this.listType == "change") {
+                this.switchText.innerText = '{{ _("Only change addresses") }}: '
+            } else {
+                this.switchText.innerText = "";
+            }
 
-        // Prepare form data with all relevant parameters
-        var formData = new FormData();
-        formData.append('idx', self.idx);
-        formData.append('limit', self.limit);
-        formData.append('addressType', self.listType);
-        formData.append('sortby', self.sortby);
-        formData.append('sortdir', self.sortdir);
-        formData.append('csrf_token', '{{ csrf_token() }}');
-        try {
-            let callId = self.callId;
-            const response = await fetch(
-                url,
-                {
-                    method: 'POST',
-                    body: formData
+            // Prepare form data with all relevant parameters
+            var formData = new FormData();
+            formData.append('idx', this.idx);
+            formData.append('limit', this.limit);
+            formData.append('addressType', this.listType);
+            formData.append('sortby', this.sortby);
+            formData.append('sortdir', this.sortdir);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                let callId = this.callId;
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+
+                if (callId != this.callId) {
+                    return;
                 }
-            );
-
-            if (callId != self.callId) {
-                return;
-            }
-            if (response.status != 200) {
-                showError(await response.text());
-                return;
-            }
-            const jsonResponse = await response.json();
-
-            if ("addressesList" in jsonResponse) {
-                // Populate the table with AddressRowElement objects using the fetched address list
-                if (jsonResponse.addressesList) {
-                    let addressesList = JSON.parse(jsonResponse.addressesList);
-
-                    for (let addr of addressesList) {
-
-                        let addrRow = document.createRange().createContextualFragment(`
-                        <address-row 
-                            data-verify-qr="{{ supports_qr_code_verify != [] }}"
-                            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-                            data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
-                            data-price="${self.price ? self.price : 0}"
-                            data-symbol="${self.symbol ? self.symbol : ''}"
-                            data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
-                            data-hide-sensitive-info="${self.hideSensitiveInfo}"
-                            data-wallet="${self.wallet}"> 
-                        </<address-row>`);
-
-                        self.tbody.append(addrRow);
-                    }
-
-                    // Pagination
-                    self.pageCount = jsonResponse.pageCount;
-
-                    // Show empty row if no addresses found
-                    if (self.pageCount == 0 || addressesList.length == 0) {
-                        self.emptyRow.classList.remove('hidden');
-                        self.emptyRow.children[1].innerText = '{{ _("No addresses found...") }}';
-                        self.pageCount = 1;
-                    } else {
-                        self.emptyRow.classList.add('hidden');
-                    }
-
-                    // If index is greater than the pages count fetch again for the last page
-                    if (self.idx >= self.pageCount) {
-                        self.idx = self.pageCount - 1;
-                        fetchAddressesItems(self)
-                    }
-
-                    self.paginationIdxInput.value = self.idx + 1;
-
-                    // If there are multiple pages show the pagination bar
-                    if (self.pageCount > 1) {
-                        self.paginationContainer.classList.remove('hidden');
-                        self.paginationCounter.innerText = `of ${self.pageCount}`;
-                        self.paginationIdxInput.max = self.pageCount;
-                    } else {
-                        self.paginationContainer.classList.add('hidden');
-                    }
-
-                    // Disable pagination back button if on the first page
-                    if (self.idx == 0) {
-                        self.paginationBack.classList.add('pagination-disabled');
-                    } else {
-                        self.paginationBack.classList.remove('pagination-disabled');
-                    }
-
-                    // Disable pagination next button if on the last page
-                    if (self.idx + 1 == self.pageCount) {
-                        self.paginationNext.classList.add('pagination-disabled');
-                    } else {
-                        self.paginationNext.classList.remove('pagination-disabled');
-                    }
+                if (response.status != 200) {
+                    showError(await response.text());
+                    return;
                 }
-                return;
+                const jsonResponse = await response.json();
+
+                if ("addressesList" in jsonResponse) {
+                    // Populate the table with AddressRowElement objects using the fetched address list
+                    if (jsonResponse.addressesList) {
+                        let addressesList = JSON.parse(jsonResponse.addressesList);
+
+                        for (let addr of addressesList) {
+
+                            let addrRow = document.createRange().createContextualFragment(`
+                            <address-row 
+                                data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                                data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
+                                data-price="${this.price ? this.price : 0}"
+                                data-symbol="${this.symbol ? this.symbol : ''}"
+                                data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                                data-wallet="${this.wallet}"> 
+                            </<address-row>`);
+
+                            this.tbody.append(addrRow);
+                        }
+
+                        // Pagination
+                        this.pageCount = jsonResponse.pageCount;
+
+                        // Show empty row if no addresses found
+                        if (this.pageCount == 0 || addressesList.length == 0) {
+                            this.emptyRow.classList.remove('hidden');
+                            this.emptyRow.children[1].innerText = '{{ _("No addresses found...") }}';
+                            this.pageCount = 1;
+                        } else {
+                            this.emptyRow.classList.add('hidden');
+                        }
+
+                        // If index is greater than the pages count fetch again for the last page
+                        if (this.idx >= this.pageCount) {
+                            this.idx = this.pageCount - 1;
+                            fetchAddressesItems(this)
+                        }
+
+                        this.paginationIdxInput.value = this.idx + 1;
+
+                        // If there are multiple pages show the pagination bar
+                        if (this.pageCount > 1) {
+                            this.paginationContainer.classList.remove('hidden');
+                            this.paginationCounter.innerText = `of ${this.pageCount}`;
+                            this.paginationIdxInput.max = this.pageCount;
+                        } else {
+                            this.paginationContainer.classList.add('hidden');
+                        }
+
+                        // Disable pagination back button if on the first page
+                        if (this.idx == 0) {
+                            this.paginationBack.classList.add('pagination-disabled');
+                        } else {
+                            this.paginationBack.classList.remove('pagination-disabled');
+                        }
+
+                        // Disable pagination next button if on the last page
+                        if (this.idx + 1 == this.pageCount) {
+                            this.paginationNext.classList.add('pagination-disabled');
+                        } else {
+                            this.paginationNext.classList.remove('pagination-disabled');
+                        }
+                    }
+                    return;
+                }
+                showError('{{ _("Failed to fetch addresses list") }}')
+            } catch (e) {
+                console.log("Caught error: ", e);
+                showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
             }
-            showError('{{ _("Failed to fetch addresses list") }}')
-        } catch (e) {
-            console.log("Caught error: ", e);
-            showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
+
         }
 
-    }
-
-    
-    /**
-     * Shows a <address-data> element popup for specified address.
-     * @param address - Address data to show.
-     * @param wallet - The wallet alias of the wallet the address belongs to.
-    */
-    function showAddressData(amount, amountPrice, addressData, wallet) {
+        
+        /**
+         * Shows a <address-data> element popup for specified address.
+         * @param address - Address data to show.
+         * @param wallet - The wallet alias of the wallet the address belongs to.
+        */
+        showAddressData(amount, amountPrice, addressData, wallet) {
         if (wallet) {
             let addressDataPopup = document.getElementById('address-popup');
             addressDataPopup.innerHTML = `
@@ -550,6 +548,6 @@
             copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }
     }
-
+    }
     customElements.define('addresses-table', AddressTableElement);
 </script>
