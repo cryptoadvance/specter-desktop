@@ -115,7 +115,7 @@ function build_node_impl {
     # optimizing for speed would use the maximum threads available:
     #make -j$(nproc)
     # but we're optimizing for mem-allocation. 1 thread is quite slow, let's try 4 (we have 4GB and need to find the sweet-spot)
-    make -j3
+    make -j2
     cd ../.. #travis is sourcing this script
     echo "    --> Finished build $node_impl"
 
