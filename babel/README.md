@@ -176,3 +176,18 @@ The only other step is to add the new language to the LANGUAGES list in `config.
 # right:
     "he": "עברית",
 ```
+
+## For Packagers:
+The mo-files are not checked into the repository as (large) binary (large) objects ("BLOBs") should not be checked into git to reduce repo-size bloat. So effectively they need to be generated before the user is using the software. Effectively what has been described above:
+
+```
+pybabel compile -d src/cryptoadvance/specter/translations
+```
+
+In order to make that as transparent as possible, that procedure has been integrated into the setup-process. So it will be executed by:
+
+```
+python3 setup.py install
+```
+
+Unfortunately, it won't be executed by `pip3 install -e .` even though that has been propagated very long to be the developement-env installation procedure. So in the various installation procedures (mainly in `.gitlab-ci.yml`) this has been changed. For more special packaging mechanism, this needs to be respected as well.

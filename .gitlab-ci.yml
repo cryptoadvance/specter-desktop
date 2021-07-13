@@ -54,6 +54,7 @@ check:
    - pip3 install -r requirements.txt
    - pip3 install -e .
    - pip3 install -r test_requirements.txt
+   - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
    # pytest --docker not working? Uncomment this for better debugging:
    # - python3 tests/conftest.py 
    - py.test --cov-report term --cov cryptoadvance --docker
@@ -65,6 +66,7 @@ check:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
+    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
     - npm i
     - ./utils/test-cypress.sh --docker --debug run
     - docker ps || echo "probably no docker available anyway"
