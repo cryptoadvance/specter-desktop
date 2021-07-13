@@ -1164,10 +1164,7 @@ class Wallet:
         return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
 
     def get_address_info(self, address):
-        try:
-            return self._addresses[address]
-        except:
-            return None
+        return self._addresses.get(address)
 
     def is_address_mine(self, address):
         addrinfo = self.get_address_info(address)
@@ -1439,15 +1436,13 @@ class Wallet:
                 "replaceable": rbf,
             }
 
-            # 209900 is pre-v21 for Elements Core
-            if self.manager.bitcoin_core_version_raw >= 209900:
+            if self.manager.bitcoin_core_version_raw >= 210000:
                 options["add_inputs"] = selected_coins == []
 
             if fee_rate > 0:
                 # bitcoin core needs us to convert sat/B to BTC/kB
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
-            # don't reuse change addresses - use getrawchangeaddress instead
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
