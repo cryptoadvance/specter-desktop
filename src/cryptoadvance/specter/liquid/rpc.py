@@ -3,7 +3,7 @@ from embit.ec import PrivateKey, PublicKey
 from embit.hashes import tagged_hash
 from embit.descriptor.checksum import add_checksum
 from embit.liquid.descriptor import LDescriptor
-from embit.liquid.pset import PSET
+from embit.liquid.pset import PSET, PSBTError
 from embit.liquid.addresses import addr_decode
 from embit.liquid.addresses import address as liquid_address
 from embit.liquid.networks import get_network
@@ -32,6 +32,8 @@ class LiquidRPC(BitcoinRPC):
       - ecdh nonce for deterministic range proof
       - extra data that should be encoded in the change rangeproof
     """
+
+    _master_blinding_key = None
 
     def getbalance(
         self,
@@ -127,28 +129,30 @@ class LiquidRPC(BitcoinRPC):
         if psbt and blind:
             # check that change is also blinded - fixes a bug in pset branch
             tx = PSET.from_string(psbt)
-            der = None
             changepos = res.get("changepos", None)
             if changepos is not None and len(args) >= 2:
                 addr = args[1].get("changeAddress", None)
                 if addr:
                     _, bpub = addr_decode(addr)
-                    der = tx.outputs[changepos].bip32_derivations
                     if bpub and (tx.outputs[changepos].blinding_pubkey is None):
                         tx.outputs[changepos].blinding_pubkey = bpub.sec()
                     res["psbt"] = str(tx)
                     psbt = str(tx)
 
             # generate all blinding stuff ourselves in deterministic way
-            bpk = bytes.fromhex(self.dumpmasterblindingkey())
-            tx.unblind(PrivateKey(bpk))  # get values and blinding factors for inputs
-            seed = tagged_hash("liquid/blinding_seed", bpk)
-            tx.blind(seed)  # generate all blinding factors etc
-            # proprietary fields for Specter - 00 is global blinding seed
-            tx.unknown[b"\xfc\x07specter\x00"] = seed
+            tx.unblind(
+                self.master_blinding_key
+            )  # get values and blinding factors for inputs
+            seed = tagged_hash("liquid/blinding_seed", self.master_blinding_key.secret)
+            try:
+                tx.blind(seed)  # generate all blinding factors etc
+                # proprietary fields for Specter - 00 is global blinding seed
+                tx.unknown[b"\xfc\x07specter\x00"] = seed
+            except PSBTError:
+                seed = None
 
             # reblind and encode nonces in change output
-            if changepos is not None:
+            if seed and changepos is not None:
                 txseed = tx.txseed(seed)
                 # blinding seed to calculate per-output nonces
                 message = b"\x01\x00\x20" + txseed
@@ -267,7 +271,12 @@ class LiquidRPC(BitcoinRPC):
 
     def decodepsbt(self, b64psbt, *args, **kwargs):
         tx = PSET.from_string(b64psbt)
-        inputs = [(inp.value, inp.asset) for inp in tx.inputs]
+        # pre-processing of the transaction
+        # so Elements Core doesn't complain
+        inputs = [
+            (inp.value or inp.utxo.value, inp.asset or inp.utxo.asset)
+            for inp in tx.inputs
+        ]
         for inp in tx.inputs:
             inp.value = None
             inp.asset = None
@@ -289,6 +298,8 @@ class LiquidRPC(BitcoinRPC):
 
         decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
         # pset branch - no fee and global tx fields...
+        if "fees" in decoded and "bitcoin" in decoded["fees"]:
+            decoded["fee"] = decoded["fees"]["bitcoin"]
         if "tx" not in decoded or "fee" not in decoded:
             pset = PSET.from_string(b64psbt)
             if "tx" not in decoded:
@@ -318,14 +329,35 @@ class LiquidRPC(BitcoinRPC):
                 inp2["asset"] = a
         return decoded
 
+    @property
+    def master_blinding_key(self):
+        if self._master_blinding_key is None:
+            self._master_blinding_key = PrivateKey(
+                bytes.fromhex(self.dumpmasterblindingkey())
+            )
+        return self._master_blinding_key
+
     def decoderawtransaction(self, tx):
-        unblinded = self.unblindrawtransaction(tx)["hex"]
-        obj = super().__getattr__("decoderawtransaction")(unblinded)
+        blinded = super().__getattr__("decoderawtransaction")(tx)
+        try:
+            unblinded = self.unblindrawtransaction(tx)["hex"]
+            obj = super().__getattr__("decoderawtransaction")(unblinded)
+            if "vsize" in blinded:
+                obj["vsize"] = blinded["vsize"]
+            if "size" in blinded:
+                obj["size"] = blinded["size"]
+            if "weight" in blinded:
+                obj["weight"] = blinded["weight"]
+            if "hex" in blinded:
+                obj["hex"] = blinded["hex"]
+        except Exception as e:
+            logger.error(e)
+            obj = blinded
         try:
             # unblind the rest of outputs
             b = LTransaction.from_string(tx)
 
-            mbpk = PrivateKey(bytes.fromhex(self.dumpmasterblindingkey()))
+            mbpk = self.master_blinding_key
             net = get_network(self.getblockchaininfo().get("chain"))
 
             outputs = obj["vout"]

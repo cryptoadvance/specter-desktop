@@ -3,10 +3,15 @@ from ..addresslist import Address
 from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from .txlist import LTxList
+from .addresslist import LAddressList
+from embit.liquid.addresses import to_unconfidential
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+    AddressListCls = LAddressList
+    TxListCls = LTxList
 
     @classmethod
     def create(
@@ -145,6 +150,32 @@ class LWallet(Wallet):
             wallet_manager,
         )
 
+    def getdata(self):
+        self.fetch_transactions()
+        self.check_utxo()
+        self.get_info()
+        # TODO: Should do the same for the non change address (?)
+        # check if address was used already
+        try:
+            value_on_address = self.rpc.getreceivedbyaddress(
+                self.change_address, assetlabel=None
+            )
+        except Exception as e:
+            # Could happen if address not in wallet (wallet was imported)
+            # try adding keypool
+            logger.info(
+                f"Didn't get transactions on change address {self.change_address}. Refilling keypool."
+            )
+            logger.error(e)
+            self.keypoolrefill(0, end=self.keypool, change=False)
+            self.keypoolrefill(0, end=self.change_keypool, change=True)
+            value_on_address = {}
+
+        # if not - just return
+        if sum(value_on_address.values(), 0) > 0:
+            self.change_index += 1
+            self.getnewaddress(change=True)
+
     def get_balance(self):
         try:
             full_balance = (
@@ -198,9 +229,6 @@ class LWallet(Wallet):
         self.balance = balance
         return self.balance
 
-    def fetch_transactions(self):
-        return
-
     def txlist(
         self,
         fetch_transactions=True,
@@ -215,17 +243,6 @@ class LWallet(Wallet):
         """
         # TODO: only from RPC for now
         return self.rpc.listtransactions("*", 10000, 0, True)
-
-    def gettransaction(self, txid, blockheight=None, decode=False):
-        # TODO: only from RPC for now
-        try:
-            # From RPC
-            tx_data = self.rpc.gettransaction(txid)
-            if decode:
-                return self.rpc.decoderawtransaction(tx_data["hex"])
-            return tx_data
-        except Exception as e:
-            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
 
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSET.from_string(b64psbt)
@@ -306,9 +323,6 @@ class LWallet(Wallet):
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
-        # FIXME: stupid scale of the fee rate for now
-        fee_rate = 2 * fee_rate
-
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
 
@@ -365,7 +379,6 @@ class LWallet(Wallet):
                 # bitcoin core needs us to convert sat/B to BTC/kB
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
-            # don't reuse change addresses - use getrawchangeaddress instead
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
@@ -391,43 +404,37 @@ class LWallet(Wallet):
                     {"txid": inp["previous_txid"], "vout": inp["previous_vout"]}
                     for inp in psbt["inputs"]
                 ]
-            if "changeAddress" in psbt:
-                options["changeAddress"] = psbt["changeAddress"]
+            # FIXME: get back change addresses
+            # if "changeAddress" in psbt:
+            #     options["changeAddress"] = psbt["changeAddress"]
             if "base64" in psbt:
                 b64psbt = psbt["base64"]
 
-        # if fee_rate > 0.0:
-        #     if not existing_psbt:
-        #         psbt_fees_sats = int(psbt["fee"] * 1e8)
-        #         # estimate final size: add weight of inputs
-        #         tx_full_size = ceil(
-        #             psbt["tx"]["vsize"]
-        #             + len(psbt["inputs"]) * self.weight_per_input / 4
-        #         )
-        #         adjusted_fee_rate = (
-        #             fee_rate
-        #             * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-        #             * (tx_full_size / psbt["tx"]["vsize"])
-        #         )
-        #         options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
-        #     else:
-        #         options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
-        #     r = self.rpc.walletcreatefundedpsbt(
-        #         extra_inputs,  # inputs
-        #         [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
-        #         0,  # locktime
-        #         options,  # options
-        #         True,  # bip32-der
-        #     )
+        if fee_rate > 0.0:
+            if not existing_psbt:
+                adjusted_fee_rate = self.adjust_fee(psbt, fee_rate)
+                options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
+            else:
+                options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
+            r = self.rpc.walletcreatefundedpsbt(
+                extra_inputs,  # inputs
+                [
+                    {addresses[i]: amounts[i], "asset": assets[i]}
+                    for i in range(len(addresses))
+                ],  # output
+                0,  # locktime
+                options,  # options
+                True,  # bip32-der
+            )
 
-        #     b64psbt = r["psbt"]
-        #     psbt = self.rpc.decodepsbt(b64psbt)
-        #     psbt["fee_rate"] = options["feeRate"]
-        # # estimate full size
-        # tx_full_size = ceil(
-        #     psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-        # )
-        # psbt["tx_full_size"] = tx_full_size
+            b64psbt = r["psbt"]
+            psbt = self.rpc.decodepsbt(b64psbt)
+            psbt["fee_rate"] = options["feeRate"]
+        # estimate full size
+        tx_full_size = ceil(
+            psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
+        )
+        psbt["tx_full_size"] = tx_full_size
 
         psbt["base64"] = b64psbt
         psbt["amount"] = amounts
@@ -440,3 +447,30 @@ class LWallet(Wallet):
             self.save_pending_psbt(psbt)
 
         return psbt
+
+    def adjust_fee(self, psbt, fee_rate):
+        psbt_fees_sats = int(psbt.get("fees", {}).get("bitcoin", 0) * 1e8)
+
+        # TODO: handle non-blind outputs differently
+        num_blinded_outs = len(psbt["outputs"]) - 1
+        # estimate final size: add weight of inputs and outputs
+        # out witness weight is 4245 (from some random tx)
+        # commitments in blinded tx: 33 for nonce and 33 for value
+        commitment_size = 33 + 33
+        tx_full_size = ceil(
+            psbt["tx"]["vsize"]
+            + len(psbt["inputs"]) * self.weight_per_input / 4
+            + num_blinded_outs * 4245 / 4
+            # probably elements doesn't count commitments
+            + len(psbt["inputs"]) * commitment_size
+            + num_blinded_outs * commitment_size
+        )
+        return (
+            fee_rate
+            * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
+            * (tx_full_size / psbt["tx"]["vsize"])
+        )
+
+    @property
+    def unconfidential_address(self):
+        return to_unconfidential(self.address)

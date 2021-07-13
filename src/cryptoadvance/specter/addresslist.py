@@ -92,6 +92,8 @@ class Address(dict):
 
 
 class AddressList(dict):
+    AddressCls = Address
+
     def __init__(self, path, rpc):
         super().__init__()
         self.path = path
@@ -99,7 +101,7 @@ class AddressList(dict):
         file_exists = False
         if os.path.isfile(self.path):
             try:
-                addresses = read_csv(self.path, Address, self.rpc)
+                addresses = read_csv(self.path, self.AddressCls, self.rpc)
                 # dict allows faster lookups
                 for addr in addresses:
                     self[addr.address] = addr
@@ -110,7 +112,7 @@ class AddressList(dict):
 
     def save(self):
         if len(list(self.keys())) > 0:
-            write_csv(self.path, list(self.values()), Address)
+            write_csv(self.path, list(self.values()), self.AddressCls)
         self._file_exists = True
 
     def add(self, arr, check_rpc=False):
@@ -135,11 +137,11 @@ class AddressList(dict):
             # if we found a label for it - import
             if addr["address"] in labeled_addresses:
                 addr["label"] = labeled_addresses[addr["address"]]
-            self[addr["address"]] = Address(self.rpc, **addr)
+            self[addr["address"]] = self.AddressCls(self.rpc, **addr)
         # add all labeled addresses but not from the array (destination)
         for addr in labeled_addresses:
             if addr not in self:
-                self[addr] = Address(
+                self[addr] = self.AddressCls(
                     self.rpc,
                     address=addr,
                     label=labeled_addresses[addr],
@@ -150,7 +152,7 @@ class AddressList(dict):
 
     def set_label(self, address, label):
         if address not in self:
-            self[address] = Address(self.rpc, address=address, label=label)
+            self[address] = self.AddressCls(self.rpc, address=address, label=label)
         self[address].set_label(label)
         self.save()
 

@@ -1,6 +1,8 @@
 import os
 from embit import bip39
 from embit.liquid.slip77 import master_blinding_from_seed
+
+from ..helpers import is_liquid
 from . import DeviceTypes
 from .bitcoin_core import BitcoinCore
 
@@ -42,3 +44,14 @@ class ElementsCore(BitcoinCore):
         master_blinding_key = master_blinding_from_seed(seed)
         rpc.importmasterblindingkey(master_blinding_key.secret.hex())
         self.set_blinding_key(master_blinding_key.wif())
+
+    def has_key_types(self, wallet_type, network="main"):
+        if not is_liquid(network):
+            return False
+        return super().has_key_types(wallet_type, network)
+
+    def no_key_found_reason(self, wallet_type, network="main"):
+        if self.has_key_types(wallet_type, network=network):
+            return ""
+        if not is_liquid(network):
+            return "This wallet can only sign on Liquid"

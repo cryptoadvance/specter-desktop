@@ -363,6 +363,8 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     wallet = wallet_importer.create_wallet(someuser.wallet_manager)
     # fund it with some coins
     bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+    # make sure it's confirmed
+    bitcoin_regtest.mine()
     # Realize that the wallet has funds:
     wallet.update()
     assert not specter.wallet_manager.working_folder is None
