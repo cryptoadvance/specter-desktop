@@ -270,13 +270,13 @@
             // Next page action
             this.paginationNext.onclick = () => {
                 this.idx++;
-                fetchAddressesItems(this);
+                fetchAddressesItems();
             }
 
             // Previous page action
             this.paginationBack.onclick = () => {
                 this.idx--;
-                fetchAddressesItems(this);
+                fetchAddressesItems();
             }
 
             // Listen to changes in page number selection input
@@ -287,13 +287,13 @@
                     return;
                 }
                 this.idx = newIdx - 1;
-                fetchAddressesItems(this);
+                fetchAddressesItems();
             }
 
             // Listen to changes in page limit
             this.pageLimitSelect.onchange = () => {
                 this.limit = this.pageLimitSelect.value;
-                fetchAddressesItems(this);
+                fetchAddressesItems();
             }
 
             // Setup sorting functionality for each column of the table header
@@ -328,7 +328,7 @@
                         this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
 
-                    fetchAddressesItems(this);
+                    fetchAddressesItems();
                 }
             }
 
@@ -390,14 +390,14 @@
                 if (!this.listType) {
                     return
                 }
-                fetchAddressesItems(this);
+                fetchAddressesItems();
             }
         }
 
         /**
          * Fetches addresses list from the Specter API and loads the result into AddressRowElement
         */
-        async fetchAddressesItems(this) {
+        async fetchAddressesItems() {
             this.callId++;
             // Clean up from existing addresses list
             this.emptyRow.children[1].innerText = '{{ _("Fetching addresses...") }}';
@@ -485,7 +485,7 @@
                         // If index is greater than the pages count fetch again for the last page
                         if (this.idx >= this.pageCount) {
                             this.idx = this.pageCount - 1;
-                            fetchAddressesItems(this)
+                            fetchAddressesItems()
                         }
 
                         this.paginationIdxInput.value = this.idx + 1;

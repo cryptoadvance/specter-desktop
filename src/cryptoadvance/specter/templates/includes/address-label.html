@@ -99,7 +99,7 @@
                 this.label.innerText = this.labelValue;
             } else {
                 this.label.innerText = this.address;
-                fetchAddressLabel(this);
+                fetchAddressLabel();
             }
 
             // Set title mode for address-label element
@@ -120,7 +120,7 @@
                 document.execCommand('inserttext', false, event.clipboardData.getData('text/plain'));
             });
 
-            enableExplorerLink(this);
+            enableExplorerLink();
 
             this.edit.onclick = () => {
                 this.label.setAttributeNode(document.createAttribute('contenteditable'));
@@ -132,19 +132,19 @@
                 this.edit.classList.add('hidden');
                 this.cancel.classList.remove('hidden');
                 this.update.classList.remove('hidden');
-                disableExplorerLink(this);
+                disableExplorerLink();
                 this.isEditing = true;
             }
 
             this.cancel.onclick = () => {
                 this.label.innerText = this.labelValue;
-                closeEditMode(this);
+                closeEditMode();
             }
 
             this.update.onclick = async () => {
-                if (await setAddressLabel(this)) {
+                if (await setAddressLabel()) {
                     this.labelValue = this.label.innerText;
-                    closeEditMode(this);
+                    closeEditMode();
                     let event = new CustomEvent('updateAddressLabel', { detail: {
                         label: this.labelValue,
                         address: this.address,
@@ -183,7 +183,7 @@
             this.cancel.classList.add('hidden');
             this.update.classList.add('hidden');
             this.isEditing = false;
-            enableExplorerLink(this);
+            enableExplorerLink();
         }
 
         enableExplorerLink() {
