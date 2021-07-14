@@ -15,7 +15,7 @@ from embit.transaction import Transaction
 
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
-from .persistence import write_json_file, delete_file
+from .persistence import write_json_file, delete_file, delete_folder
 from io import BytesIO
 from .specter_error import SpecterError
 import threading
@@ -680,6 +680,11 @@ class Wallet:
         delete_file(self.fullpath + ".bkp")
         delete_file(self._addresses.path)
         delete_file(self._transactions.path)
+        # the folder might not exist
+        try:
+            delete_folder(self._transactions.rawdir)
+        except:
+            pass
 
     @property
     def use_descriptors(self):
@@ -708,7 +713,7 @@ class Wallet:
             )
         return amount
 
-    def delete_pending_psbt(self, txid):
+    def delete_pending_psbt(self, txid, tx=None):
         try:
             self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
         except:

@@ -229,21 +229,6 @@ class LWallet(Wallet):
         self.balance = balance
         return self.balance
 
-    def txlist(
-        self,
-        fetch_transactions=True,
-        validate_merkle_proofs=False,
-        current_blockheight=None,
-    ):
-        """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
-        #Parameters:
-        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
-        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
-        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
-        """
-        # TODO: only from RPC for now
-        return self.rpc.listtransactions("*", 10000, 0, True)
-
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSET.from_string(b64psbt)
 
@@ -283,6 +268,40 @@ class LWallet(Wallet):
         else:
             psbt.xpub = {}
         return psbt.to_string()
+
+    def delete_pending_psbt(self, txid, tx=None):
+        # liquid txid is different for blinded transaction
+        # so we go through all inputs and outputs and if they match - delete psbt
+        # This can cause side-effects if there are multiple psbts spending the same inputs to the same outputs
+        if txid not in self.pending_psbts and tx is not None:
+            try:
+                decoded = self.rpc.decoderawtransaction(tx)
+                for psbt_txid in self.pending_psbts:
+                    psbt = self.pending_psbts[psbt_txid]
+                    mismatch = False
+                    if len(psbt["inputs"]) != len(decoded["vin"]):
+                        continue
+                    if len(psbt["outputs"]) != len(decoded["vout"]):
+                        continue
+                    # check inputs
+                    for i1, i2 in zip(psbt["inputs"], decoded["vin"]):
+                        if i1["previous_txid"] != i2["txid"]:
+                            mismatch = True
+                            break
+                        if i1["previous_vout"] != i2["vout"]:
+                            mismatch = True
+                            break
+                    for o1, o2 in zip(psbt["outputs"], decoded["vout"]):
+                        if o1["script"]["hex"] != o2["scriptPubKey"]["hex"]:
+                            mismatch = True
+                            break
+                    if mismatch:
+                        continue
+                    else:
+                        return super().delete_pending_psbt(psbt_txid, tx)
+            except Exception as e:
+                logger.warn(e)
+        return super().delete_pending_psbt(txid, tx)
 
     def get_address_info(self, address):
         try:
@@ -379,6 +398,11 @@ class LWallet(Wallet):
                 # bitcoin core needs us to convert sat/B to BTC/kB
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
+            # looks like change_type is required in nested segwit wallets
+            # but not in native segwit
+            if "changeAddress" not in options and "sh(" in self.change_descriptor:
+                options["change_type"] = "p2sh-segwit"
+
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
@@ -407,8 +431,15 @@ class LWallet(Wallet):
             # FIXME: get back change addresses
             # if "changeAddress" in psbt:
             #     options["changeAddress"] = psbt["changeAddress"]
+            #     if "change_type" in options:
+            #         options.pop("change_type")
             if "base64" in psbt:
                 b64psbt = psbt["base64"]
+
+        # looks like change_type is required in nested segwit wallets
+        # but not in native segwit
+        if "changeAddress" not in options and "sh(" in self.change_descriptor:
+            options["change_type"] = "p2sh-segwit"
 
         if fee_rate > 0.0:
             if not existing_psbt:
