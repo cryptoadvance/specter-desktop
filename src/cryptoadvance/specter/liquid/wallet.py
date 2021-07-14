@@ -400,8 +400,8 @@ class LWallet(Wallet):
 
             # looks like change_type is required in nested segwit wallets
             # but not in native segwit
-            if "changeAddress" not in options and "sh(" in self.change_descriptor:
-                options["change_type"] = "p2sh-segwit"
+            if "changeAddress" not in options and self.address_type:
+                options["change_type"] = self.address_type
 
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
@@ -438,8 +438,8 @@ class LWallet(Wallet):
 
         # looks like change_type is required in nested segwit wallets
         # but not in native segwit
-        if "changeAddress" not in options and "sh(" in self.change_descriptor:
-            options["change_type"] = "p2sh-segwit"
+        if "changeAddress" not in options and self.address_type:
+            options["change_type"] = self.address_type
 
         if fee_rate > 0.0:
             if not existing_psbt:
