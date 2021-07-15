@@ -47,18 +47,6 @@ sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev
 brew install libusb
 ```
 
-Install Rust compiler (required for `pip` dependency `cryptography==3.4.x`):
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-You'll need to ensure that `$HOME/.cargo/bin` is in your `PATH`. Verify this by running:
-```
-rustc --version
-```
-_note: once your virtualenv is created you may need to add the above to your path in `.env/bin/activate`_
-
-
 #### Windows
 * Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
 
@@ -72,8 +60,6 @@ _note: once your virtualenv is created you may need to add the above to your pat
 * Must have [Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/) installed. Be sure to select Visual C++ during installation.
 
 * Download [libusb-1.0.dll](https://libusb.info). Use [7-Zip](https://7-zip.org) to decompress the .7z file. Copy `libusb-1.0.dll` from `VS2019/MS64/dll` to your `/Windows/System32` directory.
-
-* Install the Rust compiler: [https://forge.rust-lang.org/infra/other-installation-methods.html](https://forge.rust-lang.org/infra/other-installation-methods.html)
 
 * Configure Windows PowerShell to run scripts. See: [About Execution Policies](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1). In a PowerShell window run:
     ```
@@ -109,6 +95,22 @@ Run the server:
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
+
+#### If `pip install` fails on `cryptography==3.4.x`
+Certain platform/python3 version combos require a Rust compiler. Install via:
+
+* Linux/macOS:
+    ```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+* Windows: [https://forge.rust-lang.org/infra/other-installation-methods.html](https://forge.rust-lang.org/infra/other-installation-methods.html)
+
+You'll need to ensure that `$HOME/.cargo/bin` is in your `PATH`. Verify this by running:
+```
+rustc --version
+```
+_note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate`_
 
 
 ## How to run the tests
