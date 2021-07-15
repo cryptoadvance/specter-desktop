@@ -91,10 +91,7 @@ msgstr "Bitcoin Core RpcError: {}"
 #: src/cryptoadvance/specter/server_endpoints/controller.py:99
 #, fuzzy
 msgid "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
-msgstr ""
-"#-#-#-#-#  catalog.po (PROJECT VERSION)  #-#-#-#-#\n"
-"#-#-#-#-#  catalog.po (PROJECT VERSION)  #-#-#-#-#\n"
-"Bitcoin Core ne se charge pas à temps. Veuillez vérifier le registre, mais il est possible que ce soit simplement lent"
+msgstr "Bitcoin Core ne se charge pas à temps. Veuillez vérifier le registre, mais il est possible que ce soit simplement lent"
 
 #: src/cryptoadvance/specter/server_endpoints/controller.py:120
 #: src/cryptoadvance/specter/server_endpoints/controller.py:130
@@ -733,11 +730,7 @@ msgstr "Bienvenue à Specter pour Ordinateur"
 #: src/cryptoadvance/specter/templates/base.jinja:81
 #, fuzzy
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
-msgstr ""
-"#-#-#-#-#  catalog.po (PROJECT VERSION)  #-#-#-#-#\n"
-"L’édition Specter pour Ordinateur est un portefeuille pratique pour mieux utilliser votre nœud Bitcoin. Pratique pour les portefeuilles à signature simple, il porte néanmoins une attention particulière aux portefeuilles à signature multiple en propasant une multitude de configurations pour les portefeuilles matériels et autres dispositifs de signature à distance.\n"
-"#-#-#-#-#  catalog.po (PROJECT VERSION)  #-#-#-#-#\n"
-"L’édition Specter pour Ordinateur est un portefeuille pratique pour mieux utilliser votre nœud Bitcoin Core. Pratique pour les portefeuilles à signature simple, il porte néanmoins une attention particulière aux portefeuilles à signature multiple en propasant une multitude de configurations pour les portefeuilles matériels et autres dispositifs de signature à distance."
+msgstr "L’édition Specter pour Ordinateur est un portefeuille pratique pour mieux utilliser votre nœud Bitcoin Core. Pratique pour les portefeuilles à signature simple, il porte néanmoins une attention particulière aux portefeuilles à signature multiple en propasant une multitude de configurations pour les portefeuilles matériels et autres dispositifs de signature à distance."
 
 #: src/cryptoadvance/specter/templates/base.jinja:88
 msgid "Get started!"
