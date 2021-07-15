@@ -14,7 +14,6 @@ class InstallWithBabelCompile(install):
     def run(self):
         from babel.messages.frontend import compile_catalog
 
-        print("TRANSLATIONS")
         compiler = compile_catalog(self.distribution)
         option_dict = self.distribution.get_option_dict("compile_catalog")
         compiler.domain = [option_dict["domain"][1]]
