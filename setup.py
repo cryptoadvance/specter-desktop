@@ -50,8 +50,7 @@ setup(
     package_dir={"": "src"},
     package_data={
         "": [
-            "src/cryptoadvance/specter/translations/*/*.mo",
-            "src/cryptoadvance/specter/translations/*/*.po",
+            "translations/*/LC_MESSAGES/messages.mo",
         ]
     },
     # take METADATA.in into account, include that stuff as well (static/templates)
