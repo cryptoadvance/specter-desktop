@@ -194,7 +194,8 @@ class LiquidRPC(BitcoinRPC):
 
     def walletprocesspsbt(self, psbt, *args, **kwargs):
         try:
-            psbt = self._cleanpsbt(psbt)
+            if self.getwalletinfo().get("private_keys_enabled", False):
+                psbt = self._cleanpsbt(psbt)
         except Exception as e:
             logger.warn(f"Failed to clean psbt: {e}")
         return super().__getattr__("walletprocesspsbt")(psbt, *args, **kwargs)

@@ -6,7 +6,7 @@ describe('Operating with an elements multisig wallet', () => {
         cy.get('#elements_node-select-node-form > .item > div').click()
         
         // Delete Wallet if existing
-        cy.deleteWallet("Elements Multisig Wallet")
+        cy.deleteWallet("Elm Multi Segwit Wallet")
 
         // Create the Hot Element Wallets
         cy.addHotDevice("Hot Elements Device 2","elements")
