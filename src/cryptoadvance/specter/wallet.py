@@ -1724,8 +1724,26 @@ class Wallet:
             existing_psbt=psbt,
         )
 
-    def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
+    @property
+    def is_taproot(self):
+        return ("tr(" in self.recv_descriptor)
+
+    def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True, taproot_derivations: bool = False):
         psbt = PSBT.from_string(b64psbt)
+
+        # Core doesn't fill derivations yet, so we do it ourselves
+        if taproot_derivations and self.is_taproot:
+            from embit.psbt import DerivationPath
+            from embit.ec import PublicKey
+            net = get_network(self.manager.chain)
+            for sc in psbt.inputs + psbt.outputs:
+                addr = sc.script_pubkey.address(net)
+                info = self._addresses.get(addr)
+                if info and not info.is_external:
+                    desc = self.recv_descriptor if info.is_receiving else self.change_descriptor
+                    d = LDescriptor.from_string(desc).derive(info.index)
+                    for k in d.keys:
+                        sc.bip32_derivations[PublicKey.parse(k.sec())] = DerivationPath(k.origin.fingerprint, k.origin.derivation)
 
         if non_witness:
             for inp in psbt.inputs:
