@@ -39,11 +39,13 @@
 
 ### Install dependencies:
 
-#### Ubuntu/Debian
-`sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
+#### Ubuntu/Debian/macOS
+```
+sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev
 
-#### macOS
-`brew install libusb`
+# macOS:
+brew install libusb
+```
 
 #### Windows
 * Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
@@ -94,6 +96,22 @@ Run the server:
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
+
+#### If `pip install` fails on `cryptography==3.4.x`
+Certain platform/python3 version combos require a Rust compiler. Install via:
+
+* Linux/macOS:
+    ```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+* Windows: [https://forge.rust-lang.org/infra/other-installation-methods.html](https://forge.rust-lang.org/infra/other-installation-methods.html)
+
+You'll need to ensure that `$HOME/.cargo/bin` is in your `PATH`. Verify this by running:
+```
+rustc --version
+```
+_note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate`_
 
 
 ## How to run the tests
