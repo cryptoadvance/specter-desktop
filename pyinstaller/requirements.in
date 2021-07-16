@@ -2,3 +2,4 @@ pyinstaller
 pefile
 macholib
 pywin32-ctypes
+babel
