@@ -17,6 +17,9 @@ echo $1 > version.txt
 echo "    --> Installing (build)-requirements"
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e ..
+cd ..
+python3 setup.py install
+cd pyinstaller
 
 echo "    --> Cleaning up"
 rm -rf build/ dist/ release/ electron/release/ electron/dist release-linux/ release-win/
