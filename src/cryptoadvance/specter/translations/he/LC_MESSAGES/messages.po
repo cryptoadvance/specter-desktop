@@ -433,7 +433,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:167
 msgid "Wallet imported successfully"
-msgstr ""
+msgstr "ארנק יובא בהצלחה"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:203
 msgid "No device was selected. Please select a device to create the wallet for."
@@ -441,7 +441,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:212
 msgid "Device {} doesn't have keys matching this wallet type"
-msgstr ""
+msgstr "מכשיר {} לא מכיל מפתחות המתאים לסוג ארנק זה"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:240
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:826
@@ -454,7 +454,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:301
 msgid "Failed to create wallet. Error: {}"
-msgstr ""
+msgstr "כישלון ביציר ארנק. שגיאה: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:491
 msgid "Failed to fetch fee estimations. Please use the manual fee calculation."
@@ -483,11 +483,11 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:673
 msgid "Could not delete Pending PSBT!"
-msgstr ""
+msgstr "כישלון במחיקת טרנזקציה חתומה למחצה שממתינה!"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:711
 msgid "Could not import PSBT: {}"
-msgstr ""
+msgstr "כישלון בייבוא טרנזקציה חתומה למחצה: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:785
 msgid "Failed to abort rescan. Maybe already complete?"
@@ -598,7 +598,7 @@ msgstr "כתובת"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Block Height"
-msgstr ""
+msgstr "גובה בלוק"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 msgid "Timestamp"
@@ -1082,15 +1082,15 @@ msgstr "הודעה"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:78
 msgid "Message signature"
-msgstr ""
+msgstr "חתימת הודעה"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:79
 msgid "Copy message signature"
-msgstr ""
+msgstr "העתקת חתימת הודעה"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:79
 msgid "Copied message signature"
-msgstr ""
+msgstr "חתימת הודעה הועתקה בהצלחה"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:86
 msgid "Update master blinding key"
@@ -1115,7 +1115,7 @@ msgstr "מכשיר חדש נוסף בהצלחה!"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:118
 msgid "Add another device"
-msgstr "הוסף מכשיר אחר"
+msgstr "הוספת מכשיר אחר"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:128
 msgid "Create single key wallet"
@@ -1149,7 +1149,7 @@ msgstr "סרוק ברקוד QR"
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:119
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
 msgid "Paste xpub"
-msgstr ""
+msgstr "הדבקת מפתח ציבורי"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:31
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:125
@@ -1158,11 +1158,11 @@ msgstr "הוסף מפתח ראשי"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:7
 msgid "Adding keys to"
-msgstr ""
+msgstr "הוספת מפתחות ל"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:9
 msgid "Setting up a new device"
-msgstr ""
+msgstr "הגדרת מכשיר חדש"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:15
 msgid "Name it"
@@ -1178,7 +1178,7 @@ msgstr "ניהול מכשיר"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:32
 msgid "Scan, paste or load xpubs"
-msgstr ""
+msgstr "סריקה, הדבקה או טעינת מפתחות ציבוריים"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:35
 msgid "You will be able add more keys later from the device menu."
@@ -1702,7 +1702,7 @@ msgstr "הכל"
 
 #: src/cryptoadvance/specter/templates/includes/qr-code.html:207
 msgid "Click to animate"
-msgstr ""
+msgstr "הנפשה"
 
 #: src/cryptoadvance/specter/templates/includes/qr-scanner.html:128
 msgid "Number of frames in QR code mismatch!"
@@ -1714,7 +1714,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/qr-scanner.html:209
 msgid "Can't start the QR scanner!"
-msgstr ""
+msgstr "איתחול סריקת QR לא צלחה"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:16
 msgid "Transaction details"
@@ -1767,15 +1767,15 @@ msgstr "שער עמלה"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:120
 msgid "Mined at block"
-msgstr ""
+msgstr "נכרה בבלוק"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:121
 msgid "Block hash"
-msgstr ""
+msgstr "גיבוב הבלוק"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:122
 msgid "Block time"
-msgstr ""
+msgstr "זמן הבלוק"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:126
 msgid "Inputs count"
@@ -1826,7 +1826,7 @@ msgstr "כישלון בטעינת נתוני כתובת..."
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:33
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "Speed up"
-msgstr ""
+msgstr "להאיץ"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:34
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:248
@@ -1890,7 +1890,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:252
 msgid "(advanced, not recommended for new users)"
-msgstr ""
+msgstr "(מתקדם, לא מומלץ למשתמשים חדשים)"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:253
 msgid "Edit the transaction (advanced)"
@@ -1914,7 +1914,7 @@ msgstr "יצירת טרנזקציה חדשה"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:140
 msgid "Export transactions to CSV"
-msgstr ""
+msgstr "ייצוא טרנזקציה כקובץ CSV"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:142
 msgid "Fetch historical price data"
@@ -1980,7 +1980,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:21
 msgid "View USB settings"
-msgstr ""
+msgstr "הצגת הגדרות USB"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:28
 msgid "Do you really want to use your Coldcard over USB (no airgap)?"
@@ -1988,7 +1988,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:30
 msgid "Yes, I am living on the edge!"
-msgstr ""
+msgstr "כן, קח אותי עד הקצה!"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:33
 msgid "No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info."
@@ -2005,7 +2005,7 @@ msgstr "חבר את מכשירך"
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
 msgid "Pairing Code"
-msgstr ""
+msgstr "קוד צימוד"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
