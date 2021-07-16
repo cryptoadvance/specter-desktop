@@ -83,6 +83,7 @@ release_pip:
     - tags
   script:
     - pip3 install setuptools wheel twine
+    - pip3 install -r test_requirements.txt
     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
     - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
     # set version number in setup.py
