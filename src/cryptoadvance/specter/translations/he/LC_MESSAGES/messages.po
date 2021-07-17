@@ -454,7 +454,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:301
 msgid "Failed to create wallet. Error: {}"
-msgstr "כישלון ביציר ארנק. שגיאה: {}"
+msgstr "כישלון ביצירת ארנק. שגיאה: {}"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:491
 msgid "Failed to fetch fee estimations. Please use the manual fee calculation."
