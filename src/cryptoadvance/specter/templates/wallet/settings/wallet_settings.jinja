@@ -153,6 +153,28 @@
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
+			<h2 class="subtitle">{{ _("Import Electrum address labels") }}</h2>
+			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<div class="row aligned">
+					<textarea name="import_electrum_labels_json" id="import_electrum_labels_json" placeholder="{{ _('Paste json here') }}"></textarea>
+					<input type="file" id="file" class="inputfile"/>
+					<label for="file" class="btn" style="margin: 8px;">
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Choose file") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Using a file") }}<br><br></span>
+									{{ _("The file should contain the electrum address export in the json format.") }}
+								</span>
+							</p>
+						</div>
+					</label>
+					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}</button>
+				</div>
+			</form>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Keypool control") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -259,7 +281,34 @@
 	<br><br>
 {% endblock %}
 
-{% block scripts %}
+{% block scripts %} 
+	<script type="text/javascript">
+
+		document.addEventListener("DOMContentLoaded", function(){
+			var el = document.getElementById("file");
+			var txt = document.getElementById("import_electrum_labels_json");
+
+			if (el != null) {
+				el.addEventListener("change", (e) => {
+					files = e.currentTarget.files;
+					console.log(files);
+					for(let i=0; i<files.length; i++){
+						console.log(files[i].name);
+						let reader = new FileReader();
+						reader.onload = function(e) {
+							let str = reader.result;
+							// if raw bytes
+							if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
+								str = btoa(reader.result);
+							}
+							txt.value = str;
+						}
+						reader.readAsBinaryString(files[i]);
+					}
+				});
+			}
+		});
+	</script>
 	<script>
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');
