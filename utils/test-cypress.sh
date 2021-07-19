@@ -143,6 +143,15 @@ function start_node {
   if [ "$CLEANUPHARD" = "true" ]; then
       addopts="--cleanuphard"
   fi
+  if [ "$node_impl" = "bitcoind" ]; then
+    if [ "$BTCLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
+  else
+    if [ "$ELMLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
+  fi
   if [ "$DOCKER" != "true" ]; then
     if [ "$node_impl" != "elementsd" ]; then # no docker for elementsd yet
       addopts="$addopts --nodocker"
@@ -380,6 +389,10 @@ function parse_and_execute() {
     --debug)
       set -x
       DEBUG=--debug
+      shift
+      ;;
+    --elm-log-stdout)
+      ELMLOGSTDOUT=true
       shift
       ;;
     --docker)

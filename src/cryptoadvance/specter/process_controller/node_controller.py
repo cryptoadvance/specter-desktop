@@ -127,6 +127,7 @@ class NodeController:
         cleanup_at_exit=False,
         cleanup_hard=False,
         datadir=None,
+        log_stdout=False,
         extra_args=[],
         timeout=60,
     ):
@@ -146,6 +147,7 @@ class NodeController:
             cleanup_at_exit,
             cleanup_hard=cleanup_hard,
             datadir=datadir,
+            log_stdout=log_stdout,
             extra_args=extra_args,
         )
         try:
@@ -204,7 +206,12 @@ class NodeController:
         return self.rpcconn.get_rpc()
 
     def _start_node(
-        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit,
+        cleanup_hard=False,
+        datadir=None,
+        log_stdout=False,
+        extra_args=[],
     ):
         raise Exception(f"This should not be used in the baseclass! self: {self}")
 
@@ -327,6 +334,7 @@ class NodeController:
         rpcconn,
         run_docker=True,
         datadir=None,
+        log_stdout=False,
         node_path="bitcoind",
         network="regtest",
         extra_args=[],
@@ -344,7 +352,8 @@ class NodeController:
         )
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
-            btcd_cmd += " -noprinttoconsole"
+            if not log_stdout:
+                btcd_cmd += " -noprinttoconsole"
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += ' -datadir="{}" '.format(datadir)
@@ -382,7 +391,12 @@ class NodePlainController(NodeController):
             raise e
 
     def _start_node(
-        self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit=True,
+        cleanup_hard=False,
+        datadir=None,
+        log_stdout=False,
+        extra_args=[],
     ):
         if datadir == None:
             datadir = tempfile.mkdtemp(
@@ -394,6 +408,7 @@ class NodePlainController(NodeController):
             self.rpcconn,
             run_docker=False,
             datadir=datadir,
+            log_stdout=log_stdout,
             node_path=self.node_path,
             network=self.network,
             extra_args=extra_args,

@@ -43,6 +43,12 @@ logger = logging.getLogger(__name__)
     help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
 )
 @click.option(
+    "--log-stdout",
+    is_flag=True,
+    default=False,
+    help="Will spit out logs on stdout if set",
+)
+@click.option(
     "--mining/--no-mining",
     default=True,
     help="Turns on mining (On by default). For testing it is useful to turn it off.",
@@ -79,6 +85,7 @@ def bitcoind(
     nodocker,
     docker_tag,
     data_dir,
+    log_stdout,
     mining,
     mining_period,
     reset,
@@ -96,6 +103,7 @@ def bitcoind(
         nodocker,
         docker_tag,
         data_dir,
+        log_stdout,
         mining,
         mining_period,
         reset,
@@ -113,6 +121,12 @@ def bitcoind(
 @click.option(
     "--data-dir",
     help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
+)
+@click.option(
+    "--log-stdout",
+    is_flag=True,
+    default=False,
+    help="Will spit out logs on stdout if set",
 )
 @click.option(
     "--mining/--no-mining",
@@ -149,6 +163,7 @@ def bitcoind(
 def elementsd(
     quiet,
     data_dir,
+    log_stdout,
     mining,
     mining_period,
     reset,
@@ -166,6 +181,7 @@ def elementsd(
         True,  # nodocker
         None,  # docker_tag
         data_dir,
+        log_stdout,
         mining,
         mining_period,
         reset,
@@ -181,6 +197,7 @@ def noded(
     nodocker,
     docker_tag,
     data_dir,
+    log_stdout,
     mining,
     mining_period,
     reset,
@@ -250,12 +267,14 @@ def noded(
                 cleanup_at_exit=True,
                 cleanup_hard=cleanuphard,
                 datadir=data_dir,
+                log_stdout=log_stdout,
             )
         elif node_impl == "elements":
             my_node.start_elementsd(
                 cleanup_at_exit=True,
                 cleanup_hard=cleanuphard,
                 datadir=data_dir,
+                log_stdout=log_stdout,
             )
     except docker.errors.ImageNotFound:
         echo(f"Image with tag {docker_tag} does not exist!")
@@ -267,6 +286,8 @@ def noded(
         if str(e).startswith("There is already a node running!"):
             echo(f"{e} please reset via:")
             echo(f"python3 -m cryptoadvance.specter {node_impl}d --reset")
+        else:
+            raise e
     if not nodocker:
         tags_of_image = [
             image.split(":")[-1] for image in my_node.btcd_container.image.tags
