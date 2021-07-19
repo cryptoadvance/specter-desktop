@@ -173,6 +173,10 @@ def init_app(app, hwibridge=False, specter=None):
         return dict(tor_service_id=app.tor_service_id, tor_enabled=app.tor_enabled)
 
     # --------------------- Babel integration ---------------------
+    if getattr(sys, "frozen", False):
+        app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
+            sys._MEIPASS, "translations"
+        )
     babel = Babel(app)
 
     @babel.localeselector
