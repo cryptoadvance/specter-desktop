@@ -42,7 +42,7 @@
             this.address = this.getAttribute('data-address');
             this.wallet = this.getAttribute('data-address-wallet');
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
-            fetchAddressData();
+            this.fetchAddressData();
         
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);

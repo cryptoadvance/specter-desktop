@@ -37,11 +37,12 @@
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
             this.note.innerText = `{{ _("Loading transaction details...\n\nTransaction ID:") }}" ${this.txid}`;
-            fetchTxData();
+            this.fetchTxData();
         
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
+        
         async fetchRawTx(txid) {
             let url = `{{ url_for('wallets_endpoint.decoderawtx', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();
@@ -68,8 +69,9 @@
             }
             return null;
         }
+
         async fetchTxData() {
-            let jsonResponse = await fetchRawTx(this.txid);
+            let jsonResponse = await this.fetchRawTx(this.txid);
             if (jsonResponse !== null && jsonResponse.success) {
                 console.log(jsonResponse);
                 let rawtx = jsonResponse.rawtx;
@@ -133,7 +135,7 @@
                 for (let i in rawtx.vin) {
                     let bgColor = '#131a24';
                     let addressAndValue = '';
-                    let jsonResponse = await fetchRawTx(rawtx.vin[i].txid);
+                    let jsonResponse = await this.fetchRawTx(rawtx.vin[i].txid);
                     if (jsonResponse !== null && jsonResponse.success) {
                         let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
                         let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
@@ -146,7 +148,7 @@
                         if (address == 'Unknown') {
                             address = spentOutput.address ? spentOutput.address : 'Unknown';
                         }
-                        let isMine = await fetchAddressIsMine(address);
+                        let isMine = await this.fetchAddressIsMine(address);
                         if (isMine) {
                             bgColor = '#925d07';
                         }
@@ -233,7 +235,7 @@
                     }
 
                     let bgColor = '#131a24';
-                    let isMine = await fetchAddressIsMine(address);
+                    let isMine = await this.fetchAddressIsMine(address);
                     if (isMine) {
                         bgColor = '#154984';
                     }
@@ -253,6 +255,7 @@
             };
             this.note.innerText = '{{ _("Failed to load transaction details...") }}';
         }
+        
         async fetchAddressIsMine(address) {
             let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();

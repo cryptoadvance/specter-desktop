@@ -270,13 +270,13 @@
             // Next page action
             this.paginationNext.onclick = () => {
                 this.idx++;
-                fetchAddressesItems();
+                this.fetchAddressesItems();
             }
 
             // Previous page action
             this.paginationBack.onclick = () => {
                 this.idx--;
-                fetchAddressesItems();
+                this.fetchAddressesItems();
             }
 
             // Listen to changes in page number selection input
@@ -287,13 +287,13 @@
                     return;
                 }
                 this.idx = newIdx - 1;
-                fetchAddressesItems();
+                this.fetchAddressesItems();
             }
 
             // Listen to changes in page limit
             this.pageLimitSelect.onchange = () => {
                 this.limit = this.pageLimitSelect.value;
-                fetchAddressesItems();
+                this.fetchAddressesItems();
             }
 
             // Setup sorting functionality for each column of the table header
@@ -328,7 +328,7 @@
                         this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
 
-                    fetchAddressesItems();
+                    this.fetchAddressesItems();
                 }
             }
 
@@ -390,7 +390,7 @@
                 if (!this.listType) {
                     return
                 }
-                fetchAddressesItems();
+                this.fetchAddressesItems();
             }
         }
 
@@ -485,7 +485,7 @@
                         // If index is greater than the pages count fetch again for the last page
                         if (this.idx >= this.pageCount) {
                             this.idx = this.pageCount - 1;
-                            fetchAddressesItems()
+                            this.fetchAddressesItems()
                         }
 
                         this.paginationIdxInput.value = this.idx + 1;
@@ -523,13 +523,14 @@
 
         }
 
-        
-        /**
-         * Shows a <address-data> element popup for specified address.
-         * @param address - Address data to show.
-         * @param wallet - The wallet alias of the wallet the address belongs to.
-        */
-        showAddressData(amount, amountPrice, addressData, wallet) {
+    }
+
+    /**
+     * Shows a <address-data> element popup for specified address.
+     * @param address - Address data to show.
+     * @param wallet - The wallet alias of the wallet the address belongs to.
+    */
+    function showAddressData(amount, amountPrice, addressData, wallet) {
         if (wallet) {
             let addressDataPopup = document.getElementById('address-popup');
             addressDataPopup.innerHTML = `
@@ -547,7 +548,6 @@
         } else {
             copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }
-    }
     }
     customElements.define('addresses-table', AddressTableElement);
 </script>
