@@ -133,9 +133,11 @@ function start_node {
     if [ "$node_impl" = "bitcoind" ]; then
       echo "--> Purging $BTCD_REGTEST_DATA_DIR"
       rm -rf $BTCD_REGTEST_DATA_DIR
+      node_impl_abbrev=btcd
     else
       echo "--> Purging $ELMD_REGTEST_DATA_DIR"
       rm -rf $ELMD_REGTEST_DATA_DIR
+      node_impl_abbrev=elmd
     fi
   fi
   if [ "$CLEANUPHARD" = "true" ]; then
@@ -154,9 +156,11 @@ function start_node {
     elementsd_pid=$!
   fi
 
-  while ! [ -f ./btcd-conn.json ] ; do
+  echo "--> Waiting for Starting ${node_impl_abbrev}-conn.json to be created ..."
+  while ! [ -f ./${node_impl_abbrev}-conn.json ] ; do
       sleep 0.5
   done
+  echo "--> ${node_impl_abbrev}-conn.json created ..."
 
 }
 
