@@ -3,6 +3,9 @@
 echo $1 > version.txt
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e ..
+cd ..
+python3 setup.py install
+cd pyinstaller
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg
 pyinstaller specterd.spec

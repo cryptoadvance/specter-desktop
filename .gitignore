@@ -32,3 +32,4 @@ tests/bitcoin
 tests/bitcoin.binary
 tests/bitcoin.compile
 token.sh
+src/cryptoadvance/specter/translations/**/messages.mo
