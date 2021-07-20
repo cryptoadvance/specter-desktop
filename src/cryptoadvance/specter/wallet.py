@@ -403,8 +403,6 @@ class Wallet:
                 self._addresses.add(change_addresses, check_rpc=False)
 
     def import_electrum_label_export(self, electrum_label_export, check_rpc=False):
-        import json
-
         if not electrum_label_export:
             logger.warning(f"No electrum export json provided.")
             return
