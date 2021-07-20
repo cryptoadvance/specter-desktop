@@ -160,12 +160,6 @@ def setup_bitcoind_datadir():
             if network == "main"
             else f"Specter {network.title()} {i}"
         )
-    print(
-        os.path.join(
-            app.specter.node_manager.data_folder,
-            f"{alias(node_name)}/.bitcoin-{network}",
-        )
-    )
     node_default_datadir = os.path.join(
         app.specter.node_manager.data_folder, f"{alias(node_name)}/.bitcoin-{network}"
     )
@@ -189,11 +183,8 @@ def setup_bitcoind_datadir():
         node = app.specter.node_manager.add_internal_node(
             node_name,
             network=network,
+            datadir=request.form.get("bitcoin_core_datadir", None),
         )
-        if request.form.get("bitcoin_core_datadir", None):
-            node.update_rpc(
-                datadir=request.form.get("bitcoin_core_datadir", node.datadir),
-            )
         app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
         pruned = request.form["nodetype"] == "pruned"
