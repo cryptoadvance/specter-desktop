@@ -103,7 +103,7 @@ Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi
       cy.get('#btn_continue').click()
       cy.get('#btn_transactions').click()
       cy.task("elm:mine")
-      cy.wait(2000)
+      cy.wait(10000)
       cy.reload()
       cy.get('#fullbalance_amount')
           .should(($div) => {

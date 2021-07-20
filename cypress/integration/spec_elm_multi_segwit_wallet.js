@@ -33,7 +33,7 @@ describe('Operating with an elements multisig wallet', () => {
         // Fund it and check the balance
         cy.get('#btn_transactions').click()
         cy.task("elm:mine")
-        cy.wait(4000)
+        cy.wait(10000)
         cy.reload()
         cy.get('#fullbalance_amount')
             .should(($div) => {
@@ -63,7 +63,7 @@ describe('Operating with an elements multisig wallet', () => {
         // Fund it and check the balance
         cy.get('#btn_transactions').click()
         cy.task("elm:mine")
-        cy.wait(4000)
+        cy.wait(10000)
         cy.reload()
         cy.get('#fullbalance_amount')
             .should(($div) => {
