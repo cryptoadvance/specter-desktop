@@ -76,7 +76,7 @@ cypress_test_task:
   cypress_script:
     - source ./.env/bin/activate
     #- pip3 install -e .
-    - ./utils/test-cypress.sh --debug --elm-log-stdout run
+    - ./utils/test-cypress.sh --debug run
   always:
     cypress_screenshots_artifacts:
       path: "./cypress/screenshots/**"
