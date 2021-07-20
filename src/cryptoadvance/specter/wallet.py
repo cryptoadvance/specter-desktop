@@ -405,6 +405,10 @@ class Wallet:
     def import_electrum_label_export(self, electrum_label_export, check_rpc=False):
         import json
 
+        if not electrum_label_export:
+            logger.warning(f"No electrum export json provided.")
+            return
+
         labeled_addresses = json.loads(electrum_label_export)
 
         # write tx_label to address_label in labels
