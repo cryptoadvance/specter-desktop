@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# chenage to the directory the script is located in
+set -e -o pipefail
+
+# change to the directory the script is located in
 cd "$( dirname "${BASH_SOURCE[0]}" )/."
 
 function checkout {
@@ -165,7 +167,7 @@ function sub_compile {
 }
 
 function sub_binary {
-    if [ $node_impl = "elements" ]; then
+    if [ "$node_impl" = "elements" ]; then
         echo "    --> binary installation of elements not supported, exiting"
         exit 2
     fi

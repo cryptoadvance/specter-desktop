@@ -12,7 +12,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
-    populate_script: ./tests/install_bitcoind.sh binary
+    populate_script: ./tests/install_bitcoind.sh --debug --bitcoin binary
   elementsd_installation_cache:
     folder: ./tests/elements
     fingerprint_script: 
