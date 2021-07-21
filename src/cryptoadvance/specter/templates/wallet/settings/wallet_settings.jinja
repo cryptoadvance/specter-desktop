@@ -344,30 +344,6 @@
 		}
 
 
-		document.addEventListener("DOMContentLoaded", function(){
-			var el = document.getElementById("file");
-			var txt = document.getElementById("import_electrum_labels_json");
-
-			if (el != null) {
-				el.addEventListener("change", (e) => {
-					files = e.currentTarget.files;
-					console.log(files);
-					for(let i=0; i<files.length; i++){
-						console.log(files[i].name);
-						let reader = new FileReader();
-						reader.onload = function(e) {
-							let str = reader.result;
-							// if raw bytes
-							if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
-								str = btoa(reader.result);
-							}
-							txt.value = str;
-						}
-						reader.readAsBinaryString(files[i]);
-					}
-				});
-			}
-		});
 	</script>
 	<script>
 		function toggleKeysList() {
