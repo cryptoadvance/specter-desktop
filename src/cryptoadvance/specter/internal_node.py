@@ -76,8 +76,7 @@ class InternalNode(Node):
                 self.datadir = os.path.join(self.datadir, "signet")
             logger.info(f"persisting {self} in __init__")
             write_node(self, self.fullpath)
-        if not os.path.isdir(os.path.expanduser(self.datadir)):
-            os.makedirs(os.path.expanduser(self.datadir))
+        pathlib.Path(self.datadir).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
