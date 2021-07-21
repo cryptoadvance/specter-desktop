@@ -187,7 +187,7 @@ class WalletImporter:
 
         # Electrum singlesig
         elif "keystore" in wallet_data:
-            wallet_name = wallet_data["keystore"]["label"]
+            wallet_name = wallet_data["keystore"].get("label", "Electrum Wallet")
 
             if "xpub" in wallet_data["keystore"]:
                 wallet_type = cls.wallet_type_by_slip132_xpub(
@@ -208,8 +208,8 @@ class WalletImporter:
             )
             cosigners_types = [
                 {
-                    "type": wallet_data["keystore"]["hw_type"],
-                    "label": wallet_data["keystore"]["label"],
+                    "type": wallet_data["keystore"].get("hw_type", "other"),
+                    "label": wallet_data["keystore"].get("label", "Electrum Wallet"),
                 }
             ]
 
