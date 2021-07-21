@@ -157,20 +157,14 @@
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<textarea name="import_electrum_labels_json" id="import_electrum_labels_json" placeholder="{{ _('Paste json here') }}"></textarea>
-					<input type="file" id="file" class="inputfile"/>
-					<label for="file" class="btn" style="margin: 8px;">
-						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Choose file") }}
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">{{ _("Using a file") }}<br><br></span>
-									{{ _("The file should contain the electrum address export in the json format.") }}
-								</span>
-							</p>
-						</div>
-					</label>
+					<textarea name="import_electrum_labels_json" 
+					id="import_electrum_labels_json" 
+					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
+					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
+					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
+					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
+					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
+					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
 					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}</button>
 				</div>
 			</form>
@@ -283,6 +277,72 @@
 
 {% block scripts %} 
 	<script type="text/javascript">
+
+
+		function paste_file_in_textarea(file, textarea) {
+			if (file != null  ) {
+				console.log(file.name);
+				let reader = new FileReader();
+				reader.onload = function(e) {
+					let str = reader.result;
+					// if raw bytes
+					if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
+						str = btoa(reader.result);
+					}
+					textarea.value = str;
+				}
+				reader.readAsBinaryString(file);
+			}
+		}
+
+
+		function dropHandler(ev, textarea_name) {
+			console.log('File(s) dropped');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+					// If dropped items aren't files, reject them
+					if (ev.dataTransfer.items[i].kind === 'file') {
+						var file = ev.dataTransfer.items[i].getAsFile();
+						paste_file_in_textarea(file, document.getElementById(textarea_name))
+						console.log('... file[' + i + '].name = ' + file.name);
+					}
+				}
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+					paste_file_in_textarea(ev.dataTransfer.files[i], document.getElementById(textarea_name))
+					console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+				}
+			}
+		}
+
+
+		function dragOverHandler(ev, textarea_name) {
+			//console.log('File(s) in drop zone');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			document.getElementById(textarea_name).value = "Drop file here"
+		}
+
+		function dragLeaveHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragExitHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragEndHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+
 
 		document.addEventListener("DOMContentLoaded", function(){
 			var el = document.getElementById("file");
