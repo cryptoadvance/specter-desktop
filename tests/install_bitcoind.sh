@@ -74,6 +74,24 @@ function maybe_update {
     fi
 }
 
+function calc_pytestinit_nodeimpl_version {
+
+    # returns the version of $node_impl from pytest.ini from a line which looks like:
+    # addopts = --bitcoind-version v0.21.1 --elementsd-version v0.20.99
+    local node_impl=$1
+    if cat ../pytest.ini | grep -q "addopts = --${node_impl}d-version" ; then
+        # in this case, we use the expected version from the test also as the tag to be checked out
+        # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
+        PINNED=$(cat ../pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
+       
+        if [ "$node_impl" = "elements" ]; then
+            # in the case of elements, the tags have a "elements-" prefix
+            PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
+        fi
+    fi
+    echo $PINNED
+}
+
 function build_node_impl {
     node_impl=$1 # either bitcoin or elements
     nodeimpl_setup_needed=$2
@@ -147,21 +165,30 @@ function sub_compile {
 }
 
 function sub_binary {
+    if [ $node_impl = "elements" ]; then
+        echo "    --> binary installation of elements not supported, exiting"
+        exit 2
+    fi
     echo "    --> install_bitcoind.sh Start $(date) (binary)"
     START=$(date +%s.%N)
-    cd tests
     # todo: Parametrize this
-    version=0.20.1
-    wget https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
-    tar -xzf bitcoin-${version}-x86_64-linux-gnu.tar.gz
-    if [[ -f ./bitcoin ]]; then
-        echo "bitcoin -directory exists"
-        return
+    version=$(calc_pytestinit_nodeimpl_version $node_impl)
+    # remove the v-prefix
+    version=$(echo $version | sed -e 's/v//')
+    if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
+        wget https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
     fi
-    mv ./bitcoin-${version} bitcoin
-    cd .. #cirrus is sourcing this script
+    tar -xzf bitcoin-${version}-x86_64-linux-gnu.tar.gz
+    if [[ -d ./bitcoin ]]; then
+        if [[ -d ./bitcoin/src ]]; then
+            mv ./bitcoin ./bitcoin-src
+        else
+            rm -rf ./bitcoin
+        fi
+    fi
+    ln -s ./bitcoin-${version} bitcoin
     echo "    --> Listing binaries"
-    find tests/bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
