@@ -227,8 +227,7 @@ describe('Operating with an elements multisig wallet', () => {
             cy.get('#send_tx_btn').click()
             cy.get('#broadcast_local_btn').click()
             // gets redirected to "transactions"
-
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: 10000})
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
