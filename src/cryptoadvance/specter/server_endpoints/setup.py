@@ -163,19 +163,13 @@ def setup_bitcoind_datadir():
     node_default_datadir = os.path.join(
         app.specter.node_manager.data_folder, f"{alias(node_name)}/.bitcoin-{network}"
     )
-    if os.path.exists(
-        request.form.get("bitcoin_core_datadir", None)
-        if request.form.get("bitcoin_core_datadir", None)
-        else node_default_datadir
-    ):
+    user_selected_datadir = request.form.get(
+        "bitcoin_core_datadir", node_default_datadir
+    )
+    if os.path.exists(user_selected_datadir):
         if request.form["override_data_folder"] != "true":
             return {"error": "data folder already exists"}
-        shutil.rmtree(
-            request.form.get("bitcoin_core_datadir", None)
-            if request.form.get("bitcoin_core_datadir", None)
-            else node_default_datadir,
-            ignore_errors=True,
-        )
+        shutil.rmtree(user_selected_datadir, ignore_errors=True)
     if (
         os.path.isfile(app.specter.bitcoind_path)
         and app.specter.setup_status["bitcoind"]["stage_progress"] == -1
@@ -183,7 +177,7 @@ def setup_bitcoind_datadir():
         node = app.specter.node_manager.add_internal_node(
             node_name,
             network=network,
-            datadir=request.form.get("bitcoin_core_datadir", None),
+            datadir=user_selected_datadir,
         )
         app.specter.update_setup_status("bitcoind", "STARTING_SETUP")
         quicksync = request.form["quicksync"] == "true"
