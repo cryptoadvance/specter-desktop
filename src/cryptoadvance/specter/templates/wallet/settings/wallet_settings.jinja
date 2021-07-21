@@ -277,24 +277,16 @@
 
 {% block scripts %} 
 	<script type="text/javascript">
-
-
 		function paste_file_in_textarea(file, textarea) {
 			if (file != null  ) {
 				console.log(file.name);
 				let reader = new FileReader();
-				reader.onload = function(e) {
-					let str = reader.result;
-					// if raw bytes
-					if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
-						str = btoa(reader.result);
-					}
-					textarea.value = str;
+				reader.onload = function(e) { 
+					textarea.value = reader.result;
 				}
 				reader.readAsBinaryString(file);
 			}
 		}
-
 
 		function dropHandler(ev, textarea_name) {
 			console.log('File(s) dropped');
@@ -321,7 +313,6 @@
 			}
 		}
 
-
 		function dragOverHandler(ev, textarea_name) {
 			//console.log('File(s) in drop zone');
 
@@ -342,8 +333,6 @@
 			// Prevent default behavior (Prevent file from being opened)
 			document.getElementById(textarea_name).value = ""
 		}
-
-
 	</script>
 	<script>
 		function toggleKeysList() {
