@@ -62,6 +62,9 @@ class BaseConfig(object):
         "ELMD_REGTEST_DATA_DIR", "/tmp/specter_elm_regtest_plain_datadir"
     )
 
+    # the default timeout for Bitcoin/Liquid RPC-calls
+    NODE_RPC_TIMEOUT = 10
+
     # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
     SPECTER_SSL_CERT_SUBJECT_C = os.getenv("SPECTER_SSL_CERT_SUBJECT_C", "DE")
     SPECTER_SSL_CERT_SUBJECT_ST = os.getenv("SPECTER_SSL_CERT_SUBJECT_ST", "BDW")

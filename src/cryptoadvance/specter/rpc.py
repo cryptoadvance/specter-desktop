@@ -215,8 +215,11 @@ class RpcError(Exception):
 class BitcoinRPC:
     counter = 0
 
+    # These are used for tracing the calls without too many duplicates
     last_call_hash = None
     last_call_hash_counter = 0
+
+    default_timeout = None
 
     def __init__(
         self,
@@ -239,7 +242,7 @@ class BitcoinRPC:
         self.protocol = protocol
         self.host = host
         self.path = path
-        self.timeout = timeout
+        self.timeout = timeout or self.__class__.default_timeout
         self.proxy_url = proxy_url
         self.only_tor = only_tor
         self.r = None
