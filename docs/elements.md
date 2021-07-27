@@ -40,3 +40,67 @@ ls tests/elements/src/elements-cli tests/elements/src/elementsd
 tests/elements/src/elements-cli  tests/elements/src/elementsd
 ```
 
+# Liquid Node
+We'll make the setup of the Liquid-node as simple as possible: No peg-in in the first step. You'll need RPC-access to your Bitcoin-Core node. I did this with a fullnode, it might also work with a pruned node.
+
+First, we need to create the `elements.conf` file which is located in the `datadir`. If you don't specify the datadir at startup, the standard-directory is `<homefolder>/.elements/elements.conf`. Here is an example:
+
+```
+chain=liquidv1
+mainchainrpchost=localhost
+mainchainrpcport=8332
+mainchainrpcuser=your-username
+mainchainrpcpassword=your-user-password
+
+rpcuser=liquiduser
+rpcpassword=liquidpassword
+```
+
+We assume here, that you're running the liquid node on the same machine than the Core-Node. Therefore `localhost`. Get the values for `mainchainrpcuser` and `mainchainrpcpassword` from your `bitcoin.conf`. You can choose `rpcuser` and `rpcpassword` as you like. YOu'll later need that in specter, to configure access to the elements-node, similiar than to the core-node.
+
+After that, let's start the `elements-node`. We'll start it simply via the commandline in an extra-terminal. Transorming that to a proper service is beyond the scope of this tutorial.
+
+```
+tests/elements/src/elements/elementsd
+```
+
+A successfull startup will result in validating the blocks. Currently the blockheight for liquid is at about 1417550. Especially the early blocks are quite empty so you should see a messages like these:
+
+```
+2021-07-26T15:31:09Z UpdateTip: new best=cbf3ce54912825928d51c8e49eb86a310b53d98c61da560bd9e95ee62e019cd0 height=1502 version=0x20000000 tx=1512 date='2018-09-28T10:38:59Z' progress=0.002000 cache=0.0MiB(13txo)
+```
+
+It took about 12 hours for a full-sync in my case on a Intel Quadcore Gen 6 3.50GHz.
+
+# Liquid Configuration in Specter
+
+You're probably familiar with this part. On the upper-left, click on the `two arrows -> connect a new node -> Connect existing node`. Here is a screenshots with the values fitting to the configuration above:
+
+![](./elements_liquidconfig.png)
+
+After clicking on `save`, the node will get selected. You see something like this in the upper left:
+
+![](./elements_nav.png)
+
+As you can your wallets disappeared but your devices did not. The shown wallets are now specific to the Node which has been selected. The node can be switched via the clicking on the two arrows.
+
+![](./elements_nodechoose.png)
+
+# Hotwallet-Creation
+
+The process of creating a Liquid Hotwallet is very similiar to creating a Bitcoin-Core Hotwallet. First you need to create a Hotwallet-Device `Add new device -> Elements Core (hot wallet) -> Continue -> Enter Name -> Continue`.
+After that, you can directly create a single key wallet: `Create single key wallet -> Enter Name -> Create Wallet`. You can download the usual Backup Pdf.
+
+So if you now get a receive-address, you have to choose between a Confidential and a Unconfidential address.
+
+![](./elements_receive.png)
+
+# Fund the wallet
+
+There are many ways you can fund your wallet. Let's assume you have Bitcoin and want to receive LiquidBtc (LBTC). At [https://sideswap.io/peg-in-out/](https://sideswap.io/peg-in-out/) you can Peg-In some Btc as a service. At [https://sideshift.ai/](https://sideshift.ai/) you can [https://sideshift.ai/btc/liquid](swap) BTC agains LBTC (and [vice versa](https://sideshift.ai/liquid/btc)).
+
+As an example, let'S choose sideshift.ai to swap some BTC to LBTC.
+
+![](./elements_sideshift1.png) ![](./elements_sideshift2.png) ![](./elements_sideshift3.png) ![](./elements_sideshift4.png) 
+
+![](./elements_txs.png)
