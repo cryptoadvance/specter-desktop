@@ -29,18 +29,8 @@ describe('Operating with an elements multisig wallet', () => {
         cy.get('#keysform > .centered').click()
         // Cancel-button (no pdf download)
         cy.get('#page_overlay_popup_cancel_button').click()
-
-        // Fund it and check the balance
-        cy.get('#btn_transactions').click()
-        cy.task("elm:mine")
-        cy.wait(10000)
-        cy.reload()
-        cy.get('#fullbalance_amount')
-            .should(($div) => {
-              const n = parseFloat($div.text())
-              expect(n).to.be.gt(0).and.be.lte(50)
-            }
-        )
+        //Get some funds
+        cy.mine2wallet("elm")
 
 
         // Create Nested multisig wallet
@@ -59,18 +49,8 @@ describe('Operating with an elements multisig wallet', () => {
         cy.get('#keysform > .centered').click()
         // Cancel-button (no pdf download)
         cy.get('#page_overlay_popup_cancel_button').click()
-
-        // Fund it and check the balance
-        cy.get('#btn_transactions').click()
-        cy.task("elm:mine")
-        cy.wait(10000)
-        cy.reload()
-        cy.get('#fullbalance_amount')
-            .should(($div) => {
-              const n = parseFloat($div.text())
-              expect(n).to.be.gt(0).and.be.lte(50)
-            }
-        )
+        //Get some funds
+        cy.mine2wallet("elm")
     }) 
         
     it('Spending to a Confidential address from segwit', () => {

@@ -101,15 +101,9 @@ Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi
       // // unfortunately this results in weird effects in cypress run
       // //cy.get('#pdf-wallet-download > img').click()
       cy.get('#btn_continue').click()
-      cy.get('#btn_transactions').click()
-      cy.task("elm:mine")
-      cy.wait(10000)
-      cy.reload()
-      cy.get('#fullbalance_amount')
-          .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.gt(0).and.be.lte(50)
-          })
+
+      //Get some funds
+      cy.mine2wallet("elm")
 
     })
 })
@@ -125,6 +119,29 @@ Cypress.Commands.add("deleteWallet", (name) => {
         // So let's do that as well
         cy.task("delete:elements-hotwallet")
     } 
+  })
+})
+
+Cypress.Commands.add("mine2wallet", (chain) => { 
+  // Fund it and check the balance
+  cy.get('#btn_transactions').click()
+  cy.get('#fullbalance_amount').then(($div) => {
+      const oldBalance = parseFloat($div.text())
+      if (chain=="elm") {
+        cy.task("elm:mine")
+      } else if (chain=="btc") {
+        cy.task("btc:mine")
+      } else {
+        throw new Error("Unknown chain: " + chain)
+      }
+      cy.wait(10000)
+      cy.reload()
+      cy.get('#fullbalance_amount')
+          .should(($div) => {
+          const n = parseFloat($div.text())
+          expect(n).to.be.gt(oldBalance)
+          }
+      )
   })
 })
 
