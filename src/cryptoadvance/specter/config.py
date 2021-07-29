@@ -137,9 +137,6 @@ class DevelopmentConfig(BaseConfig):
     # API active by default in dev-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
-    # Env vars take priority over config settings so ensure that this is set
-    os.environ["FLASK_ENV"] = "development"
-
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"
