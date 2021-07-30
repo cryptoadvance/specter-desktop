@@ -1,6 +1,8 @@
+import pytest
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 
 
+@pytest.mark.elm
 def test_LiquidRpc(elements_elreg):
     rpc = elements_elreg.get_rpc()
     default_rpc = rpc.wallet("")
