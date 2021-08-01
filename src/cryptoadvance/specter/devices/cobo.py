@@ -1,17 +1,17 @@
 import hashlib
 
 # from ..device import Device
+from . import DeviceTypes
 from .coldcard import ColdCard
 from hwilib.psbt import PSBT
 from binascii import a2b_base64
 from ..util import bcur
-from ..util.base43 import b43_encode
 from ..util.xpub import get_xpub_fingerprint
 from ..helpers import to_ascii20
 
 
 class Cobo(ColdCard):
-    device_type = "cobo"
+    device_type = DeviceTypes.COBO
     name = "Cobo Vault"
     icon = "cobo_icon.svg"
 
@@ -20,9 +20,6 @@ class Cobo(ColdCard):
     qr_code_support = True
     exportable_to_wallet = True
     wallet_export_type = "qr"
-
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)

@@ -1,3 +1,75 @@
+## v1.5.0 July 16, 2021
+- Feature: Translation (Babel) integration and initial translations #1247 (kdmukai, 2a3dex, rafa1239, Volker Herminghaus, glowleaf, DirkVdk, mutatrum, Kryptoministern, PommbearBTC, Gummybear, sreshta suresh, KST-Energy, alltheseas, dudezoo, Sergei Tikhomirov, Bitpaint)
+- Feature: Api framework #1232 (Kim Neunert)
+- Bugfix: Delete raw transactions when wallet is deleted #1300 (Stepan Snigirev)
+- Bugfix: Fix error when importing transaction #1259 (benk10)
+- Bugfix: Fix multi-hot-multisig signing #1294 (Stepan Snigirev)
+- Bugfix: Fix saving a transaction as pending #1261 (benk10)
+- Bugfix: Fix test connection crash when node can't be reached #1285 (benk10)
+- Chore: Improve logging #1282 (Kim Neunert)
+- DevOps: Removing blobs and adjusting automations #1299 (Kim Neunert)
+- Translation: Update Portuguese translation #1277 (bitsenca)
+- Translation: Update Portuguese translation #1279 (KoreaComK)
+- Translation: Update Spanish translation (2a3dex)
+- Translation: Update Hebrew translation #1288 (Sh0ham)
+- Translation: Update messages.po #1290 (Pat4cryptoFR)
+- Translation: Update messages.po #1293 (alltheseas)
+- Translation: Update French translation #1297 (KST-Energy)
+- Translation: Update French translation #1305 (KST-Energy)
+- Translation: Update Chinese (Simplified) translation #1275 (kdmukai)
+- Translation: Update to Chinese (Traditional) translations #1274 (kdmukai)
+- Docs: Adds steps to install Rust compiler dependency #1303 (kdmukai)
+- Docs: more details about missing funds #1254 (Kim Neunert)
+- Docs: Updates Babel README to remove temporary `kdmukai` fork references #1269 (kdmukai)
+- Liquid: Disable elements hot wallet for bitcoin wallets #1295 (Stepan Snigirev)
+- Liquid: Add support for unconfidential addresses #1292 (Stepan Snigirev)
+- Liquid: Fix addressinfo lookup and category assignments #1296 (Stepan Snigirev)
+- Liquid: Fix change address derivation #1304 (Stepan Snigirev)
+- Liquid: Fix fee estimation on liquid #1289 (Stepan Snigirev)
+- Liquid: Fix nested segwit wallets on liquid #1298 (Stepan Snigirev)
+- Liquid: Minor liquid fixes #1301 (Stepan Snigirev)
+- Liquid: TxList and AddressList classes for Liquid #1280 (Stepan Snigirev)
+
+## v1.4.6 June 28, 2021
+- Feature: Add Keystone device #1237 (Stepan Snigirev)
+- Feature: Export device types and labels #1226 (kdmukai)
+- Feauture: Liquid - asset support #1216 (Stepan Snigirev)
+- UIUX: Redesign the Tor settings screen #1245 (benk10)
+- Bugfix: Apostrophes in device labels need proper escaping in PDF export template #1246 (kdmukai)
+- Bugfix: cleanup annoying test_artifacts #1236 (Kim Neunert)
+- Bugfix: Filter non liquid devices from create liquid wallet #1243 (benk10)
+- Bugfix: fix elementsd process #1240 (Stepan Snigirev)
+- Chore: Bump normalize-url from 4.5.0 to 4.5.1 in /pyinstaller/electron #1223 (dependabot[bot])
+- Chore: Bump urllib3 from 1.25.10 to 1.26.5 #1211 (dependabot[bot])
+- Chore: Wallet new refactoring #1244 (Kim Neunert)
+- Chore: del elm comp from gitlab + ensure master green #1250 (Kim Neunert)
+- Chore: refactor psbt-creation #1249 (Kim Neunert)
+- Chore: Refactor wallet creation to Wallet.create method #1242 (Stepan Snigirev)
+
+## v1.4.5 June 16, 2021
+- Feature: Add Blockstream Jade support #1234 (benk10)
+- Feature: Add SeedSigner device #1225 (Stepan Snigirev)
+- Feature: Show Liquid icon on node manager #1224 (benk10)
+- Bugfix: `non_witness_utxo` hash mismatch problem #1235 (Stepan Snigirev)
+- Bugfix: RPC-password as pin for multiple nodes #1231 (Kim Neunert)
+- Bugfix: Missing prop setter bugfix #1228 (kdmukai)
+- Bugfix: "NameError: name 'protocol' is not defined" #1229 (DerM007)
+- Chore: Elements testing #1212 (Kim Neunert)
+
+
+## v1.4.3 June 10, 2021
+- Bugfix: add some liquid fixes #1194 (Stepan Snigirev)
+- Feature: Fully unblind liquid transactions sent by Specter #1220 (Stepan Snigirev)
+
+## v1.4.2 June 01, 2021
+- Bugfix: unconventional derivations fail regexes #1204 (Stepan Snigirev)
+- Chore: Simplify emptiness checks in txlist #1202 (Roman Zeyde)
+
+## v1.4.1 May 30, 2021
+- Bugfix: a few typos #1201 (Roman Zeyde)
+- Bugfix: Set http as default network protocol if non specified #1199 (benk10)
+- Bugfix: Update Tor circuit every request #1200 (benk10)
+
 ## v1.4.0 May 28, 2021
 - Feature: Broadcast transactions over block explorer via Tor #1183 (benk10)
 - Feature: "Verify on device" with Coldcard sugggest using airgap instead of USB connection #1157 (Manolis)

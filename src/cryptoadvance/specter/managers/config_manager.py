@@ -43,6 +43,10 @@ class ConfigManager(GenericDataManager):
                 "regtest": "CUSTOM",
                 "signet": "CUSTOM",
             },
+            # user-defined asset labels for liquid
+            "asset_labels": {
+                "liquidv1": {},
+            },
             "active_node_alias": "default",
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
@@ -110,6 +114,15 @@ class ConfigManager(GenericDataManager):
             auth["registration_link_timeout"] = registration_link_timeout
         self._save()
 
+    def update_asset_label(self, asset, label, chain, user):
+        if user.is_admin:
+            if "asset_labels" not in self.data:
+                self.data["asset_labels"] = {}
+            deep_update(self.data["asset_labels"], {chain: {asset: label}})
+            self._save()
+        else:
+            user.update_asset_label(asset, label, chain)
+
     def update_explorer(self, explorer_id, explorer_data, user, chain):
         """update the block explorers urls"""
         if isinstance(user, str):
@@ -158,6 +171,12 @@ class ConfigManager(GenericDataManager):
         """update the Tor proxy url"""
         if self.data["proxy_url"] != proxy_url:
             self.data["proxy_url"] = proxy_url
+            self._save()
+
+    def update_tor_type(self, tor_type, user):
+        """update the Tor type to use"""
+        if self.data.get("tor_type", "builtin") != tor_type:
+            self.data["tor_type"] = tor_type
             self._save()
 
     def toggle_tor_status(self):

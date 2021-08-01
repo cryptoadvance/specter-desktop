@@ -19,7 +19,7 @@
         <td class="used optional"></td>
         <td class="utxo optional"></td>
         <td class="optional"><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
-        <td class="verify optional"><button type="button" class="btn" style="width:150px; max-width:150px;margin: 0px;">Verify on device</button></td>
+        <td class="verify optional"><button type="button" class="btn" style="width:150px; max-width:150px;margin: 0px;">{{ _("Verify on device") }}</button></td>
         <td></td>
     </tr>
 </template>
@@ -111,9 +111,9 @@
                             displayAddressOnDevice(this.addressData.address, JSON.stringify(descriptor));
                             return;
                         }
-                        showError("Failed to load address data to display...");
+                        showError('{{ _("Failed to load address data to display...") }}');
                     }  catch(e) {
-                        showError("Failed to load address data to display...");
+                        showError('{{ _("Failed to load address data to display...") }}');
                         showError(e);
                     }
                 }

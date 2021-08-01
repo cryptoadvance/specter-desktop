@@ -1,5 +1,5 @@
 <div id="hwi_selector" class="hidden">
-    <h1>Select USB Wallet</h1>
+    <h1>{{ _("Select USB Wallet") }}</h1>
     <div class="flex-center flex-column" id="hwi_selector_container">
     </div>
 </div>
@@ -50,7 +50,7 @@
             return null;
         }
 
-        showHWIProgress("Processing...", `Keep your ${capitalize(selectedDevice.type)} connected.`);
+        showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(selectedDevice.type)} {{ _("connected") }}.`);
         // Get the device again as it is now unlocked and the fingerprint is available
         let rescanDevices = await enumerate(selectedDevice.type, selectedDevice.path, passphrase);
         if (rescanDevices.length == 1) {
@@ -75,7 +75,7 @@
                 return null;
             }
             if(!('success' in result) || !result.success){
-                throw "Failed to unlock device! Invalid PIN code?";
+                throw '{{ _("Failed to unlock device! Invalid PIN code?") }}';
             }
             device.needs_pin_sent = false;
         }
@@ -99,7 +99,7 @@
             return;
         }
         let device = await selectDevice(devices, '');
-        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+        showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         let result = null;
         try {
             result = await hwi.togglePassphrase(device);
@@ -122,7 +122,7 @@
                 throw "Failed to unlock device! Invalid PIN code?";
             }
         }
-        showNotification(device.type + " passphrase toggled successfuly", 5000)
+        showNotification(device.type + ' {{ _("passphrase toggled successfully") }}', 5000)
     }
 
     async function signMessage(deviceType, message, derivationPath, fingerprint=null){
@@ -137,10 +137,10 @@
         }
 
         if (fingerprint && device.fingerprint != fingerprint) {
-            handleHWIError("Selected device does not have matching signing key.");
+            handleHWIError('{{ _("Selected device does not have matching signing key.") }}');
             return;
         }
-        showHWIProgress("Signing message...", `Confirm on your ${capitalize(device.type)}.`);
+        showHWIProgress('{{ _("Signing message...") }}', `{{ _("Confirm on your") }} ${capitalize(device.type)}.`);
         let signature = null;
         try {
             signature = await hwi.signMessage(device, message, derivationPath);

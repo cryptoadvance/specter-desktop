@@ -16,6 +16,7 @@ import requests
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 
 from ..helpers import (
@@ -108,7 +109,7 @@ def general():
                     # continue with the existing one
                     if "already exists" not in str(e):
                         flash(
-                            "Failed to import wallet {}, error: {}".format(
+                            _("Failed to import wallet {}, error: {}").format(
                                 wallet["name"], e
                             ),
                             "error",
@@ -142,16 +143,21 @@ def general():
                             )
                         )
                         flash(
-                            "Failed to perform rescan for wallet: {}".format(e), "error"
+                            _("Failed to perform rescan for wallet: {}").format(e),
+                            "error",
                         )
                     wallet_obj.getdata()
                 except Exception:
-                    flash("Failed to import wallet {}".format(wallet["name"]), "error")
-            flash("Specter data was successfully loaded from backup.", "info")
+                    flash(
+                        _("Failed to import wallet {}").format(wallet["name"]), "error"
+                    )
+            flash(_("Specter data was successfully loaded from backup"), "info")
             if rescanning:
                 flash(
-                    "Wallets are rescanning for transactions history.\n\
-This may take a few hours to complete.",
+                    _(
+                        "Wallets are rescanning for transactions history.\n\
+This may take a few hours to complete."
+                    ),
                     "info",
                 )
 
@@ -165,6 +171,7 @@ This may take a few hours to complete.",
         specter=app.specter,
         current_version=current_version,
         rand=rand,
+        supported_languages=app.supported_languages,
     )
 
 
@@ -179,50 +186,103 @@ def tor():
     param only_tor "on" or something else ("off")
     """
     if not current_user.is_admin:
-        flash("Only an admin is allowed to access this page.", "error")
+        flash(_("Only an admin is allowed to access this page."), "error")
         return redirect("")
     app.specter.reset_setup("torbrowser")
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
+    tor_type = app.specter.tor_type
     if request.method == "POST":
         action = request.form["action"]
+        tor_type = request.form["tor_type"]
         proxy_url = request.form["proxy_url"]
         only_tor = request.form.get("only_tor") == "on"
         tor_control_port = request.form["tor_control_port"]
+        hidden_service = request.form.get("hidden_service") == "on"
 
         if action == "save":
-            app.specter.update_proxy_url(proxy_url, current_user)
+            logger.info("Updating Tor settings...")
+            app.specter.update_tor_type(tor_type, current_user)
+
+            if tor_type == "custom":
+                app.specter.update_proxy_url(proxy_url, current_user)
+                app.specter.update_tor_control_port(tor_control_port, current_user)
+            else:
+                proxy_url = "socks5h://localhost:9050"
+                tor_control_port = ""
+
             app.specter.update_only_tor(only_tor, current_user)
-            app.specter.update_tor_control_port(tor_control_port, current_user)
+            if hidden_service != app.specter.config["tor_status"]:
+                if not app.config["DEBUG"]:
+                    if app.specter.config["auth"].get("method", "none") == "none":
+                        flash(
+                            "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
+                            "error",
+                        )
+                    else:
+                        if hasattr(current_user, "is_admin") and current_user.is_admin:
+                            if not hidden_service:
+                                stop_hidden_services(app)
+                                app.specter.toggle_tor_status()
+                                flash(
+                                    "Tor hidden service turn off successfully", "info"
+                                )
+                            else:
+                                try:
+                                    start_hidden_service(app)
+                                    app.specter.toggle_tor_status()
+                                    flash(
+                                        "Tor hidden service turn on successfully",
+                                        "info",
+                                    )
+                                except Exception as e:
+                                    handle_exception(e)
+                                    flash(
+                                        "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
+                                            e
+                                        ),
+                                        "error",
+                                    )
+                else:
+                    flash(
+                        "Can't toggle hidden service while Specter is running in DEBUG mode",
+                        "error",
+                    )
+
             app.specter.check()
+
         elif action == "starttor":
+            logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
-                flash("Specter has started Tor")
+                flash(_("Specter has started Tor"))
             except Exception as e:
-                flash(f"Failed to start Tor, error: {e}", "error")
+                flash(_("Failed to start Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
+            logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
-                flash("Specter stopped Tor successfully")
+                flash(_("Specter stopped Tor successfully"))
             except Exception as e:
-                flash(f"Failed to stop Tor, error: {e}", "error")
+                flash(_("Failed to stop Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
+            logger.info("Uninstalling Tor...")
             try:
                 if app.specter.is_tor_dameon_running():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
-                flash(f"Tor uninstalled successfully")
+                flash(_("Tor uninstalled successfully"))
             except Exception as e:
-                flash(f"Failed to uninstall Tor, error: {e}", "error")
+                flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
+            logger.info("Testing the Tor connection...")
             try:
                 requests_session = requests.Session()
                 requests_session.proxies["http"] = proxy_url
@@ -234,66 +294,40 @@ def tor():
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
-                    flash("Tor requests test completed successfully!", "info")
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
+                    flash(_("Tor requests test completed successfully!"), "info")
                 else:
                     flash(
-                        f"Failed to make test request over Tor. Status-Code: {res.status_code}",
+                        _(
+                            "Failed to make test request over Tor. Status-Code: {}"
+                        ).format(res.status_code),
                         "error",
                     )
                     logger.error(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}"
                     )
-                    logger.error("Tor-Logs:")
-                    logger.error(app.specter.tor_daemon.get_logs())
+                    if tor_type == "builtin":
+                        logger.error("Tor-Logs:")
+                        app.specter.tor_daemon.stop_tor_daemon()
+                        time.sleep(1)
+                        logger.error(app.specter.tor_daemon.get_logs())
+                        app.specter.tor_daemon.start_tor_daemon()
             except Exception as e:
-                flash(f"Failed to make test request over Tor.\nError: {e}", "error")
-                logger.error(f"Failed to make test request over Tor.\nError: {e}")
-                logger.error("Tor-Logs:")
-                logger.error(app.specter.tor_daemon.get_logs())
-                tor_connectable = False
-        elif action == "toggle_hidden_service":
-            if not app.config["DEBUG"]:
-                if app.specter.config["auth"].get("method", "none") == "none":
-                    flash(
-                        "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
-                        "error",
-                    )
-                else:
-                    if hasattr(current_user, "is_admin") and current_user.is_admin:
-                        try:
-                            current_hidden_services = (
-                                app.specter.tor_controller.list_ephemeral_hidden_services()
-                            )
-                        except Exception as e:
-                            handle_exception(e)
-                            current_hidden_services = []
-                        if len(current_hidden_services) != 0:
-                            stop_hidden_services(app)
-                            app.specter.toggle_tor_status()
-                            flash("Tor hidden service turn off successfully", "info")
-                        else:
-                            try:
-                                start_hidden_service(app)
-                                app.specter.toggle_tor_status()
-                                flash("Tor hidden service turn on successfully", "info")
-                            except Exception as e:
-                                handle_exception(e)
-                                flash(
-                                    "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
-                                        e
-                                    ),
-                                    "error",
-                                )
-            else:
                 flash(
-                    "Can't toggle hidden service while Specter is running in DEBUG mode",
+                    _("Failed to make test request over Tor.\nError: {}").format(e),
                     "error",
                 )
+                logger.error(f"Failed to make test request over Tor.\nError: {e}")
+                if tor_type == "builtin":
+                    logger.error("Tor-Logs:")
+                    app.specter.tor_daemon.stop_tor_daemon()
+                    time.sleep(1)
+                    logger.error(app.specter.tor_daemon.get_logs())
+                    app.specter.tor_daemon.start_tor_daemon()
+                tor_connectable = False
 
     return render_template(
         "settings/tor_settings.jinja",
+        tor_type=tor_type,
         proxy_url=proxy_url,
         only_tor=only_tor,
         tor_control_port=tor_control_port,
@@ -336,7 +370,7 @@ def auth():
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
                         flash(
-                            "Username is already taken, please choose another one",
+                            _("Username is already taken, please choose another one"),
                             "error",
                         )
                         return render_template(
@@ -353,9 +387,9 @@ def auth():
                 if specter_password:
                     if len(specter_password) < min_chars:
                         flash(
-                            "Please enter a password of a least {} characters.".format(
-                                min_chars
-                            ),
+                            _(
+                                "Please enter a password of a least {} characters"
+                            ).format(min_chars),
                             "error",
                         )
                         return render_template(
@@ -378,9 +412,9 @@ def auth():
                         if new_password:
                             if len(new_password) < min_chars:
                                 flash(
-                                    "Please enter a password of a least {} characters.".format(
-                                        min_chars
-                                    ),
+                                    _(
+                                        "Please enter a password of a least {} characters"
+                                    ).format(min_chars),
                                     "error",
                                 )
                                 return render_template(
@@ -419,9 +453,9 @@ def auth():
                 if timeout > 0:
                     expiry = now + timeout * 60 * 60
                     if timeout > 1:
-                        expiry_desc = " (expires in {} hours)".format(timeout)
+                        expiry_desc = " " + _("(expires in {} hours)").format(timeout)
                     else:
-                        expiry_desc = " (expires in 1 hour)"
+                        expiry_desc = " " + _("(expires in 1 hour)")
                 else:
                     expiry = 0
                     expiry_desc = ""
@@ -429,14 +463,14 @@ def auth():
                     {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
                 flash(
-                    "New user link generated{}: {}auth/register?otp={}".format(
+                    _("New user link generated{}: {}auth/register?otp={}").format(
                         expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )
             else:
                 flash(
-                    "Error: Only the admin account can issue new registration links.",
+                    _("Error: Only the admin account can issue new registration links"),
                     "error",
                 )
         elif action == "deleteuser":
@@ -445,9 +479,11 @@ def auth():
             if current_user.is_admin:
                 app.specter.delete_user(user)
                 users.remove(user)
-                flash("User {} was deleted successfully".format(user.username), "info")
+                flash(
+                    _("User {} was deleted successfully").format(user.username), "info"
+                )
             else:
-                flash("Error: Only the admin account can delete users", "error")
+                flash(_("Error: Only the admin account can delete users"), "error")
     return render_template(
         "settings/auth_settings.jinja",
         method=method,
@@ -467,13 +503,27 @@ def hwi():
     if request.method == "POST":
         hwi_bridge_url = request.form["hwi_bridge_url"]
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
-        flash("HWIBridge URL is updated! Don't forget to whitelist Specter!")
+        flash(_("HWIBridge URL is updated! Don't forget to whitelist Specter!"))
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,
         current_version=current_version,
         rand=rand,
     )
+
+
+@settings_endpoint.route("/assets/set_label", methods=["POST"])
+@login_required
+def set_asset_label():
+    asset = request.form["asset"]
+    label = request.form["label"].rstrip()
+    if label.lower() in ["btc", "bitcoin", "sat", "lbtc"]:
+        return f'Label "{label}" is not allowed', 500
+    try:
+        app.specter.update_asset_label(asset, label)
+    except Exception as e:
+        return str(e), 500
+    return {"success": True}
 
 
 ################## Settings util endpoints #######################

@@ -1,8 +1,8 @@
 <div id="{{ device.alias }}_sign_tx_file" class="flex-center flex-column hidden">
-    <h2>Sign Transaction with file</h2><br>
-    <a class="btn centered" style="margin: 15px auto;" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ device_psbts['sdcard'] }}">Save transaction to file</a>
+    <h2>{{ _("Sign Transaction with file") }}</h2><br>
+    <a class="btn centered" style="margin: 15px auto;" download="to{{ psbt['address'] }}{{ psbt['amount'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ device_psbts['sdcard'] }}">{{ _("Save transaction to file") }}</a>
     <input type="file" id="{{ device.alias }}_signing_file" class="inputfile"/>
-    <label for="{{ device.alias }}_signing_file" class="btn centered" style="margin: 15px auto;">Load signed transaction from file</label>
+    <label for="{{ device.alias }}_signing_file" class="btn centered" style="margin: 15px auto;">{{ _("Load signed transaction from file") }}</label>
 </div>
 
 <script>
@@ -16,7 +16,7 @@
                 hidePageOverlay();
                 let str = reader.result;
                 // if raw bytes
-                if(reader.result.startsWith("psbt")){
+                if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
                     str = btoa(reader.result);
                 }
                 combine(str);

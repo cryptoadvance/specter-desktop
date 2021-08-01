@@ -78,6 +78,7 @@ class QRScannerElement extends HTMLElement {
       "len": 0, // total number of qr codes scanned
       "parts": [],
     };
+    this.bcur2decoder = new window.URlib.URRegistryDecoder();
 
     // on click event
     this.addEventListener('click', e => {
@@ -99,7 +100,20 @@ class QRScannerElement extends HTMLElement {
         // syntax: "UR:BYTES/MOFN/HSH/CHUNK"
         let re2 = /UR:BYTES\/(\d+)OF(\d+)\/(.*)/;
         let p2 = result.match(re2);
-        if(p1 || p2) {
+        // check if it is a bcur2 fountain stuff
+        // expected: crypto-psbt
+        let re3 = /UR:CRYPTO-(.*)/;
+        let p3 = result.match(re3);
+        if(p3){
+          this.bcur2decoder.receivePart(result);
+          if(this.bcur2decoder.isComplete()){
+            result = this.bcur2decoder.resultUR();
+            this.progress.innerHTML = "";
+          }else{
+            this.progress.innerHTML = `Progress: ${Math.round(this.bcur2decoder.getProgress()*100)}%`;
+            return;
+          }
+        } else if(p1 || p2) {
           let p = p1;
           if(p2){
             p = p2;
@@ -111,7 +125,7 @@ class QRScannerElement extends HTMLElement {
               return this.triggerError("Invalid QR code! n > m!");
           }
           if(this.partial_qr.len != 0 && this.partial_qr.len != n){
-              return this.triggerError("Number of frames in QR code mismatch!<br>Had "+this.partial_qr.len+", got "+n);
+              return this.triggerError('{{ _("Number of frames in QR code mismatch!") }}<br>Had ' + this.partial_qr.len + ", got " + n);
           }
           // if it is the first qr code - build array
           if(this.partial_qr.len == 0){
@@ -174,6 +188,8 @@ class QRScannerElement extends HTMLElement {
       "parts": [],
     };
     this.progress.innerHTML = "&nbsp;";
+    // get new bcur2 decoder
+    this.bcur2decoder = new window.URlib.URRegistryDecoder();
   }
   static get observedAttributes() {
     return ['open'];
@@ -183,14 +199,14 @@ class QRScannerElement extends HTMLElement {
       let isopen = this.hasAttribute('open');
       if(isopen){
         if(navigator.mediaDevices === undefined && location.protocol == "http:"){
-          this.triggerError("Can't get access to the camera. Specter should run on localhost or over https to enable QR code scanning.");
+          this.triggerError("{{ _("Can\'t get access to the camera. Specter should run on localhost or over https to enable QR code scanning.") }}");
           return;
         }
         try{
           this.popup.style.display = 'flex';
           this.scanner.start();
         }catch(e){
-          this.triggerError("Can't start the QR scanner!<br>" + e);
+          this.triggerError("{{ _("Can\'t start the QR scanner!") }}<br>" + e);
         }
       }else{
         this.reset();

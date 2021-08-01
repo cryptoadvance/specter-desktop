@@ -1,25 +1,26 @@
 """ Stuff to control a bitcoind-instance.
 """
 import atexit
+import json
 import logging
 import os
-import signal
-import psutil
+import platform
+import re
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
-import json
-import platform
 
-
-from ..util.shell import which, get_last_lines_from_file
-from ..rpc import RpcError
-from ..rpc import BitcoinRPC
-from ..helpers import load_jsons
-from ..specter_error import ExtProcTimeoutException
-from urllib3.exceptions import NewConnectionError, MaxRetryError
+import psutil
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from requests.exceptions import ConnectionError
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+
+from ..helpers import load_jsons
+from ..rpc import BitcoinRPC, RpcError
+from ..specter_error import ExtProcTimeoutException, SpecterError
+from ..util.shell import get_last_lines_from_file, which
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,14 @@ class Btcd_conn:
     """An object to easily store connection data to bitcoind-comatible nodes (Bitcoin/Elements)"""
 
     def __init__(
-        self, rpcuser="bitcoin", rpcpassword="secret", rpcport=18543, ipaddress=None
+        self,
+        node_impl="bitcoin",
+        rpcuser="bitcoin",
+        rpcpassword="secret",
+        rpcport=18543,
+        ipaddress=None,
     ):
+        self.node_impl = node_impl
         self.rpcport = rpcport
         self.rpcuser = rpcuser
         self.rpcpassword = rpcpassword
@@ -48,10 +55,16 @@ class Btcd_conn:
 
     def get_rpc(self):
         """returns a BitcoinRPC"""
-        # def __init__(self, user, passwd, host="127.0.0.1", port=8332, protocol="http", path="", timeout=30, **kwargs):
-        rpc = BitcoinRPC(
-            self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
-        )
+        if self.node_impl == "bitcoin":
+            rpc = BitcoinRPC(
+                self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
+            )
+        elif self.node_impl == "elements":
+            rpc = LiquidRPC(
+                self.rpcuser, self.rpcpassword, host=self.ipaddress, port=self.rpcport
+            )
+        else:
+            raise SpecterError(f"Unknown node_impl: {self.node_impl}")
         rpc.getblockchaininfo()
         return rpc
 
@@ -96,10 +109,15 @@ class NodeController:
     ):
         try:
             self.rpcconn = Btcd_conn(
-                rpcuser=rpcuser, rpcpassword=rpcpassword, rpcport=rpcport
+                node_impl=node_impl,
+                rpcuser=rpcuser,
+                rpcpassword=rpcpassword,
+                rpcport=rpcport,
             )
             self.network = network
             self.node_impl = node_impl
+            # reasonable default
+            self.cleanup_hard = False
         except Exception as e:
             logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
             raise e
@@ -118,11 +136,12 @@ class NodeController:
         if bitcoind_path == docker, it'll run bitcoind via docker.
         Specify a longer timeout for slower devices (e.g. Raspberry Pi)
         """
-        if self.check_existing() != None:
-            logger.warn(f"Reusing existing {self.node_impl}d")
-            return self.rpcconn
+        if not self.check_existing() is None:
+            # This should not happen. For bitcoind, have a look in BitcoindController.attach_to_proc_id()
+            raise SpecterError(
+                f"While starting Node, there is already a Node running at {self.rpcconn.render_url(password_mask=True)}"
+            )
 
-        logger.debug(f"Starting {self.node_impl}d")
         self._start_node(
             cleanup_at_exit,
             cleanup_hard=cleanup_hard,
@@ -142,7 +161,7 @@ class NodeController:
         except Exception as e:
             self.status = "Error"
             raise e
-
+        logger.info(f"Successfully started {self.node_impl}d in {self.datadir}")
         if "" not in self.get_rpc().listwallets():
             logger.info("Creating Default-wallet")
             self.get_rpc().createwallet("", False, False, "", False, True, True)
@@ -228,9 +247,14 @@ class NodeController:
         logger.debug("balance:" + str(balance))
         default_address = default_rpc.getnewaddress("")
         if self.node_impl == "elements":
-            default_address = rpc.getaddressinfo(default_address)["unconfidential"]
-        if balance < amount:
+            default_address = default_rpc.getaddressinfo(default_address)[
+                "unconfidential"
+            ]
+        while True:
+            btc_balance = default_rpc.getbalance()
             rpc.generatetoaddress(102, default_address)
+            if btc_balance > amount:
+                break
         default_rpc.sendtoaddress(address, amount)
 
     @staticmethod
@@ -270,16 +294,22 @@ class NodeController:
             time.sleep(0.5)
             i = i + 1
             if i % 10 == 0:
-                logger.info(f"Timeout reached in {timeout - i/2} seconds")
+                logger.info(f"Node timeout in {timeout - i/2} seconds")
             if i > (2 * timeout):
                 try:
                     NodeController.check_node(rpcconn, raise_exception=True)
                 except Exception as e:
-                    raise ExtProcTimeoutException(
-                        f"Timeout while trying to reach node {rpcconn.render_url(password_mask=True)} because {e}".format(
-                            rpcconn
+                    if "Verifying blocks..." in str(e) or "Loading wallet..." in str(e):
+                        # Timed out too soon while node is still spinning up
+                        logger.info("Giving node more time to restart...")
+                        i = 0
+                        pass
+                    else:
+                        raise ExtProcTimeoutException(
+                            f"Timeout while trying to reach node {rpcconn.render_url(password_mask=True)} because {e}".format(
+                                rpcconn
+                            )
                         )
-                    )
 
     @staticmethod
     def render_rpc_options(rpcconn):
@@ -373,77 +403,109 @@ class NodePlainController(NodeController):
         )
         time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
-            raise Exception(f"Could not start node due to:" + self.get_debug_log())
+            # Might itself raise a SpecterError:
+            debug_logs = self.get_debug_log()
+            raise SpecterError(f"Could not start node due to:" + debug_logs)
         logger.debug(
             f"Running {self.node_impl}d-process with pid {self.node_proc.pid} in datadir {datadir}"
         )
 
         # This function is redirecting to the class.member as it needs a fixed parameterlist: (signal_number, stack)
-        def cleanup_node(signal_number, stack):
+        def cleanup_node_callback(signal_number=None, stack=None):
             self.cleanup_node(cleanup_hard, datadir)
 
+        # If the node is shutdown via self.stop_node() (e.g. pytests) we need to know how hard we should do that
+        self.cleanup_hard = cleanup_hard
+
         if cleanup_at_exit:
-            logger.info("Register function cleanup_node for SIGINT and SIGTERM")
-            # atexit.register(cleanup_bitcoind)
+            logger.info(
+                "Register function cleanup_node for atexit, SIGINT, and SIGTERM"
+            )
+            atexit.register(cleanup_node_callback)
             # This is for CTRL-C --> SIGINT
-            signal.signal(signal.SIGINT, cleanup_node)
+            signal.signal(signal.SIGINT, cleanup_node_callback)
             # This is for kill $pid --> SIGTERM
-            signal.signal(signal.SIGTERM, cleanup_node)
+            signal.signal(signal.SIGTERM, cleanup_node_callback)
 
     def get_debug_log(self):
+
+        logfile_location = os.path.join(
+            self.datadir,
+            self.network if self.network != "testnet" else "testnet3",
+            "debug.log",
+        )
         try:
-            logfile_location = os.path.join(
-                self.datadir,
-                self.network if self.network != "testnet" else "testnet3",
-                "debug.log",
-            )
             return "".join(get_last_lines_from_file(logfile_location))
+        except FileNotFoundError as e:
+            raise SpecterError(
+                f"Could not find debug.log at {logfile_location}. Is that directory even existing?"
+            )
         except Exception as e:
             logger.exception(f"Failed to get debug logs. Error: {e}")
-            return ""
+            return "[Failed to get debug logs. Check the logs for details]"
 
     def cleanup_node(self, cleanup_hard=None, datadir=None):
+        """KILLS or TERMINATES the node-process depending on cleanup_hard
+        removes the datadir in case of KILL
+        """
+        returnvalue = True  # assume only the best
+        if not hasattr(self, "datadir"):
+            self.datadir = None
+
+        if cleanup_hard == None:
+            cleanup_hard = self.cleanup_hard
         if not hasattr(self, "node_proc"):
             logger.info("node process was not running")
             if cleanup_hard:
                 logger.info(f"Removing node datadir: {datadir}")
+                if datadir is None:
+                    datadir = self.datadir
                 shutil.rmtree(datadir, ignore_errors=True)
-            return
+            returnvalue = False
         timeout = 50  # in secs
         logger.info(
-            f"Cleaning up (signal:{cleanup_hard} (sig_int: {signal.SIGINT}), datadir:{datadir})"
+            f"Cleaning up (cleanup_hard:{cleanup_hard} , datadir:{self.datadir})"
         )
         if cleanup_hard:
-            self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
-            logger.info(
-                f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
-            )
-            shutil.rmtree(self.datadir, ignore_errors=True)
+            try:
+                self.node_proc.kill()  # might be usefull for e.g. testing. We can't wait for so long
+                logger.info(
+                    f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
+                )
+                shutil.rmtree(self.datadir, ignore_errors=True)
+            except Exception as e:
+                logger.error(e)
+                returnvalue = False
         else:
             try:
-                self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
-                logger.info(
-                    f"Terminated {self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
-                )
-                # self.node_proc.wait() # doesn't have a timeout
-                procs = psutil.Process().children()
-                for p in procs:
-                    p.terminate()
-                _, alive = psutil.wait_procs(procs, timeout=timeout)
-                for p in alive:
+                if not hasattr(self, "node_proc"):
+                    returnvalue = False
+                else:
+                    self.node_proc.terminate()  # might take a bit longer than kill but it'll preserve block-height
                     logger.info(
-                        f"{self.node_impl} did not terminated in time, killing!"
+                        f"Terminated {self.node_impl}d with pid {self.node_proc.pid}, waiting for termination (timeout {timeout} secs)..."
                     )
-                    p.kill()
+                    # self.node_proc.wait() # doesn't have a timeout
+                    procs = psutil.Process().children()
+                    for p in procs:
+                        p.terminate()
+                    _, alive = psutil.wait_procs(procs, timeout=timeout)
+                    for p in alive:
+                        logger.info(
+                            f"{self.node_impl} did not terminated in time, killing!"
+                        )
+                        p.kill()
             except ProcessLookupError:
-                # Bitcoind probably never came up or crashed. Silently ignored
-                pass
+                # Bitcoind probably never came up or crashed.
+                returnvalue = False
         if platform.system() == "Windows":
             subprocess.run("Taskkill /IM bitcoind.exe /F")
+        return returnvalue
 
     def stop_node(self):
-        self.cleanup_node()
+        success = self.cleanup_node()
         self.status = "Down"
+        return success
 
     def check_existing(self):
         """other then in docker, we won't check on the "instance-level". This will return true if a
@@ -469,7 +531,7 @@ def find_node_executable(node_impl):
         return f"tests/{node_impl}/bin/{node_impl}d"
     else:
         # First list files in the folders above:
-        logger.warn(f"Couldn't find reasonable executable for {node_impl}")
+        logger.warning(f"Couldn't find reasonable executable for {node_impl}")
         # hmmm, maybe we have a bitcoind on the PATH
         return which(f"{node_impl}d")
 

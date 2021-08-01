@@ -30,8 +30,8 @@
         <td class="time"></td>
         <td>
             <span class="confirmations"></span>
-            <button class="rbf btn optional hidden" style="width: 130px; float: right;" type="button">Speed up</button>
-            <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">Cancel transaction</button>
+            <button class="rbf btn optional hidden" style="width: 130px; float: right;" type="button">{{ _("Speed up") }}</button>
+            <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">{{ _("Cancel transaction") }}</button>
         </td>
         <td class="hidden optional blockhash"></td>
         <td><input class="select-tx-value" type="hidden" value=""><img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px"></tool-tip></td>
@@ -115,7 +115,7 @@
 
             // Set address-label
             if (Array.isArray(this.tx.address)) {
-                this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} Recipients`;
+                this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} {{ _("Recipients") }}`;
             } else {
                 this.address.innerHTML = this.hideSensitiveInfo ? '#########' : `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
             }
@@ -127,7 +127,7 @@
                 this.amount = parseFloat(this.tx.amount.toFixed(8));
             }
 
-            if (!this.price || !this.symbol || this.hideSensitiveInfo) {
+            if (!this.price || !this.symbol || this.amount == 1e-8 || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -136,23 +136,32 @@
                 } else {
                     this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
                 }
-                this.amountPrice.classList.remove('hidden');
+                if(!("assetlabel" in this.tx) || this.tx.assetlabel == "LBTC"){
+                    this.amountPrice.classList.remove('hidden');
+                }
             }
 
-            if (this.btcUnit == 'sat') {
+            if (this.btcUnit == 'sat' && this.amount != 1e-8) {
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+            if (this.amount == 1e-8) {
+                this.amountText.innerText = '{{ _("Confidential") }}';
+            } else {
+                this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
+                if("assetlabel" in this.tx){
+                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                }
+            }
 
             // Set confirmations
             if (this.tx.confirmations > 0) {
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> Confirmations</span>`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> {{ _("Confirmations") }}</span>`;
             } else if (this.tx.confirmations == 0) {
                 this.el.classList.add('unconfirmed');
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `Unconfirmed`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `{{ _("Unconfirmed") }}`;
             } else {
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `Cancelled (replaced by sender)`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `{{ _("Cancelled (replaced by sender)") }}`;
                 this.category.src = `{{ url_for('static', filename='img') }}/cross.svg`;
                 this.category.classList.remove('svg-' + this.tx.category);
                 this.category.classList.add('svg-cancelled');
@@ -229,19 +238,19 @@
         }
         txDataPopup.innerHTML = `
         <form action="${url}" method="POST">
-        <h1>${rbfType == 'cancel' ? 'Cancel' : 'Speed up'} the Transaction</h1>
-        <p>You can ${rbfType == 'cancel' ? 'cancel' : 'speed up'} the transaction by increasing its fee rate${rbfType == 'cancel' ? ' and sending the funds back to yourself' : ''}:</p>
+        <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
+        <p>{{ _("You can") }} ${rbfType == 'cancel' ? '{{ _("cancel") }}' : '{{ _("speed up") }}'} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ' {{ _("and sending the funds back to yourself") }}' : ''}:</p>
         <input type="hidden" name="rbf_tx_id" value='${self.tx.txid}' />
         <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <br>
         <br>
-        <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? 'Cancel transaction' : 'Speed up!'}</button>
+        <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? '{{ _("Cancel transaction") }}' : '{{ _("Speed up!") }}'}</button>
         <br>
-        <span class="toggle_advanced_rbf" style="cursor: pointer;">Advanced {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+        <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
         <div class="advanced_rbf hidden warning">
-            <p style="max-width: 400px;">If you would like further customization, you can click here to fully edit the transaction.<br>(advanced, not recommended for new users)</p>
-            <button type="submit" name="action" value="rbf_edit" class="btn centered">Edit the transaction (advanced)</button>
+            <p style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
+            <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
         </div>
         </form>
         `;

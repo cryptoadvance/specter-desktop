@@ -9,12 +9,13 @@ import hashlib
 from collections import OrderedDict
 from io import BytesIO
 
-from ..helpers import alias, load_jsons, is_liquid
+from ..helpers import alias, load_jsons, is_liquid, add_dicts
 from ..persistence import delete_file, delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
 from ..util.descriptor import AddChecksum
-from ..wallet import Wallet
+from ..wallet import Wallet, purposes
+from ..liquid.wallet import LWallet
 
 from embit import ec
 from embit.descriptor import Descriptor
@@ -32,27 +33,6 @@ from embit.liquid.descriptor import LDescriptor
 from embit.descriptor.checksum import add_checksum
 
 logger = logging.getLogger(__name__)
-
-purposes = OrderedDict(
-    {
-        None: "General",
-        "wpkh": "Single (Segwit)",
-        "sh-wpkh": "Single (Nested)",
-        "pkh": "Single (Legacy)",
-        "wsh": "Multisig (Segwit)",
-        "sh-wsh": "Multisig (Nested)",
-        "sh": "Multisig (Legacy)",
-    }
-)
-
-addrtypes = {
-    "pkh": "legacy",
-    "sh-wpkh": "p2sh-segwit",
-    "wpkh": "bech32",
-    "sh": "legacy",
-    "sh-wsh": "p2sh-segwit",
-    "wsh": "bech32",
-}
 
 
 class WalletManager:
@@ -78,6 +58,8 @@ class WalletManager:
         self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading = allow_threading
+        # define different wallet classes for liquid and bitcoin
+        self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
     def update(self, data_folder=None, rpc=None, chain=None):
@@ -97,8 +79,13 @@ class WalletManager:
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
             pathlib.Path(self.working_folder).mkdir(parents=True, exist_ok=True)
-        if rpc is not None:
+        if rpc is not None and rpc.test_connection():
             self.rpc = rpc
+        else:
+            if rpc:
+                logger.error(
+                    f"Prevented Trying to update wallet_Manager with broken {rpc}"
+                )
         self.wallets_update_list = {}
         if self.working_folder is not None and self.rpc is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
@@ -158,7 +145,7 @@ class WalletManager:
                                 "Initializing %s Wallet object"
                                 % self.wallets_update_list[wallet]["alias"]
                             )
-                            loaded_wallet = Wallet.from_json(
+                            loaded_wallet = self.WalletClass.from_json(
                                 self.wallets_update_list[wallet],
                                 self.device_manager,
                                 self,
@@ -230,7 +217,7 @@ class WalletManager:
                                     "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
                                     % self.wallets_update_list[wallet]["alias"]
                                 )
-                                loaded_wallet = Wallet.from_json(
+                                loaded_wallet = self.WalletClass.from_json(
                                     self.wallets_update_list[wallet],
                                     self.device_manager,
                                     self,
@@ -283,6 +270,21 @@ class WalletManager:
     def wallets_names(self):
         return sorted(self.wallets.keys())
 
+    @property
+    def rpc(self):
+        if not hasattr(self, "_rpc"):
+            return None
+        else:
+            return self._rpc
+
+    @rpc.setter
+    def rpc(self, value):
+        if hasattr(self, "_rpc") and self._rpc != value:
+            logger.debug(f"Updating WalletManager rpc {self._rpc} with {value}")
+        if hasattr(self, "_rpc") and value == None:
+            logger.debug(f"Updating WalletManager rpc {self._rpc} with None")
+        self._rpc = value
+
     def create_wallet(self, name, sigs_required, key_type, keys, devices):
         try:
             walletsindir = [
@@ -299,79 +301,19 @@ class WalletManager:
             wallet_alias = alias("%s %d" % (name, i))
             i += 1
 
-        arr = key_type.split("-")
-        descs = [key.metadata["combined"] for key in keys]
-        recv_descs = ["%s/0/*" % desc for desc in descs]
-        change_descs = ["%s/1/*" % desc for desc in descs]
-        if len(keys) > 1:
-            recv_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(recv_descs)
-            )
-            change_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(change_descs)
-            )
-        else:
-            recv_descriptor = recv_descs[0]
-            change_descriptor = change_descs[0]
-        for el in arr[::-1]:
-            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
-            change_descriptor = "%s(%s)" % (el, change_descriptor)
-
-        if is_liquid(self.chain):
-            blinding_key = ""
-            if len(devices) == 1:
-                blinding_key = devices[0].blinding_key
-            if not blinding_key:
-                desc = Descriptor.from_string(recv_descriptor.split("#")[0])
-                # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
-                # where chaincodes are corresponding to xpub of the first receiving address
-                xor = bytearray(32)
-                desc_keys = desc.derive(0).keys
-                for k in desc_keys:
-                    if k.is_extended:
-                        chaincode = k.key.chain_code
-                        for i in range(32):
-                            xor[i] = xor[i] ^ chaincode[i]
-                secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
-                blinding_key = ec.PrivateKey(secret).wif()
-            recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
-
-        recv_descriptor = AddChecksum(recv_descriptor)
-        change_descriptor = AddChecksum(change_descriptor)
-
-        # v20.99 is pre-v21 Elements Core for descriptors
-        if self.bitcoin_core_version_raw >= 209900:
-            # Use descriptor wallet
-            self.rpc.createwallet(
-                os.path.join(self.rpc_path, wallet_alias), True, True, "", False, True
-            )
-        else:
-            self.rpc.createwallet(os.path.join(self.rpc_path, wallet_alias), True)
-
-        w = Wallet(
-            name,
-            wallet_alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
-            if len(keys) > 1
-            else purposes[key_type],
-            addrtypes[key_type],
-            "",
-            -1,
-            "",
-            -1,
-            0,
-            0,
-            recv_descriptor,
-            change_descriptor,
-            keys,
-            devices,
-            sigs_required,
-            {},
-            [],
-            os.path.join(self.working_folder, "%s.json" % wallet_alias),
+        w = self.WalletClass.create(
+            self.rpc,
+            self.rpc_path,
+            self.working_folder,
             self.device_manager,
             self,
+            name,
+            wallet_alias,
+            sigs_required,
+            key_type,
+            keys,
+            devices,
+            self.bitcoin_core_version_raw,
         )
         # save wallet file to disk
         if w and self.working_folder is not None:
@@ -379,6 +321,7 @@ class WalletManager:
         # get Wallet class instance
         if w:
             self.wallets[name] = w
+            logger.info(f"Successfully created Wallet {name}")
             return w
         else:
             raise ("Failed to create new wallet")
@@ -412,6 +355,17 @@ class WalletManager:
         if self.working_folder is not None:
             wallet.save_to_file()
         self.update()
+
+    def joined_balance(self):
+        """
+        Joined balance of all wallets.
+        I don't call it full balance because
+        full balance is different - see wallet.fullbalance...
+        """
+        balance = {}
+        for wallet in self.wallets.values():
+            add_dicts(balance, wallet.balance)
+        return balance
 
     def full_txlist(
         self,

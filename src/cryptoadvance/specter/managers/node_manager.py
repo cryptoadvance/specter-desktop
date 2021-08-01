@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 class NodeManager:
     # chain is required to manage wallets when bitcoind is not running
+    DEFAULT_ALIAS = "default"
+
     def __init__(
         self,
         proxy_url="socks5h://localhost:9050",
@@ -70,7 +72,7 @@ class NodeManager:
                 host="localhost",
                 protocol="http",
                 external_node=True,
-                default_alias="default",
+                default_alias=self.DEFAULT_ALIAS,
             )
         else:
             self.nodes = nodes
@@ -86,6 +88,9 @@ class NodeManager:
     def switch_node(self, node_alias):
         # this will throw an error if the node doesn't exist
         self._active_node = self.get_by_alias(node_alias).alias
+
+    def default_node(self):
+        return self.get_by_alias(self.DEFAULT_ALIAS)
 
     def get_by_alias(self, alias):
         for node_name in self.nodes:
@@ -106,6 +111,7 @@ class NodeManager:
         setup_bitcoind_thread(specter, version)
         for node in (node for node in self.nodes.values() if not node.external_node):
             node.version = version
+            logger.info(f"persisting {node} in update_bitcoind_version")
             write_node(node, node.fullpath)
         for node_alias in stopped_nodes:
             self.get_by_alias(node_alias).start(timeout=60)
@@ -148,6 +154,7 @@ class NodeManager:
             fullpath,
             self,
         )
+        logger.info(f"persisting {node} in add_node")
         write_node(node, fullpath)
         self.update()  # reload files
         logger.info("Added new node {}".format(node.alias))
@@ -187,6 +194,7 @@ class NodeManager:
             network,
             self.internal_bitcoind_version,
         )
+        logger.info(f"persisting {node} in add_internal_node")
         write_node(node, fullpath)
         self.update()  # reload files
         logger.info("Added new internal node {}".format(node.alias))

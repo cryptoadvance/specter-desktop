@@ -1,9 +1,8 @@
 import logging
+import os
 import sys
 import traceback
 
-import mock
-import pytest
 from click.testing import CliRunner
 from cryptoadvance.specter.cli import server
 from mock import MagicMock, call, patch
@@ -28,6 +27,7 @@ mock_config_dict = {
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_host_and_port(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -52,6 +52,7 @@ def test_server_host_and_port(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_host_and_port(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -59,10 +60,14 @@ def test_server_host_and_port(init_app, create_app, caplog):
     mock_app.config.__getitem__.side_effect = d.__getitem__
     create_app.return_value = mock_app
     runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(
-            server, ["--cert", "bla", "--key", "blub", "--no-filelog"]
-        )
+    try:
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                server, ["--cert", "bla", "--key", "blub", "--no-filelog"]
+            )
+    finally:
+        # not sure why i need to do that in an isolated_filesystem ?!
+        tidy_up()
     print(result.output)
     if result.exception != None:
         # Makes searching for issues much more convenient
@@ -87,6 +92,7 @@ def test_server_host_and_port(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_debug(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     runner = CliRunner()
     result = runner.invoke(server, ["--debug", "--no-filelog"])
@@ -102,6 +108,7 @@ def test_server_debug(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_datafolder(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -127,6 +134,7 @@ def test_server_datafolder(init_app, create_app, caplog):
 @patch("cryptoadvance.specter.cli.cli_server.create_app")
 @patch("cryptoadvance.specter.cli.cli_server.init_app")
 def test_server_config(init_app, create_app, caplog):
+    """This test will fail if you have turned on live-logging in pytest.ini (log_cli = 1 )"""
     caplog.set_level(logging.DEBUG)
     mock_app = MagicMock()
     mock_app.config = MagicMock()
@@ -148,8 +156,12 @@ def test_server_config(init_app, create_app, caplog):
     mock_app.config.__getitem__.side_effect = d.__getitem__
     create_app.return_value = mock_app
     runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(server, ["--config", "MuhConfig", "--no-filelog"])
+    try:
+        with runner.isolated_filesystem():
+            result = runner.invoke(server, ["--config", "MuhConfig", "--no-filelog"])
+    finally:
+        # not sure why i need to do that in an isolated_filesystem ?!
+        tidy_up()
     print(result.output)
     if result.exception != None:
         # Makes searching for issues much more convenient
@@ -158,3 +170,11 @@ def test_server_config(init_app, create_app, caplog):
     assert result.exit_code == 0
     print(mock_app.config.mock_calls)
     create_app.assert_called_once_with(config="cryptoadvance.specter.config.MuhConfig")
+    tidy_up()
+
+
+def tidy_up():
+    if os.path.exists("bla"):
+        os.remove("bla")
+    if os.path.exists("blub"):
+        os.remove("blub")

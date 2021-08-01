@@ -8,6 +8,7 @@ from .specter_error import SpecterError
 from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
+from .helpers import deep_update
 
 
 def hash_password(password):
@@ -53,6 +54,20 @@ class User(UserMixin):
             return ""
         return f"_{self.id}"
 
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        """pass a json or a plain-password here"""
+        try:
+            if value.get("salt") and value.get("pwdhash"):
+                self._password = value
+        except:
+            salted_hashed_password = hash_password(value)
+            self._password = salted_hashed_password
+
     @classmethod
     def from_json(cls, user_dict, specter):
         # TODO: Unify admin in backwards compatible way
@@ -74,8 +89,8 @@ class User(UserMixin):
                     specter,
                     is_admin=True,
                 )
-        except:
-            raise SpecterError("Unable to parse user JSON.")
+        except Exception as e:
+            raise SpecterError(f"Unable to parse user JSON.:{e}")
 
     @property
     def json(self):
@@ -145,6 +160,12 @@ class User(UserMixin):
             self.specter.delete_user(self)
         self.manager.save()
 
+    def update_asset_label(self, asset, label, chain):
+        if "asset_labels" not in self.config:
+            self.config["asset_labels"] = {}
+        deep_update(self.config["asset_labels"], {chain: {asset: label}})
+        self.save_info()
+
     def set_explorer(self, explorer_id, explorer):
         if "explorers" not in self.config:
             self.config["explorers"] = (
@@ -204,6 +225,8 @@ class User(UserMixin):
         self.save_info(delete=True)
 
     def __eq__(self, other):
+        if other == None:
+            return False
         if isinstance(other, str):
             return self.id == other
         return self.id == other.id

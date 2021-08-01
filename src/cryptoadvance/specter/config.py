@@ -38,6 +38,7 @@ class BaseConfig(object):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter")
     )
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "False")
     # Logging
     # SPECTER_LOGFILE will get created dynamically in server.py
     # using:
@@ -104,6 +105,25 @@ class BaseConfig(object):
         },
     }
 
+    # Babel integration. English listed first; other alphabetical by language code
+    LANGUAGES = {
+        "en": "English",
+        "bg": "Български",
+        "de": "Deutsch",
+        "el": "Ελληνικά",
+        "es": "Español",
+        "fr": "Français",
+        "he": "עברית",
+        "hi": "हिंदी",
+        "nl": "Nederlands",
+        "pl": "Polski",
+        "pt": "Português",
+        "ru": "Русский",
+        "sv": "Svenska",
+        "zh_Hans_CN": "简体中文",
+        "zh_Hant_TW": "繁體中文",
+    }
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
@@ -111,15 +131,24 @@ class DevelopmentConfig(BaseConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
     )
+    # API active by default in dev-mode
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
 
 class TestConfig(BaseConfig):
     SECRET_KEY = "test key"
+    # This should never be used as the data-folder is injected at runtime
+    # But let's be sure before something horrible happens:
+    SPECTER_DATA_FOLDER = os.path.expanduser(
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_testing")
+    )
+    # API active by default in test-mode
+    SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
 
 class CypressTestConfig(TestConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
-        os.getenv("SPECTER_DATA_FOLDER", "~/.specter-cypress")
+        os.getenv("SPECTER_DATA_FOLDER", "~/.specter_cypress")
     )
     PORT = os.getenv("PORT", 25444)
 
@@ -128,6 +157,10 @@ class CypressTestConfig(TestConfig):
 
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_btc_regtest_plain_datadir"
+    )
+
+    BTCD_REGTEST_DATA_DIR = os.getenv(
+        "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
     )
 
 
