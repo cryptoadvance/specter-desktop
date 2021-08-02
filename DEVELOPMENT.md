@@ -118,9 +118,9 @@ _note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate
 _TODO: Need more thorough tests!_
 
 In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
-* ./tests/install_bitcoind.sh --bitcoin binary will install bitcoind in tests/bitcoin
-* ./tests/install_bitcoind.sh --bitcoin compile will compile bitcoind in tests/bitcoin
-* ./tests/install_bitcoind.sh --elements compile will compile elements in tests/elements
+* `./tests/install_bitcoind.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --elements compile` will compile elements in tests/elements
 
 If you're not interested in elements, you can skip the liquid specific tests as described below.
 
