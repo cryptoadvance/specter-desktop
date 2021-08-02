@@ -27,6 +27,37 @@ logger = logging.getLogger(__name__)
 # default lock for @locked()
 defaultlock = threading.Lock()
 
+EMOJIS = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍😘😗😙😚😋😜😝😛🤑🤗🤓😎🤡🤠😏😒😞😔😟😕🙁😣😖😫😩😤😠😡😶😐😑😯😦😧😮😲😵😳😱😨😰😢😥🤤😭😓😪😴🙄🤔🤥😬🤐🤢🤧😷🤒🤕😈👿👹👺💩👻💀☠️👽👾🤖🎃😺😸😹😻😼😽🙀😿😾👐🙌👏🙏🤝👍👎👊✊🤛🤜🤞✌️🤘👌👈👉👆👇☝️✋🤚🖐🖖👋🤙💪🖕✍️🤳💅🖖💄💋👄👅👂👃👣👁👀🗣👤👥👶👦👧👨👩👱👴👵👲👳👮👷💂🕵️👩‍⚕️👨‍⚕️👩‍🌾👨‍🌾👩‍🍳👨‍🍳👩‍🎓👨‍🎓👩‍🎤👨‍🎤👩‍🏫👨‍🏫👩‍🏭👨‍🏭👩‍💻👨‍💻👩‍💼👨‍💼👩‍🔧👨‍🔧👩‍🔬👨‍🔬👩‍🎨👨‍🎨👩‍🚒👨‍🚒👩‍✈️👨‍✈️👩‍🚀👨‍🚀👩‍⚖️👨‍⚖️🤶🎅👸🤴👰🤵👼🤰🙇💁🙅🙆🙋🙎🙍💇💆🕴💃🕺👯🚶🏃👫👭👬💑👩‍❤️‍👩👨‍❤️‍👨💏👩‍❤️‍💋‍👩👨‍❤️‍💋‍👨👪👨‍👩‍👧👨‍👩‍👧‍👦👨‍👩‍👦‍👦👨‍👩‍👧‍👧👩‍👩‍👦👩‍👩‍👧👩‍👩‍👧‍👦👩‍👩‍👦‍👦👩‍👩‍👧‍👧👨‍👨‍👦👨‍👨‍👧👨‍👨‍👧‍👦👨‍👨‍👦‍👦👨‍👨‍👧‍👧👩‍👦👩‍👧👩‍👧‍👦👩‍👦‍👦👩‍👧‍👧👨‍👦👨‍👧👨‍👧‍👦👨‍👦‍👦👨‍👧‍👧👚👕👖👔👗👙👘👠👡👢👞👟👒🎩🎓👑⛑🎒👝👛👜💼👓🕶🌂☂️🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐽🐸🐵🙊🙉🙊🐒🐔🐧🐦🐤🐣🐥🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐚🐞🐜🕷🕸🐢🐍🦎🦂🦀🦑🐙🦐🐠🐟🐡🐬🦈🐳🐋🐊🐆🐅🐃🐂🐄🦌🐪🐫🐘🦏🦍🐎🐖🐐🐏🐑🐕🐩🐈🐓🦃🕊🐇🐁🐀🐿🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🥀🌻🌼🌸🌺🌎🌍🌏🌕🌖🌗🌘🌑🌒🌓🌔🌚🌝🌞🌛🌜🌙💫⭐️🌟✨⚡️🔥💥☄️☀️🌤⛅️🌥🌦🌈☁️🌧⛈🌩🌨☃️⛄️❄️🌬💨🌪🌫🌊💧💦☔️🍏🍎🍐🍊🍋🍌🍉🍇🍓🍈🍒🍑🍍🥝🥑🍅🍆🥒🥕🌽🌶🥔🍠🌰🥜🍯🥐🍞🥖🧀🥚🍳🥓🥞🍤🍗🍖🍕🌭🍔🍟🥙🌮🌯🥗🥘🍝🍜🍲🍥🍣🍱🍛🍚🍙🍘🍢🍡🍧🍨🍦🍰🎂🍮🍭🍬🍫🍿🍩🍪🥛🍼☕️🍵🍶🍺🍻🥂🍷🥃🍸🍹🍾🥄🍴🍽⚽️🏀🏈⚾️🎾🏐🏉🎱🏓🏸🥅🏒🏑🏏⛳️🏹🎣🥊🥋⛸🎿⛷🏂🏋️🤺⛹️🏌️🏄🏊🚣🏇🚴🚵🎽🏅🎖🥇🥈🥉🏆🏵🎗🎫🎟🎪🎭🎨🎬🎤🎧🎼🎹🥁🎷🎺🎸🎻🎲🎯🎳🎮🎰🚗🚕🚙🚌🚎🏎🚓🚑🚒🚐🚚🚛🚜🛴🚲🛵🏍🚨🚔🚍🚘🚖🚡🚠🚟🚃🚋🚞🚝🚄🚅🚈🚂🚆🚇🚊🚉🚁🛩✈️🛫🛬🚀🛰💺🛶⛵️🛥🚤🛳⛴🚢⚓️🚧⛽️🚏🚦🚥🗺🗿🗽⛲️🗼🏰🏯🏟🎡🎢🎠⛱🏖🏝⛰🏔🗻🌋🏜🏕⛺️🛤🛣🏗🏭🏠🏡🏘🏚🏢🏬🏣🏤🏥🏦🏨🏪🏫🏩💒🏛⛪️🕌🕍🕋⛩🗾🎑🏞🌅🌄🌠🎇🎆🌇🌆🏙🌃🌌🌉🌁⌚️📱📲💻⌨️🖥🖨🖱🖲🕹🗜💽💾💿📀📼📷📸📹🎥📽🎞📞☎️📟📠📺📻🎙🎚🎛⏱⏲⏰🕰⌛️⏳📡🔋🔌💡🔦🕯🗑🛢💸💵💴💶💷💰💳💎⚖️🔧🔨⚒🛠⛏🔩⚙️⛓🔫💣🔪🗡⚔️🛡🚬⚰️⚱️🏺🔮📿💈⚗️🔭🔬🕳💊💉🌡🚽🚰🚿🛁🛀🛎🔑🗝🚪🛋🛏🛌🖼🛍🛒🎁🎈🎏🎀🎊🎉🎎🏮🎐✉️📩📨📧💌📥📤📦🏷📪📫📬📭📮📯📜📃📄📑📊📈📉🗒🗓📆📅📇🗃🗳🗄📋📁📂🗂🗞📰📓📔📒📕📗📘📙📚📖🔖🔗📎🖇📐📏📌📍📌🎌🏳️🏴🏁🏳️‍🌈✂️🖊🖋✒️🖌🖍📝✏️🔍🔎🔏🔐🔒🔓❤️💛💚💙💜🖤💔❣️💕💞💓💗💖💘💝🔈🔇🔉🔊🔔🔕📣📢👁‍🗨💬"
+
+
+def get_asset_label(asset, known_assets={}):
+    # TODO: lookup in the registry
+    if asset == "0000000000000000000000000000000000000000000000000000000000000000":
+        return "???"
+    if asset == "bitcoin":
+        return "LBTC"
+    if asset in known_assets:
+        return known_assets[asset]
+    icon = ""
+    try:
+        n = int.from_bytes(bytes.fromhex(asset), "little") % len(EMOJIS)
+        icon = EMOJIS[n : n + 1]
+    except:
+        pass
+    if len(asset) > 16:
+        return f"{icon}"
+    return asset
+
+
+def add_dicts(target, item):
+    for k, v in item.items():
+        if isinstance(v, dict):
+            target[k] = add_dicts(target.get(k, {}), v)
+        else:
+            # this will add ints, floats, strings etc
+            target[k] = target.get(k, type(v)()) + v
+    return target
+
 
 def is_testnet(chain):
     return chain not in ["main", "liquidv1", "None", "none", None, ""]
@@ -234,69 +265,39 @@ def get_startblock_by_chain(specter):
 
 
 # Hot wallet helpers
-def generate_mnemonic(strength=256):
-    # Generate words list
-    mnemo = Mnemonic("english")
-    words = mnemo.generate(strength=strength)
-    return words
+
+MNEMONIC_LANGUAGES = {
+    "en": "english",
+    "es": "spanish",
+    "fr": "french",
+    "it": "italian",
+    # "jp": "japanese",
+    # "ko": korean",
+    # "?": chinese_simplified",
+    # "?": chinese_traditional",
+}
 
 
-def parse_wallet_data_import(wallet_data):
-    """Parses wallet JSON for import, takes JSON in a supported format
-    and returns a tuple of wallet name, wallet descriptor, and cosigners types (if known, electrum only for now)
-    Supported formats: Specter, Electrum, Account Map (Fully Noded, Gordian, Sparrow etc.)
-    """
-    cosigners_types = []
-    # specter format
-    if "recv_descriptor" in wallet_data:
-        wallet_name = wallet_data.get("name", "Imported Wallet")
-        recv_descriptor = wallet_data.get("recv_descriptor", None)
-    # Electrum multisig
-    elif "x1/" in wallet_data:
-        i = 1
-        xpubs = ""
-        while "x{}/".format(i) in wallet_data:
-            d = wallet_data["x{}/".format(i)]
-            xpubs += "[{}]{}/0/*,".format(
-                d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
-            )
-            cosigners_types.append(d["hw_type"])
-            i += 1
-        xpubs = xpubs.rstrip(",")
-        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
-            "addresses"
-        ]["receiving"][0].startswith("tb"):
-            wallet_type = "wsh"
-        else:
-            wallet_type = "sh-wsh"
-        required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
-        recv_descriptor = "{}(sortedmulti({}, {}))".format(
-            wallet_type, required_sigs, xpubs
+def initialize_mnemonic(language_code):
+    if language_code not in MNEMONIC_LANGUAGES:
+        # Fall back to English if Mnemonic doesn't support the current language
+        logger.debug(
+            f"Language code '{language_code}' not supported by python-mnemonic; using English"
         )
-        wallet_name = "Electrum {} of {}".format(required_sigs, i - 1)
-    # Electrum singlesig
-    elif "keystore" in wallet_data:
-        wallet_name = wallet_data["keystore"]["label"]
-        if wallet_data["addresses"]["receiving"][0].startswith("bc") or wallet_data[
-            "addresses"
-        ]["receiving"][0].startswith("tb"):
-            wallet_type = "wpkh"
-        else:
-            wallet_type = "sh-wpkh"
-        recv_descriptor = "{}({})".format(
-            wallet_type,
-            "[{}]{}/0/*,".format(
-                wallet_data["keystore"]["derivation"].replace(
-                    "m", wallet_data["keystore"]["root_fingerprint"]
-                ),
-                wallet_data["keystore"]["xpub"],
-            ),
-        )
-        cosigners_types = [wallet_data["keystore"]["hw_type"]]
-    else:
-        wallet_name = wallet_data.get("label", "Imported Wallet")
-        recv_descriptor = wallet_data.get("descriptor", None)
-    return (wallet_name, recv_descriptor, cosigners_types)
+        language_code = "en"
+    return Mnemonic(language=MNEMONIC_LANGUAGES[language_code])
+
+
+def generate_mnemonic(strength=256, language_code="en"):
+    mnemo = initialize_mnemonic(language_code)
+    return mnemo.generate(strength=strength)
+
+
+def validate_mnemonic(words):
+    # We cannot assume the mnemonic will be in the same language currently active
+    #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
+    mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
+    return mnemo.check(words)
 
 
 def notify_upgrade(app, flash):
@@ -332,8 +333,13 @@ def is_ip_private(ip):
 def get_address_from_dict(data_dict):
     # TODO: Remove this helper function in favor of simple ["address"]
     # when support for Bitcoin Core version < 22 is dropped
-    return (
-        data_dict["addresses"][0]
-        if "addresses" in data_dict and data_dict["addresses"][0]
-        else data_dict["address"]
-    )
+    addr = data_dict.get("addresses")
+    if not addr:
+        addr = data_dict.get("scriptPubKey", {}).get("addresses")
+    if addr:
+        addr = addr[0]
+    if not addr:
+        addr = data_dict.get("address")
+    if addr and addr != "Fee":
+        return addr
+    raise RuntimeError("Missing address info in object")

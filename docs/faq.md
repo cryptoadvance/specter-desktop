@@ -12,6 +12,7 @@
   - [*What's the difference between Specter-desktop and Specter-DIY?*](#whats-the-difference-between-specter-desktop-and-specter-diy)
   - [*Is a full node necessary for using Specter-desktop?*](#is-a-full-node-necessary-for-using-specter-desktop)
   - [*Can I use pruned mode?*](#can-i-use-pruned-mode)
+  - [*I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?](#i-get-this-message-this-is-a-development-server-do-not-use-it-in-a-production-deployment-should-i-worry)
   - [*I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*](#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure)
   - [How many addresses does an HD wallet have, and are they all the same?](#how-many-addresses-does-an-hd-wallet-have-and-are-they-all-the-same)
   - [*I make unsigned transactions from my cold storage using a watching-only Electrum wallet. I use public servers instead of my own node because doing it "right" is too complicated for me. Specter may be an ideal alternative if it will connect to my **headless bitcoind node**. Will this be possible?*](#i-make-unsigned-transactions-from-my-cold-storage-using-a-watching-only-electrum-wallet-i-use-public-servers-instead-of-my-own-node-because-doing-it-right-is-too-complicated-for-me-specter-may-be-an-ideal-alternative-if-it-will-connect-to-my-headless-bitcoind-node-will-this-be-possible)
@@ -130,12 +131,16 @@ Whereas, [Specter-DIY](https://github.com/cryptoadvance/specter-diy) is a do-it-
 
 ## *Is a full node necessary for using Specter-desktop?*
 
-Yes, a Bitcoin full node is needed to provide all relevant data without relying on 3rd parties, and also for its watch-only wallet capabilities. However, Specter allows you to easily setup a (pruned-) node easily within Specter.
+Yes, a Bitcoin node is needed to provide all relevant data without relying on 3rd parties, and also for its watch-only wallet capabilities. However, Specter allows you to easily setup a (pruned-) node easily within Specter. If you can, a full-node is recommended but will take a lot longer to synchronize.
 
 ## *Can I use pruned mode?*
 
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
 Since v0.8.0 there is a workaround as you can download history from an external blockexplorer which has privacy implications. Make sure to read the tooltip-hints when using that feature and also consider this question in the  [troubleshooting-section](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)..
+
+## *I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?
+
+No you don't have to worry unless you plan to run specter as a public service on the internet with a growing number of people using it. That was traditionally the use-case for web-apps: Run in the open public internet getting accessed by MANY people. However, that's not how specter is meant to be used. If people get performance issues, it's most likely not because the user-base is growing on their specter but because their Raspberry Pi is too weak for that one user who is doing all sorts of other stuff on that Pi on top.
 
 ## *I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*
 
@@ -408,7 +413,21 @@ Run it with the
 ## *I created an existing wallets but even after rescanning, specter couldn't find any (or not enough) funds?*
 
 Make sure you're using the right type of wallet. Specter is only supporting "Nested Segwit" and "Native SegWit". If you have an older wallet, where addresses are starting with "1" or "3", those funds won't be able to show up in specter. So, make sure you know which type of wallet you want to choose. Also, it's relevant whether you're watching enough addresses. By default only 20 addresses are watched. Maybe your wallet needs more so increase them in the settings-menu of the wallet.
+
 If you're running a pruned node, it's not possible to scan for the entire transaction history without doing a full re-download of the blockchain (IBD). Alternatively, we also support scanning for only the existing wallet balance (UTXO) which is very quick and supports both full and pruned nodes. However, for pruned nodes to support this feature, we must query some external data from an outside source (such as a block explorer, configurable by the user). This does not constitute a security risk, as the validity of the data can be verified against the hash existing on the pruned node itself, but can be a potential privacy risk, although it's possible to get the data over Tor to reduce the potential privacy leak. Yet, we still strongly recommend using a non-pruned-node (if possible) when dealing with older wallets.
+
+Also be aware that if you've use more than one "account" in your old wallet-software, you'd need to create the corresponding key in the device first and create a new wallet based on that account/key. In Specter, one wallet is always tied to exactly one Bitcoin Account (other than e.g. trezor). Bitcoin accounts are actually specified at the device level. By default Specter imports the keys for just your first account. To import keys for additional accounts:
+
+* click on your device to "Add more keys"
+* click the "Edit" button at the top right
+* click the "Add account" that will have now appeared
+* Account 0 is the default that Specter imports on its own. Specify your target account number (accounts start at 0, so your second account is 1, your third account is 2, and so on).
+* click "Add account"
+* retrieve keys from your device as usual (over USB, airgapped SD card, or QR code)
+
+Now that the other account's keys have been imported, create a new wallet using the new key. After scanning this new wallet for funds, you should see your expected balance.
+
+Apart from that, your old wallet might have used non-standard derivation pathes or extended them in a non-standard-way. [https://walletsrecovery.org/](https://walletsrecovery.org/) is a good source for collecting such information about your old wallet.
 
 ## *How to delete a wallet using a remote full node?*
 

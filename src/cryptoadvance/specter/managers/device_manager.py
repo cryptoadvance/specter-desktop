@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+from flask_babel import lazy_gettext as _
+
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
 
@@ -79,7 +81,7 @@ class DeviceManager:
         for device_name in self.devices:
             if self.devices[device_name].alias == device_alias:
                 return self.devices[device_name]
-        logger.error("Could not find Device %s" % device_alias)
+        logger.error(_("Could not find Device {}").format(device_alias))
 
     def remove_device(
         self,
@@ -104,6 +106,7 @@ class DeviceManager:
                 device_class
                 for device_class in device_classes
                 if device_class.device_type != "bitcoincore"
+                and device_class.device_type != "elementscore"
             ]
         elif specter.is_liquid:
             return [

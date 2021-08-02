@@ -9,13 +9,13 @@
 {% macro sign_tx_method(wallet, device, psbt, chain) -%}
     {% set device_psbts = device.create_psbts(psbt['base64'], wallet) %}
     <div id="{{ device.alias }}_sign_tx_method" class="flex-center flex-column hidden">
-        <h2>Sign Transaction</h2><br>
+        <h2>{{ _("Sign Transaction") }}</h2><br>
         <div>
-            Please choose a signing method for your {{ device.name }}.
+            {{ _("Please choose a signing method for your") }} {{ device.name }}.
         </div>
         {% if device.hwi_support %}
             <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">Sign via USB (HWI)
+                <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">{{ _("Sign via USB (HWI)") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
@@ -37,7 +37,7 @@
         {% if device.sd_card_support %}
             {% include "includes/overlay/sd_card_sign.jinja" %}
             <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Sign with SD Card file
+                <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with SD Card file") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
@@ -50,7 +50,7 @@
         {% if device.qr_code_support %}
             {% include "includes/overlay/qr_code_sign.jinja" %}
             <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> Sign with QR codes
+                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with QR codes") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
@@ -64,25 +64,25 @@
             <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
                 {% if device.device_type == "bitcoincore" %}
                     {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                    {{ bitcoin_svg(chain, 16) }} Sign with Bitcoin Core
+                    {{ bitcoin_svg(chain, 16) }} {{ _("Sign with Bitcoin Core") }}
                 {% else %}
                     {% from "components/liquid_svg.jinja" import liquid_svg %}
-                    {{ liquid_svg(chain, 16) }} Sign with Elements Core
+                    {{ liquid_svg(chain, 16) }} {{ _("Sign with Elements Core") }}
                 {% endif %}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
                     e.preventDefault();
                     hidePageOverlay();
-                    showPageOverlay('hot_enter_passphrase')
+                    showPageOverlay('{{ device.alias }}_hot_enter_passphrase')
                 });
             </script>
-            <div id="hot_enter_passphrase" class="hidden">
+            <div id="{{ device.alias }}_hot_enter_passphrase" class="hidden">
                 {% set is_encrypted = device.is_encrypted(wallet.manager) %}
                 {% if is_encrypted %}
-                <h2>Enter decryption password</h2>
+                <h2>{{ _("Enter decryption password") }}</h2>
                 {% else %}
-                <h2>Proceed with signing</h2>
+                <h2>{{ _("Proceed with signing") }}</h2>
                 {% endif %}
                 <form action="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}" method="POST" id="hot_enter_passphrase__content" class="flex-center flex-column">
                     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -91,7 +91,7 @@
                         {% if is_encrypted %}
                         <input name="passphrase" type="password" id="hwi_enter_passphrase__passphrase" />
                         {% else %}
-                        Wallet is not encrypted, just click the button.
+                        {{ _("Wallet is not encrypted, just click the button.") }}
                         <input name="passphrase" type="hidden" id="hwi_enter_passphrase__passphrase" value="" />
                         {% endif %}
                         <input name="device" type="hidden" value="{{ device.alias }}" />
@@ -99,7 +99,7 @@
                     </div>
                     <br/>
                     <br/>
-                    <button id="hot_enter_passphrase__submit" class="btn" type="submit" name="action" value="signhotwallet">Sign transaction</button>
+                    <button id="hot_enter_passphrase__submit" class="btn" type="submit" name="action" value="signhotwallet">{{ _("Sign transaction") }}</button>
                 </form>
             </div>
         {% endif %}

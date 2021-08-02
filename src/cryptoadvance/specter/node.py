@@ -3,6 +3,7 @@ import logging
 import os
 
 from embit.liquid.networks import get_network
+from flask_babel import lazy_gettext as _
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -18,9 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class Node:
-    """A NodeManager represents the connection to a Bitcoin and/o Liquid Node (Full-) node.
+    """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
     It can be created via Constructor or from_json, and mainly it can give you A
     RPC-object to use the API.
+    On top of the RPC-connection it manages the stability of the rpc. It will only
+    persist healthy connections.
     One or many Nodes are managed via the NodeManager
     """
 
@@ -69,6 +72,7 @@ class Node:
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
         self.rpc = self.get_rpc()
+        self._asset_labels = None
 
         self.check_info()
 
@@ -141,6 +145,8 @@ class Node:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
                 )
+            # autodetect won't result in any logging, even if None
+            return rpc
         else:
             # if autodetect is disabled and port is not defined
             # we use default port 8332
@@ -157,6 +163,7 @@ class Node:
             )
 
         if rpc == None:
+            logger.error(f"connection results to None in get_rpc")
             return None
         # check if it's liquid
         try:
@@ -166,7 +173,13 @@ class Node:
                 rpc = LiquidRPC.from_bitcoin_rpc(rpc)
         except Exception as e:
             return rpc
-        return rpc
+        if rpc.test_connection():
+            return rpc
+        else:
+            logger.debug(
+                f"connection {rpc} fails test_connection() returning None in get_rpc"
+            )
+            return None
 
     def update_rpc(
         self,
@@ -178,44 +191,55 @@ class Node:
         host=None,
         protocol=None,
     ):
+        """Changes the attributes of that node but only persists it, if the rpc.test_connection succeeds"""
         update_rpc = self.rpc is None or not self.rpc.test_connection()
         if autodetect is not None and self.autodetect != autodetect:
+            logger.debug(f"{self} updating autodetect to {autodetect}")
             self.autodetect = autodetect
             update_rpc = True
         if datadir is not None and self.datadir != datadir:
+            logger.debug(f"{self} updating datadir to {datadir}")
             self.datadir = datadir
             update_rpc = True
         if user is not None and self.user != user:
+            logger.debug(f"{self} updating user to {user}")
             self.user = user
             update_rpc = True
         if password is not None and self.password != password:
+            logger.debug(f"{self} updating password to XXXXXXXX")
             self.password = password
             update_rpc = True
         if port is not None and self.port != port:
+            logger.debug(f"{self} updating port to {port}")
             self.port = port
             update_rpc = True
         if host is not None and self.host != host:
+            logger.debug(f"{self} updating host to {host}")
             self.host = host
             update_rpc = True
         if protocol is not None and self.protocol != protocol:
+            logger.debug(f"{self} updating protocol to {protocol}")
             self.protocol = protocol
             update_rpc = True
         if update_rpc:
             self.rpc = self.get_rpc()
-            write_node(self, self.fullpath)
+            if self.rpc and self.rpc.test_connection():
+                logger.debug(f"persisting {self} in update_rpc")
+                write_node(self, self.fullpath)
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
 
     def rename(self, new_name):
         logger.info("Renaming {}".format(self.alias))
         self.name = new_name
+        logger.info(f"persisting {self} in rename")
         write_node(self, self.fullpath)
         self.manager.update()
 
     def check_info(self):
         self._is_configured = self.rpc is not None
         self._is_running = False
-        if self._is_configured:
+        if self.rpc is not None and self.rpc.test_connection():
             try:
                 res = [
                     r["result"]
@@ -252,8 +276,28 @@ class Node:
                 self._info = {"chain": None}
                 self._network_info = {"subversion": "", "version": 999999}
                 self._network_parameters = get_network("main")
-                logger.error("Exception %s while check_info()" % e)
+                logger.error(f"connection {self.rpc} could not suceed check_info")
+                logger.exception("Exception %s while check_info()" % e)
         else:
+            if self.rpc is None:
+                logger.error(f"connection of {self} is None in check_info")
+            elif not self.rpc.test_connection():
+                logger.debug(
+                    f"connection {self.rpc} failed test_connection in check_info:"
+                )
+                try:
+                    self.rpc.multi(
+                        [
+                            ("getblockchaininfo", None),
+                            ("getnetworkinfo", None),
+                            ("getmempoolinfo", None),
+                            ("uptime", None),
+                            ("getblockhash", 0),
+                            ("scantxoutset", "status", []),
+                        ]
+                    )
+                except Exception as e:
+                    logger.error(e)
             self._info = {"chain": None}
             self._network_info = {"subversion": "", "version": 999999}
 
@@ -267,17 +311,22 @@ class Node:
         """
         rpc = self.get_rpc()
         if rpc is None:
-            return {"out": "", "err": "Connection to node failed", "code": -1}
+            return {
+                "out": "",
+                "err": _("Connection to node failed"),
+                "code": -1,
+                "tests": {},
+            }
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""
         r["code"] = 0
         try:
             r["tests"]["recent_version"] = (
-                int(rpc.getnetworkinfo()["version"]) >= 170000
+                int(rpc.getnetworkinfo()["version"]) >= 200000
             )
             if not r["tests"]["recent_version"]:
-                r["err"] = "Core Node might be too old"
+                r["err"] = _("Core Node might be too old")
 
             r["tests"]["connectable"] = True
             r["tests"]["credentials"] = True
@@ -294,7 +343,7 @@ class Node:
             logger.error("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
-            r["err"] = "Failed to connect!"
+            r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
             logger.error("Caught an RpcError while test_rpc: %s", rpce)
@@ -303,7 +352,7 @@ class Node:
             r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
                 r["tests"]["credentials"] = False
-                r["err"] = "RPC authentication failed!"
+                r["err"] = _("RPC authentication failed!")
             else:
                 r["err"] = str(rpce.status_code)
         except Exception as e:
@@ -317,7 +366,7 @@ class Node:
                 r["err"] = rpc.r["error"]
                 r["code"] = rpc.r.status_code
             else:
-                r["err"] = "Failed to connect"
+                r["err"] = _("Failed to connect")
                 r["code"] = -1
         return r
 
@@ -331,6 +380,9 @@ class Node:
 
     def check_blockheight(self):
         return self.info["blocks"] != self.rpc.getblockcount()
+
+    def is_liquid(self):
+        return is_liquid(self.chain)
 
     @property
     def is_running(self):
@@ -372,3 +424,35 @@ class Node:
     @property
     def is_testnet(self):
         return is_testnet(self.chain)
+
+    @property
+    def asset_labels(self):
+        if self._asset_labels is None:
+            asset_labels = self.rpc.dumpassetlabels()
+            assets = {}
+            for k in asset_labels:
+                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+            self._asset_labels = assets
+        return self._asset_labels
+
+    @property
+    def is_liquid(self):
+        return is_liquid(self.chain)
+
+    @property
+    def rpc(self):
+        if not hasattr(self, "_rpc"):
+            return None
+        else:
+            return self._rpc
+
+    @rpc.setter
+    def rpc(self, value):
+        if hasattr(self, "_rpc") and self._rpc != value:
+            logger.debug(f"Updating {self}.rpc {self._rpc} with {value} (setter)")
+        if hasattr(self, "_rpc") and value == None:
+            logger.debug(f"Updating {self}.rpc {self._rpc} with None (setter)")
+        self._rpc = value
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} name={self.name} fullpath={self.fullpath}>"

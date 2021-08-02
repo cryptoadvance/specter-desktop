@@ -1,4 +1,5 @@
 import hashlib
+from . import DeviceTypes
 from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
@@ -10,7 +11,7 @@ from binascii import a2b_base64, b2a_base64
 
 
 class Specter(SDCardDevice):
-    device_type = "specter"
+    device_type = DeviceTypes.SPECTERDIY
     name = "Specter-DIY"
     icon = "specter_icon.svg"
 
@@ -21,9 +22,6 @@ class Specter(SDCardDevice):
     wallet_export_type = "qr"
     supports_hwi_multisig_display_address = True
     liquid_support = True
-
-    def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
-        super().__init__(name, alias, keys, blinding_key, fullpath, manager)
 
     def create_psbts(self, base64_psbt, wallet):
         try:

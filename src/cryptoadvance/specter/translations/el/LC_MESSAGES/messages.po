@@ -1,0 +1,4017 @@
+# Greek translations for PROJECT.
+# Copyright (C) 2021 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-06-27 12:36-0500\n"
+"PO-Revision-Date: 2021-07-21 15:30+0300\n"
+"Language: el\n"
+"Language-Team: el <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+"Last-Translator: \n"
+"X-Generator: Poedit 3.0\n"
+
+#: src/cryptoadvance/specter/node.py:316
+msgid "Connection to node failed"
+msgstr "Η σύνδεση με τον κόμβο απέτυχε"
+
+#: src/cryptoadvance/specter/node.py:326
+msgid "Core Node might be too old"
+msgstr "Ο πυρήνας του κόμβου μπορεί να είναι πολύ παλιός"
+
+#: src/cryptoadvance/specter/node.py:343
+msgid "Failed to connect!"
+msgstr "Απέτυχε η σύνδεση!"
+
+#: src/cryptoadvance/specter/node.py:352
+msgid "RPC authentication failed!"
+msgstr "Ο έλεγχος ταυτοποίησης RPC απέτυχε!"
+
+#: src/cryptoadvance/specter/node.py:366
+msgid "Failed to connect"
+msgstr "Απέτυχε η σύνδεση"
+
+#: src/cryptoadvance/specter/managers/device_manager.py:84
+msgid "Could not find Device {}"
+msgstr "Δεν ήταν δυνατή η εύρεση της συσκευής {}"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:50
+msgid ""
+"We could not check your password, maybe Bitcoin Core is not running or not "
+"configured?"
+msgstr ""
+"Δεν μπορέσαμε να ελέγξουμε τον κωδικό πρόσβασής σας, ίσως το Bitcoin Core δεν "
+"λειτουργεί ή δεν έχει ρυθμιστεί σωστά;"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:85
+msgid "Invalid username or password"
+msgstr "Λάθος όνομα χρήστη ή κωδικός"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:114
+msgid "Please enter a username."
+msgstr "Παρακαλώ εισάγετε το όνομα χρήστη."
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:121
+msgid "Please enter a password of a least {} characters."
+msgstr ""
+"Παρακαλώ πληκτρολογήστε έναν κωδικό πρόσβασης με τουλάχιστον {} χαρακτήρες."
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:135
+#: src/cryptoadvance/specter/server_endpoints/settings.py:373
+msgid "Username is already taken, please choose another one"
+msgstr "Το όνομα χρήστη χρησιμοποιείται ήδη, παρακαλώ διαλέξτε κάποιο άλλο"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:147
+msgid ""
+"You have registered successfully, please login with your new account to start "
+"using Specter"
+msgstr ""
+"Η εγγραφή σας έγινε με επιτυχία, παρακαλώ συνδεθείτε με τον νέο σας λογαριασμό "
+"για να ξεκινήσετε να χρησιμοποιείτε το Specter"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:155
+msgid ""
+"Invalid registration link, please request a new link from the node operator."
+msgstr ""
+"Μη έγκυρος σύνδεσμος εγγραφής, παρακαλώ ζητήστε νέο σύνδεσμο από τον χειριστή "
+"του κόμβου."
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:168
+msgid "You were logged out"
+msgstr "Έχετε αποσυνδεθεί"
+
+#: src/cryptoadvance/specter/server_endpoints/auth.py:174
+msgid "Logged in successfully."
+msgstr "Η σύνδεσή σας έγινε με επιτυχία."
+
+#: src/cryptoadvance/specter/server_endpoints/controller.py:54
+msgid "Wallet not found. Specter reloaded all wallets, please try again."
+msgstr ""
+"Δεν βρέθηκε το πορτοφόλι. Το Specter επαναφόρτωσε όλα τα πορτοφόλια, παρακαλώ "
+"προσπαθήστε ξανά."
+
+#: src/cryptoadvance/specter/server_endpoints/controller.py:58
+msgid "Bitcoin Core RpcError: {}"
+msgstr "Σφάλμα RPC του Bitcoin Core: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/controller.py:99
+msgid ""
+"Bitcoin Core is not coming up in time. Maybe it's just slow but please check "
+"the logs below"
+msgstr ""
+"Το Bitcoin Core δεν φορτώνει σε έγκυρο χρονικό διάστημα. Ίσως απλά να είναι "
+"αργό αλλά σας παρακαλούμε να ελέγξετε τα αρχεία καταγραφής σφαλμάτων παρακάτω"
+
+#: src/cryptoadvance/specter/server_endpoints/controller.py:120
+#: src/cryptoadvance/specter/server_endpoints/controller.py:130
+msgid "Session expired. Please refresh and try again."
+msgstr "Ο χρόνος συνεδρίας έχει λήξει. Παρακαλώ ανανεώστε και δοκιμάστε ξανά."
+
+#: src/cryptoadvance/specter/server_endpoints/controller.py:317
+msgid ""
+"You need a mainnet node to retrieve the whitepaper. Check your node "
+"configurations."
+msgstr ""
+"Θα χρειαστείτε έναν κόμβο στο κυρίως δίκτυο για να παραλάβετε τη Λευκή Βίβλο "
+"του Bitcoin. Ελέγξτε τις ρυθμίσεις του κόμβου σας."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:64
+#: src/cryptoadvance/specter/server_endpoints/devices.py:290
+#: src/cryptoadvance/specter/server_endpoints/devices.py:308
+#: src/cryptoadvance/specter/server_endpoints/devices.py:434
+msgid "Device name cannot be empty"
+msgstr "Το όνομα συσκευής δεν μπορεί να είναι κενό"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:66
+#: src/cryptoadvance/specter/server_endpoints/devices.py:292
+#: src/cryptoadvance/specter/server_endpoints/devices.py:310
+msgid "Device with this name already exists"
+msgstr "Υπάρχει ήδη συσκευή με αυτό το όνομα"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:84
+#: src/cryptoadvance/specter/server_endpoints/devices.py:298
+msgid "Failed to parse these xpubs"
+msgstr "Αποτυχία επεξεργασίας αυτών των xpubs"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:89
+msgid "No paths were specified, please provide at least one."
+msgstr "Δεν ορίστηκαν μονοπάτια, παρακαλώ δώστε τουλάχιστον ένα."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:102
+#: src/cryptoadvance/specter/server_endpoints/devices.py:147
+msgid "{} keys were added successfully"
+msgstr "{} κλειδιά προστέθηκαν επιτυχώς"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:123
+#: src/cryptoadvance/specter/server_endpoints/devices.py:164
+msgid "{} was added successfully!"
+msgstr "{} προστέθηκε επιτυχώς!"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:133
+#: src/cryptoadvance/specter/server_endpoints/devices.py:350
+msgid "Failed to setup hot wallet. Error: {}"
+msgstr "Αποτυχία ρύθμισης ζεστού πορτοφολιού. Σφάλμα {}"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:143
+msgid "xpubs list must not be empty"
+msgstr "η λίστα των xpubs δεν πρέπει να είναι άδεια"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:198
+#: src/cryptoadvance/specter/server_endpoints/devices.py:312
+msgid ""
+"Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
+msgstr ""
+"Εισάχθηκε λάθος μνημονικό: Πρέπει να περιέχει είτε 12, 15, 18, 21 ή 24 λέξεις."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:202
+#: src/cryptoadvance/specter/server_endpoints/devices.py:317
+msgid "Invalid mnemonic entered."
+msgstr "Εισάχθηκε λάθος μνημονικό."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:206
+#: src/cryptoadvance/specter/server_endpoints/devices.py:321
+msgid "Invalid address range selected."
+msgstr "Επιλέχθηκε λάθος εύρος διευθύνσεων."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:248
+#: src/cryptoadvance/specter/server_endpoints/devices.py:386
+msgid "Device not found"
+msgstr "Δεν ήταν δυνατή η εύρεση της συσκευής"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:257
+msgid "Master blinding key was added successfully"
+msgstr "Το κύριο κλειδί δέσμευσης προστέθηκε με επιτυχία"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:295
+msgid "xpubs name cannot be empty"
+msgstr "το όνομα του xpubs δεν μπορεί να είναι κενό"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:397
+msgid "Device could not be removed since it is used in wallets: {}"
+msgstr ""
+"Η συσκευή δεν μπορεί να αφαιρεθεί αφού χρησιμοποιείται ήδη στο/στα πορτοφόλια: "
+"{}"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:401
+msgid "You must delete those wallets before you can remove this device."
+msgstr ""
+"Πρέπει να διαγράψετε αυτά τα πορτοφόλια πριν να μπορέσετε να αφαιρέσετε αυτή τη "
+"συσκευή."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:405
+#: src/cryptoadvance/specter/server_endpoints/devices.py:427
+msgid "You can delete a wallet from its Settings -> Advanced page."
+msgstr ""
+"Μπορείτε να διαγράψετε ένα πορτοφόλι από την σελίδα του στις Ρυθμίσεις -> Για "
+"Προχωρημένους."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:421
+msgid "Key could not be removed since it is used in wallets: {}"
+msgstr ""
+"Το κλειδί δεν μπορεί να αφαιρεθεί αφού χρησιμοποιείται ήδη στο/στα πορτοφόλια: "
+"{}"
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:425
+msgid "You must delete those wallets before you can remove this key."
+msgstr ""
+"Πρέπει να διαγράψετε αυτά τα πορτοφόλια πριν να μπορέσετε να αφαιρέσετε αυτό το "
+"κλειδί."
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:438
+msgid "Device already exists"
+msgstr "Η συσκευή υπάρχει ήδη"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:47
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:228
+msgid "Node not found"
+msgstr "Δεν βρέθηκε ο κόμβος"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:66
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:240
+msgid "Only an admin is allowed to access this page"
+msgstr "Μόνο ένας διαχειριστής επιτρέπεται να προσπελάσει αυτή τη σελίδα"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:101
+msgid "Node name cannot be empty"
+msgstr "Το όνομα κόμβου δεν μπορεί να είναι άδειο"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:105
+msgid "Node with this name already exists"
+msgstr "Υπάρχει ήδη κόμβος με αυτό το όνομα"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:110
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:262
+msgid "Failed to deleted node. Node isn't saved"
+msgstr "Αποτυχία διαγραφής κόμβου. Ο κόμβος δεν έχει σωθεί"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:113
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:268
+msgid "Node deleted successfully"
+msgstr "Επιτυχημένη διαγραφή κόμβου"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:122
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:277
+msgid "Failed to delete node. Specter must have at least one node configured"
+msgstr ""
+"Αποτυχία διαγραφής κόμβου. Το Specter πρέπει να έχει τουλάχιστον έναν "
+"ρυθμισμένο κόμβο"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:150
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:154
+msgid "Test failed: {}"
+msgstr "Αποτυχία δοκιμής: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:152
+msgid "Test passed"
+msgstr "Επιτυχία δοκιμής"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:159
+msgid "Node with this name already exits, please choose a different name."
+msgstr ""
+"Υπάρχει ήδη κόμβος με αυτό το όνομα, παρακαλώ δοκιμάστε κάποιο διαφορετικό "
+"όνομα."
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:198
+msgid "Failed connecting to the node"
+msgstr "Η σύνδεση με τον κόμβο απέτυχε"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:253
+msgid "Node name must not be empty"
+msgstr "Το όνομα κόμβου δεν μπορεί να είναι άδειο"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:286
+msgid "Specter successfully stopped Bitcoin Core"
+msgstr "Το Specter σταμάτησε το Bitcoin Core με επιτυχία"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:290
+msgid "Stopping Bitcoin Core, this might take a few moments."
+msgstr "Σταματάμε το Bitcoin Core, αυτό μπορεί να διαρκέσει μερικά δευτερόλεπτα."
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:294
+msgid "Failed to stop Bitcoin Core {}"
+msgstr "Αποτυχία στο σταμάτημα του Bitcoin Core {}"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:297
+msgid "Specter has started Bitcoin Core"
+msgstr "Το Specter εκκίνησε το Bitcoin Core"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:299
+msgid "Specter failed to start the node"
+msgstr "Το Specter απέτυχε να εκκινήσει τον κόμβο"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:309
+msgid "Bitcoin Core successfully uninstalled"
+msgstr "Το Bitcoin Core απεγκαταστάθηκε με επιτυχία"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:318
+msgid "Failed to remove Bitcoin Core, error: {}"
+msgstr "Αποτυχία αφαίρεσης Bitcoin Core, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:327
+msgid "Failed to upgrade Bitcoin Core version, error: {}"
+msgstr "Αποτυχία ενημέρωσης της έκδοσης του Bitcoin Core, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/nodes.py:333
+msgid "Bitcoin Core version is already up to date"
+msgstr "Η έκδοση του Bitcoin Core είναι ήδη ενημερωμένη στην πιο πρόσφατη"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:112
+msgid "Failed to import wallet {}, error: {}"
+msgstr "Αποτυχία εισαγωγής πορτοφολιού {}, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:146
+msgid "Failed to perform rescan for wallet: {}"
+msgstr "Η επαναναζήτηση πορτοφολιού απέτυχε: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:152
+msgid "Failed to import wallet {}"
+msgstr "Αποτυχία εισαγωγής πορτοφολιού {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:154
+msgid "Specter data was successfully loaded from backup"
+msgstr "Τα δεδομένα του Specter φορτώθηκαν με επιτυχία από το εφεδρικό αρχείο"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:157
+msgid ""
+"Wallets are rescanning for transactions history.\n"
+"This may take a few hours to complete."
+msgstr ""
+"Τα πορτοφόλια σαρώνουν για το ιστορικό συναλλαγών.\n"
+"Αυτή η διαδικασία μπορεί να πάρει μερικές ώρες να ολοκληρωθεί."
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:189
+msgid "Only an admin is allowed to access this page."
+msgstr "Μόνο ένας διαχειριστής έχει το δικαίωμα να προσπελάσει αυτή τη σελίδα."
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:260
+msgid "Specter has started Tor"
+msgstr "Το Specter εκκίνησε το Tor"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:262
+msgid "Failed to start Tor, error: {}"
+msgstr "Αποτυχία εκκίνησης του Tor, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:269
+msgid "Specter stopped Tor successfully"
+msgstr "Το Specter κατάφερε να σταματήσει το Tor"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:271
+msgid "Failed to stop Tor, error: {}"
+msgstr "Αποτυχία σταματημού του Tor, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:280
+msgid "Tor uninstalled successfully"
+msgstr "Το Tor απεγκαταστάθηκε επιτυχώς"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:282
+msgid "Failed to uninstall Tor, error: {}"
+msgstr "Η απεγκατάσταση του Tor απέτυχε, σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:297
+msgid "Tor requests test completed successfully!"
+msgstr "Η δοκιμές ανάκτησης μέσω Tor ολοκληρώθηκαν με επιτυχία!"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:300
+msgid "Failed to make test request over Tor. Status-Code: {}"
+msgstr "Αποτυχία εκτέλεσης της δοκιμής ανάκτησης μέσω Tor. Κωδικός-Κατάστασης: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:316
+msgid ""
+"Failed to make test request over Tor.\n"
+"Error: {}"
+msgstr "Αποτυχία εκτέλεσης της δοκιμής ανάκτησης μέσω Tor. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:390
+#: src/cryptoadvance/specter/server_endpoints/settings.py:415
+msgid "Please enter a password of a least {} characters"
+msgstr ""
+"Παρακαλώ πληκτρολογήστε έναν κωδικό πρόσβασης με τουλάχιστον {} χαρακτήρες"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:456
+msgid "(expires in {} hours)"
+msgstr "(λήγει σε {} ώρες)"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:458
+msgid "(expires in 1 hour)"
+msgstr "(λήγει σε 1 ώρα)"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:466
+msgid "New user link generated{}: {}auth/register?otp={}"
+msgstr "Δημιουργήθηκε νέος σύνδεσμος χρήστη{}: {}auth/register?otp={}"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:473
+msgid "Error: Only the admin account can issue new registration links"
+msgstr ""
+"Σφάλμα: Μόνο ο λογαριασμός του διαχειριστή μπορεί να εκδόσει νέους συνδέσμους "
+"εγγραφής"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:483
+msgid "User {} was deleted successfully"
+msgstr "Ο χρήστης {} διαγράφηκε επιτυχώς"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:486
+msgid "Error: Only the admin account can delete users"
+msgstr "Σφάλμα: Μόνο ο λογαριασμός του διαχειριστή μπορεί να διαγράψει χρήστες"
+
+#: src/cryptoadvance/specter/server_endpoints/settings.py:506
+msgid "HWIBridge URL is updated! Don't forget to whitelist Specter!"
+msgstr ""
+"Ο σύνδεσμος URL του HWIBridge URL έχει ενημερωθεί. Μην ξεχάσετε να βάλετε το "
+"Specter στην λίστα των εγκεκριμένων εφαρμογών!"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:124
+msgid "Tor is already installed"
+msgstr "Το Tor είναι ήδη εγκατεστημένο"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:126
+msgid "Tor installation is still in progress"
+msgstr "Η διαδικασία εγκατάστασης του Tor δεν έχει ολοκληρωθεί ακόμα"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:127
+msgid "Starting Tor setup!"
+msgstr "Εκκίνηση της εγκατάστασης του Tor!"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:144
+msgid "Bitcoin Core is already installed"
+msgstr "Το Bitcoin Core είναι ήδη εγκατεστημένο"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:146
+#: src/cryptoadvance/specter/server_endpoints/setup.py:208
+msgid "Bitcoin Core installation is still in progress"
+msgstr "Η διαδικασία εγκατάστασης του Bitcoin Core δεν έχει ολοκληρωθεί"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:147
+#: src/cryptoadvance/specter/server_endpoints/setup.py:209
+msgid "Starting Bitcoin Core setup!"
+msgstr "Εκκίνηση της εγκατάστασης του Bitcoin Core!"
+
+#: src/cryptoadvance/specter/server_endpoints/setup.py:206
+msgid "Bitcoin Core in not installed but required for this step"
+msgstr ""
+"Το Bitcoin Core δεν είναι εγκατεστημένο αλλά είναι απαραίτητο για αυτό το βήμα"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:51
+msgid "SpecterError while {}: {}"
+msgstr "ΣφάλμαSpecter καθώς {}: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:109
+msgid "Failed to delete failed wallet: {}"
+msgstr "Αποτυχία διαγραφής κατεστραμμένου πορτοφολιού: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:121
+msgid "Configure Bitcoin Core to create wallets"
+msgstr "Ολοκληρώστε την ρύθμιση του Bitcoin Core για να δημιουργήσετε πορτοφόλια"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:127
+msgid ""
+"<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please "
+"make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then "
+"restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/"
+"cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/"
+"docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-"
+"is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style="
+"\"color: white;\">here</a> for more information.</p>"
+msgstr ""
+"<p><br>Η ρύθμιση Bitcoin Core τρέχει με τα πορτοφόλια απενεργοποιημένα."
+"<br><br>Παρακαλώ σιγουρευτείτε ότι το disablewallet είναι στο off (εντολή "
+"disablewallet=0 στο αρχείο bitcoin.conf), και μετα επανεκκινήστε το Bitcoin "
+"Core και δοκιμάστε ξανά.<br>Δείτε <a href=\"https://github.com/cryptoadvance/"
+"specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-"
+"not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-"
+"mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: "
+"white;\">εδώ</a> για περισσότερες πληροφορίες στα Αγγλικά.</p>"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:141
+msgid "Unknown wallet type requested"
+msgstr "Ζητήθηκε άγνωστος τύπος πορτοφολιού"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:168
+msgid "Wallet imported successfully"
+msgstr "Επιτυχία εισαγωγής πορτοφολιού"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:204
+msgid "No device was selected. Please select a device to create the wallet for."
+msgstr ""
+"Δεν επιλέξατε κάποια συσκευή. Παρακαλώ διαλέξτε την συσκευή για την οποία "
+"θέλετε να δημιουργήσετε το πορτοφόλι."
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:213
+msgid "Device {} doesn't have keys matching this wallet type"
+msgstr ""
+"Η συσκευή {} δεν έχει κλειδιά που αντιστοιχούν σε αυτό το είδος πορτοφολιού"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:241
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:827
+msgid "Wallet already exists"
+msgstr "Το πορτοφόλι υπάρχει ήδη"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:276
+msgid "No keys were selected for device, please try adding keys first"
+msgstr ""
+"Δεν επιλέχθηκαν κλειδιά για αυτή τη συσκευή, παρακαλώ εισάγετε πρώτα τα κλειδιά"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:302
+msgid "Failed to create wallet. Error: {}"
+msgstr "Αποτυχία δημιουργίας πορτοφολιού, Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:492
+msgid "Failed to fetch fee estimations. Please use the manual fee calculation."
+msgstr ""
+"Αποτυχία ανάκτησης των εκτιμώμενων τελών συναλλαγής. Παρακαλώ χρησιμοποιήστε "
+"τον χειροκίνητο υπολογιστή τελών."
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:545
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:578
+msgid "Failed to perform RBF. Error: {}"
+msgstr "Αποτυχία της διαδικασίας επαναϊσορρόπησης τελών RBF. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:562
+msgid "Failed to cancel transaction with RBF. Error: {}"
+msgstr ""
+"Αποτυχία της ακύρωσης συναλλαγής με την επαναϊσορρόπηση τελών RBF. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:601
+msgid "Failed to sign PSBT: {}"
+msgstr "Αποτυχία υπογραφής PSBT: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:604
+msgid "Device already signed the PSBT"
+msgstr "Η συσκευή έχει ήδη υπογράψει το PSBT"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:620
+msgid "Failed to get RBF coins. Error: {}"
+msgstr "Αποτυχία ανάκτησης των κερμάτων επαναϊσορρόπησης τελών RBF. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:674
+msgid "Could not delete Pending PSBT!"
+msgstr "Δεν μπορέσαμε να διαγράψουμε την PSBT σε Εκκρεμότητα!"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:712
+msgid "Could not import PSBT: {}"
+msgstr "Δεν μπορέσαμε να εισάγουμε την PSBT: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:786
+msgid "Failed to abort rescan. Maybe already complete?"
+msgstr "Αποτυχία ακύρωσης την επανασάρωσης. Μήπως έχει ήδη ολοκληρωθεί;"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:823
+msgid "Wallet name cannot be empty"
+msgstr "Το όνομα του πορτοφολιού δεν μπορεί να είναι άδειο"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:859
+msgid "Cannot parse empty data as PSBT"
+msgstr "Δεν μπορούμε να επεξεργαστούμε άδεια δεδομένα ως PSBT"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:883
+msgid "Invalid transaction format"
+msgstr "Λάθος μορφή συναλλαγής"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:899
+msgid "Unknown error: {}"
+msgstr "Άγνωστο σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:916
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:973
+msgid ""
+"Failed to broadcast transaction: transaction is invalid\n"
+"{}"
+msgstr "Αποτυχία εκπομπής συναλλαγής: η συναλλαγή είναι άκυρη {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:945
+msgid "Failed to broadcast transaction. Network not supported."
+msgstr "Αποτυχία εκπομπής συναλλαγής. Το δίκτυο δεν υποστηρίζεται."
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:954
+msgid "Failed to broadcast transaction. Block explorer not supported."
+msgstr "Αποτυχία εκπομπής συναλλαγής: Ο εξερευνητής μπλοκ δεν υποστηρίζεται."
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:968
+msgid "Failed to broadcast transaction with error: {}"
+msgstr "Αποτυχία εκπομπής συναλλαγής με σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1067
+msgid "Exception trying to get address label: Error: {}"
+msgstr ""
+"Εξαίρεση κατά την προσπάθεια να λάβουμε την ετικέτα της διεύθυνσης: Σφάλμα {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1275
+msgid "Failed to export addresses list. Error: {}"
+msgstr "Αποτυχία εξαγωγής της λίστας των διευθύνσεων. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1344
+msgid "Failed to export wallet utxo. Error: {}"
+msgstr "Αποτυχία εξαγωγής των utxo του πορτοφολιού. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1379
+msgid "Failed to export wallets overview history. Error: {}"
+msgstr "Αποτυχία εξαγωγής του εποπτικού ιστορικού των πορτοφολιών. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1411
+msgid "Failed to export wallets overview utxo. Error: {}"
+msgstr "Αποτυχία εξαγωγής του εποπτικού utxo των πορτοφολιών. Σφάλμα: {}"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
+msgid "Date"
+msgstr "Ημερομηνία"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
+#: src/cryptoadvance/specter/templates/includes/address-data.html:83
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:159
+msgid "Label"
+msgstr "Ετικέτα"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
+msgid "Category"
+msgstr "Κατηγορία"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+msgid "Amount ({})"
+msgstr "Ποσό ({})"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
+msgid "Value ({})"
+msgstr "Αξία ({})"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1442
+msgid "Rate (BTC/{})"
+msgstr "Ισοτιμία (BTC/{})"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
+msgid "Rate ({}/SAT)"
+msgstr "Ισοτιμία ({}/SAT)"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
+msgid "TxID"
+msgstr "Ταυτότητα Συναλλαγής TxID"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/templates/includes/address-data.html:82
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
+msgid "Address"
+msgstr "Διεύθυνση"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
+msgid "Block Height"
+msgstr "Ύψος μπλοκ"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
+msgid "Timestamp"
+msgstr "Χρονική σήμανση"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1449
+msgid "Raw Transaction"
+msgstr "Ωμή συναλλαγή"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1452
+msgid "Wallet"
+msgstr "Πορτοφόλι"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+msgid "Index"
+msgstr "Ευρετήριο"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/templates/includes/address-data.html:87
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
+msgid "Used"
+msgstr "Χρησιμοποιημένα"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1531
+msgid "Current balance"
+msgstr "Τρέχον υπόλοιπο"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1546
+msgid "(external)"
+msgstr "(εξωτερικά)"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1550
+msgid " (change)"
+msgstr " (αλλαγή)"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1555
+msgid "unknown (external address)"
+msgstr "άγνωστο (εξωτερική διεύθυνση)"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
+msgid "Type"
+msgstr "Είδος"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+msgid "UTXO"
+msgstr "UTXO"
+
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1584
+msgid "Amount (BTC)"
+msgstr "Ποσό (BTC)"
+
+#: src/cryptoadvance/specter/templates/500.jinja:5
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:5
+#: src/cryptoadvance/specter/templates/base.jinja:5
+msgid "Specter Desktop"
+msgstr "Specter για Υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/500.jinja:18
+msgid "Server error!"
+msgstr "Σφάλμα διακομιστή δικτύου!"
+
+#: src/cryptoadvance/specter/templates/500.jinja:19
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:19
+msgid "Exception"
+msgstr "Εξαίρεση"
+
+#: src/cryptoadvance/specter/templates/500.jinja:21
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:21
+msgid "Back to the main page"
+msgstr "Πίσω στην κυρίως σελίδα"
+
+#: src/cryptoadvance/specter/templates/500.jinja:23
+msgid "Details"
+msgstr "Λεπτομέρειες"
+
+#: src/cryptoadvance/specter/templates/500.jinja:26
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:31
+msgid ""
+"Please let us know! Create an <a href=\"https://github.com/cryptoadvance/"
+"specter-desktop/issues\" target=\"_blank\">issue</a> or ping us on <a href="
+"\"https://t.me/spectersupport\" target=\"_blank\">Telegram</a> to fix it."
+msgstr ""
+"Παρακαλώ ενημερώστε μας για το θέμα αυτό! Δημιουργήστε ένα <a href=\"https://"
+"github.com/cryptoadvance/specter-desktop/issues\" target=\"_blank\">αίτημα</a> "
+"ή στείλτε μας μήνυμα στο <a href=\"https://t.me/spectersupport\" target=\"_blank"
+"\">Telegram</a> για να το φτιάξουμε."
+
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:18
+msgid "Timeout Error!"
+msgstr "Σφάλμα λήξης χρόνου!"
+
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:23
+msgid ""
+"Please have a look in the below log. There are effectively two ways to resolve "
+"this:"
+msgstr ""
+"Παρακαλώ κοιτάξτε στο ιστορικό παρακάτω. Υπάρχουν πρακτικά δύο τρόποι να λυθεί "
+"το θέμα:"
+
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:25
+msgid "Either the process was just slow and Specter was too impatient"
+msgstr "Είτε η διεργασία ήταν απλά πολύ αργή και το Specter πολύ ανυπόμονο"
+
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:26
+msgid ""
+"The process is in trouble which should be reflected by the content of the logs "
+"below"
+msgstr ""
+"Η διεργασία έχει κάποιο πρόβλημα το οποίο πρέπει να φαίνεται στο παρακάτω "
+"ιστορικό"
+
+#: src/cryptoadvance/specter/templates/500_timeout.jinja:28
+msgid "Details from the log file"
+msgstr "Λεπτομέρειες από το ιστορικό σφαλμάτων"
+
+#: src/cryptoadvance/specter/templates/base.jinja:63
+msgid "ERROR:"
+msgstr "ΣΦΑΛΜΑ:"
+
+#: src/cryptoadvance/specter/templates/base.jinja:69
+msgid "Something went wrong:"
+msgstr "Κάτι πήγε στραβά:"
+
+#: src/cryptoadvance/specter/templates/base.jinja:75
+msgid "Welcome to Specter Desktop"
+msgstr "Καλώς ορίσατε στο Specter για υπολογιστές"
+
+#: src/cryptoadvance/specter/templates/base.jinja:78
+msgid ""
+"Specter Desktop is a convenient wallet interface to better use your Bitcoin "
+"Core node. It’s good for singlesig wallets, but comes with a special focus on "
+"multisignature setups for different hardware wallets and air-gapped signing "
+"devices."
+msgstr ""
+"Το Specter για υπολογιστές είναι ένα βολικό περιβάλλον διαχείρισης πορτοφολιών "
+"για να χρησιμοποιήσετε στο έπακρο τις δυνατότητες του κόμβου σας Bitcoin Core. "
+"Είναι κατάλληλο για πορτοφόλια με μία υπογραφή, αλλά εκεί που ξεχωρίζει είναι "
+"στην διαχείριση πορτοφολιών με πολλαπλές υπογραφές, και είναι συμβατό με "
+"διαφορετικές συσκευές-πορτοφόλια για Bitcoin και απομονωμένες συσκευές "
+"υπογραφής για μέγιστη ασφάλεια."
+
+#: src/cryptoadvance/specter/templates/base.jinja:85
+msgid "Get started!"
+msgstr "Ξεκινήστε εδώ!"
+
+#: src/cryptoadvance/specter/templates/base.jinja:85
+msgid "Continue setup"
+msgstr "Συνέχεια εγκατάστασης"
+
+#: src/cryptoadvance/specter/templates/base.jinja:88
+msgid "Getting Started"
+msgstr "Ξεκινώντας"
+
+#: src/cryptoadvance/specter/templates/base.jinja:94
+msgid "Using Specter from a remote machine?"
+msgstr "Χρησιμοποιείτε το Specter από απομακρυσμένη συσκευή;"
+
+#: src/cryptoadvance/specter/templates/base.jinja:96
+msgid ""
+"If you run Specter on a remote machine, like Umbrel or a myNode, you need to "
+"update settings to connect hardware wallets via USB."
+msgstr ""
+"Αν τρέχετε το Specter σε απομακρυσμένο μηχάνημα όπως το Umbrel ή το myNode, "
+"τότε πρέπει να ενημερώσετε τις ρυθμίσεις για να συνδέσετε πορτοφόλια-συσκευές "
+"μέσω θύρας USB."
+
+#: src/cryptoadvance/specter/templates/base.jinja:98
+msgid "Update your settings"
+msgstr "Ενημερώστε τις ρυθμίσεις σας"
+
+#: src/cryptoadvance/specter/templates/base.jinja:113
+msgid "Connect Specter with Bitcoin Core node."
+msgstr "Σύνδεση του Specter με τον κόμβο Bitcoin Core."
+
+#: src/cryptoadvance/specter/templates/base.jinja:120
+msgid "Connecting Specter to your Bitcoin Core node"
+msgstr "Το Specter συνδέεται με τον Bitcoin Core κόμβο σας"
+
+#: src/cryptoadvance/specter/templates/base.jinja:122
+msgid "I don't have a Bitcoin Core node yet."
+msgstr "Δεν έχω κόμβο Bitcoin Core ακόμα."
+
+#: src/cryptoadvance/specter/templates/base.jinja:123
+msgid "I have Bitcoin Core on this computer."
+msgstr "Έχω ήδη Bitcoin Core σε αυτόν τον υπολογιστή."
+
+#: src/cryptoadvance/specter/templates/base.jinja:124
+msgid "I have a remote Bitcoin Core node."
+msgstr "Έχω ένα απομακρυσμένο Bitcoin Core."
+
+#: src/cryptoadvance/specter/templates/base.jinja:128
+msgid "Installing and Setting Up Bitcoin Core"
+msgstr "Εγκαθιστώντας και Ρυθμίζοντας το Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/base.jinja:129
+msgid ""
+"Check out these video tutorials on downloading and setting up Bitcoin Core with "
+"Specter Desktop"
+msgstr ""
+"Δείτε αυτά τα βίντεο με οδηγίες βήμα-βήμα για να κατεβάσετε και να "
+"εγκαταστήσετε το Bitcoin Core με το Specter για υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/base.jinja:137
+msgid "Connecting Specter to your local Bitcoin Core node"
+msgstr "Το Specter συνδέεται με το τοπικό σας κόμβο Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/base.jinja:138
+msgid ""
+"If you're running a local Bitcoin Core node, Specter should be able to auto-"
+"detect it if its data folder is located at the default location."
+msgstr ""
+"Αν τρέχετε έναν τοπικό κόμβο Bitcoin Core, το Specter θα μπορεί να το εντοπίσει "
+"αυτόματα αν ο φάκελος δεδομένων είναι στην προκαθορισμένη τοποθεσία."
+
+#: src/cryptoadvance/specter/templates/base.jinja:139
+msgid ""
+"In case it isn't, you might need to specify the Bitcoin Core data folder path "
+"in Specter's settings page."
+msgstr ""
+"Σε περίπτωση που δεν είναι, ίσως χρειαστεί να προσδιορίσετε το μονοπάτι του "
+"φακέλου δεδομένων του Bitcoin Core στην σελίδα Ρυθμίσεις του Specter."
+
+#: src/cryptoadvance/specter/templates/base.jinja:140
+msgid ""
+"Alternatively, you can switch off auto-detect from the settings and provide the "
+"Bitcoin Core RPC credentials and host URL manually."
+msgstr ""
+"Εναλλακτικά, μπορείτε να απενεργοποιήσετε την αυτόματη ανίχνευση από τις "
+"ρυθμίσεις και να εισάγετε τα στοιχεία Bitcoin Core RPC και του συνδέσμου URL "
+"του αποδέκτη χειροκίνητα."
+
+#: src/cryptoadvance/specter/templates/base.jinja:141
+msgid ""
+"<b>Please note:</b><br>Your node must be configured with <code>server=1</code> "
+"line in the <code>bitcoin.conf</code> file."
+msgstr ""
+"<b>Σημείωση:</b><br>Ο κόμβος σας πρέπει να ρυθμιστεί με την <code>server=1</"
+"code> γραμμή κώδικα στο αρχείο <code>bitcoin.conf</code>."
+
+#: src/cryptoadvance/specter/templates/base.jinja:142
+msgid "If you don't have that, add it and restart Bitcoin Core."
+msgstr "Αν δεν τα έχετε αυτά, εισάγετέ τα και επανεκκινήστε το Bitcoin Core."
+
+#: src/cryptoadvance/specter/templates/base.jinja:145
+msgid ""
+"In addition, you can check out these video tutorials for setting up Bitcoin "
+"Core with Specter Desktop"
+msgstr ""
+"Επίσης, μπορείτε να δείτε αυτά τα βίντεο στα Αγγλικά με οδηγίες βήμα προς βήμα "
+"για να ρυθμίσετε το Bitcoin Core με το Specter για υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/base.jinja:153
+msgid "Connecting Specter to your remote Bitcoin Core node"
+msgstr "Συνδέουμε το Specter με τον απομακρυσμένο κόμβο Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/base.jinja:154
+msgid "Connecting to a \"node in a box\""
+msgstr "Σύνδεση με \"κόμβο σε κουτί\""
+
+#: src/cryptoadvance/specter/templates/base.jinja:156
+msgid ""
+"Specter can be used with a remote Bitcoin Core node running on a machine like "
+"RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
+msgstr ""
+"Το Specter μπορεί να χρησιμοποιηθεί με απομακρυσμένο κόμβο Bitcoin Core που "
+"τρέχει σε μηχάνημα όπως το Raspiblitz, myNode, Nodl, Umbrel και Embassy."
+
+#: src/cryptoadvance/specter/templates/base.jinja:157
+msgid ""
+"RaspiBlitz and myNode currently allow running Specter in the remote machine "
+"directly, which means it's possible to use it and skip setting up connection "
+"manually."
+msgstr ""
+"Το Raspiblitz και το myNode επιτρέπουν την απευθείας λειτουργία του Specter στο "
+"απομακρυσμένο μηχάνημα, το οποίο σημαίνει ό,τι είναι πιθανό να το "
+"χρησιμοποιήσετε χωρίς χειροκίνητες ρυθμίσεις της σύνδεσης."
+
+#: src/cryptoadvance/specter/templates/base.jinja:158
+msgid ""
+"If you use a different node or would still like to connect run Specter locally "
+"but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and "
+"provide the Bitcoin Core RPC credentials and host URL manually."
+msgstr ""
+"Εάν χρησιμοποιείτε κάποιο διαφορετικό κόμβο ή θέλετε να συνδέσετε τη λειτουργία "
+"του Specter τοπικά αλλά να συνδέεστε απομακρυσμένα, μπορείτε να το κάνετε αυτό "
+"με το να πάτε στις Ρυθμίσεις, καρτέλα Bitcoin Core, και να εισάγετε εσείς τα "
+"στοιχεία του Bitcoin Core RPC και τον σύνδεσμο URL του αποδέκτη."
+
+#: src/cryptoadvance/specter/templates/base.jinja:160
+msgid "Connecting over Tor"
+msgstr "Σύνδεση μέσω Tor"
+
+#: src/cryptoadvance/specter/templates/base.jinja:161
+msgid ""
+"Connecting over Tor requires that you first configure Tor on your local machine."
+msgstr ""
+"Η σύνδεση μέσω Tor προϋποθέτει ότι έχετε ρυθμίσει το Tor στο τοπικό σας "
+"μηχάνημα."
+
+#: src/cryptoadvance/specter/templates/base.jinja:174
+msgid "Add signing devices you wish to use."
+msgstr "Προσθέστε τις συσκευές για υπογραφή που θέλετε να χρησιμοποιήσετε."
+
+#: src/cryptoadvance/specter/templates/base.jinja:186
+msgid "Create your first wallet!"
+msgstr "Δημιουργήστε το πρώτο σας πορτοφόλι!"
+
+#: src/cryptoadvance/specter/templates/base.jinja:199
+msgid "And when you are all set: Get the whitepaper from the timechain."
+msgstr "Και όταν είστε έτοιμοι: Λάβετε την λευκή βίβλο από την χρονοαλυσίδα."
+
+#: src/cryptoadvance/specter/templates/base.jinja:220
+msgid "Supported and maintained by"
+msgstr "Υποστήριξη και συντήρηση από τον"
+
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:11
+msgid "HWI Bridge Settings"
+msgstr "Ρυθμίσεις Γέφυρας HWI"
+
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:15
+msgid "HWI Bridge is also accessible over Tor"
+msgstr "Η Γέφυρα HWI είναι επίσης προσβάσιμη μέσω Tor"
+
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:16
+msgid "Copied Tor hidden service address"
+msgstr "Επιτυχής αντιγραφή της κρυμμένης διεύθυνσης υπηρεσίας Tor"
+
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:21
+msgid "Whitelisted domains"
+msgstr "Εγκεκριμένα ονόματα χώρου"
+
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:24
+msgid ""
+"To whitelist multiple domains, just list them one after another, each in a new "
+"line, for example"
+msgstr ""
+"Για να προεγκρίνετε πολλαπλά ονόματα χώρου, απλά γράψτε τα το ένα μετά το άλλο, "
+"πχ το καθένα σε δικιά του γραμμή"
+
+#: src/cryptoadvance/specter/templates/components/editable_title.jinja:11
+#: src/cryptoadvance/specter/templates/device/device.jinja:21
+#: src/cryptoadvance/specter/templates/hwi_bridge.jinja:30
+#: src/cryptoadvance/specter/templates/includes/address-label.html:65
+#: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:10
+msgid "Update"
+msgstr "Ενημέρωση"
+
+#: src/cryptoadvance/specter/templates/login.jinja:8
+msgid "Login to Specter"
+msgstr "Σύνδεση στο Specter"
+
+#: src/cryptoadvance/specter/templates/login.jinja:11
+#: src/cryptoadvance/specter/templates/register.jinja:11
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:41
+msgid "Username"
+msgstr "Όνομα χρήστη"
+
+#: src/cryptoadvance/specter/templates/login.jinja:13
+msgid "password"
+msgstr "κωδικός πρόσβασης"
+
+#: src/cryptoadvance/specter/templates/login.jinja:19
+msgid "Login"
+msgstr "Σύνδεση"
+
+#: src/cryptoadvance/specter/templates/register.jinja:8
+msgid "Register to the Specter Node"
+msgstr "Εγγραφτείτε στον κόμβο Specter"
+
+#: src/cryptoadvance/specter/templates/register.jinja:13
+msgid "Password"
+msgstr "Κωδικός πρόσβασης"
+
+#: src/cryptoadvance/specter/templates/register.jinja:19
+msgid "Register"
+msgstr "Εγγραφή"
+
+#: src/cryptoadvance/specter/templates/components/editable_title.jinja:12
+#: src/cryptoadvance/specter/templates/includes/address-label.html:66
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:11
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+#: src/cryptoadvance/specter/templates/components/editable_title.jinja:13
+msgid "Edit Name"
+msgstr "Επεξεργασία Ονόματος"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:38
+msgid "Price Settings"
+msgstr "Ρυθμίσεις τιμών"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:41
+msgid ""
+"Please set custom rate or choose between the automated price provider options."
+msgstr ""
+"Παρακαλώ ορίστε την δικιά σας τιμή ή διαλέξτε από τις αυτοματοποιημένες "
+"επιλογές που προσφέρονται."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:48
+msgid "Price:"
+msgstr "Τιμή:"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
+msgid "Symbol:"
+msgstr "Σύμβολο:"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:61
+msgid "Currency:"
+msgstr "Νόμισμα:"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:94
+msgid "Provider:"
+msgstr "Πάροχος:"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:158
+msgid "Weight Unit:"
+msgstr "Μονάδα βάρους:"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:172
+msgid ""
+"Price will automatically be fetched from the selected provider every 10 minutes."
+msgstr "Η τιμή θα λαμβάνεται αυτόματα από τον επιλεγμένο πάροχο κάθε 10 λεπτά."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:176
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:67
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:53
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:109
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:179
+msgid "Disable showing price"
+msgstr "Απενεργοποίηση εμφάνισης τιμής"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:181
+msgid ""
+"You can enable showing price feature to see the price<br>information of your "
+"Bitcoin amounts across Specter."
+msgstr ""
+"Μπορείτε να ενεργοποιήσετε την λειτουργία εμφάνισης τιμής για να βλέπετε τις "
+"πληροφορίες<br>τιμής των Bitcoin ποσών σας σε όλο το Specter."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:183
+msgid "Enable showing price"
+msgstr "Ενεργοποίηση εμφάνισης τιμής"
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
+msgid "Turning on show price mode..."
+msgstr "Εμφάνιση τιμής ενεργοποιείται..."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
+msgid "Turning off show price mode..."
+msgstr "Εμφάνιση τιμής απενεργοποιείται..."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:212
+msgid "Failed to toggle price mode..."
+msgstr "Αποτυχία αλλαγής κατάστασης εμφάνισης τιμής..."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
+msgid "Updating price data..."
+msgstr "Ενημέρωση στοιχείων τιμών..."
+
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:240
+msgid ""
+"Failed to fetch price data from selected provider, please try again or select "
+"another provider."
+msgstr ""
+"Η ανάκτηση στοιχείων τιμών από τον επιλεγμένο πάροχο απέτυχε, παρακαλώ "
+"δοκιμάστε ξανά ή επιλέξτε κάποιον άλλο πάροχο."
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:12
+msgid "Network"
+msgstr "Δίκτυο"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
+msgid "Purpose"
+msgstr "Σκοπός"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:183
+msgid "Derivation"
+msgstr "Παράγωγο"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:130
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:154
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:152
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:167
+msgid "Export"
+msgstr "Εξαγωγή"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+msgid "Key"
+msgstr "Κλειδί"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:28
+msgid "Actions"
+msgstr "Ενέργειες"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:58
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:69
+msgid "Add more keys"
+msgstr "Προσθήκη και άλλων κλειδιών"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:73
+#: src/cryptoadvance/specter/templates/device/device.jinja:81
+msgid "Sign message on device"
+msgstr "Υπογράψτε το μήνυμα στη συσκευή"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:75
+msgid "Derivation path"
+msgstr "Μονοπάτι παράγωγου"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:76
+msgid "Message"
+msgstr "Μήνυμα"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:78
+msgid "Message signature"
+msgstr "Υπογραφή μηνύματος"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:79
+msgid "Copy message signature"
+msgstr "Αντιγραφή υπογραφής μηνύματος"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:79
+msgid "Copied message signature"
+msgstr "Η υπογραφή μηνύματος αντιγράφηκε"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:86
+msgid "Update master blinding key"
+msgstr "Ενημέρωση του κυρίως κλειδιού τυφλώματος"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:90
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:25
+msgid "Toggle device passphrase"
+msgstr "Αλλαγή κατάστασης της μυστικής φράσης της συσκευής"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:95
+msgid "Forget the device"
+msgstr "Ξέχασε αυτή τη συσκευή"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:100
+msgid "Wallets Using This Device"
+msgstr "Πορτοφόλια που χρησιμοποιούν αυτή τη συσκευή"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:113
+msgid "New device was added successfully!"
+msgstr "Η νέα συσκευή προστέθηκε με επιτυχία!"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:118
+msgid "Add another device"
+msgstr "Προσθήκη επιπλέον συσκευής"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:128
+msgid "Create single key wallet"
+msgstr "Δημιουργία πορτοφολιού με ένα μόνο κλειδί"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:136
+msgid "Create multisignature wallet"
+msgstr "Δημιουργία πορτοφολιού με πολλαπλές υπογραφές"
+
+#: src/cryptoadvance/specter/templates/device/device.jinja:176
+msgid "Message was signed successfully!"
+msgstr "Το μήνυμα υπεγράφη με επιτυχία!"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:9
+msgid "Get the master blinding key"
+msgstr "Ανάκτηση του κύριου κλειδιού τυφλώματος"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:15
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:102
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:77
+msgid "Get via USB"
+msgstr "Ανάκτηση μέσω USB"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:20
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:114
+msgid "Scan QR code"
+msgstr "Σκανάρισμα κωδικού QR"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:25
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:28
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:119
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
+msgid "Paste xpub"
+msgstr "Επικόλληση xpub"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:31
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:125
+msgid "Add xpub"
+msgstr "Προσθήκη xpub"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:7
+msgid "Adding keys to"
+msgstr "Προσθήκη κλειδιών σε"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:9
+msgid "Setting up a new device"
+msgstr "Ρύθμιση νέας συσκευής"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:15
+msgid "Name it"
+msgstr "Ονομάστε την"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:21
+msgid "Please make sure to choose the device type before continuing"
+msgstr "Παρακαλώ διαλέξτε το είδος συσκευής πριν συνεχίσετε"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:23
+msgid "Device Management"
+msgstr "Διαχείριση Συσκευών"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:32
+msgid "Scan, paste or load xpubs"
+msgstr "Σκανάρισμα, επικόλληση ή φόρτωση xpubs"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:35
+msgid "You will be able add more keys later from the device menu."
+msgstr ""
+"Θα μπορέσετε να προσθέσετε και άλλα κλειδιά αργότερα από το μενού της συσκευής."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:38
+msgid "One line per xpub. Ideally with derivation path in the form"
+msgstr "Μία μόνο γραμμή ανά xpub. Ιδανικά με το μονοπάτι παραγώγων στην φόρμα"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:39
+msgid "Enter your xpubs here"
+msgstr "Εισάγετε τα xpubs σας εδώ"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:43
+msgid "Scan"
+msgstr "Σκανάρισμα"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:48
+msgid "Using an airgapped device with QR codes"
+msgstr "Χρήση συσκευής απομονωμένης από κάθε δίκτυο με κωδικούς QR"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:49
+msgid "Scan QR codes with extended public keys one by one."
+msgstr ""
+"Σκανάρισμα κωδικών QR με επεκτεταμένα δημόσια κλειδιά, τον έναν μετά τον άλλο."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:50
+msgid ""
+"We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys."
+msgstr ""
+"Προτείνουμε να εισάγετε κλειδιά <b>Ιθαγενή Native Segwit</b> και <b>Segwit "
+"Multisig Πολύ-Υπογραφές</b>."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:59
+msgid "Choose files"
+msgstr "Επιλογή αρχείων"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:64
+msgid "Using an airgapped ColdCard with MicroSD"
+msgstr ""
+"Χρησιμοποίηση ColdCard απομονωμένης από κάθε δίκτυο με κάρτα μνήμης MicroSD"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:65
+msgid "Export extended public keys for single-key wallets to the SD card from"
+msgstr ""
+"Εξαγωγή των επεκτεταμένων δημόσιων κλειδιών για πορτοφόλια με ένα κλειδί από"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:67
+msgid "To export multisignature pubkeys go to"
+msgstr "Για να εξάγετε δημόσια κλειδιά για πολύ-υπογραφές πηγαίνετε στο"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:69
+msgid "We recommend using Native Segwit."
+msgstr "Προτείνουμε να χρησιμοποιήσετε Ιθαγενή Native Segwit."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:80
+msgid "Specify account number (advanced)"
+msgstr "Ορίστε τον αριθμό λογαριασμού (Για προχωρημένους)"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:82
+msgid "Select the account you wish to import"
+msgstr "Επιλέξτε τον λογαριασμό που θέλετε να εισάγετε"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:83
+msgid ""
+"You can set which account number you wish to import.<br>Account derivation uses "
+"the number choosen here to derive an xpub as specified in"
+msgstr ""
+"Μπορείτε να θέσετε τον αριθμό λογαριασμού που επιθυμείτε να εισάγετε.<br>Τα "
+"παράγωγα λογαριασμού χρησιμοποιούν τον αριθμό που διαλέγετε εδώ για να παράγουν "
+"ένα xpub ως ορίζεται στο"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:85
+msgid ""
+"This is an advanced feature.<br>If you're not familiar with account derivations "
+"please leave this as 0."
+msgstr ""
+"Αυτή είναι μια λειτουργία για προχωρημένους.<br>Εάν δεν είστε εξοικειωμένοι με "
+"παράγωγα λογαριασμών, παρακαλώ αφήστε το ως μηδέν (0)."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:86
+msgid "Close"
+msgstr "Κλείσιμο"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:89
+msgid "Examples"
+msgstr "Παραδείγματα"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:130
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:103
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:96
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:166
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:150
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:152
+msgid "Continue"
+msgstr "Συνέχεια"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:103
+msgid "A note on hot wallets"
+msgstr "Μια σημείωση για τα ζεστά πορτοφόλια"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:47
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:104
+msgid ""
+"This will create a <a style=\"color: #ddd;\" href=\"https://en.bitcoin.it/wiki/"
+"Hot_wallet\" target=\"_blank\">hot wallet</a> on your Bitcoin Core node."
+msgstr ""
+"Αυτό θα δημιουργήσει ένα <a style=\"color: #ddd;\" href=\"https://en.bitcoin.it/"
+"wiki/Hot_wallet\" target=\"_blank\"> ζεστό πορτοφόλι </a> στον κόμβο σας "
+"Bitcoin Core."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:48
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:105
+msgid ""
+"Hot wallets are considered less secure and are not recommended for use with "
+"significant amounts. Use with caution and beware the potential risks."
+msgstr ""
+"Τα ζεστά (συνδεδεμένα) πορτοφόλια θεωρούνται λιγότερο ασφαλή και δεν "
+"προτείνονται για χρήση με κάποιο σημαντικό χρηματικό ποσό. Χρησιμοποιήστε τα με "
+"προσοχή και έχετε εις γνώση σας τους πιθανούς κινδύνους."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:107
+msgid "Enter you mnemonic here or use the randomly generated one"
+msgstr "Εισάγετε τη μνημονική φράση εδώ ή χρησιμοποιήστε μια δημιουργημένη τυχαία"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:51
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:108
+msgid "Make sure to backup these words!"
+msgstr "Φροντίστε να αποθηκεύσετε αυτές τις λέξεις!"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:55
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:111
+msgid "Generate"
+msgstr "Παραγωγή"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:56
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:112
+msgid "Import"
+msgstr "Εισαγωγή"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:50
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:60
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:115
+msgid "Enter your mnemonic here"
+msgstr "Εισάγετε τη μνημονική σας φράση εδώ"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:69
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:124
+msgid "Generate New Mnemonic"
+msgstr "Δημιουργία Νέας Μνημονικής Φράσης"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:139
+msgid "Encrypt Wallet File"
+msgstr "Κρυπτογράφηση Αρχείου Πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:85
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:184
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:187
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:142
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:180
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:186
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:250
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:67
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:63
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:66
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:128
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:173
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:176
+msgid "Advanced"
+msgstr "Για Προχωρημένους"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:145
+msgid "BIP39 passphrase (optional)"
+msgstr "BIP39 συνθηματικό (προαιρετικό)"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:148
+msgid "Derivation paths"
+msgstr "Παράγωγα μονοπάτια"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:150
+msgid ""
+"Enter each derivation path as a separate line. Start each path with an <code>m</"
+"code>. No trailing slash."
+msgstr ""
+"Εισάγετε κάθε παράγωγο μονοπάτι ως ξεχωριστή γραμμή. Ξεκινήστε το κάθε μονοπάτι "
+"με ένα <code>m</code>. Μην εισάγετε κάθετους."
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:152
+msgid "Specify derivation paths to import for the wallet"
+msgstr "Προσδιορίστε ποια παράγωγα μονοπάτια να εισάγετε για το πορτοφόλι"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:158
+msgid "Address range to import"
+msgstr "Εύρος διευθύνσεων προς εισαγωγή"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:159
+msgid "From"
+msgstr "Από"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:162
+msgid "to"
+msgstr "έως"
+
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:288
+msgid "No devices found"
+msgstr "Δεν βρέθηκαν συσκευές"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:523
+#: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:434
+msgid "Unknown key format"
+msgstr "Άγνωστη μορφή κλειδιού"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:56
+msgid ""
+"Connect your ColdCard to the computer via USB and unlock it or upload a wallet "
+"export file from micro SD card."
+msgstr ""
+"Συνδέστε την ColdCard με τον υπολογιστή μέσω θύρας USB και ξεκλειδώστε την ή "
+"ανεβάστε ένα εξαγώμενο αρχείο πορτοφολιού από την κάρτα micro SD."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:59
+msgid ""
+"To export the wallet data file from the ColdCard, insert your micro SD card "
+"into the device, then:<br>\n"
+"                    To get the single sig xpubs, go to: Advanced -> MicroSD "
+"Card -> Export Wallet -> Generic JSON. When asked for account, select account "
+"number (default is 0) and confirm the export.<br>\n"
+"                    To get the multisig xpubs, go to: Settings -> Multisig "
+"Wallets -> Export XPUB and confirm the export."
+msgstr ""
+"Για να εξάγετε το αρχείο δεδομένων του πορτοφολιού από την ColdCard, εισάγετε "
+"την κάρτα micro SD στη συσκευή, και μετά:<br>\n"
+"                    Για να πάρετε τις μονο-υπόγραφες xpubs, πηγαίνετε σε: Για "
+"Προχωρημένοους -> Κάρτα MicroSD -> Εξαγωγή Πορτοφολιού -> Γενικό JSON. Όταν σας "
+"ζητηθεί λογαριασμός, διαλέξτε τον αριθμό λογαριασμού (ο προκαθορισμένος είναι "
+"0) και επιβεβαιώστε την εξαγωγή.<br>\n"
+"                    Για να πάρετε τις πολύ-υπόγραφες xpubs, πηγαίνετε σε: "
+"Ρυθμίσεις -> Πορτοφόλια με Πολύ-Υπογραφή -> Εξαγωγή XPUB και επιβεβαιώστε την "
+"ενέργεια εξαγωγής."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:66
+msgid ""
+"Connect your Specter-DIY to the computer via USB and unlock it or scan the "
+"wallet master public key."
+msgstr ""
+"Συνδέστε το Specter-DIY με τον υπολογιστή μέσω της θύρας USB και ξεκλειδώστε το "
+"ή σκανάρετε το κύριο δημόσιο κλειδί του πορτοφολιού."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:69
+msgid ""
+"To get the master public key QR code to scan, click on: Master public keys, "
+"then select each key type you'd like to import and scan the displayed QR code "
+"for each into Specter."
+msgstr ""
+"Για να βρείτε τον κωδικό QR από το κύριο δημόσιο κλειδί για να το σκανάρετε, "
+"κάντε κλικ στο: Κύρια δημόσια κλειδιά, μετά επιλέξτε κάθε είδος κλειδιού που "
+"επιθυμείτε να εισάγετε και σκανάρετε τον εμφανιζόμενο κωδικό QR για το καθένα "
+"στο Specter."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:74
+msgid "Scan your Cobo Vault master public key or upload a wallet export file."
+msgstr ""
+"Σκανάρετε το κύριο δημόσιο κλειδί σας για το Cobo Vault ή ανεβάστε ένα "
+"εξαγώμενο αρχείο πορτοφολιού."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:77
+msgid ""
+"To get the master public keys QR codes to scan:<br><br>\n"
+"                    For single sig, click on: Setting -> Watch-Only Wallet -> "
+"Generic Wallet, Click the top right 3 dots (...) -> Wallet Info ->Toggle "
+"Address Type, then select the wallet address type you would like to use for "
+"your wallet.<br><br>\n"
+"                    For multisig, click on: Multisig Wallet -> Click the top "
+"right 3 dots (...) -> Show/Export XPUB, then select the wallet address type you "
+"would like to use for your wallet.<br>\n"
+"                    Cobo Vault will then display the QR code which you should "
+"scan into Specter.<br><br>\n"
+"                    To import with SD card, click on \"touch here to export the "
+"file with microSD\" on the same screen as the QR code."
+msgstr ""
+"Για να πάρετε τους κωδικούς QR για τα κύρια δημόσια κλειδιά:<br><br>\n"
+"                    Για μονο-υπογραφή, κάντε κλικ στο: Ρυθμίσεις -> Εποπτικό-"
+"Μόνο Πορτοφόλι -> Γενικό Πορτοφόλι, Κάντε κλικ τις τρεις τελείες πάνω-πάνω "
+"(...) -> Πληροφορίες Πορτοφολιού -> Εναλλαγή Τύπου Πορτοφολιού, και μετά "
+"επιλέξτε τον τύπο διευθύνσεων πορτοφολιού που θα θέλατε να χρησιμοποιήσετε."
+"<br><br>\n"
+"                    Για πολύ-υπογραφή, κάντε κλικ στο: Πορτοφόλι με Πολύ-"
+"Υπογραφή-> Κάντε κλικ τις τρεις τελείες πάνω-πάνω (...) -> Εμφάνιση/Εξαγωγή "
+"XPUB, και μετά επιλέξτε τον τύπο διευθύνσεων πορτοφολιού που θα θέλατε να "
+"χρησιμοποιήσετε.<br>\n"
+"                    Το Cobo Vault τότε θα εμφανίσει τον κωδικό QR που θα πρέπει "
+"να σκανάρετε στο Specter.<br><br>\n"
+"                    Για να εισάγετε με κάρτα SD, κάντε κλικ στο \"ακουμπήστε "
+"εδώ για να εξάγετε το αρχείο μέσω microSD\" που θα εμφανίζεται στην ίδια οθόνη "
+"με τον κωδικό QR."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:85
+msgid "Connect your hardware device to the computer via USB."
+msgstr "Συνδέστε την συσκευή σας με τον υπολογιστή μέσω της θύρας USB."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:278
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:282
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:108
+msgid "Upload from SD Card"
+msgstr "Ανέβασμα από κάρτα SD"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:158
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:213
+msgid "XPUB purpose"
+msgstr "Σκοπός του XPUB"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:180
+msgid "#0 Single Sig (Nested)"
+msgstr "#0 Μονή υπογραφή (Εμφωλευμένο)"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:182
+msgid "#0 Single Sig (Segwit)"
+msgstr "#0 Μονή υπογραφή (Segwit)"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:201
+msgid "Account #"
+msgstr "Λογαριασμός #"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:202
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:227
+msgid "Add account"
+msgstr "Προσθήκη λογαριασμού"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:216
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:37
+msgid "Add"
+msgstr "Προσθήκη"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:228
+msgid "Add custom derivation"
+msgstr "Προσθήκη τροποποιημένου παραγώγου"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:279
+#: src/cryptoadvance/specter/templates/setup/end.jinja:7
+msgid "Done"
+msgstr "Έγινε"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:311
+msgid "No devices found :("
+msgstr "Δεν βρέθηκαν συσκευές :("
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:345
+msgid "Failed to retrive device data. Please try again."
+msgstr "Αποτυχία ανάκτησης δεδομένων της συσκευής. Παρακαλώ προσπαθήστε ξανά."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:37
+msgid "Keys"
+msgstr "Κλειδιά"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:37
+msgid "Device"
+msgstr "Συσκευή"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:50
+msgid "or use the randomly generated one"
+msgstr "ή χρησιμοποιήστε μία δημιουργημένη τυχαία"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:89
+msgid "Encrypt Wallet File:"
+msgstr "Κρυπτογράφηση Αρχείου Πορτοφολιού:"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:93
+msgid "BIP39 passphrase (optional):"
+msgstr "Φράση-κλειδί BIP39 (προαιρετική)"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:96
+msgid "Addresses range to import:"
+msgstr "Εύρος διευθύνσεων προς εισαγωγή:"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:3
+msgid "Add Device"
+msgstr "Προσθήκη Συσκευής"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:6
+msgid "Select Your Device Type"
+msgstr "Επιλέξτε το Είδος της Συσκευής Σας"
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:7
+msgid "Filter devices..."
+msgstr "Φιλτράρισμα συσκευών..."
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:20
+msgid "Manual configuration"
+msgstr "Χειροκίνητη ρύθμιση"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:18
+msgid "Address details"
+msgstr "Λεπτομέρειες διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:44
+msgid "Loading address"
+msgstr "Φόρτωμα διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:44
+msgid "details"
+msgstr "λεπτομέρειες"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:84
+msgid "From wallet"
+msgstr "Από το πορτοφόλι"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
+msgid "Address index"
+msgstr "Ευρετήριο διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+msgid "Is change address"
+msgstr "Είναι αλλαγή διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+msgid "Yes"
+msgstr "Ναι"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+msgid "No"
+msgstr "Όχι"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:88
+msgid "UTXO count"
+msgstr "Πλήθος UTXO"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:89
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:148
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:160
+msgid "Amount"
+msgstr "Ποσό"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:97
+msgid "Verify address on device"
+msgstr "Επαληθεύστε την διεύθυνση στη συσκευή"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:102
+msgid "Or scan this QR code"
+msgstr "Ή σκανάρετε αυτόν τον κωδικό QR"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:108
+msgid "Address descriptor"
+msgstr "Περιγραφή διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:111
+msgid "Show raw public keys"
+msgstr "Εμφάνιση ωμών δημόσιων κλειδιών"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:117
+#: src/cryptoadvance/specter/templates/includes/address-data.html:124
+msgid "Copied address descriptor"
+msgstr "Η περιγραφή διεύθυνσης αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:126
+msgid "Copied address descripto"
+msgstr "Η περιγραφή διεύθυνσης αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/includes/address-data.html:132
+#: src/cryptoadvance/specter/templates/includes/address-data.html:134
+msgid "Failed to load address details..."
+msgstr "Αποτυχία φόρτωσης λεπτομερειών της διεύθυνσης..."
+
+#: src/cryptoadvance/specter/templates/includes/address-label.html:63
+msgid "Fetching address label..."
+msgstr "Ανάκτηση της ετικέτας της διεύθυνσης..."
+
+#: src/cryptoadvance/specter/templates/includes/address-label.html:157
+msgid "Failed to update address label. Please refresh the page and try again."
+msgstr ""
+"Αποτυχία ενημέρωσης της ετικέτας της διεύθυνσης. Παρακαλώ ανανεώστε τη σελίδα "
+"και δοκιμάστε ξανά."
+
+#: src/cryptoadvance/specter/templates/includes/address-label.html:198
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:550
+msgid "Copied address"
+msgstr "Διεύθυνση αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/includes/address-label.html:234
+#: src/cryptoadvance/specter/templates/includes/address-label.html:237
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:68
+msgid "Failed to fetch data. Please refresh the page and retry."
+msgstr ""
+"Αποτυχία ανάκτησης δεδομένων. Παρακαλώ ανανεώστε τη σελίδα και δοκιμάστε ξανά."
+
+#: src/cryptoadvance/specter/templates/includes/address-label.html:236
+msgid "Caught error fetching address label"
+msgstr "Εβρέθη σφάλμα κατά την ανάκτηση της ετικέτας της διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/address-row.html:22
+msgid "Verify on device"
+msgstr "Επιβεβαιώστε στη συσκευή"
+
+#: src/cryptoadvance/specter/templates/includes/address-row.html:114
+#: src/cryptoadvance/specter/templates/includes/address-row.html:116
+msgid "Failed to load address data to display..."
+msgstr "Αποτυχία φόρτωσης δεδομένων της διεύθυνσης για προβολή..."
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:98
+msgid "Receive Addresses"
+msgstr "Λήψη Διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:101
+msgid "Change Addresses"
+msgstr "Αλλαγή Διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:107
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:109
+msgid "Page"
+msgstr "Σελίδα"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:116
+msgid "Export addresses to CSV"
+msgstr "Εξαγωγή διευθύνσεων σε αρχείο CSV"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:161
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:405
+msgid "Fetching addresses..."
+msgstr "Ανάκτηση διευθύνσεων..."
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:409
+msgid "Failed to fetch addresses..."
+msgstr "Αποτυχία ανάκτησης διευθύνσεων..."
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
+msgid "Only receive addresses"
+msgstr "Μόνο λήψη διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:421
+msgid "Only change addresses"
+msgstr "Μόνο αλλαγή διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:481
+msgid "No addresses found..."
+msgstr "Δεν βρέθηκαν διευθύνσεις..."
+
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:520
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:523
+msgid "Failed to fetch addresses list"
+msgstr "Αποτυχία ανάκτησης λίστας διευθύνσεων"
+
+#: src/cryptoadvance/specter/templates/includes/merkletooltip.html:2
+msgid ""
+"Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/"
+"bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full "
+"node <strong>guaranteeing</strong> that transactions displayed as confirmed "
+"have been included in the specified block hash."
+msgstr ""
+"Το Specter-Desktop επαληθεύει  τις<a href=\"https://github.com/bitcoin/bips/"
+"blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Αποδείξεις Merkle "
+"από τον πλήρη κόμβο σας,<strong>εγγυώντας </strong> ότι οι συναλλαγές που "
+"εμφανίζονται ως επαληθευμένες συμπεριλαμβάνονται σίγουρα μέσα στον συγκεκριμένο "
+"κατακερματισμό μπλοκ."
+
+#: src/cryptoadvance/specter/templates/includes/merkletooltip.html:3
+msgid ""
+"However, a compromised full node could return a fake block that was never mined "
+"into Bitcoin's blockchain!"
+msgstr ""
+"Ωστόσο, ένας παραβιασμένος πλήρης κόμβος θα μπορούσε να επιστρέψει ένα ψευδό "
+"μπλοκ το οποίο δεν έχει ποτέ εξορυχθεί από την Bitcoin blockchain!"
+
+#: src/cryptoadvance/specter/templates/includes/merkletooltip.html:4
+msgid ""
+"If you find the displayed block hash in other locations (other nodes, block "
+"explorers, etc) <strong>and you trust specter-desktop isn't lying to you</"
+"strong>, then you can be sure this transaction exists in their blockchain as "
+"well."
+msgstr ""
+"Αν βρείτε τον εμφανιζόμενο κατακερματισμό μπλοκ σε άλλες τοποθεσίες (άλλους "
+"κόμβους, εξερευνητές μπλοκ, κτλ) <strong>και είστε απολύτως σίγουροι ότι το "
+"Specter για υπολογιστή δεν ψεύδεται</strong>, τότε μπορείτε να είστε σίγουροι "
+"ότι η συναλλαγή υπάρχει και στην blockchain τους."
+
+#: src/cryptoadvance/specter/templates/includes/page-limit-select.html:15
+msgid "Page limit"
+msgstr "Όριο σελίδας"
+
+#: src/cryptoadvance/specter/templates/includes/page-limit-select.html:22
+msgid "All"
+msgstr "Όλα"
+
+#: src/cryptoadvance/specter/templates/includes/qr-code.html:207
+msgid "Click to animate"
+msgstr "Κάντε κλικ για κινούμενο γραφικό"
+
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:128
+msgid "Number of frames in QR code mismatch!"
+msgstr "Αναντιστοιχία στον αριθμό καρέ των κωδικών QR!"
+
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:202
+msgid ""
+"Can't get access to the camera. Specter should run on localhost or over https "
+"to enable QR code scanning."
+msgstr ""
+"Δεν μπορέσαμε να αποκτήσουμε πρόσβαση στην κάμερα. Το Specter θα πρέπει να "
+"τρέχει τοπικά σε localhost ή μέσω https για να επιτραπεί το σκανάρισμα κωδικών "
+"QR."
+
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:209
+msgid "Can't start the QR scanner!"
+msgstr "Δεν μπορέσαμε να εκκινήσουμε τον σκάνερ κωδικών QR!"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:16
+msgid "Transaction details"
+msgstr "Λεπτομέρειες συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:39
+msgid ""
+"Loading transaction details...\n"
+"\n"
+"Transaction ID:"
+msgstr ""
+"Φόρτωση λεπτομερειών συναλλαγής...\n"
+"\n"
+"Χαρακτηριστικός κωδικός συναλλαγής:"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:66
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:255
+msgid "Failed to load transaction details..."
+msgstr "Αποτυχία φόρτωσης λεπτομερειών συναλλαγής..."
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:84
+msgid "This transaction (aka \"tx\") could not be found in your node's mempool!"
+msgstr "Αυτή η συναλλαγή (tx) δεν εβρέθη στην mempool του κόμβου σας!"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:85
+msgid ""
+"If the bitcoin network is very busy, nodes will start purging the pending txs "
+"with the lowest fees. Txs older than two weeks are also purged."
+msgstr ""
+"Αν η κίνηση στο δίκτυο του bitcoin είναι πολύ μεγάλη, οι κόμβοι θα αρχίσουν να "
+"απορρίπτουν τις συναλλαγές tx με τις μικρότερες αμοιβές. Συναλλαγές παλαιότερες "
+"από δύο εβδομάδες επίσης απορρίπτονται."
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:86
+msgid ""
+"A purged tx will never complete. Abandoning this tx will clear it from your "
+"wallet, making those funds spendable once again."
+msgstr ""
+"Μία απορριφθείσα συναλλαγή tx δεν θα ολοκληρωθεί ποτέ. Η εγκατάλειψη αυτής της "
+"συναλλαγής θα την εκκαθαρίσει από το πορτοφόλι σας, και έτσι τα ποσά αυτά θα "
+"είναι ξανά διαθέσιμα για κάθε χρήση."
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:87
+msgid ""
+"But first verify that other nodes have also purged your tx! Enter the tx id "
+"into a public block explorer (warning: slight privacy leak). If the tx cannot "
+"be found, it is safe to abandon this tx."
+msgstr ""
+"Όμως καλό θα είναι να επιβεβαιώσετε ότι και οι άλλοι κόμβοι έχουν εκκαθαρίσει "
+"την συναλλαγή tx σας από την προσωρινή τους μνήμη! Εισάγετε τον κωδικό "
+"συναλλαγής tx σε ένα δημόσιο εξερευνητή block (προσοχή: μικρός κίνδυνος στην "
+"ανωνυμία σας). Αν δεν μπορεί να βρεθεί η συναλλαγή, τότε είναι ασφαλές να την "
+"εγκαταλείψετε."
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:94
+msgid "Abandon transaction"
+msgstr "Εγκατάλειψη συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:102
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:195
+msgid "Transaction id"
+msgstr "Αναγνωριστικός κωδικός συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:114
+msgid "Fee"
+msgstr "Αμοιβή"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:115
+msgid "Fee rate"
+msgstr "Αναλογία τιμής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:120
+msgid "Mined at block"
+msgstr "Εξορύχθη στο μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:121
+msgid "Block hash"
+msgstr "Κατακερματισμός μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:122
+msgid "Block time"
+msgstr "Χρόνος μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:126
+msgid "Inputs count"
+msgstr "Πλήθος εισόδων"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:127
+msgid "Outputs count"
+msgstr "Πλήθος εξόδων"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:178
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:245
+msgid "Address:"
+msgstr "Διεύθυνση:"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:179
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:246
+msgid "Value:"
+msgstr "Αξία:"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:185
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:194
+msgid "Input #"
+msgstr "Είσοδος #"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:186
+msgid "Coinbase transaction"
+msgstr "Συναλλαγή της νομισματικής βάσης"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:196
+msgid "Output #"
+msgstr "Έξοδος #"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:202
+msgid "Outputs"
+msgstr "Εξόδοι"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:244
+msgid "Output #${i}"
+msgstr "Έξοδος #${i}"
+
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:279
+msgid "Failed to load address data..."
+msgstr "Αποτυχία φορτώματος δεδομένων της διεύθυνσης..."
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:33
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+msgid "Speed up"
+msgstr "Επιτάχυνση"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:34
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+msgid "Cancel transaction"
+msgstr "Ακύρωση συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:118
+msgid "Recipients"
+msgstr "Αποδέκτες"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:149
+msgid "Confidential"
+msgstr "Εμπιστευτικό"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:159
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:162
+msgid "Confirmations"
+msgstr "Επαληθεύσεις"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:162
+msgid "Unconfirmed"
+msgstr "Μη επαληθευμένα"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:164
+msgid "Cancelled (replaced by sender)"
+msgstr "Ακυρωμένα (αντικατάσταση από τον αποστολέα)"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+msgid "the Transaction"
+msgstr "η Συναλλαγή"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+msgid "You can"
+msgstr "Μπορείτε να"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:5
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+msgid "cancel"
+msgstr "ακύρωση"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+msgid "speed up"
+msgstr "επιτάχυνση"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+msgid "the transaction by increasing its fee rate"
+msgstr "την συναλλαγή με το να αυξήσετε το κόστος της αμοιβής της"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+msgid "and sending the funds back to yourself"
+msgstr "και να αποστείλετε το ποσό πίσω σε εσάς"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+msgid "Speed up!"
+msgstr "Επιτάχυνση!"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+msgid ""
+"If you would like further customization, you can click here to fully edit the "
+"transaction."
+msgstr ""
+"Αν θα θέλατε μεγαλύτερη παραμετροποίηση, μπορείτε να κάνετε κλικ εδώ για να "
+"επεξεργαστείτε όλα τα στοιχεία της συναλλαγής."
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+msgid "(advanced, not recommended for new users)"
+msgstr "(για προχωρημένους, δεν προτείνεται για νέους χρήστες)"
+
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:253
+msgid "Edit the transaction (advanced)"
+msgstr "Επεξεργασία συναλλαγής (για προχωρημένους)"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:99
+msgid "History"
+msgstr "Ιστορικό"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:128
+msgid "Freezing a UTXO will make Specter disallow spending it."
+msgstr "Με το πάγωμα μιας UTXO το Specter θα αποτρέψει το ξόδεμά της."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:129
+msgid ""
+"This is useful especially for dealing with a dust attack, where you don't want "
+"to accidentally spend the dust received."
+msgstr ""
+"Αυτό είναι χρήσιμο ειδικά όταν χειριζόμαστε μια επίθεση σκόνης, κατά την οποία "
+"δεν επιθυμείτε να ξοδέψετε κατά λάθος την σκόνη που λάβατε."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:136
+msgid "Create new transaction"
+msgstr "Δημιουργία νέας συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:140
+msgid "Export transactions to CSV"
+msgstr "Εξαγωγή συναλλαγών σε αρχείο CSV"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:142
+msgid "Fetch historical price data"
+msgstr "Ανάκτηση ιστορικών δεδομένων τιμής"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:148
+msgid ""
+"If enabled, specter will try to fetch historical prices for each transaction "
+"date from the configured price provider."
+msgstr ""
+"Αν την ενεργοποιήσετε, το Specter θα προσπαθήσει να ανακτήσει ιστορικές τιμές "
+"για κάθε ημερομηνία συναλλαγής από τον πάροχο τιμών που έχετε προσδιορίσει στις "
+"ρυθμίσεις."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:149
+msgid "This has privacy implications!"
+msgstr "Αυτό ενέχει θέματα με την ανωνυμία σας!"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:161
+msgid "Time"
+msgstr "Χρόνος"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:165
+msgid "Block Hash"
+msgstr "Κατακερματισμός Μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:172
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:484
+msgid "Fetching transactions..."
+msgstr "Λήψη συναλλαγών..."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:488
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:521
+msgid "Failed to fetch transactions..."
+msgstr "Αποτυχία λήψης συναλλαγών..."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:595
+msgid "No transactions found..."
+msgstr "Δεν βρέθηκαν συναλλαγές..."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:657
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:660
+msgid "Failed to fetch transactions list."
+msgstr "Αποτυχία λήψης της λίστας συναλλαγών."
+
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:685
+msgid "Copied transaction"
+msgstr "Η συναλλαγή αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:53
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:102
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:14
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:50
+msgid "Processing..."
+msgstr "Το επεξεργαζόμαστε..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:15
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:50
+msgid "Keep your wallet connected."
+msgstr "Διατηρήστε την σύνδεση με το πορτοφόλι σας."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:19
+msgid ""
+"If your device does not show up, ensure the Specter USB settings are correctly "
+"configured."
+msgstr ""
+"Αν η συσκευή σας δεν εμφανίζεται, σιγουρευτείτε ότι οι ρυθμίσεις της θύρας USB "
+"του Specter είναι σωστές."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:21
+msgid "View USB settings"
+msgstr "Εμφάνιση ρυθμίσεων θύρας USB"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:28
+msgid "Do you really want to use your Coldcard over USB (no airgap)?"
+msgstr ""
+"Είστε σίγουρος ότι θέλετε να χρησιμοποιήσετε την Coldcard σας με την θύρα USB "
+"(χωρίς απομόνωση από το δίκτυο);"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:30
+msgid "Yes, I am living on the edge!"
+msgstr "Ναι, μου αρέσει να ζω επικίνδυνα!"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:33
+msgid ""
+"No, I'll use the address explorer on the Coldcard. Get me to the coinkite site "
+"for more info."
+msgstr ""
+"Όχι, θα χρησιμοποιήσω τον εξερευνητή διευθύνσεων στην Coldcard. Δείξτε μου την "
+"ιστοσελίδα της coinkite για περισσότερες πληροφορίες."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:85
+msgid "Detecting..."
+msgstr "Ανίχνευση..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:85
+msgid "Plug in your device"
+msgstr "Συνδέστε το καλώδιο της συσκευής σας"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
+msgid "Pairing Code"
+msgstr "Ταίριασμα Κωδικών"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:100
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:129
+msgid ""
+"Please confirm the code matches the one displayed on your BitBox02 device."
+"<br><br>It could take up to 20 seconds to continue after approving the pairing "
+"on the device, please be patient."
+msgstr ""
+"Παρακαλώ επαληθεύστε ότι ο κώδικας αντιστοιχεί με τον εμφανιζόμενο στην συσκευή "
+"σας BitBox02.<br><br>Μπορεί να χρειαστεί περίπου 20 δευτερόλεπτα για να "
+"συνεχίσετε αφού εγκρίνετε το ταίριασμα στην συσκευή, παρακαλώ δείξτε λίγη "
+"υπομονή."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:163
+msgid "Extracting public keys..."
+msgstr "Εξαγωγή δημόσιων κλειδιών..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
+msgid "It may take a while."
+msgstr "Αυτό ίσως διαρκέσει μερικά λεπτά."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:53
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:102
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
+msgid "Keep your"
+msgstr "Κρατήστε τα"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:16
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:84
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:53
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:102
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:164
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:184
+msgid "connected"
+msgstr "συνδεδεμένα"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:183
+msgid "Extracting public key..."
+msgstr "Εξαγωγή δημόσιου κλειδιού..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:203
+msgid "Extracting master blinding key..."
+msgstr "Εξαγωγή κύριου κλειδιού τυφλώματος..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
+msgid "Please confirm action on your"
+msgstr "Παρακαλώ επιβεβαιώστε την δράση αυτή στο"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+msgid "device"
+msgstr "συσκευή"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/passphrase.jinja:2
+msgid "Enter Passphrase"
+msgstr "Εισάγετε την φράση-κλειδί"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/passphrase.jinja:22
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:62
+msgid "Submit"
+msgstr "Υποβολή"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/pin.jinja:2
+msgid "Enter PIN"
+msgstr "Εισάγετε κωδικό PIN"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:2
+msgid "Select USB Wallet"
+msgstr "Επιλέξτε Πορτοφόλι USB"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:78
+msgid "Failed to unlock device! Invalid PIN code?"
+msgstr "Αποτυχία ξεκλειδώματος συσκευής! Μήπως ο κωδικός PIN είναι λάθος;"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:125
+msgid "passphrase toggled successfully"
+msgstr "η εναλλαγή κατάστασης της λέξης-φράσης έγινε"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:140
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:38
+msgid "Selected device does not have matching signing key."
+msgstr ""
+"Η επιλεγμένη συσκευή δεν έχει κάποιο κλειδί υπογραφής που να αντιστοιχεί σε "
+"αυτήν."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:143
+msgid "Signing message..."
+msgstr "Το μήνυμα υπογράφεται..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:143
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:41
+msgid "Confirm on your"
+msgstr "Επιβεβαιώστε στην"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:4
+msgid "Confirm Address"
+msgstr "Επιβεβαίωση Διεύθυνσης"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:6
+msgid ""
+"Please confirm address matches on your <span id=\"hwi_device_name\">device</"
+"span>"
+msgstr ""
+"Παρακαλώ επιβεβαιώστε ότι η διεύθυνση ταιριάζει με την<span id=\"hwi_device_name"
+"\">συσκευή</span>"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:7
+msgid "Expected address"
+msgstr "Αναμενόμενη διεύθυνση"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:41
+msgid "Signing transaction..."
+msgstr "Υπογραφή συναλλαγής..."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:90
+msgid ""
+"Addresses did not match! Be careful! Please contact support and beware of using "
+"the displayed address!"
+msgstr ""
+"Οι διευθύνσεις δεν ταιριάζουν! Να είστε προσεκτικοί! Σας παρακαλούμε να έρθετε "
+"σε επαφή με την ομάδα τεχνικής υποστήριξης και να προσέχετε όταν χρησιμοποιείτε "
+"την εμφανιζόμενη διεύθυνση!"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:93
+msgid "Address displayed successfully! Please check the device screen."
+msgstr ""
+"Επιτυχία εμφάνισης διεύθυνσης! Παρακαλώ ελέγξτε την οθόνη της συσκευής σας."
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/wallet.jinja:95
+msgid "Address was verified successfully!"
+msgstr "Επιτυχία επαλήθευσης διεύθυνσης!"
+
+#: src/cryptoadvance/specter/templates/includes/language/language_js.jinja:24
+msgid "Failed to change language"
+msgstr "Αποτυχία αλλαγής γλώσσας"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:2
+msgid "Transaction is Ready to Broadcast"
+msgstr "Η συναλλαγή είναι Έτοιμη Προς Εκπομπή"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:4
+msgid "Send transaction"
+msgstr "Αποστολή συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:5
+msgid "Send via block explorer"
+msgstr "Αποστολή μέσω εξερευνητή μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:6
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:8
+msgid "Send via blockstream.info"
+msgstr "Αποστολή μέσω blockstream.info"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:7
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:9
+msgid "Send via mempool.space"
+msgstr "Αποστολή μέσω mempool.space"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:8
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:9
+msgid "over Tor hidden service"
+msgstr "μέσω συγκαλυμμένης υπηρεσίας Tor"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:10
+msgid "Back to options"
+msgstr "Πίσω στις επιλογές"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:11
+msgid "Save as pending"
+msgstr "Αποθήκευση στις εκκρεμείς"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/broadcast_tx.jinja:12
+msgid "Copy raw transaction"
+msgstr "Αντιγραφή ωμής συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:17
+msgid "Copied full key"
+msgstr "Το πλήρες κλειδί αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:23
+msgid "Show derivation path"
+msgstr "Εμφάνιση του μονοπατιού παραγώγων"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/key_export_qr.jinja:34
+msgid "Use SLIP-132"
+msgstr "Χρήση SLIP-132"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:14
+msgid "Loading... It may take a while..."
+msgstr "Φόρτωμα... Αυτό μπορεί να διαρκέσει μερικά λεπτά..."
+
+#: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:4
+msgid "Scan this QR code with your"
+msgstr "Σκανάρετε τον κωδικό QR με το"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:12
+msgid "Scan signed transaction"
+msgstr "Σκανάρισμα υπογεγραμμένης συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/qr_code_sign.jinja:29
+msgid "Scan failed, please try again..."
+msgstr "Αποτυχία σκαναρίσματος, παρακαλώ προσπαθήστε ξανά..."
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:2
+msgid "Sign Transaction with file"
+msgstr "Υπογραφή Συναλλαγής με αρχείο"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:3
+msgid "Save transaction to file"
+msgstr "Αποθήκευση συναλλαγής σε αρχείο"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sd_card_sign.jinja:5
+msgid "Load signed transaction from file"
+msgstr "Φόρτωμα υπογεγραμμένης συναλλαγής από αρχείο"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:12
+msgid "Sign Transaction"
+msgstr "Υπογραφή συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:14
+msgid "Please choose a signing method for your"
+msgstr "Παρακαλώ επιλέξτε μια μέθοδο υπογραφής για το"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:18
+msgid "Sign via USB (HWI)"
+msgstr "Υπογραφή μέσω θύρας USB (HWI)"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:40
+msgid "Sign with SD Card file"
+msgstr "Υπογραφή με αρχείο σε κάρτα SD"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:53
+msgid "Sign with QR codes"
+msgstr "Υπογραφή με κωδικούς QR"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:67
+msgid "Sign with Bitcoin Core"
+msgstr "Υπογραφή με Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:70
+msgid "Sign with Elements Core"
+msgstr "Υπογραφή με Elements Core"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:83
+msgid "Enter decryption password"
+msgstr "Εισάγετε τον κωδικό αποκρυπτογράφισης"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:85
+msgid "Proceed with signing"
+msgstr "Συνέχεια στην διαδικασία υπογραφής"
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:94
+msgid "Wallet is not encrypted, just click the button."
+msgstr "Το πορτοφόλι δεν είναι κρυπτογραφημένο, απλά κάντε κλικ στο κουμπί."
+
+#: src/cryptoadvance/specter/templates/includes/overlay/sign_tx_method.jinja:102
+msgid "Sign transaction"
+msgstr "Υπογραφή συναλλαγής"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:43
+msgid "Bitcoin Core is still syncing...<br>(data might be outdated)"
+msgstr ""
+"Το Bitcoin Core ακόμα συγχρονίζει...<br>(τα δεδομένα μπορεί να μην είναι "
+"επίκαιρα)"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:46
+msgid ""
+"Bitcoin Core version is outdated.<br>Some features might not work..."
+"<br>(minimum required: v20.0.0)."
+msgstr ""
+"Η έκδοση του Bitcoin Core είναι πεπαλαιωμένη.<br>Μερικές λειτουργίες ίσως να "
+"μην είναι δυνατές<br>(ελάχιστη απαιτούμενη έκδοση: v20.0.0)."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:76
+msgid "Unavailable. Click to configure."
+msgstr "Μη διαθέσιμο. Κάντε κλικ για να το ρυθμίσετε."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:129
+msgid "See setup progress"
+msgstr "Δείτε διαδικασία ρύθμισης"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:132
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:290
+msgid "Wallets"
+msgstr "Πορτοφόλια"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:135
+msgid "Wallets overview"
+msgstr "Εποπτεία πορτοφολιών"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:142
+msgid "Updating wallets data..."
+msgstr "Ενημέρωση στοιχείων πορτοφολιών..."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:145
+msgid "Finished updating your wallets"
+msgstr "Τελειώσαμε την ενημέρωση των πορτοφολιών σας"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:148
+msgid "Click here to refresh"
+msgstr "Κάντε κλικ εδώ για ανανέωση"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:162
+msgid "Add new wallet"
+msgstr "Προσθήκη νέου πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:167
+msgid "Failed to load some wallets"
+msgstr "Αποτυχία φορτώματος ορισμένων πορτοφολιών"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:168
+msgid "Retry loading wallets"
+msgstr "Δοκιμάστε ξανά να φορτώσετε τα πορτοφόλια"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:169
+msgid "Show Details"
+msgstr "Εμφάνιση Λεπτομερειών"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:175
+msgid "Wallet Name"
+msgstr "Όνομα Πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:176
+msgid "Error Details"
+msgstr "Λεπτομέρειες Σφάλματος"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:182
+msgid "Download wallet file"
+msgstr "Κατέβασμα αρχείου πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:183
+msgid "Recreate the wallet"
+msgstr "Αναδημιουργία πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:184
+msgid "Delete wallet"
+msgstr "Διαγραφή πορτοφολιού"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:201
+msgid "Configure Node"
+msgstr "Ρύθμιση Κόμβου"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:210
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:279
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:282
+msgid "Devices"
+msgstr "Συσκευές"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:217
+msgid "Add new device"
+msgstr "Προσθήκη νέας συσκευής"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:223
+msgid "About Specter"
+msgstr "Σχετικά με το Specter"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:2
+msgid "Bitcoin Core Node Info"
+msgstr "Πληροφορίες Κόμβου Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:5
+msgid ""
+"You are using a pruned node.<br>Pruned nodes may not be able to scan for old "
+"balances when importing an existing wallet.<br>It is recommended to use Specter "
+"with an unpruned node."
+msgstr ""
+"Χρησιμοποιείτε κλαδεμένο κόμβο.<br>Οι κλαδεμένοι κόμβοι είναι πιθανόν να μην "
+"μπορούν να σκανάρουν για παλιά υπόλοιπα λογαριασμών όταν εισάγετε ένα ήδη "
+"υπάρχον πορτοφόλι.<br>Σας προτείνουμε να χρησιμοποιείτε το Specter με μη "
+"κλαδεμένο κόμβο."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:8
+msgid ""
+"Your node does not have <code>blockfilterindex</code> enabled.<br>Setting "
+"<code>blockfilterindex=1</code> in your <code>bitcoin.conf</code> file is "
+"recommended as it takes just a few GB of storage<br>and helps to speed-up "
+"blockchain rescanning."
+msgstr ""
+"Ο κόμβος σας δεν έχει <code>blockfilterindex</code> ενεργοποιημένο."
+"<br>Προτείνεται η ρύθμιση του <code>blockfilterindex=1</code> στο "
+"αρχείο<code>bitcoin.conf</code> επειδή παίρνει μόνο μερικά GB αποθηκευτικού "
+"χώρου<br>και βοηθά να επιταχύνει το επανασκανάρισμα της blockchain."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:13
+msgid "Bitcoin Core Version"
+msgstr "Έκδοση Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:14
+msgid "Connections count"
+msgstr "Πλήθος συνδέσεων"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:15
+msgid "Difficulty"
+msgstr "Δυσκολία"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:16
+msgid "Size on disk"
+msgstr "Μέγεθος στο δίσκο"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:17
+msgid "Blocks count"
+msgstr "Πλήθος μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:18
+msgid "Last block hash"
+msgstr "Κατακερματισμός τελευταίου μπλοκ"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:19
+msgid "Mempool Size"
+msgstr "Μέγεθος μνήμης Mempool"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:20
+msgid "Node uptime"
+msgstr "Χρόνος εν ενεργεία του κόμβου"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:20
+msgid "Hours"
+msgstr "Ώρες"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:22
+msgid "Automatic pruning"
+msgstr "Αυτόματο κλάδεμα"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:23
+msgid "Prune height"
+msgstr "Ύψος κλαδέματος"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:24
+msgid "Prune target size"
+msgstr "Μέγεθος-στόχος κλαδέματος"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:35
+msgid "Calculate the total Bitcoin supply"
+msgstr "Υπολογισμός των συνολικών διαθέσιμων Bitcoin"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:36
+msgid ""
+"This will run Bitcoin Core's <code>gettxoutsetinfo</code> command which will "
+"calculate the total amount of Bitcoin's UTXO set."
+msgstr ""
+"Αυτό θα τρέξει την εντολή <code>gettxoutsetinfo</code> του Bitcoin Core η οποία "
+"θα υπολογίσει το συνολικό αριθμό των Bitcoin's UTXO."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:37
+msgid "This might take a few minutes..."
+msgstr "Αυτό ίσως διαρκέσει μερικά λεπτά..."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:46
+msgid "Running the numbers... (this might take a few minutes)"
+msgstr "Υπολογίζουμε τα νούμερα... (αυτό ίσως διαρκέσει μερικά λεπτά)"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:57
+msgid "Bitcoin Total Supply"
+msgstr "Συνολικά Διαθέσιμα Bitcoin"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:59
+msgid "Your wallets hold"
+msgstr "Τα πορτοφόλια σας περιέχουν"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:59
+msgid "from the total supply"
+msgstr "από το συνολικό διαθέσιμο πλήθος"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:72
+msgid "Configure Bitcoin Core RPC Connection"
+msgstr "Ρύθμιση της Σύνδεσης RPC του Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/node_select_popup.jinja:26
+msgid "Node configuration"
+msgstr "Ρύθμιση κόμβου"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/node_select_popup.jinja:48
+msgid "Node unreachable..."
+msgstr "Αποτυχία επαφής με τον κόμβο..."
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/sidebar_device_list_item.jinja:12
+msgid "keys"
+msgstr "κλειδιά"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/sidebar_wallet_list_item.jinja:14
+msgid "Multisig"
+msgstr "Πολύ-υπογραφή"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/sidebar_wallet_list_item.jinja:14
+msgid "Single Key"
+msgstr "Μονό-υπογραφή"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/sidebar_wallet_list_item.jinja:18
+msgid "Rescanning blockchain"
+msgstr "Ξανασκανάρισμα της blockchain"
+
+#: src/cryptoadvance/specter/templates/includes/sidebar/components/sidebar_wallet_list_item.jinja:27
+msgid "Loading wallet..."
+msgstr "Φόρτωμα πορτοφολιού..."
+
+#: src/cryptoadvance/specter/templates/node/internal_node_logs.jinja:6
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:10
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_logs.jinja:12
+msgid "Return"
+msgstr "Επιστροφή"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_logs.jinja:18
+msgid ""
+"If this is an issue, please let us know! Create an <a href=\"https://github.com/"
+"cryptoadvance/specter-desktop/issues\" target=\"_blank\" style=\"color: #fff;"
+"\">issue</a> or ping us on <a href=\"https://t.me/spectersupport\" target="
+"\"_blank\" style=\"color: #fff;\">Telegram</a> to fix it."
+msgstr ""
+"Αν αυτό αποτελεί πρόβλημα, σας παρακαλούμε να μας ενημερώσετε! Δημιουργήστε ένα "
+"<a href=\"https://github.com/cryptoadvance/specter-desktop/issues\" target="
+"\"_blank\" style=\"color: #fff;\">issue</a> στο github ή στείλτε μας στο <a "
+"href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;"
+"\">Telegram</a> για να το διορθώσουμε."
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:9
+msgid "Built-in Bitcoin Node Status:"
+msgstr "Κατάσταση του Ενσωματωμένου Κόμβου Bitcoin Core:"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:10
+msgid "Bitcoin Core Version:"
+msgstr "Έκδοση του Bitcoin Core:"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:14
+msgid "New Bitcoin version available!"
+msgstr "Νέα έκδοση του Bitcoin Core είναι διαθέσιμη!"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:15
+msgid "Upgrade Bitcoin Core version to:"
+msgstr "Αναβάθμιση της έκδοσης του Bitcoin Core σε:"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:20
+msgid "Stop Bitcoin Core"
+msgstr "Σταμάτημα του Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:22
+msgid "Start Bitcoin Core"
+msgstr "Εκκίνηση του Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:24
+msgid ""
+"If this is your first time starting the node, and you haven't used the "
+"QuickSync, your node will start with Initial Block Downloading (IBD) to sync "
+"with the network."
+msgstr ""
+"Αν αυτή είναι η πρώτη φορά που ξεκινάτε τον κόμβο, και δεν έχετε χρησιμοποιήσει "
+"τον ταχύ συγχρονισμό QuickSync, ο κόμβος σας θα ξεκινήσει με το Φόρτωμα Αρχικών "
+"Μπλοκ (IBD) για να συντονιστεί με το δίκτυο."
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:25
+msgid ""
+"This process of IBD syncing may take several days. If you'd like the QuickSync "
+"option, please click on it before starting your node, or if it's running, stop "
+"it and the click the QuickSync."
+msgstr ""
+"Η διαδικασία συγχρονισμού IBD μπορεί να διαρκέσει μερικές ημέρες. Αν προτιμάτε "
+"την επιλογή του ταχύ συγχρονισμού QuickSync, παρακαλώ κάντε κλικ σε αυτήν πριν "
+"ξεκινήσετε τον κόμβο σας, ή αν τρέχει ήδη, σταματήστε τον και κάντε κλικ το "
+"QuickSync."
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:26
+msgid "(Warning: QuickSync will override any existing data of your Bitcoin Node!)"
+msgstr ""
+"(Προσοχή: Η επιλογή QuickSync θα εγγράψει πάνω στα υπάρχοντα δεδομένα του "
+"Bitcoin κόμβου σας!)"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:32
+msgid "Debug"
+msgstr "Εύρεση λαθών"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:33
+msgid "See Bitcoind Logs"
+msgstr "Δείτε το ιστορικό του Bitcoind"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:35
+msgid "Danger Zone"
+msgstr "Ζώνη Κινδύνου"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:38
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:142
+msgid "Forget node"
+msgstr "Ξέχασε τον κόμβο"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:40
+msgid "Unistall Bitcoin Core"
+msgstr "Απεγκατάσταση του Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/node/internal_node_settings.jinja:45
+msgid "Delete data folder?"
+msgstr "Διαγραφή του φακέλου δεδομένων;"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:12
+msgid "Configure new node"
+msgstr "Ρύθμιση νέου κόμβου"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:13
+msgid "Name your new node:"
+msgstr "Ονομάστε τον νέο σας κόμβο:"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:14
+msgid "Name your new node"
+msgstr "Ονομάστε τον νέο σας κόμβο"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:19
+msgid "Bitcoin JSON-RPC configuration"
+msgstr "Ρύθμιση Bitcoin JSON-RPC"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:31
+msgid "Setting Bitcoin Core Data Directory"
+msgstr "Ορισμός Φακέλου Δεδομένων του Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:32
+msgid ""
+"When auto-detect is on, Specter will check for Environment-Variables "
+"(BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the "
+"connection or attempt to automatically locate your Bitcoin data directory and "
+"load your node configurations from it."
+msgstr ""
+"Όταν η επιλογή αυτόματης ανίχνευσης είναι ενεργή, το Specter θα ελέγξει για "
+"Περιβαλλοντικές-Μεταβλητές (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, "
+"BTC_RPC_PORT) για να ρυθμίσει τη σύνδεση ή θα προσπαθήσει να εντοπίσει αυτόματα "
+"τον φάκελο δεδομένων του Bitcoin Core και να φορτώσει τις ρυθμίσεις του κόμβου "
+"σας από εκεί."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:33
+msgid ""
+"However, if your Bitcoin Core data directory is not located at the default "
+"location, you will need to enter its path here so Specter will be able to "
+"locate it."
+msgstr ""
+"Ωστόσο, αν ο φάκελος δεδομένων του Bitcoin Core δεν είναι στο προεπιλεγμένο "
+"μονοπάτι, θα πρέπει να εισάγετε το νέο μονοπάτι εδώ για να μπορέσει το Specter "
+"να το εντοπίσει."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:34
+msgid ""
+"If you are connecting to a specific remote node, you can disable the auto-"
+"detect feature and enter the node's configurations manually below."
+msgstr ""
+"Αν συνδέεστε με συγκεκριμένο απομακρυσμένο κόμβο, μπορείτε να απενεργοποιήσετε "
+"την επιλογή του αυτόματου εντοπισμού και να εισάγετε τις ρυθμίσεις του κόμβου "
+"χειροκίνητα παρακάτω."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:39
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:74
+msgid "Bitcoin Core data directory path:"
+msgstr "Μονοπάτι δεδομένων του Bitcoin Core:"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:45
+msgid "(disable auto-detect to configure manually)"
+msgstr ""
+"(απενεργοποίηση του αυτόματου εντοπισμού για να εισάγετε τις ρυθμίσεις "
+"χειροκίνητα)"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:56
+msgid "Connect with QR"
+msgstr "Σύνδεση με κωδικό QR"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:62
+msgid ""
+"Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> "
+"for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid"
+msgstr ""
+"Προεπιλεγμένες θύρες: <b>8332</b> για το κυρίως δίκτυο, <b>18332</b> για το "
+"δοκιμαστικό Testnet, <b>18443</b> για Regtest, <b>38332</b> για Signet, "
+"<b>7041</b> για Liquid"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:66
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:39
+msgid "Test"
+msgstr "Δοκιμή"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:70
+msgid "Test results:"
+msgstr "Αποτελέσματα δοκιμής:"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:82
+msgid "Connectable"
+msgstr "Δυνατή η σύνδεση με"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:85
+msgid "Your Node can't be reached"
+msgstr "Ο κόμβος σας δεν είναι προσπελάσιμος"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:86
+msgid ""
+"There are a lot of potential issues preventing the connection. Please double "
+"check the Host and the Port. Make sure you can reach the host and make sure "
+"that Bitcoin-Core is listening at the port you have specified."
+msgstr ""
+"Υπάρχουν διάφορα πιθανά ενδεχόμενα που ίσως αποτρέπουν την σύνδεση. Παρακαλώ "
+"επαληθεύστε τον Ξενιστή και την Θύρα. Σιγουρευτείτε ότι μπορείτε να "
+"προσπελάσετε τον ξενιστή και επίσης ότι το Bitcoin Core ακούει από τις θύρες "
+"που ορίσατε."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:87
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:101
+msgid ""
+"For more hints, please look at this <a style=\"color:grey\" href=\"https://"
+"github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md"
+"\" target=\"_blank\">article</a>."
+msgstr ""
+"Για περισσότερη βοήθεια, παρακαλώ κοιτάξτε <a style=\"color:grey\" href="
+"\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-"
+"your-node.md\" target=\"_blank\">αυτό το άρθρο στα Αγγλικά</a>."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:98
+msgid "Your Credentials don't work"
+msgstr "Τα πιστοποιητικά σας δεν λειτούργησαν"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:99
+msgid ""
+"Please doublecheck the user and the Password. Look at the bitcoin.conf\n"
+"\t\t\t\t\t\t\t\tfor the correct values in that field."
+msgstr ""
+"Παρακαλώ ελέγξτε ξανά τον χρήστη και τον κωδικό πρόσβασης. Κοιτάξτε το αρχείο "
+"bitcoin.conf\n"
+"\t\t\t\t\t\t\t\tγια τις σωστές τιμές αυτών των πεδίων."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:109
+msgid "Version recent enough"
+msgstr "Η έκδοση είναι αρκετά επίκαιρη"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:112
+msgid "Your Core Node might be too old"
+msgstr "Ο κόμβος σας Bitcoin Core ίσως είναι πολύ παλιός"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:113
+msgid ""
+"Specter is working well up from Bitcoin Core version 0.17. The version of your "
+"Node is too low, unfortunatley. Please upgrade!"
+msgstr ""
+"Το Specter δουλεύει καλά από την έκδοση Bitcoin Core 0.17 και άνω. Η έκδοση του "
+"κόμβου σας είναι πολύ παλιότερη, δυστυχώς. Σας παρακαλώ αναβαθμίστε τον!"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:124
+msgid "Wallet Support in your Core-Node"
+msgstr "Υποστήριξη Πορτοφολιού στον κόμβο Core"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:125
+msgid ""
+"The RPC-Interface of your Core-Node is available, but the wallet-api is not. "
+"Please make sure to have 'disablewallet=0' in your bitcoin.conf."
+msgstr ""
+"Η διεπαφή RPC-Interface του κόμβου σας Core είναι διαθέσιμη, αλλά η wallet-api "
+"του πορτοφολιού σας δεν είναι. Παρακαλώ σιγουρευτείτε ότι έχετε την ρύθμιση "
+"'disablewallet=0'  στο αρχείο ρυθμίσεων σας bitcoin.conf."
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:136
+msgid "Process finished with code "
+msgstr "Η διεργασία τελείωσε με κωδικό "
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:136
+msgid "Output:"
+msgstr "Αποτέλεσμα εξόδου:"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:136
+msgid "Error message:"
+msgstr "Μήνυμα σφάλματος:"
+
+#: src/cryptoadvance/specter/templates/node/node_settings.jinja:207
+msgid "Failed to read connection data from the QR"
+msgstr "Αποτυχία ανάγνωσης δεδομένων σύνδεσης από τον κωδικό QR"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:10
+#: src/cryptoadvance/specter/templates/settings/components/settings_menu.jinja:12
+msgid "Authentication"
+msgstr "Αυθεντικοποίηση"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:12
+msgid "None"
+msgstr "Κανένα"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:13
+msgid "Password Protection"
+msgstr "Προστασία Κωδικού Πρόσβασης"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:14
+msgid "Multiple Users"
+msgstr "Πολλαπλοί Χρήστες"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:15
+msgid "RPC password as Pin"
+msgstr "Κωδικός Πρόσβασης RPC ως Pin"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:20
+msgid "Rate Limiting (seconds between login/register attempts)"
+msgstr "Ρυθμός Περιορισμού (δευτερόλεπτα μεταξύ απόπειρας σύνδεσης/εγγραφής)"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:23
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:33
+msgid "Specter Password"
+msgstr "Κωδικός Πρόσβασης Specter"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:24
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:75
+msgid "default"
+msgstr "προκαθορισμένο"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:29
+msgid "Registration Link Timeout (hours)"
+msgstr "Τέλος Χρόνου Συνδέσμου Εγγραφής (σε ώρες)"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:30
+msgid "Default username is 'admin', password 'admin'."
+msgstr ""
+"Το προκαθορισμένο όνομα χρήστη είναι 'admin', και κωδικός πρόσβασης 'admin'."
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:32
+msgid "Specter Username"
+msgstr "Όνομα Χρήστη Specter"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:43
+msgid "Delete User"
+msgstr "Διαγραφή Χρήστη"
+
+#: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:58
+msgid "Generate New Registration Link"
+msgstr "Δημιουργία Νέου Συνδέσμου Εγγραφής"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:10
+msgid "Language"
+msgstr "Γλώσσα"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:14
+msgid "Backup and Restore"
+msgstr "Αντίγραφο Ασφαλείας και Αποκατάσταση"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:19
+msgid "Backing up Your Specter Data"
+msgstr "Αντιγράφουμε τα Δεδομένα σας του Specter"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:20
+msgid ""
+"It is recommended that you keep your backup files private, as sharing them will "
+"result in privacy leaks."
+msgstr ""
+"Προτείνουμε να κρατάτε τα αντίγραφα ασφαλείας σας σε ιδιωτικό αποθηκευτικό "
+"μέσο, καθώς αν διαμοιραστούν θα έχετε θέματα με την ανωνυμία σας."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:21
+msgid ""
+"Backups are recommended to ensure that access to funds remain, even in the "
+"event that a multisig wallet is lost."
+msgstr ""
+"Τα αντίγραφα ασφαλείας σας τα προτείνουμε γιατί ακόμα και αν χαθεί ένα "
+"πορτοφόλι πολύ-υπογραφής, η πρόσβασή σας στο χρηματικό ποσό είναι ακόμα εφικτή."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:25
+msgid "Specter Data Backup"
+msgstr "Αντίγραφο Ασφαλείας των Δεδομένων του Specter"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:28
+msgid "Download Specter backup files"
+msgstr "Κατέβασμα των Αντιγράφων Ασφαλείας του Specter"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:35
+msgid "Restoring Specter from backup"
+msgstr "Επαναφορά του Specter από το αντίγραφο ασφαλείας"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:36
+msgid ""
+"Here you can restore your wallets and devices from an existing Specter backup."
+msgstr ""
+"Εδώ μπορείτε να επαναφέρετε τα πορτοφόλια σας και τις συσκευές σας από ένα "
+"υπάρχον αντίγραφο ασφαλείας του Specter."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:37
+msgid ""
+"Please make sure to unzip the backup file first, then select the extracted "
+"folder for upload."
+msgstr ""
+"Παρακαλώ αποσυμπιέστε με unzip το αρχείο αντιγράφου ασφαλείας, και έπειτα "
+"επιλέξτε τον εξαγόμενο φάκελο για ανέβασμα."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:38
+msgid ""
+"Note: Loading devices/ wallets with names identical to existing ones may "
+"overwrite the existing ones."
+msgstr ""
+"Σημείωση: Το φόρτωμα συσκευών/πορτοφολιών με όνομα πανομοιότυπο με τα υπάρχοντα "
+"ίσως να εγγράψει πάνω από αυτά."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:42
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:53
+msgid "Load Specter backup"
+msgstr "Φόρτωμα Αντιγράφου Ασφαλείας Specter"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:48
+msgid "Choose backup folder"
+msgstr "Διαλέξτε φάκελο για το αντίγραφο ασφαλείας"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:56
+msgid "Miscellaneous"
+msgstr "Διάφορα"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:57
+msgid "Bitcoin unit to use"
+msgstr "Χρησιμοποίησε την μονάδα μέτρησης Bitcoin"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:63
+msgid "Block explorer URL"
+msgstr "Σύνδεσμος URL του εξερευνητή μπλοκ"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:67
+msgid ""
+"Specter does not use the block explorer to get any data whatsoever. This "
+"setting is only to allow opening transactions and addresses in a block explorer "
+"directly from Specter. All data Specter uses comes directly from your own "
+"connected full node."
+msgstr ""
+"Το Specter δεν χρησιμοποιεί καθόλου τον εξερευνητή μπλοκ για να λάβει δεδομένα. "
+"Αυτή η ρύθμιση υπάρχει μόνο για να επιτρέπεται το άνοιγμα συναλλαγών και "
+"διευθύνσεων σε έναν εξερευνητή μπλοκ κατευθείαν μέσα από το Specter. Όλα τα "
+"δεδομένα που χρησιμοποιεί το Specter προέρχονται απευθείας από το δικό σας "
+"συνδεδεμένο πλήρη κόμβο."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:70
+msgid "Fees estimation source"
+msgstr "Πηγή εκτίμησης αμοιβής"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:73
+msgid "Self hosted mempool.space"
+msgstr "Mempool.space που το φιλοξενείτε εσείς"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:78
+msgid "Log Level"
+msgstr "Επίπεδο Ιστορικού"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+msgid "Specter-Desktop created a Logfile in"
+msgstr "Το Specter για υπολογιστή δημιούργησε ένα αρχείο ιστορικού στο"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+msgid ""
+"The Debug-Level will create a lot of data, so make sure to avoid that if you "
+"don't have a reason."
+msgstr ""
+"Το επίπεδο Προσδιορισμός Σφαλμάτων θα δημιουργήσει πολλά δεδομένα, οπότε καλό "
+"είναι να το αποφεύγετε αν δεν υπάρχει συγκεκριμένος λόγος."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:91
+msgid "Validate Merkle Proofs"
+msgstr "Επαλήθευση Αποδείξεων Merkle"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:93
+msgid "Cannot enable when using a pruned bitcoin node"
+msgstr ""
+"Δεν μπορεί να ενεργοποιηθεί όταν χρησιμοποιείτε έναν κλαδεμένο κόμβο bitcoin"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:100
+msgid "What's this?"
+msgstr "Τι είναι αυτό;"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:104
+msgid ""
+"Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/"
+"bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full "
+"node <strong>guaranteeing</strong> that displayed as confirmed have been "
+"included in the specified block hash."
+msgstr ""
+"Το Specter-Desktop επαληθεύει  τις<a href=\"https://github.com/bitcoin/bips/"
+"blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Αποδείξεις Merkle "
+"από τον πλήρη κόμβο σας,<strong>εγγυώντας</strong> ότι οι συναλλαγές που "
+"εμφανίζονται ως επαληθευμένες συμπεριλαμβάνονται σίγουρα μέσα στον συγκεκριμένο "
+"κατακερματισμό μπλοκ."
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:105
+msgid ""
+"However, a compromised full node could return a fake block that was never mined "
+"into Bitcoin's blockchain! If you find the displayed block hash in other "
+"locations (other nodes, block explorers, etc) <strong>and you trust specter-"
+"desktop isn't lying to you</strong>, then you can be sure this transaction "
+"exists in their blockchain as well."
+msgstr ""
+"Ωστόσο, ένας παραβιασμένος πλήρης κόμβος θα μπορούσε να επιστρέψει ένα ψεύτικο "
+"μπλοκ το οποίο δεν έχει εξορυχθεί ποτέ από την Bitcoin blockchain! Αν βρείτε "
+"τον εμφανιζόμενο κατακερματισμό μπλοκ σε άλλες τοποθεσίες (άλλους κόμβους, "
+"εξερευνητές μπλοκ, κτλ) <strong>και είστε απολύτως σίγουροι ότι το Specter για "
+"υπολογιστή δεν ψεύδεται</strong>, τότε μπορείτε να είστε σίγουροι ότι η "
+"συναλλαγή υπάρχει και στην blockchain τους."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:14
+msgid "Hardware Devices Bridge"
+msgstr "Γέφυρα Φυσικών Συσκευών"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:15
+msgid "Allows Specter to communicate with your hardware devices over USB."
+msgstr ""
+"Επιτρέπει το Specter να επικοινωνεί με τα πορτοφόλια-συσκευές σας μέσω θύρας "
+"USB."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:20
+msgid "Local USB connection"
+msgstr "Τοπική σύνδεση με θύρα USB"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:22
+msgid "Select this if Specter is installed on this computer"
+msgstr "Επιλέξτε αυτό αν το Specter είναι εγκατεστημένο σε αυτόν τον υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:28
+msgid "Remote Specter USB connection"
+msgstr "Απομακρυσμένη σύνδεση του Specter μέσω θύρας USB"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:30
+msgid "Select this if Specter is installed on a different machine"
+msgstr "Επιλέξτε αυτό αν το Specter είναι εγκατεστημένο σε διαφορετικό μηχάνημα"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:38
+msgid "Select this if you would like to configure manually (experts only)"
+msgstr ""
+"Επιλέξτε αυτό αν θέλετε να εισάγετε τις ρυθμίσεις χειροκίνητα (μόνο για "
+"ειδικούς)"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:75
+msgid "Before changing these settings"
+msgstr "Πριν αλλάξετε αυτές τις ρυθμίσεις"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:77
+msgid ""
+"If you haven’t done so already, head to “Preferences” on your desktop app "
+"(found on the top navigation). Select the option to connect remotely."
+msgstr ""
+"Αν δεν το έχετε κάνει ήδη, παρακαλώ πηγαίνετε στις \"Προτιμήσεις\" στην "
+"εφαρμογή του υπολογιστή σας (θα το βρείτε στην πλοήγηση πάνω-πάνω). Επιλέξτε "
+"τον κόμβο για να συνδεθείτε απόμακρυσμένα."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:83
+msgid "Save Changes"
+msgstr "Αποθήκευση Αλλαγών"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:86
+msgid ""
+"You might also need to allow Specter to communicate with the device bridge."
+msgstr ""
+"Ίσως χρειαστεί να επιτρέψετε στο Specter να επικοινωνεί με την γέφυρα συσκευών."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:88
+msgid "Access the device bridge settings."
+msgstr "Πρόσβαση στις ρυθμίσεις γέφυρας συσκευών."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:89
+msgid "Add the domain"
+msgstr "Προσθέστε το όνομα χώρου"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:89
+msgid "Copied Specter URL"
+msgstr "Ο σύνδεσμος URL του Specter αντεγράφη"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:89
+msgid "copy"
+msgstr "αντιγραφή"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:89
+msgid "to the whitelist there."
+msgstr "στην λίστα επιτρεπόμενων εδώ."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:89
+msgid "Save the changes and close the window."
+msgstr "Αποθήκευση αλλαγών και κλείσιμο παραθύρου."
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:90
+msgid ""
+"Connect your hardware wallet to your computer and test if Specter manage to "
+"reach it"
+msgstr ""
+"Συνδέστε τη συσκευή-πορτοφόλι σας με τον υπολογιστή σας και δοκιμάστε αν το "
+"Specter μπορεί να την προσπελάσει"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:90
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:80
+msgid "Test connection"
+msgstr "Δοκιμή σύνδεσης"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:98
+msgid "Device detected successfully! USB connections configured correctly!"
+msgstr "Επιτυχία ανίχνευσης συσκευής! Οι συνδέσμοι θύρας USB ρυθμίστηκαν σωστά!"
+
+#: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:100
+msgid "Failed to detect devices"
+msgstr "Αποτυχία ανίχνευσης συσκευών"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:29
+msgid "Tor configurations"
+msgstr "Ρυθμίσεις Tor"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:31
+msgid "Enable Tor to anonymise your data connections."
+msgstr "Ενεργοποιήστε το Tor για να έχετε ανώνυμες συνδέσεις δεδομένων."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:38
+msgid "Stop"
+msgstr "Σταμάτημα"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:43
+msgid "Stopped"
+msgstr "Έχει σταματήσει"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:44
+msgid "Uninstall"
+msgstr "Απεγκατάσταση"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:45
+msgid "Start"
+msgstr "Εκκίνηση"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:49
+msgid "Set up"
+msgstr "Εγκατάσταση"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:55
+msgid "Quick and automatic setup."
+msgstr "Γρήγορη και αυτόματη εγκατάσταση."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:61
+msgid "Custom"
+msgstr "Επιλεγμένες ρυθμίσεις"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:63
+msgid "Use your own Tor configuration."
+msgstr "Χρησιμοποιήστε την δική σας διαρρύθμιση Tor."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:66
+msgid "Use Tor proxy running at:"
+msgstr "Χρησιμοποιήστε το κλάδεμα του μεσολαβητή Tor στο:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:70
+msgid "Default for Tor daemon:"
+msgstr "Προεπιλεγμένος daemon για το Tor:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:71
+msgid "Default for Tor Browser:"
+msgstr "Προεπιλεγμένος για τον Φυλλομετρητή Tor:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:74
+msgid "Tor control port:"
+msgstr "Θύρα ελέγχου Tor:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:76
+msgid "Restart Specter for change of the control port to take effect."
+msgstr ""
+"Επανεκκινήστε το Spectter για να έρθει η αλλαγή της θύρας ελέγχου σε λειτουργία."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:78
+msgid "Set to custom port here, if kept empty the default (9051 and 9151) is used"
+msgstr ""
+"Ορίστε δικιά σας θύρα εδώ, αν το αφήσετε άδειο θα χρησιμοποιηθούν οι "
+"προκαθορισμένες (9051 και 9151)"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:83
+msgid "Additional Options"
+msgstr "Επιπλέον Επιλογές"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:87
+msgid ""
+"Running Specter behind a Tor hidden service allows you to acccess Specter over "
+"Tor from anywhere via a Tor supporting browser."
+msgstr ""
+"Το να τρέχετε το Specter πίσω από μια κρυφή υπηρεσία Tor σας επιτρέπει να "
+"προσπελάσετε το Specter μέσω Tor από οπουδήποτε μέσω ενός φυλλομετρητή με "
+"δυνατότητες Tor."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:93
+msgid "Enable Tor hidden service"
+msgstr "Ενεργοποίηση της κρυφής υπηρεσίας Tor"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:95
+msgid "Allows access to Specter from anywhere."
+msgstr "Επιτρέπει πρόσβαση στο Specter από οπουδήποτε."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:96
+msgid "Requires authentication to be enabled."
+msgstr "Απαιτεί αυθεντικοποίηση για να ενεργοποιηθεί."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:96
+msgid "Authentication settings"
+msgstr "Ρυθμίσεις αυθεντικοποίησης"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:100
+msgid "Specter hidden service is running at:"
+msgstr "Η κρυφή υπηρεσία του Specter τρέχει σε:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:101
+msgid "Copied Tor hidden service address:"
+msgstr "Αντιγραμμένη διεύθυνση κρυφής υπηρεσίας Tor:"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:109
+msgid ""
+"Some optional Specter functionality, like rescanning UTXO on a pruned node or "
+"getting the Bitcoin price, might make calls to external APIs and services."
+msgstr ""
+"Μερικές προαιρετικές δυνατότητες του Specter, όπως το επανασκανάρισμα UTXO σε "
+"κλαδεμένο κόμβο ή η λήψη της τιμής του Bitcoin, ίσως χρειαστεί να κάνουν κλήση "
+"σε εξωτερικές υπηρεσίες και διεπαφές API."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:110
+msgid ""
+"Toggle this on to ensure Specter routes all these external calls over Tor proxy."
+msgstr ""
+"Εναλλαγή κατάστασης σε ενεργό για να διαβεβαιώσετε ότι το Specter δρομολογεί "
+"όλες αυτές τις εξωτερικές κλήσεις μέσω μεσολαβητή Tor."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:111
+msgid "Note: Some external sources may stop working if they block Tor call."
+msgstr ""
+"Σημείωση: Μερικές εξωτερικές πηγές ίσως να σταματήσουν να λειτουργούν αν "
+"μπλοκάρουν κλήσεις Tor."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:117
+msgid "Force external calls over Tor?"
+msgstr "Απαιτήστε οι εξωτερικές κλήσεις να γίνονται μέσω Tor;"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:119
+msgid "Route all external calls over the Tor proxy for improved privacy."
+msgstr ""
+"Δρομολογήστε όλες τις εξωτερικές κλήσεις μέσω του μεσολαβητή Tor για αυξημένη "
+"ανωνυμία."
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:122
+msgid "Save changes"
+msgstr "Αποθήκευση αλλαγών"
+
+#: src/cryptoadvance/specter/templates/settings/tor_settings.jinja:142
+msgid "Please set an authentication method before enabling the hidden service"
+msgstr ""
+"Παρακαλώ ορίστε μια μέθοδο αυθεντικοποίησης πριν να ενεργοποιήσετε την κρυφή "
+"υπηρεσία"
+
+#: src/cryptoadvance/specter/templates/settings/components/settings_menu.jinja:11
+msgid "General"
+msgstr "Γενικά"
+
+#: src/cryptoadvance/specter/templates/settings/components/settings_menu.jinja:13
+msgid "USB Devices"
+msgstr "Συσκευές USB"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind.jinja:5
+msgid "Setup Bitcoin Core"
+msgstr "Εγκατάσταση Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind.jinja:7
+msgid "Start the Setup!"
+msgstr "Εκκίνηση Εγκατάστασης!"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind.jinja:40
+msgid "Failed to download Bitcoin Core..."
+msgstr "Το κατέβασμα του Bitcoin Core απέτυχε..."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:5
+msgid "Configure your node"
+msgstr "Ρυθμίστε τον κόμβο σας"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:6
+msgid "QuickSync?"
+msgstr "Ταχυσυγχρονισμός;"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:11
+msgid "What is QuickSync?"
+msgstr "Τι είναι ο ταχυσυγχρονισμός QuickSync;"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:12
+msgid ""
+"QuickSync will set up your new node from a trusted state of the blockchain."
+msgstr ""
+"Ο ταχυσυγχρονισμός QuickSync θα δημιουργήσει τον νέο σας κόμβο από μια "
+"κατάσταση της blockchain από έμπιστο πάροχο."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:13
+msgid ""
+"This means all block validation will be skipped until the most recent block in "
+"the snapshot."
+msgstr ""
+"Αυτό σημαίνει ότι όλες οι επαληθεύσεις των μπλοκ θα προσπεραστούν μέχρι το πιο "
+"πρόσφατο μπλοκ στο στιγμιότυπο."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:14
+msgid "Later blocks will be normally validated like with a regular full node."
+msgstr ""
+"Τα μετέπειτα μπλοκ θα επαληθεύονται κανονικά όπως και σε κάθε πλήρη κόμβο."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:19
+msgid "Select node type:"
+msgstr "Διαλέξτε είδος κόμβου:"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:24
+msgid "Archival Node"
+msgstr "Κόμβος Αρχειακός"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:26
+msgid "Requires about 400GB of available storage"
+msgstr "Απαιτεί περίπου 400GB διαθέσιμου χώρου στον δίσκο"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:28
+msgid "Requires about 30GB of available storage"
+msgstr "Απαιτεί περίπου 30GB διαθέσιμου χώρου στον δίσκο"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:30
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:43
+msgid "Requires a few MB of available storage"
+msgstr "Απαιτεί μερικά MB διαθέσιμου χώρου στον δίσκο"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:37
+msgid "Pruned Node"
+msgstr "Κλαδεμένος Κόμβος"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:39
+msgid "Requires about 10GB of available storage"
+msgstr "Απαιτεί περίπου 10GB διαθέσιμου χώρου στον δίσκο"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:41
+msgid "Requires about 3GB of available storage"
+msgstr "Απαιτεί περίπου 3GB διαθέσιμου χώρου στον δίσκο"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:50
+msgid ""
+"Now that you have Bitcoin Core installed, your next step will be to sync with "
+"the network."
+msgstr ""
+"Τώρα που έχετε εγκαταστήσει το Bitcoin Core, το επόμενό σας βήμα θα είναι να "
+"τον συγχρονίσετε με το δίκτυο."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:51
+msgid ""
+"Specter allows you to choose between normal syncing (IBD) - which will download "
+"and validate the entire history of the blockchain, or downloading a trusted "
+"snapshot of the current state of the network."
+msgstr ""
+"Το Specter σας επιτρέπει να διαλέξετε ανάμεσα σε κανονικό συγχρονισμό (IBD) - "
+"το οποίο θα κατεβάσει και θα επαληθεύσει όλο το ιστορικό της blockchain, ή το "
+"κατέβασμα ενός έμπιστου στιγμιότυπου της τρέχουσας κατάστασης του δικτύου."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:52
+msgid ""
+"This snapshot is produced and signed by Specter team - which means you will be "
+"trusting it to get the present state of the blockchain, instead of verifying "
+"the history yourself."
+msgstr ""
+"Το στιγμιότυπο παράγεται από την ομάδα του Specter - το οποίο σημαίνει θα την "
+"εμπιστεύεστε για να παραλάβετε την τρέχουσα κατάσταση της blockchain, αντί να "
+"επαληθεύσετε το ιστορικό εσείς οι ίδιοι."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:53
+msgid ""
+"It takes about 5GB to download and will setup a fully synced pruned node for "
+"you to use."
+msgstr ""
+"Το κατέβασμα και η εγκατάσταση ενός κλαδεμένου κόμβου απαιτεί περίπου 5GB "
+"ελεύθερου χώρου στον δίσκο για να τον χρησιμοποίησετε."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:54
+msgid ""
+"You can also disable the QuickSync option, and choose between setting up an "
+"archival node (which keeps the entire history) or a pruned node."
+msgstr ""
+"Μπορείτε επίσης να απενεργοποιήσετε την επιλογή ταχυσυγχρονισμού QuickSync, και "
+"να διαλέξετε ανάμεσα σε αρχειακό κόμβο, (ο οποίος αποθηκεύει ολόκληρο το "
+"ιστορικό συναλλαγών) ή έναν κλαδεμένο κόμβο."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:55
+msgid ""
+"Please note: it is recommended to use a full archival node, or if storage is a "
+"constraint, a pruned node synced from scratch. The option for QuickSync is "
+"useful for getting started quickly, but is not recommended in the long term or "
+"when using Specter with large amounts."
+msgstr ""
+"Σημείωση: προτείνεται να χρησιμοποιήσετε έναν πλήρη αρχειακό κόμβο, ή αν "
+"υπάρχει λίγος διαθέσιμος αποθηκευτικός χώρος, έναν κλαδεμένο κόμβο ο οποίος "
+"όμως να έχει συγχρονιστεί από την αρχή. Η επιλογή ταχυσυγχρονισμού QuickSync "
+"είναι χρήσιμη για να ξεκινήσετε γρήγορα, αλλά δεν την προτείνουμε για "
+"μακροχρόνια λύση ή αν σκοπεύετε να χρησιμοποιήσετε το Specter για μεγάλα "
+"χρηματικά ποσά."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:58
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:9
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:50
+msgid "Unsure? Click here for more info!"
+msgstr "Δεν είστε σίγουροι; Κάντε κλικ εδώ για περισσότερες πληροφορίες!"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:59
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:10
+msgid "Still need help?"
+msgstr "Χρειάζεστε και άλλη βοήθεια;"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:64
+msgid ""
+"You have activated to only connect via Tor. This will significantly slow down "
+"the download-process and is not recommended."
+msgstr ""
+"Έχετε ενεργοποιήσει την υποχρεωτική σύνδεση μέσω Tor. Αυτό θα επιβραδύνει "
+"σημαντικά την διαδικασία κατεβάσματος και δεν προτείνεται."
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:71
+msgid "Advanced configurations"
+msgstr "Ρυθμίσεις για προχωρημένους"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:72
+msgid "Node Network:"
+msgstr "Δίκτυο Κόμβου:"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:72
+msgid "(switch)"
+msgstr "(αλλαγή)"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:81
+msgid "Start Syncing!"
+msgstr "Έναρξη Συγχρονισμού!"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:84
+msgid ""
+"Your Bitcoin Core data folder seems to be already used.<br>Would you like to "
+"override it or select a different folder path?"
+msgstr ""
+"Ο φάκελος δεδομένων σας του Bitcoin Core φαίνεται να χρησιμοποιείται ήδη.<br>Θα "
+"θέλατε να παρακάμψετε αυτήν την προειδοποίηση ή να διαλέξετε άλλο μονοπάτι "
+"φακέλου;"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:87
+msgid "Edit path"
+msgstr "Επεξεργασία μονοπατιού"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:88
+msgid "Override existing"
+msgstr "Παράκαμψη του υπάρχοντος"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:92
+msgid "Select Network to setup"
+msgstr "Διαλέξτε ποιο Δίκτυο να στήσετε"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:98
+msgid "Mainnet"
+msgstr "Κυρίως Δίκτυο Mainnet"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:105
+msgid "Testnet"
+msgstr "Δοκιμαστικό Δίκτυο Testnet"
+
+#: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:182
+msgid "Failed to start Bitcoin Core..."
+msgstr "Αποτυχία εκκίνησης Bitcoin Core..."
+
+#: src/cryptoadvance/specter/templates/setup/end.jinja:5
+msgid "Setup Completed Successfully!"
+msgstr "Η εγκατάσταση ολοκληρώθηκε με επιτυχία!"
+
+#: src/cryptoadvance/specter/templates/setup/end.jinja:6
+msgid "Your new node is up and running!"
+msgstr "Ο νέος σας κόμβος είναι ενεργός!"
+
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:5
+msgid "Would you like to setup a new Bitcoin node or connect to an existing one?"
+msgstr ""
+"Θα θέλατε να εγκαταστήσετε έναν νέο κόμβο Bitcoin ή να συνδεθείτε σε ήδη "
+"υπάρχοντα;"
+
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:6
+msgid ""
+"If you have an existing Bitcoin Core node you would like to use, either running "
+"locally on this computer or somewhere else, like on Umbrel, myNode, or "
+"RaspiBlitz, you can just connect and use it."
+msgstr ""
+"Αν έχετε ήδη έναν κόμβο Bitcoin Core που θα θέλατε να χρησιμοποιήσετε, που είτε "
+"τρέχει τοπικά σε αυτόν τον υπολογιστή ή κάπου αλλού, όπως πχ σε Umbrel ή "
+"Raspiblitz, μπορείτε να τον συνδέσετε και να τον χρησιμοποιήσετε."
+
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:7
+msgid ""
+"Don't have a node? Specter can help you setup a new one! This guide will help "
+"you get it up and running!"
+msgstr ""
+"Δεν έχετε κόμβο; Το Specter θα σας βοηθήσει να εγκαταστήσετε έναν καινούργιο. "
+"Αυτός ο οδηγός θα σας εξηγήσει την διαδικασία βήμα-βήμα!"
+
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:14
+msgid "Connect existing node"
+msgstr "Σύνδεση σε υπάρχοντα κόμβο"
+
+#: src/cryptoadvance/specter/templates/setup/node_type.jinja:15
+msgid "Setup a new node"
+msgstr "Εγκατάσταση νέου κόμβου"
+
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:25
+msgid "Cancel process"
+msgstr "Ακύρωση διαδικασίας"
+
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:27
+msgid "View Progress"
+msgstr "Εμφάνιση Προόδου"
+
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:83
+msgid "Encountered an error:"
+msgstr "Εμφανίστηκε σφάλμα:"
+
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:95
+msgid "Download Progress:"
+msgstr "Πρόοδος κατεβάσματος:"
+
+#: src/cryptoadvance/specter/templates/setup/setup_page.jinja:107
+msgid "Starting up..."
+msgstr "Εκκίνηση..."
+
+#: src/cryptoadvance/specter/templates/setup/start.jinja:4
+msgid "Specter Quickstart!"
+msgstr "Γρήγορη Εκκίνηση Specter!"
+
+#: src/cryptoadvance/specter/templates/setup/start.jinja:5
+msgid "Get up and running with Specter in just a few clicks!"
+msgstr "Ξεκινήστε με το Specter γρήγορα και εύκολα με μερικά κλικ!"
+
+#: src/cryptoadvance/specter/templates/setup/start.jinja:11
+msgid ""
+"Here, we'll take you through the process of setting up Specter with your own "
+"Bitcoin Core node and Tor."
+msgstr ""
+"Εδώ θα σας καθοδηγήσουμε στην διαδικασία ρύθμισης του Specter με τον δικό σας "
+"κόμβο Bitcoin Core και Tor."
+
+#: src/cryptoadvance/specter/templates/setup/start.jinja:12
+msgid ""
+"Everything is completely automated, but you make choices to customize your "
+"setup to fit your needs."
+msgstr ""
+"Τα πάντα είναι απολύτως αυτοματοποιημένα, αλλά σας παρέχουμε επιλογές για να "
+"ρυθμίσετε την εγκατάστασή σας για να ταιριάζει στις δικές σας ανάγκες."
+
+#: src/cryptoadvance/specter/templates/setup/start.jinja:16
+msgid "Get Started!"
+msgstr "Ας Ξεκινήσουμε!"
+
+#: src/cryptoadvance/specter/templates/setup/tor.jinja:5
+msgid "Setup Tor daemon"
+msgstr "Εγκατάσταση Tor daemon"
+
+#: src/cryptoadvance/specter/templates/setup/tor.jinja:9
+msgid "Skip"
+msgstr "Παράκαμψη"
+
+#: src/cryptoadvance/specter/templates/setup/tor.jinja:11
+msgid "Setup Tor"
+msgstr "Εγκατάσταση Tor"
+
+#: src/cryptoadvance/specter/templates/setup/tor.jinja:44
+msgid "Failed to download Tor daemon..."
+msgstr "Αποτυχία κατεβάσματος του Tor daemon..."
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:18
+msgid "Wallets Overview"
+msgstr "Εποπτεία Πορτοφολιών"
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:19
+msgid ""
+"Here you can see the combined balance and transactions history of all your "
+"Specter wallets."
+msgstr ""
+"Εδώ μπορείτε να δείτε το συγκεντρωτικό υπόλοιπο και το ιστορικό συναλλαγών από "
+"όλα τα Specter πορτοφόλια σας."
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:34
+msgid "confirmed"
+msgstr "επαληθεύτηκε"
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:36
+msgid "pending"
+msgstr "εκκρεμμεί"
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:39
+msgid "immature"
+msgstr "ανώριμο"
+
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:45
+msgid "Assets:"
+msgstr "Στοιχεία ενεργητικού:"
+
+#: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:12
+msgid "Edit Label"
+msgstr "Επεξεργασία ετικέτας"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:15
+msgid "Specter Backup File"
+msgstr "Αρχείο επαναφοράς Specter"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:18
+msgid "(keep this information with each of your key backups)"
+msgstr ""
+"(κρατήστε ασφαλή αυτήν την πληροφορία με κάθε αποθηκευμένο κλειδί που έχετε)"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:30
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:32
+msgid "multisig"
+msgstr "πολύ-υπογραφή"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:37
+msgid "(Native Segwit)"
+msgstr "(Ιθαγενές Segwit)"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:39
+msgid "(Nested Segwit)"
+msgstr "(Εμφωλευμένο Segwit)"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:54
+msgid "Scan this QR code with Specter-Desktop"
+msgstr "Σκανάρετε αυτόν τον κωδικό QR με το Specter για υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:56
+msgid "or any other compatible wallet."
+msgstr "ή με οποιοδήποτε άλλο συμβατό πορτοφόλι."
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:83
+msgid "Device type:"
+msgstr "Τύπος συσκευής:"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:85
+msgid "Master fingerprint:"
+msgstr "Κύριο δακτυλικό αποτύπωμα:"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:87
+msgid "Derivation path:"
+msgstr "Μονοπάτι παραγώγου:"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:119
+msgid "Advanced Recovery Details"
+msgstr "Λεπτομέρειες Επαναφοράς για Προχωρημένους"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:123
+msgid "Specter Desktop Raw Data"
+msgstr "Ωμά Δεδομένα του Specter για Υπολογιστή"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:136
+msgid "Bitcoin Core Receive Descriptor"
+msgstr "Αναγνωριστικό Αποδέκτη Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/wallet/components/wallet_pdf.jinja:149
+msgid "Bitcoin Core Change Descriptor"
+msgstr "Αναγνωριστικό Αλλαγής Bitcoin Core"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:40
+msgid "Copied Address:"
+msgstr "Αντιγραμμένη Διεύθυνση:"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:41
+msgid "(click to copy)"
+msgstr "(κάντε κλικ για αντιγραφή)"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:47
+msgid "Get new address"
+msgstr "Λάβετε νέα διεύθυνση"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:54
+msgid "Scan to Verify Address on Your Device"
+msgstr "Σκανάρετε για να Επαληθεύσετε την Διεύθυνση στη Συσκευή Σας"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:57
+msgid ""
+"Specter can verify this address if you scan it.<br>It has an address index "
+"included in the QR code."
+msgstr ""
+"Το Specter μπορεί να επαληθεύσει αυτήν την συσκευή αν την σκανάρετε."
+"<br>Περιέχει έναν κατάλογο διευθύνσεων μέσα στον κωδικό QR."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:60
+msgid "Verify address via QR code"
+msgstr "Επαλήθευση διεύθυνσης μέσω κωδικού QR"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:71
+msgid "Display address on device"
+msgstr "Εμφάνιση διεύθυνσης στη συσκευή"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:73
+msgid ""
+"Multsig address on-device display is only available for BitBox02, ColdCard, "
+"KeepKey, Specter, and Trezor devices."
+msgstr ""
+"Διευθύνσεις με πολύ-υπογραφή στην οθόνη της συσκευής είναι μόνο διαθέσιμες για "
+"τις BitBox02, ColdCard, KeepKey, Specter, και Trezor συσκευές."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:86
+msgid "Export To Device"
+msgstr "Εξαγωγή σε Συσκευή"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:87
+msgid ""
+"Some of your devices require that you first import your multisig wallet data "
+"into the device before you can start verifying addresses and sending "
+"transactions."
+msgstr ""
+"Μερικές από τις συσκευές σας απαιτούν να εισάγετε πρώτα τα δεδομένα πολύ-"
+"υπογραφής του πορτοφολιού σας στην συσκευή πριν μπορέσετε να ξεκινήσετε την "
+"επαλήθευση διευθύνσεων και την αποστολή συναλλαγών."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:89
+msgid ""
+"Import this wallet to a device by scanning its QR code or importing its data "
+"file."
+msgstr ""
+"Εισάγετε αυτό το πορτοφόλι σε μια συσκευή με το να σκανάρετε τον κωδικό QR ή να "
+"εισάγετε το αρχείο δεδομένων."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:99
+msgid ""
+"Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import "
+"from SD"
+msgstr ""
+"Εισάγετε το αρχείο πορτοφολιού στην ColdCard: Ρυθμίσεις -> Πορτοφόλια με Πολύ-"
+"Υπογραφή -> Εισαγωγή από κάρτα SD"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+msgid "file"
+msgstr "αρχείο"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+msgid "Show"
+msgstr "Εμφάνιση"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+msgid "QR Code"
+msgstr "Κωδικός QR"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+msgid "Scan this with your"
+msgstr "Σκανάρετε αυτό με το"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:110
+msgid "Back"
+msgstr "Πίσω"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:117
+msgid "You can always do this later from the wallet Settings tab."
+msgstr ""
+"Μπορείτε να το κάνετε αυτό αργότερα από την καρτέλα Ρυθμίσεις του πορτοφολιού."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:118
+msgid "Finish"
+msgstr "Τέλος"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:121
+msgid "New wallet was created successfully!"
+msgstr "Το νέο πορτοφόλι σας δημιουργήθηκε με επιτυχία!"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:124
+msgid "Save Backup PDF"
+msgstr "Αποθήκευση Αρχείου Ανάκτησης PDF"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:132
+msgid "Use SLIP-132:"
+msgstr "Χρήση του SLIP-132:"
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:138
+msgid "To format master keys on the PDF backup document."
+msgstr "Για να φορμάρετε τα κυρίως κλειδιά στο αρχείο ανάκτησης PDF."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:140
+msgid ""
+"It is recommended that you print and save this wallet backup file with each of "
+"your devices."
+msgstr ""
+"Προτείνεται να τυπώσετε και να αποθηκεύσετε σε ασφαλές μέρος αυτό το αρχείο "
+"ανάκτησης πορτοφολιού με κάθε συσκευή σας."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:143
+msgid ""
+"This backup includes all the information you'd need to restore your wallet in "
+"Specter Desktop or other compatible wallets including Bitcoin Core itself."
+msgstr ""
+"Το αρχείο ανάκτησης περιέχει όλες τις πληροφορίες που χρειάζεστε για να "
+"επαναφέρετε το πορτοφόλι σας στο Specter για υπολογιστές ή σε οποιοδήποτε άλλο "
+"συμβατό πορτοφόλι, ακόμα και στο Bitcoin Core."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:146
+msgid ""
+"It is recommended that you keep this file private, as it contains all the "
+"information needed to track all of the wallet balance and transactions history."
+msgstr ""
+"Προτείνεται να κρατήσετε αυτό το αρχείο μυστικό, καθώς περιέχει όλες τις "
+"πληροφορίες που χρειάζεται κάποιος για να παρακολουθεί όλο το ιστορικό "
+"χρηματικού υπολοίπου και συναλλαγών."
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:148
+msgid "You can always download this file later from the wallet Settings tab."
+msgstr ""
+"Μπορείτε πάντα να κατεβάσετε αυτό το αρχείο αργότερα από την καρτέλα Ρυθμίσεις "
+"του πορτοφολιού."

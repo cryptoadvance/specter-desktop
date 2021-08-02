@@ -19,7 +19,7 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, is_testnet
+from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
@@ -53,6 +53,7 @@ class Specter:
 
     # use this lock for all fs operations
     lock = threading.Lock()
+    _default_asset = None
 
     def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
         if data_folder.startswith("~"):
@@ -175,8 +176,14 @@ class Specter:
         try:
             return self.node_manager.active_node
         except SpecterError as e:
+            logger.error("SpecterError while accessing active_node")
+            logger.exception(e)
             self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
             return self.node_manager.active_node
+
+    @property
+    def default_node(self):
+        return self.node_manager.default_node()
 
     @property
     def rpc(self):
@@ -185,6 +192,10 @@ class Specter:
     @property
     def utxorescanwallet(self):
         return self.node.utxorescanwallet
+
+    @utxorescanwallet.setter
+    def utxorescanwallet(self, value):
+        self.node.utxorescanwallet = value
 
     @property
     def config(self):
@@ -292,6 +303,14 @@ class Specter:
     def update_fee_estimator(self, fee_estimator, custom_url, user):
         """update the fee estimator option and its url if custom"""
         self.config_manager.update_fee_estimator(fee_estimator, custom_url, user)
+
+    # mark
+    def update_tor_type(self, tor_type, user):
+        """update the Tor proxy url"""
+        if tor_type == "builtin":
+            self.update_proxy_url("socks5h://localhost:9050", user)
+            self.update_tor_control_port("", user)
+        self.config_manager.update_tor_type(tor_type, user)
 
     # mark
     def update_proxy_url(self, proxy_url, user):
@@ -421,7 +440,10 @@ class Specter:
         return res
 
     def estimatesmartfee(self, blocks):
-        return self.rpc.estimatesmartfee(blocks)
+        res = self.rpc.estimatesmartfee(blocks)
+        if "feerate" not in res and self.is_liquid:
+            return 0.000001
+        return res
 
     @property
     def bitcoind_path(self):
@@ -464,14 +486,6 @@ class Specter:
         return is_liquid(self.chain)
 
     @property
-    def is_liquid(self):
-        return is_liquid(self.chain)
-
-    @property
-    def is_liquid(self):
-        return is_liquid(self.chain)
-
-    @property
     def user_config(self):
         return self.config if self.user.is_admin else self.user.config
 
@@ -488,8 +502,41 @@ class Specter:
         return self.user_config.get("explorer_id", {}).get(self.chain, "CUSTOM")
 
     @property
+    def asset_labels(self):
+        user_assets = self.user_config.get("asset_labels", {}).get(self.chain, {})
+        node_assets = self.node.asset_labels
+        asset_labels = {}
+        deep_update(asset_labels, node_assets)
+        deep_update(asset_labels, user_assets)
+        return asset_labels
+
+    @property
+    def default_asset(self):
+        """returns hash of LBTC"""
+        if self._default_asset is None:
+            for asset, lbl in self.asset_labels.items():
+                if lbl == "LBTC":
+                    self._default_asset = asset
+                    return asset
+        return self._default_asset
+
+    def asset_label(self, asset):
+        if asset == "":
+            return ""
+        return get_asset_label(asset, known_assets=self.asset_labels)
+
+    def update_asset_label(self, asset, label):
+        if asset == self.default_asset:
+            raise SpecterError("LBTC should stay LBTC")
+        self.config_manager.update_asset_label(asset, label, self.chain, self.user)
+
+    @property
     def fee_estimator(self):
         return self.user_config.get("fee_estimator", "mempool")
+
+    @property
+    def tor_type(self):
+        return self.user_config.get("tor_type", "builtin")
 
     @property
     def proxy_url(self):
@@ -629,6 +676,7 @@ class Specter:
                 "mainnet",
                 "0.20.1",
             )
+            logger.info(f"persisting {internal_node} in migrate_old_node_format")
             write_node(
                 internal_node,
                 os.path.join(
@@ -654,6 +702,7 @@ class Specter:
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
                 self,
             )
+            logger.info(f"persisting {node} in migrate_old_node_format")
             write_node(
                 node,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),

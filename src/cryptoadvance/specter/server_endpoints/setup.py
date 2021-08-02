@@ -10,6 +10,7 @@ from flask import (
     jsonify,
     flash,
 )
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from flask import current_app as app
 from mnemonic import Mnemonic
@@ -120,10 +121,10 @@ def setup_tor():
         t = threading.Thread(target=setup_tor_thread, args=(app.specter,))
         t.start()
     elif os.path.isfile(app.specter.torbrowser_path):
-        return {"error": "Tor is already installed"}
+        return {"error": _("Tor is already installed")}
     elif app.specter.setup_status["torbrowser"]["stage_progress"] != -1:
-        return {"error": "Tor installation is still under progress"}
-    return {"success": "Starting Tor setup!"}
+        return {"error": _("Tor installation is still in progress")}
+    return {"success": _("Starting Tor setup!")}
 
 
 @setup_endpoint.route("/setup_bitcoind", methods=["POST"])
@@ -140,10 +141,10 @@ def setup_bitcoind():
         )
         t.start()
     elif os.path.isfile(app.specter.bitcoind_path):
-        return {"error": "Bitcoin Core is already installed"}
+        return {"error": _("Bitcoin Core is already installed")}
     elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
-        return {"error": "Bitcoin Core installation is still under progress"}
-    return {"success": "Starting Bitcoin Core setup!"}
+        return {"error": _("Bitcoin Core installation is still in progress")}
+    return {"success": _("Starting Bitcoin Core setup!")}
 
 
 @setup_endpoint.route("/setup_bitcoind_datadir", methods=["POST"])
@@ -202,10 +203,10 @@ def setup_bitcoind_datadir():
         )
         t.start()
     elif not os.path.isfile(app.specter.bitcoind_path):
-        return {"error": "Bitcoin Core in not installed but required for this step"}
+        return {"error": _("Bitcoin Core in not installed but required for this step")}
     elif app.specter.setup_status["bitcoind"]["stage_progress"] != -1:
-        return {"error": "Bitcoin Core installation is still under progress"}
-    return {"success": "Starting Bitcoin Core setup!"}
+        return {"error": _("Bitcoin Core installation is still in progress")}
+    return {"success": _("Starting Bitcoin Core setup!")}
 
 
 ######################### Setup status (open endpoint) #######################################

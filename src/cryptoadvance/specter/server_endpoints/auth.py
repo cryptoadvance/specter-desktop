@@ -9,6 +9,7 @@ from flask import (
     jsonify,
     flash,
 )
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user, logout_user
 from flask import current_app as app
 from ..helpers import alias
@@ -35,15 +36,20 @@ def login():
             return redirect_login(request)
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
-            if app.specter.rpc is None:
-                if app.specter.node.password == request.form["password"]:
+            if (
+                app.specter.default_node.rpc is None
+                or not app.specter.default_node.rpc.test_connection()
+            ):
+                if app.specter.default_node.password == request.form["password"]:
                     app.login("admin")
                     app.logger.info(
                         "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
                     )
                     return redirect_login(request)
                 flash(
-                    "We could not check your password, maybe Bitcoin Core is not running or not configured?",
+                    _(
+                        "We could not check your password, maybe Bitcoin Core is not running or not configured?"
+                    ),
                     "error",
                 )
                 app.logger.info("AUDIT: Failed to check password")
@@ -55,7 +61,7 @@ def login():
                     ),
                     401,
                 )
-            rpc = app.specter.rpc.clone()
+            rpc = app.specter.default_node.rpc.clone()
             rpc.password = request.form["password"]
             if rpc.test_connection():
                 app.login("admin")
@@ -76,7 +82,7 @@ def login():
                     app.login(user.id)
                     return redirect_login(request)
         # Either invalid method or incorrect credentials
-        flash("Invalid username or password", "error")
+        flash(_("Invalid username or password"), "error")
         app.logger.info("AUDIT: Invalid password login attempt")
         return (
             render_template(
@@ -105,14 +111,16 @@ def register():
         otp = request.form["otp"]
         if not username:
             flash(
-                "Please enter a username.",
+                _("Please enter a username."),
                 "error",
             )
             return redirect("register?otp={}".format(otp))
         min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
             flash(
-                "Please enter a password of a least {} characters.".format(min_chars),
+                _("Please enter a password of a least {} characters.").format(
+                    min_chars
+                ),
                 "error",
             )
             return redirect("register?otp={}".format(otp))
@@ -123,7 +131,9 @@ def register():
                 i += 1
                 user_id = "{}{}".format(alias(username), i)
             if app.specter.user_manager.get_user_by_username(username):
-                flash("Username is already taken, please choose another one", "error")
+                flash(
+                    _("Username is already taken, please choose another one"), "error"
+                )
                 return redirect("register?otp={}".format(otp))
             app.specter.otp_manager.remove_new_user_otp(otp)
             config = {
@@ -134,14 +144,18 @@ def register():
             user = User(user_id, username, password_hash, config, app.specter)
             app.specter.user_manager.add_user(user)
             flash(
-                "You have registered successfully, \
+                _(
+                    "You have registered successfully, \
 please login with your new account to start using Specter"
+                )
             )
             return redirect(url_for("auth_endpoint.login"))
         else:
             flash(
-                "Invalid registration link, \
-please request a new link from the node operator.",
+                _(
+                    "Invalid registration link, \
+please request a new link from the node operator."
+                ),
                 "error",
             )
             return redirect("register?otp={}".format(otp))
@@ -151,13 +165,13 @@ please request a new link from the node operator.",
 @auth_endpoint.route("/logout", methods=["GET", "POST"])
 def logout():
     logout_user()
-    flash("You were logged out", "info")
+    flash(_("You were logged out"), "info")
     return redirect(url_for("auth_endpoint.login"))
 
 
 ################### Util ######################
 def redirect_login(request):
-    flash("Logged in successfully.", "info")
+    flash(_("Logged in successfully."), "info")
     if request.form.get("next") and request.form.get("next") != "None":
         response = redirect(request.form["next"])
     else:

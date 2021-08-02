@@ -1,20 +1,20 @@
 {% extends "base.jinja" %}
 {% block main %}
 	<div class="spacer"></div>
-	<h1>Select the type of the wallet</h1>
+	<h1>{{ _("Select the type of the wallet") }}</h1>
 	<div>
 		<center>
-			<span>Adding a wallet with existing funds?</span>
+			<span>{{ _("Adding a wallet with existing funds?") }}</span>
 			<div class="tool-tip">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
 					<span class="info">
-						<span class="info__title">Importing an existing wallet?<br></span>
-						After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.
+						<span class="info__title">{{ _("Importing an existing wallet?") }}<br></span>
+						{{ _('After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.') }}
 						<br>
 						{% if specter.info["pruned"] %}
 							<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-								Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
+								{{ _("Please Note:<br>You are using a pruned node. Wallet history may not fully appear.") }}
 							</span>
 						{% endif %}
 					</span>
@@ -25,26 +25,26 @@
 	<nav class="row overflow">
 		<a href="./simple/" class="small-card">
 			<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;"/>
-			Single key wallet
+			{{ _("Single key wallet") }}
 		</a>
 		<a class="small-card" href="./multisig/">
 			<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;"/>
-			Multisignature wallet<br><br>
+			{{ _("Multisignature wallet") }}<br><br>
 		</a>
 	</nav>
 	<div class="raw">
 		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">
-		Import from wallet software
+		{{ _("Import from wallet software") }}
 		<div class="tool-tip">
 			<i class="tool-tip__icon">i</i>
 			<p class="tool-tip__info">
 				<span class="info">
-					<span class="info__title">Import From Wallet Software<br> <br></span>
-					Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.
+					<span class="info__title">{{ _("Import From Wallet Software") }}<br> <br></span>
+					{{ _("Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.") }}
 					<br>
 					{% if specter.info["pruned"] %}
 						<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-							Please Note:<br>You are using a pruned node. Wallet history may not fully appear.
+							{{ _("Please Note:<br>You are using a pruned node. Wallet history may not fully appear.") }}
 						</span>
 					{% endif %}
 				</span>
@@ -54,6 +54,6 @@
 	</div>
 	{% include "wallet/new_wallet/components/import_wallet_account_map.jinja" %}
 	<div class="note">
-		<center>Multisig is better for larg-ish amounts.</center>
+		<center>{{ _("Multisig is better for large-ish amounts.") }}</center>
 	</div>
 {% endblock %}

@@ -10,6 +10,7 @@ from flask import (
     jsonify,
     flash,
 )
+from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
@@ -43,7 +44,7 @@ def node_settings(node_alias):
                 )
         except:
             return render_template(
-                "base.jinja", error="Node not found", specter=app.specter, rand=rand
+                "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
             )
     else:
         node = Node.from_json(
@@ -62,7 +63,7 @@ def node_settings(node_alias):
         )
 
     if not current_user.is_admin:
-        flash("Only an admin is allowed to access this page.", "error")
+        flash(_("Only an admin is allowed to access this page"), "error")
         return redirect("")
     # The node might have been down but is now up again
     # (and the checker did not realized yet) and the user clicked "Configure Node"
@@ -97,19 +98,19 @@ def node_settings(node_alias):
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
-                flash("Node name must not be empty", "error")
+                flash(_("Node name cannot be empty"), "error")
             elif node_name == node.name:
                 pass
             elif node_name in app.specter.device_manager.devices_names:
-                flash("Node with this name already exists", "error")
+                flash(_("Node with this name already exists"), "error")
             else:
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash("Failed to deleted node. Node isn't saved", "error")
+                flash(_("Failed to deleted node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 app.specter.node_manager.delete_node(node, app.specter)
-                flash("Node deleted successfully")
+                flash(_("Node deleted successfully"))
                 return redirect(
                     url_for(
                         "nodes_endpoint.node_settings",
@@ -118,7 +119,9 @@ def node_settings(node_alias):
                 )
             else:
                 flash(
-                    "Failed to deleted node. Specter must have at least one node configured",
+                    _(
+                        "Failed to delete node. Specter must have at least one node configured"
+                    ),
                     "error",
                 )
         elif action == "test":
@@ -143,17 +146,19 @@ def node_settings(node_alias):
 
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
-                if False in list(test["tests"].values()):
-                    flash(f"Test failed: {test['err']}", "error")
+                if not test["tests"] or False in list(test["tests"].values()):
+                    flash(_("Test failed: {}").format(test["err"]), "error")
                 else:
-                    flash("Test passed", "info")
+                    flash(_("Test passed"), "info")
             elif "err" in test:
-                flash(f"Test failed: {test['err']}", "error")
+                flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
                 if node.name in app.specter.node_manager.nodes:
                     flash(
-                        "Node with this name already exits, please choose a different name.",
+                        _(
+                            "Node with this name already exists, please choose a different name."
+                        ),
                         "error",
                     )
                     return render_template(
@@ -190,7 +195,7 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                flash("Failed connecting to the node", "error")
+                flash(_("Failed connecting to the node"), "error")
             if app.specter.active_node_alias == node.alias:
                 app.specter.check()
 
@@ -220,7 +225,7 @@ def internal_node_settings(node_alias):
                 )
         except:
             return render_template(
-                "base.jinja", error="Node not found", specter=app.specter, rand=rand
+                "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
             )
     else:
         # TODO: Allow internal node setup here?
@@ -232,7 +237,7 @@ def internal_node_settings(node_alias):
         )
 
     if not current_user.is_admin:
-        flash("Only an admin is allowed to access this page.", "error")
+        flash(_("Only an admin is allowed to access this page"), "error")
         return redirect("")
     # The node might have been down but is now up again
     # (and the checker did not realized yet) and the user clicked "Configure Node"
@@ -245,7 +250,7 @@ def internal_node_settings(node_alias):
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
-                flash("Node name must not be empty", "error")
+                flash(_("Node name must not be empty"), "error")
             elif node_name == node.name:
                 pass
             elif node_name in app.specter.device_manager.devices_names:
@@ -254,13 +259,13 @@ def internal_node_settings(node_alias):
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash("Failed to deleted node. Node isn't saved", "error")
+                flash(_("Failed to deleted node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 node.stop()
                 app.specter.node_manager.delete_node(node, app.specter)
                 if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
-                flash("Node deleted successfully")
+                flash(_("Node deleted successfully"))
                 return redirect(
                     url_for(
                         "nodes_endpoint.node_settings",
@@ -269,27 +274,29 @@ def internal_node_settings(node_alias):
                 )
             else:
                 flash(
-                    "Failed to deleted node. Specter must have at least one node configured",
+                    _(
+                        "Failed to delete node. Specter must have at least one node configured"
+                    ),
                     "error",
                 )
         elif action == "stopbitcoind":
             try:
                 node.stop()
                 time.sleep(5)
-                flash("Specter stopped Bitcoin Core successfully")
+                flash(_("Specter successfully stopped Bitcoin Core"))
             except Exception as e:
                 try:
                     logger.exception(e)
-                    flash("Stopping Bitcoin Core, this might take a few moments.")
+                    flash(_("Stopping Bitcoin Core, this might take a few moments."))
                     node.rpc.stop()
                 except Exception as ne:
                     logger.exception(ne)
-                    flash(f"Failed to stop Bitcoin Core {ne}", "error")
+                    flash(_("Failed to stop Bitcoin Core {}").format(ne), "error")
         elif action == "startbitcoind":
             if node.start(timeout=120):
-                flash("Specter has started Bitcoin Core")
+                flash(_("Specter has started Bitcoin Core"))
             else:
-                flash("Specter failed to start the node...", "error")
+                flash(_("Specter failed to start the node"), "error")
         elif action == "uninstall_bitcoind":
             try:
                 node.stop()
@@ -299,7 +306,7 @@ def internal_node_settings(node_alias):
                 )
                 if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
-                flash(f"Bitcoin Core uninstalled successfully")
+                flash(_("Bitcoin Core successfully uninstalled"))
                 app.specter.node_manager.delete_node(node, app.specter)
                 return redirect(
                     url_for(
@@ -308,7 +315,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
-                flash(f"Failed to remove Bitcoin Core, error: {e}", "error")
+                flash(_("Failed to remove Bitcoin Core, error: {}").format(e), "error")
         elif action == "upgrade_bitcoind":
             if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
                 try:
@@ -317,10 +324,13 @@ def internal_node_settings(node_alias):
                     )
                 except Exception as e:
                     flash(
-                        f"Failed to upgrade Bitcoin Core version, error: {e}", "error"
+                        _("Failed to upgrade Bitcoin Core version, error: {}").format(
+                            e
+                        ),
+                        "error",
                     )
             else:
-                flash("Bitcoin Core version is already up to date")
+                flash(_("Bitcoin Core version is already up to date"))
     return render_template(
         "node/internal_node_settings.jinja",
         node=node,
