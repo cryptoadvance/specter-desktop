@@ -75,15 +75,15 @@ It took about 12 hours for a full-sync in my case on a Intel Quadcore Gen 6 3.50
 
 You're probably familiar with this part. On the upper-left, click on the `two arrows -> connect a new node -> Connect existing node`. Here is a screenshots with the values fitting to the configuration above:
 
-![](./elements_liquidconfig.png)
+![](./images/elements/liquidconfig.png)
 
 After clicking on `save`, the node will get selected. You see something like this in the upper left:
 
-![](./elements_nav.png)
+![](./images/elements/nav.png)
 
 As you can your wallets disappeared but your devices did not. The shown wallets are now specific to the Node which has been selected. The node can be switched via the clicking on the two arrows.
 
-![](./elements_nodechoose.png)
+![](./images/elements/nodechoose.png)
 
 # Hotwallet-Creation
 
@@ -92,7 +92,7 @@ After that, you can directly create a single key wallet: `Create single key wall
 
 So if you now get a receive-address, you have to choose between a Confidential and a Unconfidential address.
 
-![](./elements_receive.png)
+![](./images/elements/receive.png)
 
 # Fund the wallet
 
@@ -100,7 +100,7 @@ There are many ways you can fund your wallet. Let's assume you have Bitcoin and 
 
 As an example, let'S choose sideshift.ai to swap some BTC to LBTC.
 
-![](./elements_sideshift1.png) ![](./elements_sideshift2.png) ![](./elements_sideshift3.png) ![](./elements_sideshift4.png) 
+![](./images/elements/sideshift1.png) ![](./images/elements/sideshift2.png) ![](./images/elements/sideshift3.png) ![](./images/elements/sideshift4.png) 
 
-![](./elements_txs.png)
+![](./images/elements/txs.png)
 
