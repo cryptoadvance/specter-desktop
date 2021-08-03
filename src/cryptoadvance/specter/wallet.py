@@ -367,7 +367,11 @@ class Wallet:
             addresses_info_multi = self.rpc.multi(
                 [
                     ("getaddressinfo", address)
-                    for address in [tx for tx in txs if tx["category"] != "send"]
+                    for address in [
+                        tx
+                        for tx in txs
+                        if tx["category"] != "send" and address not in self._addresses
+                    ]
                 ]
             )
             addresses_info = [
