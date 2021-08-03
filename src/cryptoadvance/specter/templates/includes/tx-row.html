@@ -76,7 +76,7 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             // Set category image
-            this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
+            this.category.src = this.getCategoryImg(this.tx.category, this.tx.confirmations > 0);
             this.category.classList.add('svg-' + this.tx.category)
             
             // TODO:
@@ -174,11 +174,11 @@
                 } else {
                     this.rbfCancel.classList.remove('hidden');
                     this.rbfCancel.onclick = () => {
-                        rbfPopup(this, 'cancel');
+                        this.rbfPopup('cancel');
                     }
                 }
                 this.rbf.onclick = () => {
-                    rbfPopup(this, 'speedup');
+                    this.rbfPopup('speedup');
                 }
             } else {
                 this.rbf.classList.add('hidden');
@@ -222,69 +222,68 @@
                 this.selectTxImg.classList.add('hidden');
             }
         }
-    }
 
-    function rbfPopup(self, rbfType) {
-        let txDataPopup = document.getElementById('tx-popup');
-        let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        let newFee = parseFloat((((self.tx.fee * -1) / self.tx.vsize) * 1e8).toFixed(2));
-        if (newFee <= 1.02) {
-            newFee = 1;
-        }
-        if (rbfType == 'cancel') {
-            newFee *= 1.5; // Tx likely to have lower size so will need higher fee
-        } else {
-            newFee += 2;
-        }
-        txDataPopup.innerHTML = `
-        <form action="${url}" method="POST">
-        <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
-        <p>{{ _("You can") }} ${rbfType == 'cancel' ? '{{ _("cancel") }}' : '{{ _("speed up") }}'} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ' {{ _("and sending the funds back to yourself") }}' : ''}:</p>
-        <input type="hidden" name="rbf_tx_id" value='${self.tx.txid}' />
-        <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
-        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <br>
-        <br>
-        <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? '{{ _("Cancel transaction") }}' : '{{ _("Speed up!") }}'}</button>
-        <br>
-        <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-        <div class="advanced_rbf hidden warning">
-            <p style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
-            <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
-        </div>
-        </form>
-        `;
-        txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
-            let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
-            let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
-            if (advancedSettings.classList.contains('hidden')) {
-                advancedSettings.classList.remove('hidden')
-                advancedButton.innerHTML = 'Advanced &#9660;';
+        rbfPopup(rbfType) {
+            let txDataPopup = document.getElementById('tx-popup');
+            let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let newFee = parseFloat((((this.tx.fee * -1) / this.tx.vsize) * 1e8).toFixed(2));
+            if (newFee <= 1.02) {
+                newFee = 1;
+            }
+            if (rbfType == 'cancel') {
+                newFee *= 1.5; // Tx likely to have lower size so will need higher fee
             } else {
-                advancedSettings.classList.add('hidden')
-                advancedButton.innerHTML = 'Advanced &#9654;';
+                newFee += 2;
+            }
+            txDataPopup.innerHTML = `
+            <form action="${url}" method="POST">
+            <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
+            <p>{{ _("You can") }} ${rbfType == 'cancel' ? '{{ _("cancel") }}' : '{{ _("speed up") }}'} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ' {{ _("and sending the funds back to yourself") }}' : ''}:</p>
+            <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
+            <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <br>
+            <br>
+            <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? '{{ _("Cancel transaction") }}' : '{{ _("Speed up!") }}'}</button>
+            <br>
+            <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+            <div class="advanced_rbf hidden warning">
+                <p style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
+                <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
+            </div>
+            </form>
+            `;
+            txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
+                let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
+                let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
+                if (advancedSettings.classList.contains('hidden')) {
+                    advancedSettings.classList.remove('hidden')
+                    advancedButton.innerHTML = 'Advanced &#9660;';
+                } else {
+                    advancedSettings.classList.add('hidden')
+                    advancedButton.innerHTML = 'Advanced &#9654;';
+                }
+            }
+
+            showPageOverlay('tx-popup');
+        }
+
+        getCategoryImg(category, isConfirmed) {
+            if (!isConfirmed) {
+                return `{{ url_for('static', filename='img') }}/clock.svg`;
+            }
+            switch (category) {
+                case "send":
+                    return `{{ url_for('static', filename='img') }}/send.svg`;
+                case "receive":
+                case "immature":
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                case "generate":
+                    return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
+                case "selftransfer":
+                    return `{{ url_for('static', filename='img') }}/transfer.svg`;
             }
         }
-
-        showPageOverlay('tx-popup');
     }
-
-    function getCategoryImg(category, isConfirmed) {
-        if (!isConfirmed) {
-            return `{{ url_for('static', filename='img') }}/clock.svg`;
-        }
-        switch (category) {
-            case "send":
-                return `{{ url_for('static', filename='img') }}/send.svg`;
-            case "receive":
-            case "immature":
-                return `{{ url_for('static', filename='img') }}/receive.svg`;
-            case "generate":
-                return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
-            case "selftransfer":
-                return `{{ url_for('static', filename='img') }}/transfer.svg`;
-        }
-    }
-
     customElements.define('tx-row', TxRowElement);
 </script>

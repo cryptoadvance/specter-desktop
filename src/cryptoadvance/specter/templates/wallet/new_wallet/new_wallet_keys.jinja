@@ -12,12 +12,12 @@
 			<label>
 				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
 				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio left">{{ _("Nested Segwit") }}</div>
+				<div class="btn radio left" id="type_nested_segwit_btn">{{ _("Nested Segwit") }}</div>
 			</label>
 			<label>
 				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
-				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio right">{{ _("Segwit") }}</div>
+				class="hidden type_nested_segwit" onchange="updateType(this.value);">
+				<div class="btn radio right" id="type_nested_segwit_btn">{{ _("Segwit") }}</div>
 			</label>
 		</nav>
 
