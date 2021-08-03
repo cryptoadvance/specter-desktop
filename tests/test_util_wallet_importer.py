@@ -101,7 +101,9 @@ def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest)
     dm: DeviceManager = someuser.device_manager
     wallet = wallet_importer.create_wallet(someuser.wallet_manager)
     # fund it with some coins
-    bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+    bitcoin_regtest.testcoin_faucet(
+        address=wallet.getnewaddress(), confirm_payment=False
+    )
     # Realize that the wallet has funds:
     wallet.update()
     wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
