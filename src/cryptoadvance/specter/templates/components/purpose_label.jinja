@@ -1,0 +1,20 @@
+<style>
+    .purpose-label {
+        display: flex;
+        align-items: center;
+    }
+</style>
+<div class="purpose-label">
+	{{ key.purpose }}
+	{% if key.key_type == "non-standard" %}
+		<div class="tool-tip">
+			<img src="/static/img/warning_purpose.svg" style="width: 24px;">
+			<p class="tool-tip__info">
+			    <span class="info">
+			        <span class="info__title">Non-standard purpose<br><br></span>
+			        Check whether you really want to use this key, you are using a non-standard purpose.<br>
+			    </span>
+			</p>
+		</div>
+	{% endif %}
+</div>

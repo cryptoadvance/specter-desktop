@@ -2,11 +2,10 @@ from collections import OrderedDict
 from binascii import hexlify
 from embit import base58
 from .util.xpub import get_xpub_fingerprint
-
+import re
 
 purposes = OrderedDict(
     {
-        "": "General",
         "wpkh": "Single (Segwit)",
         "sh-wpkh": "Single (Nested)",
         "wsh": "Multisig (Segwit)",
@@ -40,10 +39,8 @@ class Key:
             fingerprint = get_xpub_fingerprint(original).hex()
         if derivation is None:
             derivation = ""
-        if key_type not in purposes:
-            key_type = ""
         if not purpose:
-            purpose = purposes.get(key_type, "General")
+            purpose = purposes.get(key_type, "Non-standard purpose")
         self.original = original
         self.fingerprint = fingerprint
         self.derivation = derivation
@@ -131,6 +128,8 @@ class Key:
                         key_type = "sh-wsh"
                     elif derivation_path[4] == "2h":
                         key_type = "wsh"
+            else:
+                key_type = "non-standard"
 
         # infer fingerprint and derivation if depth == 0 or depth == 1
         xpub_bytes = base58.decode_check(xpub)
@@ -177,6 +176,23 @@ class Key:
     @property
     def is_testnet(self):
         return not self.xpub.startswith("xpub")
+
+    @property
+    def network(self):
+        network = ""
+        pattern = r"^m\/([0-9]+)h\/([0-9]+)h\/([0-9]+)h"
+        match = re.search(pattern, self.derivation)
+        if not match:
+            network = "weird"
+        if match.group(2) == "0":
+            network = "main"
+        elif match.group(2) == "1":
+            network = "test"
+        elif match.group(2) == "1776":
+            network = "liquid"
+        else:
+            network = "weird"
+        return network
 
     @property
     def json(self):

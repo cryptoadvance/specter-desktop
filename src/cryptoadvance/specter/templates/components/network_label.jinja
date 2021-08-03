@@ -7,13 +7,22 @@
 <div class="network-label">
     {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
     {% from "components/liquid_svg.jinja" import liquid_svg %}
-    {% if key.xpub.startswith("xpub") %}
-        {% if "/1776h/" in key.derivation %}
-            {{ liquid_svg('main', 16) }}&nbsp;<span>Liquid</span>
-        {% else %}
-            {{ bitcoin_svg('main', 16) }}&nbsp;<span>Main</span>
-        {% endif %}
-    {% else %}
+    {% if key.network == "main" %}
+        {{ bitcoin_svg('main', 16) }}&nbsp;<span>Main</span>
+    {% elif key.network == "test" %}
         {{ bitcoin_svg('test', 16) }}&nbsp;<span>Test</span>
+    {% elif key.network == "liquid" %}
+        {{ liquid_svg('main', 16) }}&nbsp;<span>Liquid</span>
+    {% else %}
+        <div class="tool-tip">
+            <img src="/static/img/warning_network.svg" style="width: 24px;">
+            <p class="tool-tip__info">
+                <span class="info">
+                    <span class="info__title">Weird network<br><br></span>
+                    Check whether you really want to use this key, the level in your derivation path that is defining the network looks weird.<br>
+                </span>
+            </p>
+        </div>
     {% endif %}
 </div>
+

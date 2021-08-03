@@ -35,7 +35,9 @@
 						<td>
 						    {% include "components/network_label.jinja" %}
 						</td>
-						<td>{{ key.purpose }}</td>
+						<td>
+							{% include "components/purpose_label.jinja" %}
+						</td>
 						<td class="optional">{{ key.derivation }}</td>
 						{% if specter.hide_sensitive_info %}
 							<td></td>
