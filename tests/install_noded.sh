@@ -1,6 +1,6 @@
 #!/bin/bash
-
-set -e -o pipefail
+# fail early
+set -o pipefail
 
 # change to the directory the script is located in
 cd "$( dirname "${BASH_SOURCE[0]}" )/."
@@ -65,7 +65,7 @@ function maybe_update {
         else
             echo "    --> Pinned: $PINNED! Checkout needed!"
             git fetch
-            git checkout $PINNED || exit 1
+            git checkout $PINNED
             return 1
         fi
     fi
@@ -133,9 +133,9 @@ function build_node_impl {
     # optimizing for speed would use the maximum threads available:
     #make -j$(nproc)
     # but we're optimizing for mem-allocation. 1 thread is quite slow, let's try 4 (we have 4GB and need to find the sweet-spot)
-    make -j3
+    make -j2
     cd ../.. #travis is sourcing this script
-    echo "    --> Finished build bitcoind"
+    echo "    --> Finished build $node_impl"
 
 
 }
@@ -149,8 +149,24 @@ function sub_help {
     echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md#how-to-run-the-tests"
 }
 
+function check_compile_prerequisites {
+    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
+    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+    for REQUIRED_PKG in $REQUIRED_PKGS; do
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+        echo Checking for $REQUIRED_PKG: $PKG_OK
+        if [ "" = "$PKG_OK" ]; then
+            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+            apt-get --yes install $REQUIRED_PKG 
+        fi
+    done
+
+}
+
 function sub_compile {
     START=$(date +%s.%N)
+    check_compile_prerequisites
     node_impl=$1
     echo "    --> install_node.sh Start $(date) (compiling for $node_impl)"
     echo "        checkout ..."
@@ -171,7 +187,7 @@ function sub_binary {
         echo "    --> binary installation of elements not supported, exiting"
         exit 2
     fi
-    echo "    --> install_bitcoind.sh Start $(date) (binary)"
+    echo "    --> install_noded.sh Start $(date) (binary)"
     START=$(date +%s.%N)
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
@@ -194,7 +210,7 @@ function sub_binary {
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_bitcoind.sh End $(date) took $DIFF"
+    echo "    --> install_noded.sh End $(date) took $DIFF"
 }
 
 

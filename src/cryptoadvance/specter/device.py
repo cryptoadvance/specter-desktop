@@ -161,6 +161,11 @@ class Device:
             "single key" if wallet_type == "simple" else "multisig"
         )
 
+    @property
+    def ref4name(self):
+        """Device have names and sometimes you want a referenable string from that name. Is there a better name for that than ref4name ?"""
+        return self.name.lower().replace(" ", "_")
+
     def __eq__(self, other):
         if other is None:
             return False
