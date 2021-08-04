@@ -40,6 +40,7 @@ def get_rpcconfig(datadir=get_default_datadir()):
         "cookies": [],
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
+        logger.warning(f"{datadir} not found")
         return config
     # load content from bitcoin.conf
     bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
