@@ -241,7 +241,7 @@ def enumerate(password=""):
         s.close()
         ports.append("127.0.0.1:8789")
     except Exception as e:
-        print(e)
+        print("Warning: Specter DIY failed to establish socket connection,", e)
         pass
 
     for port in ports:
