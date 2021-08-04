@@ -112,8 +112,6 @@ def get_configs(config=None, datadir=get_default_datadir()):
 
 
 def detect_rpc_confs(config=None, datadir=get_default_datadir()):
-    if config is None:
-        config = get_rpcconfig(datadir=datadir)
     rpcconfs = get_configs(config)
     rpc_arr = []
     for conf in rpcconfs:
@@ -185,7 +183,7 @@ def autodetect_rpc_confs(
 
 
 class RpcError(Exception):
-    """Specifically created for error-handling of the BitcoiCore-API
+    """Specifically created for error-handling of the BitcoinCore-API
     if thrown, check for errors like this:
     try:
         rpc.does_not_exist()
