@@ -31,6 +31,7 @@ class ElementsPlainController(NodePlainController):
         cleanup_at_exit=False,
         cleanup_hard=False,
         datadir=None,
+        log_stdout=False,
         extra_args=[],
         timeout=60,
     ):
@@ -43,6 +44,7 @@ class ElementsPlainController(NodePlainController):
             cleanup_at_exit,
             cleanup_hard,
             datadir,
+            log_stdout,
             extra_args,
             timeout,
         )
@@ -56,6 +58,7 @@ class ElementsPlainController(NodePlainController):
         rpcconn,
         run_docker=True,
         datadir=None,
+        log_stdout=False,
         node_path="elementsd",
         network="regtest",  # Doesn't make sense here. For now, only "elreg" is supported
         extra_args=[],
@@ -75,10 +78,12 @@ class ElementsPlainController(NodePlainController):
         )
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
-            btcd_cmd += " -noprinttoconsole"
+            if not log_stdout:
+                btcd_cmd += " -noprinttoconsole"
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += ' -datadir="{}" '.format(datadir)
+        print(f"extra_args={extra_args})")
         if extra_args:
             btcd_cmd += " {}".format(" ".join(extra_args))
         logger.debug("constructed elementsd-command: %s", btcd_cmd)
