@@ -642,6 +642,7 @@ class Wallet:
             self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
             self.full_utxo = []
+            logger.exception(e)
             raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):

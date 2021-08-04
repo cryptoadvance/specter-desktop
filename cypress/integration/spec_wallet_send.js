@@ -22,15 +22,9 @@ describe('Send transactions from bitcoin hotwallets', () => {
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
         cy.get('#btn_continue').click()
-        cy.get('#btn_transactions').click()
-        cy.task("btc:mine")
-        cy.wait(10000)
-        cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
-        cy.get('#fullbalance_amount')
-        .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.gt(0).and.be.lte(50)
-        })
+        //get some funds
+        cy.mine2wallet("btc")
+
         cy.get('#btn_send').click()
         cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
         cy.get('#label_0').type("Burn address")
@@ -70,16 +64,10 @@ describe('Send transactions from bitcoin hotwallets', () => {
         cy.get('body').contains("New wallet was created successfully!")
         cy.get('#page_overlay_popup_cancel_button').click()
         // Send transaction
-        cy.task("btc:mine")
-        cy.wait(10000)
-        cy.get('#btn_transactions').click()
-        cy.get('#wallets-loading-done-refresh', { timeout: 10000 }).click()
-        cy.reload()
-        cy.get('#fullbalance_amount')
-        .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.gt(0).and.be.lte(50)
-        })
+
+        //get some funds
+        cy.mine2wallet("btc")
+        
         cy.get('#btn_send').click()
         cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
         cy.get('#label_0').type("Burn address")
