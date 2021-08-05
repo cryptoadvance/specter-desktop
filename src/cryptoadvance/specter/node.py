@@ -145,7 +145,8 @@ class Node:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
                 )
-            # autodetect won't result in any logging, even if None
+            if rpc == None:
+                logger.warning(f"No rpc was found for {self}")
             return rpc
         else:
             # if autodetect is disabled and port is not defined
@@ -280,7 +281,7 @@ class Node:
                 logger.exception("Exception %s while check_info()" % e)
         else:
             if self.rpc is None:
-                logger.error(f"connection of {self} is None in check_info")
+                logger.warning(f"connection of {self} is None in check_info")
             elif not self.rpc.test_connection():
                 logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
