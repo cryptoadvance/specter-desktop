@@ -368,10 +368,15 @@ class Wallet:
                 [
                     ("getaddressinfo", address)
                     for address in [
-                        tx["address"]
+                        tx["details"][0].get("address")
                         for tx in txs.values()
-                        if tx["category"] != "send" and address not in self._addresses
+                        if tx.get("details")
+                        and (
+                            tx.get("details")[0].get("category") != "send"
+                            and tx["details"][0].get("address") not in self._addresses
+                        )
                     ]
+                    if address
                 ]
             )
             addresses_info = [
