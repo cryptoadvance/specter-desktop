@@ -386,8 +386,10 @@ class Wallet:
             ]
 
             # Gets max index used receiving and change addresses
-            max_used_receiving = self._addresses.max_index(change=False)
-            max_used_change = self._addresses.max_index(change=True)
+            max_used_receiving = (
+                self._addresses.max_index(change=False) - self.GAP_LIMIT
+            )
+            max_used_change = self._addresses.max_index(change=True) - self.GAP_LIMIT
 
             for address in addresses_info:
                 desc = LDescriptor.from_string(address["desc"])
