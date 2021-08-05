@@ -53,7 +53,6 @@ class Wallet:
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
-    GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
     MIN_FEE_RATE = 1.01
@@ -395,8 +394,8 @@ class Wallet:
                 desc = LDescriptor.from_string(address["desc"])
                 indexes = [
                     {
-                        "idx": k.origin.derivation.split("/")[-1],
-                        "change": k.origin.derivation.split("/")[-2],
+                        "idx": k.origin.derivation[-1],
+                        "change": k.origin.derivation[-2],
                     }
                     for k in desc.keys
                 ]
