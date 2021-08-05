@@ -92,7 +92,7 @@
                 this.label.innerText = this.labelValue;
             } else {
                 this.label.innerText = this.asset;
-                // fetchAssetLabel(this);
+                // fetchAssetLabel();
             }
 
             // Set title mode for asset-label element
@@ -151,7 +151,7 @@
             this.update.onclick = async () => {
                 if (await this.setAssetLabel()) {
                     this.labelValue = this.label.innerText;
-                    this.closeEditMode(this);
+                    this.closeEditMode();
                     let event = new CustomEvent('updateAssetLabel', { detail: {
                         label: this.labelValue,
                         asset: this.asset,
@@ -179,6 +179,7 @@
                 }
             });
         }
+        
         closeEditMode() {
             this.label.removeAttribute('contenteditable')
             if (this.isTitle) {

@@ -166,6 +166,7 @@ class NodeManager:
         network="main",
         port=None,
         default_alias=None,
+        datadir=None,
     ):
         if not default_alias:
             node_alias = alias(name)
@@ -177,12 +178,14 @@ class NodeManager:
             node_alias = alias("%s %d" % (name, i))
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             i += 1
+        if not datadir:
+            datadir = os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}")
 
         node = InternalNode(
             name,
             node_alias,
             False,
-            os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}"),
+            datadir,
             "bitcoin",
             secrets.token_urlsafe(16),
             port if port else (RPC_PORTS[network] if network in RPC_PORTS else 8332),
