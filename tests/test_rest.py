@@ -58,9 +58,26 @@ def test_rr_psbt_get(client, caplog):
     assert data["result"] == []
 
 
-def test_rr_psbt_post(client, caplog):
+def test_rr_psbt_post(specter_regtest_configured, client, caplog):
     caplog.set_level(logging.DEBUG)
     """ testing the registration """
+
+    headers = {
+        "Authorization": "Basic "
+        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
+            "ascii"
+        ),
+        "Content-type": "application/json",
+    }
+
+    result = client.get(
+        "/api/v1alpha/wallets/a_simple_wallet/",
+        follow_redirects=True,
+        headers=headers,
+    )
+    # Why the heck does this fail?
+    # assert json.loads(result.data)["a_simple_wallet"]["info"]["balance"] > 0
+
     result = client.post(
         "/api/v1alpha/wallets/some_wallet/psbt",
         data=dict(address="someaddress", amount=0.5),
@@ -71,20 +88,13 @@ def test_rr_psbt_post(client, caplog):
         "The server could not verify that you are authorized to access the URL requested."
     )
 
-    headers = {
-        "Authorization": "Basic "
-        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
-            "ascii"
-        ),
-        "Content-type": "application/json",
-    }
     result = client.post(
         "/api/v1alpha/wallets/a_simple_wallet/psbt",
         data="""
         {
             "recipients" : [
                 { 
-                    "address": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
+                    "address": "bcrt1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
                     "amount": 0.1,
                     "unit": "btc",
                     "label": "someLabel"

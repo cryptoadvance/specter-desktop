@@ -56,9 +56,10 @@ Cypress.Commands.add("addDevice", (name) => {
 Cypress.Commands.add("addHotDevice", (name, node_type) => { 
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
-      cy.task("delete:elements-hotwallet")
+      //cy.task("delete:elements-hotwallet")
       if ($body.text().includes(name)) {
-        cy.get('#devices_list > .item > div').click()
+        var refName = "#device_list_item_"+name.toLowerCase().replace(/ /g,"_")
+        cy.get(refName).click()
         cy.get('#forget_device').click()
       } 
       cy.get('#side-content').click()
@@ -72,7 +73,10 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
     })
 })
 
-Cypress.Commands.add("addHotWallet", (name, node_type, single_multi) => { 
+Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi) => { 
+  if (wallet_type == null) {
+    wallet_type = "segwit"
+  }
   cy.get('body').then(($body) => {
       if ($body.text().includes(name)) {
         cy.contains(name).click()
@@ -87,21 +91,66 @@ Cypress.Commands.add("addHotWallet", (name, node_type, single_multi) => {
       cy.get('[href="./simple/"]').click()
       cy.get('#hot_elements_device_1').click()
       cy.get('#wallet_name').type(name)
+      if (wallet_type == "nested_segwit") {
+        cy.get(':nth-child(1) > #type_nested_segwit_btn').click()
+      }
+      // Create Wallet button:
       cy.get('#keysform > .centered').click()
       cy.get('body').contains("New wallet was created successfully!")
       // // Download PDF
       // // unfortunately this results in weird effects in cypress run
       // //cy.get('#pdf-wallet-download > img').click()
       cy.get('#btn_continue').click()
-      cy.get('#btn_transactions').click()
-      cy.task("elm:mine")
-      cy.wait(4000)
+
+      //Get some funds
+      cy.mine2wallet("elm")
+
+    })
+})
+
+Cypress.Commands.add("deleteWallet", (name) => { 
+  cy.get('body').then(($body) => {
+    if ($body.text().includes(name)) {
+        cy.contains(name).click()
+        cy.get('#btn_settings').click()
+        cy.get('#advanced_settings_tab_btn').click()
+        cy.get('#delete_wallet').click()
+        // That does not seem to delete the wallet-file in elements, though
+        // So let's do that as well
+        cy.task("delete:elements-hotwallet")
+    } 
+  })
+})
+
+Cypress.Commands.add("mine2wallet", (chain) => { 
+  // Fund it and check the balance
+  cy.get('#btn_transactions').click()
+  cy.get('#fullbalance_amount').then(($div) => {
+      const oldBalance = parseFloat($div.text())
+      if (chain=="elm") {
+        cy.task("elm:mine")
+      } else if (chain=="btc") {
+        cy.task("btc:mine")
+      } else {
+        throw new Error("Unknown chain: " + chain)
+      }
+      cy.wait(10000)
       cy.reload()
       cy.get('#fullbalance_amount')
           .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.gt(0).and.be.lte(50)
-          })
+          const n = parseFloat($div.text())
+          expect(n).to.be.gt(oldBalance)
+          }
+      )
+  })
+})
 
-    })
+// Quick and easy way to fill out the send form and create a psbt
+Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => { 
+  cy.get('#btn_send').click()
+  cy.get('#address_0').type(address)
+  cy.get('#label_0').type(label)
+  //cy.get('#send_max_0').click()
+  cy.get('#amount_0').type(amount)
+  cy.get('#create_psbt_btn').click()
 })
