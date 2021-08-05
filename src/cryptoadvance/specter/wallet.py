@@ -51,9 +51,9 @@ addrtypes = {
 
 class Wallet:
     # if the wallet is old we import 300 addresses
-    IMPORT_KEYPOOL = 1
+    IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
-    GAP_LIMIT = 2
+    GAP_LIMIT = 20
     # minimal fee rate is slightly above 1 sat/vbyte
     # to avoid rounding errors
     MIN_FEE_RATE = 1.01
