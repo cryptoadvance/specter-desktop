@@ -165,7 +165,18 @@
 					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
 					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
 					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
-					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}</button>
+					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Importing electrum labels") }}</span><br><br>
+									{{ _("The expected json format contains utxo ids and addresses with the labels:") }}<br><br>
+									{{ _('{ "8a5e4...": "some utxo label", "bc1qj3...": "some address label" }') }}<br><br>
+								</span>
+							</p>
+						</div>
+					</button>
 				</div>
 			</form>
 			<div class="section-separator"></div>
