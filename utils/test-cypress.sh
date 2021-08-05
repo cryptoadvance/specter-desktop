@@ -133,13 +133,24 @@ function start_node {
     if [ "$node_impl" = "bitcoind" ]; then
       echo "--> Purging $BTCD_REGTEST_DATA_DIR"
       rm -rf $BTCD_REGTEST_DATA_DIR
+      node_impl_abbrev=btcd
     else
       echo "--> Purging $ELMD_REGTEST_DATA_DIR"
       rm -rf $ELMD_REGTEST_DATA_DIR
+      node_impl_abbrev=elmd
     fi
   fi
   if [ "$CLEANUPHARD" = "true" ]; then
       addopts="--cleanuphard"
+  fi
+  if [ "$node_impl" = "bitcoind" ]; then
+    if [ "$BTCLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
+  else
+    if [ "$ELMLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
   fi
   if [ "$DOCKER" != "true" ]; then
     if [ "$node_impl" != "elementsd" ]; then # no docker for elementsd yet
@@ -154,9 +165,11 @@ function start_node {
     elementsd_pid=$!
   fi
 
-  while ! [ -f ./btcd-conn.json ] ; do
+  echo "--> Waiting for Starting ${node_impl_abbrev}-conn.json to be created ..."
+  while ! [ -f ./${node_impl_abbrev}-conn.json ] ; do
       sleep 0.5
   done
+  echo "--> ${node_impl_abbrev}-conn.json created ..."
 
 }
 
@@ -376,6 +389,10 @@ function parse_and_execute() {
     --debug)
       set -x
       DEBUG=--debug
+      shift
+      ;;
+    --elm-log-stdout)
+      ELMLOGSTDOUT=true
       shift
       ;;
     --docker)

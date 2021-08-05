@@ -343,6 +343,7 @@ class BitcoinRPC:
         )
         self.r = r
         if r.status_code != 200:
+            logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
             raise RpcError(
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )

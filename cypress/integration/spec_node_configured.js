@@ -20,15 +20,10 @@ describe('Node Configured', () => {
         // Download PDF
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
-        cy.task("btc:mine")
-        cy.wait(10000)
         cy.get('#btn_continue').click()
-        cy.get('#btn_transactions').click()
-        cy.get('#fullbalance_amount')
-        .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.gt(0).and.be.lte(50)
-        })
+        
+        cy.mine2wallet("btc")
+
 
     })
 })
