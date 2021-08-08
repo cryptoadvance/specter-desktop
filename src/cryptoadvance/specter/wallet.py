@@ -446,6 +446,37 @@ class Wallet:
 
         self._transactions.add(txs)
 
+    def import_electrum_label_export(self, electrum_label_export):
+        if not electrum_label_export:
+            logger.warning(f"No electrum export json provided.")
+            return
+
+        labeled_addresses = json.loads(electrum_label_export)
+
+        # write tx_label to address_label in labels
+        for txitem in self._transactions.values():
+            if txitem["txid"] not in labeled_addresses:
+                continue
+
+            address_list = (
+                [txitem["address"]]
+                if isinstance(txitem["address"], str)
+                else txitem["address"]
+            )
+            for one_address in address_list:
+                if one_address in labeled_addresses:
+                    continue  # if there is an address label, it supercedes the tx label
+                labeled_addresses[one_address] = labeled_addresses[txitem["txid"]]
+
+        # convert labeled_addresses to arr (for AddressList.set_labels) and allow only already existing addresses
+        arr = [
+            {"address": address, "label": label}
+            for address, label in labeled_addresses.items()
+            if address in self._addresses
+        ]
+        self._addresses.set_labels(arr)
+        logger.info(f"Imported {len(arr)} address labels.")
+
     def update(self):
         self.getdata()
         self.get_balance()
