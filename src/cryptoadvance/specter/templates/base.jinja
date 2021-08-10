@@ -10,6 +10,34 @@
 			img[src="{{ url_for('static', filename='img/devices/elementscore_icon.svg') }}"] {
 				transform: scale(2.2);
 			}
+			{% if session["is_language_rtl"] %}
+			* {
+				direction: rtl;
+			}
+			{% endif %}
+			.btn.radio.left {
+				{% if session["is_language_rtl"] %}
+				border-radius: 0 10px 10px 0;
+				{% else %}
+				border-radius: 10px 0 0 10px;
+				{% endif %}
+			}
+			.btn.radio.right {
+				{% if session["is_language_rtl"] %}
+				border-radius: 10px 0 0 10px;
+				{% else %}
+				border-radius: 0 10px 10px 0;
+				{% endif %}
+			}
+			nav.side > a.item.active, nav.side > div > a.item.active{
+				{% if session["language_code"] in config['RTL_LANGUAGES'] %}
+				border-right: 3px solid #4A90E2;
+				border-left: 0;
+				{% else %}
+				border-left: 3px solid #4A90E2;
+				border-right: 0;
+				{% endif %}
+			}
 		</style>
 	</head>
 	<body>
@@ -34,7 +62,7 @@
 		{% endblock %}
 		<main><div><br><br></div>
 			{% if current_user.is_authenticated and not hwi_bridge %}
-				<div class="row" id="status-bar" style="border-radius: 0 0 0 15px; position: absolute; right: 0; color: #ddd; background-color: #323e50;">
+				<div class="row" id="status-bar" style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 0 15px; right{% endif %}: 0; position: absolute; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
 					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
 						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>
