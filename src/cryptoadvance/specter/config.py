@@ -124,6 +124,9 @@ class BaseConfig(object):
         "zh_Hant_TW": "繁體中文",
     }
 
+    # Babel integration. List of languages written from right to left for RTL support in the UI
+    RTL_LANGUAGES = ["he"]
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
