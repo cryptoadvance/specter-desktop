@@ -80,11 +80,11 @@
             currentHeight += 8
             
             doc.setFont("Roboto", "normal");
-            doc.text('{{ _("Device type:") }}" ' + deviceType, 15, currentHeight);
+            doc.text('{{ _("Device type:") }} ' + deviceType, 15, currentHeight);
             currentHeight += 8
-            doc.text('{{ _("Master fingerprint:") }}" {{ key.fingerprint }}', 15, currentHeight);
+            doc.text('{{ _("Master fingerprint:") }} {{ key.fingerprint }}', 15, currentHeight);
             currentHeight += 8
-            doc.text('{{ _("Derivation path:") }}" {{ key.derivation }}', 15, currentHeight);
+            doc.text('{{ _("Derivation path:") }} {{ key.derivation }}', 15, currentHeight);
             currentHeight += 8
 
             if (useSlip132)
@@ -124,7 +124,7 @@
         currentHeight += 10;
 
         doc.setFontSize(14)
-        doc.text('{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
+        doc.text('{{ wallet.account_map | safe }}'.replace(/(.{60})/g, "$1\n"), 15, currentHeight);
         currentHeight += '{{ wallet.account_map }}'.replace(/(.{60})/g, "$1\n").split('\n').length * 7;
 
         if (currentHeight + 20 + "{{ wallet.recv_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split("\n").length * 7 >= pageHeight) {
