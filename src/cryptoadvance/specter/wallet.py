@@ -1185,13 +1185,7 @@ class Wallet:
 
     @property
     def account_map(self):
-        account_map_dict = {
-            "label": self.name,
-            "blockheight": self.blockheight,
-            "descriptor": self.recv_descriptor,
-            "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
-        }
-        return json.dumps(account_map_dict)
+        return json.dumps(self.to_json(for_export=True))
 
     def getnewaddress(self, change=False, save=True):
         if change:
