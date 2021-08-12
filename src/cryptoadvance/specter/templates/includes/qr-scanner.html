@@ -104,7 +104,12 @@ class QRScannerElement extends HTMLElement {
         // expected: crypto-psbt
         let re3 = /UR:CRYPTO-(.*)/;
         let p3 = result.match(re3);
-        if(p3){
+
+        // check if it is a bcur2 Foundation Passport stuff
+        let re4 = /UR:BYTES\/(.*-*\/)/;
+        let p4 = result.match(re4);
+
+        if(p3 || p4){
           this.bcur2decoder.receivePart(result);
           if(this.bcur2decoder.isComplete()){
             result = this.bcur2decoder.resultUR();

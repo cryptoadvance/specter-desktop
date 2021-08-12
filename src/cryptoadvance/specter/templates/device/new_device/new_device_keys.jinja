@@ -459,6 +459,73 @@
                 if(result==null){
                     return;
                 }
+
+                // foundation's passport returns coldcard format encoded in bcur2
+                if(result.type == "bytes"){
+                    let b = window.URlib.Bytes.fromCBOR(result.cbor);
+                    let str = new TextDecoder().decode(b.getData());
+                    let data = "";
+                    if (str.indexOf("{") >= 0) {
+                        let json = JSON.parse(str);
+                        console.log(str);
+                        if ("keystore" in json) { // ColdCard electrum file
+                            let prefix = "";
+                            let fingerprint = "";
+                            if ("ckcc_xfp" in json.keystore){
+                                let num = json.keystore.ckcc_xfp;
+                                for (let i = 0; i < 4; i++) {
+                                    fingerprint += ('0' + (num % 256).toString(16)).slice(-2);
+                                    num = num >>> 8;
+                                }
+                            }
+                            if ("root_fingerprint" in json.keystore){
+                                fingerprint = json.keystore.root_fingerprint;
+                            }
+                            if ((fingerprint.length > 0) && ("derivation" in json.keystore)) {
+                                prefix = "[";
+                                prefix += fingerprint;
+                                prefix += json.keystore.derivation.substring(1).replace(/'/g,"h");
+                                prefix += "]";
+                            }
+                            let s = prefix + json.keystore.xpub + "\n";
+                            data += s;
+                        } else if ("ExtPubKey" in json){
+                            // Probably Cobo single key txt file
+                            let der = '/' + json.AccountKeyPath.replace("m","").replace(/'/g,"h");
+                            data += `[${json.MasterFingerprint}${der}]${json.ExtPubKey}\n`;
+                        } else if (("bip84" in json) && ("xfp" in json)){
+                        // coldcard generic file
+                            let s = "";
+                            ["bip44","bip49","bip84","bip48_1","bip48_2"].forEach((bip)=>{
+                                if(bip in json){
+                                    let der = json[bip].deriv.replace("m","").replace(/'/g,"h");
+                                    let xpub = json[bip].xpub;
+                                    if("_pub" in json[bip]){
+                                        xpub = json[bip]["_pub"];
+                                    }
+                                    s += `[${json.xfp}${der}]${xpub}\n`;
+                                }
+                            });
+                            data += s;
+                        } else if (("xpub" in json) && ("path" in json) && ("xfp" in json)) {
+                            // Probably Cobo single key file
+                            let der = json.path.replace("m","").replace(/'/g,"h");
+                            data += `[${json.xfp}${der}]${json.xpub}\n`;
+                        } else if ("xfp" in json) {
+                        // probably ColdCard multisig file
+                            let s = "";
+                            for (let k in json) {
+                                if (k+"_deriv" in json) {
+                                    s += "["+json.xfp+json[k+"_deriv"].substring(1)+"]"+json[k]+"\n";
+                                }
+                            }
+                            data += s;
+                        }
+                    }
+                    addXpubs(data);
+                    return;
+                }
+
                 // keystone returns bcur2 result
                 if(result.type == "crypto-account"){
                     let account = window.URlib.CryptoAccount.fromCBOR(result.cbor);
