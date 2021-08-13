@@ -109,7 +109,7 @@ class QRScannerElement extends HTMLElement {
         let re4 = /UR:BYTES\//;
         let p4 = result.match(re4);
 
-        if (p3 || p4){
+        if (p3 || (p4 && !p2)){
           try {
             this.bcur2decoder.receivePart(result);
             if (this.bcur2decoder.isComplete()) {
@@ -119,10 +119,8 @@ class QRScannerElement extends HTMLElement {
               this.progress.innerHTML = `Progress: ${Math.round(this.bcur2decoder.getProgress()*100)}%`;
               return;
             }
-            p1 = false;
-            p2 = false;
           } catch {
-            p2 = true;
+            // Probably bcur1, continue to the next check
           }
         }
         
