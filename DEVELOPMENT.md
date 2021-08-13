@@ -93,9 +93,11 @@ virtualenv --python=python .env
 Run the server:
 
 ```sh
+export FLASK_ENV=development
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
+For any changes to the code to take effect it is necessary to run `python3 setup.py install` again.
 
 #### If `pip install` fails on `cryptography==3.4.x`
 Certain platform/python3 version combos require a Rust compiler. Install via:
