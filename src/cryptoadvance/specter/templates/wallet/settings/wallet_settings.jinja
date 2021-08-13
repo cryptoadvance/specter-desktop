@@ -124,6 +124,12 @@
 			</p>
 			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Export") }}</button>
 			<div class="section-separator"></div>
+			<h2 class="subtitle">{{ _("Export Specter format") }}</h2>
+			<p class="center">
+				{{ _("Export a JSON file containing complete wallet data including labels.") }}
+			</p>
+			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Export Specter format</a>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Export PDF backup") }}</h2>
 			<p style="max-width: 500px;" class="center">
 			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
@@ -346,6 +352,11 @@
 		}
 	</script>
 	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
+			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
+		});
+
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');
 			let keysList = document.getElementById('keys_list');
