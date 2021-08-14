@@ -113,7 +113,7 @@ def get_configs(config=None, datadir=get_default_datadir()):
 
 
 def detect_rpc_confs(config=None, datadir=get_default_datadir()):
-    rpcconfs = get_configs(config)
+    rpcconfs = get_configs(config, datadir)
     rpc_arr = []
     for conf in rpcconfs:
         rpc_arr.append(conf)
