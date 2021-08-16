@@ -115,8 +115,22 @@ class AddressList(dict):
             write_csv(self.path, list(self.values()), self.AddressCls)
         self._file_exists = True
 
+    def set_labels(self, arr):
+        """
+        Sets the labels for existing addresses
+
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
+        for addr in arr:
+            if addr["address"] in self:
+                self[addr["address"]].set_label(addr["label"])
+
     def add(self, arr, check_rpc=False):
-        """arr should be a list of dicts"""
+        """
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
         labeled_addresses = {}
         if check_rpc:
             # get all available labels

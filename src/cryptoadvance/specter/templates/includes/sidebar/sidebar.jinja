@@ -16,10 +16,15 @@
 
     #node-switch-icon {
         padding: 5px;
+        
         float: right;
         width: 30px;
         position: absolute;
+        {% if session["is_language_rtl"] %}
+        right: 210px;
+        {% else %}
         left: 210px;
+        {% endif %}
         top: 5px;
         border-radius: 10px;
     }
