@@ -16,10 +16,12 @@ from hwilib.errors import (
     DeviceFailureError,
     UnavailableActionError,
 )
+import logging
 import hashlib
 from binascii import a2b_base64, b2a_base64
 
 py_enumerate = enumerate
+logger = logging.getLogger(__name__)
 
 
 class SpecterClient(HardwareWalletClient):
@@ -240,9 +242,10 @@ def enumerate(password=""):
         s.connect(("127.0.0.1", 8789))
         s.close()
         ports.append("127.0.0.1:8789")
-    except Exception as e:
-        print(e)
-        pass
+    except ConnectionRefusedError as e:
+        logger.warning(
+            f"Warning: Specter DIY failed to establish socket connection. Error: {e}"
+        )
 
     for port in ports:
         # for every port try to get a fingerprint
