@@ -24,7 +24,7 @@
 			</div>
 			{{ _("Specter Data Backup") }}:
 			<div class="note">
-			    {{ _("Warning: This backup does not include private keys of the hot wallets") }}
+			    {{ _("Warning: This backup does not include private seed of the hot wallets or, obviously, the private seed of your Hardwarewallets.") }}
 			</div>
 			<div class="row">
 				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">{{ _("Download Specter backup files") }}</a>
