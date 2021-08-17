@@ -1180,7 +1180,9 @@ def addresses_list(wallet_alias):
     sortdir = request.form.get("sortdir", "asc")
     address_type = request.form.get("addressType", "receive")
 
-    addresses_list = wallet.addresses_info(address_type == "change")
+    addresses_list = wallet.addresses_info(
+        address_type == "change", asset_labels=app.specter.asset_labels
+    )
 
     result = process_addresses_list(
         addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
@@ -1239,8 +1241,12 @@ def addresses_list_csv(wallet_alias):
         only_current_type = request.args.get("onlyCurrentType", "false") == "true"
 
         if not only_current_type:
-            receive_list = wallet.addresses_info(False)
-            change_list = wallet.addresses_info(True)
+            receive_list = wallet.addresses_info(
+                False, asset_labels=app.specter.asset_labels
+            )
+            change_list = wallet.addresses_info(
+                True, asset_labels=app.specter.asset_labels
+            )
 
             receive_result = process_addresses_list(
                 receive_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir
@@ -1254,7 +1260,9 @@ def addresses_list_csv(wallet_alias):
                 receive_result["addressesList"] + change_result["addressesList"]
             )
         else:
-            addresses_list = wallet.addresses_info(address_type == "change")
+            addresses_list = wallet.addresses_info(
+                address_type == "change", asset_labels=app.specter.asset_labels
+            )
 
             result = process_addresses_list(
                 addresses_list, idx=0, limit=0, sortby=sortby, sortdir=sortdir

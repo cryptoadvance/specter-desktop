@@ -82,10 +82,10 @@
 
             this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
             
-            if (this.addressData.assets && this.addressData.assets.length > 1){
-                this.multipleAssets = true;
+            if (this.addressData.assets) {
+                this.assetsCount = this.addressData.assets.length;
             } else {
-                this.multipleAssets = false;
+                this.assetsCount = 0;
             }
 
             this.amount = parseFloat(this.addressData.amount.toFixed(8));
@@ -125,7 +125,7 @@
                 }
             }
 
-            if (this.multipleAssets || !this.price || !this.symbol || this.hideSensitiveInfo) {
+            if (!(this.assetsCount == 1 && (this.addressData.assetLabels[0] == "LBTC" || this.addressData.assetLabels[0] == "tLBTC")) || !this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -141,8 +141,10 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            if (this.multipleAssets) {
+            if (this.assetsCount > 1) {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
+            } else if (this.assetsCount == 1) {
+                this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${this.addressData.assets[0]}" data-label="${this.addressData.assetLabels[0]}"></asset-label>`;
             } else {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
             }
