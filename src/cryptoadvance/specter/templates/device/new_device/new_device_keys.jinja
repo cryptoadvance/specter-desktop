@@ -81,6 +81,14 @@
                     To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}
                     </span>
                 </div>
+                <div id="passport-instructions" {%if device_class.device_type != 'passport' %}class="hidden"{% endif %}>
+                    <p>
+                    {{ _("Pair your Passport to Specter using QR codes or a microSD card.") }}<br>
+                    </p>
+                    <span class="note">
+                    {{ _("To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.<br>If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD.") }}
+                    </span>
+                </div>
                 <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>
                     <p>{{ _("Connect your hardware device to the computer via USB.") }}</p>
                 </div>
