@@ -1,5 +1,7 @@
 from enum import auto
 import tempfile
+
+import pytest
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
@@ -9,6 +11,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 )
 
 
+@pytest.mark.elm
 def test_NodeManager(
     bitcoin_regtest: BitcoindPlainController, elements_elreg: ElementsPlainController
 ):
