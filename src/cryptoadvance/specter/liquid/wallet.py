@@ -518,6 +518,7 @@ class LWallet(Wallet):
 
             addr_utxo = 0
             addr_amount = 0
+            addr_assets = []
 
             for utxo in [
                 utxo
@@ -526,6 +527,8 @@ class LWallet(Wallet):
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
+                if utxo.get("asset") not in addr_assets:
+                    addr_assets.append(utxo.get("asset"))
 
             addresses_info.append(
                 {
@@ -536,6 +539,7 @@ class LWallet(Wallet):
                     "used": bool(addr.used),
                     "utxo": addr_utxo,
                     "type": "change" if is_change else "receive",
+                    "assets": addr_assets,
                 }
             )
 
