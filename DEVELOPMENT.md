@@ -119,6 +119,13 @@ _note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate
 ## How to run the tests
 _TODO: Need more thorough tests!_
 
+In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
+* `./tests/install_bitcoind.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --elements compile` will compile elements in tests/elements
+
+If you're not interested in elements, you can skip the liquid specific tests as described below.
+
 Set up the dependencies:
 ```sh
 pip3 install -r test_requirements.txt
@@ -131,19 +138,28 @@ If you have a local bitcoind already installed:
 pytest 
 ```
 
-OR run against bitcoind in Docker:
+OR run against bitcoind in Docker (deprecated):
 ```
 # Pull the bitcoind image if you haven't already:
 docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
 
+# install prerequisites
+pip3 install docker
+
 # Run all the tests against the docker bitcoind image
-pytest --docker 
+pytest -m "no elm" --docker 
 ```
 
 Running specific test subsets:
 ```
 # Run all tests but not the slow ones
 pytest -m "not slow"
+
+# Run all tests but not the elements
+pytest -m "not elm"
+
+# Run all tests but not the slow ones and not the slow ones
+pytest -m "not elm and not slow"
 
 # Run all the tests in a specific test file
 pytest tests/test_specter.py
