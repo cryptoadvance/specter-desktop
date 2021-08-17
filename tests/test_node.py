@@ -1,4 +1,5 @@
 import os
+import pytest
 import tempfile
 
 from cryptoadvance.specter.node import Node
@@ -62,6 +63,7 @@ def test_Node_btc(bitcoin_regtest):
         assert node.network_info["warnings"] == ""
 
 
+@pytest.mark.elm
 def test_Node_elm(elements_elreg):
     with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
         node = Node.from_json(
