@@ -502,6 +502,45 @@ class LWallet(Wallet):
             * (tx_full_size / psbt["tx"]["vsize"])
         )
 
+    def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
+
+        addresses_info = []
+
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
+
+        for addr in addresses_cache:
+
+            addr_utxo = 0
+            addr_amount = 0
+
+            for utxo in [
+                utxo
+                for utxo in self.full_utxo
+                if to_unconfidential(utxo["address"]) == to_unconfidential(addr.address)
+            ]:
+                addr_amount = addr_amount + utxo["amount"]
+                addr_utxo = addr_utxo + 1
+
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "used": bool(addr.used),
+                    "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
+                }
+            )
+
+        return addresses_info
+
     @property
     def unconfidential_address(self):
         return to_unconfidential(self.address)
