@@ -104,16 +104,27 @@ class QRScannerElement extends HTMLElement {
         // expected: crypto-psbt
         let re3 = /UR:CRYPTO-(.*)/;
         let p3 = result.match(re3);
-        if(p3){
-          this.bcur2decoder.receivePart(result);
-          if(this.bcur2decoder.isComplete()){
-            result = this.bcur2decoder.resultUR();
-            this.progress.innerHTML = "";
-          }else{
-            this.progress.innerHTML = `Progress: ${Math.round(this.bcur2decoder.getProgress()*100)}%`;
-            return;
+
+        // check if it is a bcur2 Foundation Passport stuff
+        let re4 = /UR:BYTES\//;
+        let p4 = result.match(re4);
+
+        if (p3 || (p4 && !p2)){
+          try {
+            this.bcur2decoder.receivePart(result);
+            if (this.bcur2decoder.isComplete()) {
+              result = this.bcur2decoder.resultUR();
+              this.progress.innerHTML = "";
+            } else {
+              this.progress.innerHTML = `Progress: ${Math.round(this.bcur2decoder.getProgress()*100)}%`;
+              return;
+            }
+          } catch {
+            // Probably bcur1, continue to the next check
           }
-        } else if(p1 || p2) {
+        }
+        
+        if(p1 || p2) {
           let p = p1;
           if(p2){
             p = p2;
