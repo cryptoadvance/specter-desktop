@@ -503,7 +503,7 @@ class LWallet(Wallet):
             * (tx_full_size / psbt["tx"]["vsize"])
         )
 
-    def addresses_info(self, is_change, asset_labels=[]):
+    def addresses_info(self, is_change):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.
         Parameters: is_change: if true, return the change addresses else the receive ones.
@@ -541,10 +541,6 @@ class LWallet(Wallet):
                     "utxo": addr_utxo,
                     "type": "change" if is_change else "receive",
                     "assets": addr_assets,
-                    "assetLabels": [
-                        get_asset_label(asset, known_assets=asset_labels)
-                        for asset in addr_assets
-                    ],
                 }
             )
 
