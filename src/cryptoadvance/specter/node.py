@@ -428,6 +428,8 @@ class Node:
 
     @property
     def asset_labels(self):
+        if not self.is_liquid:
+            return {}
         if self._asset_labels is None:
             asset_labels = self.rpc.dumpassetlabels()
             assets = {}
