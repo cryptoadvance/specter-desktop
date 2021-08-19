@@ -525,11 +525,13 @@ def set_asset_label():
         return str(e), 500
     return {"success": True}
 
+
 @settings_endpoint.route("/assets/", methods=["GET"])
 @login_required
 def assets():
     """List of all known / labeled assets"""
     return app.specter.asset_labels
+
 
 @settings_endpoint.route("/assets/<asset>/", methods=["GET"])
 @login_required
@@ -537,13 +539,14 @@ def get_asset(asset):
     """Get info about particular asset. Accepts either label or hex asset"""
     try:
         # check if we've got label, not an asset
-        if len(asset) != 64 and asset not in app.specter.asset_labels:
+        if len(asset) != 64 or asset not in app.specter.asset_labels:
             for a, lbl in app.specter.asset_labels.items():
                 if lbl == asset:
-                    return { "asset": a, "label": lbl }
-        return { "asset": asset, "label": app.specter.asset_label(asset) }
+                    return {"asset": a, "label": lbl}
+        return {"asset": asset, "label": app.specter.asset_label(asset)}
     except Exception as e:
-        return { "error": str(e) }, 500
+        return {"error": str(e)}, 500
+
 
 ################## Settings util endpoints #######################
 
