@@ -433,8 +433,9 @@ class Node:
         if self._asset_labels is None:
             asset_labels = self.rpc.dumpassetlabels()
             assets = {}
+            LBTC = "LBTC" if self.chain == "liquidv1" else "tLBTC"
             for k in asset_labels:
-                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+                assets[asset_labels[k]] = k if k != "bitcoin" else LBTC
             self._asset_labels = assets
         return self._asset_labels
 

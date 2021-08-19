@@ -539,10 +539,11 @@ def get_asset(asset):
     """Get info about particular asset. Accepts either label or hex asset"""
     try:
         # check if we've got label, not an asset
-        if len(asset) != 64 or asset not in app.specter.asset_labels:
+        if len(asset) != 64:
             for a, lbl in app.specter.asset_labels.items():
                 if lbl == asset:
                     return {"asset": a, "label": lbl}
+            return {"error": "asset lookup by label failed"}, 404
         return {"asset": asset, "label": app.specter.asset_label(asset)}
     except Exception as e:
         return {"error": str(e)}, 500
