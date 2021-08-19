@@ -83,7 +83,7 @@
             this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
             
             if (this.addressData.assets) {
-                this.assetsCount = this.addressData.assets.length;
+                this.assetsCount = Object.keys(this.addressData.assets).length;
             } else {
                 this.assetsCount = 0;
             }
@@ -125,7 +125,7 @@
                 }
             }
 
-            if (!(this.assetsCount == 1 && this.addressData.assets[0] == "{{ specter.default_asset }}") || !this.price || !this.symbol || this.hideSensitiveInfo) {
+            if (!(this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}") || !this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -144,7 +144,7 @@
             if (this.assetsCount > 1) {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
             } else if (this.assetsCount == 1) {
-                this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${this.addressData.assets[0]}"></asset-label>`;
+                this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
             } else {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
             }

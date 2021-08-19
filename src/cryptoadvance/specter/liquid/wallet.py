@@ -5,7 +5,6 @@ from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 from .txlist import LTxList
 from .addresslist import LAddressList
-from ..helpers import get_asset_label
 from embit.liquid.addresses import to_unconfidential
 
 
@@ -519,7 +518,7 @@ class LWallet(Wallet):
 
             addr_utxo = 0
             addr_amount = 0
-            addr_assets = []
+            addr_assets = {}
 
             for utxo in [
                 utxo
@@ -528,8 +527,9 @@ class LWallet(Wallet):
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
-                if utxo.get("asset") not in addr_assets:
-                    addr_assets.append(utxo.get("asset"))
+                addr_assets[utxo.get("asset")] = (
+                    addr_assets.get(utxo.get("asset"), 0) + utxo["amount"]
+                )
 
             addresses_info.append(
                 {

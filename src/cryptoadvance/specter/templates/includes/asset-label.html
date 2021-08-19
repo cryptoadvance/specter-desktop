@@ -67,9 +67,17 @@
             shadow.appendChild(clone);
         }
 
-        connectedCallback() {
+        async connectedCallback() {
             this.asset = this.getAttribute('data-asset');
             this.labelValue = this.getAttribute('data-label');
+
+            // Set the label - fetch if not specified
+            if (this.labelValue) {
+                this.label.innerText = this.labelValue;
+            } else {
+                await this.fetchAssetLabel();
+            }
+
             // edit-mode can be 'hover', 'disabled', 'enabled'
             this.mode = this.getAttribute('edit-mode');
             if(!this.mode){
@@ -86,13 +94,6 @@
             }
             this.label.title = this.asset;
             this.isEditing = false;
-
-            // Set the label - fetch if not specified
-            if (this.labelValue) {
-                this.label.innerText = this.labelValue;
-            } else {
-                this.fetchAssetLabel();
-            }
 
             // Set title mode for asset-label element
             if (this.getAttribute('date-size') == 'title') {
