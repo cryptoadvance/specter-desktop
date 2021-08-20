@@ -5,7 +5,9 @@
         <select name="device_type" id="device_type">
             <option value="" selected>{{ _("Select type") }}</option>
             {% for cls in specter.device_manager.supported_devices %}
-            <option value="{{cls.device_type}}">{{cls.name}}</option>
+                {% if device.device_type != "bitcoincore_watchonly" or cls.device_type != "bitcoincore"%}
+                    <option value="{{cls.device_type}}">{{cls.name}}</option>
+                {% endif %}
             {% endfor %}
         </select>
     </fieldset>

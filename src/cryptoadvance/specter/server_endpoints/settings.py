@@ -117,6 +117,7 @@ def general():
                         continue
                 write_wallet(wallet)
                 app.specter.wallet_manager.update()
+                time.sleep(1)
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]

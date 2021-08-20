@@ -1,6 +1,7 @@
 class DeviceTypes:
     BITBOX02 = "bitbox02"
     BITCOINCORE = "bitcoincore"
+    BITCOINCORE_WATCHONLY = "bitcoincore_watchonly"
     COBO = "cobo"
     COLDCARD = "coldcard"
     ELECTRUM = "electrum"

@@ -228,7 +228,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 		function setPubkeysView() {
 			var coldDevice = document.getElementById("cold_device");
 			var hotDevice = document.getElementById("hot_device");
-			if (deviceType.value == 'bitcoincore') {
+			if (deviceType.value == 'bitcoincore' or deviceType.value == 'bitcoincore_watchonly') {
 				coldDevice.style.display = 'none';
 				hotDevice.style.display = 'block';
 			} else {

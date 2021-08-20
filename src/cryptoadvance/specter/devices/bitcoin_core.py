@@ -256,3 +256,46 @@ class BitcoinCore(Device):
                         break
         except:
             pass  # We tried...
+
+
+class BitcoinCoreWatchOnly(BitcoinCore):
+    device_type = DeviceTypes.BITCOINCORE_WATCHONLY
+    name = "Bitcoin Core (watch only)"
+    icon = "bitcoincore_icon.svg"
+
+    hot_wallet = True
+
+    def sign_psbt(self, base64_psbt, wallet, file_password=None):
+        raise Exception("Cannot sign with a watch-only wallet. Convert")
+
+    def sign_raw_tx(self, raw_tx, wallet, file_password=None):
+        raise Exception("Cannot sign with a watch-only wallet")
+
+    def add_hot_wallet_keys(
+        self,
+        mnemonic,
+        passphrase,
+        paths,
+        file_password,
+        wallet_manager,
+        testnet,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    ):
+        # Convert the watch-only wallet to a hot wallet then fix up its internal attrs to
+        # match.
+        super().add_hot_wallet_keys(
+            mnemonic,
+            passphrase,
+            paths,
+            file_password,
+            wallet_manager,
+            testnet,
+            keys_range,
+            keys_purposes,
+        )
+
+        # Change type (also triggers write to file)
+        self.set_type(DeviceTypes.BITCOINCORE)
+        # After update this device will be available as a BitcoinCore (hot) instance
+        self.manager.update()
