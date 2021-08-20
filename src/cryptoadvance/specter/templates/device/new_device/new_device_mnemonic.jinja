@@ -32,7 +32,7 @@
             visibility: hidden;
         }
     </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
         <div class="card center" style="width: auto; margin: 40px;" >
             <h1 style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1><br>
             {% if existing_device %}
@@ -87,15 +87,15 @@
 				<br>
                 <div id="advanced-settings" class="hidden" style="width: 400px; margin: auto;">
                     <label>{{ _("Encrypt Wallet File:") }} </label>
-                    <input type="password" name="file_password" class="inline" placeholder="password">
+                    <input type="password" name="file_password" id="file_password" class="inline" placeholder="password">
                     <br>
                     <br>
                     <label>{{ _("BIP39 passphrase (optional):") }} </label>
-                    <input type="password" name="passphrase" class="inline" placeholder="passphrase">
+                    <input type="password" name="passphrase" id="passphrase" class="inline" placeholder="passphrase">
                     <br>
                     <p style="margin-bottom: 10px;">{{ _("Addresses range to import:") }} </p>
-                    {{ _("From:") }} <input type="number" name="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
-                    {{ _("to:") }} <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
+                    {{ _("From:") }} <input type="number" name="range_start" id="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
+                    {{ _("to:") }} <input type="number" name="range_end" id="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
                     <br>
                 </div>
             </div>
@@ -107,11 +107,30 @@
 
 {% block scripts %}
     <script>
+        let hiddenAdvancedConfirmed = false;
         document.addEventListener("DOMContentLoaded", function(){
             {% if existing_device %}
                 setMnemonicView('import');
             {% endif %}
         });
+
+        function checkAdvancedValidState() {
+            let advancedSettings = document.getElementById('advanced-settings');
+            if ((!hiddenAdvancedConfirmed && advancedSettings.style.display !== 'block') &&
+                (
+                    document.getElementById('file_password').value ||
+                    document.getElementById('passphrase').value ||
+                    document.getElementById('range_start').value != 0 ||
+                    document.getElementById('range_end').value != 1000
+                )
+            ) {
+                toggleAdvanced();
+                showError("You have set values in the Advanced section but eft it hidden. PLease verify they are correct or delete them, then click again to submit.")
+                hiddenAdvancedConfirmed = true;
+                return false;   
+            }
+            return true;
+        }
 
         function setMnemonicView(view) {
             var generatedMnemonic = document.getElementById("generated_mnemonic");
