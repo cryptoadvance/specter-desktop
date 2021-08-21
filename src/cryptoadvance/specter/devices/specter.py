@@ -27,12 +27,22 @@ class Specter(SDCardDevice):
         try:
             # remove rangeproofs and add sighash alls
             psbt = PSET.from_string(base64_psbt)
-            for out in psbt.outputs:
-                out.range_proof = None
-                out.surjection_proof = None
-            for inp in psbt.inputs:
-                if not inp.sighash_type:
-                    inp.sighash_type = LSIGHASH.ALL
+            # make sure we have tx blinding seed in the transaction
+            if psbt.unknown.get(b"\xfc\x07specter\x00"):
+                for out in psbt.outputs:
+                    out.range_proof = None
+                    out.surjection_proof = None
+                    # we know assets - we can blind it
+                    if out.asset:
+                        out.asset_commitment = None
+                        out.asset_blinding_factor = None
+                    # we know value - we can blind it
+                    if out.value:
+                        out.value_commitment = None
+                        out.value_blinding_factor = None
+                for inp in psbt.inputs:
+                    if inp.value and inp.asset:
+                        inp.range_proof = None
             base64_psbt = psbt.to_string()
         except:
             pass
