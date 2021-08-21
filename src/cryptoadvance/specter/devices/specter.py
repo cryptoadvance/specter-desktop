@@ -31,7 +31,7 @@ class Specter(SDCardDevice):
             if psbt.unknown.get(b"\xfc\x07specter\x00"):
                 for out in psbt.outputs:
                     out.range_proof = None
-                    out.surjection_proof = None
+                    # out.surjection_proof = None
                     # we know assets - we can blind it
                     if out.asset:
                         out.asset_commitment = None
