@@ -63,10 +63,17 @@ class Specter(SDCardDevice):
                 break
         # remove unnecessary derivations from inputs and outputs
         for inp in qr_psbt.inputs + qr_psbt.outputs:
-            # keep only my derivation
-            for k in list(inp.bip32_derivations.keys()):
-                if fgp and inp.bip32_derivations[k].fingerprint != fgp:
-                    inp.bip32_derivations.pop(k, None)
+            # keep only one derivation path (idealy ours)
+            found = False
+            pubkeys = list(inp.bip32_derivations.keys())
+            for i, pub in enumerate(pubkeys):
+                if fgp and inp.bip32_derivations[pub].fingerprint != fgp:
+                    # only pop if we already saw our derivation
+                    # or if it's not the last one
+                    if found or i < len(pubkeys)-1:
+                        inp.bip32_derivations.pop(k, None)
+                else:
+                    found = True
         # remove scripts from outputs (DIY should know about the wallet)
         for out in qr_psbt.outputs:
             out.witness_script = None
