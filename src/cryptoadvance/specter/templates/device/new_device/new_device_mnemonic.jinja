@@ -128,8 +128,10 @@
             } else {
                 generatedMnemonic.style.display = 'none';
                 importMnemonic.style.display = 'block';
-                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
-                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                {% if not existing_device %}
+                    generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                    importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                {% endif %}
                 mnemonicValue.value = importMnemonic.value;
                 importMnemonic.addEventListener("input", function() {
                     mnemonicValue.value = importMnemonic.value;
