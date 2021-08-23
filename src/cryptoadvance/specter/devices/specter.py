@@ -4,10 +4,50 @@ from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
 from embit import bip32
-from embit.psbt import PSBT
+from embit.psbt import PSBT, DerivationPath
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LSIGHASH
 from binascii import a2b_base64, b2a_base64
+from embit.liquid.networks import get_network
+
+
+def fill_external_wallet_derivations(psbt, wallet):
+    # fill derivations for receiving wallets if they own address
+    net = get_network(wallet.manager.chain)
+    wallets = wallet.manager.wallets.values()
+    for out in psbt.outputs:
+        try:  # if we fail - not a big deal
+            # check if output derivation is empty
+            if out.bip32_derivations:
+                continue
+            addr = out.script_pubkey.address(net)
+            for w in wallets:
+                # skip sending wallet
+                if w == wallet:
+                    continue
+                if not w.is_address_mine(addr):
+                    continue
+                # we get here if wallet owns address
+                info = w.get_address_info(addr)
+                derivation = [int(info.change), int(info.index)]
+                # we first one key and build derivation for it
+                # it's enough for DIY to do the res
+                k = w.keys[0]
+                key = bip32.HDKey.from_string(k.xpub)
+                if k.fingerprint != "":
+                    fingerprint = bytes.fromhex(k.fingerprint)
+                else:
+                    fingerprint = key.my_fingerprint
+                if k.derivation != "":
+                    der = bip32.parse_path(k.derivation)
+                else:
+                    der = []
+                pub = key.derive(derivation).key
+                out.bip32_derivations[pub] = DerivationPath(
+                    fingerprint, der + derivation
+                )
+        except Exception as e:
+            logger.exception(e)
 
 
 class Specter(SDCardDevice):
@@ -24,7 +64,8 @@ class Specter(SDCardDevice):
     liquid_support = True
 
     def create_psbts(self, base64_psbt, wallet):
-        try:
+        # liquid transaction
+        if base64_psbt.startswith("cHNl"):
             # remove rangeproofs and add sighash alls
             psbt = PSET.from_string(base64_psbt)
             # make sure we have tx blinding seed in the transaction
@@ -43,9 +84,12 @@ class Specter(SDCardDevice):
                 for inp in psbt.inputs:
                     if inp.value and inp.asset:
                         inp.range_proof = None
-            base64_psbt = psbt.to_string()
-        except:
-            pass
+        else:
+            psbt = PSBT.from_string(base64_psbt)
+
+        fill_external_wallet_derivations(psbt, wallet)
+
+        base64_psbt = psbt.to_string()
         psbts = super().create_psbts(base64_psbt, wallet)
         # remove non-witness utxo if they are there to reduce QR code size
         updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
