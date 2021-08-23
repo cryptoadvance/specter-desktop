@@ -1,3 +1,20 @@
+## v1.5.1 August 10, 2021
+- Bugfix: Add newline char when writing bitcoin.conf setting #1325 (jeffthibault)
+- Bugfix: Fix specifying datadir for internal node #1315 (benk10)
+- Bugfix: Fix login issue for non-English mode #1321 (Kim Neunert)
+- Bugfix: Fix Electrum import issues #1318 (benk10)
+- Bugfix: Update rpc None error #1333 (Hani Mohammed)
+- Bugfix: Fix wallet PDF backup issues #1338 (benk10)
+- Feature: Electrum address label import #1314 (relativisticelectron)
+- Translation: Update Greek translation  #1317 (glowleaf)
+- Translation: Update Hebrew translation #1308 (Sh0ham)
+- Translation: Update French translation #1309 (KST-Energy)
+- UIUX: Add RTL languages support #1276 (benk10)
+- Chore: Automatic Testing and Documentation for Liquid #1286 (Kim Neunert)
+- Chore: Refactor internal keypool management #1330 (benk10)
+- Chore: Refactor out ugly hack in components JS #1302 (benk10)
+- Chore: Make Specter DIY simulator connection error message more descriptive #1337 (Tushar Singla)
+
 ## v1.5.0 July 16, 2021
 - Feature: Translation (Babel) integration and initial translations #1247 (kdmukai, 2a3dex, rafa1239, Volker Herminghaus, glowleaf, DirkVdk, mutatrum, Kryptoministern, PommbearBTC, Gummybear, sreshta suresh, KST-Energy, alltheseas, dudezoo, Sergei Tikhomirov, Bitpaint)
 - Feature: Api framework #1232 (Kim Neunert)
@@ -33,7 +50,7 @@
 ## v1.4.6 June 28, 2021
 - Feature: Add Keystone device #1237 (Stepan Snigirev)
 - Feature: Export device types and labels #1226 (kdmukai)
-- Feauture: Liquid - asset support #1216 (Stepan Snigirev)
+- Feature: Liquid - asset support #1216 (Stepan Snigirev)
 - UIUX: Redesign the Tor settings screen #1245 (benk10)
 - Bugfix: Apostrophes in device labels need proper escaping in PDF export template #1246 (kdmukai)
 - Bugfix: cleanup annoying test_artifacts #1236 (Kim Neunert)

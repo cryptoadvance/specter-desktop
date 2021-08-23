@@ -515,7 +515,7 @@ class Specter:
         """returns hash of LBTC"""
         if self._default_asset is None:
             for asset, lbl in self.asset_labels.items():
-                if lbl == "LBTC":
+                if lbl in ["LBTC", "tLBTC"]:
                     self._default_asset = asset
                     return asset
         return self._default_asset

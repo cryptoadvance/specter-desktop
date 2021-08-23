@@ -45,6 +45,7 @@ class SpecterFlask(Flask):
 
     def set_language_code(self, language_code):
         session["language_code"] = language_code
+        session["is_language_rtl"] = language_code in self.config["RTL_LANGUAGES"]
 
 
 def calc_module_name(config):

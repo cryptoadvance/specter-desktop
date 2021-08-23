@@ -8,6 +8,7 @@ from .keepkey import Keepkey
 from .specter import Specter
 from .keystone import Keystone
 from .cobo import Cobo
+from .passport import Passport
 from .jade import Jade
 from .generic import GenericDevice
 from .electrum import Electrum
@@ -25,6 +26,7 @@ __all__ = [
     Keepkey,
     Keystone,
     Cobo,
+    Passport,
     Jade,
     SeedSignerDevice,
     Electrum,

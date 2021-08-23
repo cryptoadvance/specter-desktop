@@ -804,6 +804,9 @@ def settings(wallet_alias):
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
+        elif action == "import_electrum_label_export":
+            electrum_label_export = request.form["import_electrum_labels_json"]
+            wallet.import_electrum_label_export(electrum_label_export)
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
