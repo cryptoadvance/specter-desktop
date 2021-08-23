@@ -9,6 +9,9 @@ from embit.liquid.pset import PSET
 from embit.liquid.transaction import LSIGHASH
 from binascii import a2b_base64, b2a_base64
 from embit.liquid.networks import get_network
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def fill_external_wallet_derivations(psbt, wallet):
