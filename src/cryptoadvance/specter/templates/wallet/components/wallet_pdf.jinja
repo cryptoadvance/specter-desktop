@@ -1,14 +1,25 @@
 <qr-code value='{{ wallet.account_map }}' width="400" id="export-wallet-qr-code" class="hidden"></qr-code>
+
+{% for index in range(6*6+1) %}
+<qr-code value='{{ wallet.get_address(index) }}' width="100" id="address{{index}}" class="hidden"></qr-code>
+{% endfor %}
+
 <script	type="module">
     import { jsPDF } from "{{ url_for('static', filename='pdf/jspdf.es.min.js') }}";
-    document.getElementById('pdf-wallet-download').onclick = () => {
+
+    function specter_pdfdoc() {
         // Default export is a4 paper, portrait, using millimeters for units
         const doc = new jsPDF();
-        const pageHeight = 297;
-        const pageWidth = 210;
         doc.addFont("{{ url_for('static', filename='fonts/RobotoMono-Regular.ttf') }}", "Roboto", "normal");
         doc.addFont("{{ url_for('static', filename='fonts/RobotoMono-Bold.ttf') }}", "Roboto", "bold");
         doc.setFont("Roboto", "normal");
+        return doc
+    }
+
+    document.getElementById('pdf-wallet-download').onclick = () => {
+        const doc = specter_pdfdoc()
+        const pageHeight = 297;
+        const pageWidth = 210;
         let useSlip132 = document.getElementById("use_slip_132_pdf").checked;
         let currentHeight = 15;
         doc.setFontSize(18);
@@ -152,6 +163,90 @@
         doc.setFontSize(14)
         doc.text("{{ wallet.change_descriptor|safe }}".replace(/(.{60})/g, "$1\n"), 15, currentHeight);
         currentHeight += "{{ wallet.change_descriptor|safe }}".replace(/(.{60})/g, "$1\n").split('\n').length * 7;
+
+        doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
+    }
+
+    function chunkString(str, length) {
+        return str.match(new RegExp('.{1,' + length + '}', 'g'));
+    }
+    document.getElementById('pdf-paperxpub-download').onclick = () => {
+        // Default export is a4 paper, portrait, using millimeters for units
+        const doc = specter_pdfdoc()
+        const pageHeight = 297;
+        const pageWidth = 210;
+        let currentHeight = 15;
+        doc.setFontSize(18);
+        console.log("bbeep")
+
+        doc.setFont("Roboto", "normal");
+
+        let qrCode = document.getElementById('export-wallet-qr-code').shadowRoot.childNodes[3].children[1].children[1].src;
+        doc.addImage(qrCode, 'PNG', 5, currentHeight, 50, 50)
+        doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
+        doc.setFontSize(9);
+        doc.text('{{ _("Scan this QR code with Specter-Desktop") }}', 65, currentHeight + 6, {align: 'left'});
+        doc.text("The below addresses are from index 1. ", 65, currentHeight + 12)
+        doc.text("Feel free to use the checkbox as a proof", 65, currentHeight + 18)
+        doc.text("to have verified the address via the Hardwarewallet.", 65, currentHeight + 24)
+
+        currentHeight += 55;
+
+        const qr_size = 20
+        doc.setFontSize(9);
+
+        let wallet_addresses = []
+        {% for index in range(6*6+1) %} // six rows, six columns
+        wallet_addresses.push("{{ wallet.get_address(index) }}")
+        {% endfor %}
+
+        for (var row = 0; row <=3 ; row++) {
+            let offset = 5
+            for (var i = 1+row*6; i <= (row+1)*6; i++) {
+                let addressqr = document.getElementById('address'+i).shadowRoot.childNodes[3].children[1].children[1].src;
+                let address = wallet_addresses[i]
+                console.log("adding address"+address)
+                doc.addImage(addressqr, 'PNG', offset, currentHeight, qr_size, qr_size)
+                doc.text("[ ]", offset + qr_size + 2, currentHeight + 3, {align: 'left'} )
+                doc.text("#"+i,offset + qr_size + 2, currentHeight + 3 + 6, {align: 'left'})
+                doc.text(chunkString(address,14)[0], offset, currentHeight+qr_size+4, {align: 'left'});
+                doc.text(chunkString(address,14)[1], offset, currentHeight+qr_size+8, {align: 'left'});
+                doc.text(chunkString(address,14)[2], offset, currentHeight+qr_size+12, {align: 'left'});
+                offset += qr_size + 10
+            } 
+            currentHeight += qr_size + 12 + 5;
+        }
+        currentHeight += 10
+        
+        // Apart from the QR-code at the very top, we also want some minimu information about the keys
+        // in case the QR-code is no longer readable
+        {% for key in wallet.keys %}
+            let deviceName = ""
+            let deviceType = ""
+            {% for device in wallet.devices %}
+                {% for _key in device.keys %}
+                    {% if _key == key %}
+                        deviceName = {{ device.name | tojson | safe  }};
+                        deviceType = '{{ device.device_type | title }}';
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            
+            doc.setFontSize(9)
+            doc.text('{{ _("Device Name/Type  :") }} {{ deviceName }} / {{ deviceType }}', 15, currentHeight);
+            currentHeight += 6
+            doc.text('{{ _("Master fingerprint:") }} {{ key.fingerprint }}', 15, currentHeight);
+            currentHeight += 6
+            doc.text('{{ _("Derivation path   :") }} {{ key.derivation }}', 15, currentHeight);
+            currentHeight += 6
+
+            let xpubLines = "{{ key.xpub }}".split(/(.{36})/g);
+            
+            xpubLines = xpubLines.filter(line => line !== '');
+            currentHeight += 6
+        {% endfor %}
+
+
 
         doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
     }

@@ -298,6 +298,7 @@ def new_wallet(wallet_type):
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
             except Exception as e:
+                app.logger.exception(e)
                 err = _("Failed to create wallet. Error: {}").format(e)
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
