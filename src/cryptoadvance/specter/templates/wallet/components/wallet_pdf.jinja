@@ -200,7 +200,7 @@
         wallet_addresses.push("{{ wallet.get_address(index) }}")
         {% endfor %}
 
-        for (var row = 0; row <=3 ; row++) {
+        for (var row = 0; row <=4 ; row++) {
             let offset = 5
             for (var i = 1+row*6; i <= (row+1)*6; i++) {
                 let addressqr = document.getElementById('address'+i).shadowRoot.childNodes[3].children[1].children[1].src;
