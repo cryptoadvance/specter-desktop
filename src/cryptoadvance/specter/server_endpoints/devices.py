@@ -451,6 +451,7 @@ def device(device_alias):
                     existing_device=device,
                     device_alias=device_alias,
                     device_class=get_device_class(device.device_type),
+                    device_type=device.device_type,
                     specter=app.specter,
                     rand=rand,
                 )
