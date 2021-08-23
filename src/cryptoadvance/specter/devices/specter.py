@@ -46,6 +46,7 @@ def fill_external_wallet_derivations(psbt, wallet):
                 out.bip32_derivations[pub] = DerivationPath(
                     fingerprint, der + derivation
                 )
+                break
         except Exception as e:
             logger.exception(e)
 
