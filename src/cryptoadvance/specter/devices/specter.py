@@ -70,7 +70,7 @@ class Specter(SDCardDevice):
                 if fgp and inp.bip32_derivations[pub].fingerprint != fgp:
                     # only pop if we already saw our derivation
                     # or if it's not the last one
-                    if found or i < len(pubkeys)-1:
+                    if found or i < len(pubkeys) - 1:
                         inp.bip32_derivations.pop(k, None)
                 else:
                     found = True
