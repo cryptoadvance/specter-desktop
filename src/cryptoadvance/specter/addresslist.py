@@ -125,6 +125,7 @@ class AddressList(dict):
         for addr in arr:
             if addr["address"] in self:
                 self[addr["address"]].set_label(addr["label"])
+        self.save()
 
     def add(self, arr, check_rpc=False):
         """
