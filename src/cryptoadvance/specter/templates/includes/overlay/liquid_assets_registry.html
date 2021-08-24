@@ -54,6 +54,10 @@
             showError('{{_("This asset is already in the registry.")}}', 5000);
             return false;
         }
+        if (assetLabelField.value == '') {
+            showError('{{_("Asset label must not be empty.")}}', 5000);
+            return false;
+        }
         formData.append('asset', assetIDField.value);
         formData.append('label', assetLabelField.value);
         formData.append('csrf_token', '{{ csrf_token() }}');
@@ -116,6 +120,7 @@
             }
             const jsonResponse = await response.json();
             document.getElementById(`${asset}-asset-registry-row`).remove();
+            existingAssets.splice(existingAssets.indexOf(asset), 1);
             return jsonResponse.success;
         } catch(e) {
             console.log("Caught error: ", e);
