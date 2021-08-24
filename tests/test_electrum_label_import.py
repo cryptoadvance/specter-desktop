@@ -5,6 +5,7 @@ from conftest import instantiate_bitcoind_controller
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.slow
 def test_electrum_label_import(
     caplog, docker, request, devices_filled_data_folder, device_manager
@@ -92,32 +93,46 @@ def test_electrum_label_import(
         wallet.rpc.generatetoaddress(100, trash_address)
 
         # the utxo is only available after the 100 mined blocks
-        utxos = wallet.rpc.listunspent()  
+        utxos = wallet.rpc.listunspent()
         # txid of the funding of test_address
-        txid = utxos[0]['txid']   
-
+        txid = utxos[0]["txid"]
 
         assert wallet._addresses[test_address]["label"] is None
         number_of_addresses = len(wallet._addresses)
 
         # Test it with a txid label that does not belong to the wallet -> should be ignored
-        print(wallet.import_electrum_label_export(json.dumps({'8d0958cb8701fac7421eb077e44b36809b90c7ad4a35e0c607c2cd591c522668': 'txid label'} )))
+        print(
+            wallet.import_electrum_label_export(
+                json.dumps(
+                    {
+                        "8d0958cb8701fac7421eb077e44b36809b90c7ad4a35e0c607c2cd591c522668": "txid label"
+                    }
+                )
+            )
+        )
         assert wallet._addresses[test_address]["label"] is None
-        assert len(wallet._addresses) ==  number_of_addresses   
+        assert len(wallet._addresses) == number_of_addresses
 
         # Test it with an address label that does not belong to the wallet -> should be ignored
-        print(wallet.import_electrum_label_export(json.dumps({'12dRugNcdxK39288NjcDV4GX7rMsKCGn6B': 'address label'} )))
+        print(
+            wallet.import_electrum_label_export(
+                json.dumps({"12dRugNcdxK39288NjcDV4GX7rMsKCGn6B": "address label"})
+            )
+        )
         assert wallet._addresses[test_address]["label"] is None
-        assert len(wallet._addresses) ==  number_of_addresses
+        assert len(wallet._addresses) == number_of_addresses
 
         # Test it with a txid label
-        print(wallet.import_electrum_label_export(json.dumps({txid: 'txid label'} )))
-        assert wallet._addresses[test_address]["label"] == 'txid label'
+        print(wallet.import_electrum_label_export(json.dumps({txid: "txid label"})))
+        assert wallet._addresses[test_address]["label"] == "txid label"
 
         # The txid label should now be replaced by the address label
-        print(wallet.import_electrum_label_export(json.dumps({test_address: 'address label'} )))
-        assert wallet._addresses[test_address]["label"] == 'address label'
-        
+        print(
+            wallet.import_electrum_label_export(
+                json.dumps({test_address: "address label"})
+            )
+        )
+        assert wallet._addresses[test_address]["label"] == "address label"
 
     finally:
         # Clean up
