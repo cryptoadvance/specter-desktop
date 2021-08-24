@@ -124,6 +124,12 @@
 			</p>
 			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Export") }}</button>
 			<div class="section-separator"></div>
+			<h2 class="subtitle">{{ _("Export Specter format") }}</h2>
+			<p class="center">
+				{{ _("Export a JSON file containing complete wallet data including labels.") }}
+			</p>
+			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Export Specter format</a>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Export PDF backup") }}</h2>
 			<p style="max-width: 500px;" class="center">
 			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
@@ -153,6 +159,33 @@
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
+			<h2 class="subtitle">{{ _("Import Electrum address labels") }}</h2>
+			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<div class="row aligned">
+					<textarea name="import_electrum_labels_json" 
+					id="import_electrum_labels_json" 
+					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
+					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
+					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
+					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
+					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
+					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
+					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Importing electrum labels") }}</span><br><br>
+									{{ _("The expected json format contains utxo ids and addresses with the labels:") }}<br><br>
+									{{ _('{ "8a5e4...": "some utxo label", "bc1qj3...": "some address label" }') }}<br><br>
+								</span>
+							</p>
+						</div>
+					</button>
+				</div>
+			</form>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Keypool control") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -259,8 +292,71 @@
 	<br><br>
 {% endblock %}
 
-{% block scripts %}
+{% block scripts %} 
+	<script type="text/javascript">
+		function paste_file_in_textarea(file, textarea) {
+			if (file != null  ) {
+				console.log(file.name);
+				let reader = new FileReader();
+				reader.onload = function(e) { 
+					textarea.value = reader.result;
+				}
+				reader.readAsBinaryString(file);
+			}
+		}
+
+		function dropHandler(ev, textarea_name) {
+			console.log('File(s) dropped');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+					// If dropped items aren't files, reject them
+					if (ev.dataTransfer.items[i].kind === 'file') {
+						var file = ev.dataTransfer.items[i].getAsFile();
+						paste_file_in_textarea(file, document.getElementById(textarea_name))
+						console.log('... file[' + i + '].name = ' + file.name);
+					}
+				}
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+					paste_file_in_textarea(ev.dataTransfer.files[i], document.getElementById(textarea_name))
+					console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+				}
+			}
+		}
+
+		function dragOverHandler(ev, textarea_name) {
+			//console.log('File(s) in drop zone');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			document.getElementById(textarea_name).value = "Drop file here"
+		}
+
+		function dragLeaveHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragExitHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragEndHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+	</script>
 	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
+			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
+		});
+
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');
 			let keysList = document.getElementById('keys_list');

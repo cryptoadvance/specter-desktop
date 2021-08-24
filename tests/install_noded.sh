@@ -1,6 +1,6 @@
 #!/bin/bash
-
-set -e -o pipefail
+# fail early
+set -o pipefail
 
 # change to the directory the script is located in
 cd "$( dirname "${BASH_SOURCE[0]}" )/."
@@ -13,9 +13,9 @@ function checkout {
     node_setup_needed=false
     if [ ! -d "./${node_impl}/.git" ]; then
         echo "    --> cloning $node_impl"
-        if [ $node_impl = "elements" ]; then
+        if [ "$node_impl" = "elements" ]; then
             clone_url=https://github.com/ElementsProject/elements.git
-        elif [ $node_impl= "bitcoin" ]; then
+        elif [ "$node_impl" = "bitcoin" ]; then
             clone_url=https://github.com/bitcoin/bitcoin.git
         else
             echo "unknown node_impl $node_impl"
@@ -52,20 +52,20 @@ function maybe_update {
     if [ -z $PINNED ]; then
         REMOTE=$(git rev-parse "$UPSTREAM")
         BASE=$(git merge-base @ "$UPSTREAM")
-        if [ $LOCAL = $REMOTE ]; then
+        if [ "$LOCAL" = "$REMOTE" ]; then
             echo "Up-to-date"
-        elif [ $LOCAL = $BASE ]; then
+        elif [ "$LOCAL" = "$BASE" ]; then
             git pull
             git reset --hard origin/master
             return 1
         fi
     else
-        if [ $LOCAL = $PINNED ]; then
+        if [ "$LOCAL" = "$PINNED" ]; then
             echo "    --> Pinned: $PINNED! Checkout not needed!"
         else
             echo "    --> Pinned: $PINNED! Checkout needed!"
             git fetch
-            git checkout $PINNED || exit 1
+            git checkout $PINNED
             return 1
         fi
     fi
@@ -117,9 +117,9 @@ function build_node_impl {
         # This is for reducing mem-footprint as for some reason cirrus fails even though it has 4GB Mem
         # CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768 -O2"
         
-        if [ $node_impl = "elements" ]; then
+        if [ "$node_impl" = "elements" ]; then
             ./configure BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include"
-        elif [ $node_impl= "bitcoin" ]; then
+        elif [ "$node_impl" = "bitcoin" ]; then
             ./configure BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include" CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768 -O2" --with-miniupnpc=no --without-gui --disable-zmq --disable-tests --disable-bench --with-libs=no --with-utils=no
         else
             echo "unknown node_impl $node_impl"
@@ -133,9 +133,9 @@ function build_node_impl {
     # optimizing for speed would use the maximum threads available:
     #make -j$(nproc)
     # but we're optimizing for mem-allocation. 1 thread is quite slow, let's try 4 (we have 4GB and need to find the sweet-spot)
-    make -j3
+    make -j2
     cd ../.. #travis is sourcing this script
-    echo "    --> Finished build bitcoind"
+    echo "    --> Finished build $node_impl"
 
 
 }
@@ -146,11 +146,27 @@ function sub_help {
     echo "$ ./install_node.sh --bitcoin compile"
     echo "$ ./install_node.sh --elements compile"
     echo "$ ./install_node.sh binary # only works for bitcoind currently, no binaries for elements"
+    echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md#how-to-run-the-tests"
+}
+
+function check_compile_prerequisites {
+    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
+    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+    for REQUIRED_PKG in $REQUIRED_PKGS; do
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+        echo Checking for $REQUIRED_PKG: $PKG_OK
+        if [ "" = "$PKG_OK" ]; then
+            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+            apt-get --yes install $REQUIRED_PKG 
+        fi
+    done
 
 }
 
 function sub_compile {
     START=$(date +%s.%N)
+    check_compile_prerequisites
     node_impl=$1
     echo "    --> install_node.sh Start $(date) (compiling for $node_impl)"
     echo "        checkout ..."
@@ -171,7 +187,7 @@ function sub_binary {
         echo "    --> binary installation of elements not supported, exiting"
         exit 2
     fi
-    echo "    --> install_bitcoind.sh Start $(date) (binary)"
+    echo "    --> install_noded.sh Start $(date) (binary)"
     START=$(date +%s.%N)
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
@@ -194,8 +210,9 @@ function sub_binary {
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_bitcoind.sh End $(date) took $DIFF"
+    echo "    --> install_noded.sh End $(date) took $DIFF"
 }
+
 
 function parse_and_execute() {
   if [[ $# = 0 ]]; then
@@ -208,7 +225,7 @@ function parse_and_execute() {
   arg="$1"
   case $arg in
       "" | "-h" | "--help")
-        sub_default
+        sub_help
         shift
         ;;
       --debug)
@@ -238,14 +255,11 @@ function parse_and_execute() {
         ;;
       *)
           shift
-          sub_${arg} $@
-          ret_value=$?
-          if [ $ret_value = 127 ]; then
+          sub_${arg} $@ && ret=0 || ret=$?
+          if [ "$ret" = 127 ]; then
               echo "Error: '$arg' is not a known subcommand." >&2
               echo "       Run '$progname --help' for a list of known subcommands." >&2
               exit 1
-          elif [ $ret_value = 0 ]; then
-              exit 0
           else
               exit $ret_value
           fi

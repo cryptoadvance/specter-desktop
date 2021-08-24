@@ -362,19 +362,55 @@ class Wallet:
                 if tx.get("confirmations", 0) > 0:
                     tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
         ##################### Remove until here after dropping Core v0.19 support #####################
-        self._transactions.add(txs)
         if self.use_descriptors:
-            while (
-                len(
-                    [
-                        tx
-                        for tx in self._transactions
-                        if self._transactions[tx]["category"] != "send"
-                        and not self._transactions[tx]["address"]
+            # Get all used addresses that belong to the wallet
+            addresses_info_multi = self.rpc.multi(
+                [
+                    ("getaddressinfo", address)
+                    for address in [
+                        tx["details"][0].get("address")
+                        for tx in txs.values()
+                        if tx.get("details")
+                        and (
+                            tx.get("details")[0].get("category") != "send"
+                            and tx["details"][0].get("address") not in self._addresses
+                        )
                     ]
-                )
-                != 0
+                    if address
+                ]
+            )
+            addresses_info = [
+                r["result"]
+                for r in addresses_info_multi
+                if r["result"].get("ismine", False)
+            ]
+
+            # Gets max index used receiving and change addresses
+            max_used_receiving = (
+                self._addresses.max_index(change=False) - self.GAP_LIMIT
+            )
+            max_used_change = self._addresses.max_index(change=True) - self.GAP_LIMIT
+
+            for address in addresses_info:
+                desc = LDescriptor.from_string(address["desc"])
+                indexes = [
+                    {
+                        "idx": k.origin.derivation[-1],
+                        "change": k.origin.derivation[-2],
+                    }
+                    for k in desc.keys
+                ]
+                for idx in indexes:
+                    if int(idx["change"]) == 0:
+                        max_used_receiving = max(max_used_receiving, int(idx["idx"]))
+                    elif int(idx["change"]) == 1:
+                        max_used_change = max(max_used_change, int(idx["idx"]))
+
+            # If max receiving address bigger than current max receiving index minus the gap limit - self._addresses.max_index(change=False)
+            if max_used_receiving + self.GAP_LIMIT > self._addresses.max_index(
+                change=False
             ):
+                # Add receiving addresses until the new max address plus the GAP_LIMIT
                 addresses = [
                     dict(
                         address=self.get_address(
@@ -385,9 +421,16 @@ class Wallet:
                     )
                     for idx in range(
                         self._addresses.max_index(change=False),
-                        self._addresses.max_index(change=False) + self.GAP_LIMIT,
+                        max_used_receiving + self.GAP_LIMIT,
                     )
                 ]
+                self._addresses.add(addresses, check_rpc=False)
+
+            # If max change address bigger than current max change index minus the gap limit  - self._addresses.max_index(change=True)
+            if max_used_change + self.GAP_LIMIT > self._addresses.max_index(
+                change=True
+            ):
+                # Add change addresses until the new max address plus the GAP_LIMIT
                 change_addresses = [
                     dict(
                         address=self.get_address(idx, change=True, check_keypool=False),
@@ -396,11 +439,43 @@ class Wallet:
                     )
                     for idx in range(
                         self._addresses.max_index(change=True),
-                        self._addresses.max_index(change=True) + self.GAP_LIMIT,
+                        max_used_change + self.GAP_LIMIT,
                     )
                 ]
-                self._addresses.add(addresses, check_rpc=False)
                 self._addresses.add(change_addresses, check_rpc=False)
+
+        self._transactions.add(txs)
+
+    def import_electrum_label_export(self, electrum_label_export):
+        if not electrum_label_export:
+            logger.warning(f"No electrum export json provided.")
+            return
+
+        labeled_addresses = json.loads(electrum_label_export)
+
+        # write tx_label to address_label in labels
+        for txitem in self._transactions.values():
+            if txitem["txid"] not in labeled_addresses:
+                continue
+
+            address_list = (
+                [txitem["address"]]
+                if isinstance(txitem["address"], str)
+                else txitem["address"]
+            )
+            for one_address in address_list:
+                if one_address in labeled_addresses:
+                    continue  # if there is an address label, it supercedes the tx label
+                labeled_addresses[one_address] = labeled_addresses[txitem["txid"]]
+
+        # convert labeled_addresses to arr (for AddressList.set_labels) and allow only already existing addresses
+        arr = [
+            {"address": address, "label": label}
+            for address, label in labeled_addresses.items()
+            if address in self._addresses
+        ]
+        self._addresses.set_labels(arr)
+        logger.info(f"Imported {len(arr)} address labels.")
 
     def update(self):
         self.getdata()

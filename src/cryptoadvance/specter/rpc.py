@@ -40,6 +40,7 @@ def get_rpcconfig(datadir=get_default_datadir()):
         "cookies": [],
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
+        logger.warning(f"{datadir} not found")
         return config
     # load content from bitcoin.conf
     bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
@@ -112,9 +113,7 @@ def get_configs(config=None, datadir=get_default_datadir()):
 
 
 def detect_rpc_confs(config=None, datadir=get_default_datadir()):
-    if config is None:
-        config = get_rpcconfig(datadir=datadir)
-    rpcconfs = get_configs(config)
+    rpcconfs = get_configs(config, datadir)
     rpc_arr = []
     for conf in rpcconfs:
         rpc_arr.append(conf)
@@ -185,7 +184,7 @@ def autodetect_rpc_confs(
 
 
 class RpcError(Exception):
-    """Specifically created for error-handling of the BitcoiCore-API
+    """Specifically created for error-handling of the BitcoinCore-API
     if thrown, check for errors like this:
     try:
         rpc.does_not_exist()
@@ -347,6 +346,7 @@ class BitcoinRPC:
         )
         self.r = r
         if r.status_code != 200:
+            logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
             raise RpcError(
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )

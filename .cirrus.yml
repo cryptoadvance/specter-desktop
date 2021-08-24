@@ -12,14 +12,14 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
-    populate_script: ./tests/install_bitcoind.sh --debug --bitcoin binary
+    populate_script: ./tests/install_noded.sh --debug --bitcoin binary
   elementsd_installation_cache:
     folder: ./tests/elements
     fingerprint_script: 
       - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
-    populate_script: ./tests/install_bitcoind.sh --debug --elements compile
+    populate_script: ./tests/install_noded.sh --debug --elements compile
   verify_script: 
     - echo "  --> Version of python, virtualenv and pip3"
     - python3 --version && virtualenv --version && pip3 --version
