@@ -8,7 +8,7 @@
 		</div>
 		<br>
 		<h1>{{ _("Type of the wallet") }}</h1>
-		{% set enable_taproot = (wallet_type == 'simple' and specter.taproot_support) %}
+		{% set enable_taproot = (wallet_type == 'simple' and specter.taproot_support and cosigners[0].taproot_support) %}
 		<nav class="row">
 			<label>
 				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"

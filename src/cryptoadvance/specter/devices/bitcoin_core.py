@@ -24,12 +24,55 @@ class BitcoinCore(Device):
     hot_wallet = True
     taproot_support = True
 
+    def __init__(self, *args, **kwargs):
+        self._use_descriptors = None
+        super().__init__(*args, **kwargs)
+
     def setup_device(self, file_password, wallet_manager):
         wallet_name = os.path.join(wallet_manager.rpc_path + "_hotstorage", self.alias)
-        wallet_manager.rpc.createwallet(wallet_name, False, True)
+        core_version = wallet_manager.rpc.getnetworkinfo().get("version", 0)
+        use_descriptors = core_version >= 210000
+        if use_descriptors:
+            # it could fail if Core is compiled without sqlite
+            try:
+                wallet_manager.rpc.createwallet(
+                    wallet_name, False, True, file_password or "", False, True
+                )
+                self._use_descriptors = True
+            except:
+                wallet_manager.rpc.createwallet(
+                    wallet_name, False, True, file_password or "", False, True
+                )
+                self.taproot_support = False
+        else:
+            wallet_manager.rpc.createwallet(
+                wallet_name, False, True, file_password or ""
+            )
         rpc = wallet_manager.rpc.wallet(wallet_name)
-        if file_password:
-            rpc.encryptwallet(file_password)
+
+    def use_descriptors(self, rpc):
+        if self._use_descriptors is None:
+            self._use_descriptors = rpc.getwalletinfo().get("descriptors", False)
+            if not self._use_descriptors:
+                self.taproot_support = False
+        return self._use_descriptors
+
+    def taproot_available(self, rpc):
+        try:
+            # currently only master branch supports tr() descriptors
+            # TODO: replace to 220000
+            core_version = rpc.getnetworkinfo().get("version", 0)
+            info = rpc.getblockchaininfo()
+            taproot_active = (core_version >= 219900) and (
+                info.get("softforks", {}).get("taproot", {}).get("active", False)
+            )
+            taproot_support = self.use_descriptors(rpc) and taproot_active
+            self.taproot_support = taproot_support
+            return taproot_support
+        except Exception as e:
+            self.taproot_support = False
+            logger.error(e)
+            return False
 
     def add_hot_wallet_keys(
         self,
@@ -58,33 +101,47 @@ class BitcoinCore(Device):
         )
         if file_password:
             rpc.walletpassphrase(file_password, 60)
-        rpc.importmulti(
-            [
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}{}/0/*))".format(
-                            xprv, path.rstrip("/").replace("m", "")
-                        )
-                    ),
-                    "range": keys_range,
-                    "timestamp": "now",
-                }
-                for path in paths
-            ]
-            + [
-                {
-                    "desc": AddChecksum(
-                        "sh(wpkh({}{}/1/*))".format(
-                            xprv, path.rstrip("/").replace("m", "")
-                        )
-                    ),
-                    "range": keys_range,
-                    "timestamp": "now",
-                }
-                for path in paths
-            ],
-            {"rescan": False},
-        )
+
+        # check if we can use descriptors and taproot
+        use_descriptors = self.use_descriptors(rpc)
+        taproot_available = self.taproot_available(rpc)
+
+        args = [
+            {
+                "desc": AddChecksum(
+                    "{}({}{}/0/*)".format(
+                        "tr"
+                        if path.startswith("m/86h") and taproot_available
+                        else "wpkh",
+                        xprv,
+                        path.rstrip("/").replace("m", ""),
+                    )
+                ),
+                "range": keys_range,
+                "timestamp": "now",
+            }
+            for path in paths
+        ] + [
+            {
+                "desc": AddChecksum(
+                    "{}({}{}/1/*)".format(
+                        "tr"
+                        if path.startswith("m/86h") and taproot_available
+                        else "wpkh",
+                        xprv,
+                        path.rstrip("/").replace("m", ""),
+                    )
+                ),
+                "range": keys_range,
+                "timestamp": "now",
+            }
+            for path in paths
+        ]
+
+        if use_descriptors:
+            rpc.importdescriptors(args)
+        else:
+            rpc.importmulti(args, {"rescan": False})
 
         xpubs = [root.derive(path).to_public().to_base58() for path in paths]
         # root fingerprint is fingerprint field of the first child
