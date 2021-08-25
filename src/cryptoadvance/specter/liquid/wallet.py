@@ -264,9 +264,9 @@ class LWallet(Wallet):
                         der = bip32.parse_path(k.derivation)
                     else:
                         der = []
-                    psbt.xpub[key] = DerivationPath(fingerprint, der)
+                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
         else:
-            psbt.xpub = {}
+            psbt.xpubs = {}
         return psbt.to_string()
 
     def delete_pending_psbt(self, txid, tx=None):
