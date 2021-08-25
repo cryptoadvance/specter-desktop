@@ -303,7 +303,6 @@ class LWallet(Wallet):
                 logger.warn(e)
         return super().delete_pending_psbt(txid, tx)
 
-
     def createpsbt(
         self,
         addresses: [str],

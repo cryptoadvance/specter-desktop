@@ -15,6 +15,7 @@ def to_bool(v):
         return bool(v)
     return v == "True"
 
+
 class Address(dict):
     columns = [
         "address",  # str, address itself
