@@ -8,6 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def to_bool(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, int):
+        return bool(v)
+    return v == "True"
+
 class Address(dict):
     columns = [
         "address",  # str, address itself
@@ -19,9 +26,9 @@ class Address(dict):
     type_converter = [
         str,
         int,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
         str,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
     ]
 
     def __init__(self, rpc, **kwargs):

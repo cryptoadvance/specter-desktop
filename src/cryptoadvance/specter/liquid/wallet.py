@@ -303,24 +303,6 @@ class LWallet(Wallet):
                 logger.warn(e)
         return super().delete_pending_psbt(txid, tx)
 
-    def get_address_info(self, address):
-        try:
-            res = self.rpc.getaddressinfo(address)
-            used = None
-            if "desc" in res:
-                used = self.rpc.getreceivedbyaddress(address, 0) > 0
-            return Address(
-                self.rpc,
-                address=address,
-                index=None
-                if "desc" not in res
-                else res["desc"].split("]")[0].split("/")[-1],
-                change=None if "desc" not in res else res["ischange"],
-                label=next(iter(res["labels"]), ""),
-                used=used,
-            )
-        except:
-            return None
 
     def createpsbt(
         self,
