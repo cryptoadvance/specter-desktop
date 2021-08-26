@@ -12,6 +12,7 @@ from embit.descriptor.checksum import add_checksum
 from embit.liquid.networks import get_network
 from embit.psbt import PSBT, DerivationPath
 from embit.transaction import Transaction
+from embit.ec import PublicKey
 
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
@@ -1743,8 +1744,6 @@ class Wallet:
 
         # Core doesn't fill derivations yet, so we do it ourselves
         if taproot_derivations and self.is_taproot:
-            from embit.psbt import DerivationPath
-            from embit.ec import PublicKey
 
             net = get_network(self.manager.chain)
             for sc in psbt.inputs + psbt.outputs:
