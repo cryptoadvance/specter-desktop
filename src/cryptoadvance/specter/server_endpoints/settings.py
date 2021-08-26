@@ -517,7 +517,7 @@ def hwi():
 def set_asset_label():
     asset = request.form["asset"]
     label = request.form["label"].rstrip()
-    if label.lower() in ["btc", "bitcoin", "sat", "lbtc"]:
+    if label.lower() in ["btc", "bitcoin", "sat", "lbtc", "tlbtc"]:
         return f'Label "{label}" is not allowed', 500
     try:
         app.specter.update_asset_label(asset, label)
