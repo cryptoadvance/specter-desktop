@@ -1239,6 +1239,10 @@ class Wallet:
         if index is None:
             index = self.change_index if change else self.address_index
         desc = self.change_descriptor if change else self.recv_descriptor
+        # remove blinding stuff from descriptor so HWI Descriptor can work
+        ldesc = LDescriptor.from_string(desc)
+        ldesc.blinding_key = None
+        desc = str(ldesc)
         derived_desc = Descriptor.parse(desc).derive(index).serialize()
         derived_desc_xpubs = (
             Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
