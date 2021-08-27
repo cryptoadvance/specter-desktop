@@ -63,6 +63,8 @@ class Wallet:
     # for inheritance (to simplify LWallet logic)
     AddressListCls = AddressList
     TxListCls = TxList
+    TxCls = Transaction
+    PSBTCls = PSBT
 
     def __init__(
         self,
@@ -447,6 +449,7 @@ class Wallet:
                 ]
                 self._addresses.add(change_addresses, check_rpc=False)
 
+        self.delete_spent_pending_psbts([tx["hex"] for tx in txs.values()])
         self._transactions.add(txs)
 
     def import_electrum_label_export(self, electrum_label_export):
@@ -791,15 +794,45 @@ class Wallet:
             )
         return amount
 
-    def delete_pending_psbt(self, txid, tx=None):
-        try:
-            self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
-        except:
-            # UTXO was spent
-            pass
-        if txid in self.pending_psbts:
-            del self.pending_psbts[txid]
+    def delete_spent_pending_psbts(self, txs: list):
+        """
+        Gets all inputs from the txs list (txid, vout),
+        checks if pending psbts try to spent them,
+        if so - unlocks other inputs and deletes these psbts.
+        """
+        # check if we have pending psbts
+        if len(self.pending_psbts) == 0:
+            return
+        # make sure None didn't get here
+        txs = [tx for tx in txs if tx is not None]
+        # all inputs in transactions
+        inputs = sum([self.TxCls.from_string(hextx).vin for hextx in txs], [])
+        # all unique utxos spent in these transactions
+        utxos = set([(vin.txid, vin.vout) for vin in inputs])
+        # get psbt ids we need to delete
+        psbtids = []
+        for psbtid, psbtobj in self.pending_psbts.items():
+            psbt = self.PSBTCls.from_string(psbtobj["base64"])
+            psbtutxos = [(inp.vin.txid, inp.vin.vout) for inp in psbt.inputs]
+            for utxo in psbtutxos:
+                if utxo in utxos:
+                    psbtids.append(psbtid)
+                    break
+        if len(psbtids) > 0:
+            for psbtid in psbtids:
+                self.delete_pending_psbt(psbtid, save=False)
             self.save_to_file()
+
+    def delete_pending_psbt(self, txid, save=True):
+        if txid and txid in self.pending_psbts:
+            try:
+                self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
+            except:
+                # UTXO was spent
+                pass
+            del self.pending_psbts[txid]
+            if save:
+                self.save_to_file()
 
     def toggle_freeze_utxo(self, utxo_list):
         # utxo = ["txid:vout", "txid:vout"]
