@@ -123,10 +123,10 @@ class Device:
     def set_blinding_key(self, blinding_key):
         # either WIF or hex
         try:
-            ec.PrivateKey.from_string(blinding_key)
+            bkey = ec.PrivateKey.from_string(blinding_key)
         except:
-            ec.PrivateKey.parse(bytes.fromhex(blinding_key))
-        self.blinding_key = blinding_key
+            bkey = ec.PrivateKey.parse(bytes.fromhex(blinding_key))
+        self.blinding_key = str(bkey)
 
         write_json_file(self.json, self.fullpath)
         self.manager.update()

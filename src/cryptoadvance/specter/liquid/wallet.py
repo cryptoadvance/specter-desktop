@@ -6,6 +6,7 @@ from embit.liquid.transaction import LTransaction
 from .txlist import LTxList
 from .addresslist import LAddressList
 from embit.liquid.addresses import to_unconfidential
+from ..specter_error import SpecterError
 
 
 class LWallet(Wallet):
@@ -59,6 +60,11 @@ class LWallet(Wallet):
         blinding_key = None
         if len(devices) == 1:
             blinding_key = devices[0].blinding_key
+            if not blinding_key:
+                raise SpecterError(
+                    "Device doesn't have a blinding key. Please import it."
+                )
+
         # if we don't have slip77 key for a device or it is multisig
         # we use chaincodes to generate slip77 key.
         if not blinding_key:
