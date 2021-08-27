@@ -3,6 +3,7 @@ from .key import Key
 from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet, is_liquid
+from embit import ec
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,11 @@ class Device:
         self.manager.update()
 
     def set_blinding_key(self, blinding_key):
+        # either WIF or hex
+        try:
+            ec.PrivateKey.from_string(blinding_key)
+        except:
+            ec.PrivateKey.parse(bytes.fromhex(blinding_key))
         self.blinding_key = blinding_key
 
         write_json_file(self.json, self.fullpath)
