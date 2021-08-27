@@ -419,6 +419,17 @@ class Node:
         return self.network_info["version"]
 
     @property
+    def taproot_support(self):
+        try:
+            # currently only master branch supports tr() descriptors
+            # TODO: replace to 220000
+            return (self.bitcoin_core_version_raw >= 219900) and (
+                self.info.get("softforks", {}).get("taproot", {}).get("active", False)
+            )
+        except Exception as e:
+            return False
+
+    @property
     def chain(self):
         return self.info["chain"]
 

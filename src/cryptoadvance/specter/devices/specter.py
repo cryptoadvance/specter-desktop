@@ -66,6 +66,7 @@ class Specter(SDCardDevice):
     wallet_export_type = "qr"
     supports_hwi_multisig_display_address = True
     liquid_support = True
+    taproot_support = True
 
     def create_psbts(self, base64_psbt, wallet):
         # liquid transaction
@@ -96,7 +97,9 @@ class Specter(SDCardDevice):
         base64_psbt = psbt.to_string()
         psbts = super().create_psbts(base64_psbt, wallet)
         # remove non-witness utxo if they are there to reduce QR code size
-        updated_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        updated_psbt = wallet.fill_psbt(
+            base64_psbt, non_witness=False, xpubs=False, taproot_derivations=True
+        )
         try:
             qr_psbt = PSBT.from_string(updated_psbt)
         except:
@@ -132,7 +135,12 @@ class Specter(SDCardDevice):
         psbts["qrcode"] = qr_psbt.to_string()
 
         # we can add xpubs to SD card, but non_witness can be too large for MCU
-        psbts["sdcard"] = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=True)
+        psbts["sdcard"] = wallet.fill_psbt(
+            base64_psbt, non_witness=False, xpubs=True, taproot_derivations=True
+        )
+        psbts["hwi"] = wallet.fill_psbt(
+            base64_psbt, non_witness=False, xpubs=True, taproot_derivations=True
+        )
         return psbts
 
     def export_wallet(self, wallet):

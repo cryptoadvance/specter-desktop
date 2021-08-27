@@ -11,19 +11,20 @@ purposes = OrderedDict(
         "sh-wpkh": "Single (Nested)",
         "wsh": "Multisig (Segwit)",
         "sh-wsh": "Multisig (Nested)",
+        "tr": "Taproot",
     }
 )
 
 VALID_PREFIXES = {
     b"\x04\x35\x87\xcf": {  # testnet
-        b"\x04\x35\x87\xcf": "",  # unknown, maybe pkh
+        b"\x04\x35\x87\xcf": "",  # unknown, maybe pkh or taproot
         b"\x04\x4a\x52\x62": "sh-wpkh",
         b"\x04\x5f\x1c\xf6": "wpkh",
         b"\x02\x42\x89\xef": "sh-wsh",
         b"\x02\x57\x54\x83": "wsh",
     },
     b"\x04\x88\xb2\x1e": {  # mainnet
-        b"\x04\x88\xb2\x1e": "",  # unknown, maybe pkh
+        b"\x04\x88\xb2\x1e": "",  # unknown, maybe pkh or taproot
         b"\x04\x9d\x7c\xb2": "sh-wpkh",
         b"\x04\xb2\x47\x46": "wpkh",
         b"\x02\x95\xb4\x3f": "sh-wsh",
@@ -125,6 +126,8 @@ class Key:
                 key_type = "sh-wpkh"
             elif derivation_type == "84h":
                 key_type = "wpkh"
+            elif derivation_type == "86h":
+                key_type = "tr"
             elif derivation_type == "48h":
                 if len(derivation_path) >= 5:
                     if derivation_path[4] == "1h":
