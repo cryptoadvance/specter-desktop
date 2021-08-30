@@ -217,7 +217,7 @@
 					addr = addr.substr(addr.indexOf("bitcoin:")+8);
 				}
 				let arr = addr.split("?");
-				addr = arr[0]
+				addr = arr[0];
 				document.getElementById("address_" + i).value = addr;
 				let evt = new Event('input');
 				document.getElementById("address_" + i).dispatchEvent(evt);
@@ -227,15 +227,15 @@
 					arr.forEach((e)=>{
 						if(e.startsWith("amount=")){
 							let val = parseFloat(e.substr(7));
-							if(unit == 'sat'){
+							if(units[i] == 'sat'){
 								val = Math.round(val*1e8);
 							}
 							document.getElementById("amount_" + i).value = val;
 							let evt = new Event('input');
 							document.getElementById("amount_" + i).dispatchEvent(evt);
 						}
-						if(e.startsWith("message=")){
-							document.getElementById("label_" + i).value = e.substr(8);
+						if(e.startsWith("message=") || e.startsWith("label=")){
+							document.getElementById("label_" + i).value = e.split("=")[1];
 						}
 					});
 				}

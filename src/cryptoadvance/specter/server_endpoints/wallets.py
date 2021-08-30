@@ -911,7 +911,7 @@ def broadcast(wallet_alias):
     res = wallet.rpc.testmempoolaccept([tx])[0]
     if res["allowed"]:
         app.specter.broadcast(tx)
-        wallet.delete_pending_psbt(get_txid(tx), tx=tx)
+        wallet.delete_spent_pending_psbts([tx])
         return jsonify(success=True)
     else:
         return jsonify(
@@ -963,7 +963,7 @@ def broadcast_blockexplorer(wallet_alias):
                 f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                 data=tx,
             )
-            wallet.delete_pending_psbt(get_txid(tx), tx=tx)
+            wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
         except Exception as e:
             return jsonify(

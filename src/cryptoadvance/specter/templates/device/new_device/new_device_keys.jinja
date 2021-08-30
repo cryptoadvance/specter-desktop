@@ -256,6 +256,9 @@
             let accountNumber = accountNumberField.value;
             addXpub('#' + accountNumber + ' Single Sig (Nested)', 'm/49h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
             addXpub('#' + accountNumber + ' Single Sig (Segwit)', 'm/84h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
+            {% if specter.taproot_support and device_class.taproot_support %}
+            addXpub('#' + accountNumber + ' Single Sig (Taproot)', 'm/86h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
+            {% endif %}
             addXpub('#' + accountNumber + ' Multisig Sig (Nested)', 'm/48h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h/1h');
             addXpub('#' + accountNumber + ' Multisig Sig (Segwit)', 'm/48h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h/2h');
             document.getElementById('edit_add_account').style.display = 'none';
