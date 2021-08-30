@@ -1,4 +1,5 @@
 recursive-include src/cryptoadvance/specter/templates *
 recursive-include src/cryptoadvance/specter/static *
 recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.mo
+recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.po
 include requirements.txt
