@@ -94,7 +94,6 @@ def restore(current_user):
         if len(files) == 0:
             return {"success": False, message: "No backups found."}
         file = files[0]
-        print("Found file: %s (%s)" % (file.get("name"), file.get("id")))
         file_id = file.get("id")
         request = service.files().get_media(fileId=file_id)
         fh = io.BytesIO()
@@ -102,7 +101,6 @@ def restore(current_user):
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
         app.logger.info("Downloaded the latest backup from Google Drive!")
         wallets = []
         devices = []
