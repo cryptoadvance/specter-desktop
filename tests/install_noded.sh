@@ -205,6 +205,7 @@ function sub_binary {
     check_binary_prerequisites
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
+    echo "    --> install version $version"
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
     if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
@@ -262,11 +263,11 @@ function parse_and_execute() {
         shift
         ;;
       compile)
-        sub_compile $node_impl
+        sub_compile $node_impl || exit 2
         shift
         ;;
       binary)
-        sub_binary
+        sub_binary || exit 2
         shift
         ;;
       *)
