@@ -196,11 +196,12 @@ function sub_compile {
 }
 
 function sub_binary {
+    node_impl=$1
     if [ "$node_impl" = "elements" ]; then
         echo "    --> binary installation of elements not supported, exiting"
         exit 2
     fi
-    echo "    --> install_noded.sh Start $(date) (binary)"
+    echo "    --> install_noded.sh Start $(date) (binary) for node_impl $node_impl"
     START=$(date +%s.%N)
     check_binary_prerequisites
     # todo: Parametrize this
@@ -267,7 +268,7 @@ function parse_and_execute() {
         shift
         ;;
       binary)
-        sub_binary || exit 2
+        sub_binary $node_impl || exit 2
         shift
         ;;
       *)
