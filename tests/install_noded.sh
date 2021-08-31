@@ -207,6 +207,8 @@ function sub_binary {
     ln -s ./bitcoin-${version} bitcoin
     echo "    --> Listing binaries"
     find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    echo "    --> checking for bitcoind"
+    test -x ./bitcoin/bin/bitcodind || (echo "not found" && exit 2)
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
