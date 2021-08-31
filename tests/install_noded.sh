@@ -162,7 +162,19 @@ function check_compile_prerequisites {
             apt-get --yes install $REQUIRED_PKG 
         fi
     done
+}
 
+function check_binary_prerequisites {
+    REQUIRED_PKGS="wget"
+    for REQUIRED_PKG in $REQUIRED_PKGS; do
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+        echo Checking for $REQUIRED_PKG: $PKG_OK
+        if [ "" = "$PKG_OK" ]; then
+            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+            apt-get --yes install $REQUIRED_PKG 
+        fi
+    done
 }
 
 function sub_compile {
@@ -190,6 +202,7 @@ function sub_binary {
     fi
     echo "    --> install_noded.sh Start $(date) (binary)"
     START=$(date +%s.%N)
+    check_binary_prerequisites
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
     # remove the v-prefix
