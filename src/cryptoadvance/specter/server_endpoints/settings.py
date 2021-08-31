@@ -31,6 +31,7 @@ from ..user import hash_password
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..util.google_drive import backup, callback, restore
 
 logger = logging.getLogger(__name__)
 
@@ -560,3 +561,21 @@ def backup_file():
         attachment_filename="specter-backup.zip",
         as_attachment=True,
     )
+
+
+@settings_endpoint.route("/backup_to_google_drive", methods=["POST"])
+@login_required
+def backup_to_google_drive():
+    return backup(app.specter.specter_backup_file(), current_user)
+
+
+@settings_endpoint.route("/restore_from_google_drive", methods=["POST"])
+@login_required
+def restore_from_google_drive():
+    return restore(current_user)
+
+
+@settings_endpoint.route("/backup_to_google_drive/callback", methods=["GET"])
+@login_required
+def backup_to_google_drive_callback():
+    return callback(current_user)

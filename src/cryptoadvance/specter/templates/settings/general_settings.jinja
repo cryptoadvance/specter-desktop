@@ -50,9 +50,36 @@
 					{{ _("Choose backup folder") }}
 				</label>
 			</div>
-			<span id="filesloaded"></span>
+			<span id="filesloaded" class="note"></span>
 			<div class="row" style="margin-top: 5px;">
 				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
+			</div><br>
+
+			<span style="margin: auto 5px auto 0px;">{{ _("Backup & Restore with Google Drive") }}:</span>
+			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">{{ _("Backing up and Restoring with Google Drive") }}<br><br></span>
+						{{ _("Here you can backup and restore your wallets and devices with Google Drive.") }}<br>
+						{{ _("These files will be stored under Specter Desktop's App Data and will not be accessible to you.") }}<br>
+						{{ _("Note: Only the latest backup will be restored.") }}
+					</span>
+				</p>
+			</div><br><br>
+
+			<div class="row">
+				{% if 'creds' in current_user.google_oauth_data %}
+				<a class="btn" onclick="backupToGoogleDrive()" style="width: 100%; margin-top: -5px;">{{ _("Backup") }}</a>
+				<a class="btn" onclick="restoreFromGoogleDrive()" style="width: 100%; margin-top: -5px; margin-left: 16px">{{ _("Restore") }}</a>
+				{% else %}
+				<a class="btn" onclick="backupToGoogleDrive()" style="width: 100%; margin-top: -5px;">{{ _("Login with Google") }}</a>
+				{% endif %}
+			</div>
+			
+			<span id="google_drive_filesloaded" class="note"></span>
+			<div class="row" style="margin-top: 5px;">
+				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="google_drive_restore" style="margin-bottom: 5px;">{{ _("Load Specter backup from Google Drive") }}</button>
 			</div><br><br>
 
 			<h1>{{ _("Miscellaneous") }} </h1>
@@ -117,6 +144,77 @@
 
 {% block scripts %}
 	<script type="text/javascript">
+	async function backupToGoogleDrive() {
+		let url = `{{ url_for('settings_endpoint.backup_to_google_drive') }}`;
+		var formData = new FormData();
+		formData.append('csrf_token', '{{ csrf_token() }}');
+		try {
+			const response = await fetch(
+				url,
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			if(response.status != 200){
+				showError(await response.text());
+				return;
+			}
+			const jsonResponse = await response.json();
+			if (jsonResponse.redirect_url){
+				window.location = jsonResponse.redirect_url;
+				return
+			}
+			if (jsonResponse.success) {
+				showNotification("Backed up to Google Drive successfully!")
+				return
+			};
+			showError('Failed to backup to Google Drive.')
+		} catch(e) {
+			console.log("Caught error: ", e);
+			showError(e);
+		}
+	}
+	async function restoreFromGoogleDrive() {
+		let url = `{{ url_for('settings_endpoint.restore_from_google_drive') }}`;
+		var formData = new FormData();
+		formData.append('csrf_token', '{{ csrf_token() }}');
+		try {
+			const response = await fetch(
+				url,
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			if(response.status != 200){
+				showError(await response.text());
+				return;
+			}
+			const jsonResponse = await response.json();
+			if (jsonResponse.success) {
+				let wallets = jsonResponse.wallets;
+				let devices = jsonResponse.devices;
+				if (wallets.length > 0){
+					document.getElementById('restorewallets').value = JSON.stringify(wallets);
+					document.getElementById('google_drive_filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+					document.getElementById('google_drive_restore').style.display = 'block';
+				}
+				if (devices.length > 0){
+					document.getElementById('restoredevices').value = JSON.stringify(devices);
+					document.getElementById('google_drive_filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+					document.getElementById('google_drive_restore').style.display = 'block';
+				}
+				console.log(wallets, devices)
+				showNotification("Restored from Google Drive successfully!")
+				return;
+			};
+			showError('Failed to restore from Google Drive')
+		} catch(e) {
+			console.log("Caught error: ", e);
+			showError(e);
+		}
+	}
 	function toggleHidden(elementId) {
 		let el = document.getElementById(elementId);
 		if (el.classList.contains("hidden")) {

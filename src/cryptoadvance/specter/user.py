@@ -47,6 +47,7 @@ class User(UserMixin):
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
+        self.google_oauth_data = {}
 
     @property
     def folder_id(self):
@@ -222,6 +223,18 @@ class User(UserMixin):
 
     def set_alt_symbol(self, alt_symbol):
         self.config["alt_symbol"] = alt_symbol
+        self.save_info()
+
+    def set_google_oauth_state(self, state):
+        self.google_oauth_data["state"] = state
+        self.save_info()
+
+    def set_google_oauth_creds(self, creds):
+        self.google_oauth_data["creds"] = creds
+        self.save_info()
+
+    def clear_google_oauth_data(self):
+        self.google_oauth_data = {}
         self.save_info()
 
     def delete(self):
