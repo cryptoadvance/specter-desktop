@@ -108,8 +108,8 @@ ecdsa==0.17.0 \
     --hash=sha256:5cf31d5b33743abe0dfc28999036c849a69d548f994b535e527ee3cb7f3ef676 \
     --hash=sha256:b9f500bb439e4153d0330610f5d26baaf18d17b8ced1bc54410d189385ea68aa \
     # via bitbox02, hwi
-embit==0.4.6 \
-    --hash=sha256:19f69929caf0d2fcfd4b708dd873384dfc36267944d02d5e6dfebc835f294e1b \
+embit==0.4.5 \
+    --hash=sha256:fcc9f27c12c64d026dfe3a6d10f1fa8303433f9d96544caf3feb536244448577 \
     # via -r requirements.in
 flask-babel==2.0.0 \
     --hash=sha256:e6820a052a8d344e178cdd36dd4bb8aea09b4bda3d5f9fa9f008df2c7f2f5468 \
