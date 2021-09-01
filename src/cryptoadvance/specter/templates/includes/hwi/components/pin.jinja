@@ -1,8 +1,8 @@
 <div id="hwi_pin" class="hidden">
-    <h2>Enter PIN</h2>
+    <h2>{{ _("Enter PIN") }}</h2>
     <div class="row">
         <div id="hwi_pin_stars" style="margin-top: 20px; font-size: 20px; height: 25px; width: 100%; padding-left: 30px;"></div>
-        <img id="hwi_pin_delete" src="{{ url_for('static', filename='img/backspace.svg') }}" width="18px" style="margin-top: 20px; height: 25px; margin-left: 10px; cursor: pointer;">
+        <img id="hwi_pin_delete" src="{{ url_for('static', filename='img/clear-character.svg') }}" width="24px" style="margin-top: 20px; height: 25px; margin-left: 10px; cursor: pointer;" class="svg-white">
     </div>
     <br>
     <div id="hwi_pin_container" class="flex-center flex-column">
@@ -13,7 +13,7 @@
     async function enterPin(device, promptPin=true){
         let result = null;
         if (promptPin) {
-            showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+            showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
             try {
                 result = await hwi.promptPin(device);
             } catch (error) {
@@ -22,7 +22,7 @@
             }
             console.log(result);
             if(!overlayIsActive()){
-                showNotification("HWI is ready again", 10000);
+                // showNotification("HWI is ready again", 10000);
                 // no need to proceed at all
                 return null;
             }
@@ -59,7 +59,7 @@
         el.appendChild(document.createElement('br'));
         let submit = document.createElement('button');
         submit.classList.add('btn');
-        submit.innerHTML = "Submit";
+        submit.innerHTML = '{{ _("Submit") }}';
         submit.addEventListener('click', e=>{
             pinReady = true;
         });
@@ -81,7 +81,7 @@
         }
         hidePageOverlay();
         // now we have PIN - send it
-        showHWIProgress("Processing...", `Keep your ${capitalize(device.type)} connected.`);
+        showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         result = null;
         try {
             result = await hwi.sendPin(device, pin);
@@ -91,7 +91,7 @@
         }
         console.log(result);
         if(!overlayIsActive()){
-            showNotification("HWI is ready again", 10000);
+            // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }

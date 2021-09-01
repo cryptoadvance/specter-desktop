@@ -80,10 +80,10 @@ function copyText(value, msg) {
 	try {
 		var element = document.createElement("p");
 		document.getElementsByTagName("body")[0].appendChild(element);
-		element.textContent = value
+		element.textContent = value;
 		var selection = document.getSelection();
 		var range = document.createRange();
-		range.selectNode(element);
+		range.selectNodeContents(element);
 		selection.removeAllRanges();
 		selection.addRange(range);
 		document.execCommand("copy");

@@ -1,13 +1,15 @@
 {#
     sidebar_btn - Add button used in the sidebar for wallets and devices.
     Parameters:
-    - url_path: URL path the button should lead to (ie. 'new_wallet', 'new_device').
+    - url_path: URL path the button should lead to (ie. 'new_wallet', 'new_device_type').
     - text: The text of the button.
     - id: an optional id for the "a" element
+    - icon: should show an icon of +
+    - class: class property of the button
  #}
-{% macro sidebar_btn(url_path, text, id="", icon=true) -%}
+{% macro sidebar_btn(url_path, text, id="", icon=true, class="btn") -%}
     <div>
-        <a href="{{url_path}}" class="btn" {% if id %}id="{{id}}"{% endif %} style="max-width: 90%;margin: auto;">
+        <a href="{{url_path}}" class="{{class}}" {% if id %}id="{{id}}"{% endif %} style="max-width: 90%;margin: auto;">
             {% if icon %}<svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>{% endif %}{{ text }}
         </a>
     </div>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
+    <title>{{ _("Specter Desktop") }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style type="text/css">
+        a{
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <br><br><br>
+        <div class="card" style="width:90%; max-width: 800px;">
+            <h1>{{ _("Timeout Error!") }}</h1>
+            {{ _("Exception") }}: <b>{{ error }}</b><br><br>
+            <div><br>
+                <a class="btn" href="{{ url_for('index') }}">{{ _("Back to the main page") }}</a>
+            <br></div>
+            {{ _("Please have a look in the below log. There are effectively two ways to resolve this:") }}"
+            <ul>
+                <li>{{ _("Either the process was just slow and Specter was too impatient") }}</li>
+                <li>{{ _("The process is in trouble which should be reflected by the content of the logs below") }}</li>
+            </ul>
+            {{ _("Details from the log file") }}:
+            <pre><code>{{ loglines }}</code></pre>
+            <br>
+            <div>{{ _('Please let us know! Create an <a href="https://github.com/cryptoadvance/specter-desktop/issues" target="_blank">issue</a> or ping us on <a href="https://t.me/spectersupport" target="_blank">Telegram</a> to fix it.') }}</div>
+        </div>
+    </main>
+</body>
+</html>

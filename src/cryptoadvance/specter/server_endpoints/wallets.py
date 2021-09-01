@@ -1,45 +1,70 @@
-import ast, csv, json, os, time, base64, random, requests, logging
-from io import StringIO
-from werkzeug.wrappers import Response
+import ast
+import base64
+import csv
+import json
+import logging
+import os
+import random
+import time
+from binascii import b2a_base64
 from datetime import datetime
+from functools import wraps
+from io import StringIO
+from math import isnan
 from numbers import Number
-from ..util.tx import decoderawtransaction
-from ..util.price_providers import get_price_at
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_login import login_required, current_user
-from ..util.descriptor import AddChecksum, Descriptor
+import requests
+from flask import Blueprint, Flask
+from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required
+from werkzeug.wrappers import Response
+from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
+
 from ..helpers import (
     bcur2base64,
     get_devices_with_keys_by_type,
     get_txid,
-    is_testnet,
-    parse_wallet_data_import,
 )
-from ..persistence import delete_file
 from ..key import Key
-from ..specter import Specter
-from ..specter_error import SpecterError
-from ..wallet_manager import purposes
+from ..persistence import delete_file
 from ..rpc import RpcError
-from binascii import b2a_base64
+from ..specter import Specter
+from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
-
-from flask import current_app as app
+from ..util.descriptor import AddChecksum, Descriptor
+from ..util.fee_estimation import get_fees
+from ..util.price_providers import get_price_at
+from ..util.tx import decoderawtransaction
+from ..managers.wallet_manager import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 wallets_endpoint = Blueprint("wallets_endpoint", __name__)
+
+
+def handle_wallet_error(func_name, error):
+    flash(_("SpecterError while {}: {}").format(func_name, error), "error")
+    app.logger.error(f"SpecterError while {func_name}: {error}")
+    app.specter.wallet_manager.update()
+    return redirect(url_for("about"))
+
+
+def check_wallet(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        """checks the wallet for healthiness A wrapper function"""
+        if kwargs["wallet_alias"]:
+            wallet_alias = kwargs["wallet_alias"]
+            wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+            wallet.get_info()
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 ################## Wallet overview #######################
@@ -49,14 +74,39 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 @login_required
 def wallets_overview():
     app.specter.check_blockheight()
-    for wallet in app.specter.wallet_manager.wallets.values():
+    for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.get_balance()
         wallet.check_utxo()
+
     return render_template(
         "wallet/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
     )
+
+
+################## Failed wallets fix #######################
+
+
+@wallets_endpoint.route("/failed_wallets/", methods=["POST"])
+@login_required
+def failed_wallets():
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "retry_loading_wallets":
+            app.specter.wallet_manager.update()
+        elif action == "delete_failed_wallet":
+            try:
+                wallet = json.loads(request.form["wallet_data"])
+                fullpath = wallet["fullpath"]
+                delete_file(fullpath)
+                delete_file(fullpath + ".bkp")
+                delete_file(fullpath.replace(".json", "_addr.csv"))
+                delete_file(fullpath.replace(".json", "_txs.csv"))
+                app.specter.wallet_manager.update()
+            except Exception as e:
+                flash(_("Failed to delete wallet: {}").format(str(e)), "error")
+    return redirect("/")
 
 
 ################## New wallet #######################
@@ -67,13 +117,15 @@ def wallets_overview():
 def new_wallet_type():
     err = None
     if app.specter.chain is None:
-        err = "Configure Bitcoin Core to create wallets"
+        err = _("Configure Bitcoin Core to create wallets")
         return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()
     except Exception:
-        err = '<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
+        err = _(
+            '<p><br>Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
+        )
         return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
     return render_template(
         "wallet/new_wallet/new_wallet_type.jinja", specter=app.specter, rand=rand
@@ -85,7 +137,7 @@ def new_wallet_type():
 def new_wallet(wallet_type):
     wallet_types = ["simple", "multisig", "import_wallet"]
     if wallet_type not in wallet_types:
-        flash("Unknown wallet type requested", "error")
+        flash(_("Unknown wallet type requested"), "error")
         return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
     err = None
@@ -93,159 +145,48 @@ def new_wallet(wallet_type):
         action = request.form["action"]
         if action == "importwallet":
             try:
-                wallet_data = json.loads(request.form["wallet_data"].replace("'", "h"))
-                (
-                    wallet_name,
-                    recv_descriptor,
-                    cosigners_types,
-                ) = parse_wallet_data_import(wallet_data)
-            except Exception:
-                flash("Unsupported wallet import format", "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            # get min of the two
-            # if the node is still syncing
-            # and the first block with tx is not there yet
-            startblock = min(
-                wallet_data.get("blockheight", app.specter.info.get("blocks", 0)),
-                app.specter.info.get("blocks", 0),
-            )
-            # check if pruned
-            if app.specter.info.get("pruned", False):
-                newstartblock = max(startblock, app.specter.info.get("pruneheight", 0))
-                if newstartblock > startblock:
-                    flash(
-                        f"Using pruned node - we will only rescan from block {newstartblock}",
-                        "error",
-                    )
-                    startblock = newstartblock
-            try:
-                descriptor = Descriptor.parse(
-                    AddChecksum(recv_descriptor.split("#")[0]),
-                    testnet=is_testnet(app.specter.chain),
+                wallet_importer: WalletImporter = WalletImporter(
+                    request.form["wallet_data"],
+                    app.specter,
                 )
-                if descriptor is None:
-                    flash("Invalid wallet descriptor.", "error")
-                    return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            except:
-                flash("Invalid wallet descriptor.", "error")
+            except SpecterError as se:
+                flash(str(se), "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                flash("Wallet with the same name already exists", "error")
-                return redirect(url_for("wallets_endpoint.new_wallet_type"))
-
-            sigs_total = descriptor.multisig_N
-            sigs_required = descriptor.multisig_M
-            if descriptor.wpkh:
-                address_type = "wpkh"
-            elif descriptor.wsh:
-                address_type = "wsh"
-            elif descriptor.sh_wpkh:
-                address_type = "sh-wpkh"
-            elif descriptor.sh_wsh:
-                address_type = "sh-wsh"
-            elif descriptor.sh:
-                address_type = "sh-wsh"
-            else:
-                address_type = "pkh"
-            keys = []
-            cosigners = []
-            unknown_cosigners = []
-            unknown_cosigners_types = []
-            if sigs_total == None:
-                sigs_total = 1
-                sigs_required = 1
-                descriptor.origin_fingerprint = [descriptor.origin_fingerprint]
-                descriptor.origin_path = [descriptor.origin_path]
-                descriptor.base_key = [descriptor.base_key]
-            for i in range(sigs_total):
-                cosigner_found = False
-                for device in app.specter.device_manager.devices:
-                    cosigner = app.specter.device_manager.devices[device]
-                    if descriptor.origin_fingerprint[i] is None:
-                        descriptor.origin_fingerprint[i] = ""
-                    if descriptor.origin_path[i] is None:
-                        descriptor.origin_path[i] = descriptor.origin_fingerprint[i]
-                    for key in cosigner.keys:
-                        if key.fingerprint + key.derivation.replace(
-                            "m", ""
-                        ) == descriptor.origin_fingerprint[i] + descriptor.origin_path[
-                            i
-                        ].replace(
-                            "'", "h"
-                        ):
-                            keys.append(key)
-                            cosigners.append(cosigner)
-                            cosigner_found = True
-                            break
-                    if cosigner_found:
-                        break
-                if not cosigner_found:
-                    desc_key = Key.parse_xpub(
-                        "[{}{}]{}".format(
-                            descriptor.origin_fingerprint[i],
-                            descriptor.origin_path[i],
-                            descriptor.base_key[i],
-                        )
-                    )
-                    unknown_cosigners.append(desc_key)
-                    if len(unknown_cosigners) > len(cosigners_types):
-                        unknown_cosigners_types.append("other")
-                    else:
-                        unknown_cosigners_types.append(cosigners_types[i])
-            wallet_type = "multisig" if sigs_total > 1 else "simple"
             createwallet = "createwallet" in request.form
             if createwallet:
-                wallet_name = request.form["wallet_name"]
-                for i, unknown_cosigner in enumerate(unknown_cosigners):
-                    unknown_cosigner_name = request.form[
-                        "unknown_cosigner_{}_name".format(i)
-                    ]
-                    unknown_cosigner_type = request.form.get(
-                        "unknown_cosigner_{}_type".format(i), "other"
-                    )
-                    device = app.specter.device_manager.add_device(
-                        name=unknown_cosigner_name,
-                        device_type=unknown_cosigner_type,
-                        keys=[unknown_cosigner],
-                    )
-                    keys.append(unknown_cosigner)
-                    cosigners.append(device)
+                # User might have renamed it
+                wallet_importer.wallet_name = request.form["wallet_name"]
+                wallet_importer.create_nonexisting_signers(
+                    app.specter.device_manager, request.form
+                )
                 try:
-                    wallet = app.specter.wallet_manager.create_wallet(
-                        wallet_name, sigs_required, address_type, keys, cosigners
-                    )
-                except Exception as e:
-                    flash("Failed to create wallet: %r" % e, "error")
+                    wallet_importer.create_wallet(app.specter.wallet_manager)
+                except SpecterError as se:
+                    flash(str(se), "error")
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=False)
-                wallet.keypoolrefill(0, wallet.IMPORT_KEYPOOL, change=True)
-                wallet.import_labels(wallet_data.get("labels", {}))
-                flash("Wallet imported successfully", "info")
+                flash(_("Wallet imported successfully"), "info")
                 try:
-                    wallet.rpc.rescanblockchain(startblock, timeout=1)
-                    app.logger.info("Rescanning Blockchain ...")
-                except requests.exceptions.ReadTimeout:
-                    # this is normal behavior in our usecase
-                    pass
-                except Exception as e:
-                    app.logger.error("Exception while rescanning blockchain: %r" % e)
-                    flash("Failed to perform rescan for wallet: %r" % e, "error")
-                wallet.getdata()
+                    wallet_importer.rescan_as_needed(app.specter)
+                except SpecterError as se:
+                    flash(str(se), "error")
                 return redirect(
-                    url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)
+                    url_for(
+                        "wallets_endpoint.receive",
+                        wallet_alias=wallet_importer.wallet.alias,
+                    )
                     + "?newwallet=true"
                 )
             else:
                 return render_template(
                     "wallet/new_wallet/import_wallet.jinja",
-                    wallet_data=json.dumps(wallet_data),
-                    wallet_type=wallet_type,
-                    wallet_name=wallet_name,
-                    cosigners=cosigners,
-                    unknown_cosigners=unknown_cosigners,
-                    unknown_cosigners_types=unknown_cosigners_types,
-                    sigs_required=sigs_required,
-                    sigs_total=sigs_total,
+                    wallet_data=wallet_importer.wallet_json,
+                    wallet_type=wallet_importer.wallet_type,
+                    wallet_name=wallet_importer.wallet_name,
+                    cosigners=wallet_importer.cosigners,
+                    unknown_cosigners=wallet_importer.unknown_cosigners,
+                    unknown_cosigners_types=wallet_importer.unknown_cosigners_types,
+                    sigs_required=wallet_importer.descriptor.multisig_M,
+                    sigs_total=wallet_importer.descriptor.multisig_N,
                     specter=app.specter,
                     rand=rand,
                 )
@@ -254,13 +195,23 @@ def new_wallet(wallet_type):
                 app.specter.device_manager.get_by_alias(alias)
                 for alias in request.form.getlist("devices")
             ]
+
+            if not cosigners:
+                return render_template(
+                    "wallet/new_wallet/new_wallet.jinja",
+                    wallet_type=wallet_type,
+                    error=_(
+                        "No device was selected. Please select a device to create the wallet for."
+                    ),
+                    specter=app.specter,
+                    rand=rand,
+                )
             devices = get_devices_with_keys_by_type(app, cosigners, wallet_type)
             for device in devices:
                 if len(device.keys) == 0:
-                    err = (
-                        "Device %s doesn't have keys matching this wallet type"
-                        % device.name
-                    )
+                    err = _(
+                        "Device {} doesn't have keys matching this wallet type"
+                    ).format(device.name)
                     break
 
             name = wallet_type.title()
@@ -272,7 +223,6 @@ def new_wallet(wallet_type):
 
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
-                purposes=purposes,
                 cosigners=devices,
                 wallet_type=wallet_type,
                 sigs_total=len(devices),
@@ -287,7 +237,7 @@ def new_wallet(wallet_type):
             sigs_total = int(request.form.get("sigs_total", 1))
             sigs_required = int(request.form.get("sigs_required", 1))
             if wallet_name in app.specter.wallet_manager.wallets_names:
-                err = "Wallet already exists"
+                err = _("Wallet already exists")
             if err:
                 devices = [
                     app.specter.device_manager.get_by_alias(
@@ -297,7 +247,6 @@ def new_wallet(wallet_type):
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -323,7 +272,9 @@ def new_wallet(wallet_type):
                 except:
                     pass
             if len(keys) != sigs_total or len(cosigners) != sigs_total:
-                err = "No keys were selected for device, please try adding keys first"
+                err = _(
+                    "No keys were selected for device, please try adding keys first"
+                )
                 devices = [
                     app.specter.device_manager.get_by_alias(
                         request.form.get("cosigner{}".format(i))
@@ -332,7 +283,6 @@ def new_wallet(wallet_type):
                 ]
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=devices,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -347,11 +297,10 @@ def new_wallet(wallet_type):
                 wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
-            except Exception:
-                err = "Failed to create wallet..."
+            except Exception as e:
+                err = _("Failed to create wallet. Error: {}").format(e)
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
-                    purposes=purposes,
                     cosigners=cosigners,
                     wallet_type=wallet_type,
                     sigs_total=len(devices),
@@ -370,7 +319,12 @@ def new_wallet(wallet_type):
                 if "utxo" in request.form.get("full_rescan_option"):
                     explorer = None
                     if "use_explorer" in request.form:
-                        explorer = request.form["explorer_url"]
+                        if request.form["explorer"] == "CUSTOM":
+                            explorer = request.form["custom_explorer"]
+                        else:
+                            explorer = app.config["EXPLORERS_LIST"][
+                                request.form["explorer"]
+                            ]["url"]
                     wallet.rescanutxo(
                         explorer,
                         app.specter.requests_session(explorer),
@@ -399,7 +353,6 @@ def new_wallet(wallet_type):
         if action == "preselected_device":
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
-                purposes=purposes,
                 cosigners=[
                     app.specter.device_manager.get_by_alias(request.form["device"])
                 ],
@@ -426,11 +379,7 @@ def new_wallet(wallet_type):
 @wallets_endpoint.route("/wallet/<wallet_alias>/")
 @login_required
 def wallet(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if wallet.fullbalance > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
@@ -438,14 +387,24 @@ def wallet(wallet_alias):
 
 
 ###### Wallet transaction history ######
-@wallets_endpoint.route("/wallet/<wallet_alias>/history/")
+@wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_tx: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    tx_list_type = "txlist"
+
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "freezeutxo":
+            wallet.toggle_freeze_utxo(request.form.getlist("selected_utxo"))
+            tx_list_type = "utxo"
+        elif action == "abandon_tx":
+            txid = request.form["txid"]
+            try:
+                wallet.abandontransaction(txid)
+            except SpecterError as e:
+                flash(str(e), "error")
+
     # update balances in the wallet
     app.specter.check_blockheight()
     wallet.get_balance()
@@ -455,6 +414,7 @@ def history(wallet_alias):
         "wallet/history/wallet_history.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
+        tx_list_type=tx_list_type,
         specter=app.specter,
         rand=rand,
     )
@@ -465,12 +425,9 @@ def history(wallet_alias):
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/receive/", methods=["GET", "POST"])
 @login_required
+@check_wallet
 def receive(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "newaddress":
@@ -496,11 +453,7 @@ def receive(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send")
 @login_required
 def send(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if len(wallet.pending_psbts) > 0:
         return redirect(
             url_for("wallets_endpoint.send_pending", wallet_alias=wallet_alias)
@@ -512,11 +465,7 @@ def send(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/new", methods=["GET", "POST"])
 @login_required
 def send_new(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
     wallet.get_balance()
     # update utxo list for coin selection
@@ -525,76 +474,49 @@ def send_new(wallet_alias):
     addresses = [""]
     labels = [""]
     amounts = [0]
-    fee_rate = 0.0
+    amount_units = ["btc"]
     err = None
     ui_option = "ui"
     recipients_txt = ""
     fillform = False
+    subtract = False
+    subtract_from = 1
+    fee_options = "dynamic"
+    rbf = True
+    rbf_utxo = []
+    rbf_tx_id = ""
+    selected_coins = request.form.getlist("coinselect")
+    fee_estimation_data = get_fees(app.specter, app.config)
+    if fee_estimation_data.get("failed", None):
+        flash(
+            _("Failed to fetch fee estimations. Please use the manual fee calculation.")
+        )
+
+    fee_rate = fee_estimation_data["hourFee"]
+
     if request.method == "POST":
-        action = request.form["action"]
+        action = request.form.get("action")
+        rbf_tx_id = request.form.get("rbf_tx_id", "")
         if action == "createpsbt":
-            i = 0
-            addresses = []
-            labels = []
-            amounts = []
-            ui_option = request.form.get("ui_option")
-            if "ui" in ui_option:
-                while "address_{}".format(i) in request.form:
-                    addresses.append(request.form["address_{}".format(i)])
-                    amounts.append(float(request.form["btc_amount_{}".format(i)]))
-                    labels.append(request.form["label_{}".format(i)])
-                    if request.form["label_{}".format(i)] != "":
-                        wallet.setlabel(addresses[i], labels[i])
-                    i += 1
-            else:
-                recipients_txt = request.form["recipients"]
-                for output in recipients_txt.splitlines():
-                    addresses.append(output.split(",")[0].strip())
-                    if request.form.get("amount_unit_text") == "sat":
-                        amounts.append(float(output.split(",")[1].strip()) / 1e8)
-                    else:
-                        amounts.append(float(output.split(",")[1].strip()))
-            addresses = [
-                address.lower()
-                if address.startswith(("BC1", "TB1", "BCRT1"))
-                else address
-                for address in addresses
-            ]
-            subtract = bool(request.form.get("subtract", False))
-            subtract_from = int(request.form.get("subtract_from", 1)) - 1
-            rbf = bool(request.form.get("rbf", False))
-            selected_coins = request.form.getlist("coinselect")
-            app.logger.info("selected coins: {}".format(selected_coins))
-            if "dynamic" in request.form.get("fee_options"):
-                fee_rate = float(request.form.get("fee_rate_dynamic"))
-            else:
-                if request.form.get("fee_rate"):
-                    fee_rate = float(request.form.get("fee_rate"))
+            psbt_creator = PsbtCreator(
+                app.specter,
+                wallet,
+                request.form.get("ui_option", "ui"),
+                request_form=request.form,
+                recipients_txt=request.form["recipients"],
+                recipients_amount_unit=request.form.get("amount_unit_text"),
+            )
             try:
-                psbt = wallet.createpsbt(
-                    addresses,
-                    amounts,
-                    subtract=subtract,
-                    subtract_from=subtract_from,
-                    fee_rate=fee_rate,
-                    selected_coins=selected_coins,
-                    readonly="estimate_fee" in request.form,
-                    rbf=rbf,
-                )
-                if psbt is None:
-                    err = "Probably you don't have enough funds, or something else..."
-                else:
-                    # calculate new amount if we need to subtract
-                    if subtract:
-                        for v in psbt["tx"]["vout"]:
-                            if addresses[0] in v["scriptPubKey"]["addresses"]:
-                                amounts[0] = v["value"]
-            except Exception as e:
-                err = e
-                app.logger.error(e)
+                psbt = psbt_creator.create_psbt(wallet)
+            except SpecterError as se:
+                err = str(se)
+                app.logger.error(se)
+                if "estimate_fee" in request.form:
+                    return jsonify(success=False, error=str(err))
+
             if err is None:
                 if "estimate_fee" in request.form:
-                    return psbt
+                    return jsonify(success=True, psbt=psbt)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -604,47 +526,12 @@ def send_new(wallet_alias):
                     specter=app.specter,
                     rand=rand,
                 )
-        elif action == "importpsbt":
-            try:
-                b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
-            except Exception as e:
-                flash("Could not import PSBT: %s" % e, "error")
-                return redirect(
-                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
-                )
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
-        elif action == "openpsbt":
-            psbt = ast.literal_eval(request.form["pending_psbt"])
-            return render_template(
-                "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                psbt=psbt,
-                labels=labels,
-                wallet_alias=wallet_alias,
-                wallet=wallet,
-                specter=app.specter,
-                rand=rand,
-            )
-        elif action == "deletepsbt":
-            try:
-                wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
-                )
-            except Exception as e:
-                flash("Could not delete Pending PSBT!", "error")
+
         elif action == "rbf":
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
                 rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.send_rbf_tx(rbf_tx_id, rbf_fee_rate)
+                psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -655,10 +542,43 @@ def send_new(wallet_alias):
                     rand=rand,
                 )
             except Exception as e:
-                flash("Failed to perform RBF. Error: %s" % e, "error")
+                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
+        elif action == "rbf_cancel":
+            try:
+                rbf_tx_id = request.form["rbf_tx_id"]
+                rbf_fee_rate = float(request.form["rbf_fee_rate"])
+                psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
+                return render_template(
+                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                    psbt=psbt,
+                    labels=[],
+                    wallet_alias=wallet_alias,
+                    wallet=wallet,
+                    specter=app.specter,
+                    rand=rand,
+                )
+            except Exception as e:
+                flash(
+                    _("Failed to cancel transaction with RBF. Error: {}").format(e),
+                    "error",
+                )
+        elif action == "rbf_edit":
+            try:
+                decoded_tx = wallet.decode_tx(rbf_tx_id)
+                addresses = decoded_tx["addresses"]
+                amounts = decoded_tx["amounts"]
+                selected_coins = [
+                    f"{utxo['txid']}, {utxo['vout']}"
+                    for utxo in decoded_tx["used_utxo"]
+                ]
+                fee_rate = float(request.form["rbf_fee_rate"])
+                fee_options = "manual"
+                rbf = True
+            except Exception as e:
+                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
-            psbt = ast.literal_eval(request.form["psbt"])
+            psbt = json.loads(request.form["psbt"])
             b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
@@ -678,10 +598,10 @@ def send_new(wallet_alias):
                     signed_psbt = signed_psbt["psbt"]
                 except Exception as e:
                     signed_psbt = None
-                    flash("Failed to sign PSBT: %s" % e, "error")
+                    flash(_("Failed to sign PSBT: {}").format(e), "error")
             else:
                 signed_psbt = None
-                flash("Device already signed the PSBT", "error")
+                flash(_("Device already signed the PSBT"), "error")
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 signed_psbt=signed_psbt,
@@ -697,6 +617,26 @@ def send_new(wallet_alias):
             labels = request.form.getlist("labels[]")
             amounts = request.form.getlist("amounts[]")
             fillform = True
+
+    if rbf_tx_id:
+        try:
+            rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
+        except Exception as e:
+            flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
+
+    show_advanced_settings = (
+        ui_option != "ui"
+        or subtract
+        or fee_options != "dynamic"
+        or fee_estimation_data["hourFee"] != fee_rate
+        or not rbf
+        or selected_coins
+    )
+    wallet_utxo = wallet.utxo
+    if app.specter.is_liquid:
+        for tx in wallet_utxo + rbf_utxo:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx.get("asset"))
     return render_template(
         "wallet/send/new/wallet_send.jinja",
         psbt=psbt,
@@ -706,6 +646,19 @@ def send_new(wallet_alias):
         labels=labels,
         amounts=amounts,
         fillform=fillform,
+        recipients=list(zip(addresses, amounts, amount_units, labels)),
+        subtract=subtract,
+        subtract_from=subtract_from,
+        fee_options=fee_options,
+        fee_rate=fee_rate,
+        rbf=rbf,
+        selected_coins=selected_coins,
+        show_advanced_settings=show_advanced_settings,
+        rbf_utxo=rbf_utxo,
+        rbf_tx_id=rbf_tx_id,
+        wallet_utxo=wallet_utxo,
+        fee_estimation=fee_rate,
+        fee_estimation_data=fee_estimation_data,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
@@ -717,21 +670,27 @@ def send_new(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/pending/", methods=["GET", "POST"])
 @login_required
 def send_pending(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_sendpending: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "deletepsbt":
             try:
                 wallet.delete_pending_psbt(
-                    ast.literal_eval(request.form["pending_psbt"])["tx"]["txid"]
+                    json.loads(request.form["pending_psbt"])["tx"]["txid"]
                 )
             except Exception as e:
                 app.logger.error("Could not delete Pending PSBT: %s" % e)
-                flash("Could not delete Pending PSBT!", "error")
+                flash(_("Could not delete Pending PSBT!"), "error")
+        elif action == "openpsbt":
+            psbt = json.loads(request.form["pending_psbt"])
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     pending_psbts = wallet.pending_psbts
     ######## Migration to multiple recipients format ###############
     for psbt in pending_psbts:
@@ -748,14 +707,29 @@ def send_pending(wallet_alias):
     )
 
 
-@wallets_endpoint.route("/wallet/<wallet_alias>/send/import")
+@wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
 def import_psbt(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "importpsbt":
+            try:
+                b64psbt = "".join(request.form["rawpsbt"].split())
+                psbt = wallet.importpsbt(b64psbt)
+            except Exception as e:
+                flash(_("Could not import PSBT: {}").format(e), "error")
+                return redirect(
+                    url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
+                )
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
     err = None
     return render_template(
         "wallet/send/import/wallet_importpsbt.jinja",
@@ -776,12 +750,7 @@ def addresses(wallet_alias):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
-
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_send: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -803,12 +772,8 @@ def addresses(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/", methods=["GET", "POST"])
 @login_required
 def settings(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while wallet_receive: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
     if request.method == "POST":
         action = request.form["action"]
         if action == "rescanblockchain":
@@ -827,12 +792,18 @@ def settings(wallet_alias):
         elif action == "abortrescan":
             res = wallet.rpc.abortrescan()
             if not res:
-                error = "Failed to abort rescan. Maybe already complete?"
+                error = _("Failed to abort rescan. Maybe already complete?")
             wallet.getdata()
         elif action == "rescanutxo":
             explorer = None
             if "use_explorer" in request.form:
-                explorer = request.form["explorer_url"]
+                if request.form["explorer"] == "CUSTOM":
+                    explorer = request.form["custom_explorer"]
+                else:
+                    explorer = app.config["EXPLORERS_LIST"][request.form["explorer"]][
+                        "url"
+                    ]
+
             wallet.rescanutxo(
                 explorer, app.specter.requests_session(explorer), app.specter.only_tor
             )
@@ -842,6 +813,9 @@ def settings(wallet_alias):
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
+        elif action == "import_electrum_label_export":
+            electrum_label_export = request.form["import_electrum_labels_json"]
+            wallet.import_electrum_label_export(electrum_label_export)
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
@@ -858,33 +832,23 @@ def settings(wallet_alias):
         elif action == "rename":
             wallet_name = request.form["newtitle"]
             if not wallet_name:
-                flash("Wallet name cannot be empty", "error")
+                flash(_("Wallet name cannot be empty"), "error")
             elif wallet_name == wallet.name:
                 pass
             elif wallet_name in app.specter.wallet_manager.wallets_names:
-                flash("Wallet already exists", "error")
+                flash(_("Wallet already exists"), "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-        return render_template(
-            "wallet/settings/wallet_settings.jinja",
-            purposes=purposes,
-            wallet_alias=wallet_alias,
-            wallet=wallet,
-            specter=app.specter,
-            rand=rand,
-            error=error,
-        )
-    else:
-        return render_template(
-            "wallet/settings/wallet_settings.jinja",
-            purposes=purposes,
-            wallet_alias=wallet_alias,
-            wallet=wallet,
-            specter=app.specter,
-            rand=rand,
-            error=error,
-        )
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        error=error,
+    )
 
 
 ################## Wallet util endpoints #######################
@@ -894,12 +858,8 @@ def settings(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # only post requests
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while combine: %s" % se)
-        return "SpecterError while combine: %s" % se, 500
     # FIXME: ugly...
     txid = request.form.get("txid")
     psbts = [request.form.get("psbt0").strip(), request.form.get("psbt1").strip()]
@@ -908,14 +868,14 @@ def combine(wallet_alias):
 
     for i, psbt in enumerate(psbts):
         if not psbt:
-            return "Cannot parse empty data as PSBT", 500
+            return _("Cannot parse empty data as PSBT"), 500
         if "UR:BYTES/" in psbt.upper():
             psbt = bcur2base64(psbt).decode()
 
         # if electrum then it's base43
         try:
             decoded = b43_decode(psbt)
-            if decoded.startswith(b"psbt\xff"):
+            if decoded[:5] in [b"psbt\xff", b"pset\xff"]:
                 psbt = b2a_base64(decoded).decode()
             else:
                 psbt = decoded.hex()
@@ -925,14 +885,14 @@ def combine(wallet_alias):
         psbts[i] = psbt
         # psbt should start with cHNi
         # if not - maybe finalized hex tx
-        if not psbt.startswith("cHNi"):
+        if not psbt.startswith("cHNi") and not psbt.startswith("cHNl"):
             raw["hex"] = psbt
             combined = psbts[1 - i]
             # check it's hex
             try:
                 bytes.fromhex(psbt)
             except:
-                return "Invalid transaction format", 500
+                return _("Invalid transaction format"), 500
 
     try:
         if "hex" in raw:
@@ -948,36 +908,89 @@ def combine(wallet_alias):
     except RpcError as e:
         return e.error_msg, e.status_code
     except Exception as e:
-        return "Unknown error: %r" % e, 500
+        return _("Unknown error: {}").format(e), 500
     return json.dumps(raw)
 
 
-@wallets_endpoint.route("/wallet/<wallet_alias>/broadcast/", methods=["GET", "POST"])
+@wallets_endpoint.route("/wallet/<wallet_alias>/broadcast/", methods=["POST"])
 @login_required
 def broadcast(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    except SpecterError as se:
-        app.logger.error("SpecterError while broadcast: %s" % se)
-        return render_template("base.jinja", error=se, specter=app.specter, rand=rand)
-    if request.method == "POST":
-        tx = request.form.get("tx")
-        res = wallet.rpc.testmempoolaccept([tx])[0]
-        if res["allowed"]:
-            app.specter.broadcast(tx)
-            wallet.delete_pending_psbt(get_txid(tx))
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    tx = request.form.get("tx")
+    res = wallet.rpc.testmempoolaccept([tx])[0]
+    if res["allowed"]:
+        app.specter.broadcast(tx)
+        wallet.delete_spent_pending_psbts([tx])
+        return jsonify(success=True)
+    else:
+        return jsonify(
+            success=False,
+            error=_(
+                "Failed to broadcast transaction: transaction is invalid\n{}"
+            ).format(res["reject-reason"]),
+        )
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/broadcast_blockexplorer/", methods=["POST"]
+)
+@login_required
+def broadcast_blockexplorer(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    tx = request.form.get("tx")
+    explorer = request.form.get("explorer")
+    use_tor = request.form.get("use_tor", "true") == "true"
+    res = wallet.rpc.testmempoolaccept([tx])[0]
+    if res["allowed"]:
+        try:
+            if app.specter.chain == "main":
+                url_network = ""
+            elif app.specter.chain == "liquidv1":
+                url_network = "liquid/"
+            elif app.specter.chain == "test" or app.specter.chain == "testnet":
+                url_network = "testnet/"
+            elif app.specter.chain == "signet":
+                url_network = "signet/"
+            else:
+                return jsonify(
+                    success=False,
+                    error=_("Failed to broadcast transaction. Network not supported."),
+                )
+            if explorer == "mempool":
+                explorer = f"MEMPOOL_SPACE{'_ONION' if use_tor else ''}"
+            elif explorer == "blockstream":
+                explorer = f"BLOCKSTREAM_INFO{'_ONION' if use_tor else ''}"
+            else:
+                return jsonify(
+                    success=False,
+                    error=_(
+                        "Failed to broadcast transaction. Block explorer not supported."
+                    ),
+                )
+            requests_session = app.specter.requests_session(force_tor=use_tor)
+            requests_session.post(
+                f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
+                data=tx,
+            )
+            wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
-        else:
+        except Exception as e:
             return jsonify(
                 success=False,
-                error="Failed to broadcast transaction: transaction is invalid\n%s"
-                % res["reject-reason"],
+                error=_("Failed to broadcast transaction with error: {}").format(e),
             )
-    return jsonify(success=False, error="broadcast tx request must use POST")
+    else:
+        return jsonify(
+            success=False,
+            error=_(
+                "Failed to broadcast transaction: transaction is invalid\n{}"
+            ).format(res["reject-reason"]),
+        )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/decoderawtx/", methods=["GET", "POST"])
 @login_required
+@app.csrf.exempt
 def decoderawtx(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
@@ -992,29 +1005,57 @@ def decoderawtx(wallet_alias):
             if "blockhash" in tx and "blockheight" not in tx:
                 tx["blockheight"] = wallet.rpc.getblockheader(tx["blockhash"])["height"]
             ##################### Remove until here after dropping Core v0.19 support #####################
-            return {
-                "success": True,
-                "tx": tx,
-                "rawtx": decoderawtransaction(tx["hex"], app.specter.chain),
-                "walletName": wallet.name,
-            }
+
+            if tx["confirmations"] == 0:
+                tx["is_purged"] = wallet.is_tx_purged(txid)
+                try:
+                    if (
+                        wallet.gettransaction(txid, decode=True).get("category", "")
+                        == "receive"
+                    ):
+                        tx["fee"] = (
+                            wallet.rpc.getmempoolentry(txid)["fees"]["modified"] * -1
+                        )
+                except Exception as e:
+                    handle_exception(e)
+                    app.logger.warning(
+                        f"Failed to get fees from mempool entry for transaction: {txid}. Error: {e}"
+                    )
+
+            try:
+                rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+            except:
+                rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
+            # add assets
+            if app.specter.is_liquid:
+                for v in rawtx["vin"] + rawtx["vout"]:
+                    if "asset" in v:
+                        v["assetlabel"] = app.specter.asset_label(v["asset"])
+
+            return jsonify(
+                success=True,
+                tx=tx,
+                rawtx=rawtx,
+                walletName=wallet.name,
+            )
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
-    return {"success": False}
+    return jsonify(success=False)
 
 
 @wallets_endpoint.route(
     "/wallet/<wallet_alias>/rescan_progress", methods=["GET", "POST"]
 )
 @login_required
+@app.csrf.exempt
 def rescan_progress(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         wallet.get_info()
-        return {
-            "active": wallet.rescan_progress is not None,
-            "progress": wallet.rescan_progress,
-        }
+        return jsonify(
+            active=wallet.rescan_progress is not None,
+            progress=wallet.rescan_progress,
+        )
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
         return {}
@@ -1027,123 +1068,108 @@ def get_label(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         label = wallet.getlabel(address)
-        return {
-            "address": address,
-            "label": label,
-        }
+        return jsonify(
+            address=address,
+            label=label,
+        )
     except Exception as e:
-        logging.exception(e)
-        return "Error while get_label: %s" % e, 500
+        handle_exception(e)
+        return jsonify(
+            success=False,
+            error=_("Exception trying to get address label: Error: {}").format(e),
+        )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/set_label", methods=["POST"])
 @login_required
 def set_label(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form["address"]
-        label = request.form["label"]
-        wallet.setlabel(address, label)
-        return {"success": True}
-    except Exception as e:
-        logging.exception(e)
-        return "Error while set_label: %s" % e, 500
+
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    address = request.form["address"]
+    label = request.form["label"].rstrip()
+    wallet.setlabel(address, label)
+    return jsonify(success=True)
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/txlist", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def txlist(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = wallet.txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting txlist: %s" % e, 500
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = wallet.txlist(
+        fetch_transactions=fetch_transactions,
+        validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
+        current_blockheight=app.specter.info["blocks"],
+    )
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def utxo_list(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        txlist = wallet.utxo
-        for tx in txlist:
-            if not tx.get("label", None):
-                tx["label"] = wallet.getlabel(tx["address"])
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting utxo list: %s" % e, 500
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    txlist = wallet.full_utxo
+    for tx in txlist:
+        if not tx.get("label", None):
+            tx["label"] = wallet.getlabel(tx["address"])
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallets_overview/txlist", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def wallets_overview_txlist():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_txlist(
-            fetch_transactions=fetch_transactions,
-            validate_merkle_proofs=app.specter.config.get(
-                "validate_merkle_proofs", False
-            ),
-            current_blockheight=app.specter.info["blocks"],
-        )
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full txlist: %s" % e, 500
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = app.specter.wallet_manager.full_txlist(
+        fetch_transactions=fetch_transactions,
+        validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
+        current_blockheight=app.specter.info["blocks"],
+    )
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallets_overview/utxo_list", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def wallets_overview_utxo_list():
-    try:
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        search = request.form.get("search", None)
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        fetch_transactions = request.form.get("fetch_transactions", False)
-        txlist = app.specter.wallet_manager.full_utxo()
-        return process_txlist(
-            txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
-        )
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting full utxo list: %s" % e, 500
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    search = request.form.get("search", None)
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    fetch_transactions = request.form.get("fetch_transactions", False)
+    txlist = app.specter.wallet_manager.full_utxo()
+    return process_txlist(
+        txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def addresses_list(wallet_alias):
     """Return a JSON with keys:
         addressesList: list of addresses with the properties
@@ -1156,33 +1182,29 @@ def addresses_list(wallet_alias):
                 (index, address, label, used, utxo, amount)
         sortdir: 'asc' (ascending) or 'desc' (descending) order
         addressType: the current tab address type ('receive' or 'change')"""
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
-        idx = int(request.form.get("idx", 0))
-        limit = int(request.form.get("limit", 100))
-        sortby = request.form.get("sortby", None)
-        sortdir = request.form.get("sortdir", "asc")
-        address_type = request.form.get("addressType", "receive")
+    idx = int(request.form.get("idx", 0))
+    limit = int(request.form.get("limit", 100))
+    sortby = request.form.get("sortby", None)
+    sortdir = request.form.get("sortdir", "asc")
+    address_type = request.form.get("addressType", "receive")
 
-        addresses_list = wallet.addresses_info(address_type == "change")
+    addresses_list = wallet.addresses_info(address_type == "change")
 
-        result = process_addresses_list(
-            addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
-        )
+    result = process_addresses_list(
+        addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
+    )
 
-        return {
-            "addressesList": json.dumps(result["addressesList"]),
-            "pageCount": result["pageCount"],
-        }
-
-    except Exception as e:
-        logging.exception(e)
-        return "Error while getting addresses_list: %s" % e, 500
+    return jsonify(
+        addressesList=json.dumps(result["addressesList"]),
+        pageCount=result["pageCount"],
+    )
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/addressinfo/", methods=["POST"])
 @login_required
+@app.csrf.exempt
 def addressinfo(wallet_alias):
     try:
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
@@ -1195,11 +1217,12 @@ def addressinfo(wallet_alias):
                 "address": address,
                 "descriptor": descriptor,
                 "walletName": wallet.name,
+                "isMine": address_info and not address_info.is_external,
                 **address_info,
             }
     except Exception as e:
         app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
-    return {"success": False}
+    return jsonify(success=False)
 
 
 ################## Wallet CSV export data endpoints #######################
@@ -1261,7 +1284,7 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         app.logger.error("Failed to export addresses list. Error: %s" % e)
-        flash("Failed to export addresses list. Error: %s" % e, "error")
+        flash(_("Failed to export addresses list. Error: {}").format(e), "error")
         return redirect(url_for("index"))
 
 
@@ -1269,35 +1292,29 @@ def addresses_list_csv(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/transactions.csv")
 @login_required
 def tx_history_csv(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
-        txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
-        search = request.args.get("search", None)
-        sortby = request.args.get("sortby", "time")
-        sortdir = request.args.get("sortdir", "desc")
-        txlist = json.loads(
-            process_txlist(
-                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
-            )["txlist"]
-        )
-        includePricesHistory = request.args.get("exportPrices", "false") == "true"
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
+    txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
+    search = request.args.get("search", None)
+    sortby = request.args.get("sortby", "time")
+    sortdir = request.args.get("sortdir", "desc")
+    txlist = json.loads(
+        process_txlist(
+            txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
+        )["txlist"]
+    )
+    includePricesHistory = request.args.get("exportPrices", "false") == "true"
 
-        # stream the response as the data is generated
-        response = Response(
-            txlist_to_csv(
-                wallet, txlist, app.specter, current_user, includePricesHistory
-            ),
-            mimetype="text/csv",
-        )
-        # add a filename
-        response.headers.set(
-            "Content-Disposition", "attachment", filename="transactions.csv"
-        )
-        return response
-    except Exception as e:
-        logging.exception(e)
-        return "Failed to export wallet history. Error: %s" % e, 500
+    # stream the response as the data is generated
+    response = Response(
+        txlist_to_csv(wallet, txlist, app.specter, current_user, includePricesHistory),
+        mimetype="text/csv",
+    )
+    # add a filename
+    response.headers.set(
+        "Content-Disposition", "attachment", filename="transactions.csv"
+    )
+    return response
 
 
 # Export wallet UTXO list
@@ -1312,7 +1329,7 @@ def utxo_csv(wallet_alias):
         sortdir = request.args.get("sortdir", "desc")
         txlist = json.loads(
             process_txlist(
-                wallet.utxo,
+                wallet.full_utxo,
                 idx=0,
                 limit=0,
                 search=search,
@@ -1336,7 +1353,7 @@ def utxo_csv(wallet_alias):
         return response
     except Exception as e:
         logging.exception(e)
-        return "Failed to export wallet utxo. Error: %s" % e, 500
+        return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
 # Export all wallets transaction history combined
@@ -1346,7 +1363,7 @@ def wallet_overview_txs_csv():
     try:
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
         txlist = app.specter.wallet_manager.full_txlist(
-            validate_merkle_proofs=validate_merkle_proofs
+            validate_merkle_proofs=validate_merkle_proofs,
         )
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
@@ -1371,7 +1388,7 @@ def wallet_overview_txs_csv():
         return response
     except Exception as e:
         logging.exception(e)
-        return "Failed to export wallets overview history. Error: %s" % e, 500
+        return _("Failed to export wallets overview history. Error: {}").format(e), 500
 
 
 # Export all wallets transaction history combined
@@ -1403,7 +1420,7 @@ def wallet_overview_utxo_csv():
         return response
     except Exception as e:
         logging.exception(e)
-        return "Failed to export wallets overview utxo. Error: %s" % e, 500
+        return _("Failed to export wallets overview utxo. Error: {}").format(e), 500
 
 
 ################## Helpers #######################
@@ -1429,22 +1446,21 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
     elif specter.price_provider.endswith("_gbp"):
         symbol = "GBP"
     row = (
-        "Date",
-        "Label",
-        "Category",
-        "Amount ({})".format(specter.unit.upper()),
-        "Value ({})".format(symbol),
-        "Rate (BTC/{})".format(symbol)
+        _("Date"),
+        _("Label"),
+        _("Category"),
+        _("Amount ({})").format(specter.unit.upper()),
+        _("Value ({})").format(symbol),
+        _("Rate (BTC/{})").format(symbol)
         if specter.unit != "sat"
-        else "Rate ({}/SAT)".format(symbol),
-        "TxID",
-        "Address",
-        "Block Height",
-        "Timestamp",
-        "Raw Transaction",
+        else _("Rate ({}/SAT)").format(symbol),
+        _("TxID"),
+        _("Address"),
+        _("Block Height"),
+        _("Timestamp"),
     )
     if not wallet:
-        row = ("Wallet",) + row
+        row = (_("Wallet"),) + row
     w.writerow(row)
     yield data.getvalue()
     data.seek(0)
@@ -1463,10 +1479,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         if label == tx["address"]:
             label = ""
         tx_raw = _wallet.gettransaction(tx["txid"])
-        if tx_raw:
-            tx_hex = tx_raw["hex"]
-        else:
-            tx_hex = ""
         if not tx.get("blockheight", None):
             if tx_raw.get("blockheight", None):
                 tx["blockheight"] = tx_raw["blockheight"]
@@ -1503,7 +1515,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["address"],
             tx["blockheight"],
             tx["time"],
-            tx_hex,
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
@@ -1519,11 +1530,11 @@ def addresses_list_to_csv(wallet):
     w = csv.writer(data)
     # write header
     row = (
-        "Address",
-        "Label",
-        "Index",
-        "Used",
-        "Current balance",
+        _("Address"),
+        _("Label"),
+        _("Index"),
+        _("Used"),
+        _("Current balance"),
     )
     w.writerow(row)
     yield data.getvalue()
@@ -1538,19 +1549,20 @@ def addresses_list_to_csv(wallet):
         row = (
             address,
             address_info.label,
-            "(external)"
+            _("(external)")
             if address_info.is_external
             else (
-                str(address_info.index) + (" (change)" if address_info.change else "")
+                str(address_info.index)
+                + (_(" (change)") if address_info.change else "")
             ),
             address_info.used,
         )
         if address_info.is_external:
-            balance_on_address = "unknown (external address)"
+            balance_on_address = _("unknown (external address)")
         else:
             balance_on_address = 0
             if address_info.used:
-                for tx in wallet.utxo:
+                for tx in wallet.full_utxo:
                     if tx.get("address", "") == address:
                         balance_on_address += tx.get("amount", 0)
         row += (balance_on_address,)
@@ -1569,13 +1581,13 @@ def wallet_addresses_list_to_csv(addresses_list):
     w = csv.writer(data)
     # write header
     row = (
-        "Index",
-        "Address",
-        "Type",
-        "Label",
-        "Used",
-        "UTXO",
-        "Amount (BTC)",
+        _("Index"),
+        _("Address"),
+        _("Type"),
+        _("Label"),
+        _("Used"),
+        _("UTXO"),
+        _("Amount (BTC)"),
     )
     w.writerow(row)
     yield data.getvalue()
@@ -1615,9 +1627,9 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
                 else search in tx["address"]
             )
             or (
-                any(search in label for label in tx["label"])
-                if isinstance(tx["label"], list)
-                else search in tx["label"]
+                any(search in label for label in tx.get("label", ""))
+                if isinstance(tx.get("label", ""), list)
+                else search in tx.get("label", "")
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
@@ -1652,6 +1664,11 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
         txlist = txlist[limit * idx : limit * (idx + 1)]
     else:
         page_count = 1
+    # add assets
+    if app.specter.is_liquid:
+        for tx in txlist:
+            if "asset" in tx:
+                tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 

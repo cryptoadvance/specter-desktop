@@ -6,12 +6,20 @@
     - address: The address associated with the transaction.
     - label: The label of `address` (equal to `address` if no label exists).
     - explorer: explorer url.
+    - selected: The coin was selected previously
  #}
-{% macro coin_selection_item(txid, vout, amount, address, label, explorer) -%}
+{% macro coin_selection_item(txid, vout, amount, address, label, explorer, selected, assetlabel="") -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}
     <tr>
         <td>
-            <input class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout, amount] | join(', ') }}"  onchange='updateCoinSelect(this)'>
+            <input id="coin_{{ [txid, vout] | join(', ') }}" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="{{ [txid, vout] | join(', ') }}" onchange='updateCoinSelect(this, "{{ amount }}")' {% if selected %}checked{% endif %}>
+            {% if selected %}
+                <script>
+                    document.addEventListener("DOMContentLoaded", function(){
+                        updateCoinSelect(document.getElementById("coin_{{ [txid, vout] | join(', ') }}"), "{{ amount }}")
+                    });
+                </script>
+            {% endif %}
         </td>
         <td class="tx scroll">
             {{ explorer_link('tx', txid, txid, explorer) }}
@@ -19,6 +27,6 @@
         <td class="tx scroll">
             <address-label data-address="{{ address }}" data-label="{{ label if label else address }}" data-wallet="{{ wallet_alias }}"></address-label>
         </td>
-        <td>{{ amount | btcunitamount }}</td>
+        <td>{{ amount | btcunitamount }} {{assetlabel}}</td>
     </tr>
 {%- endmacro %}

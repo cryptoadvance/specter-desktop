@@ -1,0 +1,80 @@
+describe('Setup wizard', () => {
+    // Tor testing is flaky on cirrus
+    if (Cypress.env("CI")) {
+        it('Setup Bitcoin Core and Tor', () => {
+            cy.viewport(1200,660)
+            cy.visit('/about')
+
+            cy.get('[href="/setup/start/"]').click()
+            cy.contains('Specter Quickstart!')
+            cy.get('#start-setup-btn').click()
+            cy.contains('Setup Tor daemon')
+            cy.get('#setup-tor-button').click()
+            cy.contains('Would you like to setup a new Bitcoin node or connect to an existing one?', { timeout: 60000 })
+            cy.get('#setup-node-btn').click()
+            cy.contains('Setup Bitcoin Core')
+            cy.get('#setup-bitcoind-button').click()
+            cy.contains('Configure your node', { timeout: 60000 })
+            cy.get('#quicksync-switch').click()
+            cy.get('#setup-bitcoind-dir-button').click()
+            cy.contains('Setup Completed Successfully!', { timeout: 60000 })
+            cy.get('#finish-setup-btn').click()
+            cy.contains('Connect Specter with Bitcoin Core node.')
+
+            cy.get('#node-switch-icon').click()
+            cy.get('#btn_new_node').click()
+            cy.get('#setup-node-btn').click()
+            cy.get('#toggle_advanced').click()
+            cy.get('#select-network-btn').click()
+            cy.get('[href="/setup/bitcoind_datadir/signet"]').click()
+            cy.get('#setup-bitcoind-dir-button').click()
+            cy.contains('Specter Signet', { timeout: 60000 })
+            cy.get('#node-switch-icon').click()
+            cy.get('#specter_signet-select-node-form').click()
+            cy.contains('Built in Bitcoin Node Status: Running')
+            cy.get('#active-node').click()
+            cy.get('#node-info-specter-chain').contains('signet')
+            cy.get('#page_overlay_popup_cancel_button').click()
+            cy.get('#node-switch-icon').click()
+            cy.get('#specter_bitcoin-select-node-form').click()
+
+            
+            cy.get('#active-node').click()
+            cy.get('#node-info-specter-chain').contains('main')
+            cy.get('#active-node-settings-btn').click()
+            cy.contains('Built in Bitcoin Node Status: Running')
+            cy.get('[value="stopbitcoind"]').click()
+            cy.wait(10000)
+            cy.reload()
+            cy.contains('Built in Bitcoin Node Status: Down')
+
+            cy.get('[value="startbitcoind"]').click({force: true, timeout: 60000})
+            cy.contains('Built in Bitcoin Node Status: Running')
+            cy.get('[name="remove_datadir"]').click()
+            cy.get('[value="forget"]').click()
+
+            cy.get('#node-switch-icon').click()
+            cy.get('#specter_signet-select-node-form').click()
+            cy.get('[name="remove_datadir"]').click()
+            cy.get('[value="uninstall_bitcoind"]').click()
+
+            cy.get('#active-node').click()
+            cy.get('#title').contains('Bitcoin Core')
+
+            cy.visit('/settings/tor')
+            cy.get('#tor-status-text').contains('Status: Running')
+            cy.get('[value="stoptor"]').click()
+            cy.get('#tor-status-text').contains('Status: Down')
+            cy.get('[value="starttor"]').click()
+            cy.get('#tor-status-text').contains('Status: Running')
+            cy.get('[value="test_tor"]').click({ timeout: 60000 })
+            cy.contains('Tor requests test completed successfully!')
+            cy.get('[value="uninstalltor"]').click()
+            cy.get('#setup-tor-button').click()
+
+            cy.visit('/about')
+
+            cy.get('[href="/setup/start/"]').click()
+        })
+    }
+})

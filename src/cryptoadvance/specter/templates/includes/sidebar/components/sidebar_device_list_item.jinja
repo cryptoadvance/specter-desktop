@@ -5,11 +5,11 @@
     - device_alias: Active device alias.
  #}
 {% macro sidebar_device_list_item(device, device_alias) -%}
-    <a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" class="item {% if device_alias == device.alias %}active{% endif %}">
+    <a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" class="item {% if device_alias == device.alias %}active{% endif %}" id="device_list_item_{{ device.ref4name }}">
         <img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="22px">
         <div>
             {{ device.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} keys</span>
+            <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} {{ _("keys") }}</span>
         </div>
     </a>
 {%- endmacro %}

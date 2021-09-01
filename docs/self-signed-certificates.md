@@ -4,7 +4,7 @@ Browsers require secure communication with the server to use camera API. Without
 
 If you are running a VPS it's easy - you just [issue a new certificate](./reverse-proxy#adding-https) with Letsencrypt.
 
-If you are only using the node at home and want to use it from your local network and via camera, you need to run it via ssl.
+If you are only using the node at home and want to use it from your local network and via camera, you need to run it via SSL.
 
 # Easy solution
 
@@ -16,7 +16,7 @@ python3 -m cryptoadance.specter server --ssl
 # Manual creation
 
 
-A second way, which provides more customisation, is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's ip address as an argument:
+A second way, which provides more customization, is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's IP address as an argument:
 
 ```sh
 gen-certificate.sh <your-node-local-ip-address>
@@ -46,7 +46,7 @@ ssl_certificate_key /etc/ssl/private/key.pem;
 ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
 ```
 
-My config looks like this:
+The config should look like this:
 
 ```
 server{

@@ -1,0 +1,21 @@
+{% extends "base.jinja" %}
+{% block main %}
+
+	<form action="?" method="POST">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<h1 id="title" class="settings-title">{{ _("Settings") }}</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{% from 'settings/components/settings_menu_item.jinja' import settings_menu_item %}
+		{{ settings_menu('bitcoin_core', current_user) }}
+	</form>
+	<br><br><br>
+	<a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node_alias) }}" class="btn centered">{{ _("Return") }}</a>
+	<br><br>
+	<div class="card" style="width:90%; max-width: 1000px;">
+		Bitcoin Logs:
+		<pre><code>{{ loglines }}</code></pre>
+		<br>
+		<div>{{ _('If this is an issue, please let us know! Create an <a href="https://github.com/cryptoadvance/specter-desktop/issues" target="_blank" style="color: #fff;">issue</a> or ping us on <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Telegram</a> to fix it.') }}</div>
+	</div>
+		
+{% endblock %}

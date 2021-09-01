@@ -2,13 +2,19 @@ import logging
 import requests, json, os
 import os, sys, errno
 from .helpers import is_ip_private
-import urllib.parse
 
 logger = logging.getLogger(__name__)
 
 # TODO: redefine __dir__ and help
 
-RPC_PORTS = {"test": 18332, "regtest": 18443, "main": 8332, "signet": 38332}
+RPC_PORTS = {
+    "testnet": 18332,
+    "test": 18332,
+    "regtest": 18443,
+    "main": 8332,
+    "mainnet": 8332,
+    "signet": 38332,
+}
 
 
 def get_default_datadir():
@@ -34,6 +40,7 @@ def get_rpcconfig(datadir=get_default_datadir()):
         "cookies": [],
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
+        logger.warning(f"{datadir} not found")
         return config
     # load content from bitcoin.conf
     bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
@@ -106,9 +113,7 @@ def get_configs(config=None, datadir=get_default_datadir()):
 
 
 def detect_rpc_confs(config=None, datadir=get_default_datadir()):
-    if config is None:
-        config = get_rpcconfig(datadir=datadir)
-    rpcconfs = get_configs(config)
+    rpcconfs = get_configs(config, datadir)
     rpc_arr = []
     for conf in rpcconfs:
         rpc_arr.append(conf)
@@ -179,7 +184,7 @@ def autodetect_rpc_confs(
 
 
 class RpcError(Exception):
-    """Specifically created for error-handling of the BitcoiCore-API
+    """Specifically created for error-handling of the BitcoinCore-API
     if thrown, check for errors like this:
     try:
         rpc.does_not_exist()
@@ -202,11 +207,15 @@ class RpcError(Exception):
             self.error_code = error["error"]["code"]
             self.error_msg = error["error"]["message"]
         except Exception as e:
+            self.error_code = -99
             self.error = "UNKNOWN API-ERROR:%s" % response.text
 
 
 class BitcoinRPC:
     counter = 0
+
+    last_call_hash = None
+    last_call_hash_counter = 0
 
     def __init__(
         self,
@@ -224,28 +233,36 @@ class BitcoinRPC:
     ):
         path = path.replace("//", "/")  # just in case
         self.user = user
-        self.password = password
+        self._password = password
         self.port = port
         self.protocol = protocol
         self.host = host
         self.path = path
         self.timeout = timeout
-        self.proxy_url = (proxy_url,)
-        self.only_tor = (only_tor,)
+        self.proxy_url = proxy_url
+        self.only_tor = only_tor
         self.r = None
+        self.last_call_hash = None
+        self.last_call_hash_counter = 0
         # session reuse speeds up requests
         if session is None:
-            session = requests.Session()
-            # check if we need to connect over Tor
-            if not is_ip_private(host):
-                if only_tor or ".onion" in self.host:
-                    # configure Tor proxies
-                    session.proxies["http"] = proxy_url
-                    session.proxies["https"] = proxy_url
+            self._create_session()
+        else:
+            self.session = session
+
+    def _create_session(self):
+        session = requests.Session()
+        session.auth = (self.user, self.password)
+        # check if we need to connect over Tor
+        if not is_ip_private(self.host):
+            if self.only_tor or ".onion" in self.host:
+                # configure Tor proxies
+                session.proxies["http"] = self.proxy_url
+                session.proxies["https"] = self.proxy_url
         self.session = session
 
     def wallet(self, name=""):
-        return BitcoinRPC(
+        return type(self)(
             user=self.user,
             password=self.password,
             port=self.port,
@@ -260,19 +277,19 @@ class BitcoinRPC:
 
     @property
     def url(self):
-        user = urllib.parse.quote_plus("{s.user}".format(s=self))
-        password = urllib.parse.quote_plus("{s.password}".format(s=self))
-        encoded = (
-            "{s.protocol}://".format(s=self)
-            + user
-            + ":"
-            + password
-            + "@{s.host}:{s.port}{s.path}".format(s=self)
-        )
-        return encoded
+        return "{s.protocol}://{s.host}:{s.port}{s.path}".format(s=self)
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        self._password = value
+        self._create_session()
 
     def test_connection(self):
-        """ returns a boolean depending on whether getblockchaininfo() succeeds """
+        """returns a boolean depending on whether getblockchaininfo() succeeds"""
         try:
             self.getblockchaininfo()
             return True
@@ -282,7 +299,7 @@ class BitcoinRPC:
     def clone(self):
         """
         Returns a clone of self.
-        Usefull if you want to mess with the properties
+        Useful if you want to mess with the properties
         """
         return BitcoinRPC(
             self.user,
@@ -320,16 +337,44 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
+        self.trace_call(url, payload)
         r = self.session.post(
             url, data=json.dumps(payload), headers=headers, timeout=timeout
         )
         self.r = r
         if r.status_code != 200:
+            logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
             raise RpcError(
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )
         r = r.json()
         return r
+
+    @classmethod
+    def trace_call(cls, url, payload):
+        """logs out the call and its payload, reduces noise by suppressing repeated calls"""
+        if False:  # noise-reduction
+            logger.debug(f"call({url}) payload:{payload}")
+        else:
+            current_hash = hash(
+                json.dumps({"url": url, "payload": payload}, sort_keys=True)
+            )
+            if cls.last_call_hash == None:
+                cls.last_call_hash = current_hash
+                cls.last_call_hash_counter = 0
+            elif cls.last_call_hash == current_hash:
+                cls.last_call_hash_counter = cls.last_call_hash_counter + 1
+                return
+            else:
+                if cls.last_call_hash_counter > 0:
+                    logger.debug(f"call repeated {cls.last_call_hash_counter} times")
+                    cls.last_call_hash_counter = 0
+                    cls.last_call_hash = current_hash
+                else:
+                    cls.last_call_hash = current_hash
+            logger.debug(
+                "call({: <28}) payload:{}".format("/".join(url.split("/")[3:]), payload)
+            )
 
     def __getattr__(self, method):
         def fn(*args, **kwargs):
@@ -339,6 +384,9 @@ class BitcoinRPC:
             return r["result"]
 
         return fn
+
+    def __repr__(self) -> str:
+        return f"<BitcoinRpc {self.url}>"
 
 
 if __name__ == "__main__":

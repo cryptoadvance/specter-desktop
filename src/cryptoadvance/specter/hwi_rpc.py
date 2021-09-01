@@ -1,15 +1,23 @@
-from hwilib.serializations import PSBT
+from hwilib.psbt import PSBT
+from hwilib.common import Chain
 import hwilib.commands as hwi_commands
-from hwilib import bech32
-from .helpers import locked, is_testnet
+from .helpers import locked
 from .util.xpub import convert_xpub_prefix
 from .util.json_rpc import JSONRPC
 from .util.descriptor import AddChecksum
 import threading
 from .devices import __all__ as device_classes
 from contextlib import contextmanager
-from embit import bip32, networks
+from embit import bip32
+from embit.liquid import networks
 import logging
+import bitbox02
+from typing import Callable
+from flask import current_app as app
+from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+from hwilib.devices.bitbox02 import Bitbox02Client
+from .devices.hwi.specter_diy import SpecterClient
+from .devices.hwi.jade import JadeClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +25,20 @@ hwi_classes = [cls for cls in device_classes if cls.hwi_support]
 
 # use this lock for all hwi operations
 hwilock = threading.Lock()
+
+
+class BitBox02NoiseConfig(bitbox02.util.BitBoxAppNoiseConfig):
+    def show_pairing(self, code: str, device_response: Callable[[], bool]) -> bool:
+        config = hwi_get_config(app.specter)
+        config["bitbox02_pairing_code"] = code
+        save_hwi_bridge_config(app.specter, config)
+        if not device_response():
+            config["bitbox02_pairing_code"] = ""
+            save_hwi_bridge_config(app.specter, config)
+            return False
+        config["bitbox02_pairing_code"] = ""
+        save_hwi_bridge_config(app.specter, config)
+        return True
 
 
 def get_device_class(device_type):
@@ -44,6 +66,8 @@ class HWIBridge(JSONRPC):
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
+            "extract_master_blinding_key": self.extract_master_blinding_key,
+            "bitbox02_pairing": self.bitbox02_pairing,
         }
         # Running enumerate after beginning an interaction with a specific device
         # crashes python or make HWI misbehave. For now we just get all connected
@@ -83,7 +107,9 @@ class HWIBridge(JSONRPC):
                     client = None
                     try:
                         client = devcls.get_client(dev["path"], passphrase)
-                        dev["fingerprint"] = client.get_master_fingerprint_hex()
+                        if isinstance(client, Bitbox02Client):
+                            client.set_noise_config(BitBox02NoiseConfig())
+                        dev["fingerprint"] = client.get_master_fingerprint().hex()
                     finally:
                         if client is not None:
                             client.close()
@@ -211,32 +237,33 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            if not chain:
-                try:
-                    client.is_testnet = derivation.split("/")[2].startswith("1")
-                except:
-                    client.is_testnet = False
-            else:
-                client.is_testnet = is_testnet(chain)
+            der = bip32.parse_path(derivation)
+            client.chain = (
+                Chain.TEST if len(der) > 2 and der[1] == 0x80000001 else Chain.MAIN
+            )
 
-            network = networks.NETWORKS["test" if client.is_testnet else "main"]
+            network = networks.get_network(
+                "main" if client.chain == Chain.MAIN else "test"
+            )
 
-            master_fpr = client.get_master_fingerprint_hex()
+            master_fpr = client.get_master_fingerprint().hex()
 
             try:
-                xpub = client.get_pubkey_at_path(derivation)["xpub"]
+                xpub = client.get_pubkey_at_path(derivation).to_string()
                 slip132_prefix = bip32.detect_version(
                     derivation, default="xpub", network=network
                 )
                 xpub = convert_xpub_prefix(xpub, slip132_prefix)
                 return "[{}/{}]{}\n".format(master_fpr, derivation.split("m/")[1], xpub)
-            except Exception:
-                logger.warning("Failed to import Nested Segwit singlesig mainnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import Nested Segwit singlesig mainnet key. Error: {e}"
+                )
 
     @locked(hwilock)
     def display_address(
         self,
-        descriptor="",
+        descriptor={},
         device_type=None,
         path=None,
         fingerprint=None,
@@ -255,13 +282,9 @@ class HWIBridge(JSONRPC):
         ) as client:
             if descriptor.get("xpubs_descriptor", None):
                 try:
-                    # fix the sortedmulti bug in HWI descriptor parsing
-                    desc = AddChecksum(
-                        descriptor["xpubs_descriptor"]
-                        .replace("sortedmulti", "multi")
-                        .split("#")[0]
+                    status = hwi_commands.displayaddress(
+                        client, desc=descriptor["xpubs_descriptor"]
                     )
-                    status = hwi_commands.displayaddress(client, desc=desc)
                 except Exception:
                     status = hwi_commands.displayaddress(
                         client, desc=descriptor.get("descriptor", "")
@@ -297,6 +320,8 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
+            if isinstance(client, SpecterClient):
+                return client.sign_b64psbt(psbt)
             status = hwi_commands.signtx(client, psbt)
             if "error" in status:
                 raise Exception(status["error"])
@@ -333,6 +358,33 @@ class HWIBridge(JSONRPC):
             else:
                 raise Exception("Failed to sign message with device: Unknown Error")
 
+    @locked(hwilock)
+    def extract_master_blinding_key(
+        self,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.get_master_blinding_key()
+            except Exception as e:
+                logger.warning(
+                    f"Failed to get the master blinding key from the device. Error: {e}"
+                )
+
+    def bitbox02_pairing(self, chain=""):
+        config = hwi_get_config(app.specter)
+        return {"code": config.get("bitbox02_pairing_code", "")}
+
     ######################## HWI Utils ########################
     @contextmanager
     def _get_client(
@@ -359,7 +411,12 @@ class HWIBridge(JSONRPC):
                     "The device was identified but could not be reached.  Please check it is properly connected and try again"
                 )
             try:
-                client.is_testnet = is_testnet(chain)
+                if chain == "liquidv1":
+                    chain = "main"
+                client.chain = Chain.argparse(chain)
+                if type(client) is JadeClient:
+                    if chain == "signet":
+                        client.chain = Chain.TEST
                 yield client
             finally:
                 client.close()
@@ -374,9 +431,9 @@ class HWIBridge(JSONRPC):
             # Client will be configured for testnet if our Specter instance is
             #   currently connected to testnet. This will prevent us from
             #   getting mainnet xpubs unless we set is_testnet here:
-            client.is_testnet = False
+            client.chain = Chain.MAIN
 
-            master_fpr = client.get_master_fingerprint_hex()
+            master_fpr = client.get_master_fingerprint().hex()
 
             # HWI calls to client.get_pubkey_at_path() return "xpub"-prefixed xpubs
             # regardless of derivation path. Update to match SLIP-0132 prefixes.
@@ -385,15 +442,21 @@ class HWIBridge(JSONRPC):
 
             # Extract nested Segwit
             try:
-                xpub = client.get_pubkey_at_path("m/49h/0h/{}h".format(account))["xpub"]
+                xpub = client.get_pubkey_at_path(
+                    "m/49h/0h/{}h".format(account)
+                ).to_string()
                 ypub = convert_xpub_prefix(xpub, b"\x04\x9d\x7c\xb2")
                 xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
-            except Exception:
-                logger.warning("Failed to import Nested Segwit singlesig mainnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import Nested Segwit singlesig mainnet key. Error {e}"
+                )
 
             try:
                 # native Segwit
-                xpub = client.get_pubkey_at_path("m/84h/0h/{}h".format(account))["xpub"]
+                xpub = client.get_pubkey_at_path(
+                    "m/84h/0h/{}h".format(account)
+                ).to_string()
                 zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
                 xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
             except Exception:
@@ -401,9 +464,9 @@ class HWIBridge(JSONRPC):
 
             try:
                 # Multisig nested Segwit
-                xpub = client.get_pubkey_at_path("m/48h/0h/{}h/1h".format(account))[
-                    "xpub"
-                ]
+                xpub = client.get_pubkey_at_path(
+                    "m/48h/0h/{}h/1h".format(account)
+                ).to_string()
                 Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
                 xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
             except Exception:
@@ -411,20 +474,22 @@ class HWIBridge(JSONRPC):
 
             try:
                 # Multisig native Segwit
-                xpub = client.get_pubkey_at_path("m/48h/0h/{}h/2h".format(account))[
-                    "xpub"
-                ]
+                xpub = client.get_pubkey_at_path(
+                    "m/48h/0h/{}h/2h".format(account)
+                ).to_string()
                 Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
                 xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
             except Exception:
                 logger.warning("Failed to import native Segwit multisig mainnet key.")
 
             # And testnet
-            client.is_testnet = True
+            client.chain = Chain.TEST
 
             try:
                 # Testnet nested Segwit
-                xpub = client.get_pubkey_at_path("m/49h/1h/{}h".format(account))["xpub"]
+                xpub = client.get_pubkey_at_path(
+                    "m/49h/1h/{}h".format(account)
+                ).to_string()
                 upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
                 xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
             except Exception:
@@ -432,7 +497,9 @@ class HWIBridge(JSONRPC):
 
             try:
                 # Testnet native Segwit
-                xpub = client.get_pubkey_at_path("m/84h/1h/{}h".format(account))["xpub"]
+                xpub = client.get_pubkey_at_path(
+                    "m/84h/1h/{}h".format(account)
+                ).to_string()
                 vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
                 xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
             except Exception:
@@ -440,9 +507,9 @@ class HWIBridge(JSONRPC):
 
             try:
                 # Testnet multisig nested Segwit
-                xpub = client.get_pubkey_at_path("m/48h/1h/{}h/1h".format(account))[
-                    "xpub"
-                ]
+                xpub = client.get_pubkey_at_path(
+                    "m/48h/1h/{}h/1h".format(account)
+                ).to_string()
                 Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
                 xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
             except Exception:
@@ -452,9 +519,9 @@ class HWIBridge(JSONRPC):
 
             try:
                 # Testnet multisig native Segwit
-                xpub = client.get_pubkey_at_path("m/48h/1h/{}h/2h".format(account))[
-                    "xpub"
-                ]
+                xpub = client.get_pubkey_at_path(
+                    "m/48h/1h/{}h/2h".format(account)
+                ).to_string()
                 Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
                 xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
             except Exception:

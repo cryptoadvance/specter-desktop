@@ -24,6 +24,8 @@ def timedatetime(context, s):
 @contextfilter
 @filters_bp.app_template_filter("btcamount")
 def btcamount(context, value):
+    if value < 0:
+        return "Confidential"
     value = round(float(value), 8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
 
@@ -49,6 +51,10 @@ def feerate(context, value):
 @contextfilter
 @filters_bp.app_template_filter("btcunitamount")
 def btcunitamount(context, value):
+    if app.specter.hide_sensitive_info:
+        return "#########"
+    if value < 0:
+        return "Confidential"
     if app.specter.unit != "sat":
         return btcamount(context, value)
     value = float(value)
@@ -58,6 +64,10 @@ def btcunitamount(context, value):
 @contextfilter
 @filters_bp.app_template_filter("altunit")
 def altunit(context, value):
+    if app.specter.hide_sensitive_info:
+        return "########"
+    if value < 0:
+        return "-"
     if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
         rate = (
             "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
@@ -76,3 +86,11 @@ def altunit(context, value):
 def bytessize(context, value):
     value = float(value)
     return "{:,.0f}".format(value / float(1 << 30)) + " GB"
+
+
+@contextfilter
+@filters_bp.app_template_filter("assetlabel")
+def assetlabel(context, asset):
+    if app.specter.hide_sensitive_info:
+        return "####"
+    return app.specter.asset_label(asset)

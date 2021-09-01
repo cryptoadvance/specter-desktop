@@ -1,8 +1,8 @@
-<div class="page_overlay" id="page_overlay">
+<div class="page_overlay" id="page_overlay" style="display: none;">
     <div class="page_overlay_popup" id="page_overlay_popup">
         <div id="page_overlay_popup_content"></div>
         <div class="page_overlay_popup_cancel">
-            <a href="#" id="page_overlay_popup_cancel_button" class="item medium" onclick="cancelOverlay()">cancel</a>
+            <a href="#" id="page_overlay_popup_cancel_button" class="item medium" onclick="cancelOverlay()">{{ _("cancel") }}</a>
         </div>
         <br/>
         <div class="clear-both"></div>
@@ -11,7 +11,7 @@
 
 <div class="loader" id="pacman">
     <img src="{{ url_for('static', filename='img/loader.gif') }}"/>
-    <div>Loading... It may take a while...</div>
+    <div>{{ _("Loading... It may take a while...") }}</div>
 </div>
 
 <script>
@@ -51,6 +51,8 @@
 
             var overlayPopup = document.getElementById("page_overlay_popup");
             overlayPopup.style.display = "none";
+            // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
+            onCancelOverlay();
         }
     }
 
@@ -82,7 +84,5 @@
 
     function cancelOverlay() {
         hidePageOverlay();
-        // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
-        onCancelOverlay();
     }
 </script>

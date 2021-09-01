@@ -95,16 +95,16 @@
 
     <nav class="row">
         <button type="button" class="receive-addresses-view-btn btn radio left checked">
-            Receive Addresses
+            {{ _("Receive Addresses") }}
         </button>
         <button type="button" class="change-addresses-view-btn btn radio right">
-            Change Addresses
+            {{ _("Change Addresses") }}
         </button>
     </nav>
 
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        Page <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
+        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
             class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
@@ -113,7 +113,7 @@
         {% include "includes/page-limit-select.html" %}
     </div>
     <div class="export-container hidden">
-        <h1>Export addresses to CSV</h1>
+        <h1>{{ _("Export addresses to CSV") }}</h1>
 
 
 
@@ -127,7 +127,7 @@
 
 
 
-        <a class="export btn" download>Export</a>
+        <a class="export btn" download>{{ _("Export") }}</a>
     </div>
 
     <table class="addresses-table">
@@ -137,28 +137,28 @@
                 <th value="index" class="index-header">
                     <div class="index-arrow down-arrow"></div>
                 </th>
-                <th value="address" class="address-header">Address<div class="address-arrow"></div>
+                <th value="address" class="address-header">{{ _("Address") }}<div class="address-arrow"></div>
                 </th>
-                <th value="label" class="label-header optional">Label<div class="label-arrow">
+                <th value="label" class="label-header optional">{{ _("Label") }}<div class="label-arrow">
                 </th>
-                <th value="used" class="used-header optional">Used<div class="used-arrow">
+                <th value="used" class="used-header optional">{{ _("Used") }}<div class="used-arrow">
                 </th>
                 <th value="utxo" class="utxo-header optional">UTXO<div class="utxo-arrow">
                 </th>
-                <th value="amount" class="amount-header optional">Amount<div class="amount-arrow">
+                <th value="amount" class="amount-header optional">{{ _("Amount") }}<div class="amount-arrow">
                 </th>
                 {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
 					<th class="optional"></th>	
                 {% endif %}
                 <th style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" style="width: 50px;">Export</button>
+                    <button type="button" class="export-btn btn" style="width: 50px;">{{ _("Export") }}</button>
                 </th>
             </tr>
         </thead>
 
         <tr class="empty">
             <td></td>
-            <td>Fetching addresses ...</td>
+            <td>{{ _("Fetching addresses...") }}</td>
             <td class="optional"></td>
             <td class="optional"></td>
             <td class="optional"></td>
@@ -270,13 +270,13 @@
             // Next page action
             this.paginationNext.onclick = () => {
                 this.idx++;
-                fetchAddressesItems(this);
+                this.fetchAddressesItems();
             }
 
             // Previous page action
             this.paginationBack.onclick = () => {
                 this.idx--;
-                fetchAddressesItems(this);
+                this.fetchAddressesItems();
             }
 
             // Listen to changes in page number selection input
@@ -287,13 +287,13 @@
                     return;
                 }
                 this.idx = newIdx - 1;
-                fetchAddressesItems(this);
+                this.fetchAddressesItems();
             }
 
             // Listen to changes in page limit
             this.pageLimitSelect.onchange = () => {
                 this.limit = this.pageLimitSelect.value;
-                fetchAddressesItems(this);
+                this.fetchAddressesItems();
             }
 
             // Setup sorting functionality for each column of the table header
@@ -328,7 +328,7 @@
                         this.export.href = this.export.href.split('?')[0] + `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
 
-                    fetchAddressesItems(this);
+                    this.fetchAddressesItems();
                 }
             }
 
@@ -358,7 +358,7 @@
         }
 
         static get observedAttributes() {
-            return ['type', 'wallet', 'btc-unit', 'price', 'symbol'];
+            return ['type', 'wallet', 'btc-unit', 'price', 'symbol', 'hide-sensitive-info'];
         }
 
         /**
@@ -367,6 +367,7 @@
          * - price: BTC price for price calculations
          * - symbol: Currency symbol for price calculations
          * - type: Addresses list type to load. Either "receive" or "change"
+         * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
@@ -376,152 +377,154 @@
                 this.wallet != this.getAttribute('wallet') ||
                 this.btcUnit != this.getAttribute('btc-unit') ||
                 this.price != this.getAttribute('price') ||
-                this.symbol != this.getAttribute('symbol')
+                this.symbol != this.getAttribute('symbol') ||
+                this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info')
             ) {
                 this.listType = this.getAttribute('type');
                 this.wallet = this.getAttribute('wallet');
                 this.btcUnit = this.getAttribute('btc-unit');
                 this.price = this.getAttribute('price');
                 this.symbol = this.getAttribute('symbol');
+                this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
 
                 if (!this.listType) {
                     return
                 }
-                fetchAddressesItems(this);
+                this.fetchAddressesItems();
             }
         }
+
+        /**
+         * Fetches addresses list from the Specter API and loads the result into AddressRowElement
+        */
+        async fetchAddressesItems() {
+            this.callId++;
+            // Clean up from existing addresses list
+            this.emptyRow.children[1].innerText = '{{ _("Fetching addresses...") }}';
+            this.emptyRow.classList.remove('hidden');
+            this.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
+            if (!this.listType) {
+                this.emptyRow.children[1].innerText = '{{ _("Failed to fetch addresses...") }}';
+                return
+            }
+
+            const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+
+            this.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            this.export.href += `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
+
+            if (this.listType == "receive") {
+                this.switchText.innerText = '{{ _("Only receive addresses") }}: '
+            } else if (this.listType == "change") {
+                this.switchText.innerText = '{{ _("Only change addresses") }}: '
+            } else {
+                this.switchText.innerText = "";
+            }
+
+            // Prepare form data with all relevant parameters
+            var formData = new FormData();
+            formData.append('idx', this.idx);
+            formData.append('limit', this.limit);
+            formData.append('addressType', this.listType);
+            formData.append('sortby', this.sortby);
+            formData.append('sortdir', this.sortdir);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                let callId = this.callId;
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+
+                if (callId != this.callId) {
+                    return;
+                }
+                if (response.status != 200) {
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+
+                if ("addressesList" in jsonResponse) {
+                    // Populate the table with AddressRowElement objects using the fetched address list
+                    if (jsonResponse.addressesList) {
+                        let addressesList = JSON.parse(jsonResponse.addressesList);
+
+                        for (let addr of addressesList) {
+
+                            let addrRow = document.createRange().createContextualFragment(`
+                            <address-row 
+                                data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                                data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
+                                data-price="${this.price ? this.price : 0}"
+                                data-symbol="${this.symbol ? this.symbol : ''}"
+                                data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                                data-wallet="${this.wallet}"> 
+                            </<address-row>`);
+
+                            this.tbody.append(addrRow);
+                        }
+
+                        // Pagination
+                        this.pageCount = jsonResponse.pageCount;
+
+                        // Show empty row if no addresses found
+                        if (this.pageCount == 0 || addressesList.length == 0) {
+                            this.emptyRow.classList.remove('hidden');
+                            this.emptyRow.children[1].innerText = '{{ _("No addresses found...") }}';
+                            this.pageCount = 1;
+                        } else {
+                            this.emptyRow.classList.add('hidden');
+                        }
+
+                        // If index is greater than the pages count fetch again for the last page
+                        if (this.idx >= this.pageCount) {
+                            this.idx = this.pageCount - 1;
+                            this.fetchAddressesItems()
+                        }
+
+                        this.paginationIdxInput.value = this.idx + 1;
+
+                        // If there are multiple pages show the pagination bar
+                        if (this.pageCount > 1) {
+                            this.paginationContainer.classList.remove('hidden');
+                            this.paginationCounter.innerText = `of ${this.pageCount}`;
+                            this.paginationIdxInput.max = this.pageCount;
+                        } else {
+                            this.paginationContainer.classList.add('hidden');
+                        }
+
+                        // Disable pagination back button if on the first page
+                        if (this.idx == 0) {
+                            this.paginationBack.classList.add('pagination-disabled');
+                        } else {
+                            this.paginationBack.classList.remove('pagination-disabled');
+                        }
+
+                        // Disable pagination next button if on the last page
+                        if (this.idx + 1 == this.pageCount) {
+                            this.paginationNext.classList.add('pagination-disabled');
+                        } else {
+                            this.paginationNext.classList.remove('pagination-disabled');
+                        }
+                    }
+                    return;
+                }
+                showError('{{ _("Failed to fetch addresses list") }}')
+            } catch (e) {
+                console.log("Caught error: ", e);
+                showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
+            }
+
+        }
+
     }
 
-    /**
-     * Fetches addresses list from the Specter API and loads the result into AddressRowElement
-     * @param self - The AddressTableElement itself.
-    */
-    async function fetchAddressesItems(self) {
-        self.callId++;
-        // Clean up from existing addresses list
-        self.emptyRow.children[1].innerText = "Fetching addresses...";
-        self.emptyRow.classList.remove('hidden');
-        self.tbody.querySelectorAll('address-row').forEach((row) => { row.remove() });
-        if (!self.listType) {
-            self.emptyRow.children[1].innerText = "Failed to fetch addresses...";
-            return
-        }
-
-        const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-
-        self.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        self.export.href += `?onlyCurrentType=${self.onlyCurrentTypeSwitch.checked}&addressType=${self.listType}&sortby=${self.sortby}&sortdir=${self.sortdir}`;
-
-        if (self.listType == "receive") {
-            self.switchText.innerText = "Only receive addresses: "
-        } else if (self.listType == "change") {
-            self.switchText.innerText = "Only change addresses: "
-        } else {
-            self.switchText.innerText = "";
-        }
-
-        // Prepare form data with all relevant parameters
-        var formData = new FormData();
-        formData.append('idx', self.idx);
-        formData.append('limit', self.limit);
-        formData.append('addressType', self.listType);
-        formData.append('sortby', self.sortby);
-        formData.append('sortdir', self.sortdir);
-
-        try {
-            let callId = self.callId;
-            const response = await fetch(
-                url,
-                {
-                    method: 'POST',
-                    body: formData
-                }
-            );
-
-            if (callId != self.callId) {
-                return;
-            }
-            if (response.status != 200) {
-                showError(await response.text());
-                return;
-            }
-            const jsonResponse = await response.json();
-
-            if ("addressesList" in jsonResponse) {
-                // Populate the table with AddressRowElement objects using the fetched address list
-                if (jsonResponse.addressesList) {
-                    let addressesList = JSON.parse(jsonResponse.addressesList);
-
-                    for (let addr of addressesList) {
-
-                        let addrRow = `
-                        <address-row 
-                            data-verify-qr="{{ supports_qr_code_verify != [] }}"
-                            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-                            data-btc-unit="${self.btcUnit ? self.btcUnit : 'btc'}"
-                            data-price="${self.price ? self.price : 0}"
-                            data-symbol="${self.symbol ? self.symbol : ''}"
-                            data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
-                            data-wallet="${self.wallet}"> 
-                        </<address-row>`;
-
-                        self.tbody.innerHTML += addrRow;
-                    }
-
-                    // Pagination
-                    self.pageCount = jsonResponse.pageCount;
-
-                    // Show empty row if no addresses found
-                    if (self.pageCount == 0 || addressesList.length == 0) {
-                        self.emptyRow.classList.remove('hidden');
-                        self.emptyRow.children[1].innerText = "No addresses found...";
-                        self.pageCount = 1;
-                    } else {
-                        self.emptyRow.classList.add('hidden');
-                    }
-
-                    // If index is greater than the pages count fetch again for the last page
-                    if (self.idx >= self.pageCount) {
-                        self.idx = self.pageCount - 1;
-                        fetchAddressesItems(self)
-                    }
-
-                    self.paginationIdxInput.value = self.idx + 1;
-
-                    // If there are multiple pages show the pagination bar
-                    if (self.pageCount > 1) {
-                        self.paginationContainer.classList.remove('hidden');
-                        self.paginationCounter.innerText = `of ${self.pageCount}`;
-                        self.paginationIdxInput.max = self.pageCount;
-                    } else {
-                        self.paginationContainer.classList.add('hidden');
-                    }
-
-                    // Disable pagination back button if on the first page
-                    if (self.idx == 0) {
-                        self.paginationBack.classList.add('pagination-disabled');
-                    } else {
-                        self.paginationBack.classList.remove('pagination-disabled');
-                    }
-
-                    // Disable pagination next button if on the last page
-                    if (self.idx + 1 == self.pageCount) {
-                        self.paginationNext.classList.add('pagination-disabled');
-                    } else {
-                        self.paginationNext.classList.remove('pagination-disabled');
-                    }
-                }
-                return;
-            }
-            showError('Failed to fetch addresses list.')
-        } catch (e) {
-            console.log("Caught error: ", e);
-            showError(`Failed to fetch addresses list: ${e}`);
-        }
-
-    }
-
-    
     /**
      * Shows a <address-data> element popup for specified address.
      * @param address - Address data to show.
@@ -543,9 +546,8 @@
             </address-data>`;
             showPageOverlay('address-popup');
         } else {
-            copyText(address, `Copied address: ${ address }`);
+            copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }
     }
-
     customElements.define('addresses-table', AddressTableElement);
 </script>

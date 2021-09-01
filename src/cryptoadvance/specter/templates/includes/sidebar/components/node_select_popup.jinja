@@ -1,0 +1,81 @@
+<style>
+    .node-list-item {
+        min-height: min-content;
+        justify-content: flex-start;
+        flex-grow: 1;
+        width: 100%;
+        padding: 10px 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-left: 3px solid transparent;
+    }
+    .node-list-item>svg {
+        width: 80px;
+    }
+    .node-list-item.active{
+        background: #394659;
+    }
+    @media (min-width: 600px){
+        #node_select_popup {
+            width: 350px;
+        }
+    }
+</style>
+<div id="node_select_popup" class="hidden" style="text-align: left;">
+    <h1>{{ _("Node configuration") }}</h1>
+    {% for node_name in specter.node_manager.nodes_names %}
+        {% set node = specter.node_manager.nodes[node_name] %}
+        <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
+		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
+            <div class="item core node-list-item {% if node.alias == specter.node.alias %}active{% endif %}" style="cursor: pointer;"
+            onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
+                {% if node.is_liquid %}
+                    {% from "components/liquid_svg.jinja" import liquid_svg %}
+                    {{ liquid_svg(node.chain, 40) }}
+                {% else %}
+                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                    {{ bitcoin_svg(node.chain, 40) }}
+                {% endif %}
+                <div style="width: 100%;">
+                    {{ node.name }}
+                    <br>
+                    <small>
+                        {% if node.chain %}
+                            {{node.chain | title}}, {{ node.host }}:{{ node.port }}
+                        {% else %}
+                            {{ _("Node unreachable...") }}
+                        {% endif %}
+                    </small>
+                </div>
+                <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}" style="text-align: right; width: 100%px;">
+                    <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white" style="width: 40px; margin-right: 10px;"/>
+                </a>
+            </div>
+        </form>
+    {% endfor %}
+    <br>
+    {{ sidebar_btn(url_for('setup_endpoint.node_type'), 'Connect a new node', 'btn_new_node') }}
+</div>
+
+<script type="text/javascript">
+    function showNodeSelectPopup() {
+        hidePageOverlay();
+        if (!e) var e = window.event;
+        e.cancelBubble = true;
+        if (e.stopPropagation) { 
+            e.stopPropagation(); 
+        }
+        document.getElementById('page_overlay_popup').style.padding = '1.5em 0';
+        document.getElementById('page_overlay_popup_cancel_button').classList.add('hidden');
+        document.getElementById('side-content').classList.remove('active');
+        showPageOverlay('node_select_popup');
+    }
+
+    function onCancelOverlay() {
+        document.getElementById('page_overlay_popup').style.padding = '1.5em';
+        document.getElementById('page_overlay_popup_cancel_button').classList.remove('hidden');
+
+    }
+</script>

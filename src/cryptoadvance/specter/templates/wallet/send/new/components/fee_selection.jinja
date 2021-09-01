@@ -1,46 +1,51 @@
+{% set fee_options_dynamic = "dynamic" in fee_options %}
+
 <div class="fee_container">
     <div>
-        <label><input type="checkbox" class="inline" name="subtract" id="subtract" value="1" onchange="toggleSubtractFrom(this)"> Subtract fees from amount</label>
+        <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %} onchange="toggleSubtractFrom(this)"> {{ _("Subtract fees from amount") }}</label>
         <div class="tool-tip" style="text-align: center;">
             <i class="tool-tip__icon">i</i>
             <p class="tool-tip__info">
                 <span class="info">
-                    <span class="info__title">Subtract fees from amount<br><br></span>
-                    If checked, the transaction fees will be payed off from the transaction amount.<br><br>
-                    Otherwise, the fees will be payed as an added cost in addition to the amount sent.
+                    <span class="info__title">{{ _("Subtract fees from amount") }}<br><br></span>
+                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
+                    {{ _("Otherwise, the fees will be paid as an added cost in addition to the amount sent.") }}
                 </span>
             </p>
         </div>
     </div>
-    <span id="subtract_from" class="hidden"><br>Subtract from recipient number: <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br></span>
+    <span id="subtract_from" class="hidden"><br>{{ _("Subtract from recipient number:") }} <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="{{ subtract_from }}" step="1" style="width: 80px; min-width: 80px;"><br></span>
     <br>
     <div>
-        Fees: 
-        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" onclick="showFeeOption(this)" checked>dynamic</label>
-        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" onclick="showFeeOption(this);">manual</label>
+        {{ _("Fees:") }} 
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_options_dynamic" name="fee_options" value="dynamic" onclick="showFeeOption(this)" {% if fee_options_dynamic %}checked{% endif %}>{{ _("dynamic") }}</label>
+        <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" onclick="showFeeOption(this);" {% if not fee_options_dynamic %}checked{% endif %}>{{ _("manual") }}</label>
     </div>
     <br>
-    <div id = "fee_manual" style="display: none">
-        Fee rate:<br>
-        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+    <div id = "fee_manual" style="display: {% if fee_options_dynamic %}none{% else %}block{% endif %}">
+        {{ _("Fee rate:") }}<br>
+        {% set min_fee = 0.1 if specter.is_liquid else 1 %}
+        <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="any" autocomplete="off" {% if not fee_options_dynamic %}value="{{ fee_rate }}"{% endif %}> sat/vbyte
         <div class="note">
-            leave blank to set automatically, 1 sat/vbyte is the minimal fee rate.
+            {{ _("leave blank to set automatically, {} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
         </div>
     </div>
-    <div id ="fee_dynamic" style="display: block">
+    <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
         <div id="blocks"></div>
-        <input type="range" style="width: 12em" min="1" max="25" value="6" step="1" id="slider_confTime" oninput="loadDynamicFees()">
+        <input type="range" style="width: 12em" min="{{fee_estimation_data['minimumFee']}}" max="{{fee_estimation_data['fastestFee'] * 1.4}}" value="{{ fee_estimation }}" step="1" id="fees_slider" oninput="dynamicFeeUpdated()">
         <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
         <div>
-            Fee rate: <span id="fee_rate_dynamic_text"></span>
+            {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
+            <br>
+            <span class="note">({{ _("Fee rate:") }} <span id="fee_rate_dynamic_text"></span> sat/vbyte)</span>
         </div>
     </div>
     <br>
-    <label><input type="checkbox" class="inline" name="rbf" id="rbf" value="1" checked> RBF Enabled</label>
+    <label><input type="checkbox" class="inline" name="rbf" id="rbf" {% if rbf %}checked{% endif %}> {{ _("RBF Enabled") }}</label>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", loadDynamicFees);
+    document.addEventListener("DOMContentLoaded", dynamicFeeUpdated);
 
     function showFeeOption(myRadio) {
 
@@ -53,39 +58,27 @@
         }
     }
 
-    async function fetchDynamicFees() {
-        try {
-            let url="{{ url_for('fees', blocks='numberofblocksplaceholder')}}".replace('numberofblocksplaceholder', document.getElementById('slider_confTime').value)
-            const response = await fetch(
-                url,
-                {
-                    method: 'GET'
-                }
-            );
-            let res = await response.json();
-            res.feerate = parseInt((parseFloat(res.feerate) / 1000) * 1e8);
-            return res;
-        } catch(e) {
-            console.log('Caught error:', e);
-            return { success: false, error: e };
+    function dynamicFeeUpdated() {
+        let feesSlider = document.getElementById('fees_slider');
+        document.getElementById('fee_rate_dynamic_text').innerText = feesSlider.value;
+        document.getElementById('fee_rate_dynamic').value = feesSlider.value;
+        let minFee = parseInt("{{fee_estimation_data['minimumFee']}}");
+        let hourFee = parseInt("{{fee_estimation_data['hourFee']}}");
+        let halfHourFee = parseInt("{{fee_estimation_data['halfHourFee']}}");
+        let fastestFee = parseInt("{{fee_estimation_data['fastestFee']}}");
+        if (feesSlider.value <= minFee + ((hourFee - minFee) / 2)) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Very slow") }}';
+        } else if (feesSlider.value > minFee + ((hourFee - minFee) / 2) && feesSlider.value < hourFee) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Slow") }}';
+        } else if (feesSlider.value >= hourFee && feesSlider.value < halfHourFee) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Medium (1 hour)") }}';
+        } else if (feesSlider.value >= halfHourFee && feesSlider.value < fastestFee) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Fast (30 minutes)") }}';
+        } else if (feesSlider.value >= fastestFee && feesSlider.value < fastestFee * 1.2) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Very fast (10 minutes)") }}';
+        } else if (feesSlider.value >= fastestFee * 1.2) {
+            document.getElementById('fee_rate_speed_text').innerText = '{{ _("Overpaid! (10 minutes)") }}';
         }
-    }
-
-    async function loadDynamicFees() {
-        let feesJSON = await fetchDynamicFees();
-        let blocks = 'Dynamic fees are currently not available.';
-
-        if (!feesJSON.hasOwnProperty('errors')) {
-            let fee = feesJSON.feerate;
-            blocks = feesJSON.blocks + ' blocks';
-            document.getElementById('fee_rate_dynamic_text').innerHTML = fee.toString().concat(' sat/vbyte');
-            document.getElementById('fee_rate_dynamic').value = fee;
-        } else {
-            document.getElementById('fee_rate_dynamic_text').innerHTML = 'will be set by Bitcoin Core automatically';
-            document.getElementById('fee_rate_dynamic').value = 0;
-        }
-
-        document.getElementById('blocks').innerHTML = 'Confirmation time: '.concat(blocks);
     }
 
     function toggleSubtractFrom(checkbox) {

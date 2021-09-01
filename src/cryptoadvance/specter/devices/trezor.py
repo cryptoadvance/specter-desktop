@@ -1,20 +1,16 @@
+from . import DeviceTypes
 from .hwi_device import HWIDevice
-
-# a hack that verifies multisig
-from .hwi import trezor
+from .hwi.trezor import TrezorClient
 
 
 class Trezor(HWIDevice):
-    device_type = "trezor"
+    device_type = DeviceTypes.TREZOR
     name = "Trezor"
     icon = "trezor_icon.svg"
 
     supports_hwi_toggle_passphrase = True
     supports_hwi_multisig_display_address = True
 
-    def __init__(self, name, alias, keys, fullpath, manager):
-        HWIDevice.__init__(self, name, alias, keys, fullpath, manager)
-
     @classmethod
     def get_client(cls, *args, **kwargs):
-        return trezor.TrezorClient(*args, **kwargs)
+        return TrezorClient(*args, **kwargs)

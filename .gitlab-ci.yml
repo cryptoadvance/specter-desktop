@@ -12,6 +12,7 @@ cache:
   paths:
     - .cache/pip
     - .env/
+    - ./tests/elements
 
 stages:
   - testing
@@ -24,11 +25,23 @@ before_script:
   - python -V  # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
-  - pip3 install virtualenv
+# This doesn't get cached in gitlab but we don't need it anyway for now:
+#  - ./tests/install_noded.sh --debug --elements compile
+  - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
 
-test:
+check:
+  stage: testing
+  # We simply check here whether all the tests on github are completed and green
+  script:
+    - ./utils/release.sh wait_on_master || exit 1 # that command will have a non-0 exit-value if not everything is green
+
+# jobs with a preceding . like .test are hidden jobs and are not executed. I leave them in here as
+# we might want to reactivate them in the case that github explodes or something.
+# So effectively, gitlab is currently only used for releasing.
+
+.test:
  stage: testing
  # We assume here that people who want to get code into the master-branch are
  # relying on PRs and people who are working on gitlab-forks are working
@@ -41,17 +54,19 @@ test:
    - pip3 install -r requirements.txt
    - pip3 install -e .
    - pip3 install -r test_requirements.txt
+   - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
    # pytest --docker not working? Uncomment this for better debugging:
    # - python3 tests/conftest.py 
    - py.test --cov-report term --cov cryptoadvance --docker
 
-test-cypress:
-  image: registry.gitlab.com/k9ert/specter-desktop/cypress-python:20201111231032
+.test-cypress:
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:20210424
   stage: testing
   script:
     # start the server in the background
     - pip3 install -e .
     - pip3 install -r test_requirements.txt
+    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
     - npm i
     - ./utils/test-cypress.sh --docker --debug run
     - docker ps || echo "probably no docker available anyway"
@@ -68,6 +83,8 @@ release_pip:
     - tags
   script:
     - pip3 install setuptools wheel twine
+    - pip3 install -r test_requirements.txt
+    - python3 setup.py install
     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
     - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
     # set version number in setup.py
@@ -136,12 +153,12 @@ release_electron_linux_windows:
     - ls -l release-win
     - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS.txt
     - cat ./SHA256SUMS.txt
-    - if [[ -f /credentials/private.key ]]; then gpg --import /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt; fi
+    - if [[ -f /credentials/private.key ]]; then gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
     - python ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
     - python ../utils/github.py upload ./SHA256SUMS.txt
-    - if [[ -f /credentials/private.key ]]; then python3 ../utils/github.py upload ./SHA256SUMS.txt.sig ; fi
+    - if [[ -f ./SHA256SUMS.txt.sig ]]; then python3 ../utils/github.py upload ./SHA256SUMS.txt.sig ; fi
   artifacts:
     when: always
     paths:

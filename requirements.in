@@ -3,10 +3,12 @@ chardet==3.0.4
 Click==7.1.2
 daemonize==2.5.0
 Flask==1.1.2
-Flask-Cors==3.0.8
+Flask-Babel==2.0.0
+Flask-Cors==3.0.9
 Flask-Login==0.5.0
-hwi==1.2.0
-bitbox02==4.1.0
+Flask-RESTful==0.3.8
+Flask-HTTPAuth==4.2.0
+hwi==2.0.1
 importlib_metadata==2.0.0
 pyserial==3.4
 python-dotenv==0.13.0
@@ -14,6 +16,10 @@ requests==2.25.0
 pysocks==1.7.1
 six==1.12.0
 stem==1.8.0
-embit==0.1.2
+embit==0.4.6
 psutil==5.7.3
 pyopenssl==20.0.1
+flask_wtf==0.14.3
+pgpy==0.5.3
+cbor==1.0.0
+mnemonic==0.19

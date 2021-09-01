@@ -3,6 +3,9 @@
 echo $1 > version.txt
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e ..
+cd ..
+python3 setup.py install
+cd pyinstaller
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg
 pyinstaller specterd.spec
@@ -42,3 +45,6 @@ mv "Specter ${1:1}.dmg" release/SpecterDesktop-$1.dmg
 cd dist
 zip ../release/specterd-$1-osx.zip specterd
 cd ..
+
+sha256sum ./release/specterd-$1-osx.zip
+sha256sum ./release/SpecterDesktop-$1.dmg

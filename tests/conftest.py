@@ -7,15 +7,23 @@ import subprocess
 import tempfile
 import time
 
-import pytest
 import docker
-from cryptoadvance.specter.bitcoind import (
-    BitcoindDockerController,
+import pytest
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
-from cryptoadvance.specter.device_manager import DeviceManager
-from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
+    BitcoindDockerController,
+)
+from cryptoadvance.specter.process_controller.elementsd_controller import (
+    ElementsPlainController,
+)
+from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.user import User
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 pytest_plugins = ["ghost_machine"]
 
@@ -29,7 +37,13 @@ def pytest_addoption(parser):
         "--bitcoind-version",
         action="store",
         default="v0.20.1",
-        help="setup environment: development",
+        help="Version of bitcoind (something which works with git checkout ...)",
+    )
+    parser.addoption(
+        "--elementsd-version",
+        action="store",
+        default="master",
+        help="Version of elementsd (something which works with git checkout ...)",
     )
 
 
@@ -39,47 +53,100 @@ def pytest_generate_tests(metafunc):
     if "docker" in metafunc.fixturenames:
         if metafunc.config.getoption("docker"):
             # That's a list because we could do both (see above) but currently that doesn't make sense in that context
-            metafunc.parametrize("docker", [True], scope="module")
+            metafunc.parametrize("docker", [True], scope="session")
         else:
-            metafunc.parametrize("docker", [False], scope="module")
+            metafunc.parametrize("docker", [False], scope="session")
 
 
-@pytest.fixture(scope="module")
-def bitcoin_regtest(docker, request):
+def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     if docker:
+        from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
+            BitcoindDockerController,
+        )
+
         bitcoind_controller = BitcoindDockerController(
-            rpcport=18543, docker_tag=requested_version
+            rpcport=rpcport, docker_tag=requested_version
         )
     else:
         if os.path.isfile("tests/bitcoin/src/bitcoind"):
             bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/src/bitcoind"
+                bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
             )  # always prefer the self-compiled bitcoind if existing
+        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+            bitcoind_controller = BitcoindPlainController(
+                bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
+            )  # next take the self-installed binary if existing
         else:
-            bitcoind_controller = (
-                BitcoindPlainController()
+            bitcoind_controller = BitcoindPlainController(
+                rpcport=rpcport
             )  # Alternatively take the one on the path for now
-    bitcoind_controller.start_bitcoind(cleanup_at_exit=True, cleanup_hard=True)
+    bitcoind_controller.start_bitcoind(
+        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+    )
+    assert not bitcoind_controller.datadir is None
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
-    assert (
-        running_version != requested_version,
+    assert running_version == requested_version, (
         "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"
-        % (running_version, requested_version),
+        % (running_version, requested_version)
     )
     return bitcoind_controller
+
+
+def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
+    if os.path.isfile("tests/elements/src/elementsd"):
+        elementsd_controller = ElementsPlainController(
+            elementsd_path="tests/elements/src/elementsd", rpcport=rpcport
+        )  # always prefer the self-compiled bitcoind if existing
+    elif os.path.isfile("tests/elements/bin/elementsd"):
+        elementsd_controller = ElementsPlainController(
+            elementsd_path="tests/elements/bin/elementsd", rpcport=rpcport
+        )  # next take the self-installed binary if existing
+    else:
+        elementsd_controller = ElementsPlainController(
+            rpcport=rpcport
+        )  # Alternatively take the one on the path for now
+    elementsd_controller.start_elementsd(
+        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+    )
+    assert not elementsd_controller.datadir is None
+    running_version = elementsd_controller.version()
+    requested_version = request.config.getoption("--elementsd-version")
+    assert running_version == requested_version, (
+        "Please make sure that the elementsd-version (%s) matches with the version in pytest.ini (%s)"
+        % (running_version, requested_version)
+    )
+    return elementsd_controller
+
+
+@pytest.fixture(scope="session")
+def bitcoin_regtest(docker, request):
+    bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+    try:
+        assert bitcoind_regtest.get_rpc().test_connection()
+        assert not bitcoind_regtest.datadir is None
+        yield bitcoind_regtest
+    finally:
+        bitcoind_regtest.stop_bitcoind()
+
+
+@pytest.fixture(scope="session")
+def elements_elreg(request):
+    elements_elreg = instantiate_elementsd_controller(request, extra_args=None)
+    try:
+        yield elements_elreg
+        assert not elements_elreg.datadir is None
+    finally:
+        elements_elreg.stop_elementsd()
 
 
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = "./test_specter_data_2789334"
-    shutil.rmtree(data_folder, ignore_errors=True)
-    os.mkdir(data_folder)
-    yield data_folder
-    shutil.rmtree(data_folder, ignore_errors=True)
+    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
+        yield data_folder
 
 
 @pytest.fixture
@@ -222,13 +289,13 @@ def wallets_filled_data_folder(devices_filled_data_folder):
     "change_keypool": 5,
     "type": "simple",
     "description": "Single (Segwit)",
-    "key": {
+    "keys": [{
         "derivation": "m/84h/1h/0h",
         "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
         "fingerprint": "1ef4e492",
         "type": "wpkh",
         "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
-    },
+    }],
     "recv_descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr",
     "change_descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/1/*)#h4z73prm",
     "device": "Trezor",
@@ -248,12 +315,11 @@ def device_manager(devices_filled_data_folder):
 
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
-    # Make sure that this folder never ever gets a reasonable non-testing use-case
-    data_folder = "./test_specter_data_3456778"
-    shutil.rmtree(data_folder, ignore_errors=True)
+    assert bitcoin_regtest.get_rpc().test_connection()
     config = {
         "rpc": {
             "autodetect": False,
+            "datadir": "",
             "user": bitcoin_regtest.rpcconn.rpcuser,
             "password": bitcoin_regtest.rpcconn.rpcpassword,
             "port": bitcoin_regtest.rpcconn.rpcport,
@@ -265,15 +331,58 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    assert specter.chain == "regtest"
+    # Create a User
+    someuser: User = specter.user_manager.add_user(
+        User.from_json(
+            {
+                "id": "someuser",
+                "username": "someuser",
+                "password": "somepassword",
+                "config": {},
+                "is_admin": False,
+            },
+            specter,
+        )
+    )
+    specter.user_manager.save()
     specter.check()
-    yield specter
-    shutil.rmtree(data_folder, ignore_errors=True)
+
+    assert not someuser.wallet_manager.working_folder is None
+
+    # Create a Wallet
+    wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
+    wallet_importer = WalletImporter(
+        wallet_json, specter, device_manager=someuser.device_manager
+    )
+    wallet_importer.create_nonexisting_signers(
+        someuser.device_manager,
+        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
+    )
+    dm: DeviceManager = someuser.device_manager
+    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
+    # fund it with some coins
+    bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+    # make sure it's confirmed
+    bitcoin_regtest.mine()
+    # Realize that the wallet has funds:
+    wallet.update()
+    assert not specter.wallet_manager.working_folder is None
+    try:
+        yield specter
+    finally:
+        # Deleting all Wallets (this will also purge them on core)
+        for user in specter.user_manager.users:
+            for wallet in list(user.wallet_manager.wallets.values()):
+                user.wallet_manager.delete_wallet(
+                    wallet, bitcoin_datadir=bitcoin_regtest.datadir, chain="regtest"
+                )
 
 
 @pytest.fixture
 def app(specter_regtest_configured):
-    """ the Flask-App, but uninitialized """
-    app = create_app()
+    """the Flask-App, but uninitialized"""
+    app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True
     app.testing = True
@@ -285,5 +394,5 @@ def app(specter_regtest_configured):
 
 @pytest.fixture
 def client(app):
-    """ a test_client from an initialized Flask-App """
+    """a test_client from an initialized Flask-App"""
     return app.test_client()

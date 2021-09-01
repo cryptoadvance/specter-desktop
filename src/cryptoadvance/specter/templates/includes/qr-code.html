@@ -5,6 +5,13 @@
 
   If the QR code data is larger than 300 bytes it will enable "click to animate" feature.
   If the QR code data is larger than 2300 bytes it will switch to animated-only mode.
+
+  Optional attributes:
+  `frame-rate="3"` - set framerate of the QR codes animation in fps.
+  `animate="auto"` - animation behaviour:
+  - `auto` - animate automatically after 2300 bytes, will remain static before that size.
+  - `on` - animate by default even if QR code size is reasonably small, can be stopped on click.
+  - `off` - don't animate by default even if QR code is too large, can be animated on click.
 -->
 <template id="qr-code">
   <style>
@@ -24,11 +31,11 @@
     }
     .copy{
       display: none;
-      height: 26px;
-      width: 26px;
+      height: 30px;
+      width: 30px;
       color: #000;
       margin: 0;
-      margin-bottom: -26px;
+      margin-bottom: -30px;
       margin-left: auto;
       z-index: 3;
       cursor: pointer;
@@ -147,7 +154,7 @@
     }
   </style>
   <div class="qr-holder">
-    <a class="copy"><img src="{{ url_for('static', filename='img/content_copy-24px.svg') }}"></a>
+    <a class="copy"><img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; height: 26px;"></a>
     <div class="qr-code"></div>
     <div class="note">Click to animate</div>
     <div class="range" style="margin-top: 10px; margin-bottom: -5px;">
@@ -176,6 +183,8 @@ class QRCodeElement extends HTMLElement {
     this.isQRlarge = true;
     this.isQRtoolarge = false;
     this.idx = 0;
+    this.framePeriod = 300;
+    this.mode = 'auto';
 
     this.copybtn = clone.querySelector(".copy");
 
@@ -195,10 +204,43 @@ class QRCodeElement extends HTMLElement {
         value = this.maybe_remove_checksum(value);
         this.qrcode.makeCode(value);
         if(this.isQRlarge){
-          this.note.innerHTML = "Click to animate";
+          this.note.innerHTML = '{{ _("Click to animate") }}';
         }
       }
     });
+    const animate = () => {
+      // repeat
+      window.setTimeout(animate, this.framePeriod);
+      // check if it's visible
+      if(this.offsetParent==null){
+        // reset encoder
+        this.encoder = null;
+        return;
+      }
+      if(this.urdata){
+        if(!this.animate){
+          return;
+        }
+        if(!this.encoder){
+          this.encoder = this.urdata.toUREncoder();
+        }
+        this.qrcode.makeCode(this.encoder.nextPart().toUpperCase());
+      }
+      if((this.qrcode==null) || this.chunks.length<=1){
+        return;
+      }
+      if(this.animate && this.isQRlarge){
+        this.qrcode.makeCode(this.chunks[this.idx]);
+        let prefix = "";
+        if(!this.isQRtoolarge){
+          prefix = "Click to stop. ";
+        }
+        this.note.innerHTML = `${prefix}Part ${this.idx+1} of ${this.chunks.length}`;
+        this.idx = (this.idx+1) % this.chunks.length;
+      }
+    }
+    window.setTimeout(animate, this.framePeriod);
+
     this.copybtn.addEventListener('click', e=>{
       e.cancelBubble = true;
       var value = this.getAttribute('value');
@@ -218,27 +260,9 @@ class QRCodeElement extends HTMLElement {
       this.sizeSlider.value = Number(this.sizeSlider.value) + 50;
       this.setAttribute('width', this.sizeSlider.value);
     });
-    window.setInterval(()=>{
-      // check if it's visible
-      if(this.offsetParent==null){
-        return;
-      }
-      if((this.qrcode==null) || this.chunks.length<=1){
-        return;
-      }
-      if(this.animate && this.isQRlarge){
-        this.qrcode.makeCode(this.chunks[this.idx]);
-        this.idx = (this.idx+1) % this.chunks.length;
-        let prefix = "";
-        if(!this.isQRtoolarge){
-          prefix = "Click to stop. ";
-        }
-        this.note.innerHTML = prefix + "Part "+(this.idx+1)+" of "+this.chunks.length;
-      }
-    },300);
   }
   static get observedAttributes() {
-    return ['value','width'];
+    return ['value', 'width', 'frame-rate', 'animate'];
   }
   maybe_remove_checksum(value){
     // this is bc-ur, remove checksum for static QR
@@ -290,9 +314,19 @@ class QRCodeElement extends HTMLElement {
     }
   }
   connectedCallback() {
+    let frameRate = parseFloat(this.getAttribute('frame-rate'));
+    if(isNaN(frameRate)){
+      this.framePeriod = 300;
+    }else{
+      this.framePeriod = Math.round(1000/frameRate);
+    }
+    let mode = this.getAttribute('animate');
+    if(mode){
+      this.mode = mode;
+    }
     if (this.getAttribute('scalable') !== null) {
       let defaultSize = parseInt(this.getAttribute('width').replace("px",""))
-      if(defaultSize == NaN){
+      if(isNaN(defaultSize)){
         defaultSize = 400;
       }
       this.sizeSlider.setAttribute('value', defaultSize);
@@ -307,9 +341,19 @@ class QRCodeElement extends HTMLElement {
   }
   attributeChangedCallback(attrName, oldValue, newValue) {
     if(newValue !== oldValue){
+      let frameRate = parseFloat(this.getAttribute('frame-rate'));
+      if(isNaN(frameRate)){
+        this.framePeriod = 300;
+      }else{
+        this.framePeriod = Math.round(1000/frameRate);
+      }
+      let mode = this.getAttribute('animate');
+      if(mode){
+        this.mode = mode;
+      }
       var value = this.getAttribute('value');
       var width = parseInt(this.getAttribute('width').replace("px",""));
-      if(width==NaN){
+      if(isNaN(width)){
         width=400;
       }
       if (window.innerWidth < 600)
@@ -322,28 +366,69 @@ class QRCodeElement extends HTMLElement {
       if(value == undefined){
         return;
       }
-      this.split(value);
-      if(this.chunks.length == 1){
-        this.isQRlarge = false;
+      // bcur encoding should be used
+      // supported:
+      // - crypto-psbt for transactions
+      // - ur-bytes for arbitrary data (i.e. wallet export file)
+      if(value.startsWith("crypto-psbt:") || value.startsWith("ur-bytes:")){
+        let payload = value.split(":")[1];
+        let data = window.URlib.default.from_base64(payload);
+        if(value.startsWith("crypto-psbt:")){
+          this.urdata = new window.URlib.CryptoPSBT(data);
+        }else if(value.startsWith("ur-bytes:")){
+          this.urdata = new window.URlib.Bytes(data);
+        }
+        this.encoder = this.urdata.toUREncoder();
+        let firstPart = this.encoder.nextPart().toUpperCase();
+        // if it's just ur:crypto-psbt/data then everything fits in 1 chunk
+        this.animate = (firstPart.split("/").length > 2);
+        this.qrcode = new QRCode(this.el, {
+          "text":   firstPart,
+          "width":  width,
+          "height": width,
+          "correctLevel": QRCode.CorrectLevel.M,
+        });
         this.note.innerHTML = "";
+      // other qrcode formats - bcur1 and text
       }else{
-        this.isQRlarge = true;
-        this.note.innerHTML = "Click to animate";
+        this.encoder = null;
+        this.split(value);
+        if(this.mode == 'off'){
+          value = this.maybe_remove_checksum(value);
+        }else{
+          if(this.chunks.length == 1){
+            this.isQRlarge = false;
+            this.note.innerHTML = "";
+          }else{
+            this.isQRlarge = true;
+            this.note.innerHTML = "Click to animate";
+          }
+          // we have to use chunks
+          if(this.isQRtoolarge){
+            value = this.chunks[0];
+            this.animate = true;
+          }else{
+            // if this is bc-ur, remove checksum for static QR
+            value = this.maybe_remove_checksum(value);
+          }
+          if((this.mode == 'on') && (this.chunks.length > 1)){
+            this.animate = true;
+            value = this.chunks[0];
+            this.idx = 0;
+            let prefix = "";
+            if(!this.isQRtoolarge){
+              prefix = "Click to stop. ";
+            }
+            this.note.innerHTML = `${prefix}Part ${this.idx+1} of ${this.chunks.length}`;
+          }
+        }
+        this.qrcode = new QRCode(this.el, {
+          "text":   value,
+          "width":  width,
+          "height": width,
+          "correctLevel": QRCode.CorrectLevel.M,
+        });
       }
-      // we have to use chunks
-      if(this.isQRtoolarge){
-        value = this.chunks[0];
-        this.animate = true;
-      }else{
-        // if this is bc-ur, remove checksum for static QR
-        value = this.maybe_remove_checksum(value);
-      }
-      this.qrcode = new QRCode(this.el, {
-        "text":   value,
-        "width":  width,
-        "height": width,
-        "correctLevel": QRCode.CorrectLevel.M,
-      });
     }
   }
 }

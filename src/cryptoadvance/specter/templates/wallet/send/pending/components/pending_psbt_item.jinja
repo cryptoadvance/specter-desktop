@@ -14,7 +14,7 @@
             {% if pending_psbt['address']|length == 1 %}
                 <address-label data-address="{{ pending_psbt['address'][0] }}" data-label="{{ wallet.getlabel(pending_psbt['address'][0]) }}" data-wallet="{{ wallet_alias }}"></address-label>
             {% else %}
-                {{ pending_psbt['address']|length }} Recipients
+                {{ pending_psbt['address']|length }} {{ _("Recipients") }}
             {% endif %}
         </td>
         <td>
@@ -28,14 +28,16 @@
         </td>
         <td width="170px">
             <div class="row">
-                <form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" method="POST">
+                <form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
-                    <button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">Open</button>
+                    <button type="submit" name="action" value="openpsbt" class="btn" style="margin-right: 5px;">{{ _("Open") }}</button>
                 </form>
 
                 <form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="pending_psbt" value='{{ pending_psbt|tojson|safe }}'>
-                    <button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;" onclick="javascript: form.action='./?pending=True';">Delete</button>
+                    <button type="submit" name="action" value="deletepsbt" class="btn danger" style="margin-left: 5px;" onclick="javascript: form.action='./?pending=True';">{{ _("Delete") }}</button>
                 </form>
             </div>
         </td>

@@ -44,14 +44,14 @@ def read_json_file(path):
 
 
 def _delete_folder(path):
-    """ Internal method which won't trigger the callback """
+    """Internal method which won't trigger the callback"""
     with fslock:
         if os.path.exists(path):
             shutil.rmtree(path)
 
 
 def _write_json_file(content, path, lock=None):
-    """ Internal method which won't trigger the callback """
+    """Internal method which won't trigger the callback"""
     if lock is None:
         lock = fslock
     with lock:
@@ -101,7 +101,7 @@ def delete_file(path):
 
 
 def write_devices(devices_json):
-    """ interpret a json as a list of devices and write them in the devices subfolder inside the specter-folder """
+    """interpret a json as a list of devices and write them in the devices subfolder inside the specter-folder"""
     for device_json in devices_json:
         _write_json_file(
             device_json,
@@ -128,6 +128,11 @@ def write_device(device, fullpath):
     storage_callback()
 
 
+def write_node(node, fullpath):
+    _write_json_file(node.json, fullpath)
+    storage_callback()
+
+
 def delete_folder(path):
     _delete_folder(path)
     storage_callback()
@@ -147,17 +152,16 @@ def _write_csv(fname, objs, cls=dict):
     # if it's just a dict
     elif len(objs) > 0:
         columns = objs[0].keys()
-
     with fslock:
         with open(fname, mode="w") as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            writer = csv.DictWriter(csv_file, fieldnames=columns, extrasaction="ignore")
             writer.writeheader()
             for obj in objs:
                 writer.writerow(obj)
 
 
 def write_csv(fname, objs, cls=dict):
-    _write_csv(fname, objs, cls=dict)
+    _write_csv(fname, objs, cls)
     storage_callback()
 
 

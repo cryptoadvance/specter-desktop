@@ -8,6 +8,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def to_bool(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, int):
+        return bool(v)
+    return v == "True"
+
+
 class Address(dict):
     columns = [
         "address",  # str, address itself
@@ -19,9 +27,9 @@ class Address(dict):
     type_converter = [
         str,
         int,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
         str,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
     ]
 
     def __init__(self, rpc, **kwargs):
@@ -92,6 +100,8 @@ class Address(dict):
 
 
 class AddressList(dict):
+    AddressCls = Address
+
     def __init__(self, path, rpc):
         super().__init__()
         self.path = path
@@ -99,7 +109,7 @@ class AddressList(dict):
         file_exists = False
         if os.path.isfile(self.path):
             try:
-                addresses = read_csv(self.path, Address, self.rpc)
+                addresses = read_csv(self.path, self.AddressCls, self.rpc)
                 # dict allows faster lookups
                 for addr in addresses:
                     self[addr.address] = addr
@@ -110,11 +120,26 @@ class AddressList(dict):
 
     def save(self):
         if len(list(self.keys())) > 0:
-            write_csv(self.path, list(self.values()), Address)
+            write_csv(self.path, list(self.values()), self.AddressCls)
         self._file_exists = True
 
+    def set_labels(self, arr):
+        """
+        Sets the labels for existing addresses
+
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
+        for addr in arr:
+            if addr["address"] in self:
+                self[addr["address"]].set_label(addr["label"])
+        self.save()
+
     def add(self, arr, check_rpc=False):
-        """arr should be a list of dicts"""
+        """
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
         labeled_addresses = {}
         if check_rpc:
             # get all available labels
@@ -135,11 +160,11 @@ class AddressList(dict):
             # if we found a label for it - import
             if addr["address"] in labeled_addresses:
                 addr["label"] = labeled_addresses[addr["address"]]
-            self[addr["address"]] = Address(self.rpc, **addr)
+            self[addr["address"]] = self.AddressCls(self.rpc, **addr)
         # add all labeled addresses but not from the array (destination)
         for addr in labeled_addresses:
             if addr not in self:
-                self[addr] = Address(
+                self[addr] = self.AddressCls(
                     self.rpc,
                     address=addr,
                     label=labeled_addresses[addr],
@@ -150,7 +175,7 @@ class AddressList(dict):
 
     def set_label(self, address, label):
         if address not in self:
-            self[address] = Address(self.rpc, address=address, label=label)
+            self[address] = self.AddressCls(self.rpc, address=address, label=label)
         self[address].set_label(label)
         self.save()
 
@@ -176,6 +201,13 @@ class AddressList(dict):
             need_save = True
         if need_save:
             self.save()
+
+    def max_index(self, change=False):
+        return max(
+            0,
+            0,
+            *[addr.index for addr in self.values() if addr.change == change],
+        )
 
     def max_used_index(self, change=False):
         return max(

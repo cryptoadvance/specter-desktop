@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from ..server import create_app, init_app
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -26,63 +27,66 @@ def cli():
 @click.option(
     "--daemon",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--stop",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--restart",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 @click.option(
     "--force",
     is_flag=True,
-    help="Deprecated, don't use that and prepare to see it removed",
+    help="Deprecated, don't use this options and expect future removal.",
 )
 # options below can help to run it on a remote server,
 # but better use nginx
 @click.option(
-    "--port", help="The TCP-Port to bin specter to"
+    "--port", help="TCP port to bind specter to"
 )  # default - 25441 set to 80 for http, 443 for https
 # set to 0.0.0.0 to make it available outside
 @click.option(
     "--host",
     default="127.0.0.1",
-    help="if you do --host 0.0.0.0 then specter will be available in your local lan",
+    help="if you specify --host 0.0.0.0 then specter will be available in your local LAN.",
 )
 # for https:
 @click.option(
-    "--cert", help="--cert and --key are for using a self-signed-cert/ssl-encryption"
+    "--cert",
+    help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption.",
 )
 @click.option(
-    "--key", help="--cert and --key are for using a self-signed-cert/ssl-encryption"
+    "--key",
+    help="--cert and --key are for specifying and using a self-signed certificate for SSL encryption.",
 )
 @click.option(
     "--ssl/--no-ssl",
     is_flag=True,
     default=False,
-    help="By default will run unencrypted. Use -ssl to create a self-signed certificate or you can also specify it via --cert and --key.",
+    help="By default SSL encryption will not be used. Use -ssl to create a self-signed certificate for SSL encryption. You can also specify encryption via --cert and --key.",
 )
 @click.option("--debug/--no-debug", default=None)
+@click.option("--filelog/--no-filelog", default=True)
 @click.option("--tor", is_flag=True)
 @click.option(
     "--hwibridge",
     is_flag=True,
-    help="Start the hwi-bridge to use your HWWs with a remote specter",
+    help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
     "--specter-data-folder",
     default=None,
-    help="Enables overriding the specter-data-folder. This is usually ~/.specter",
+    help="Use a custom specter data-folder. By default it is ~/.specter.",
 )
 @click.option(
     "--config",
     default=None,
-    help="A class from the config.py which sets reasonable Defaults",
+    help="A class from the config.py which sets reasonable default values.",
 )
 def server(
     daemon,
@@ -95,6 +99,7 @@ def server(
     key,
     ssl,
     debug,
+    filelog,
     tor,
     hwibridge,
     specter_data_folder,
@@ -131,6 +136,16 @@ def server(
 
     app.app_context().push()
     init_app(app, hwibridge=hwibridge)
+
+    if filelog:
+        # again logging: Creating a logfile in SPECTER_DATA_FOLDER (which needs to exist)
+        app.config["SPECTER_LOGFILE"] = os.path.join(
+            app.specter.data_folder, "specter.log"
+        )
+        fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+        formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
+        fh.setFormatter(formatter)
+        logging.getLogger().addHandler(fh)
 
     # This stuff here is deprecated
     # When we remove it, we should imho keep the pid_file thing which can be very useful!
@@ -184,29 +199,17 @@ def server(
     if hwibridge:
         if kwargs.get("ssl_context"):
             logger.error(
-                "Running the hwibridge is not supported via ssl. Remove --ssl or make sure to not pass --cert or --key."
+                "Running the hwibridge is not supported via SSL. Remove --ssl, --cert, and --key options."
             )
             exit(1)
         print(
-            " * Running HWI Bridge mode.\n"
+            " * Running in HWI Bridge mode.\n"
             " * You can configure access to the API "
             "at: %s://%s:%d/hwi/settings" % ("http", host, app.config["PORT"])
         )
 
     # debug is false by default
     def run(debug=debug):
-        try:
-            tor_control_address = urlparse(app.specter.proxy_url).netloc.split(":")[0]
-            if tor_control_address == "localhost":
-                tor_control_address = "127.0.0.1"
-            app.controller = Controller.from_port(
-                address=tor_control_address,
-                port=int(app.specter.tor_control_port)
-                if app.specter.tor_control_port
-                else "default",
-            )
-        except Exception:
-            app.controller = None
         try:
             # if we have certificates
             if "ssl_context" in kwargs:
@@ -243,21 +246,28 @@ def server(
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:
-            if app.controller is not None:
-                app.controller.close()
+            try:
+                if app.specter.tor_controller is not None:
+                    app.specter.tor_controller.close()
+            except SpecterError as se:
+                # no reason to break startup here
+                logger.error("Could not initialize tor-system")
 
     # check if we should run a daemon or not
     if daemon or restart:
         print("Starting server in background...")
-        print(" * Running on %s://%s:%d/" % (protocol, host, port))
+        protocol = "http"
+        if "ssl_context" in kwargs:
+            protocol = "https"
+        print(" * Running on %s://%s:%d/" % (protocol, host, app.config["PORT"]))
         # macOS + python3.7 is buggy
         if sys.platform == "darwin" and (
             sys.version_info.major == 3 and sys.version_info.minor < 8
         ):
             raise Exception(
                 " ERROR: --daemon mode is no longer \
-                   supported in python 3.7 and lower \
-                   on MacOS. Upgrade to python 3.8+. (Might not work anyway)"
+                   supported in Python 3.7 and lower \
+                   on MacOS. Upgrade to Python 3.8+. (Might not work anyway.)"
             )
         from daemonize import Daemonize
 
@@ -271,7 +281,7 @@ def server(
 
 
 def configure_ssl(kwargs, app_config, ssl):
-    """ accepts kwargs and adjust them based on the config and ssl """
+    """accepts kwargs and adjust them based on the config and ssl"""
     # If we should create a cert but it's not specified where, let's specify the location
 
     if not ssl and app_config["CERT"] is None:
@@ -310,6 +320,6 @@ def configure_ssl(kwargs, app_config, ssl):
             crypto.dump_privatekey(crypto.FILETYPE_PEM, k).decode("utf-8")
         )
 
-    logger.info("Configuring SSL-cert " + app_config["CERT"])
+    logger.info("Configuring SSL-certificate " + app_config["CERT"])
     kwargs["ssl_context"] = (app_config["CERT"], app_config["KEY"])
     return kwargs

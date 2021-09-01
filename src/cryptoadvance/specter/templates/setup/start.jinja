@@ -1,0 +1,18 @@
+{% extends "setup/setup_page.jinja" %}
+
+{% block setup %}
+    <h1>{{ _("Specter Quickstart!") }}</h1>
+    <h2>{{ _("Get up and running with Specter in just a few clicks!") }}</h2><br>
+    <img style="width: 50px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    {{ bitcoin_svg('main', 50) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 50px;"/>
+    <br><br>
+    <p style="max-width: 400px; margin: auto;">
+        {{ _("Here, we'll take you through the process of setting up Specter with your own Bitcoin Core node and Tor.") }}<br><br>
+        {{ _("Everything is completely automated, but you make choices to customize your setup to fit your needs.") }}
+    </p>
+    <br><br>
+    <div class="row">
+        <a href="{{ url_for('setup_endpoint.tor') }}" class="btn wizard-btn action" id="start-setup-btn">{{ _("Get Started!") }}</a>
+    </div>
+{% endblock %}

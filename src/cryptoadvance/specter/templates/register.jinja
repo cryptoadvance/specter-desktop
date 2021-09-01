@@ -5,17 +5,18 @@
 
 {% block main %}
     <div class="card">
-        <h1>Register to the Specter Node</h1>
+        <h1>{{ _("Register to the Specter Node") }}</h1>
         <form action="{{ url_for('auth_endpoint.register') }}" method="POST" role="form">
             {% if specter.config['auth']['method'] == 'usernamepassword' %}
-                <input class="form-control" placeholder="Username" name="username" type="text" value=""><br><br>
+                <input class="form-control" placeholder='{{ _("Username") }}' name="username" type="text" value=""><br><br>
             {% endif %}
-            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+            <input class="form-control" placeholder='{{ _("Password") }}' name="password" type="password" value="">
             <input type="hidden" name="otp" value="" id="otp">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <br>
             <br>
             <div class="row">
-                <button type="submit" class="btn">Register</button>
+                <button type="submit" class="btn">{{ _("Register") }}</button>
             </div>
         </form>
     </div>

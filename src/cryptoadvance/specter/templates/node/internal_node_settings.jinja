@@ -1,0 +1,52 @@
+{% extends "base.jinja" %}
+{% block main %}
+	<h1 id="title">{{ node.name }}</h1>
+	{% from 'components/editable_title.jinja' import editable_title %}
+	{{ editable_title(node.name) }}
+	<form action="?" method="POST">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<div class="card" style="margin: 20px auto 120px; text-align: center;">
+			<h2>{{ _("Built-in Bitcoin Node Status:") }} {% if node.bitcoind.status %}{{node.bitcoind.status}}{% else %}Down{% endif %}</h2><br>
+			<span class="note" style="font-size: 1.3em;">{{ _("Bitcoin Core Version:") }} {{node.version}}</span>
+			{% if node.version != latest_bitcoind %}
+				<br><br>
+				<div class="warning" style="padding: 30px;">
+					<h1 style="text-align: center; color: #000">{{ _("New Bitcoin version available!") }}</h1>
+					<button type="submit" name="action" value="upgrade_bitcoind" class="btn action centered">{{ _("Upgrade Bitcoin Core version to:") }} v{{ latest_bitcoind }}</button>
+				</div>
+			{% endif %}
+			<br><br>
+			{% if node.bitcoind.status != "Down" %}
+				<button type="submit" class="btn centered" name="action" value="stopbitcoind">{{ _("Stop Bitcoin Core") }}</button>
+			{% else %}
+				<button type="submit" class="btn centered" name="action" value="startbitcoind">{{ _("Start Bitcoin Core") }}</button>
+				<p class="warning">
+				{{ _("If this is your first time starting the node, and you haven't used the QuickSync, your node will start with Initial Block Downloading (IBD) to sync with the network.") }}<br>
+				{{ _("This process of IBD syncing may take several days. If you'd like the QuickSync option, please click on it before starting your node, or if it's running, stop it and the click the QuickSync.") }}<br>
+				<b>{{ _("(Warning: QuickSync will override any existing data of your Bitcoin Node!)") }}</b>
+				</p>
+			{% endif %}
+			<br><br>
+			<br><br>
+			<div class="card">
+				<h1>{{ _("Debug") }}</h1>
+				<a class="btn centered" href="{{url_for('nodes_endpoint.internal_node_logs', node_alias=node_alias)}}">{{ _("See Bitcoind Logs") }}</a>
+				<br><br>
+				<h1>{{ _("Danger Zone") }}</h1>
+				{% if specter.node_manager.nodes | length > 1 and node_alias %}
+					<div class="row">
+					<button type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				{% endif %}
+				<button type="submit" name="action" value="uninstall_bitcoind" class="btn danger centered">{{ _("Unistall Bitcoin Core") }}</button>
+				{% if specter.node_manager.nodes | length > 1 and node_alias %}
+				</div>
+				{% endif %}
+				<br>
+				<label><input type="checkbox" class="inline" name="remove_datadir"> {{ _("Delete data folder?") }}</label>
+			</div>
+		</div>
+	</form>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

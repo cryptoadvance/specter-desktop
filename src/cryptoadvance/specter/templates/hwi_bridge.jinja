@@ -7,26 +7,27 @@
 {% block main %}
     <div class="card" style="width: 600px;">
         <form action="." method="POST" role="form">
-            <h1>HWI Bridge Settings</h1>
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <h1>{{ _("HWI Bridge Settings") }}</h1>
             {% if tor_service_id %}
                 <img style="width: 28px; padding:3px;float: left;margin-right: 5px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>
                 <span style="float: left;">
-                    HWIBridge is also accessible over Tor:<br>
-                    <span title="Copy Tor address" class="explorer-link" onclick="copyText('{{ tor_service_id }}.onion', 'Copied Tor hidden service address: {{ tor_service_id }}.onion')">
+                    {{ _("HWI Bridge is also accessible over Tor") }}:<br>
+                    <span title="Copy Tor address" class="explorer-link" onclick="copyText('{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address") }}: {{ tor_service_id }}.onion')">
                         {{ tor_service_id }}.onion
                     </span>
                 </span><br><br><br>
             {% endif %}
-            <label>Whitelisted domains</label>
+            <label>{{ _("Whitelisted domains") }}</label>
             <textarea class="form-control" placeholder="e.i. http://127.0.0.1:25441" name="whitelisted_domains">{{ whitelisted_domains }}</textarea>
             <div class="note">
-                To whitelist multiple domains, just list them one after another, each in a new line, for example:
+                {{ _("To whitelist multiple domains, just list them one after another, each in a new line, for example") }}:
                 <br>http://127.0.0.1:25440<br>http://127.0.0.1:25441<br>http://127.0.0.1:25442
             </div>
             <br>
             <br>
             <div class="row">
-                <button type="submit" class="btn" name="action" value="update">Update</button>
+                <button type="submit" class="btn" name="action" value="update">{{ _("Update") }}</button>
             </div>
         </form>
     </div>

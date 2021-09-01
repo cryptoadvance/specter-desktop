@@ -10,48 +10,51 @@
             <h1 style="margin-top: 20px;">Preferences</h1>
             <form action="" class="card">
                 <div>
-                    <h2>Specter Server</h2>
+                    <h2>Do you want to connect to a remote Specter?</h2>
                     <div style="margin: 10px;">
-                        Run Specter:<br>
-                        <label><input type="radio" class="inline" name="mode" value="specterd" onclick="toggleHWIBridgeView(false)" checked>Run local Specter server</label><br>
-                        <label><input type="radio" class="inline" id="hwibridge-mode-active" name="mode" value="hwibridge" onclick="toggleHWIBridgeView(true);">Use a remote Specter server</label><br>
+                        <label><input type="radio" class="inline" name="mode" value="specterd" onclick="toggleHWIBridgeView(false)" checked>No, run Specter locally</label><br>
+                        <label><input type="radio" class="inline" id="hwibridge-mode-active" name="mode" value="hwibridge" onclick="toggleHWIBridgeView(true);">Yes, I run Specter remotely</label><br>
                         <div id="hwibridge-mode-settings"><br>
-                            <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="Please enter the remote Specter URL" />
+                            <span style="font-size: 0.95em;">Paste the URL you use to access your remote Specter:</span>
+                            <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="http://" />
                             <br>
                             <p style="margin-top: 20px;">
                                 <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="assets/tor.svg"/><span style="vertical-align: bottom; margin-right: 10px;">Connect over Tor: </span><label class="switch">
-                                    <input type="checkbox" id="tor-checkbox">
+                                    <input type="checkbox" id="tor-checkbox" onchange="toggleTorProxy(this.checked)">
                                     <span class="slider"></span>
                                 </label>
                             </p>
-                            <input id="proxy-url" type="url" placeholder="Proxy URL" />
+                            <input id="proxy-url" type="url" class="hidden" placeholder="Proxy URL" />
                         </div>
                     </div>
                     <br>
-                    <hr>
-                    <br>
-                    <h2 style="float: left;">Specter daemon configurations</h2>
-                    <br>
-                    <div style="margin: 10px;">
-                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false; document.getElementById('download-github-version').style.display='block'"
-                        style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit version" src="assets/edit_icon.svg"/>
-                        <p>Specterd Version:<input id="specterd-version" style="margin-top: 10px;" disabled type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
-                        <span id="download-github-version" class="hidden">
-                            Re-download from GitHub: <input style="vertical-align: sub;" class="checkbox" type="checkbox" id="download-github-version-checkbox">
-                        </span>
-                        <img onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false"
-                        style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit specterd hash" src="assets/edit_icon.svg"/>
-                        <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" disabled type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
-                        <p>Specterd CLI args: <input id="specterd-cli-args" style="margin-top: 10px;" type="text" placeholder="example: --tor --port=25441" /></p>
-                        <p>Use a custom specterd file: <input type="file" id="specterd-file" class="inputfile"/>
-					    <label for="specterd-file" class="btn" style="display: inline-block; margin-left: 15px; width: 180px;">Choose file</label></p>
-                        <span class="note">You can download the specterd file from the github releases page:
-                            <a style="color: white;" target="_blank" href="https://github.com/cryptoadvance/specter-desktop/releases">https://github.com/cryptoadvance/specter-desktop/releases</a></span>
+                    <span id="toggle_advanced" style="cursor: pointer;" onclick="toggleAdvanced()">Advanced &#9654;</span>
+                    <div id="advanced_settings" class="hidden">
+                        <hr>
+                        <br>
+                        <h2 style="float: left;">Specter daemon configurations</h2>
+                        <br>
+                        <div style="margin: 10px;">
+                            <img onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false; document.getElementById('download-github-version').style.display='block'"
+                            style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit version" src="assets/edit_icon.svg"/>
+                            <p>Specterd Version:<input id="specterd-version" style="margin-top: 10px;" disabled type="text" placeholder="The specterd version to install (leave blank to skip installation)" /></p>
+                            <span id="download-github-version" class="hidden">
+                                Re-download from GitHub: <input style="vertical-align: sub;" class="checkbox" type="checkbox" id="download-github-version-checkbox">
+                            </span>
+                            <img onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false"
+                            style="width: 25px; float: right; margin-right: 8px;  margin-top: 8px; cursor: pointer;" title="Edit specterd hash" src="assets/edit_icon.svg"/>
+                            <p>Specterd File Hash: <input id="specterd-hash" style="margin-top: 10px;" disabled type="text" placeholder="The specterd expected file hash (leave blank to skip check)" /></p>
+                            <p>Specterd CLI args: <input id="specterd-cli-args" style="margin-top: 10px;" type="text" placeholder="example: --tor --port=25441" /></p>
+                            <p>Use a custom specterd file: <input type="file" id="specterd-file" class="inputfile"/>
+                            <label for="specterd-file" class="btn" style="display: inline-block; margin-left: 15px; width: 180px;">Choose file</label></p>
+                            <span class="note">You can download the specterd file from the github releases page:
+                                <a style="color: white;" target="_blank" href="https://github.com/cryptoadvance/specter-desktop/releases">https://github.com/cryptoadvance/specter-desktop/releases</a></span>
+                        </div>
                     </div>
                 </div><br>
                 <div class="row flex-center">
-                    <button type="button" id="save-btn" class="btn" onclick="signalSavePreferences()" style="margin: 5px;">Save</button>
                     <button type="button" id="cancel-btn" class="btn" onclick="window.close()" style="margin: 5px;">Cancel</button>
+                    <button type="button" id="save-btn" class="btn action" onclick="signalSavePreferences()" style="margin: 5px;">Save</button>
                 </div>
             </form>
         </div>
@@ -65,6 +68,22 @@
             const getAppSettings = helpers.getAppSettings
             const appSettingsPath = helpers.appSettingsPath
             const specterdDirPath = helpers.specterdDirPath
+
+
+            function toggleAdvanced() {
+                let advancedButton = document.getElementById('toggle_advanced');
+                let advancedSettigns = document.getElementById('advanced_settings');
+                if (advancedSettigns.style.display === 'block') {
+                    advancedSettigns.style.display = 'none';
+                    advancedButton.innerHTML = 'Advanced &#9654;';
+                    if (isCoinSelectionActive()) {
+                        toggleExpand();
+                    }
+                } else {
+                    advancedSettigns.style.display = 'block';
+                    advancedButton.innerHTML = 'Advanced &#9660;';
+                }
+            }
 
             function toggleHWIBridgeView(isActive) {
                 document.getElementById('hwibridge-mode-active').checked = isActive
@@ -122,6 +141,14 @@
                 });
             }
 
+            function toggleTorProxy(torOn) {
+                if (torOn) {
+                    document.getElementById('proxy-url').classList.remove('hidden')
+                } else {
+                    document.getElementById('proxy-url').classList.add('hidden')
+                }
+            }
+
             document.addEventListener("DOMContentLoaded", function() {
                 let appSettings = getAppSettings()
                 let hwiBridgeMode = appSettings.mode == 'hwibridge'
@@ -130,6 +157,7 @@
                 }
                 document.getElementById('proxy-url').value = appSettings.proxyURL
                 document.getElementById('tor-checkbox').checked = appSettings.tor
+                toggleTorProxy(appSettings.tor)
                 document.getElementById('specterd-version').value = appSettings.specterdVersion
                 document.getElementById('specterd-hash').value = appSettings.specterdHash
                 document.getElementById('specterd-cli-args').value = appSettings.specterdCLIArgs

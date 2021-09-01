@@ -13,20 +13,20 @@
 	</style>
 	<br>
 	<nav class="row collapse-on-mobile">
-		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> Wallet Info </button>
-		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> Export </button>
-		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> Advanced </button>
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
-			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> {{ _("Wallet Info") }} </button>
+		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> {{ _("Export") }} </button>
+		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> {{ _("Advanced") }} </button>
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
 	</nav><br>
 	<div id="wallet_info_settings_tab" style="width: 100%">
-		<h1 style="font-size: 1.7em;">Wallet Info</h1><br>
+		<h1 style="font-size: 1.7em;">{{ _("Wallet Info") }}</h1><br>
 		{% if wallet.is_multisig %}
-			<h2 class="subtitle">Devices</h2>
+			<h2 class="subtitle">{{ _("Devices") }}</h2>
 			<p style="text-align: center; font-size: 1.2em;">{{ wallet.sigs_required }} out of {{ wallet.keys|length }} multisig</p>
 		{% else %}
-			<h2 class="subtitle">Device</h2>
+			<h2 class="subtitle">{{ _("Device") }}</h2>
 		{% endif %}
 		<div class="row overflow">
 			{% for device in wallet.devices %}
@@ -38,43 +38,38 @@
 				</a>
 			{% endfor %}
 		</div>
-		<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">Show keys details</button>
+		<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">{{ _("Show keys details") }}</button>
 		<br>
 		<div id="keys_list" class="center" style="margin: auto; display: none; width: 85%;">
-			<label style="font-size: 1.3em;">Use SLIP-132:&nbsp;</label>
+			<label style="font-size: 1.3em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
 				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
-			<p class="note" style="margin-top: 5px; max-width: 90%;">SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.</p>
+			<p class="note" style="margin-top: 5px; max-width: 90%;">{{ _("SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.") }}</p>
 			<br>
 			{% for i in range(wallet.devices | length) %}
 				{% set device = wallet.devices[i] %}
 				{% set key = wallet.keys[i] %}
-				<h1>Signer {% if wallet.is_multisig %}{{ loop.index }} {% endif %}- {{ device.name }}</h1>
+				<h1>{{ _("Signer") }} {% if wallet.is_multisig %}{{ loop.index }} {% endif %}- {{ device.name }}</h1>
 				<div class="table-holder">
 					<table>
 						<thead>
 							<tr>
-								<th>Network</th>
-								<th>Purpose</th>
-								<th class="optional">Derivation</th>
-								<th class="optional">Key</th>
+								<th>{{ _("Network") }}</th>
+								<th>{{ _("Purpose") }}</th>
+								<th class="optional">{{ _("Derivation") }}</th>
+								<th class="optional">{{ _("Key") }}</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td>
-									{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-									{% if key.xpub.startswith("xpub") %}
-										{{ bitcoin_svg('main', 16) }} Main
-									{% else %}
-										{{ bitcoin_svg('test', 16) }} Test
-									{% endif %}
+									{% include "components/network_label.jinja" %}
 								</td>
 								<td>{{ purposes[key.key_type] }}</td>
 								<td class="optional">{{ key.derivation }}</td>
-								<td class="scroll xpub optional"><span class="normal_xpub">{{ key.original }}</span><span class="slip132_xpub hidden">{{ key.xpub }}</span></td>
+								<td class="scroll xpub optional"><span class="normal_xpub hidden">{{ key.original }}</span><span class="slip132_xpub">{{ key.xpub }}</span></td>
 							</tr>
 						</tbody>
 					</table>
@@ -84,8 +79,8 @@
 		</div>
 	</div>
 	<div class="hidden" id="wallet_export_settings_tab">
-		<h1 style="font-size: 1.7em;">Export Wallet</h1>
-		<div class="card">
+		<h1 style="font-size: 1.7em;">{{ _("Export Wallet") }}</h1>
+		<div class="card center">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
 				{# check if export_wallet is not None #}
@@ -94,9 +89,9 @@
 				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
-				<h2 class="subtitle">Export To Device</h1>
+				<h2 class="subtitle">{{ _("Export To Device") }}</h1>
 				<p class="center">
-					Import this wallet to a device by scanning its QR code or importing its data file.
+					{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
 				</p>
 
 				{% for device in wallet.devices %}
@@ -106,7 +101,7 @@
 							download="{{ wallet.name | ascii20 }}.txt"
 							href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
 							{% if device.device_type == 'coldcard' %}
-								onclick="showNotification('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD', 0)"
+								onclick="showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0)"
 							{% endif %}
 							class="btn centered padded">
 								Save {{ device.name }} file
@@ -114,7 +109,7 @@
 						{% elif device.wallet_export_type == 'qr' %}
 							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
 							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-								<h1>Scan this with your {{ device.name }} device </h1>
+								<h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>
 								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 							</div>
 						{% endif %}
@@ -123,56 +118,94 @@
 				<div class="section-separator"></div>
 			{% endif %}
 			
-			<h2 class="subtitle">Export To Wallet Software</h2>
+			<h2 class="subtitle">{{ _("Export To Wallet Software") }}</h2>
 			<p class="center">
-				Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.
+				{{ _("Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}
 			</p>
-			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">Export</button>
+			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Export") }}</button>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">Export PDF backup</h2>
+			<h2 class="subtitle">{{ _("Export Specter format") }}</h2>
+			<p class="center">
+				{{ _("Export a JSON file containing complete wallet data including labels.") }}
+			</p>
+			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Export Specter format</a>
+			<div class="section-separator"></div>
+			<h2 class="subtitle">{{ _("Export PDF backup") }}</h2>
 			<p style="max-width: 500px;" class="center">
-			It is recommended that you print and save this wallet backup file with each of your devices.
+			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
-			<div style="margin: 0 auto;" class="center">
-				<label style="font-size: 1em;"">Use SLIP-132:&nbsp;</label>
+			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+			<br>
+			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
+				<label style="font-size: 1em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 				<label class="switch">
 				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
 			</div>
-			<p class="note center" style="margin-top: 5px; max-width: 90%;">To format master keys on the PDF backup document.</p>
+			<br>
+			<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
 			<p style="max-width: 500px;" class="note center">
-			This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.<br>
+			{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
 			<p>
 			<p style="max-width: 500px;" class="note center">
-			It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.
+			{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
 			<p>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
 			{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
 		</div>
 	</div>
 	<div class="hidden" id="wallet_advanced_settings_tab">
-		<h1 style="font-size: 1.7em;">Advanced Options</h1>
+		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
-			<h2 class="subtitle">Keypool control</h2>
+			<h2 class="subtitle">{{ _("Import Electrum address labels") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
-				<div>Currently watching {{ wallet.keypool }} receiving and {{ wallet.change_keypool }} change addresses.</div>
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<div style="flex-grow: 1">Watch <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> more addresses </div>
-					<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">Add</button>
+					<textarea name="import_electrum_labels_json" 
+					id="import_electrum_labels_json" 
+					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
+					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
+					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
+					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
+					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
+					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
+					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Importing electrum labels") }}</span><br><br>
+									{{ _("The expected json format contains utxo ids and addresses with the labels:") }}<br><br>
+									{{ _('{ "8a5e4...": "some utxo label", "bc1qj3...": "some address label" }') }}<br><br>
+								</span>
+							</p>
+						</div>
+					</button>
 				</div>
 			</form>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">Blockchain rescan</h2>
+			<h2 class="subtitle">{{ _("Keypool control") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<div>{{ _("Currently watching") }} {{ wallet.keypool }} {{ _("receiving and") }} {{ wallet.change_keypool }} {{ _("change addresses.") }}</div>
+				<div class="row aligned">
+					<div style="flex-grow: 1">{{ _("Watch") }} <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> {{ _("more addresses") }} </div>
+					<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Add") }}</button>
+				</div>
+			</form>
+			<div class="section-separator"></div>
+			<h2 class="subtitle">{{ _("Blockchain rescan") }}</h2>
+			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
 						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
-						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
+						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 					</div>
 				{% else %}
-					Rescan blockchain from block:<br>
+					{{ _("Rescan blockchain from block:") }}<br>
 					<div class="row aligned">
 						{% if specter.info.chain == "main" %}
 							{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
@@ -183,30 +216,31 @@
 						<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
 					</div>
 					{% if specter.info['pruned']  %}
-						<div class="note center full-width">Note: You are using a pruned node. Rescan is limited by the pruned height to block: {{specter.info['pruneheight']}}</div>
+						<div class="note center full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
 					{% endif %}
-					<div class="note center"><b>481824</b> was the first Segwit block.</div>
+					<div class="note center"><b>481824</b> {{ _("was the first Segwit block.") }}</div>
 				{% endif %}
 			</form>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
-					<div style="flex-grow: 1">UTXO rescan in process: <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
-					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">Abort rescan</button>
+					<div style="flex-grow: 1">{{ _("UTXO rescan in process:") }} <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
+					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 				</div>
 				{% else %}
 				<div class="row aligned">
-					<div style="flex-grow: 1">Or rescan only unspent transactions:
+					<div style="flex-grow: 1">{{ _("Or rescan only unspent transactions:") }}
 					</div>
 					<button type="submit" name="action" value="rescanutxo" class="btn" style="max-width: 180px; margin-left: 20px">
-						Rescan UTXO
+						{{ _("Rescan UTXO") }}
 						<div class="tool-tip">
 							<i class="tool-tip__icon">i</i>
 							<p class="tool-tip__info">
 								<span class="info">
-									<span class="info__title">Rescanning UTXO set</span><br><br>
-									Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.<br><br>
-									<b>Note:</b> Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.
+									<span class="info__title">{{ _("Rescanning UTXO set") }}</span><br><br>
+									{{ _("Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.") }}<br><br>
+									<b>{{ _("Note:") }}</b> {{ _("Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.") }}
 								</span>
 							</p>
 						</div>
@@ -214,22 +248,22 @@
 				</div>
 				{% if specter.info['pruned']  %}
 					<div class="row" style="margin-top: 10px">
-						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> fetch missing data from block explorer
+						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
 							<tool-tip title="Fetch missing data">
-							You are using a pruned node. Blocks for some transactions may be missing.<br><br>
-							Check this checkbox if you want to fetch missing information from block explorer.
+							{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
+							{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
 							</tool-tip>
 						</label>
 					</div>
 					<div id="utxo-explorer">
 						<br>
-						Block explorer URL:
-						<input id="explorer-url" name="explorer_url" value="{{ specter.get_default_explorer() or '' }}" type="text" placeholder="block explorer url" />
+						{{ _("Block explorer URL:") }}
+						{% include "components/explorer_select.jinja" %}
 						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							&#9432;<br>Careful with block explorers!<br>
-							This may have privacy implication!<br>
-							Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.<br>
-							"They" will know what transactions you are interested in.
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Careful with block explorers!") }}<br>
+							{{ _("This may have privacy implications!") }}<br>
+							{{ _("Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.") }}<br>
+							{{ _('"They" will know what transactions you are interested in.') }}
 						</span>
 					</div>
 					<script type="text/javascript">
@@ -248,26 +282,90 @@
 				{% endif %}
 			</form>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">Delete wallet</h2>
+			<h2 class="subtitle">{{ _("Delete wallet") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
-				<button type="submit" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">Delete Wallet</button>
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<button type="submit" id="delete_wallet" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">{{ _("Delete Wallet") }}</button>
 			</form>
 		</div>
 	</div>
 	<br><br>
 {% endblock %}
 
-{% block scripts %}
+{% block scripts %} 
+	<script type="text/javascript">
+		function paste_file_in_textarea(file, textarea) {
+			if (file != null  ) {
+				console.log(file.name);
+				let reader = new FileReader();
+				reader.onload = function(e) { 
+					textarea.value = reader.result;
+				}
+				reader.readAsBinaryString(file);
+			}
+		}
+
+		function dropHandler(ev, textarea_name) {
+			console.log('File(s) dropped');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+					// If dropped items aren't files, reject them
+					if (ev.dataTransfer.items[i].kind === 'file') {
+						var file = ev.dataTransfer.items[i].getAsFile();
+						paste_file_in_textarea(file, document.getElementById(textarea_name))
+						console.log('... file[' + i + '].name = ' + file.name);
+					}
+				}
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+					paste_file_in_textarea(ev.dataTransfer.files[i], document.getElementById(textarea_name))
+					console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+				}
+			}
+		}
+
+		function dragOverHandler(ev, textarea_name) {
+			//console.log('File(s) in drop zone');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			document.getElementById(textarea_name).value = "Drop file here"
+		}
+
+		function dragLeaveHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragExitHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragEndHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+	</script>
 	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
+			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
+		});
+
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');
 			let keysList = document.getElementById('keys_list');
 			if (keysList.style.display !== 'none') {
 				keysList.style.display = 'none';
-				titleButton.innerHTML = 'Show keys details';
+				titleButton.innerHTML = '{{ _("Show keys details") }}';
 			} else {
 				keysList.style.display = 'block';
-				titleButton.innerHTML = 'Hide keys details';
+				titleButton.innerHTML = '{{ _("Hide keys details") }}';
 			}
 		}
 
@@ -289,6 +387,18 @@
 				for (zpub of zpubs) {
 					zpub.style.display = 'none';
 				}
+			}
+		}
+
+		function togglePDFExportAdvanced() {
+			let advancedButton = document.getElementById(`advanced_pdf_export_toggle`);
+			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
+			if (advancedSettings.classList.contains("hidden")) {
+				advancedSettings.classList.remove("hidden");
+				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+			} else {
+				advancedSettings.classList.add("hidden");
+				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
 			}
 		}
 

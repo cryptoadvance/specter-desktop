@@ -2,6 +2,9 @@
 echo %1% > version.txt
 pip3 install -r requirements.txt  --require-hashes
 pip3 install -e ..
+cd ..
+python3 setup.py install
+cd pyinstaller
 rmdir /s /q .\dist\
 rmdir /s /q .\build\
 rmdir /s /q .\release\
