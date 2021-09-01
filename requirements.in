@@ -23,3 +23,6 @@ flask_wtf==0.14.3
 pgpy==0.5.3
 cbor==1.0.0
 mnemonic==0.19
+google-api-python-client==2.17.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.5
