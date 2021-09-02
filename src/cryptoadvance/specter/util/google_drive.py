@@ -15,7 +15,7 @@ env_path = Path(".") / ".flaskenv"
 load_dotenv(env_path)
 
 # If modifying these scopes, delete the file token.json.
-CLIENT_CONIG = {
+CLIENT_CONFIG = {
     "web": {
         "client_id": os.environ.get("GOOGLE_OAUTH_CLIENT_ID"),
         "project_id": os.environ.get("GOOGLE_OAUTH_PROJECT_ID"),
@@ -32,7 +32,7 @@ REDIRECT_URI = "http://localhost:25441/settings/backup_to_google_drive/callback"
 
 
 def trigger_oauth(current_user):
-    flow = Flow.from_client_config(client_config=CLIENT_CONIG, scopes=SCOPES)
+    flow = Flow.from_client_config(client_config=CLIENT_CONFIG, scopes=SCOPES)
     flow.redirect_uri = REDIRECT_URI
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without
@@ -122,7 +122,7 @@ def callback(current_user):
     try:
         state = current_user.google_oauth_data["state"]
         flow = Flow.from_client_config(
-            client_config=CLIENT_CONIG, scopes=SCOPES, state=state
+            client_config=CLIENT_CONFIG, scopes=SCOPES, state=state
         )
         flow.redirect_uri = REDIRECT_URI
 
