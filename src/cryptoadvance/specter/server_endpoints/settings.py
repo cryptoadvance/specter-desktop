@@ -31,7 +31,13 @@ from ..user import hash_password
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
-from ..util.google_drive import backup, callback, restore
+from ..util.google_drive import (
+    backup,
+    callback,
+    download_latest_backup,
+    extract_wallets_and_devices,
+    require_google_oauth,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -565,17 +571,47 @@ def backup_file():
 
 @settings_endpoint.route("/backup_to_google_drive", methods=["POST"])
 @login_required
+@require_google_oauth
 def backup_to_google_drive():
-    return backup(app.specter.specter_backup_file(), current_user)
+    try:
+        backup(app.specter.specter_backup_file())
+        app.logger.info("Backed up to Google Drive successfully!")
+        return {"success": True}
+    except Exception as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning("Failed to backup to Google Drive. Exception: {}".format(e))
+        return {"error": str(e)}, 500
 
 
 @settings_endpoint.route("/restore_from_google_drive", methods=["POST"])
 @login_required
+@require_google_oauth
 def restore_from_google_drive():
-    return restore(current_user)
+    try:
+        fh = download_latest_backup()
+        if not fh:
+            return {"success": False, message: "No backups found."}
+
+        app.logger.info("Downloaded the latest backup from Google Drive!")
+
+        wallets, devices = extract_wallets_and_devices(fh)
+        app.logger.info("Extracted wallets and devices from specter_backup.zip!")
+
+        return {"success": True, "wallets": wallets, "devices": devices}
+    except Exception as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning(
+            "Failed to restore from Google Drive. Exception: {}".format(e)
+        )
+        return {"error": str(e)}, 500
 
 
-@settings_endpoint.route("/backup_to_google_drive/callback", methods=["GET"])
+@settings_endpoint.route("/google_oauth/callback", methods=["GET"])
 @login_required
-def backup_to_google_drive_callback():
-    return callback(current_user)
+def google_oauth_callback():
+    try:
+        callback()
+    except Exception as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning("Failed to login to Google Drive. Exception: {}".format(e))
+    return redirect(url_for("settings_endpoint.general"))

@@ -1,4 +1,5 @@
 import os, io, json
+from functools import wraps
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -7,7 +8,8 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from google_auth_oauthlib.flow import Flow
 
-from flask import current_app as app, session, request, redirect, url_for
+from flask import current_app as app, request
+from flask_login import current_user
 
 from zipfile import ZipFile
 
@@ -28,10 +30,10 @@ CLIENT_CONFIG = {
     }
 }
 SCOPES = ["https://www.googleapis.com/auth/drive.appdata"]
-REDIRECT_URI = "http://localhost:25441/settings/backup_to_google_drive/callback"
+REDIRECT_URI = "http://localhost:25441/settings/google_oauth/callback"
 
 
-def trigger_oauth(current_user):
+def trigger_google_oauth():
     flow = Flow.from_client_config(client_config=CLIENT_CONFIG, scopes=SCOPES)
     flow.redirect_uri = REDIRECT_URI
     authorization_url, state = flow.authorization_url(
@@ -41,97 +43,89 @@ def trigger_oauth(current_user):
         # Enable incremental authorization. Recommended as a best practice.
         include_granted_scopes="true",
     )
-    current_user.set_google_oauth_state(state)
-    return {"redirect_url": authorization_url}
+    return authorization_url, state
 
 
-def backup(file, current_user):
-    if not "creds" in current_user.google_oauth_data:
-        return trigger_oauth(current_user)
-    try:
-        creds = current_user.google_oauth_data["creds"]
-        service = build("drive", "v3", credentials=creds)
-        file_metadata = {"name": "specter-backup.zip", "parents": ["appDataFolder"]}
-        media = MediaIoBaseUpload(file, mimetype="application/zip", resumable=True)
-        file = (
-            service.files()
-            .create(body=file_metadata, media_body=media, fields="id")
-            .execute()
+def backup(file):
+    creds = current_user.google_oauth_data["creds"]
+    service = build("drive", "v3", credentials=creds)
+    file_metadata = {"name": "specter-backup.zip", "parents": ["appDataFolder"]}
+    media = MediaIoBaseUpload(file, mimetype="application/zip", resumable=True)
+    file = (
+        service.files()
+        .create(body=file_metadata, media_body=media, fields="id")
+        .execute()
+    )
+
+
+def download_latest_backup():
+    creds = current_user.google_oauth_data["creds"]
+    service = build("drive", "v3", credentials=creds)
+    response = (
+        service.files()
+        .list(
+            spaces="appDataFolder",
+            fields="nextPageToken, files(id, name)",
+            pageSize=1,
         )
-        app.logger.info("Backed up to Google Drive successfully!")
-        response = (
-            service.files()
-            .list(
-                spaces="appDataFolder",
-                fields="nextPageToken, files(id, name)",
-                pageSize=10,
-            )
-            .execute()
-        )
-        return {"success": True}
-    except Exception as e:
-        current_user.clear_google_oauth_data()
-        app.logger.warning("Failed to backup to Google Drive. Exception: {}".format(e))
-    return {"success": False}
+        .execute()
+    )
+    files = response.get("files", [])
+
+    if len(files) == 0:
+        return None
+
+    # Taking the most recent backup
+    file = files[0]
+    file_id = file.get("id")
+
+    request = service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+
+    return fh
 
 
-def restore(current_user):
-    if not "creds" in current_user.google_oauth_data:
-        return trigger_oauth(current_user)
-    try:
-        creds = current_user.google_oauth_data["creds"]
-        service = build("drive", "v3", credentials=creds)
-        response = (
-            service.files()
-            .list(
-                spaces="appDataFolder",
-                fields="nextPageToken, files(id, name)",
-                pageSize=1,
-            )
-            .execute()
-        )
-        files = response.get("files", [])
-        if len(files) == 0:
-            return {"success": False, message: "No backups found."}
-        file = files[0]
-        file_id = file.get("id")
-        request = service.files().get_media(fileId=file_id)
-        fh = io.BytesIO()
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-        app.logger.info("Downloaded the latest backup from Google Drive!")
-        wallets = []
-        devices = []
-        zippedFiles = ZipFile(fh)
-        for zipinfo in zippedFiles.infolist():
-            currFile = zippedFiles.open(zipinfo)
-            if "wallets/" in zipinfo.filename:
-                wallets.append(json.loads(currFile.read().decode("UTF-8")))
-            elif "devices/" in zipinfo.filename:
-                devices.append(json.loads(currFile.read().decode("UTF-8")))
-        return {"success": True, "wallets": wallets, "devices": devices}
-    except Exception as e:
-        current_user.clear_google_oauth_data()
-        app.logger.warning("Failed to backup to Google Drive. Exception: {}".format(e))
-    return {"success": False}
+def extract_wallets_and_devices(file):
+    wallets = []
+    devices = []
+    zippedFiles = ZipFile(file)
+    for zipinfo in zippedFiles.infolist():
+        currFile = zippedFiles.open(zipinfo)
+        if "wallets/" in zipinfo.filename:
+            wallets.append(json.loads(currFile.read().decode("UTF-8")))
+        elif "devices/" in zipinfo.filename:
+            devices.append(json.loads(currFile.read().decode("UTF-8")))
+    return wallets, devices
 
 
-def callback(current_user):
-    try:
-        state = current_user.google_oauth_data["state"]
-        flow = Flow.from_client_config(
-            client_config=CLIENT_CONFIG, scopes=SCOPES, state=state
-        )
-        flow.redirect_uri = REDIRECT_URI
+def callback():
+    state = current_user.google_oauth_data["state"]
+    flow = Flow.from_client_config(
+        client_config=CLIENT_CONFIG, scopes=SCOPES, state=state
+    )
+    flow.redirect_uri = REDIRECT_URI
 
-        authorization_response = request.url
-        flow.fetch_token(authorization_response=authorization_response)
+    authorization_response = request.url
+    flow.fetch_token(authorization_response=authorization_response)
 
-        credentials = flow.credentials
-        current_user.set_google_oauth_creds(credentials)
-    except Exception as e:
-        current_user.clear_google_oauth_data()
-        app.logger.warning("Failed to login to Google Drive. Exception: {}".format(e))
-    return redirect(url_for("settings_endpoint.general"))
+    credentials = flow.credentials
+    current_user.set_google_oauth_creds(credentials)
+
+
+def require_google_oauth(func):
+    """User needs Google OAuth method decorator"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not "creds" in current_user.google_oauth_data:
+            authorization_url, state = trigger_google_oauth()
+            current_user.set_google_oauth_state(state)
+            return {"redirect_url": authorization_url}
+        else:
+            return func(*args, **kwargs)
+
+    return wrapper
