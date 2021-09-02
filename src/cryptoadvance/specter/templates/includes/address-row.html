@@ -81,6 +81,12 @@
             this.used.innerText = this.hideSensitiveInfo ? '###' : `${this.addressData.used ? 'Yes' : 'No'}`;
 
             this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
+            
+            if (this.addressData.assets) {
+                this.assetsCount = Object.keys(this.addressData.assets).length;
+            } else {
+                this.assetsCount = 0;
+            }
 
             this.amount = parseFloat(this.addressData.amount.toFixed(8));
 
@@ -119,7 +125,7 @@
                 }
             }
 
-            if (!this.price || !this.symbol || this.hideSensitiveInfo) {
+            if (!(this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}") || !this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
@@ -135,7 +141,13 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
+            if (this.assetsCount > 1) {
+                this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
+            } else if (this.assetsCount == 1) {
+                this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
+            } else {
+                this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
+            }
 
             if (this.addressData.used > 0) {
                 this.el.classList.add('unconfirmed');

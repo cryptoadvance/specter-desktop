@@ -29,7 +29,7 @@ class LAddressList(AddressList):
         for addr in self:
             sc, _ = addr_decode(addr)
             if sc and sc not in self._scripts:
-                self._scripts[sc] = self[addr]
+                self._scripts[sc] = super().__getitem__(addr)
 
     def add(self, *args, **kwargs):
         res = super().add(*args, **kwargs)

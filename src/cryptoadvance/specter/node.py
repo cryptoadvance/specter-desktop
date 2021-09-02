@@ -419,6 +419,17 @@ class Node:
         return self.network_info["version"]
 
     @property
+    def taproot_support(self):
+        try:
+            # currently only master branch supports tr() descriptors
+            # TODO: replace to 220000
+            return (self.bitcoin_core_version_raw >= 219900) and (
+                self.info.get("softforks", {}).get("taproot", {}).get("active", False)
+            )
+        except Exception as e:
+            return False
+
+    @property
     def chain(self):
         return self.info["chain"]
 
@@ -428,11 +439,14 @@ class Node:
 
     @property
     def asset_labels(self):
+        if not self.is_liquid:
+            return {}
         if self._asset_labels is None:
             asset_labels = self.rpc.dumpassetlabels()
             assets = {}
+            LBTC = "LBTC" if self.chain == "liquidv1" else "tLBTC"
             for k in asset_labels:
-                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+                assets[asset_labels[k]] = k if k != "bitcoin" else LBTC
             self._asset_labels = assets
         return self._asset_labels
 
