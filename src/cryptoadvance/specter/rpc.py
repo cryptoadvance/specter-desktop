@@ -2,6 +2,7 @@ import logging
 import requests, json, os
 import os, sys, errno
 from .helpers import is_ip_private
+from .specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +219,9 @@ class BitcoinRPC:
     last_call_hash = None
     last_call_hash_counter = 0
 
-    default_timeout = None
+    # https://docs.python-requests.org/en/master/user/quickstart/#timeouts
+    # None means until connection closes. It's specified in seconds
+    default_timeout = None  # seconds
 
     def __init__(
         self,
@@ -341,9 +344,21 @@ class BitcoinRPC:
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
         self.trace_call(url, payload)
-        r = self.session.post(
-            url, data=json.dumps(payload), headers=headers, timeout=timeout
-        )
+        try:
+            r = self.session.post(
+                url, data=json.dumps(payload), headers=headers, timeout=timeout
+            )
+        except requests.exceptions.ReadTimeout as rto:
+            logger.error(
+                "ReadTimeout while call({: <28}) payload:{} Exception: {}".format(
+                    "/".join(url.split("/")[3:]), payload, rto
+                )
+            )
+            raise SpecterError(
+                "ReadTimeout while Bitcoind-call({: <28}) payload:{}".format(
+                    "/".join(url.split("/")[3:]), payload
+                )
+            )
         self.r = r
         if r.status_code != 200:
             logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
