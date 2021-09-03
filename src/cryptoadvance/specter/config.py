@@ -169,6 +169,9 @@ class CypressTestConfig(TestConfig):
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
     )
 
+    # See #1316 since Bitcoin v0.21.1 the importmulti-call takes longer than 10 seconds on cirrus
+    NODE_RPC_TIMEOUT = 20
+
 
 class ProductionConfig(BaseConfig):
     SECRET_KEY = secrets.token_urlsafe(16)
