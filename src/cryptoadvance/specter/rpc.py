@@ -348,10 +348,10 @@ class BitcoinRPC:
             r = self.session.post(
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
             )
-        except requests.exceptions.ReadTimeout as rto:
+        except requests.exceptions.Timeout as to:
             logger.error(
                 "ReadTimeout while call({: <28}) payload:{} Exception: {}".format(
-                    "/".join(url.split("/")[3:]), payload, rto
+                    "/".join(url.split("/")[3:]), payload, to
                 )
             )
             raise SpecterError(
