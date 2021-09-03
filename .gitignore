@@ -28,9 +28,6 @@ cypress/screenshots
 node_modules
 btcd-conn.json
 elmd-conn.json
-tests/bitcoin
-tests/bitcoin-*
-tests/bitcoin.binary
-tests/bitcoin.compile
+tests/bitcoin*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo

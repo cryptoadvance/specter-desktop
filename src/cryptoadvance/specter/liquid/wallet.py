@@ -6,12 +6,15 @@ from embit.liquid.transaction import LTransaction
 from .txlist import LTxList
 from .addresslist import LAddressList
 from embit.liquid.addresses import to_unconfidential
+from ..specter_error import SpecterError
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
     AddressListCls = LAddressList
     TxListCls = LTxList
+    TxCls = LTransaction
+    PSBTCls = PSET
 
     @classmethod
     def create(
@@ -57,6 +60,11 @@ class LWallet(Wallet):
         blinding_key = None
         if len(devices) == 1:
             blinding_key = devices[0].blinding_key
+            if not blinding_key:
+                raise SpecterError(
+                    "Device doesn't have a blinding key. Please import it."
+                )
+
         # if we don't have slip77 key for a device or it is multisig
         # we use chaincodes to generate slip77 key.
         if not blinding_key:
@@ -264,63 +272,10 @@ class LWallet(Wallet):
                         der = bip32.parse_path(k.derivation)
                     else:
                         der = []
-                    psbt.xpub[key] = DerivationPath(fingerprint, der)
+                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
         else:
-            psbt.xpub = {}
+            psbt.xpubs = {}
         return psbt.to_string()
-
-    def delete_pending_psbt(self, txid, tx=None):
-        # liquid txid is different for blinded transaction
-        # so we go through all inputs and outputs and if they match - delete psbt
-        # This can cause side-effects if there are multiple psbts spending the same inputs to the same outputs
-        if txid not in self.pending_psbts and tx is not None:
-            try:
-                decoded = self.rpc.decoderawtransaction(tx)
-                for psbt_txid in self.pending_psbts:
-                    psbt = self.pending_psbts[psbt_txid]
-                    mismatch = False
-                    if len(psbt["inputs"]) != len(decoded["vin"]):
-                        continue
-                    if len(psbt["outputs"]) != len(decoded["vout"]):
-                        continue
-                    # check inputs
-                    for i1, i2 in zip(psbt["inputs"], decoded["vin"]):
-                        if i1["previous_txid"] != i2["txid"]:
-                            mismatch = True
-                            break
-                        if i1["previous_vout"] != i2["vout"]:
-                            mismatch = True
-                            break
-                    for o1, o2 in zip(psbt["outputs"], decoded["vout"]):
-                        if o1["script"]["hex"] != o2["scriptPubKey"]["hex"]:
-                            mismatch = True
-                            break
-                    if mismatch:
-                        continue
-                    else:
-                        return super().delete_pending_psbt(psbt_txid, tx)
-            except Exception as e:
-                logger.warn(e)
-        return super().delete_pending_psbt(txid, tx)
-
-    def get_address_info(self, address):
-        try:
-            res = self.rpc.getaddressinfo(address)
-            used = None
-            if "desc" in res:
-                used = self.rpc.getreceivedbyaddress(address, 0) > 0
-            return Address(
-                self.rpc,
-                address=address,
-                index=None
-                if "desc" not in res
-                else res["desc"].split("]")[0].split("/")[-1],
-                change=None if "desc" not in res else res["ischange"],
-                label=next(iter(res["labels"]), ""),
-                used=used,
-            )
-        except:
-            return None
 
     def createpsbt(
         self,

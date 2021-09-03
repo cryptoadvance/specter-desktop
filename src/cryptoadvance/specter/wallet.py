@@ -12,6 +12,7 @@ from embit.descriptor.checksum import add_checksum
 from embit.liquid.networks import get_network
 from embit.psbt import PSBT, DerivationPath
 from embit.transaction import Transaction
+from embit.ec import PublicKey
 
 from .util.xpub import get_xpub_fingerprint
 from .util.tx import decoderawtransaction
@@ -36,6 +37,7 @@ purposes = OrderedDict(
         "wsh": "Multisig (Segwit)",
         "sh-wsh": "Multisig (Nested)",
         "sh": "Multisig (Legacy)",
+        "tr": "Taproot",
     }
 )
 
@@ -46,6 +48,7 @@ addrtypes = {
     "sh": "legacy",
     "sh-wsh": "p2sh-segwit",
     "wsh": "bech32",
+    "tr": "taproot",  # not sure it'll work, but I don't think we are using it anyway
 }
 
 
@@ -60,6 +63,8 @@ class Wallet:
     # for inheritance (to simplify LWallet logic)
     AddressListCls = AddressList
     TxListCls = TxList
+    TxCls = Transaction
+    PSBTCls = PSBT
 
     def __init__(
         self,
@@ -444,6 +449,7 @@ class Wallet:
                 ]
                 self._addresses.add(change_addresses, check_rpc=False)
 
+        self.delete_spent_pending_psbts([tx["hex"] for tx in txs.values()])
         self._transactions.add(txs)
 
     def import_electrum_label_export(self, electrum_label_export):
@@ -788,15 +794,45 @@ class Wallet:
             )
         return amount
 
-    def delete_pending_psbt(self, txid, tx=None):
-        try:
-            self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
-        except:
-            # UTXO was spent
-            pass
-        if txid in self.pending_psbts:
-            del self.pending_psbts[txid]
+    def delete_spent_pending_psbts(self, txs: list):
+        """
+        Gets all inputs from the txs list (txid, vout),
+        checks if pending psbts try to spent them,
+        if so - unlocks other inputs and deletes these psbts.
+        """
+        # check if we have pending psbts
+        if len(self.pending_psbts) == 0:
+            return
+        # make sure None didn't get here
+        txs = [tx for tx in txs if tx is not None]
+        # all inputs in transactions
+        inputs = sum([self.TxCls.from_string(hextx).vin for hextx in txs], [])
+        # all unique utxos spent in these transactions
+        utxos = set([(vin.txid, vin.vout) for vin in inputs])
+        # get psbt ids we need to delete
+        psbtids = []
+        for psbtid, psbtobj in self.pending_psbts.items():
+            psbt = self.PSBTCls.from_string(psbtobj["base64"])
+            psbtutxos = [(inp.vin.txid, inp.vin.vout) for inp in psbt.inputs]
+            for utxo in psbtutxos:
+                if utxo in utxos:
+                    psbtids.append(psbtid)
+                    break
+        if len(psbtids) > 0:
+            for psbtid in psbtids:
+                self.delete_pending_psbt(psbtid, save=False)
             self.save_to_file()
+
+    def delete_pending_psbt(self, txid, save=True):
+        if txid and txid in self.pending_psbts:
+            try:
+                self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
+            except:
+                # UTXO was spent
+                pass
+            del self.pending_psbts[txid]
+            if save:
+                self.save_to_file()
 
     def toggle_freeze_utxo(self, utxo_list):
         # utxo = ["txid:vout", "txid:vout"]
@@ -1237,6 +1273,10 @@ class Wallet:
         if index is None:
             index = self.change_index if change else self.address_index
         desc = self.change_descriptor if change else self.recv_descriptor
+        # remove blinding stuff from descriptor so HWI Descriptor can work
+        ldesc = LDescriptor.from_string(desc)
+        ldesc.blinding_key = None
+        desc = str(ldesc)
         derived_desc = Descriptor.parse(desc).derive(index).serialize()
         derived_desc_xpubs = (
             Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
@@ -1722,8 +1762,37 @@ class Wallet:
             existing_psbt=psbt,
         )
 
-    def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
+    @property
+    def is_taproot(self):
+        return "tr(" in self.recv_descriptor
+
+    def fill_psbt(
+        self,
+        b64psbt,
+        non_witness: bool = True,
+        xpubs: bool = True,
+        taproot_derivations: bool = False,
+    ):
         psbt = PSBT.from_string(b64psbt)
+
+        # Core doesn't fill derivations yet, so we do it ourselves
+        if taproot_derivations and self.is_taproot:
+
+            net = get_network(self.manager.chain)
+            for sc in psbt.inputs + psbt.outputs:
+                addr = sc.script_pubkey.address(net)
+                info = self._addresses.get(addr)
+                if info and not info.is_external:
+                    desc = (
+                        self.recv_descriptor
+                        if info.is_receiving
+                        else self.change_descriptor
+                    )
+                    d = LDescriptor.from_string(desc).derive(info.index)
+                    for k in d.keys:
+                        sc.bip32_derivations[PublicKey.parse(k.sec())] = DerivationPath(
+                            k.origin.fingerprint, k.origin.derivation
+                        )
 
         if non_witness:
             for inp in psbt.inputs:
