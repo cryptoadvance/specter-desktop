@@ -24,6 +24,7 @@ from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.util.common import str2bool
 import code, traceback, signal
 
 pytest_plugins = ["ghost_machine"]
@@ -63,6 +64,12 @@ def pytest_addoption(parser):
         help="Version of bitcoind (something which works with git checkout ...)",
     )
     parser.addoption(
+        "--bitcoind-log-stdout",
+        action="store",
+        default=False,
+        help="Whether bitcoind should log to stdout (default:False)",
+    )
+    parser.addoption(
         "--elementsd-version",
         action="store",
         default="master",
@@ -85,6 +92,7 @@ def pytest_generate_tests(metafunc):
 def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
+    log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
     if docker:
         from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
             BitcoindDockerController,
@@ -107,7 +115,10 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
                 rpcport=rpcport
             )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(
-        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+        cleanup_at_exit=True,
+        cleanup_hard=True,
+        extra_args=extra_args,
+        log_stdout=log_stdout,
     )
     assert not bitcoind_controller.datadir is None
     running_version = bitcoind_controller.version()
