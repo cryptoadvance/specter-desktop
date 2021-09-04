@@ -185,16 +185,15 @@
                 } else {
                     let xpubPurpose = 'Custom'
                     if (xpub.startsWith("ypub") || xpub.startsWith("upub")) {
-                        xpubPurpose = '{{ _("#0 Single Sig (Nested)") }}';
+                        xpubPurpose = `{{ _("#0 Single Sig (Nested)") }}`;
                     } else if (xpub.startsWith("vpub") || xpub.startsWith("zpub")) {
-                        xpubPurpose = '{{ _("#0 Single Sig (Segwit)") }}';
+                        xpubPurpose = `{{ _("#0 Single Sig (Segwit)") }}`;
                     }
                     addXpub(xpubPurpose, 'm/', xpub)
                 }
             })
             
-            // TODO: Testing on 'Edit' not safe for multilanguage support?
-            if (document.getElementById('edit-xpubs-table-btn').innerHTML != 'Edit') {
+            if (document.getElementById('edit-xpubs-table-btn').innerHTML != `{{ _("Edit") }}`) {
                 for (let el of document.getElementsByClassName('xpubs_edit')) {
                     el.style.visibility = 'visible';
                 }
