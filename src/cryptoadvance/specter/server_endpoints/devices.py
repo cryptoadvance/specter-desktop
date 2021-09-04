@@ -252,13 +252,19 @@ def device_blinding_key(device_alias):
     if request.method == "POST":
         new_device = request.form.get("new_device", False)
         blinding_key = request.form.get("blinding_key")
-        device.set_blinding_key(blinding_key)
-        if not new_device:
-            flash(_("Master blinding key was added successfully"))
-        return redirect(
-            url_for("devices_endpoint.device", device_alias=device.alias)
-            + ("?newdevice=true" if new_device else "")
-        )
+        try:
+            device.set_blinding_key(blinding_key)
+            if not new_device:
+                flash(_("Master blinding key was added successfully"))
+            return redirect(
+                url_for("devices_endpoint.device", device_alias=device.alias)
+                + ("?newdevice=true" if new_device else "")
+            )
+        except Exception as e:
+            flash(
+                _("Invalid master blinding key! It should be in WIF or hex format."),
+                "error",
+            )
 
     return render_template(
         "device/device_blinding_key.jinja",
@@ -451,6 +457,7 @@ def device(device_alias):
                     existing_device=device,
                     device_alias=device_alias,
                     device_class=get_device_class(device.device_type),
+                    device_type=device.device_type,
                     specter=app.specter,
                     rand=rand,
                 )

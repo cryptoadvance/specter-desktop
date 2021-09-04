@@ -3,6 +3,7 @@ from .key import Key
 from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet, is_liquid
+from embit import ec
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class Device:
     hot_wallet = False
     bitcoin_core_support = True
     liquid_support = False
+    taproot_support = False
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         """
@@ -119,7 +121,12 @@ class Device:
         self.manager.update()
 
     def set_blinding_key(self, blinding_key):
-        self.blinding_key = blinding_key
+        # either WIF or hex
+        try:
+            bkey = ec.PrivateKey.from_string(blinding_key)
+        except:
+            bkey = ec.PrivateKey.parse(bytes.fromhex(blinding_key))
+        self.blinding_key = str(bkey)
 
         write_json_file(self.json, self.fullpath)
         self.manager.update()
@@ -160,6 +167,11 @@ class Device:
         return "No keys found with the correct derivation type for a {} wallet.".format(
             "single key" if wallet_type == "simple" else "multisig"
         )
+
+    @property
+    def ref4name(self):
+        """Device have names and sometimes you want a referenable string from that name. Is there a better name for that than ref4name ?"""
+        return self.name.lower().replace(" ", "_")
 
     def __eq__(self, other):
         if other is None:

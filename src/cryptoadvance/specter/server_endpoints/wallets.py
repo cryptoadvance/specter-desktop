@@ -803,6 +803,9 @@ def settings(wallet_alias):
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
+        elif action == "import_electrum_label_export":
+            electrum_label_export = request.form["import_electrum_labels_json"]
+            wallet.import_electrum_label_export(electrum_label_export)
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
@@ -907,7 +910,7 @@ def broadcast(wallet_alias):
     res = wallet.rpc.testmempoolaccept([tx])[0]
     if res["allowed"]:
         app.specter.broadcast(tx)
-        wallet.delete_pending_psbt(get_txid(tx))
+        wallet.delete_spent_pending_psbts([tx])
         return jsonify(success=True)
     else:
         return jsonify(
@@ -959,7 +962,7 @@ def broadcast_blockexplorer(wallet_alias):
                 f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                 data=tx,
             )
-            wallet.delete_pending_psbt(get_txid(tx))
+            wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
         except Exception as e:
             return jsonify(
@@ -1204,7 +1207,7 @@ def addressinfo(wallet_alias):
                 "address": address,
                 "descriptor": descriptor,
                 "walletName": wallet.name,
-                "isMine": not address_info.is_external,
+                "isMine": address_info and not address_info.is_external,
                 **address_info,
             }
     except Exception as e:
@@ -1445,7 +1448,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         _("Address"),
         _("Block Height"),
         _("Timestamp"),
-        _("Raw Transaction"),
     )
     if not wallet:
         row = (_("Wallet"),) + row
@@ -1467,10 +1469,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         if label == tx["address"]:
             label = ""
         tx_raw = _wallet.gettransaction(tx["txid"])
-        if tx_raw:
-            tx_hex = tx_raw["hex"]
-        else:
-            tx_hex = ""
         if not tx.get("blockheight", None):
             if tx_raw.get("blockheight", None):
                 tx["blockheight"] = tx_raw["blockheight"]
@@ -1507,7 +1505,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["address"],
             tx["blockheight"],
             tx["time"],
-            tx_hex,
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row

@@ -124,6 +124,9 @@ class BaseConfig(object):
         "zh_Hant_TW": "繁體中文",
     }
 
+    # Babel integration. List of languages written from right to left for RTL support in the UI
+    RTL_LANGUAGES = ["he"]
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
@@ -133,9 +136,6 @@ class DevelopmentConfig(BaseConfig):
     )
     # API active by default in dev-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
-
-    # Env vars take priority over config settings so ensure that this is set
-    os.environ["FLASK_ENV"] = "development"
 
 
 class TestConfig(BaseConfig):

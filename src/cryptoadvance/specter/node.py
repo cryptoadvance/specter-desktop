@@ -145,7 +145,8 @@ class Node:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
                 )
-            # autodetect won't result in any logging, even if None
+            if rpc == None:
+                logger.warning(f"No rpc was found for {self}")
             return rpc
         else:
             # if autodetect is disabled and port is not defined
@@ -224,7 +225,7 @@ class Node:
         if update_rpc:
             self.rpc = self.get_rpc()
             if self.rpc and self.rpc.test_connection():
-                logger.info(f"persisting {self} in update_rpc")
+                logger.debug(f"persisting {self} in update_rpc")
                 write_node(self, self.fullpath)
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
@@ -280,7 +281,7 @@ class Node:
                 logger.exception("Exception %s while check_info()" % e)
         else:
             if self.rpc is None:
-                logger.error(f"connection of {self} is None in check_info")
+                logger.warning(f"connection of {self} is None in check_info")
             elif not self.rpc.test_connection():
                 logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
@@ -311,7 +312,12 @@ class Node:
         """
         rpc = self.get_rpc()
         if rpc is None:
-            return {"out": "", "err": _("Connection to node failed"), "code": -1}
+            return {
+                "out": "",
+                "err": _("Connection to node failed"),
+                "code": -1,
+                "tests": {},
+            }
         r = {}
         r["tests"] = {"connectable": False}
         r["err"] = ""
@@ -413,6 +419,17 @@ class Node:
         return self.network_info["version"]
 
     @property
+    def taproot_support(self):
+        try:
+            # currently only master branch supports tr() descriptors
+            # TODO: replace to 220000
+            return (self.bitcoin_core_version_raw >= 219900) and (
+                self.info.get("softforks", {}).get("taproot", {}).get("active", False)
+            )
+        except Exception as e:
+            return False
+
+    @property
     def chain(self):
         return self.info["chain"]
 
@@ -422,11 +439,14 @@ class Node:
 
     @property
     def asset_labels(self):
+        if not self.is_liquid:
+            return {}
         if self._asset_labels is None:
             asset_labels = self.rpc.dumpassetlabels()
             assets = {}
+            LBTC = "LBTC" if self.chain == "liquidv1" else "tLBTC"
             for k in asset_labels:
-                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+                assets[asset_labels[k]] = k if k != "bitcoin" else LBTC
             self._asset_labels = assets
         return self._asset_labels
 

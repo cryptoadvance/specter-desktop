@@ -3,10 +3,18 @@ from ..addresslist import Address
 from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from .txlist import LTxList
+from .addresslist import LAddressList
+from embit.liquid.addresses import to_unconfidential
+from ..specter_error import SpecterError
 
 
 class LWallet(Wallet):
     MIN_FEE_RATE = 0.1
+    AddressListCls = LAddressList
+    TxListCls = LTxList
+    TxCls = LTransaction
+    PSBTCls = PSET
 
     @classmethod
     def create(
@@ -52,6 +60,11 @@ class LWallet(Wallet):
         blinding_key = None
         if len(devices) == 1:
             blinding_key = devices[0].blinding_key
+            if not blinding_key:
+                raise SpecterError(
+                    "Device doesn't have a blinding key. Please import it."
+                )
+
         # if we don't have slip77 key for a device or it is multisig
         # we use chaincodes to generate slip77 key.
         if not blinding_key:
@@ -145,6 +158,32 @@ class LWallet(Wallet):
             wallet_manager,
         )
 
+    def getdata(self):
+        self.fetch_transactions()
+        self.check_utxo()
+        self.get_info()
+        # TODO: Should do the same for the non change address (?)
+        # check if address was used already
+        try:
+            value_on_address = self.rpc.getreceivedbyaddress(
+                self.change_address, assetlabel=None
+            )
+        except Exception as e:
+            # Could happen if address not in wallet (wallet was imported)
+            # try adding keypool
+            logger.info(
+                f"Didn't get transactions on change address {self.change_address}. Refilling keypool."
+            )
+            logger.error(e)
+            self.keypoolrefill(0, end=self.keypool, change=False)
+            self.keypoolrefill(0, end=self.change_keypool, change=True)
+            value_on_address = {}
+
+        # if not - just return
+        if sum(value_on_address.values(), 0) > 0:
+            self.change_index += 1
+            self.getnewaddress(change=True)
+
     def get_balance(self):
         try:
             full_balance = (
@@ -198,35 +237,6 @@ class LWallet(Wallet):
         self.balance = balance
         return self.balance
 
-    def fetch_transactions(self):
-        return
-
-    def txlist(
-        self,
-        fetch_transactions=True,
-        validate_merkle_proofs=False,
-        current_blockheight=None,
-    ):
-        """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
-        #Parameters:
-        #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
-        #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
-        #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
-        """
-        # TODO: only from RPC for now
-        return self.rpc.listtransactions("*", 10000, 0, True)
-
-    def gettransaction(self, txid, blockheight=None, decode=False):
-        # TODO: only from RPC for now
-        try:
-            # From RPC
-            tx_data = self.rpc.gettransaction(txid)
-            if decode:
-                return self.rpc.decoderawtransaction(tx_data["hex"])
-            return tx_data
-        except Exception as e:
-            logger.warning("Could not get transaction {}, error: {}".format(txid, e))
-
     def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
         psbt = PSET.from_string(b64psbt)
 
@@ -262,29 +272,10 @@ class LWallet(Wallet):
                         der = bip32.parse_path(k.derivation)
                     else:
                         der = []
-                    psbt.xpub[key] = DerivationPath(fingerprint, der)
+                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
         else:
-            psbt.xpub = {}
+            psbt.xpubs = {}
         return psbt.to_string()
-
-    def get_address_info(self, address):
-        try:
-            res = self.rpc.getaddressinfo(address)
-            used = None
-            if "desc" in res:
-                used = self.rpc.getreceivedbyaddress(address, 0) > 0
-            return Address(
-                self.rpc,
-                address=address,
-                index=None
-                if "desc" not in res
-                else res["desc"].split("]")[0].split("/")[-1],
-                change=None if "desc" not in res else res["ischange"],
-                label=next(iter(res["labels"]), ""),
-                used=used,
-            )
-        except:
-            return None
 
     def createpsbt(
         self,
@@ -305,9 +296,6 @@ class LWallet(Wallet):
         """
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
-
-        # FIXME: stupid scale of the fee rate for now
-        fee_rate = 2 * fee_rate
 
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
@@ -365,7 +353,11 @@ class LWallet(Wallet):
                 # bitcoin core needs us to convert sat/B to BTC/kB
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
-            # don't reuse change addresses - use getrawchangeaddress instead
+            # looks like change_type is required in nested segwit wallets
+            # but not in native segwit
+            if "changeAddress" not in options and self.address_type:
+                options["change_type"] = self.address_type
+
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
@@ -391,43 +383,44 @@ class LWallet(Wallet):
                     {"txid": inp["previous_txid"], "vout": inp["previous_vout"]}
                     for inp in psbt["inputs"]
                 ]
-            if "changeAddress" in psbt:
-                options["changeAddress"] = psbt["changeAddress"]
+            # FIXME: get back change addresses
+            # if "changeAddress" in psbt:
+            #     options["changeAddress"] = psbt["changeAddress"]
+            #     if "change_type" in options:
+            #         options.pop("change_type")
             if "base64" in psbt:
                 b64psbt = psbt["base64"]
 
-        # if fee_rate > 0.0:
-        #     if not existing_psbt:
-        #         psbt_fees_sats = int(psbt["fee"] * 1e8)
-        #         # estimate final size: add weight of inputs
-        #         tx_full_size = ceil(
-        #             psbt["tx"]["vsize"]
-        #             + len(psbt["inputs"]) * self.weight_per_input / 4
-        #         )
-        #         adjusted_fee_rate = (
-        #             fee_rate
-        #             * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-        #             * (tx_full_size / psbt["tx"]["vsize"])
-        #         )
-        #         options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
-        #     else:
-        #         options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
-        #     r = self.rpc.walletcreatefundedpsbt(
-        #         extra_inputs,  # inputs
-        #         [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
-        #         0,  # locktime
-        #         options,  # options
-        #         True,  # bip32-der
-        #     )
+        # looks like change_type is required in nested segwit wallets
+        # but not in native segwit
+        if "changeAddress" not in options and self.address_type:
+            options["change_type"] = self.address_type
 
-        #     b64psbt = r["psbt"]
-        #     psbt = self.rpc.decodepsbt(b64psbt)
-        #     psbt["fee_rate"] = options["feeRate"]
-        # # estimate full size
-        # tx_full_size = ceil(
-        #     psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-        # )
-        # psbt["tx_full_size"] = tx_full_size
+        if fee_rate > 0.0:
+            if not existing_psbt:
+                adjusted_fee_rate = self.adjust_fee(psbt, fee_rate)
+                options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
+            else:
+                options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
+            r = self.rpc.walletcreatefundedpsbt(
+                extra_inputs,  # inputs
+                [
+                    {addresses[i]: amounts[i], "asset": assets[i]}
+                    for i in range(len(addresses))
+                ],  # output
+                0,  # locktime
+                options,  # options
+                True,  # bip32-der
+            )
+
+            b64psbt = r["psbt"]
+            psbt = self.rpc.decodepsbt(b64psbt)
+            psbt["fee_rate"] = options["feeRate"]
+        # estimate full size
+        tx_full_size = ceil(
+            psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
+        )
+        psbt["tx_full_size"] = tx_full_size
 
         psbt["base64"] = b64psbt
         psbt["amount"] = amounts
@@ -440,3 +433,74 @@ class LWallet(Wallet):
             self.save_pending_psbt(psbt)
 
         return psbt
+
+    def adjust_fee(self, psbt, fee_rate):
+        psbt_fees_sats = int(psbt.get("fees", {}).get("bitcoin", 0) * 1e8)
+
+        # TODO: handle non-blind outputs differently
+        num_blinded_outs = len(psbt["outputs"]) - 1
+        # estimate final size: add weight of inputs and outputs
+        # out witness weight is 4245 (from some random tx)
+        # commitments in blinded tx: 33 for nonce and 33 for value
+        commitment_size = 33 + 33
+        tx_full_size = ceil(
+            psbt["tx"]["vsize"]
+            + len(psbt["inputs"]) * self.weight_per_input / 4
+            + num_blinded_outs * 4245 / 4
+            # probably elements doesn't count commitments
+            + len(psbt["inputs"]) * commitment_size
+            + num_blinded_outs * commitment_size
+        )
+        return (
+            fee_rate
+            * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
+            * (tx_full_size / psbt["tx"]["vsize"])
+        )
+
+    def addresses_info(self, is_change):
+        """Create a list of (receive or change) addresses from cache and retrieve the
+        related UTXO and amount.
+        Parameters: is_change: if true, return the change addresses else the receive ones.
+        """
+
+        addresses_info = []
+
+        addresses_cache = [
+            v for _, v in self._addresses.items() if v.change == is_change
+        ]
+
+        for addr in addresses_cache:
+
+            addr_utxo = 0
+            addr_amount = 0
+            addr_assets = {}
+
+            for utxo in [
+                utxo
+                for utxo in self.full_utxo
+                if to_unconfidential(utxo["address"]) == to_unconfidential(addr.address)
+            ]:
+                addr_amount = addr_amount + utxo["amount"]
+                addr_utxo = addr_utxo + 1
+                addr_assets[utxo.get("asset")] = (
+                    addr_assets.get(utxo.get("asset"), 0) + utxo["amount"]
+                )
+
+            addresses_info.append(
+                {
+                    "index": addr.index,
+                    "address": addr.address,
+                    "label": addr.label,
+                    "amount": addr_amount,
+                    "used": bool(addr.used),
+                    "utxo": addr_utxo,
+                    "type": "change" if is_change else "receive",
+                    "assets": addr_assets,
+                }
+            )
+
+        return addresses_info
+
+    @property
+    def unconfidential_address(self):
+        return to_unconfidential(self.address)

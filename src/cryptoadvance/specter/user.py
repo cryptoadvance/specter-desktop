@@ -163,7 +163,11 @@ class User(UserMixin):
     def update_asset_label(self, asset, label, chain):
         if "asset_labels" not in self.config:
             self.config["asset_labels"] = {}
-        deep_update(self.config["asset_labels"], {chain: {asset: label}})
+        if not label:
+            if self.config["asset_labels"].get(chain, {}).get(asset):
+                del self.config["asset_labels"][chain][asset]
+        else:
+            deep_update(self.config["asset_labels"], {chain: {asset: label}})
         self.save_info()
 
     def set_explorer(self, explorer_id, explorer):

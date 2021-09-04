@@ -74,10 +74,10 @@
                 document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
                     e.preventDefault();
                     hidePageOverlay();
-                    showPageOverlay('hot_enter_passphrase')
+                    showPageOverlay('{{ device.alias }}_hot_enter_passphrase')
                 });
             </script>
-            <div id="hot_enter_passphrase" class="hidden">
+            <div id="{{ device.alias }}_hot_enter_passphrase" class="hidden">
                 {% set is_encrypted = device.is_encrypted(wallet.manager) %}
                 {% if is_encrypted %}
                 <h2>{{ _("Enter decryption password") }}</h2>

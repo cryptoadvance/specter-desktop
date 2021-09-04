@@ -8,17 +8,25 @@
 		</div>
 		<br>
 		<h1>{{ _("Type of the wallet") }}</h1>
+		{% set enable_taproot = (wallet_type == 'simple' and specter.taproot_support and cosigners[0].taproot_support) %}
 		<nav class="row">
 			<label>
 				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
 				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio left">{{ _("Nested Segwit") }}</div>
+				<div class="btn radio left" id="type_nested_segwit_btn">{{ _("Nested Segwit") }}</div>
 			</label>
 			<label>
 				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
-				class="hidden" onchange="updateType(this.value);">
-				<div class="btn radio right">{{ _("Segwit") }}</div>
+				class="hidden type_nested_segwit" onchange="updateType(this.value);">
+				<div class="btn radio {% if not enable_taproot %} right {% endif %}" id="type_native_segwit_btn">{{ _("Segwit") }}</div>
 			</label>
+			{% if enable_taproot %}
+			<label>
+				<input type="radio" name="type" value="tr"
+				class="hidden" onchange="updateType(this.value);">
+				<div class="btn radio right" id="type_taproot_btn">{{ _("Taproot") }}</div>
+			</label>
+			{% endif %}
 		</nav>
 
 		<div class="note optional">

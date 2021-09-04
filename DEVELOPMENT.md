@@ -5,10 +5,10 @@
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
     - [Install dependencies:](#install-dependencies)
-      - [Ubuntu/Debian](#ubuntudebian)
-      - [macOS](#macos)
+      - [Ubuntu/Debian/macOS](#ubuntudebianmacos)
       - [Windows](#windows)
     - [Set up virtualenv](#set-up-virtualenv)
+      - [If `pip install` fails on `cryptography==3.4.x`](#if-pip-install-fails-on-cryptography34x)
   - [How to run the tests](#how-to-run-the-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
@@ -39,11 +39,13 @@
 
 ### Install dependencies:
 
-#### Ubuntu/Debian
-`sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev`
+#### Ubuntu/Debian/macOS
+```
+sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev
 
-#### macOS
-`brew install libusb`
+# macOS:
+brew install libusb
+```
 
 #### Windows
 * Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
@@ -76,6 +78,7 @@ virtualenv --python=python3 .env
 source .env/bin/activate
 pip3 install -r requirements.txt --require-hashes
 pip3 install -e .
+python3 setup.py install # also compiles the babel translation-files
 ```
 
 _note: invoking commands in the Windows PowerShell is slightly different:_
@@ -94,9 +97,32 @@ cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
+#### If `pip install` fails on `cryptography==3.4.x`
+Certain platform/python3 version combos require a Rust compiler. Install via:
+
+* Linux/macOS:
+    ```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+* Windows: [https://forge.rust-lang.org/infra/other-installation-methods.html](https://forge.rust-lang.org/infra/other-installation-methods.html)
+
+You'll need to ensure that `$HOME/.cargo/bin` is in your `PATH`. Verify this by running:
+```
+rustc --version
+```
+_note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate`_
+
 
 ## How to run the tests
 _TODO: Need more thorough tests!_
+
+In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
+* `./tests/install_bitcoind.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+* `./tests/install_bitcoind.sh --elements compile` will compile elements in tests/elements
+
+If you're not interested in elements, you can skip the liquid specific tests as described below.
 
 Set up the dependencies:
 ```sh
@@ -110,19 +136,28 @@ If you have a local bitcoind already installed:
 pytest 
 ```
 
-OR run against bitcoind in Docker:
+OR run against bitcoind in Docker (deprecated):
 ```
 # Pull the bitcoind image if you haven't already:
 docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
 
+# install prerequisites
+pip3 install docker
+
 # Run all the tests against the docker bitcoind image
-pytest --docker 
+pytest -m "no elm" --docker 
 ```
 
 Running specific test subsets:
 ```
 # Run all tests but not the slow ones
 pytest -m "not slow"
+
+# Run all tests but not the elements
+pytest -m "not elm"
+
+# Run all tests but not the slow ones and not the slow ones
+pytest -m "not elm and not slow"
 
 # Run all the tests in a specific test file
 pytest tests/test_specter.py

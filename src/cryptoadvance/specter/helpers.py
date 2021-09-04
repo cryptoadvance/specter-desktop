@@ -208,7 +208,7 @@ def get_devices_with_keys_by_type(app, cosigners, wallet_type):
         device = copy.deepcopy(cosigner)
         allowed_types = ["", wallet_type]
         if wallet_type == "simple":
-            allowed_types += ["sh-wpkh", "wpkh"]
+            allowed_types += ["sh-wpkh", "wpkh", "tr"]
         elif wallet_type == "multisig":
             allowed_types += ["sh-wsh", "wsh"]
         device.keys = sorted(
@@ -333,8 +333,13 @@ def is_ip_private(ip):
 def get_address_from_dict(data_dict):
     # TODO: Remove this helper function in favor of simple ["address"]
     # when support for Bitcoin Core version < 22 is dropped
-    return (
-        data_dict["addresses"][0]
-        if "addresses" in data_dict and data_dict["addresses"][0]
-        else data_dict["address"]
-    )
+    addr = data_dict.get("addresses")
+    if not addr:
+        addr = data_dict.get("scriptPubKey", {}).get("addresses")
+    if addr:
+        addr = addr[0]
+    if not addr:
+        addr = data_dict.get("address")
+    if addr and addr != "Fee":
+        return addr
+    raise RuntimeError("Missing address info in object")

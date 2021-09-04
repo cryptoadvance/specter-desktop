@@ -122,24 +122,24 @@ If you're stuck while installing/configuring Specter or you're looking for more 
 
 ### Adding a new device
 
-![](screenshots/devices.png)
+![](./docs/images/README/devices.png)
 
-![](screenshots/device_keys.png)
+![](./docs/images/README/device_keys.png)
 
 ### Creating a new wallet
 
-![](screenshots/wallets.png)
+![](./docs/images/README/wallets.png)
 
-![](screenshots/new_multisig.png)
+![](./docs/images/README/new_multisig.png)
 
 ### Wallet interface
 
-![](screenshots/transactions.png)
+![](./docs/images/README/transactions.png)
 
-![](screenshots/receive.png)
+![](./docs/images/README/receive.png)
 
-![](screenshots/send.png)
+![](./docs/images/README/send.png)
 
 ### Configuration
 
-![](screenshots/bitcoin-rpc.png)
+![](./docs/images/README/bitcoin-rpc.png)
