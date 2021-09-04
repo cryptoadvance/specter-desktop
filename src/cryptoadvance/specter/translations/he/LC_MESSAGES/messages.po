@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-05 14:05-0500\n"
+"POT-Creation-Date: 2021-09-04 12:37-0500\n"
 "PO-Revision-Date: 2021-06-24 14:41-0500\n"
 "Last-Translator: \n"
 "Language: he_IL\n"
@@ -18,23 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 
-#: src/cryptoadvance/specter/node.py:316
+#: src/cryptoadvance/specter/node.py:317
 msgid "Connection to node failed"
 msgstr "החיבור לצומת נכשל"
 
-#: src/cryptoadvance/specter/node.py:326
+#: src/cryptoadvance/specter/node.py:330
 msgid "Core Node might be too old"
 msgstr "גרסת הצומת עלולה להיות ישנה מידי"
 
-#: src/cryptoadvance/specter/node.py:343
+#: src/cryptoadvance/specter/node.py:347
 msgid "Failed to connect!"
 msgstr "החיבור נכשל!"
 
-#: src/cryptoadvance/specter/node.py:352
+#: src/cryptoadvance/specter/node.py:356
 msgid "RPC authentication failed!"
 msgstr "אימות RPC נכשל!"
 
-#: src/cryptoadvance/specter/node.py:366
+#: src/cryptoadvance/specter/node.py:370
 msgid "Failed to connect"
 msgstr "החיבור נכשל"
 
@@ -101,20 +101,20 @@ msgid "You need a mainnet node to retrieve the whitepaper. Check your node confi
 msgstr "יש צורך בצומת עם הרשת הראשית בכדי לאחזר את את המסמך המכונן. בדוק את הגדרות הצומת שברשותך."
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:64
-#: src/cryptoadvance/specter/server_endpoints/devices.py:290
-#: src/cryptoadvance/specter/server_endpoints/devices.py:308
-#: src/cryptoadvance/specter/server_endpoints/devices.py:434
+#: src/cryptoadvance/specter/server_endpoints/devices.py:296
+#: src/cryptoadvance/specter/server_endpoints/devices.py:314
+#: src/cryptoadvance/specter/server_endpoints/devices.py:440
 msgid "Device name cannot be empty"
 msgstr "שם מכשיר חייב להכיל תווים"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:66
-#: src/cryptoadvance/specter/server_endpoints/devices.py:292
-#: src/cryptoadvance/specter/server_endpoints/devices.py:310
+#: src/cryptoadvance/specter/server_endpoints/devices.py:298
+#: src/cryptoadvance/specter/server_endpoints/devices.py:316
 msgid "Device with this name already exists"
 msgstr "מכשיר עם שם זהה קיים כבר"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:84
-#: src/cryptoadvance/specter/server_endpoints/devices.py:298
+#: src/cryptoadvance/specter/server_endpoints/devices.py:304
 msgid "Failed to parse these xpubs"
 msgstr "כישלון בניתוח המפתחות הציבוריים"
 
@@ -133,7 +133,7 @@ msgid "{} was added successfully!"
 msgstr "{} נוסף בהצלחה!"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:133
-#: src/cryptoadvance/specter/server_endpoints/devices.py:350
+#: src/cryptoadvance/specter/server_endpoints/devices.py:356
 msgid "Failed to setup hot wallet. Error: {}"
 msgstr "כישלון בהוספתת ארנק חם. שגיאה: {}"
 
@@ -142,55 +142,59 @@ msgid "xpubs list must not be empty"
 msgstr "רשימת המפתחות הציבוריים חייבת לא להיות ריקה"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:198
-#: src/cryptoadvance/specter/server_endpoints/devices.py:312
+#: src/cryptoadvance/specter/server_endpoints/devices.py:318
 msgid "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
 msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:202
-#: src/cryptoadvance/specter/server_endpoints/devices.py:317
+#: src/cryptoadvance/specter/server_endpoints/devices.py:323
 msgid "Invalid mnemonic entered."
 msgstr ""
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:206
-#: src/cryptoadvance/specter/server_endpoints/devices.py:321
+#: src/cryptoadvance/specter/server_endpoints/devices.py:327
 msgid "Invalid address range selected."
 msgstr "טווח כתובות שגוי נבחר."
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:248
-#: src/cryptoadvance/specter/server_endpoints/devices.py:386
+#: src/cryptoadvance/specter/server_endpoints/devices.py:392
 msgid "Device not found"
 msgstr "המכשיר לא נמצא"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:257
+#: src/cryptoadvance/specter/server_endpoints/devices.py:258
 msgid "Master blinding key was added successfully"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:295
+#: src/cryptoadvance/specter/server_endpoints/devices.py:265
+msgid "Invalid master blinding key! It should be in WIF or hex format."
+msgstr ""
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:301
 msgid "xpubs name cannot be empty"
 msgstr "שם המפתחות הציבוריים לא יכול להיות ריק"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:397
+#: src/cryptoadvance/specter/server_endpoints/devices.py:403
 msgid "Device could not be removed since it is used in wallets: {}"
 msgstr "לא ניתן להסיר את המכשיר, בגלל שנמצא בשימוש בארנקים: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:401
+#: src/cryptoadvance/specter/server_endpoints/devices.py:407
 msgid "You must delete those wallets before you can remove this device."
 msgstr "יש למחוק את הארנקים האלו לפני הסרת המכשיר."
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:405
-#: src/cryptoadvance/specter/server_endpoints/devices.py:427
+#: src/cryptoadvance/specter/server_endpoints/devices.py:411
+#: src/cryptoadvance/specter/server_endpoints/devices.py:433
 msgid "You can delete a wallet from its Settings -> Advanced page."
 msgstr "ניתן למחוק ארנק מהגדרות>-  דף מתקדם"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:421
+#: src/cryptoadvance/specter/server_endpoints/devices.py:427
 msgid "Key could not be removed since it is used in wallets: {}"
 msgstr "לא ניתן להסיר מפתח, בגלל שנמצא בשימוש בארנקים: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:425
+#: src/cryptoadvance/specter/server_endpoints/devices.py:431
 msgid "You must delete those wallets before you can remove this key."
 msgstr "יש להסיר את הארנקים לפני שניתן להסיר את המפתח."
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:438
+#: src/cryptoadvance/specter/server_endpoints/devices.py:444
 msgid "Device already exists"
 msgstr "מכשיר קים כבר"
 
@@ -381,33 +385,33 @@ msgstr ""
 msgid "HWIBridge URL is updated! Don't forget to whitelist Specter!"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:124
+#: src/cryptoadvance/specter/server_endpoints/setup.py:126
 msgid "Tor is already installed"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:126
+#: src/cryptoadvance/specter/server_endpoints/setup.py:128
 msgid "Tor installation is still in progress"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:127
+#: src/cryptoadvance/specter/server_endpoints/setup.py:129
 msgid "Starting Tor setup!"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:144
+#: src/cryptoadvance/specter/server_endpoints/setup.py:146
 msgid "Bitcoin Core is already installed"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:146
-#: src/cryptoadvance/specter/server_endpoints/setup.py:208
+#: src/cryptoadvance/specter/server_endpoints/setup.py:148
+#: src/cryptoadvance/specter/server_endpoints/setup.py:199
 msgid "Bitcoin Core installation is still in progress"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:147
-#: src/cryptoadvance/specter/server_endpoints/setup.py:209
+#: src/cryptoadvance/specter/server_endpoints/setup.py:149
+#: src/cryptoadvance/specter/server_endpoints/setup.py:200
 msgid "Starting Bitcoin Core setup!"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:206
+#: src/cryptoadvance/specter/server_endpoints/setup.py:197
 msgid "Bitcoin Core in not installed but required for this step"
 msgstr ""
 
@@ -444,7 +448,7 @@ msgid "Device {} doesn't have keys matching this wallet type"
 msgstr "מכשיר {} לא מכיל מפתחות המתאים לסוג ארנק זה"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:240
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:826
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:829
 msgid "Wallet already exists"
 msgstr "ארנק זה כבר קיים"
 
@@ -493,162 +497,158 @@ msgstr "כישלון בייבוא טרנזקציה חתומה למחצה: {}"
 msgid "Failed to abort rescan. Maybe already complete?"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:822
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:825
 msgid "Wallet name cannot be empty"
 msgstr "שם ארנק חייב לכלול תווים"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:858
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:861
 msgid "Cannot parse empty data as PSBT"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:882
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:885
 msgid "Invalid transaction format"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:898
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:901
 msgid "Unknown error: {}"
 msgstr "שגיאה לא ידועה: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:915
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:972
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:918
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:975
 msgid ""
 "Failed to broadcast transaction: transaction is invalid\n"
 "{}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:944
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:947
 msgid "Failed to broadcast transaction. Network not supported."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:953
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:956
 msgid "Failed to broadcast transaction. Block explorer not supported."
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:967
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:970
 msgid "Failed to broadcast transaction with error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1066
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1069
 msgid "Exception trying to get address label: Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1274
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1277
 msgid "Failed to export addresses list. Error: {}"
 msgstr "כישלון בייצוא רשימת כתובות. שגיאה: {}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1343
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1346
 msgid "Failed to export wallet utxo. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1378
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1381
 msgid "Failed to export wallets overview history. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1410
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1413
 msgid "Failed to export wallets overview utxo. Error: {}"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1436
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
 msgid "Date"
 msgstr "תאריך"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
-#: src/cryptoadvance/specter/templates/includes/address-data.html:83
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1524
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
+#: src/cryptoadvance/specter/templates/includes/address-data.html:82
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
 msgid "Label"
 msgstr "תווית"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
 msgid "Category"
 msgstr "קטגוריה"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1442
 msgid "Amount ({})"
 msgstr "סכום ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
 msgid "Value ({})"
 msgstr "ערך ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
 msgid "Rate (BTC/{})"
 msgstr "שער (ביטקוין/{})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Rate ({}/SAT)"
-msgstr שער ({}/סאט)
+msgstr "ער ({}/סאט"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 msgid "TxID"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
-#: src/cryptoadvance/specter/templates/includes/address-data.html:82
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1523
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1575
+#: src/cryptoadvance/specter/templates/includes/address-data.html:81
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Address"
 msgstr "כתובת"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1449
 msgid "Block Height"
 msgstr "גובה בלוק"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1450
 msgid "Timestamp"
 msgstr "חותמת זמן"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
-msgid "Raw Transaction"
-msgstr ""
-
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1453
 msgid "Wallet"
 msgstr "ארנק"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1525
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1574
 msgid "Index"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
-#: src/cryptoadvance/specter/templates/includes/address-data.html:87
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+#: src/cryptoadvance/specter/templates/includes/address-data.html:86
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 msgid "Used"
 msgstr "שומש"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
 msgid "Current balance"
 msgstr "מאזן נוכחי"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1542
 msgid "(external)"
 msgstr "(חיצוני)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1546
 msgid " (change)"
 msgstr " (עודף)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1551
 msgid "unknown (external address)"
 msgstr "לא ידוע (כתובת חיצונית)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1576
 msgid "Type"
 msgstr "סוג"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
 msgid "UTXO"
 msgstr ""
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
 msgid "Amount (BTC)"
 msgstr "סכום (ביטקוין)"
 
@@ -701,160 +701,172 @@ msgstr ""
 msgid "Details from the log file"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:63
+#: src/cryptoadvance/specter/templates/base.jinja:94
 msgid "ERROR:"
 msgstr "שגיאה:"
 
-#: src/cryptoadvance/specter/templates/base.jinja:69
+#: src/cryptoadvance/specter/templates/base.jinja:100
 msgid "Something went wrong:"
 msgstr "משהו השתבש:"
 
-#: src/cryptoadvance/specter/templates/base.jinja:75
+#: src/cryptoadvance/specter/templates/base.jinja:106
 msgid "Welcome to Specter Desktop"
 msgstr "ברוך הבא לספקטר דסקטופ"
 
-#: src/cryptoadvance/specter/templates/base.jinja:78
+#: src/cryptoadvance/specter/templates/base.jinja:109
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
 msgstr "ספקטר דסקטופ הינו ממשק ארנק עדכני לצומת ביטקוין. ספקטר מספק תמיכה במגוון רחב של ארנקי חומרה ומכשירי חתימה שונים עם אפשרות ליצירה של ארנקי מולטיסיג."
 
-#: src/cryptoadvance/specter/templates/base.jinja:85
+#: src/cryptoadvance/specter/templates/base.jinja:116
 msgid "Get started!"
 msgstr "התחל!"
 
-#: src/cryptoadvance/specter/templates/base.jinja:85
+#: src/cryptoadvance/specter/templates/base.jinja:116
 msgid "Continue setup"
 msgstr "המשך בהתקנה"
 
-#: src/cryptoadvance/specter/templates/base.jinja:88
+#: src/cryptoadvance/specter/templates/base.jinja:119
 msgid "Getting Started"
 msgstr "מתחילים"
 
-#: src/cryptoadvance/specter/templates/base.jinja:94
+#: src/cryptoadvance/specter/templates/base.jinja:125
 msgid "Using Specter from a remote machine?"
 msgstr "משתמש בספקטר ממחשב מרוחק?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:96
+#: src/cryptoadvance/specter/templates/base.jinja:127
 msgid "If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:98
+#: src/cryptoadvance/specter/templates/base.jinja:129
 msgid "Update your settings"
 msgstr "עדכן את הגדרותתייך"
 
-#: src/cryptoadvance/specter/templates/base.jinja:113
+#: src/cryptoadvance/specter/templates/base.jinja:144
 msgid "Connect Specter with Bitcoin Core node."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:120
+#: src/cryptoadvance/specter/templates/base.jinja:151
 msgid "Connecting Specter to your Bitcoin Core node"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:122
+#: src/cryptoadvance/specter/templates/base.jinja:153
 msgid "I don't have a Bitcoin Core node yet."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:123
+#: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "I have Bitcoin Core on this computer."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:124
+#: src/cryptoadvance/specter/templates/base.jinja:155
 msgid "I have a remote Bitcoin Core node."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:128
+#: src/cryptoadvance/specter/templates/base.jinja:159
 msgid "Installing and Setting Up Bitcoin Core"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:129
+#: src/cryptoadvance/specter/templates/base.jinja:160
 msgid "Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:137
+#: src/cryptoadvance/specter/templates/base.jinja:168
 msgid "Connecting Specter to your local Bitcoin Core node"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:138
+#: src/cryptoadvance/specter/templates/base.jinja:169
 msgid "If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:139
+#: src/cryptoadvance/specter/templates/base.jinja:170
 msgid "In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:140
+#: src/cryptoadvance/specter/templates/base.jinja:171
 msgid "Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:141
+#: src/cryptoadvance/specter/templates/base.jinja:172
 msgid "<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:142
+#: src/cryptoadvance/specter/templates/base.jinja:173
 msgid "If you don't have that, add it and restart Bitcoin Core."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:145
+#: src/cryptoadvance/specter/templates/base.jinja:176
 msgid "In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:153
+#: src/cryptoadvance/specter/templates/base.jinja:184
 msgid "Connecting Specter to your remote Bitcoin Core node"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:154
+#: src/cryptoadvance/specter/templates/base.jinja:185
 msgid "Connecting to a \"node in a box\""
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:156
+#: src/cryptoadvance/specter/templates/base.jinja:187
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:157
+#: src/cryptoadvance/specter/templates/base.jinja:188
 msgid "RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:158
+#: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:160
+#: src/cryptoadvance/specter/templates/base.jinja:191
 msgid "Connecting over Tor"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:161
+#: src/cryptoadvance/specter/templates/base.jinja:192
 msgid "Connecting over Tor requires that you first configure Tor on your local machine."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:174
+#: src/cryptoadvance/specter/templates/base.jinja:205
 msgid "Add signing devices you wish to use."
 msgstr "הוסף מכשיר לחתתימה שברצונך להשתמש"
 
-#: src/cryptoadvance/specter/templates/base.jinja:186
+#: src/cryptoadvance/specter/templates/base.jinja:217
 msgid "Create your first wallet!"
 msgstr "צור את ארנקך הראשון!"
 
-#: src/cryptoadvance/specter/templates/base.jinja:199
+#: src/cryptoadvance/specter/templates/base.jinja:230
 msgid "And when you are all set: Get the whitepaper from the timechain."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:211
+#: src/cryptoadvance/specter/templates/base.jinja:242
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:212
+#: src/cryptoadvance/specter/templates/base.jinja:243
 msgid "Still having issues?"
 msgstr "עדיין חווה קשיים?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:213
+#: src/cryptoadvance/specter/templates/base.jinja:244
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/base.jinja:217
+#: src/cryptoadvance/specter/templates/base.jinja:248
 msgid "Help wanted: Do you like Specter?"
 msgstr "סיוע נדרש: מחבב את ספקטר?"
 
-#: src/cryptoadvance/specter/templates/base.jinja:220
+#: src/cryptoadvance/specter/templates/base.jinja:251
 msgid "Supported and maintained by"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/base.jinja:270
+msgid "Revealing"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/base.jinja:270
+msgid "Hiding"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/base.jinja:291
+msgid "Failed to toggle sensitive info mode..."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:11
@@ -896,7 +908,8 @@ msgid "Username"
 msgstr "שם משתמש"
 
 #: src/cryptoadvance/specter/templates/login.jinja:13
-msgid "password"
+#: src/cryptoadvance/specter/templates/register.jinja:13
+msgid "Password"
 msgstr "סיסמה"
 
 #: src/cryptoadvance/specter/templates/login.jinja:19
@@ -907,17 +920,13 @@ msgstr "התחבר"
 msgid "Register to the Specter Node"
 msgstr "הירשם לצומת ספקטר"
 
-#: src/cryptoadvance/specter/templates/register.jinja:13
-msgid "Password"
-msgstr "סיסמה"
-
 #: src/cryptoadvance/specter/templates/register.jinja:19
 msgid "Register"
 msgstr "הירשם"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:12
 #: src/cryptoadvance/specter/templates/includes/address-label.html:66
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:11
 msgid "Cancel"
 msgstr "בטל"
@@ -926,108 +935,108 @@ msgstr "בטל"
 msgid "Edit Name"
 msgstr "ערוך שם"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:38
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:46
 msgid "Price Settings"
 msgstr "הגדרות מחיר"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:41
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:49
 msgid "Please set custom rate or choose between the automated price provider options."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:43
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
 msgid "Manual"
 msgstr "ידני"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:44
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:52
 msgid "Automatic"
 msgstr "אוטומטי"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:48
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:56
 msgid "Price:"
 msgstr "מחיר:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:59
 msgid "Symbol:"
 msgstr "סמל:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:56
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:64
 msgid "Select price provider:"
 msgstr "בחר ספק למחיר:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:61
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:69
 msgid "Currency:"
 msgstr "מטבע:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:94
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:102
 msgid "Provider:"
 msgstr "ספק:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:158
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:166
 msgid "Weight Unit:"
 msgstr "יחידת משקל:"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:172
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:180
 msgid "Price will automatically be fetched from the selected provider every 10 minutes."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:176
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:184
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:67
 #: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:53
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:109
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:111
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:109
 msgid "Save"
 msgstr "שמור"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:179
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:187
 msgid "Disable showing price"
 msgstr "בטל הצגת מחיר"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:181
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
 msgid "You can enable showing price feature to see the price<br>information of your Bitcoin amounts across Specter."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:183
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
 msgid "Enable showing price"
 msgstr "אפשר הצגת מחיר"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:197
 msgid "Turning on show price mode..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:199
 msgid "Turning off show price mode..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:212
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
 msgid "Failed to toggle price mode..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:228
 msgid "Updating price data..."
 msgstr "מעדכן נתוני מחיר..."
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:240
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:248
 msgid "Failed to fetch price data from selected provider, please try again or select another provider."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:12
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:122
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:130
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:59
 msgid "Network"
 msgstr "רשת"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:123
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:131
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:60
 msgid "Purpose"
 msgstr "מטרה"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:183
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:124
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:132
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:61
 msgid "Derivation"
 msgstr "גזירה"
@@ -1043,13 +1052,13 @@ msgid "Export"
 msgstr "ייצא"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:125
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:133
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:62
 msgid "Key"
 msgstr "מפתח"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:126
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:134
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Actions"
 msgstr "פעולות"
@@ -1134,27 +1143,32 @@ msgid "Get the master blinding key"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:15
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:102
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:110
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:77
 msgid "Get via USB"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:20
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:114
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
 msgid "Scan QR code"
 msgstr "סרוק ברקוד QR"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:25
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:119
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:127
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:130
 msgid "Paste xpub"
 msgstr "הדבקת מפתח ציבורי"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:31
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:125
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:133
 msgid "Add xpub"
 msgstr "הוסף מפתח ראשי"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:57
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:322
+msgid "No devices found :("
+msgstr "לא נמצאו מכשירים :("
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:7
 msgid "Adding keys to"
@@ -1194,7 +1208,7 @@ msgstr ""
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:43
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:18
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:178
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:187
 msgid "Scan"
 msgstr "סרוק"
 
@@ -1255,13 +1269,13 @@ msgstr "סגור"
 msgid "Examples"
 msgstr "דוגמאות"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:130
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:138
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:103
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:96
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:166
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:33
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:150
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:152
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:157
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:159
 msgid "Continue"
 msgstr "המשך"
 
@@ -1296,6 +1310,7 @@ msgstr "יצירה"
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:56
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:112
 #: src/cryptoadvance/specter/templates/wallet/send/components/send_nav.jinja:14
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:174
 msgid "Import"
 msgstr "ייבוא"
 
@@ -1315,25 +1330,27 @@ msgid "Encrypt Wallet File"
 msgstr "הצפנת קובץ הארנק"
 
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:85
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:184
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:187
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:205
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:208
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:142
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:180
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:186
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:250
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:249
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:261
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:264
 #: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:67
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:63
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:66
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:128
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:173
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:176
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:135
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:180
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:183
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:85
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:502
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:508
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:511
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:517
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:18
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:132
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:302
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:305
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:138
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:398
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:401
 msgid "Advanced"
 msgstr "מתקדם"
 
@@ -1370,7 +1387,7 @@ msgstr "ל"
 msgid "No devices found"
 msgstr "מכשירים לא נמצאו"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:523
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:488
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:434
 msgid "Unknown key format"
 msgstr "תבנית מפתח לא ידועה"
@@ -1423,62 +1440,67 @@ msgid ""
 "                    To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:85
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:86
+msgid "Pair your Passport to Specter using QR codes or a microSD card."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:89
+msgid "To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.<br>If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:93
 msgid "Connect your hardware device to the computer via USB."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:278
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:282
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:196
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:289
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:293
 msgid "Edit"
 msgstr "עריכה"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:108
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:116
 msgid "Upload from SD Card"
 msgstr "העלאה מכרטיס זיכרון"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:158
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:213
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:166
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:221
 msgid "XPUB purpose"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:180
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:188
 msgid "#0 Single Sig (Nested)"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:182
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:190
 msgid "#0 Single Sig (Segwit)"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:201
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:209
 msgid "Account #"
 msgstr "משתמש #"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:202
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:227
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:210
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:235
 msgid "Add account"
 msgstr "הוספת משתמש"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:216
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:224
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:37
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:162
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
 msgid "Add"
 msgstr "הוספה"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:228
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:236
 msgid "Add custom derivation"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:279
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:290
 #: src/cryptoadvance/specter/templates/setup/end.jinja:7
 msgid "Done"
 msgstr "בוצע"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:311
-msgid "No devices found :("
-msgstr "לא נמצאו מכשירים :("
-
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:345
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:356
 msgid "Failed to retrive device data. Please try again."
 msgstr ""
 
@@ -1515,6 +1537,10 @@ msgstr "מ:"
 msgid "to:"
 msgstr "ל:"
 
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:128
+msgid "You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit."
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:3
 msgid "Add Device"
 msgstr "הוספת מכשיר"
@@ -1543,31 +1569,31 @@ msgstr "טוען כתובות"
 msgid "details"
 msgstr "פרטים"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:84
+#: src/cryptoadvance/specter/templates/includes/address-data.html:83
 msgid "From wallet"
 msgstr "מארנק"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:85
+#: src/cryptoadvance/specter/templates/includes/address-data.html:84
 msgid "Address index"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "Is change address"
 msgstr "זו כתובת עודף"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "Yes"
 msgstr "כן"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "No"
 msgstr "לא"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:88
+#: src/cryptoadvance/specter/templates/includes/address-data.html:87
 msgid "UTXO count"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:89
+#: src/cryptoadvance/specter/templates/includes/address-data.html:88
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:148
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:160
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
@@ -1575,33 +1601,33 @@ msgstr ""
 msgid "Amount"
 msgstr "סכום"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:97
+#: src/cryptoadvance/specter/templates/includes/address-data.html:96
 msgid "Verify address on device"
 msgstr "ווידוא כתובת במכשיר"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:102
+#: src/cryptoadvance/specter/templates/includes/address-data.html:101
 msgid "Or scan this QR code"
 msgstr "או סריקת ברקוד QR זה"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:108
+#: src/cryptoadvance/specter/templates/includes/address-data.html:107
 msgid "Address descriptor"
 msgstr "תיאור כתובות"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:111
+#: src/cryptoadvance/specter/templates/includes/address-data.html:110
 msgid "Show raw public keys"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:117
-#: src/cryptoadvance/specter/templates/includes/address-data.html:124
+#: src/cryptoadvance/specter/templates/includes/address-data.html:116
+#: src/cryptoadvance/specter/templates/includes/address-data.html:123
 msgid "Copied address descriptor"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:126
+#: src/cryptoadvance/specter/templates/includes/address-data.html:125
 msgid "Copied address descripto"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:132
-#: src/cryptoadvance/specter/templates/includes/address-data.html:134
+#: src/cryptoadvance/specter/templates/includes/address-data.html:131
+#: src/cryptoadvance/specter/templates/includes/address-data.html:133
 msgid "Failed to load address details..."
 msgstr "כישלון בטעינת פרטי כתובות..."
 
@@ -1613,18 +1639,18 @@ msgstr ""
 msgid "Failed to update address label. Please refresh the page and try again."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:198
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:550
+#: src/cryptoadvance/specter/templates/includes/address-label.html:197
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:549
 msgid "Copied address"
 msgstr "כתובת הועתקה"
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:234
-#: src/cryptoadvance/specter/templates/includes/address-label.html:237
+#: src/cryptoadvance/specter/templates/includes/address-label.html:232
+#: src/cryptoadvance/specter/templates/includes/address-label.html:235
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:68
 msgid "Failed to fetch data. Please refresh the page and retry."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:236
+#: src/cryptoadvance/specter/templates/includes/address-label.html:234
 msgid "Caught error fetching address label"
 msgstr ""
 
@@ -1632,8 +1658,8 @@ msgstr ""
 msgid "Verify on device"
 msgstr "ווידא במכשיר"
 
-#: src/cryptoadvance/specter/templates/includes/address-row.html:114
-#: src/cryptoadvance/specter/templates/includes/address-row.html:116
+#: src/cryptoadvance/specter/templates/includes/address-row.html:120
+#: src/cryptoadvance/specter/templates/includes/address-row.html:122
 msgid "Failed to load address data to display..."
 msgstr "כישלון בטעינת נתוני כתובת להצגה..."
 
@@ -1655,29 +1681,33 @@ msgid "Export addresses to CSV"
 msgstr "ייצוא כתובות לCSV"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:161
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:405
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:403
 msgid "Fetching addresses..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:409
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:407
 msgid "Failed to fetch addresses..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:417
 msgid "Only receive addresses"
 msgstr "רק כתובות לקבלה"
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:421
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
 msgid "Only change addresses"
 msgstr "רק כתובות לעודף"
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:481
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:479
 msgid "No addresses found..."
 msgstr "לא נמצאו כתובות..."
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:520
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:523
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:518
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:521
 msgid "Failed to fetch addresses list"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/asset-label.html:164
+msgid "Failed to update asset label. Please refresh the page and try again."
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:2
@@ -1701,18 +1731,20 @@ msgid "All"
 msgstr "הכל"
 
 #: src/cryptoadvance/specter/templates/includes/qr-code.html:207
+#: src/cryptoadvance/specter/templates/includes/qr-code.html:404
 msgid "Click to animate"
 msgstr "הנפשה"
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:128
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:139
 msgid "Number of frames in QR code mismatch!"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:202
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:213
 msgid "Can't get access to the camera. Specter should run on localhost or over https to enable QR code scanning."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:209
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:220
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/components/import_wallet_account_map.jinja:41
 msgid "Can't start the QR scanner!"
 msgstr "איתחול סריקת QR לא צלחה"
 
@@ -1728,108 +1760,108 @@ msgid ""
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:66
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:255
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:256
 msgid "Failed to load transaction details..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:84
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:85
 msgid "This transaction (aka \"tx\") could not be found in your node's mempool!"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:85
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:86
 msgid "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:86
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:87
 msgid "A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:87
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:88
 msgid "But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:94
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:95
 msgid "Abandon transaction"
 msgstr "טרנזקציה זנוחה"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:102
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:195
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:103
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:196
 msgid "Transaction id"
 msgstr "מזהה טרנזקציה"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:114
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:115
 msgid "Fee"
 msgstr "עמלה"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:115
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:116
 msgid "Fee rate"
 msgstr "שער עמלה"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:120
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:121
 msgid "Mined at block"
 msgstr "נכרה בבלוק"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:121
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:122
 msgid "Block hash"
 msgstr "גיבוב הבלוק"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:122
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:123
 msgid "Block time"
 msgstr "זמן הבלוק"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:126
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:127
 msgid "Inputs count"
 msgstr "מספר קלטים"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:127
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:128
 msgid "Outputs count"
 msgstr "מספר פלטים"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:178
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:245
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:179
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:246
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:146
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:173
 msgid "Address:"
 msgstr "כתובת:"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:179
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:246
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:180
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:247
 msgid "Value:"
 msgstr "ערך:"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:185
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:194
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:186
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:195
 msgid "Input #"
 msgstr "קלט #"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:186
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:187
 msgid "Coinbase transaction"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:196
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:197
 msgid "Output #"
 msgstr "פלט #"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:202
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:203
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:166
 msgid "Outputs"
 msgstr "פלטים"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:244
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:245
 msgid "Output #${i}"
 msgstr "פלט #${i}"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:279
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:281
 msgid "Failed to load address data..."
 msgstr "כישלון בטעינת נתוני כתובת..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:33
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 msgid "Speed up"
 msgstr "להאיץ"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:34
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:247
 msgid "Cancel transaction"
 msgstr "ביטול טרנזקציה"
 
@@ -1839,6 +1871,7 @@ msgid "Recipients"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:149
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:41
 msgid "Confidential"
 msgstr ""
 
@@ -1855,44 +1888,44 @@ msgstr "טרם אושר"
 msgid "Cancelled (replaced by sender)"
 msgstr "בוטל (הוחלף על ידי השולח)"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 msgid "the Transaction"
 msgstr "הטרנזקציה"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "You can"
 msgstr "באפשרותך"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:5
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "cancel"
 msgstr "לבטל"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "speed up"
 msgstr "להאיץ"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "the transaction by increasing its fee rate"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "and sending the funds back to yourself"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:247
 msgid "Speed up!"
 msgstr "האצה!"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:251
 msgid "If you would like further customization, you can click here to fully edit the transaction."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:251
 msgid "(advanced, not recommended for new users)"
 msgstr "(מתקדם, לא מומלץ למשתמשים חדשים)"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:253
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
 msgid "Edit the transaction (advanced)"
 msgstr "עריכת הטרנזקציה (מתקדם)"
 
@@ -1938,25 +1971,25 @@ msgid "Block Hash"
 msgstr "גיבוב הבלוק"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:172
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:484
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:481
 msgid "Fetching transactions..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:488
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:521
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:485
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:518
 msgid "Failed to fetch transactions..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:595
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:592
 msgid "No transactions found..."
 msgstr "לא נמצאו טרנזקציות..."
 
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:654
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:657
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:660
 msgid "Failed to fetch transactions list."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:685
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:684
 msgid "Copied transaction"
 msgstr ""
 
@@ -2052,7 +2085,7 @@ msgid "Please confirm action on your"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:114
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:112
 msgid "device"
 msgstr "מכשיר"
@@ -2075,7 +2108,12 @@ msgid "Select USB Wallet"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:78
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:122
 msgid "Failed to unlock device! Invalid PIN code?"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:89
+msgid "Operation is terminated"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:125
@@ -2180,6 +2218,55 @@ msgstr ""
 msgid "Use SLIP-132"
 msgstr ""
 
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:2
+msgid "Liquid Assets List:"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:6
+msgid "Asset label"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:7
+msgid "Asset ID"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:8
+msgid "Action"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:20
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:82
+msgid "Remove"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:26
+msgid "New asset label"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:28
+msgid "New asset ID"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:31
+msgid "Add asset"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:50
+msgid "Asset ID is invalid, must be 64 hex characters"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:54
+msgid "This asset is already in the registry."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:58
+msgid "Asset label must not be empty."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:100
+msgid "Asset ID does not exist"
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:14
 msgid "Loading... It may take a while..."
 msgstr "טוען.. זה עשוי לקחת זמן..."
@@ -2252,106 +2339,106 @@ msgstr ""
 msgid "Sign transaction"
 msgstr "חתום טרנזקציה"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:43
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:48
 msgid "Bitcoin Core is still syncing...<br>(data might be outdated)"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:46
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:51
 msgid "Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v20.0.0)."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:76
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:81
 msgid "Unavailable. Click to configure."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:129
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:134
 msgid "See setup progress"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:132
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:290
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:137
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:292
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:295
 msgid "Wallets"
 msgstr "ארנקים"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:135
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:140
 msgid "Wallets overview"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:142
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:147
 msgid "Updating wallets data..."
 msgstr "מעדכן נתוני ארנקים..."
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:145
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:150
 msgid "Finished updating your wallets"
 msgstr "עידכון נתוני הארנקים הסתיים"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:148
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:153
 msgid "Click here to refresh"
 msgstr "לחץ כאן בכדי לרענן"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:162
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:167
 msgid "Add new wallet"
 msgstr "צור ארנק חדש"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:167
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:172
 msgid "Failed to load some wallets"
 msgstr "כישלון בטעינת מספר ארנקים"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:168
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:173
 msgid "Retry loading wallets"
 msgstr "נסה לטעון ארנקים פעם נוספת"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:169
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:174
 msgid "Show Details"
 msgstr "הצג פרטים"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:175
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:180
 msgid "Wallet Name"
 msgstr "שם הארנק"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:176
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:181
 msgid "Error Details"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:182
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:187
 msgid "Download wallet file"
 msgstr "הורד קובץ ארנק"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:183
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:188
 msgid "Recreate the wallet"
 msgstr "צור מחדש את הארנק"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:184
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:252
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:189
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:285
 msgid "Delete wallet"
 msgstr "מחק ארנק"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:198
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:203
 msgid "Wallets are unavailable if Specter is not connected to Bitcoin Core!"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:201
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:206
 msgid "Configure Node"
 msgstr "הגדרות צומת"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:210
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:279
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:282
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:215
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:284
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:26
 msgid "Devices"
 msgstr "מכשירים"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:217
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:222
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:29
 msgid "Add new device"
 msgstr "הוסף מכשיר חדש"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:221
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:226
 msgid "Specter Version:"
 msgstr "גרסאת ספקטר:"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:223
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:228
 msgid "About Specter"
 msgstr "אודות ספקטר"
 
@@ -2754,89 +2841,97 @@ msgstr ""
 msgid "Specter Data Backup"
 msgstr "גיבוי נתוני ספקטר"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:28
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:27
+msgid "Warning: This backup does not include private seed of the hot wallets or, obviously, the private seed of your Hardwarewallets."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:30
 msgid "Download Specter backup files"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:35
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:37
 msgid "Restoring Specter from backup"
 msgstr "משחזר את ספקטר מגיבוי"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:36
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:38
 msgid "Here you can restore your wallets and devices from an existing Specter backup."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:37
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:39
 msgid "Please make sure to unzip the backup file first, then select the extracted folder for upload."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:38
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:40
 msgid "Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:42
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:53
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:44
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:55
 msgid "Load Specter backup"
 msgstr "טען גיבוי ספקטר"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:48
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:50
 msgid "Choose backup folder"
 msgstr "בחר תיקיית גיבוי"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:56
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:58
 msgid "Miscellaneous"
 msgstr "שונות"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:57
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:59
 msgid "Bitcoin unit to use"
 msgstr "יחידת מידה לשימוש בביטקוין"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:63
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:65
 msgid "Block explorer URL"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:67
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:69
 msgid "Specter does not use the block explorer to get any data whatsoever. This setting is only to allow opening transactions and addresses in a block explorer directly from Specter. All data Specter uses comes directly from your own connected full node."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:70
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:72
 msgid "Fees estimation source"
 msgstr "מקור הערכת העמלות"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:73
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:75
 msgid "Self hosted mempool.space"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:78
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
 msgid "Log Level"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:82
 msgid "Specter-Desktop created a Logfile in"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:82
 msgid "The Debug-Level will create a lot of data, so make sure to avoid that if you don't have a reason."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:91
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:93
 msgid "Validate Merkle Proofs"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:93
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:95
 msgid "Cannot enable when using a pruned bitcoin node"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:100
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:102
 msgid "What's this?"
 msgstr "מה זה?"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:104
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:106
 msgid "Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that displayed as confirmed have been included in the specified block hash."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:105
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:107
 msgid "However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain! If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:145
+msgid "Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:14
@@ -3313,8 +3408,13 @@ msgid "immature"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:41
-#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:45
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:46
 msgid "Assets:"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/history/components/total_wallet_balances.jinja:46
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:58
+msgid "Show assets list"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:12
@@ -3410,6 +3510,10 @@ msgstr ""
 msgid "Be aware of <a style=\"color: #fff\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md\" target=\"_blank\">multisig security tradeoffs</a>."
 msgstr ""
 
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:58
+msgid "Please select at least 2 devices for your multisig"
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:5
 msgid "Name your Wallet"
 msgstr ""
@@ -3418,142 +3522,146 @@ msgstr ""
 msgid "Type of the wallet"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:15
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:16
 msgid "Nested Segwit"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:20
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:21
 msgid "Segwit"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:26
-msgid "<b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy."
-msgstr ""
-
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:32
-msgid "Using"
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:27
+msgid "Taproot"
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:34
+msgid "<b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:40
+msgid "Using"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:42
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:105
 msgid "of"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:42
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:50
 msgid "Scan for existing funds?"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:47
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:55
 msgid "Importing an existing wallet"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:48
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:56
 msgid "Check this option to scan the blockchain for existing wallet balance and history."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:56
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:64
 msgid "Rescan type:"
 msgstr "סוג סריקה חוזרת:"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:57
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:65
 msgid "Full rescan"
 msgstr "סריקה חוזרת מלאה"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:58
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:66
 msgid "UTXO only"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:63
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:71
 msgid "Choosing Rescan Type"
 msgstr "בחר סוג סריקה חוזרת"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:64
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:72
 msgid "Full rescan is a relativly slow process which looks for and imports the full wallet transaction history and balance."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:65
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:73
 msgid "UTXO only is a fast rescan option which only looks for existing balances (UTXO), but will not import the full transaction history."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:77
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:175
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:85
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:208
 msgid "Rescan blockchain from block:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:80
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:88
 msgid "You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:83
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:91
 msgid "In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:88
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:218
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:96
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:251
 msgid "fetch missing data from block explorer"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:89
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:97
 msgid "Fetch missing data"
 msgstr "השג מידע חסר"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:90
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:220
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:98
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:253
 msgid "You are using a pruned node. Blocks for some transactions may be missing."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:91
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:221
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:254
 msgid "Check this checkbox if you want to fetch missing information from block explorer."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:96
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:227
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:104
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:260
 msgid "Block explorer URL:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:99
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:230
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:263
 msgid "Careful with block explorers!"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:100
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:231
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:108
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:264
 msgid "This may have privacy implications!"
 msgstr "יש לכך השלכות על הפרטיות!"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:101
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:232
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:109
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:265
 msgid "Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:102
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:233
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:110
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:266
 msgid "\"They\" will know what transactions you are interested in."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:115
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:123
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:54
 msgid "Signer"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:141
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:149
 msgid "Use this key"
 msgstr "השתמש במפתח זה"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:148
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:156
 msgid "The device does not have keys matching the wallet type selected."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:151
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:159
 msgid "Please choose a different type or add the keys to the device..."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:164
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:172
 msgid "Looks like this device doesn't have keys matching this type of wallet."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:168
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:176
 msgid "Create wallet"
 msgstr "צור ארנק"
 
@@ -3602,121 +3710,125 @@ msgstr ""
 msgid "Multisig is better for large-ish amounts."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:40
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:42
+msgid "Unconfidential"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:46
 msgid "Copied Address:"
 msgstr "כתובת שהועתקה:"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:41
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:47
 msgid "(click to copy)"
 msgstr "(לחץ כדי להעתיק)"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:47
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:54
 msgid "Get new address"
 msgstr "קבל כתובת חדשה"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:54
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:61
 msgid "Scan to Verify Address on Your Device"
 msgstr "סרוקד כדי לאמת כתובת במכשירך"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:57
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:64
 msgid "Specter can verify this address if you scan it.<br>It has an address index included in the QR code."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:60
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:67
 msgid "Verify address via QR code"
 msgstr "וודא כתובת באמצעות ברקוד QR"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:71
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:78
 msgid "Display address on device"
 msgstr "הצג כתובת על גבי המכשיר"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:73
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:80
 msgid "Multsig address on-device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:86
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:93
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:92
 msgid "Export To Device"
 msgstr "ייצא למכשיר"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:87
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:94
 msgid "Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:89
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:96
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:94
 msgid "Import this wallet to a device by scanning its QR code or importing its data file."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:106
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:104
 msgid "Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:109
 msgid "file"
 msgstr "קובץ"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:112
 msgid "Show"
 msgstr "הצג"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:112
 msgid "QR Code"
 msgstr "ברקוד QR"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:114
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:112
 msgid "Scan this with your"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:110
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:117
 msgid "Back"
 msgstr "חזור"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:117
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:124
 msgid "You can always do this later from the wallet Settings tab."
 msgstr "באפשרותך לעשות זאת מאוחר יותר תחת עמודת ההגדרות."
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:118
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:125
 msgid "Finish"
 msgstr "סיים"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:121
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:128
 msgid "New wallet was created successfully!"
 msgstr "ארנק חדש נוצר בהצלחה!"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:124
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:131
 msgid "Save Backup PDF"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:132
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:139
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:44
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:135
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:141
 msgid "Use SLIP-132:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:138
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:142
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:145
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:148
 msgid "To format master keys on the PDF backup document."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:140
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:129
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:147
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:135
 msgid "It is recommended that you print and save this wallet backup file with each of your devices."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:143
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:144
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:150
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:150
 msgid "This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:146
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:147
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:153
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:153
 msgid "It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:148
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:155
 msgid "You can always download this file later from the wallet Settings tab."
 msgstr ""
 
@@ -3814,7 +3926,7 @@ msgstr "הסר נמען"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:84
 msgid "Calculate estimated fee"
-msgstr "חשב עמלה משוערת
+msgstr "חשב עמלה משוער"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:88
 msgid "Transaction editor:"
@@ -3824,66 +3936,66 @@ msgstr "עורך הטרנזקציה:"
 msgid "Add recipient"
 msgstr "הוסף נמען"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:100
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:101
 msgid "Select coins"
 msgstr "בחר מטבעות"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:100
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:101
 msgid "manually"
 msgstr "ידני"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:109
 msgid "Create <span class=\"optional\">&nbsp;unsigned&nbsp;</span>transaction"
 msgstr "צור <span class=\"optional\">&nbsp;unsigned&nbsp;</span> טרנזקציה"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:173
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:182
 msgid "Recipient address:"
 msgstr "כתובת נמען:"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:182
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:191
 msgid "Address label (optional):"
 msgstr "תווית כתובת (לא הכרחי):"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:185
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:194
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:158
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:161
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:181
 msgid "Amount:"
 msgstr "סכום:"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:190
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:199
 msgid "send max"
 msgstr "שלח הכל"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:337
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:346
 msgid "Please first enter a valid address"
 msgstr "אנא הכנס תחילה כתובת תקינה"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:385
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:394
 msgid "Amount entered is invalid!"
 msgstr "הסכום שצוין שגוי!"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:399
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:408
 msgid "You cannot send more than"
 msgstr "אין באפשרותך לשלוח יותר מ"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:404
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:413
 msgid "You need to select more coins to match your amount!"
 msgstr "עלייך לבחור עוד מטבעות כדי להגיע לסכום הרצוי!"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:409
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:418
 msgid "Invalid amount! Wrong unit?"
 msgstr "כמות שגויה! יחידת מידה שגויה?"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:445
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:454
 msgid "Please enter the amount that you wish to send"
 msgstr "אנא הכנס את הכמות שברצונך לשלוח"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:459
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:468
 msgid "Please enter a valid recipient address"
 msgstr "אנא הכנס כתובת נמען תקינה"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:585
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:595
 msgid "failed to calculate transaction fees"
 msgstr "כישלון בחישוב עמלת הטרנזקציה"
 
@@ -3917,44 +4029,40 @@ msgid "manual"
 msgstr "ידני"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:26
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:39
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:40
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:119
 msgid "Fee rate:"
 msgstr "שיעור עמלה:"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:29
-msgid "leave blank to set automatically, 1 sat/vbyte is the minimal fee rate."
-msgstr ""
-
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:37
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:38
 msgid "Estimated speed:"
 msgstr "מהירות מוערכת:"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:43
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:44
 msgid "RBF Enabled"
 msgstr "החלפת עמלה מאופשרת"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:69
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:70
 msgid "Very slow"
 msgstr "איטי מאד"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:71
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:72
 msgid "Slow"
 msgstr "איטי"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:73
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:74
 msgid "Medium (1 hour)"
 msgstr "בינוני (שעה)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:75
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:76
 msgid "Fast (30 minutes)"
 msgstr "מהיר (30 דקות)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:77
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:78
 msgid "Very fast (10 minutes)"
 msgstr "מהיר מאד (10 דקות)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:79
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:80
 msgid "Overpaid! (10 minutes)"
 msgstr "יתר על המידה! (10 דקות)"
 
@@ -4100,7 +4208,7 @@ msgid "Wallet Info"
 msgstr "מידע על הארנק"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:41
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:269
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:365
 msgid "Show keys details"
 msgstr "הצג פרטי מפתחות"
 
@@ -4121,87 +4229,115 @@ msgid "Import this wallet to another Specter instance or other supported wallet 
 msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:127
+msgid "Export Specter format"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:129
+msgid "Export a JSON file containing complete wallet data including labels."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:133
 msgid "Export PDF backup"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:154
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:160
 msgid "Advanced Options"
 msgstr "אפשרויות מתקדמות"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:156
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:162
+msgid "Import Electrum address labels"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:168
+msgid "Paste json here  or  Drag&Drop electrum_labels.json"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:179
+msgid "Importing electrum labels"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:180
+msgid "The expected json format contains utxo ids and addresses with the labels:"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:181
+msgid "{ \"8a5e4...\": \"some utxo label\", \"bc1qj3...\": \"some address label\" }"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:189
 msgid "Keypool control"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "Currently watching"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "receiving and"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "change addresses."
 msgstr "כתובת עודף."
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:194
 msgid "Watch"
 msgstr "צפה"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:194
 msgid "more addresses"
 msgstr "כתובות נוספות"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:166
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:199
 msgid "Blockchain rescan"
 msgstr "סרוק מחדש את הבלוקצ׳יין"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:172
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:196
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:205
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:229
 msgid "Abort rescan"
 msgstr "בטל סריקה מחודשת"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:186
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:219
 msgid "Note: You are using a pruned node. Rescan is limited by the pruned height to block:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:188
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:221
 msgid "was the first Segwit block."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:228
 msgid "UTXO rescan in process:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:200
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:233
 msgid "Or rescan only unspent transactions:"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:203
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:236
 msgid "Rescan UTXO"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:208
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:241
 msgid "Rescanning UTXO set"
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:209
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:242
 msgid "Only unspent transactions will be imported, so you won't see the full history, but your balance will be there."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:243
 msgid "Note:"
 msgstr "הערה:"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:243
 msgid "Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found."
 msgstr ""
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:255
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:288
 msgid "Delete Wallet"
 msgstr "מחק ארנק"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:368
 msgid "Hide keys details"
 msgstr "הסתר מידע מפתחות"
 
@@ -4213,3 +4349,13 @@ msgstr "הסתר מידע מפתחות"
 
 #~ msgid "<p><br>Configure Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure\" target=\"_blank\" style=\"color: white;\">here</a> for more information.</p>"
 #~ msgstr ""
+
+#~ msgid "Raw Transaction"
+#~ msgstr ""
+
+#~ msgid "password"
+#~ msgstr "סיסמה"
+
+#~ msgid "leave blank to set automatically, 1 sat/vbyte is the minimal fee rate."
+#~ msgstr ""
+
