@@ -17,7 +17,7 @@
     <a
 	id="electrum_export"
 	download="{{ wallet.alias | ascii20 }}_electrum.backup"
-	onclick="showNotification('Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup', 0)"
+	onclick="showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0)"
 	class="btn centered padded">
 	    Download Electrum (Watch-Only) File
     </a>

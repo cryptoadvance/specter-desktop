@@ -47,7 +47,7 @@
 
 <script type="text/javascript">
 
-    function showHWIProgress(title='{{ _("Processing...") }}', text='{{ _("Keep your wallet connected.") }}'){
+    function showHWIProgress(title=`{{ _("Processing...") }}`, text=`{{ _("Keep your wallet connected.") }}`){
         document.getElementById('hwi_progress_title').innerHTML = title;
         document.getElementById('hwi_progress_text').innerHTML = text;
         showPageOverlay('hwi_progress');
@@ -82,7 +82,7 @@
                 }
         // detect device
         if (devicePath == null) {
-            showHWIProgress('{{ _("Detecting...") }}', '{{ _("Plug in your device") }}');
+            showHWIProgress(`{{ _("Detecting...") }}', '{{ _("Plug in your device") }}`);
         }
         let result = [];
         let retryCounter = 0;
@@ -160,7 +160,7 @@
 
     async function getXpubs(device, account=0, passphrase=""){
         // detect device
-        showHWIProgress('{{ _("Extracting public keys...") }}', 
+        showHWIProgress(`{{ _("Extracting public keys...") }}`, 
             `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
@@ -180,7 +180,7 @@
 
     async function getXpub(device, derivation="", passphrase="", chain=""){
         // detect device
-        showHWIProgress('{{ _("Extracting public key...") }}<br><span style=\'font-size: 0.8em;\'>{{ _("Derivation") }}: ' + derivation + "</span>", 
+        showHWIProgress(`{{ _("Extracting public key...") }}<br><span style=\'font-size: 0.8em;\'>{{ _("Derivation") }}: ` + derivation + "</span>", 
             `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
@@ -200,7 +200,7 @@
 
     async function getMasterBlindingKey(device, passphrase="", chain=""){
         // detect device
-        showHWIProgress('{{ _("Extracting master blinding key...") }}', 
+        showHWIProgress(`{{ _("Extracting master blinding key...") }}`, 
             `{{ _("Please confirm action on your") }} ${capitalize(device.type)} {{ _("device") }}.`);
         let result = [];
         try {

@@ -193,6 +193,7 @@
                 }
             })
             
+            // TODO: Testing on 'Edit' not safe for multilanguage support?
             if (document.getElementById('edit-xpubs-table-btn').innerHTML != 'Edit') {
                 for (let el of document.getElementsByClassName('xpubs_edit')) {
                     el.style.visibility = 'visible';
@@ -286,11 +287,11 @@
 
         function editXpubsTable(editBtn) {
             let visibility = '';
-            if (editBtn.innerHTML == '{{ _("Edit") }}') {
-                editBtn.innerHTML = '{{ _("Done") }}';
+            if (editBtn.innerHTML == `{{ _("Edit") }}`) {
+                editBtn.innerHTML = `{{ _("Done") }}`;
                 visibility = 'visible';
             } else {
-                editBtn.innerHTML = '{{ _("Edit") }}';
+                editBtn.innerHTML = `{{ _("Edit") }}`;
                 visibility = 'hidden';
             }
             document.getElementById('edit_select_add_method').style.display = 'table-row';
@@ -319,7 +320,7 @@
             }
             // this shouldn't happen actually
             if(devices.length == 0){
-                showError('{{ _("No devices found :(") }}');
+                showError(`{{ _("No devices found :(") }}`);
                 return;
             }
 
@@ -353,7 +354,7 @@
                     "{specter.chain}"
                 );
                 if(xpub == null){
-                    showError('{{ _("Failed to retrive device data. Please try again.") }}');
+                    showError(`{{ _("Failed to retrive device data. Please try again.") }}`);
                     return;
                 }
 
@@ -485,7 +486,7 @@
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
                         addXpubs(str);
                     }else{
-                        showError('{{ _("Unknown key format") }}');
+                        showError(`{{ _("Unknown key format") }}`);
                     }
                 }else{
                     addXpubs(result);

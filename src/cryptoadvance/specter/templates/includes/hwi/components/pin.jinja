@@ -13,7 +13,7 @@
     async function enterPin(device, promptPin=true){
         let result = null;
         if (promptPin) {
-            showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+            showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
             try {
                 result = await hwi.promptPin(device);
             } catch (error) {
@@ -59,7 +59,7 @@
         el.appendChild(document.createElement('br'));
         let submit = document.createElement('button');
         submit.classList.add('btn');
-        submit.innerHTML = '{{ _("Submit") }}';
+        submit.innerHTML = `{{ _("Submit") }}`;
         submit.addEventListener('click', e=>{
             pinReady = true;
         });
@@ -81,7 +81,7 @@
         }
         hidePageOverlay();
         // now we have PIN - send it
-        showHWIProgress('{{ _("Processing...") }}', `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+        showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
         result = null;
         try {
             result = await hwi.sendPin(device, pin);
