@@ -19,6 +19,12 @@ from flask import flash, jsonify, redirect, render_template, request, send_file,
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 
+from oauthlib.oauth2.rfc6749.errors import (
+    InvalidGrantError,
+    MismatchingStateError,
+    InvalidClientError,
+)
+
 from ..helpers import (
     get_loglevel,
     get_startblock_by_chain,
@@ -33,7 +39,7 @@ from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..util.google_drive import (
     backup,
-    callback,
+    verify_google_oauth,
     download_latest_backup,
     extract_wallets_and_devices,
     require_google_oauth,
@@ -573,45 +579,56 @@ def backup_file():
 @login_required
 @require_google_oauth
 def backup_to_google_drive():
-    try:
-        backup(app.specter.specter_backup_file())
-        app.logger.info("Backed up to Google Drive successfully!")
-        return {"success": True}
-    except Exception as e:
-        current_user.clear_google_oauth_data()
-        app.logger.warning("Failed to backup to Google Drive. Exception: {}".format(e))
-        return {"error": str(e)}, 500
+    backup(app.specter.specter_backup_file())
+    app.logger.info("Backed up to Google Drive successfully!")
+    return {"success": True}
 
 
 @settings_endpoint.route("/restore_from_google_drive", methods=["POST"])
 @login_required
 @require_google_oauth
 def restore_from_google_drive():
-    try:
-        fh = download_latest_backup()
-        if not fh:
-            return {"success": False, message: "No backups found."}
+    fh = download_latest_backup()
+    if not fh:
+        return {"success": False, message: "No backups found."}
 
-        app.logger.info("Downloaded the latest backup from Google Drive!")
+    app.logger.info("Downloaded the latest backup from Google Drive!")
 
-        wallets, devices = extract_wallets_and_devices(fh)
-        app.logger.info("Extracted wallets and devices from specter_backup.zip!")
+    wallets, devices = extract_wallets_and_devices(fh)
+    app.logger.info("Extracted wallets and devices from specter_backup.zip!")
 
-        return {"success": True, "wallets": wallets, "devices": devices}
-    except Exception as e:
-        current_user.clear_google_oauth_data()
-        app.logger.warning(
-            "Failed to restore from Google Drive. Exception: {}".format(e)
-        )
-        return {"error": str(e)}, 500
+    return {"success": True, "wallets": wallets, "devices": devices}
 
 
 @settings_endpoint.route("/google_oauth/callback", methods=["GET"])
 @login_required
 def google_oauth_callback():
     try:
-        callback()
-    except Exception as e:
+        state = current_user.google_oauth_data["state"]
+        credentials = verify_google_oauth(state, request.url)
+        current_user.set_google_oauth_creds(credentials)
+
+    except KeyError as e:
         current_user.clear_google_oauth_data()
-        app.logger.warning("Failed to login to Google Drive. Exception: {}".format(e))
+        app.logger.warning(
+            "Failed to verify Google OAuth. No state found in current_user.google_oauth_data."
+        )
+        raise Exception(
+            "Failed to verify Google OAuth. No state found in current_user.google_oauth_data."
+        )
+    except InvalidGrantError as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning("Failed to verify Google OAuth token.")
+        raise Exception("Failed to verify Google OAuth token.")
+    except MismatchingStateError as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning(
+            "Failed to verify Google OAuth due to a possible CSRF error."
+        )
+        raise Exception("Failed to verify Google OAuth due to a possible CSRF error.")
+    except InvalidClientError as e:
+        current_user.clear_google_oauth_data()
+        app.logger.warning("Invalid Google OAuth client config passed.")
+        raise Exception("Invalid Google OAuth client config passed.")
+
     return redirect(url_for("settings_endpoint.general"))

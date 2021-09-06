@@ -20,7 +20,6 @@ load_dotenv(env_path)
 CLIENT_CONFIG = {
     "web": {
         "client_id": os.environ.get("GOOGLE_OAUTH_CLIENT_ID"),
-        "project_id": os.environ.get("GOOGLE_OAUTH_PROJECT_ID"),
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
         "client_secret": os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET"),
@@ -99,18 +98,14 @@ def extract_wallets_and_devices(file):
     return wallets, devices
 
 
-def callback():
-    state = current_user.google_oauth_data["state"]
+def verify_google_oauth(state, auth_response):
     flow = Flow.from_client_config(
         client_config=CLIENT_CONFIG, scopes=SCOPES, state=state
     )
     flow.redirect_uri = REDIRECT_URI
+    flow.fetch_token(authorization_response=auth_response)
 
-    authorization_response = request.url
-    flow.fetch_token(authorization_response=authorization_response)
-
-    credentials = flow.credentials
-    current_user.set_google_oauth_creds(credentials)
+    return flow.credentials
 
 
 def require_google_oauth(func):
