@@ -590,7 +590,7 @@ def backup_to_google_drive():
 def restore_from_google_drive():
     fh = download_latest_backup()
     if not fh:
-        return {"success": False, message: "No backups found."}
+        return {"message": "No backups found."}, 404
 
     app.logger.info("Downloaded the latest backup from Google Drive!")
 
