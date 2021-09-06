@@ -221,7 +221,6 @@
             {% endfor %}
             {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device') }}
         </div>
-        {{ sidebar_btn(url_for('devices_endpoint.new_device'), 'Add new device', 'btn_new_device') }}
         {% include "services/sidebar_services_list.jinja" %}
         {{ sidebar_btn(url_for('settings_endpoint.general', _anchor='services-title'), 'Choose services', 'btn_new_service') }}
         <br>
