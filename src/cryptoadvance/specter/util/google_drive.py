@@ -116,11 +116,7 @@ def require_google_oauth(func):
         if not "creds" in current_user.google_oauth_data:
             authorization_url, state = trigger_google_oauth()
             current_user.set_google_oauth_state(state)
-            return (
-                {"redirect_url": authorization_url},
-                307,
-                {"Location": authorization_url},
-            )
+            return ({"redirect_url": authorization_url}, 401)
         else:
             return func(*args, **kwargs)
 
