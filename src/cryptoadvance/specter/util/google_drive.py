@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from google_auth_oauthlib.flow import Flow
 
-from flask import current_app as app, request
+from flask import current_app as app, request, url_for
 from flask_login import current_user
 
 from zipfile import ZipFile
@@ -26,12 +26,13 @@ CLIENT_CONFIG = {
     }
 }
 SCOPES = ["https://www.googleapis.com/auth/drive.appdata"]
-REDIRECT_URI = "http://localhost:25441/settings/google_oauth/callback"
 
 
 def trigger_google_oauth():
     flow = Flow.from_client_config(client_config=CLIENT_CONFIG, scopes=SCOPES)
-    flow.redirect_uri = REDIRECT_URI
+    flow.redirect_uri = url_for(
+        "settings_endpoint.google_oauth_callback", _external=True
+    )
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without
         # re-prompting the user for permission. Recommended for web server apps.
@@ -102,7 +103,9 @@ def verify_google_oauth(state, auth_response):
     flow = Flow.from_client_config(
         client_config=CLIENT_CONFIG, scopes=SCOPES, state=state
     )
-    flow.redirect_uri = REDIRECT_URI
+    flow.redirect_uri = url_for(
+        "settings_endpoint.google_oauth_callback", _external=True
+    )
     flow.fetch_token(authorization_response=auth_response)
 
     return flow.credentials
