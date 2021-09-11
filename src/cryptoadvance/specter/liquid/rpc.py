@@ -35,6 +35,41 @@ class LiquidRPC(BitcoinRPC):
     """
 
     _master_blinding_key = None
+    _asset_labels = None
+
+    @property
+    def asset_labels(self):
+        if self._asset_labels is None:
+            self._asset_labels = super().__getattr__("dumpassetlabels")()
+        return self._asset_labels
+
+    @property
+    def master_blinding_key(self):
+        if self._master_blinding_key is None:
+            self._master_blinding_key = PrivateKey(
+                bytes.fromhex(self.dumpmasterblindingkey())
+            )
+        return self._master_blinding_key
+
+    def dumpassetlabels(self, *args, **kwargs):
+        # inject cache
+        res = super().__getattr__("dumpassetlabels")()
+        self._asset_labels = res
+        return res
+
+    def importmasterblindingkey(self, *args, **kwargs):
+        # clear cache
+        self._master_blinding_key = None
+        return super().__getattr__("importmasterblindingkey")(*args, **kwargs)
+
+    def _patch_assetlabels(self, obj):
+        # check if assets are labeled and replace with real assetsids
+        if isinstance(obj, dict):
+            for asset in list(obj.keys()):
+                if asset in self.asset_labels and asset != "bitcoin":
+                    assetid = self.asset_labels[asset]
+                    obj[assetid] = obj[asset]
+                    del obj[asset]
 
     def getbalance(
         self,
@@ -53,7 +88,9 @@ class LiquidRPC(BitcoinRPC):
         # if assetlabel is explicitly set to None - return all assets
         if assetlabel is not None:
             args.append(assetlabel)
-        return super().__getattr__("getbalance")(*args, **kwargs)
+        res = super().__getattr__("getbalance")(*args, **kwargs)
+        self._patch_assetlabels(res)
+        return res
 
     def _patch_descriptors(self, arr):
         # used by importmulti and importdescriptors
@@ -95,6 +132,9 @@ class LiquidRPC(BitcoinRPC):
         res = super().__getattr__("getbalances")(**kwargs)
         # if assetlabel is explicitly set to None - return as is
         if assetlabel is None:
+            for k in res:
+                for kk in res[k]:
+                    self._patch_assetlabels(res[k][kk])
             return res
         # otherwise get balances for a particular assetlabel
         for k in res:
@@ -338,14 +378,6 @@ class LiquidRPC(BitcoinRPC):
             if "asset" not in inp2:
                 inp2["asset"] = a
         return decoded
-
-    @property
-    def master_blinding_key(self):
-        if self._master_blinding_key is None:
-            self._master_blinding_key = PrivateKey(
-                bytes.fromhex(self.dumpmasterblindingkey())
-            )
-        return self._master_blinding_key
 
     def decoderawtransaction(self, tx):
         blinded = super().__getattr__("decoderawtransaction")(tx)
