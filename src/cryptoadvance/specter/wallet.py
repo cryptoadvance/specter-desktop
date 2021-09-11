@@ -1773,7 +1773,7 @@ class Wallet:
         xpubs: bool = True,
         taproot_derivations: bool = False,
     ):
-        psbt = PSBT.from_string(b64psbt)
+        psbt = self.PSBTCls.from_string(b64psbt)
 
         # Core doesn't fill derivations yet, so we do it ourselves
         if taproot_derivations and self.is_taproot:
@@ -1802,7 +1802,7 @@ class Wallet:
                 txid = inp.txid.hex()
                 try:
                     res = self.gettransaction(txid)
-                    inp.non_witness_utxo = Transaction.from_string(res["hex"])
+                    inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
                     logger.error(
                         f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
