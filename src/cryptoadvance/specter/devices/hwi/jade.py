@@ -35,6 +35,7 @@ from hwilib._script import (
 import logging
 import os
 
+# embit-related things
 from embit import ec
 
 JADE_VENDOR_ID = 0x10C4
@@ -43,6 +44,8 @@ JADE_DEVICE_ID = 0xEA60
 py_enumerate = (
     enumerate  # To use the enumerate built-in, since the name is overridden below
 )
+
+logger = logging.getLogger(__name__)
 
 
 def jade_exception(f):
@@ -128,7 +131,6 @@ class JadeClient(HardwareWalletClient):
         mbk = self.jade.get_master_blinding_key()
         assert len(mbk) == 32
         bkey = ec.PrivateKey(mbk)
-        # TODO: use correct network here
         return bkey.wif()
 
     # Walk the PSBT looking for inputs we can sign.  Push any signatures into the

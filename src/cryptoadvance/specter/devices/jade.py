@@ -11,6 +11,7 @@ class Jade(HWIDevice):
 
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
+    liquid_support = True
 
     @classmethod
     def get_client(cls, *args, **kwargs):
