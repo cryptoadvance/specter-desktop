@@ -35,6 +35,8 @@ from hwilib._script import (
 import logging
 import os
 
+from embit import ec
+
 JADE_VENDOR_ID = 0x10C4
 JADE_DEVICE_ID = 0xEA60
 
@@ -120,6 +122,14 @@ class JadeClient(HardwareWalletClient):
         xpub = self.jade.get_xpub(self._network(), path)
         ext_key = ExtendedKey.deserialize(xpub)
         return ext_key
+
+    @jade_exception
+    def get_master_blinding_key(self) -> str:
+        mbk = self.jade.get_master_blinding_key()
+        assert len(mbk) == 32
+        bkey = ec.PrivateKey(mbk)
+        # TODO: use correct network here
+        return bkey.wif()
 
     # Walk the PSBT looking for inputs we can sign.  Push any signatures into the
     # 'partial_sigs' map in the input, and return the updated PSBT.
