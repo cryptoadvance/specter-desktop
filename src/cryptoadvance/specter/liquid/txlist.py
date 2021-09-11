@@ -56,7 +56,6 @@ class LTxList(TxList):
 
     def fill_missing(self, tx):
         raw_tx = self.decoderawtransaction(tx.hex)
-        logger.error(raw_tx)
         tx["vsize"] = raw_tx["vsize"]
 
         category = ""
