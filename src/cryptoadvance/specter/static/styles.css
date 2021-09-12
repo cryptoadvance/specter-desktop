@@ -420,6 +420,25 @@ input, textarea, .input, select{
     min-width: 170px;
     color: #fff;
 }
+.textarea-container {
+    position: relative;
+    min-width: 300px;
+    min-height: 100px;
+}
+.textarea-container textarea {
+    min-width: 300px;
+    min-height: 100px;
+    width: 100%;
+    height: 100%;
+}
+.textarea-container label {
+    margin: 8px;
+    position: absolute;
+    bottom: 0%;
+    left: 50%;
+    -ms-transform: translate(-50%, 0%);
+    transform: translate(-50%, 0%);
+}		
 select option{
     background: var(--cmap-bg);
     color: #fff;

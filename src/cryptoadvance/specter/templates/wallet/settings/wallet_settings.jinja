@@ -163,14 +163,23 @@
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<textarea name="import_electrum_labels_json" 
-					id="import_electrum_labels_json" 
-					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
-					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
-					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
-					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
-					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
-					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
+					<div class="textarea-container">
+						<textarea name="import_electrum_labels_json" 
+							id="import_electrum_labels_json" 
+							placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
+							onmouseenter="showButton('open_file_button_for_import_electrum_labels_json');" 
+							onmouseleave="hideButton('open_file_button_for_import_electrum_labels_json');" 
+							ondrop="dropHandler(event, 'import_electrum_labels_json');" 
+							ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
+							ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
+							ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
+							ondragend="dragEndHandler(event, 'import_electrum_labels_json');">
+						</textarea>
+						<input type="file" id="file" class="inputfile"/>
+						<label  id="open_file_button_for_import_electrum_labels_json" for="file" class="btn"  >
+							<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Choose file") }}
+						</label>
+					</div>
 					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
 						<div class="tool-tip">
 							<i class="tool-tip__icon">i</i>
@@ -305,6 +314,12 @@
 			}
 		}
 
+		function showButton(button_name) {
+			document.getElementById(button_name).style.display = '';
+		}
+		function hideButton(button_name) {
+			document.getElementById(button_name).style.display = 'none';
+		}
 		function dropHandler(ev, textarea_name) {
 			console.log('File(s) dropped');
 
@@ -329,7 +344,6 @@
 				}
 			}
 		}
-
 		function dragOverHandler(ev, textarea_name) {
 			//console.log('File(s) in drop zone');
 
@@ -337,7 +351,6 @@
 			ev.preventDefault();
 			document.getElementById(textarea_name).value = "Drop file here"
 		}
-
 		function dragLeaveHandler(ev, textarea_name) {
 			// Prevent default behavior (Prevent file from being opened)
 			document.getElementById(textarea_name).value = ""
@@ -350,6 +363,22 @@
 			// Prevent default behavior (Prevent file from being opened)
 			document.getElementById(textarea_name).value = ""
 		}
+
+
+	document.addEventListener("DOMContentLoaded", function(){
+		var el = document.getElementById("file");
+
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				files = e.currentTarget.files;
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					console.log(files[i].name);
+					paste_file_in_textarea(files[i], document.getElementById("import_electrum_labels_json"))
+				}
+			});
+		}
+	});
 	</script>
 	<script>
 		document.addEventListener("DOMContentLoaded", function(){
