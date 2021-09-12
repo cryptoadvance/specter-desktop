@@ -422,11 +422,9 @@ input, textarea, .input, select{
 }
 .textarea-container {
     position: relative;
-    min-width: 300px;
     min-height: 100px;
 }
 .textarea-container textarea {
-    min-width: 300px;
     min-height: 100px;
     width: 100%;
     height: 100%;

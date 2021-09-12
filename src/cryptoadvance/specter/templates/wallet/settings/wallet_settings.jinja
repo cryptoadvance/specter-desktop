@@ -163,7 +163,7 @@
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<div class="textarea-container">
+					<div class="textarea-container" style="width: 80%;">
 						<textarea name="import_electrum_labels_json" 
 							id="import_electrum_labels_json" 
 							placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
