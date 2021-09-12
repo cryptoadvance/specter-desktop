@@ -420,16 +420,16 @@ input, textarea, .input, select{
     min-width: 170px;
     color: #fff;
 }
-.textarea-container {
+.filedragdrop-container {
     position: relative;
     min-height: 100px;
 }
-.textarea-container textarea {
+.filedragdrop-container textarea {
     min-height: 100px;
     width: 100%;
     height: 100%;
 }
-.textarea-container label {
+.filedragdrop-container label {
     margin: 8px;
     position: absolute;
     bottom: 8px;
@@ -439,7 +439,7 @@ input, textarea, .input, select{
     opacity: 0.3;
     transition: 0.3s;
 }		
-.textarea-container label:hover {opacity: 1}
+.filedragdrop-container label:hover {opacity: 1}
 
 select option{
     background: var(--cmap-bg);

@@ -163,7 +163,7 @@
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<div class="textarea-container" style="width: 80%;">
+					<div class="filedragdrop-container" style="width: 80%;">
 						<textarea name="import_electrum_labels_json" 
 							id="import_electrum_labels_json" 
 							placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
@@ -307,7 +307,7 @@
 {% block scripts %} 
 	<script type="text/javascript">
 		//---------------------------------		
-		// Beginning code-block for the textarea-container, including file picker and drag&drop
+		// Beginning code-block for the filedragdrop-container, including file picker and drag&drop
 		//---------------------------------		
 		function paste_file_in_textarea(file, textarea) {
 			if (file != null  ) {
@@ -378,7 +378,7 @@
 			}
 		});
 		//---------------------------------		
-		// End code-block for the textarea-container, including file picker and drag&drop
+		// End code-block for the filedragdrop-container, including file picker and drag&drop
 		//---------------------------------		
 		
 		document.addEventListener("DOMContentLoaded", function(){
