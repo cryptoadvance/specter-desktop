@@ -142,7 +142,7 @@
 					let devices = []
 					files = e.currentTarget.files;
 					if (e.currentTarget.files.length == 1 && e.currentTarget.files[0].type == 'application/zip') {
-						showError("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder", 10000);
+						showError(`{{ _("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder") }}`, 10000);
 						return;
 					}
 					console.log(files);
