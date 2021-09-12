@@ -35,10 +35,10 @@
         }
 
         if (fingerprint && device.fingerprint != fingerprint) {
-            handleHWIError('{{ _("Selected device does not have matching signing key.") }}');
+            handleHWIError(`{{ _("Selected device does not have matching signing key.") }}`);
             return;
         }
-        showHWIProgress('{{ _("Signing transaction...") }}', `{{ _("Confirm on your") }} ${capitalize(device.type)}.`);
+        showHWIProgress(`{{ _("Signing transaction...") }}`, `{{ _("Confirm on your") }} ${capitalize(device.type)}.`);
         let signedTx = null;
         try {
             signedTx = await hwi.signTx(device, psbt);
@@ -87,12 +87,12 @@
             (("{{ specter.chain }}" != "regtest" || !result.startsWith("tb")) ||
             address.slice(0, -6) != "bcrt" + result.slice(2, -6))
         ) {
-            showError('{{ _("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!") }}');
+            showError(`{{ _("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!") }}`);
         } else {
             if (device.type == 'coldcard') {
-                showNotification('{{ _("Address displayed successfully! Please check the device screen.") }}', 7000);
+                showNotification(`{{ _("Address displayed successfully! Please check the device screen.") }}`, 7000);
             } else {
-                showNotification('{{ _("Address was verified successfully!") }}', 5000);
+                showNotification(`{{ _("Address was verified successfully!") }}`, 5000);
             }
         }
     }

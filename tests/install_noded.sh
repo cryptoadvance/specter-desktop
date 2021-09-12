@@ -152,6 +152,7 @@ function sub_help {
 function check_compile_prerequisites {
     REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
     REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+    REQUIRED_PKGS="$REQUIRED_PKGS wget"
     for REQUIRED_PKG in $REQUIRED_PKGS; do
         PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
         echo Checking for $REQUIRED_PKG: $PKG_OK
@@ -161,7 +162,19 @@ function check_compile_prerequisites {
             apt-get --yes install $REQUIRED_PKG 
         fi
     done
+}
 
+function check_binary_prerequisites {
+    REQUIRED_PKGS="wget"
+    for REQUIRED_PKG in $REQUIRED_PKGS; do
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+        echo Checking for $REQUIRED_PKG: $PKG_OK
+        if [ "" = "$PKG_OK" ]; then
+            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+            apt-get --yes install $REQUIRED_PKG 
+        fi
+    done
 }
 
 function sub_compile {
@@ -183,14 +196,17 @@ function sub_compile {
 }
 
 function sub_binary {
+    node_impl=$1
     if [ "$node_impl" = "elements" ]; then
         echo "    --> binary installation of elements not supported, exiting"
         exit 2
     fi
-    echo "    --> install_noded.sh Start $(date) (binary)"
+    echo "    --> install_noded.sh Start $(date) (binary) for node_impl $node_impl"
     START=$(date +%s.%N)
+    check_binary_prerequisites
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
+    echo "    --> install version $version"
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
     if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
@@ -207,6 +223,8 @@ function sub_binary {
     ln -s ./bitcoin-${version} bitcoin
     echo "    --> Listing binaries"
     find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    echo "    --> checking for bitcoind"
+    test -x ./bitcoin/bin/bitcodind || (echo "not found" && exit 2)
     echo "    --> Finished installing bitcoind binary"
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
@@ -246,11 +264,11 @@ function parse_and_execute() {
         shift
         ;;
       compile)
-        sub_compile $node_impl
+        sub_compile $node_impl || exit 2
         shift
         ;;
       binary)
-        sub_binary
+        sub_binary $node_impl || exit 2
         shift
         ;;
       *)

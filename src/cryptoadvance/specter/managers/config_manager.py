@@ -118,7 +118,11 @@ class ConfigManager(GenericDataManager):
         if user.is_admin:
             if "asset_labels" not in self.data:
                 self.data["asset_labels"] = {}
-            deep_update(self.data["asset_labels"], {chain: {asset: label}})
+            if not label:
+                if self.data["asset_labels"].get(chain, {}).get(asset):
+                    del self.data["asset_labels"][chain][asset]
+            else:
+                deep_update(self.data["asset_labels"], {chain: {asset: label}})
             self._save()
         else:
             user.update_asset_label(asset, label, chain)

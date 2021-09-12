@@ -281,7 +281,7 @@
 
     document.addEventListener("DOMContentLoaded", function(){
         if ('{{ specter.device_manager.devices_names | length }}' == '0') {
-            document.getElementById('toggle_devices_list').innerHTML = '{{ _("Devices") }}';
+            document.getElementById('toggle_devices_list').innerHTML = `{{ _("Devices") }}`;
         } else {
             document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
                 toggleList('devices', '{{ _("Devices") }}');
@@ -289,7 +289,7 @@
         }
 
         if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
-            document.getElementById('toggle_wallets_list').innerHTML = '{{ _("Wallets") }}';
+            document.getElementById('toggle_wallets_list').innerHTML = `{{ _("Wallets") }}`;
         } else {
             document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
                 toggleList('wallets', '{{ _("Wallets") }}');

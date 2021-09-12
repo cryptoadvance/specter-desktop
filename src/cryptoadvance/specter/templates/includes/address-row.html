@@ -117,9 +117,9 @@
                             displayAddressOnDevice(this.addressData.address, JSON.stringify(descriptor));
                             return;
                         }
-                        showError('{{ _("Failed to load address data to display...") }}');
+                        showError(`{{ _("Failed to load address data to display...") }}`);
                     }  catch(e) {
-                        showError('{{ _("Failed to load address data to display...") }}');
+                        showError(`{{ _("Failed to load address data to display...") }}`);
                         showError(e);
                     }
                 }
