@@ -436,7 +436,11 @@ input, textarea, .input, select{
     left: 50%;
     -ms-transform: translate(-50%, 0%);
     transform: translate(-50%, 0%);
+    opacity: 0.3;
+    transition: 0.3s;
 }		
+.textarea-container label:hover {opacity: 1}
+
 select option{
     background: var(--cmap-bg);
     color: #fff;
