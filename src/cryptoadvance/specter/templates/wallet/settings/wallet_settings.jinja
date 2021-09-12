@@ -303,6 +303,9 @@
 
 {% block scripts %} 
 	<script type="text/javascript">
+		//---------------------------------		
+		// Beginning code-block for the textarea-container, including file picker and drag&drop
+		//---------------------------------		
 		function paste_file_in_textarea(file, textarea) {
 			if (file != null  ) {
 				console.log(file.name);
@@ -364,23 +367,23 @@
 			document.getElementById(textarea_name).value = ""
 		}
 
-
-	document.addEventListener("DOMContentLoaded", function(){
-		var el = document.getElementById("file");
-
-		if (el != null) {
-			el.addEventListener("change", (e) => {
-				files = e.currentTarget.files;
-				console.log(files);
-				for(let i=0; i<files.length; i++){
-					console.log(files[i].name);
-					paste_file_in_textarea(files[i], document.getElementById("import_electrum_labels_json"))
-				}
-			});
-		}
-	});
-	</script>
-	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			var el = document.getElementById("file");
+			if (el != null) {
+				el.addEventListener("change", (e) => {
+					files = e.currentTarget.files;
+					console.log(files);
+					for(let i=0; i<files.length; i++){
+						console.log(files[i].name);
+						paste_file_in_textarea(files[i], document.getElementById("import_electrum_labels_json"))
+					}
+				});
+			}
+		});
+		//---------------------------------		
+		// End code-block for the textarea-container, including file picker and drag&drop
+		//---------------------------------		
+		
 		document.addEventListener("DOMContentLoaded", function(){
 			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
 			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;

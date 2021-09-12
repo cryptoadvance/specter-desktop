@@ -434,7 +434,7 @@ input, textarea, .input, select{
 .textarea-container label {
     margin: 8px;
     position: absolute;
-    bottom: 0%;
+    bottom: 8px;
     left: 50%;
     -ms-transform: translate(-50%, 0%);
     transform: translate(-50%, 0%);
