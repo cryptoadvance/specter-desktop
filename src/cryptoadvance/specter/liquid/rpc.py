@@ -11,7 +11,7 @@ from embit.liquid.transaction import LTransaction, unblind
 from embit.liquid import finalizer
 from embit.liquid import slip77
 from embit.psbt import read_string
-
+import copy
 from io import BytesIO
 
 import logging
@@ -149,7 +149,9 @@ class LiquidRPC(BitcoinRPC):
             args.append(assetlabel)
         return super().__getattr__("getreceivedbyaddress")(*args, **kwargs)
 
-    def walletcreatefundedpsbt(self, inputs, outputs, *args, blind=True, **kwargs):
+    def walletcreatefundedpsbt(
+        self, inputs, outputs, locktime=0, options={}, *args, blind=True, **kwargs
+    ):
         """
         Creates and blinds an Elements PSBT transaction.
         Arguments:
@@ -157,28 +159,73 @@ class LiquidRPC(BitcoinRPC):
         2. outputs: [{address: amount, "asset": asset}, ...] # TODO: add assets support
         3. locktime = 0
         4. options {includeWatching, changeAddress, subtractFeeFromOutputs,
-                    replaceable, add_inputs, feeRate, fee_rate}
+                    replaceable, add_inputs, feeRate, fee_rate, changeAddresses}
         5. bip32 derivations
         6. solving data
         7. blind = True - Specter-LiquidRPC specific thing - blind transaction after creation
         """
+        options = copy.deepcopy(options)
+        change_addresses = (
+            options.pop("changeAddresses") if "changeAddresses" in options else None
+        )
+        destinations = []
+        for o in outputs:
+            for k in o:
+                if k != "asset":
+                    destinations.append(addr_decode(k)[0])
         res = super().__getattr__("walletcreatefundedpsbt")(
-            inputs, outputs, *args, **kwargs
+            inputs, outputs, locktime, options, *args, **kwargs
         )
         psbt = res.get("psbt", None)
+        # replace change addresses from the transactions if we can
+        if change_addresses and psbt:
+            try:
+                tx = PSET.from_string(psbt)
+                cur = 0
+                for out in tx.outputs:
+                    # fee
+                    if out.script_pubkey.data == b"":
+                        continue
+                    # not change for sure
+                    if not out.bip32_derivations:
+                        continue
+                    # do change replacement
+                    if out.script_pubkey not in destinations:
+                        sc, bkey = addr_decode(change_addresses[cur])
+                        cur += 1
+                        out.script_pubkey = sc
+                        out.blinding_pubkey = bkey.sec() if bkey else None
+                        out.bip32_derivations = {}
+                        out.redeem_script = None
+                        out.witness_script = None
+                # fill derivation info
+                patched = (
+                    super().__getattr__("walletprocesspsbt")(str(tx), False).get("psbt")
+                )
+                patchedtx = PSET.from_string(patched)
+                for out1, out2 in zip(tx.outputs, patchedtx.outputs):
+                    # fee
+                    if out1.script_pubkey.data == b"":
+                        continue
+                    # not change for sure
+                    if not out1.bip32_derivations:
+                        continue
+                    # do change replacement
+                    if out1.script_pubkey not in destinations:
+                        out1.bip32_derivations = out2.bip32_derivations
+                        out1.redeem_script = out2.redeem_script
+                        out1.witness_script = out2.witness_script
+
+                res["psbt"] = str(tx)
+                psbt = res.get("psbt", None)
+            except Exception as e:
+                logger.error(e)
+                raise e
         # check if we should blind the transaction
         if psbt and blind:
             # check that change is also blinded - fixes a bug in pset branch
             tx = PSET.from_string(psbt)
             changepos = res.get("changepos", None)
-            if changepos is not None and len(args) >= 2:
-                addr = args[1].get("changeAddress", None)
-                if addr:
-                    _, bpub = addr_decode(addr)
-                    if bpub and (tx.outputs[changepos].blinding_pubkey is None):
-                        tx.outputs[changepos].blinding_pubkey = bpub.sec()
-                    res["psbt"] = str(tx)
-                    psbt = str(tx)
 
             # generate all blinding stuff ourselves in deterministic way
             tx.unblind(
