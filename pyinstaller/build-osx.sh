@@ -1,4 +1,25 @@
 #!/usr/bin/env bash
+set -exo
+# possible prerequisites
+# brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
+
+# Download into torbrowser:
+# wget -P torbrowser https://archive.torproject.org/tor-package-archive/torbrowser/10.0.15/TorBrowser-10.0.15-osx64_en-US.dmg
+
+# Currently, only MacOS Catalina is supported to build the dmg-file
+# Therefore we expect xcode 12.1 (according to google)
+# After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+# otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
+
+# Fill the keychain with your password like this
+# xcrun altool --store-password-in-keychain-item AC_PASSWORD -u '<your apple id>' -p apassword
+
+# You need to participate in the Apple-Developer Program (Eur 99,- yearly fee)
+# https://developer.apple.com/programs/enroll/ 
+
+# Then you need to create a cert which you need to store in the keychain
+# https://developer.apple.com/account/resources/certificates/list
+
 
 echo $1 > version.txt
 pip3 install -r requirements.txt --require-hashes
@@ -7,7 +28,7 @@ cd ..
 python3 setup.py install
 cd pyinstaller
 rm -rf build/ dist/ release/ electron/release/ electron/dist
-rm *.dmg
+rm *.dmg || true
 pyinstaller specterd.spec
 cd electron
 npm ci
@@ -30,8 +51,11 @@ if [[ "$2" != '' ]]
 then
     echo 'Attempting to code sign...'
     ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
-    xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "$3" --password "@keychain:AC_PASSWORD"
+    output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "$3" --password "@keychain:AC_PASSWORD" --output-format json)
+    echo "Error-Results for notarisation"
+    echo $output_json | jq '."product-errors"[]'
     sleep 180
+    # xcrun altool --notarization-info 0c517c14-2a1a-4df9-8870-3d8865e447ef -u "$3" --password "@keychain:AC_PASSWORD"
     xcrun stapler staple "dist/mac/Specter.app"
 fi
 
