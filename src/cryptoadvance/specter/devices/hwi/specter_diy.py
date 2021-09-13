@@ -99,8 +99,10 @@ class SpecterClient(HardwareWalletClient):
 
     def sign_b64psbt(self, psbt: str) -> str:
         # works with both PSBT and PSET
-        print("sign %s" % psbt)
         return self.query("sign %s" % psbt)
+
+    def sign_pset(self, pset: str) -> str:
+        return self.sign_b64psbt(pset)
 
     def sign_tx(self, psbt: PSBT) -> PSBT:
         """
