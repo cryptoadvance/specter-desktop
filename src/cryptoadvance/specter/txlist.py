@@ -81,7 +81,9 @@ class TxItem(dict):
             try:
                 if os.path.isfile(self.fname):
                     with open(self.fname, "rb") as f:
-                        return self.TransactionCls.read_from(f)
+                        tx = self.TransactionCls.read_from(f)
+                        self._tx = tx
+                        return tx
             except Exception as e:
                 logger.error(e)
         # if we failed to load tx from file - load it from RPC
@@ -89,7 +91,9 @@ class TxItem(dict):
             # get transaction from rpc
             try:
                 res = self.rpc.gettransaction(self.txid)
-                self._tx = self.TransactionCls.from_string(res["hex"])
+                tx = self.TransactionCls.from_string(res["hex"])
+                self._tx = tx
+                return tx
             except Exception as e:
                 logger.error(e)
         return self._tx
@@ -97,13 +101,13 @@ class TxItem(dict):
     def dump(self):
         """Dumps transaction in binary to the folder if it's not there"""
         # nothing to do if file exists or we don't have binary tx
-        if os.path.isfile(self.fname) or not self.tx:
+        if os.path.isfile(self.fname) or not self._tx:
             return
         # create dir if it doesn't exist
         if not os.path.isdir(self.rawdir):
             os.mkdir(self.rawdir)
         with open(self.fname, "wb") as f:
-            self._tx.write_to(f)
+            self.tx.write_to(f)
         # clear cached tx as we saved the transaction to file
         self._tx = None
 
