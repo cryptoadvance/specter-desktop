@@ -81,8 +81,14 @@ def jade_exception(f):
 class JadeClient(HardwareWalletClient):
 
     NETWORKS = {Chain.MAIN: "mainnet", Chain.TEST: "testnet", Chain.REGTEST: "regtest"}
+    liquid_network = None
+
+    def set_liquid_network(self, chain):
+        self.liquid_network = "liquid" if chain == "liquidv1" else "localtest-liquid"
 
     def _network(self):
+        if self.liquid_network:
+            return self.liquid_network
         return JadeClient.NETWORKS.get(self.chain, "mainnet")
 
     ADDRTYPES = {

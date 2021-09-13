@@ -14,7 +14,7 @@ import logging
 import bitbox02
 from typing import Callable
 from flask import current_app as app
-from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config, is_testnet, is_liquid
 from hwilib.devices.bitbox02 import Bitbox02Client
 from .devices.hwi.specter_diy import SpecterClient
 from .devices.hwi.jade import JadeClient
@@ -293,7 +293,6 @@ class HWIBridge(JSONRPC):
                 status = hwi_commands.displayaddress(
                     client, desc=descriptor.get("descriptor", "")
                 )
-            client.close()
             if "error" in status:
                 raise Exception(status["error"])
             elif "address" in status:
@@ -402,28 +401,31 @@ class HWIBridge(JSONRPC):
         device = self.detect_device(
             device_type=device_type, fingerprint=fingerprint, path=path
         )
-        if device:
-            devcls = get_device_class(device["type"])
-            if devcls:
-                client = devcls.get_client(device["path"], passphrase)
-            if not client:
-                raise Exception(
-                    "The device was identified but could not be reached.  Please check it is properly connected and try again"
-                )
-            try:
-                if chain == "liquidv1":
-                    chain = "main"
-                client.chain = Chain.argparse(chain)
-                if type(client) is JadeClient:
-                    if chain == "signet":
-                        client.chain = Chain.TEST
-                yield client
-            finally:
-                client.close()
-        else:
+        if not device:
             raise Exception(
                 "The device could not be found. Please check it is properly connected and try again"
             )
+        devcls = get_device_class(device["type"])
+        if devcls:
+            client = devcls.get_client(device["path"], passphrase)
+        if not client:
+            raise Exception(
+                "The device was identified but could not be reached.  Please check it is properly connected and try again"
+            )
+        try:
+            if is_liquid(chain):
+                client.chain = Chain.TEST if is_testnet(chain) else Chain.MAIN
+            else:
+                client.chain = Chain.argparse(chain)
+            # hack for Jade
+            if type(client) is JadeClient:
+                if is_liquid(chain):
+                    client.set_liquid_network(chain)
+                elif chain == "signet":
+                    client.chain = Chain.TEST
+            yield client
+        finally:
+            client.close()
 
     def _extract_xpubs_from_client(self, client, account=0):
         try:
