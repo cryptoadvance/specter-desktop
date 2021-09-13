@@ -36,7 +36,13 @@ import logging
 import os
 
 # embit-related things
-from embit import ec
+from embit import ec, bip32
+from embit.psbt import PSBT
+from embit import script
+from embit.liquid.pset import PSET
+from embit import hashes
+from embit.util import secp256k1
+from embit.liquid.finalizer import finalize_psbt
 
 JADE_VENDOR_ID = 0x10C4
 JADE_DEVICE_ID = 0xEA60
@@ -359,6 +365,119 @@ class JadeClient(HardwareWalletClient):
             "The Blockstream Jade does not support toggling passphrase from the host"
         )
 
+    def _blind(self, pset, seed:bytes = None):
+        if seed is None:
+            seed = pset.unknown.get(b"\xfc\x07specter\x00", os.urandom(32))
+        txseed = pset.txseed(seed)
+        # assign blinding factors to all outputs
+        blinding_outs = []
+        commitments = []
+        # because we do sha once (cause taproot), and they want sha twice
+        hash_prevouts = hashes.sha256(pset.blinded_tx.hash_prevouts())
+        last_i = 0
+        last_commitment = {}
+        for i, out in py_enumerate(pset.outputs):
+            # skip ones where we don't need blinding
+            if out.blinding_pubkey is None:
+                commitments.append(None)
+                continue
+            commitment = self.jade.get_commitments(bytes(reversed(out.asset)), out.value, hash_prevouts, i, vbf=None)
+            commitment["blinding_key"] = out.blinding_pubkey
+            commitments.append(commitment)
+            last_i = i
+            last_commitment = commitments[-1]
+            out.asset_blinding_factor = commitment["abf"]
+            out.value_blinding_factor = commitment["vbf"]
+            blinding_outs.append(out)
+        if len(blinding_outs) == 0:
+            raise Exception("Nothing to blind")
+        # calculate last vbf
+        vals = [sc.value for sc in pset.inputs + blinding_outs]
+        abfs = [sc.asset_blinding_factor or b"\x00"*32 for sc in pset.inputs + blinding_outs]
+        vbfs = [sc.value_blinding_factor or b"\x00"*32 for sc in pset.inputs + blinding_outs]
+        last_vbf = secp256k1.pedersen_blind_generator_blind_sum(vals, abfs, vbfs, len(pset.inputs))
+        last_out = blinding_outs[-1]
+        new_last_commitment = self.jade.get_commitments(bytes(reversed(last_out.asset)), last_out.value, hash_prevouts, last_i, vbf=last_vbf)
+        # check abf didn't change
+        assert new_last_commitment["abf"] == last_out.asset_blinding_factor
+        # set new values in the last commitment
+        last_commitment.update(new_last_commitment)
+        blinding_outs[-1].value_blinding_factor = last_vbf
+
+        # calculate commitments (surj proof etc)
+
+        in_tags = [inp.asset for inp in pset.inputs]
+        in_gens = [secp256k1.generator_parse(inp.utxo.asset) for inp in pset.inputs]
+
+        for i, out in py_enumerate(pset.outputs):
+            if out.blinding_pubkey is None:
+                continue
+            gen = secp256k1.generator_generate_blinded(out.asset, out.asset_blinding_factor)
+            out.asset_commitment = secp256k1.generator_serialize(gen)
+            value_commitment = secp256k1.pedersen_commit(out.value_blinding_factor, out.value, gen)
+            out.value_commitment = secp256k1.pedersen_commitment_serialize(value_commitment)
+
+            proof_seed = hashes.tagged_hash("liquid/surjection_proof", txseed+i.to_bytes(4,'little'))
+            proof, in_idx = secp256k1.surjectionproof_initialize(in_tags, out.asset, proof_seed)
+            secp256k1.surjectionproof_generate(proof, in_idx, in_gens, gen, pset.inputs[in_idx].asset_blinding_factor, out.asset_blinding_factor)
+            out.surjection_proof = secp256k1.surjectionproof_serialize(proof)
+            del proof
+
+            # generate range proof
+            rangeproof_nonce = hashes.tagged_hash("liquid/range_proof", txseed+i.to_bytes(4,'little'))
+            # reblind with extra message for unblinding
+            out.reblind(rangeproof_nonce, extra_message=out.unknown.get(b"\xfc\x07specter\x01", b""))
+
+        return commitments
+
+
+    def sign_pset(self, b64pset: str) -> str:
+        """Signs specter-desktop specific Liquid PSET transaction"""
+        mfp = self.get_master_fingerprint()
+        pset = PSET.from_string(b64pset)
+        commitments = self._blind(pset)
+
+        ins = [
+            {
+                "is_witness": True,
+                # "input_tx": inp.non_witness_utxo.serialize(),
+                "script": inp.witness_script.data if inp.witness_script else script.p2pkh_from_p2wpkh(inp.script_pubkey).data,
+                "value_commitment": inp.witness_utxo.value,
+                "path": [der for der in inp.bip32_derivations.values() if der.fingerprint == mfp][0].derivation,
+            }
+            for inp in pset.inputs
+        ]
+        change = [
+            {
+                "path": [der for pub, der in out.bip32_derivations.items() if der.fingerprint == mfp][0].derivation,
+                "variant": self._get_script_type(out),
+            }
+            if out.bip32_derivations and self._get_script_type(out) is not None
+            else None
+            for out in pset.outputs
+        ]
+        rawtx = pset.blinded_tx.serialize()
+
+        signatures = self.jade.sign_liquid_tx(
+            self._network(), rawtx, ins, commitments, change
+        )
+        for i, inp in py_enumerate(pset.inputs):
+            inp.partial_sigs[
+                [pub for pub, der in inp.bip32_derivations.items() if der.fingerprint == mfp][0]
+            ] = signatures[i]
+        # we must finalize here because it has different commitments and only supports singlesig
+        return str(finalize_psbt(pset))
+
+    def _get_script_type(self, out):
+        if out.script_pubkey.script_type() == "p2pkh":
+            return "pkh(k)"
+        elif out.script_pubkey.script_type() == "p2wpkh":
+            return "wpkh(k)"
+        elif out.script_pubkey.script_type() == "p2sh":
+            if out.redeem_script.script_type() == "p2wpkh":
+                return "sh(wpkh(k))"
+        # otherwise None
+        return None
 
 def enumerate(password=""):
     results = []

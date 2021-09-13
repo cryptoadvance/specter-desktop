@@ -319,8 +319,10 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
-            if isinstance(client, SpecterClient):
-                return client.sign_b64psbt(psbt)
+            if is_liquid(chain):
+                if not hasattr(client, "sign_pset"):
+                    raise Exception("Device can't sign liquid transaction")
+                return client.sign_pset(psbt)
             status = hwi_commands.signtx(client, psbt)
             if "error" in status:
                 raise Exception(status["error"])
