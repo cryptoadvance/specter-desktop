@@ -89,7 +89,7 @@ def test_abandon_purged_tx(
         # TODO: Make a test fixture in conftest.py that sets up already funded wallets
         # for a bitcoin core hot wallet.
         wallet_manager = WalletManager(
-            200100,
+            210100,
             devices_filled_data_folder,
             rpc,
             "regtest",
@@ -105,7 +105,7 @@ def test_abandon_purged_tx(
         device.add_hot_wallet_keys(
             mnemonic=generate_mnemonic(strength=128),
             passphrase="",
-            paths=["m/49h/0h/0h"],
+            paths=["m/84h/1h/0h", "m/84h/1h/1h"],
             file_password=None,
             wallet_manager=wallet_manager,
             testnet=True,
@@ -114,20 +114,27 @@ def test_abandon_purged_tx(
         )
 
         wallet = wallet_manager.create_wallet(
-            "bitcoincore_test_wallet", 1, "sh-wpkh", [device.keys[0]], [device]
+            "bitcoincore_test_wallet", 1, "wpkh", [device.keys[0]], [device]
+        )
+        # dummy wallet that will do the mining
+        dummy = wallet_manager.create_wallet(
+            "bitcoincore_dummy", 1, "wpkh", [device.keys[1]], [device]
         )
 
         # Fund the wallet. Going to need a LOT of utxos to play with.
         logging.info("Generating utxos to wallet")
         address = wallet.getnewaddress()
-        wallet.rpc.generatetoaddress(91, address)
+        wallet.rpc.generatetoaddress(1, address)
+        dummy_address = dummy.getnewaddress()
+        dummy.rpc.generatetoaddress(90, dummy_address)
 
         # newly minted coins need 100 blocks to get spendable
         # let's mine another 100 blocks to get these coins spendable
-        wallet.rpc.generatetoaddress(101, address)
+        dummy.rpc.generatetoaddress(101, dummy_address)
 
         # update the wallet data
         wallet.get_balance()
+        dummy.get_balance()
 
         # ==== Begin test from mempool_limit.py ====
         txouts = gen_return_txouts()
@@ -141,7 +148,6 @@ def test_abandon_purged_tx(
             "0.00001000"
         )
 
-        txids = []
         utxos = wallet.rpc.listunspent()
 
         logging.info("Create a mempool tx that will be evicted")
@@ -150,10 +156,14 @@ def test_abandon_purged_tx(
         outputs = {wallet.getnewaddress(): 0.0001}
         tx = wallet.rpc.createrawtransaction(inputs, outputs)
         wallet.rpc.settxfee(str(relayfee))  # specifically fund this tx with low fee
-        txF = wallet.rpc.fundrawtransaction(tx)
+        txF = wallet.rpc.fundrawtransaction(tx, {"change_type": "bech32"})
         wallet.rpc.settxfee(0)  # return to automatic fee selection
-        txFS = device.sign_raw_tx(txF["hex"], wallet)
-        txid = wallet.rpc.sendrawtransaction(txFS["hex"])
+        psbtF = wallet.rpc.converttopsbt(txF["hex"])
+        psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
+        signed = device.sign_psbt(psbtFF["psbt"], wallet)
+        assert signed["complete"]
+        finalized = wallet.rpc.finalizepsbt(signed["psbt"])
+        txid = wallet.rpc.sendrawtransaction(finalized["hex"])
 
         # ==== Specter-specific: can't abandon a valid pending tx ====
         try:
@@ -163,12 +173,14 @@ def test_abandon_purged_tx(
 
         # ==== Resume test from mempool_limit.py ====
         # Spam the mempool with big transactions!
+        txids = []
+        dummy_utxos = dummy.rpc.listunspent()
         relayfee = satoshi_round(rpc.getnetworkinfo()["relayfee"])
         base_fee = float(relayfee) * 100
         for i in range(3):
             txids.append([])
             txids[i] = create_lots_of_big_transactions(
-                wallet, txouts, utxos[30 * i : 30 * i + 30], 30, (i + 1) * base_fee
+                dummy, txouts, dummy_utxos[30 * i : 30 * i + 30], 30, (i + 1) * base_fee
             )
 
         logging.info("The tx should be evicted by now")
@@ -186,6 +198,10 @@ def test_abandon_purged_tx(
             if detail["category"] == "send":
                 assert detail["abandoned"]
 
+        # at this point we should have all the balance in trusted
+        # nothing in untrusted
+        untrusted = wallet.get_balance()["untrusted_pending"]
+        assert untrusted == 0
         # Can we now spend those same inputs?
         outputs = {wallet.getnewaddress(): 0.0001}
         tx = wallet.rpc.createrawtransaction(inputs, outputs)
@@ -196,12 +212,17 @@ def test_abandon_purged_tx(
 
         txF = wallet.rpc.fundrawtransaction(tx)
         wallet.rpc.settxfee(0)  # return to automatic fee selection
-        txFS = device.sign_raw_tx(txF["hex"], wallet)
-        txid = wallet.rpc.sendrawtransaction(txFS["hex"])
+        psbtF = wallet.rpc.converttopsbt(txF["hex"])
+        psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
+        signed = device.sign_psbt(psbtFF["psbt"], wallet)
+        assert signed["complete"]
+        finalized = wallet.rpc.finalizepsbt(signed["psbt"])
+        txid = wallet.rpc.sendrawtransaction(finalized["hex"])
 
         # Should have been accepted by the mempool
         assert txid in wallet.rpc.getrawmempool()
-        assert wallet.get_balance()["untrusted_pending"] == 0.0001
+        # Our balance should go to untrusted now as it's unconfirmed
+        assert wallet.get_balance()["untrusted_pending"] > 0
     finally:
         # Clean up
         bitcoind_controller.stop_bitcoind()
