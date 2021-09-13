@@ -204,7 +204,7 @@ class QRCodeElement extends HTMLElement {
         value = this.maybe_remove_checksum(value);
         this.qrcode.makeCode(value);
         if(this.isQRlarge){
-          this.note.innerHTML = '{{ _("Click to animate") }}';
+          this.note.innerHTML = `{{ _("Click to animate") }}`;
         }
       }
     });
@@ -401,7 +401,7 @@ class QRCodeElement extends HTMLElement {
             this.note.innerHTML = "";
           }else{
             this.isQRlarge = true;
-            this.note.innerHTML = "Click to animate";
+            this.note.innerHTML = `{{ _("Click to animate") }}`;
           }
           // we have to use chunks
           if(this.isQRtoolarge){
