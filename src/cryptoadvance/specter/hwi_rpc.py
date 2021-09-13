@@ -14,7 +14,13 @@ import logging
 import bitbox02
 from typing import Callable
 from flask import current_app as app
-from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config, is_testnet, is_liquid
+from .helpers import (
+    deep_update,
+    hwi_get_config,
+    save_hwi_bridge_config,
+    is_testnet,
+    is_liquid,
+)
 from hwilib.devices.bitbox02 import Bitbox02Client
 from .devices.hwi.specter_diy import SpecterClient
 from .devices.hwi.jade import JadeClient
