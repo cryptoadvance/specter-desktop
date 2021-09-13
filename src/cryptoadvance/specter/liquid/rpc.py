@@ -8,6 +8,7 @@ from embit.liquid.addresses import addr_decode
 from embit.liquid.addresses import address as liquid_address
 from embit.liquid.networks import get_network
 from embit.liquid.transaction import LTransaction, unblind
+from embit.liquid import finalizer
 from embit.liquid import slip77
 from embit.psbt import read_string
 
@@ -202,7 +203,16 @@ class LiquidRPC(BitcoinRPC):
 
     def finalizepsbt(self, psbt, *args, **kwargs):
         psbt = self._cleanpsbt(psbt)
-        return super().__getattr__("finalizepsbt")(psbt, *args, **kwargs)
+        res = super().__getattr__("finalizepsbt")(psbt, *args, **kwargs)
+        if res["complete"] == False:
+            try:
+                # try using our finalizer
+                tx = finalizer.finalize_psbt(PSET.from_string(psbt))
+                if tx and self.testmempoolaccept([str(tx)]):
+                    return {"complete": True, "hex": str(tx)}
+            except Exception as e:
+                logger.exception(e)
+        return res
 
     def combinepsbt(self, psbts, *args, **kwargs):
         if len(psbts) == 0:

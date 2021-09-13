@@ -125,7 +125,7 @@
                 )
             ) {
                 toggleAdvanced();
-                showError("You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit.")
+                showError(`{{ _("You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit.") }}`)
                 hiddenAdvancedConfirmed = true;
                 return false;   
             }
@@ -202,10 +202,10 @@
             let advancedSettings = document.getElementById('advanced-settings');
             if (advancedSettings.style.display === 'block') {
                 advancedSettings.style.display = 'none';
-                advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+                advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
             } else {
                 advancedSettings.style.display = 'block';
-                advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+                advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
             }
         }
     </script>

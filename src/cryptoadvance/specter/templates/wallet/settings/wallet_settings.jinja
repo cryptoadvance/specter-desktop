@@ -362,10 +362,10 @@
 			let keysList = document.getElementById('keys_list');
 			if (keysList.style.display !== 'none') {
 				keysList.style.display = 'none';
-				titleButton.innerHTML = '{{ _("Show keys details") }}';
+				titleButton.innerHTML = `{{ _("Show keys details") }}`;
 			} else {
 				keysList.style.display = 'block';
-				titleButton.innerHTML = '{{ _("Hide keys details") }}';
+				titleButton.innerHTML = `{{ _("Hide keys details") }}`;
 			}
 		}
 
@@ -395,10 +395,10 @@
 			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
 			if (advancedSettings.classList.contains("hidden")) {
 				advancedSettings.classList.remove("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
 			} else {
 				advancedSettings.classList.add("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
 			}
 		}
 

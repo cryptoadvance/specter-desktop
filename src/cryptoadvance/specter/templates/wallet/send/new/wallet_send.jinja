@@ -217,7 +217,7 @@
 					addr = addr.substr(addr.indexOf("bitcoin:")+8);
 				}
 				let arr = addr.split("?");
-				addr = arr[0]
+				addr = arr[0];
 				document.getElementById("address_" + i).value = addr;
 				let evt = new Event('input');
 				document.getElementById("address_" + i).dispatchEvent(evt);
@@ -227,15 +227,15 @@
 					arr.forEach((e)=>{
 						if(e.startsWith("amount=")){
 							let val = parseFloat(e.substr(7));
-							if(unit == 'sat'){
+							if(units[i] == 'sat'){
 								val = Math.round(val*1e8);
 							}
 							document.getElementById("amount_" + i).value = val;
 							let evt = new Event('input');
 							document.getElementById("amount_" + i).dispatchEvent(evt);
 						}
-						if(e.startsWith("message=")){
-							document.getElementById("label_" + i).value = e.substr(8);
+						if(e.startsWith("message=") || e.startsWith("label=")){
+							document.getElementById("label_" + i).value = e.split("=")[1];
 						}
 					});
 				}
@@ -343,7 +343,7 @@
 		async function setMaxAmount(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			if (!validateAddress(i)) {
-				showError('{{ _("Please first enter a valid address") }}');
+				showError(`{{ _("Please first enter a valid address") }}`);
 				return;
 			}
 			if(units[i] == 'sat' || units[i] == 'btc'){
@@ -391,7 +391,7 @@
 			if (isNaN(amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
-					.innerHTML = '{{ _("Amount entered is invalid!") }}';
+					.innerHTML = `{{ _("Amount entered is invalid!") }}`;
 				return false;
 			}
 
@@ -410,12 +410,12 @@
 			} else if (shouldSelectMoreCoins(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
-					.innerHTML = '{{ _("You need to select more coins to match your amount!") }}';
+					.innerHTML = `{{ _("You need to select more coins to match your amount!") }}`;
 				return false;
 			} else if (isInvalidValue(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
-					.innerHTML = '{{ _("Invalid amount! Wrong unit?") }}';
+					.innerHTML = `{{ _("Invalid amount! Wrong unit?") }}`;
 				return false;
 			} else {
 				setVisibility('amount_errors_container', 'none');
@@ -451,7 +451,7 @@
 						}
 					}
 					if (submitted && !amount) {
-						showError('{{ _("Please enter the amount that you wish to send") }}', 5000);
+						showError(`{{ _("Please enter the amount that you wish to send") }}`, 5000);
 					}
 					if (document.getElementById("amount_" + i).value == '') {
 						amount = 0;
@@ -465,7 +465,7 @@
 				for(let i in amounts) {
 					if (!validateAddress(i)) {
 						if (submitted) {
-							showError('{{ _("Please enter a valid recipient address") }}', 5000);
+							showError(`{{ _("Please enter a valid recipient address") }}`, 5000);
 						}
 						createPSBTButton.setAttribute('type', 'button');
 						return;
@@ -508,13 +508,13 @@
 			let advancedSettings = document.getElementById('advanced_settings');
 			if (advancedSettings.style.display === 'block') {
 				advancedSettings.style.display = 'none';
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
 				if (isCoinSelectionActive()) {
 					toggleExpand();
 				}
 			} else {
 				advancedSettings.style.display = 'block';
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
 			}
 		}
 

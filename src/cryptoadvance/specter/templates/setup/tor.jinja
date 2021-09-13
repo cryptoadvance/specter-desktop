@@ -41,7 +41,7 @@
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError('{{ _("Failed to download Tor daemon...") }}');
+                showError(`{{ _("Failed to download Tor daemon...") }}`);
                 showError(e);
             }
         }

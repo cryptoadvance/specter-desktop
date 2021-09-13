@@ -185,15 +185,15 @@
                 } else {
                     let xpubPurpose = 'Custom'
                     if (xpub.startsWith("ypub") || xpub.startsWith("upub")) {
-                        xpubPurpose = '{{ _("#0 Single Sig (Nested)") }}';
+                        xpubPurpose = `{{ _("#0 Single Sig (Nested)") }}`;
                     } else if (xpub.startsWith("vpub") || xpub.startsWith("zpub")) {
-                        xpubPurpose = '{{ _("#0 Single Sig (Segwit)") }}';
+                        xpubPurpose = `{{ _("#0 Single Sig (Segwit)") }}`;
                     }
                     addXpub(xpubPurpose, 'm/', xpub)
                 }
             })
             
-            if (document.getElementById('edit-xpubs-table-btn').innerHTML != 'Edit') {
+            if (document.getElementById('edit-xpubs-table-btn').innerHTML != `{{ _("Edit") }}`) {
                 for (let el of document.getElementsByClassName('xpubs_edit')) {
                     el.style.visibility = 'visible';
                 }
@@ -256,6 +256,9 @@
             let accountNumber = accountNumberField.value;
             addXpub('#' + accountNumber + ' Single Sig (Nested)', 'm/49h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
             addXpub('#' + accountNumber + ' Single Sig (Segwit)', 'm/84h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
+            {% if specter.taproot_support and device_class.taproot_support %}
+            addXpub('#' + accountNumber + ' Single Sig (Taproot)', 'm/86h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h');
+            {% endif %}
             addXpub('#' + accountNumber + ' Multisig Sig (Nested)', 'm/48h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h/1h');
             addXpub('#' + accountNumber + ' Multisig Sig (Segwit)', 'm/48h/{{ specter.network_parameters.bip32 }}h/' + accountNumber + 'h/2h');
             document.getElementById('edit_add_account').style.display = 'none';
@@ -283,11 +286,11 @@
 
         function editXpubsTable(editBtn) {
             let visibility = '';
-            if (editBtn.innerHTML == '{{ _("Edit") }}') {
-                editBtn.innerHTML = '{{ _("Done") }}';
+            if (editBtn.innerHTML == `{{ _("Edit") }}`) {
+                editBtn.innerHTML = `{{ _("Done") }}`;
                 visibility = 'visible';
             } else {
-                editBtn.innerHTML = '{{ _("Edit") }}';
+                editBtn.innerHTML = `{{ _("Edit") }}`;
                 visibility = 'hidden';
             }
             document.getElementById('edit_select_add_method').style.display = 'table-row';
@@ -316,7 +319,7 @@
             }
             // this shouldn't happen actually
             if(devices.length == 0){
-                showError('{{ _("No devices found :(") }}');
+                showError(`{{ _("No devices found :(") }}`);
                 return;
             }
 
@@ -350,7 +353,7 @@
                     "{specter.chain}"
                 );
                 if(xpub == null){
-                    showError('{{ _("Failed to retrive device data. Please try again.") }}');
+                    showError(`{{ _("Failed to retrive device data. Please try again.") }}`);
                     return;
                 }
 
@@ -482,7 +485,7 @@
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
                         addXpubs(str);
                     }else{
-                        showError('{{ _("Unknown key format") }}');
+                        showError(`{{ _("Unknown key format") }}`);
                     }
                 }else{
                     addXpubs(result);

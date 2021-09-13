@@ -179,7 +179,7 @@
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError('{{ _("Failed to start Bitcoin Core...") }}');
+                showError(`{{ _("Failed to start Bitcoin Core...") }}`);
                 showError(e);
             }
         }
