@@ -2,6 +2,7 @@
 set -exo
 # possible prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
+# npm install --global create-dmg
 
 # Download into torbrowser:
 # wget -P torbrowser https://archive.torproject.org/tor-package-archive/torbrowser/10.0.15/TorBrowser-10.0.15-osx64_en-US.dmg
@@ -20,6 +21,14 @@ set -exo
 # Then you need to create a cert which you need to store in the keychain
 # https://developer.apple.com/account/resources/certificates/list
 
+# If you have the common issue "errSecInternalComponent" while signing the code:
+# https://medium.com/@ceyhunkeklik/how-to-fix-ios-application-code-signing-error-4818bd331327
+
+# create-dmg issue? Note that there are 2 create-dmg scripts out there. We use:
+# https://github.com/sindresorhus/create-dmg
+
+# Example-call:
+# ./build-osx.sh v1.6.1-pre1 "Kim Neunert (FWV59JHV83)" "kneunert@gmail.com" "make-hash"
 
 echo $1 > version.txt
 pip3 install -r requirements.txt --require-hashes
