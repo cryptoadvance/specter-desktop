@@ -4,7 +4,4 @@ def str2bool(my_str):
         return False
     elif isinstance(my_str, str) and my_str.lower() == "false":
         return False
-    elif bool(my_str) is False:
-        return False
-    else:
-        return bool(my_str)
+    return bool(my_str)
