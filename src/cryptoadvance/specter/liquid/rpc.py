@@ -14,6 +14,8 @@ from embit.psbt import read_string
 import copy
 from io import BytesIO
 
+from .util.pset import to_canonical_pset
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -225,33 +227,16 @@ class LiquidRPC(BitcoinRPC):
             res["psbt"] = str(tx)
         return res
 
-    def _cleanpsbt(self, psbt):
-        """Removes stuff that Core doesn't like"""
-        tx = PSET.from_string(psbt)
-        for inp in tx.inputs:
-            inp.value = None
-            inp.asset = None
-            inp.value_blinding_factor = None
-            inp.asset_blinding_factor = None
-
-        for out in tx.outputs:
-            if out.is_blinded:
-                out.asset = None
-                out.asset_blinding_factor = None
-                out.value = None
-                out.value_blinding_factor = None
-        return str(tx)
-
     def walletprocesspsbt(self, psbt, *args, **kwargs):
         try:
             if self.getwalletinfo().get("private_keys_enabled", False):
-                psbt = self._cleanpsbt(psbt)
+                psbt = to_canonical_pset(psbt)
         except Exception as e:
             logger.warn(f"Failed to clean psbt: {e}")
         return super().__getattr__("walletprocesspsbt")(psbt, *args, **kwargs)
 
     def finalizepsbt(self, psbt, *args, **kwargs):
-        psbt = self._cleanpsbt(psbt)
+        psbt = to_canonical_pset(psbt)
         res = super().__getattr__("finalizepsbt")(psbt, *args, **kwargs)
         if res["complete"] == False:
             try:
