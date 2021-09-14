@@ -482,7 +482,7 @@ def send_new(wallet_alias):
     subtract = False
     subtract_from = 1
     fee_options = "dynamic"
-    rbf = True
+    rbf = not app.specter.is_liquid
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
