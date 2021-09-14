@@ -163,12 +163,13 @@ class LiquidRPC(BitcoinRPC):
                     super().__getattr__("walletprocesspsbt")(str(tx), False).get("psbt")
                 )
                 patchedtx = PSET.from_string(patched)
+                assert len(tx.outputs) == len(patchedtx.outputs)
                 for out1, out2 in zip(tx.outputs, patchedtx.outputs):
                     # fee
                     if out1.script_pubkey.data == b"":
                         continue
                     # not change for sure
-                    if not out1.bip32_derivations:
+                    if not out2.bip32_derivations:
                         continue
                     # do change replacement
                     if out1.script_pubkey not in destinations:
@@ -177,10 +178,11 @@ class LiquidRPC(BitcoinRPC):
                         out1.witness_script = out2.witness_script
 
                 res["psbt"] = str(tx)
-                psbt = res.get("psbt", None)
             except Exception as e:
                 logger.error(e)
                 raise e
+
+        psbt = res.get("psbt", None)
         # check if we should blind the transaction
         if psbt and blind:
             # check that change is also blinded - fixes a bug in pset branch
