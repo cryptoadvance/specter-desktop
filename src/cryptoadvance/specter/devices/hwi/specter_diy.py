@@ -245,9 +245,8 @@ def enumerate(password=""):
         s.close()
         ports.append("127.0.0.1:8789")
     except ConnectionRefusedError as e:
-        logger.warning(
-            f"Warning: Specter DIY failed to establish socket connection. Error: {e}"
-        )
+        # simulator is probably not running
+        pass
 
     for port in ports:
         # for every port try to get a fingerprint
