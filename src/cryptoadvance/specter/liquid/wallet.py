@@ -259,6 +259,11 @@ class LWallet(Wallet):
 
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
+        # get change addresses for all assets + for LBTC
+        change_addresses = [
+            self.get_address(self.change_index + i, change=True, check_keypool=False)
+            for i in range(len(assets) + 1)
+        ]
 
         if not existing_psbt:
             # if not rbf_edit_mode:
@@ -303,6 +308,7 @@ class LWallet(Wallet):
                 # "changeAddress": self.change_address,
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
+                "changeAddresses": change_addresses,  # not supported by Elements - custom field for out LiquidRPC
             }
 
             # 209900 is pre-v21 for Elements Core
