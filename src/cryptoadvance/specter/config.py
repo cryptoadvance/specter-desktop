@@ -151,6 +151,9 @@ class TestConfig(BaseConfig):
     # API active by default in test-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
+    # See #1316 since Bitcoin v0.21.1 (not only) the importmulti-call takes longer than 10 seconds on cirrus
+    NODE_RPC_TIMEOUT = 25
+
 
 class CypressTestConfig(TestConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -168,9 +171,6 @@ class CypressTestConfig(TestConfig):
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
     )
-
-    # See #1316 since Bitcoin v0.21.1 the importmulti-call takes longer than 10 seconds on cirrus
-    NODE_RPC_TIMEOUT = 30
 
 
 class ProductionConfig(BaseConfig):
