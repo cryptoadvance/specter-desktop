@@ -170,7 +170,7 @@ class CypressTestConfig(TestConfig):
     )
 
     # See #1316 since Bitcoin v0.21.1 the importmulti-call takes longer than 10 seconds on cirrus
-    NODE_RPC_TIMEOUT = 20
+    NODE_RPC_TIMEOUT = 30
 
 
 class ProductionConfig(BaseConfig):
