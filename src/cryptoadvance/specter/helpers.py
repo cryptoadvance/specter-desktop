@@ -32,7 +32,10 @@ EMOJIS = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍😘😗�
 
 def get_asset_label(asset, known_assets={}):
     # TODO: lookup in the registry
-    if asset == "0000000000000000000000000000000000000000000000000000000000000000":
+    if (
+        asset is None
+        or asset == "0000000000000000000000000000000000000000000000000000000000000000"
+    ):
         return "???"
     if asset == "bitcoin":
         return "LBTC"
