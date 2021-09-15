@@ -350,13 +350,13 @@ class BitcoinRPC:
             )
         except requests.exceptions.Timeout as to:
             logger.error(
-                "ReadTimeout while call({: <28}) payload:{} Exception: {}".format(
-                    "/".join(url.split("/")[3:]), payload, to
+                "ReadTimeout while {} call({: <28}) payload:{} Exception: {}".format(
+                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload, to
                 )
             )
             raise SpecterError(
-                "ReadTimeout while Bitcoind-call({: <28}) payload:{}".format(
-                    "/".join(url.split("/")[3:]), payload
+                "ReadTimeout while {} call({: <28}) payload:{}".format(
+                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload
                 )
             )
         self.r = r

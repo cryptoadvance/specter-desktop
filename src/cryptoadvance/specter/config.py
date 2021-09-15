@@ -63,7 +63,8 @@ class BaseConfig(object):
     )
 
     # the default timeout for Bitcoin/Liquid RPC-calls
-    NODE_RPC_TIMEOUT = 10
+    BITCOIN_RPC_TIMEOUT = 10
+    LIQUID_RPC_TIMEOUT = 10
 
     # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
     SPECTER_SSL_CERT_SUBJECT_C = os.getenv("SPECTER_SSL_CERT_SUBJECT_C", "DE")
@@ -152,7 +153,7 @@ class TestConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # See #1316 since Bitcoin v0.21.1 (not only) the importmulti-call takes longer than 10 seconds on cirrus
-    NODE_RPC_TIMEOUT = 25
+    LIQUID_RPC_TIMEOUT = 30
 
 
 class CypressTestConfig(TestConfig):
