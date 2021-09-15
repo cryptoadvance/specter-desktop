@@ -104,14 +104,10 @@ class Wallet:
         self.recv_descriptor = recv_descriptor
         self.change_descriptor = change_descriptor
         self.keys = keys
-        self.devices = [
-            (
-                device
-                if isinstance(device, Device)
-                else device_manager.get_by_alias(device)
-            )
-            for device in devices
-        ]
+
+        self.device_manager = device_manager
+        self._devices = devices
+        # check that all of the devices exist
         if None in self.devices:
             raise Exception("A device used by this wallet could not have been found!")
         self.sigs_required = int(sigs_required)
@@ -142,6 +138,17 @@ class Wallet:
         self.update()
         if old_format_detected or self.last_block != last_block:
             self.save_to_file()
+
+    @property
+    def devices(self):
+        return [
+            (
+                device
+                if isinstance(device, Device)
+                else self.device_manager.get_by_alias(device)
+            )
+            for device in self._devices
+        ]
 
     @classmethod
     def create(
