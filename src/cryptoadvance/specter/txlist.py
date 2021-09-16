@@ -51,10 +51,11 @@ class TxItem(dict):
         bool,
     ]
 
-    def __init__(self, rpc, addresses, rawdir, **kwargs):
+    def __init__(self, rpc, addresses, rawdir, chain, **kwargs):
         self.rpc = rpc
         self._addresses = addresses
         self.rawdir = rawdir
+        self.chain = chain
         # copy
         kwargs = dict(**kwargs)
         # replace with None or convert
@@ -81,7 +82,9 @@ class TxItem(dict):
             try:
                 if os.path.isfile(self.fname):
                     with open(self.fname, "rb") as f:
-                        return self.TransactionCls.read_from(f)
+                        tx = self.TransactionCls.read_from(f)
+                        self._tx = tx
+                        return tx
             except Exception as e:
                 logger.error(e)
         # if we failed to load tx from file - load it from RPC
@@ -89,7 +92,9 @@ class TxItem(dict):
             # get transaction from rpc
             try:
                 res = self.rpc.gettransaction(self.txid)
-                self._tx = self.TransactionCls.from_string(res["hex"])
+                tx = self.TransactionCls.from_string(res["hex"])
+                self._tx = tx
+                return tx
             except Exception as e:
                 logger.error(e)
         return self._tx
@@ -97,13 +102,13 @@ class TxItem(dict):
     def dump(self):
         """Dumps transaction in binary to the folder if it's not there"""
         # nothing to do if file exists or we don't have binary tx
-        if os.path.isfile(self.fname) or not self.tx:
+        if os.path.isfile(self.fname) or not self._tx:
             return
         # create dir if it doesn't exist
         if not os.path.isdir(self.rawdir):
             os.mkdir(self.rawdir)
         with open(self.fname, "wb") as f:
-            self._tx.write_to(f)
+            self.tx.write_to(f)
         # clear cached tx as we saved the transaction to file
         self._tx = None
 
@@ -152,7 +157,12 @@ class TxList(dict):
         try:
             if os.path.isfile(self.path):
                 txs = read_csv(
-                    self.path, self.ItemCls, self.rpc, self._addresses, self.rawdir
+                    self.path,
+                    self.ItemCls,
+                    self.rpc,
+                    self._addresses,
+                    self.rawdir,
+                    self.chain,
                 )
                 for tx in txs:
                     self[tx.txid] = tx
@@ -237,7 +247,9 @@ class TxList(dict):
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
-            txitem = self.ItemCls(self.rpc, self._addresses, self.rawdir, **obj)
+            txitem = self.ItemCls(
+                self.rpc, self._addresses, self.rawdir, self.chain, **obj
+            )
             self[txid] = txitem
             if txitem.tx:
                 for vout in txitem.tx.vout:
@@ -249,95 +261,98 @@ class TxList(dict):
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
         # detect category, amounts and addresses
-        for tx in [self[tx] for tx in self if tx in txs]:
-            raw_tx = self.decoderawtransaction(tx.hex)
-            tx["vsize"] = raw_tx["vsize"]
+        for tx in [self[txid] for txid in self if txid in txs]:
+            self.fill_missing(tx)
+        self.save()
 
-            category = ""
-            addresses = []
-            amounts = {}
-            inputs_mine_count = 0
-            for vin in raw_tx["vin"]:
-                # coinbase tx
-                if (
-                    vin["txid"]
-                    == "0000000000000000000000000000000000000000000000000000000000000000"
-                ):
-                    category = "generate"
-                    break
-                if vin["txid"] in self:
-                    try:
-                        address = get_address_from_dict(
-                            self.decoderawtransaction(self[vin["txid"]].hex)["vout"][
-                                vin["vout"]
-                            ]
-                        )
-                        address_info = self._addresses.get(address, None)
-                        if address_info and not address_info.is_external:
-                            inputs_mine_count += 1
-                    except Exception as e:
-                        logger.error(e)
-                        continue
+    def fill_missing(self, tx):
+        raw_tx = self.decoderawtransaction(tx.hex)
+        tx["vsize"] = raw_tx["vsize"]
 
-            outputs_mine_count = 0
-            for out in raw_tx["vout"]:
+        category = ""
+        addresses = []
+        amounts = {}
+        inputs_mine_count = 0
+        for vin in raw_tx["vin"]:
+            # coinbase tx
+            if (
+                vin["txid"]
+                == "0000000000000000000000000000000000000000000000000000000000000000"
+            ):
+                category = "generate"
+                break
+            if vin["txid"] in self:
                 try:
-                    address = get_address_from_dict(out)
+                    address = get_address_from_dict(
+                        self.decoderawtransaction(self[vin["txid"]].hex)["vout"][
+                            vin["vout"]
+                        ]
+                    )
+                    address_info = self._addresses.get(address, None)
+                    if address_info and not address_info.is_external:
+                        inputs_mine_count += 1
                 except Exception as e:
-                    # couldn't get address...
                     logger.error(e)
                     continue
-                address_info = self._addresses.get(address)
-                if address_info and not address_info.is_external:
-                    outputs_mine_count += 1
-                addresses.append(address)
-                amounts[address] = out.get("value", 0)
 
-            if inputs_mine_count:
-                if outputs_mine_count == len(raw_tx["vout"]):
-                    category = "selftransfer"
-                    # remove change addresses from the dest list
-                    addresses2 = [
-                        address
-                        for address in addresses
-                        if self._addresses.get(address, None)
-                        and not self._addresses[address].change
-                    ]
-                    # use new list only if it's not empty
-                    if addresses2:
-                        addresses = addresses2
-                else:
-                    category = "send"
-                    addresses = [
-                        address
-                        for address in addresses
-                        if not self._addresses.get(address, None)
-                        or self._addresses[address].is_external
-                    ]
-            else:
-                if not category:
-                    category = "receive"
-                addresses = [
+        outputs_mine_count = 0
+        for out in raw_tx["vout"]:
+            try:
+                address = get_address_from_dict(out)
+            except Exception as e:
+                # couldn't get address...
+                logger.error(e)
+                continue
+            address_info = self._addresses.get(address)
+            if address_info and not address_info.is_external:
+                outputs_mine_count += 1
+            addresses.append(address)
+            amounts[address] = out.get("value", 0)
+
+        if inputs_mine_count:
+            if outputs_mine_count == len(raw_tx["vout"]):
+                category = "selftransfer"
+                # remove change addresses from the dest list
+                addresses2 = [
                     address
                     for address in addresses
                     if self._addresses.get(address, None)
-                    and not self._addresses[address].is_external
+                    and not self._addresses[address].change
                 ]
-
-            amounts = [amounts[address] for address in addresses]
-
-            if len(addresses) == 1:
-                addresses = addresses[0]
-                amounts = amounts[0]
-
-            tx["category"] = category
-            tx["address"] = addresses
-            tx["amount"] = amounts
-            if not addresses:
-                tx["ismine"] = False
+                # use new list only if it's not empty
+                if addresses2:
+                    addresses = addresses2
             else:
-                tx["ismine"] = True
-        self.save()
+                category = "send"
+                addresses = [
+                    address
+                    for address in addresses
+                    if not self._addresses.get(address, None)
+                    or self._addresses[address].is_external
+                ]
+        else:
+            if not category:
+                category = "receive"
+            addresses = [
+                address
+                for address in addresses
+                if self._addresses.get(address, None)
+                and not self._addresses[address].is_external
+            ]
+
+        amounts = [amounts[address] for address in addresses]
+
+        if len(addresses) == 1:
+            addresses = addresses[0]
+            amounts = amounts[0]
+
+        tx["category"] = category
+        tx["address"] = addresses
+        tx["amount"] = amounts
+        if not addresses:
+            tx["ismine"] = False
+        else:
+            tx["ismine"] = True
 
     def load(self, arr):
         """
