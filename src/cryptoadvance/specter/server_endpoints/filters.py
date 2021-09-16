@@ -3,6 +3,7 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import contextfilter
 from ..helpers import to_ascii20
+from ..liquid.util.pset import to_canonical_pset
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -28,6 +29,12 @@ def btcamount(context, value):
         return "Confidential"
     value = round(float(value), 8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
+
+
+@contextfilter
+@filters_bp.app_template_filter("to_canonical")
+def to_canonical(context, psbt):
+    return to_canonical_pset(psbt)
 
 
 @contextfilter
