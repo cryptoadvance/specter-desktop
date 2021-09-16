@@ -37,7 +37,7 @@
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError('{{ _("Failed to download Bitcoin Core...") }}');
+                showError(`{{ _("Failed to download Bitcoin Core...") }}`);
                 showError(e);
             }
         }

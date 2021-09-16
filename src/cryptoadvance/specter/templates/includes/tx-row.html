@@ -238,13 +238,13 @@
             txDataPopup.innerHTML = `
             <form action="${url}" method="POST">
             <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
-            <p>{{ _("You can") }} ${rbfType == 'cancel' ? '{{ _("cancel") }}' : '{{ _("speed up") }}'} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ' {{ _("and sending the funds back to yourself") }}' : ''}:</p>
+            <p>{{ _("You can") }} ${rbfType == 'cancel' ? `{{ _("cancel") }}` : `{{ _("speed up") }}`} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ` {{ _("and sending the funds back to yourself") }}` : ''}:</p>
             <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
             <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <br>
             <br>
-            <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? '{{ _("Cancel transaction") }}' : '{{ _("Speed up!") }}'}</button>
+            <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? `{{ _("Cancel transaction") }}` : `{{ _("Speed up!") }}`}</button>
             <br>
             <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
             <div class="advanced_rbf hidden warning">
@@ -258,10 +258,10 @@
                 let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
                 if (advancedSettings.classList.contains('hidden')) {
                     advancedSettings.classList.remove('hidden')
-                    advancedButton.innerHTML = 'Advanced &#9660;';
+                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
                 } else {
                     advancedSettings.classList.add('hidden')
-                    advancedButton.innerHTML = 'Advanced &#9654;';
+                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
                 }
             }
 

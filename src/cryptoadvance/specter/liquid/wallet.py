@@ -237,46 +237,6 @@ class LWallet(Wallet):
         self.balance = balance
         return self.balance
 
-    def fill_psbt(self, b64psbt, non_witness: bool = True, xpubs: bool = True):
-        psbt = PSET.from_string(b64psbt)
-
-        if non_witness:
-            for inp in psbt.inputs:
-                # we don't need to fill what is already filled
-                if inp.non_witness_utxo is not None:
-                    continue
-                txid = inp.txid.hex()
-                try:
-                    res = self.gettransaction(txid)
-                    inp.non_witness_utxo = Transaction.from_string(res["hex"])
-                except Exception as e:
-                    logger.error(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
-                    )
-        else:
-            # remove non_witness_utxo if we don't want them
-            for inp in psbt.inputs:
-                if inp.witness_utxo is not None:
-                    inp.non_witness_utxo = None
-
-        if xpubs:
-            # for multisig add xpub fields
-            if len(self.keys) > 1:
-                for k in self.keys:
-                    key = bip32.HDKey.from_string(k.xpub)
-                    if k.fingerprint != "":
-                        fingerprint = bytes.fromhex(k.fingerprint)
-                    else:
-                        fingerprint = get_xpub_fingerprint(k.xpub)
-                    if k.derivation != "":
-                        der = bip32.parse_path(k.derivation)
-                    else:
-                        der = []
-                    psbt.xpubs[key] = DerivationPath(fingerprint, der)
-        else:
-            psbt.xpubs = {}
-        return psbt.to_string()
-
     def createpsbt(
         self,
         addresses: [str],
@@ -299,6 +259,11 @@ class LWallet(Wallet):
 
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
+        # get change addresses for all assets + for LBTC
+        change_addresses = [
+            self.get_address(self.change_index + i, change=True, check_keypool=False)
+            for i in range(len(assets) + 1)
+        ]
 
         if not existing_psbt:
             # if not rbf_edit_mode:
@@ -343,6 +308,7 @@ class LWallet(Wallet):
                 # "changeAddress": self.change_address,
                 "subtractFeeFromOutputs": subtract_arr,
                 "replaceable": rbf,
+                "changeAddresses": change_addresses,  # not supported by Elements - custom field for out LiquidRPC
             }
 
             # 209900 is pre-v21 for Elements Core

@@ -43,7 +43,7 @@
         <script>
             let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
             async function fetchTotalSupply() {
-                document.getElementById('total_supply').innerHTML = '{{ _("Running the numbers... (this might take a few minutes)") }}';
+                document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
                 try {
                     const response = await fetch(
                         "{{ url_for('txout_set_info') }}",
