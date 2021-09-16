@@ -69,7 +69,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
-      cy.get('#devices_list > .item > div').contains(name)
+      cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
     })
 })
 
