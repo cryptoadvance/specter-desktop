@@ -134,9 +134,9 @@ Cypress.Commands.add("mine2wallet", (chain) => {
       } else {
         throw new Error("Unknown chain: " + chain)
       }
-      cy.wait(10000)
+      cy.wait(15000)
       cy.reload()
-      cy.get('#fullbalance_amount', { timeout: 15000 }) // Wait 5 secs + 15 secs timeout
+      cy.get('#fullbalance_amount') // Wait 5 secs + 15 secs timeout
           .should(($div) => {
           const n = parseFloat($div.text())
           expect(n).to.be.gt(oldBalance)
