@@ -40,6 +40,6 @@ def test_BitcoinRpc_timeout(bitcoin_regtest, caplog):
         assert False, "Should raise an exception"
     except SpecterError:
         assert (
-            "ReadTimeout while BitcoinRPC call(                            ) payload:[{'method': 'createwallet', 'params': ['some_test_wallet_name_392'], 'jsonrpc': '2.0', 'id': 0}]"
+            "Timeout while BitcoinRPC call(                            ) payload:[{'method': 'createwallet', 'params': ['some_test_wallet_name_392'], 'jsonrpc': '2.0', 'id': 0}]"
             in caplog.text
         )
