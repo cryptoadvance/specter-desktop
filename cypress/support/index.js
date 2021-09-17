@@ -16,5 +16,9 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+// 4000ms was often not enough for waiting a elm-transaction
+// So let's try double as much:
+const broadcast_timeout = 8000
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
