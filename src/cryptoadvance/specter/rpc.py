@@ -1,5 +1,5 @@
 import logging
-import requests, json, os
+import requests, urllib3, json, os
 import os, sys, errno
 from .helpers import is_ip_private
 from .specter_error import SpecterError
@@ -348,14 +348,18 @@ class BitcoinRPC:
             r = self.session.post(
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
             )
-        except requests.exceptions.Timeout as to:
+        except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
+            # Timeout is effectively one of the two:
+            # ConnectTimeout: The request timed out while trying to connect to the remote server
+            # ReadTimeout: The server did not send any data in the allotted amount of time.
+            # ReadTimeoutError: Raised when a socket timeout occurs while receiving data from a server
             logger.error(
-                "ReadTimeout while {} call({: <28}) payload:{} Exception: {}".format(
+                "Timeout while {} call({: <28}) payload:{} Exception: {}".format(
                     self.__class__.__name__, "/".join(url.split("/")[3:]), payload, to
                 )
             )
             raise SpecterError(
-                "ReadTimeout while {} call({: <28}) payload:{}".format(
+                "Timeout while {} call({: <28}) payload:{}".format(
                     self.__class__.__name__, "/".join(url.split("/")[3:]), payload
                 )
             )
