@@ -190,6 +190,7 @@ class RpcError(Exception):
     try:
         rpc.does_not_exist()
     except RpcError as rpce:
+        assert rpce.status_code == 401 # A https-status-code
         assert rpce.error_code == -32601
         assert rpce.error_msg == "Method not found"
     See for error_codes https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
