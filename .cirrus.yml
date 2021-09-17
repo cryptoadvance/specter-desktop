@@ -55,7 +55,12 @@ test_task:
     - source ./.env/bin/activate
     - echo $PATH
     #- pip3 install -e .
-    - pytest --cov=cryptoadvance
+    - pytest --cov=cryptoadvance --junitxml=./testresults.xml
+  always:
+    junit_artifacts:
+      path: "./testresults.xml"
+      format: junit
+  
 
 cypress_test_task:
   container:

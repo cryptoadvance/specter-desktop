@@ -172,8 +172,14 @@ class Node:
             if is_liquid(res.get("chain")):
                 # convert to LiquidRPC class
                 rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        except RpcError as rpce:
+            if rpce.error_code == 401:
+                return rpc  # The user is failing to configure correctly
+            logger.exception(rpce)
+            return None
         except Exception as e:
-            return rpc
+            logger.exception(e)
+            return None
         if rpc.test_connection():
             return rpc
         else:
