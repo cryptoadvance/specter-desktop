@@ -7,7 +7,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes, get_address_from_dict
 from embit import base58, bip32
 from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
-from embit.liquid.descriptor import LDescriptor
+from embit.descriptor import Descriptor as EmbitDescriptor
 from embit.descriptor.checksum import add_checksum
 from embit.liquid.networks import get_network
 from embit.psbt import PSBT, DerivationPath
@@ -65,23 +65,23 @@ class Wallet:
     TxListCls = TxList
     TxCls = Transaction
     PSBTCls = PSBT
+    DescriptorCls = EmbitDescriptor
 
     def __init__(
         self,
-        name,
-        alias,
-        description,
-        address_type,
-        address,
-        address_index,
-        change_address,
-        change_index,
-        keypool,
-        change_keypool,
-        recv_descriptor,
-        change_descriptor,
-        keys,
-        devices,
+        name: str,
+        alias: str,
+        description: str,
+        address_type: str,
+        address: str,
+        address_index: int,
+        change_address: str,
+        change_index: int,
+        keypool: int,
+        change_keypool: int,
+        descriptor: str,
+        keys: list,
+        devices: list,
         sigs_required,
         pending_psbts,
         frozen_utxo,
@@ -101,15 +101,25 @@ class Wallet:
         self.change_index = change_index
         self.keypool = keypool
         self.change_keypool = change_keypool
-        self.recv_descriptor = recv_descriptor
-        self.change_descriptor = change_descriptor
+        self.info = {}
+        # just to make sure we can accept both descriptor instance and string
+        if not isinstance(descriptor, str):
+            descriptor = str(descriptor)
+        self.descriptor = self.DescriptorCls.from_string(descriptor)
+        if self.descriptor.num_branches != 2:
+            raise SpecterError(
+                f"Descriptor has {self.descriptor.num_branches} branches, but we need 2."
+            )
+
         self.keys = keys
 
         self.device_manager = device_manager
         self._devices = devices
         # check that all of the devices exist
         if None in self.devices:
-            raise Exception("A device used by this wallet could not have been found!")
+            raise SpecterError(
+                "A device used by this wallet could not have been found!"
+            )
         self.sigs_required = int(sigs_required)
         self.pending_psbts = pending_psbts
         self.frozen_utxo = frozen_utxo
@@ -140,6 +150,14 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def recv_descriptor(self):
+        return add_checksum(str(self.descriptor.branch(0)))
+
+    @property
+    def change_descriptor(self):
+        return add_checksum(str(self.descriptor.branch(1)))
+
+    @property
     def devices(self):
         return [
             (
@@ -149,6 +167,61 @@ class Wallet:
             )
             for device in self._devices
         ]
+
+    @property
+    def chain(self) -> str:
+        """String name of the chain"""
+        return self.manager.chain
+
+    @property
+    def network(self) -> dict:
+        """Dictionary with network constants"""
+        return get_network(self.chain)
+
+    @classmethod
+    def construct_descriptor(cls, sigs_required, key_type, keys, devices):
+        """
+        Creates a wallet descriptor from arguments.
+        We need to pass `devices` for Liquid wallet, here it's not used.
+        """
+        # get xpubs in a form [fgp/der]xpub from all keys
+        xpubs = [key.metadata["combined"] for key in keys]
+        # all keys joined with comma
+        desc_keys = ",".join(["%s/{0,1}/*" % xpub for xpub in xpubs])
+        is_multisig = len(keys) > 1
+
+        # we start by constructing a base argument for descriptor wrappers
+        if is_multisig:
+            desc = f"sortedmulti({sigs_required},{desc_keys})"
+        else:
+            desc = desc_keys
+
+        # now we iterate over script-type in reverse order
+        # to get sh(wpkh(xpub)) from sh-wpkh and xpub
+        arr = key_type.split("-")
+        for wrapper in arr[::-1]:
+            desc = f"{wrapper}({desc})"
+        return cls.DescriptorCls.from_string(desc)
+
+    @classmethod
+    def merge_descriptors(cls, recv_descriptor: str, change_descriptor=None) -> str:
+        """Parses string with descriptors (change is optional) and creates a combined one"""
+        if change_descriptor is None and "/0/*" not in recv_descriptor:
+            raise SpecterError("Receive descriptor has strange derivation path")
+        if change_descriptor is None:
+            change_descriptor = recv_descriptor.split("#").replace("/0/*", "/1/*")
+        # remove checksums
+        recv_descriptor = recv_descriptor.split("#")[0]
+        change_descriptor = change_descriptor.split("#")[0]
+        if recv_descriptor.replace("/0/*", "/1/*") != change_descriptor:
+            raise SpecterError("Descriptors don't respect BIP-44")
+        combined = recv_descriptor.replace("/0/*", "/{0,1}/*")
+        # check it is valid
+        try:
+            cls.DescriptorCls.from_string(combined)
+        except Exception as e:
+            raise SpecterError(f"Invalid descriptor: {e}")
+        return combined
 
     @classmethod
     def create(
@@ -165,59 +238,48 @@ class Wallet:
         keys,
         devices,
         core_version=None,
+        **kwargs,
     ):
-        """Creates a wallet. If core_version is not specified - get it from rpc"""
-        # get xpubs in a form [fgp/der]xpub from all keys
-        xpubs = [key.metadata["combined"] for key in keys]
-        recv_keys = ["%s/0/*" % xpub for xpub in xpubs]
-        change_keys = ["%s/1/*" % xpub for xpub in xpubs]
-        is_multisig = len(keys) > 1
-        # we start by constructing an argument for descriptor wrappers
-        if is_multisig:
-            recv_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(recv_keys)
-            )
-            change_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(change_keys)
-            )
-        else:
-            recv_descriptor = recv_keys[0]
-            change_descriptor = change_keys[0]
-        # now we iterate over script-type in reverse order
-        # to get sh(wpkh(xpub)) from sh-wpkh and xpub
-        arr = key_type.split("-")
-        for el in arr[::-1]:
-            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
-            change_descriptor = "%s(%s)" % (el, change_descriptor)
-
-        recv_descriptor = AddChecksum(recv_descriptor)
-        change_descriptor = AddChecksum(change_descriptor)
-        if not recv_descriptor != change_descriptor:
-            raise SpecterError(
-                f"The recv_descriptor ({recv_descriptor}) is the same than the change_descriptor ({change_descriptor})"
-            )
+        """Creates a wallet. If core_version is not specified - gets it from rpc"""
+        # we pass unknown kwargs here for inherited classes (see LWallet - there is a blinding key arg)
+        descriptor = cls.construct_descriptor(
+            sigs_required, key_type, keys, devices, **kwargs
+        )
 
         # get Core version if we don't know it
         if core_version is None:
             core_version = rpc.getnetworkinfo().get("version", 0)
 
+        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
+        # still have legacy wallets or can be compiled without sqlite support.
+        # Use getwalletinfo to check the wallet type.
+        # The "keypool" for descriptor wallets is automatically refilled
         use_descriptors = core_version >= 210000
+        created = False
         if use_descriptors:
             # Use descriptor wallet
-            rpc.createwallet(os.path.join(rpc_path, alias), True, True, "", False, True)
-        else:
+            try:
+                rpc.createwallet(
+                    os.path.join(rpc_path, alias), True, True, "", False, True
+                )
+                created = True
+            except Exception as e:
+                logger.warning(e)
+        # if we failed to create or didn't try - create without descriptors
+        if not created:
             rpc.createwallet(os.path.join(rpc_path, alias), True)
+            use_descriptors = False
 
         wallet_rpc = rpc.wallet(os.path.join(rpc_path, alias))
         # import descriptors
         args = [
             {
-                "desc": desc,
-                "internal": change,
+                "desc": add_checksum(str(descriptor.branch(change))),
+                "internal": bool(change),
                 "timestamp": "now",
                 "watchonly": True,
             }
-            for (change, desc) in [(False, recv_descriptor), (True, change_descriptor)]
+            for change in [0, 1]
         ]
         for arg in args:
             if use_descriptors:
@@ -229,9 +291,6 @@ class Wallet:
         if not args[0] != args[1]:
             raise SpecterError(f"{args[0]} is equal {args[1]}")
 
-        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
-        # still have legacy wallets. Use getwalletinfo to check the wallet type.
-        # The "keypool" for descriptor wallets is automatically refilled
         if use_descriptors:
             res = wallet_rpc.importdescriptors(args)
         else:
@@ -256,8 +315,7 @@ class Wallet:
             -1,
             0,
             0,
-            recv_descriptor,
-            change_descriptor,
+            str(descriptor),
             keys,
             devices,
             sigs_required,
@@ -404,7 +462,7 @@ class Wallet:
             max_used_change = self._addresses.max_index(change=True) - self.GAP_LIMIT
 
             for address in addresses_info:
-                desc = LDescriptor.from_string(address["desc"])
+                desc = self.DescriptorCls.from_string(address["desc"])
                 indexes = [
                     {
                         "idx": k.origin.derivation[-1],
@@ -634,6 +692,8 @@ class Wallet:
             logger.error("Could not construct a Wallet object from the data provided.")
             return
 
+        combined_descriptor = cls.merge_descriptors(recv_descriptor, change_descriptor)
+
         return cls(
             name,
             alias,
@@ -645,8 +705,7 @@ class Wallet:
             change_index,
             keypool,
             change_keypool,
-            recv_descriptor,
-            change_descriptor,
+            combined_descriptor,
             keys,
             devices,
             sigs_required,
@@ -744,6 +803,8 @@ class Wallet:
             "change_index": self.change_index,
             "keypool": self.keypool,
             "change_keypool": self.change_keypool,
+            # we still store two descriptors so it can directly copy-pasted from the file
+            # and to maintain backward compatibility
             "recv_descriptor": self.recv_descriptor,
             "change_descriptor": self.change_descriptor,
             "keys": [key.json for key in self.keys],
@@ -776,9 +837,9 @@ class Wallet:
 
     @property
     def use_descriptors(self):
-        if not hasattr(self, "info") or self.info != {}:
+        if not self.info:
             self.get_info()
-        return "descriptors" in self.info and self.info["descriptors"] == True
+        return self.info.get("descriptors", False)
 
     @property
     def is_multisig(self):
@@ -1201,7 +1262,7 @@ class Wallet:
         """Returns None if rescanblockchain is not launched,
         value between 0 and 1 otherwise
         """
-        if self.info.get("scanning", False) == False:
+        if not self.info.get("scanning", False):
             return None
         else:
             return self.info["scanning"]["progress"]
@@ -1257,11 +1318,8 @@ class Wallet:
             pool = self.change_keypool if change else self.keypool
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
-        desc = self.change_descriptor if change else self.recv_descriptor
-        return (
-            LDescriptor.from_string(desc)
-            .derive(index)
-            .address(get_network(self.manager.chain))
+        return self.descriptor.derive(index, branch_index=int(change)).address(
+            self.network
         )
 
     def get_descriptor(self, index=None, change=False, address=None):
@@ -1280,10 +1338,6 @@ class Wallet:
         if index is None:
             index = self.change_index if change else self.address_index
         desc = self.change_descriptor if change else self.recv_descriptor
-        # remove blinding stuff from descriptor so HWI Descriptor can work
-        ldesc = LDescriptor.from_string(desc)
-        ldesc.blinding_key = None
-        desc = str(ldesc)
         derived_desc = Descriptor.parse(desc).derive(index).serialize()
         derived_desc_xpubs = (
             Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
@@ -1771,7 +1825,7 @@ class Wallet:
 
     @property
     def is_taproot(self):
-        return "tr(" in self.recv_descriptor
+        return self.descriptor.is_taproot
 
     def fill_psbt(
         self,
@@ -1785,17 +1839,14 @@ class Wallet:
         # Core doesn't fill derivations yet, so we do it ourselves
         if taproot_derivations and self.is_taproot:
 
-            net = get_network(self.manager.chain)
+            net = self.network
             for sc in psbt.inputs + psbt.outputs:
                 addr = sc.script_pubkey.address(net)
                 info = self._addresses.get(addr)
                 if info and not info.is_external:
-                    desc = (
-                        self.recv_descriptor
-                        if info.is_receiving
-                        else self.change_descriptor
+                    d = self.descriptor.derive(
+                        info.index, branch_index=int(info.change)
                     )
-                    d = LDescriptor.from_string(desc).derive(info.index)
                     for k in d.keys:
                         sc.bip32_derivations[PublicKey.parse(k.sec())] = DerivationPath(
                             k.origin.fingerprint, k.origin.derivation

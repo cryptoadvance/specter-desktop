@@ -69,7 +69,7 @@ class Address(dict):
 
     @property
     def change(self):
-        return self["change"]
+        return not self.is_external and self["change"]
 
     @property
     def used(self):
