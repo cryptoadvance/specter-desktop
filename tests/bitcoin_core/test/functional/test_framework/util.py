@@ -71,7 +71,11 @@ def create_lots_of_big_transactions(wallet, txouts, utxos, num, fee):
         for txout in txouts:
             tx.vout.append(txout)
         newtx = tx.serialize().hex()
-        signresult = wallet.devices[0].sign_raw_tx(newtx, wallet)
-        txid = node.sendrawtransaction(signresult["hex"], 0)
+        psbtF = wallet.rpc.converttopsbt(newtx)
+        psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
+        signed = wallet.devices[0].sign_psbt(psbtFF["psbt"], wallet)
+        assert signed["complete"]
+        finalized = wallet.rpc.finalizepsbt(signed["psbt"])
+        txid = node.sendrawtransaction(finalized["hex"])
         txids.append(txid)
     return txids

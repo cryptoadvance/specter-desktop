@@ -31,7 +31,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -56,7 +56,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -77,7 +77,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -102,7 +102,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: broadcast_timeout })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)

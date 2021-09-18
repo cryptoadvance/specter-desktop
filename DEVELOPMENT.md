@@ -172,6 +172,13 @@ pytest tests/test_specter.py::test_specter
 pytest --setup-show
 ```
 
+Get the log-output of bitcoind side by side with the test-output. For sure you will only see the logs if the test fails.
+```
+pytest --bitcoind-log-stdout
+# Probably better to redirect into a file
+pytest --bitcoind-log-stdout > testoutput.log
+```
+
 Check the cypress-section on how to run cypress-frontend-tests.
 
 ## Code-Style

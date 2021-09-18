@@ -69,7 +69,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
-      cy.get('#devices_list > .item > div').contains(name)
+      cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
     })
 })
 
@@ -136,7 +136,7 @@ Cypress.Commands.add("mine2wallet", (chain) => {
       }
       cy.wait(15000)
       cy.reload()
-      cy.get('#fullbalance_amount')
+      cy.get('#fullbalance_amount') // Wait 5 secs + 15 secs timeout
           .should(($div) => {
           const n = parseFloat($div.text())
           expect(n).to.be.gt(oldBalance)

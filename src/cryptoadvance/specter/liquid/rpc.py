@@ -561,7 +561,7 @@ class LiquidRPC(BitcoinRPC):
             port=rpc.port,
             protocol=rpc.protocol,
             path=rpc.path,
-            timeout=rpc.timeout,
+            timeout=cls.default_timeout,  # Elements is slower
             session=rpc.session,
             proxy_url=rpc.proxy_url,
             only_tor=rpc.only_tor,
