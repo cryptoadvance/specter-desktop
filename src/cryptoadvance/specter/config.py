@@ -173,6 +173,7 @@ class CypressTestConfig(TestConfig):
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
     )
+    BITCOIN_RPC_TIMEOUT = 30
 
 
 class ProductionConfig(BaseConfig):
