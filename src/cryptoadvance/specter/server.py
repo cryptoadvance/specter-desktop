@@ -9,6 +9,9 @@ from flask import Flask, redirect, request, url_for, jsonify, session
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+
+from cryptoadvance.specter.rpc import BitcoinRPC
 
 from .helpers import hwi_get_config
 from .specter import Specter
@@ -104,6 +107,9 @@ def init_app(app, hwibridge=False, specter=None):
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     app.secret_key = app.config["SECRET_KEY"]
+    BitcoinRPC.default_timeout = app.config["BITCOIN_RPC_TIMEOUT"]
+    LiquidRPC.default_timeout = app.config["LIQUID_RPC_TIMEOUT"]
+
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")

@@ -62,6 +62,10 @@ class BaseConfig(object):
         "ELMD_REGTEST_DATA_DIR", "/tmp/specter_elm_regtest_plain_datadir"
     )
 
+    # the default timeout for Bitcoin/Liquid RPC-calls
+    BITCOIN_RPC_TIMEOUT = int(os.getenv("BITCOIN_RPC_TIMEOUT", "10"))
+    LIQUID_RPC_TIMEOUT = int(os.getenv("LIQUID_RPC_TIMEOUT", "10"))
+
     # The self-signed ssl-certificate which is lazily created is configurable to a certain extent
     SPECTER_SSL_CERT_SUBJECT_C = os.getenv("SPECTER_SSL_CERT_SUBJECT_C", "DE")
     SPECTER_SSL_CERT_SUBJECT_ST = os.getenv("SPECTER_SSL_CERT_SUBJECT_ST", "BDW")
@@ -148,6 +152,10 @@ class TestConfig(BaseConfig):
     # API active by default in test-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
+    # See #1316 since Bitcoin v0.21.1 (not only) the importmulti-call takes longer than 10 seconds on cirrus
+    BITCOIN_RPC_TIMEOUT = 20
+    LIQUID_RPC_TIMEOUT = 30
+
 
 class CypressTestConfig(TestConfig):
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -165,6 +173,8 @@ class CypressTestConfig(TestConfig):
     BTCD_REGTEST_DATA_DIR = os.getenv(
         "BTCD_REGTEST_DATA_DIR", "/tmp/specter_cypress_elm_regtest_plain_datadir"
     )
+    BITCOIN_RPC_TIMEOUT = 30
+    LIQUID_RPC_TIMEOUT = 40
 
 
 class ProductionConfig(BaseConfig):

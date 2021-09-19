@@ -52,16 +52,19 @@ test_task:
     - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
   << : *PREP_STUFF_TEMPLATE
   test_script: 
-    - pwd
-    - ls -l ./.env/bin
     - source ./.env/bin/activate
     - echo $PATH
     #- pip3 install -e .
-    - pytest --cov=cryptoadvance
+    - pytest --cov=cryptoadvance --junitxml=./testresults.xml
+  always:
+    junit_artifacts:
+      path: "./testresults.xml"
+      format: junit
+  
 
 cypress_test_task:
   container:
-    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:focal
+    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:latest
   pre_prep_script: 
     - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip python3-virtualenv bc
     # The stupid old debian-package is not installing a proper binary but just the python-package
