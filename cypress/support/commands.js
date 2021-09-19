@@ -134,7 +134,7 @@ Cypress.Commands.add("mine2wallet", (chain) => {
       } else {
         throw new Error("Unknown chain: " + chain)
       }
-      cy.wait(10000)
+      cy.wait(15000)
       cy.reload()
       cy.get('#fullbalance_amount')
           .should(($div) => {
