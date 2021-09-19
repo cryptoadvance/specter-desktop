@@ -1,7 +1,5 @@
 describe('Operating with an elements multisig wallet', () => {
-    // 4000ms was often not enough for waiting a elm-transaction
-    // So let's try double as much:
-    const broadcast_timeout = 8000
+
     
     it('Creates an two elements multisig hot wallets (segwit/nested) both 2/3', () => {
         cy.viewport(1200,660)
@@ -84,7 +82,7 @@ describe('Operating with an elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
             // gets redirected to "transactions"
 
-            cy.get('#fullbalance_amount', { timeout: broadcast_timeout })
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -127,7 +125,7 @@ describe('Operating with an elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
             // gets redirected to "transactions"
 
-            cy.get('#fullbalance_amount', { timeout: broadcast_timeout })
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -169,7 +167,7 @@ describe('Operating with an elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
             // gets redirected to "transactions"
 
-            cy.get('#fullbalance_amount', { timeout: broadcast_timeout })
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -211,7 +209,7 @@ describe('Operating with an elements multisig wallet', () => {
             cy.get('#send_tx_btn').click()
             cy.get('#broadcast_local_btn').click()
             // gets redirected to "transactions"
-            cy.get('#fullbalance_amount', { timeout: broadcast_timeout})
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
