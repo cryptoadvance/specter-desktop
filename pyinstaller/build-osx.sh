@@ -81,3 +81,10 @@ cd ..
 
 sha256sum ./release/specterd-$1-osx.zip
 sha256sum ./release/SpecterDesktop-$1.dmg
+
+# "In order to upload these artifacts to github, do:"
+# export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
+# export CI_COMMIT_TAG=$1
+# export GH_BIN_UPLOAD_PW=YourSecretHere
+# python ./utils/github.py upload ./release/specterd-$1-osx.zip
+# python ./utils/github.py upload ./release/SpecterDesktop-$1.dmg
