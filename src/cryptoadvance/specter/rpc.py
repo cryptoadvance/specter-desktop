@@ -1,7 +1,8 @@
 import logging
-import requests, json, os
+import requests, urllib3, json, os
 import os, sys, errno
 from .helpers import is_ip_private
+from .specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,7 @@ class RpcError(Exception):
     try:
         rpc.does_not_exist()
     except RpcError as rpce:
+        assert rpce.status_code == 401 # A https-status-code
         assert rpce.error_code == -32601
         assert rpce.error_msg == "Method not found"
     See for error_codes https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
@@ -214,8 +216,13 @@ class RpcError(Exception):
 class BitcoinRPC:
     counter = 0
 
+    # These are used for tracing the calls without too many duplicates
     last_call_hash = None
     last_call_hash_counter = 0
+
+    # https://docs.python-requests.org/en/master/user/quickstart/#timeouts
+    # None means until connection closes. It's specified in seconds
+    default_timeout = None  # seconds
 
     def __init__(
         self,
@@ -238,7 +245,7 @@ class BitcoinRPC:
         self.protocol = protocol
         self.host = host
         self.path = path
-        self.timeout = timeout
+        self.timeout = timeout or self.__class__.default_timeout
         self.proxy_url = proxy_url
         self.only_tor = only_tor
         self.r = None
@@ -338,9 +345,25 @@ class BitcoinRPC:
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
         self.trace_call(url, payload)
-        r = self.session.post(
-            url, data=json.dumps(payload), headers=headers, timeout=timeout
-        )
+        try:
+            r = self.session.post(
+                url, data=json.dumps(payload), headers=headers, timeout=timeout
+            )
+        except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
+            # Timeout is effectively one of the two:
+            # ConnectTimeout: The request timed out while trying to connect to the remote server
+            # ReadTimeout: The server did not send any data in the allotted amount of time.
+            # ReadTimeoutError: Raised when a socket timeout occurs while receiving data from a server
+            logger.error(
+                "Timeout while {} call({: <28}) payload:{} Exception: {}".format(
+                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload, to
+                )
+            )
+            raise SpecterError(
+                "Timeout while {} call({: <28}) payload:{}".format(
+                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload
+                )
+            )
         self.r = r
         if r.status_code != 200:
             logger.debug(f"last call FAILED: {r.text} (raising RpcError)")

@@ -140,9 +140,24 @@
 			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
 				<label style="font-size: 1em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 				<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
-				<span class="slider"></span>
-			</label><br>
+					<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+					<span class="slider"></span>
+				</label>
+				<br>
+				{% if not wallet.is_multisig %} 
+				<br>
+				<tool-tip title="{{ _("A Paper Wallet") }}" style="float: right;">
+					{{ _('This PDF is optimized for singlesig Paperwallets: Wallets created by uncle Jim (<a href="https://stephanlivera.com/episode/265/">inspired by</a>) for family&friends which want a coldstorage but can\'t afford a Hardwarewallet yet.') }} 
+					{{ _('So we enable the import in a specter-desktop later and list many single addresses (#0 is dedicated for a penny-test) for later use when the HWW is gone.') }}
+					{{ _('A checkbox can be used to verify the address on the (probably Specter-DIY or seedsigner) hardwarewallet as long as it\'s around and still hold that seed in memory.') }}
+					{{ _('It\'s assumed to be folded into DIN-A5 to fit in a transparent sealing-bag (together with the seed).') }}
+				</tool-tip>
+				Paper-Wallet (xpub-part): <br>
+				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" style="margin: 30px auto;">
+					Save Paperxpub PDF
+				</button>
+				
+				{% endif %}
 			</div>
 			<br>
 			<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
@@ -201,7 +216,7 @@
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
-						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
+						<div style="margin-right: 30px; flex-grow: 1;">{{ _("Rescanning blockchain:") }} <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
 						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 					</div>
 				{% else %}
@@ -213,7 +228,7 @@
 							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 						{% endif %}
 						<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
-						<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
+						<button type="submit" name="action" value="rescanblockchain" class="btn">{{ _("Rescan") }}</button>
 					</div>
 					{% if specter.info['pruned']  %}
 						<div class="note center full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
