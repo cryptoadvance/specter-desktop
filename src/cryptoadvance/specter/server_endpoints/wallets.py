@@ -29,6 +29,7 @@ from ..helpers import (
     get_devices_with_keys_by_type,
     get_txid,
 )
+from ..liquid.util.pset import to_canonical_pset
 from ..key import Key
 from ..persistence import delete_file
 from ..rpc import RpcError
@@ -298,6 +299,7 @@ def new_wallet(wallet_type):
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
             except Exception as e:
+                app.logger.exception(e)
                 err = _("Failed to create wallet. Error: {}").format(e)
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
@@ -481,7 +483,7 @@ def send_new(wallet_alias):
     subtract = False
     subtract_from = 1
     fee_options = "dynamic"
-    rbf = True
+    rbf = not app.specter.is_liquid
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
@@ -899,6 +901,9 @@ def combine(wallet_alias):
         return e.error_msg, e.status_code
     except Exception as e:
         return _("Unknown error: {}").format(e), 500
+    if "psbt" in raw:
+        # returned psbt should be valid for Bitcoin or Elements Core decoding
+        raw["psbt"] = to_canonical_pset(raw["psbt"])
     return json.dumps(raw)
 
 
