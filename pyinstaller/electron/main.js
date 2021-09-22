@@ -102,6 +102,7 @@ function createWindow (specterURL) {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Start the tray icon
+  console.log("Framework Ready! Starting tray Icon ...");
   tray = new Tray(path.join(__dirname, 'assets/icon.png'))
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
@@ -115,6 +116,7 @@ app.whenReady().then(() => {
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
+  console.log("Framework Ready! Initializing Main-Window, popultaing Menu ...");
   initMainWindow()
 
   setMainMenu();
@@ -122,11 +124,13 @@ app.whenReady().then(() => {
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
 
   if (!fs.existsSync(specterdDirPath)){
-      fs.mkdirSync(specterdDirPath, { recursive: true });
+    console.log("Creating specterd-binaries folder");
+    fs.mkdirSync(specterdDirPath, { recursive: true });
   }
 
   let versionData = require('./version-data.json')
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
+    console.log(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
     appSettings.specterdVersion = versionData.version
     appSettings.specterdHash = versionData.sha256
     appSettings.versionInitialized = versionData.version
@@ -136,6 +140,7 @@ app.whenReady().then(() => {
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
       if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
+        
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
         updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
@@ -249,6 +254,10 @@ function updatingLoaderMsg(msg) {
   } 
 }
 
+function hasSuccessfullyStarted(logs) {
+  return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+}
+
 function startSpecterd(specterdPath) {
   if (platformName == 'win64') {
     specterdPath += '.exe'
@@ -257,7 +266,8 @@ function startSpecterd(specterdPath) {
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
   updatingLoaderMsg('Launching Specter Desktop...')
   updateSpecterdStatus('Launching Specter...')
-  let specterdArgs = hwiBridgeMode ? ['--hwibridge'] : null
+  let specterdArgs = ["server"]
+  if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
     if (specterdArgs == null) {
       specterdArgs = []
@@ -268,14 +278,31 @@ function startSpecterd(specterdPath) {
     
     specterdArgs = specterdArgs.concat(specterdExtraArgs)
   }
+
+
+  console.log(`Starting specterd ${specterdPath} ${specterdArgs}`);
   specterdProcess = spawn(specterdPath, specterdArgs);
+  var procStdout = ""
   specterdProcess.stdout.on('data', (data) => {
-    if(data.toString().includes('Serving Flask app "cryptoadvance.specter.server"')) {
+    procStdout += data
+    console.log(`checking process output`);
+    if(hasSuccessfullyStarted(data)) {
+      console.log(`App seem to to run ...`);
       if (mainWindow) {
+        console.log(`... creating window ...`);
         createWindow(appSettings.specterURL)
+        
       }
     }
   });
+  
+  // After 20 seconds, open the log-window if startup is not successfull
+  setTimeout(() => {
+    if(!hasSuccessfullyStarted(procStdout)) {
+      openErrorLog()
+    }    
+  }, 20000)
+
   specterdProcess.stderr.on('data', function(_) {
     // https://stackoverflow.com/questions/20792427/why-is-my-node-child-process-that-i-created-via-spawn-hanging
     // needed so specterd won't get stuck
@@ -362,14 +389,28 @@ function setMainMenu() {
         accelerator: "CmdOrCtrl+,"
       }
     );
+    menu[0].submenu.splice(1, 0,
+      {
+        label: 'Specter Logs',
+        click: openErrorLog,
+        accelerator: "CmdOrCtrl+,"
+      }
+    );
   } else {
     menu.unshift({
         label: 'Specter',
-        submenu: [{
+        submenu: [
+        {
           label: 'Preferences',
           click: openPreferences,
           accelerator: "CmdOrCtrl+,"
-        }]
+        },
+        {
+          label: 'Specter Logs',
+          click: openErrorLog,
+          accelerator: "CmdOrCtrl+,"
+        }
+        ]
       } 
     );
   }
@@ -377,7 +418,8 @@ function setMainMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }
 
-function openPreferences() {
+
+function openNewWindow(htmlContentFile) {
   prefWindow = new BrowserWindow({
     width: 700,
     height: 750,
@@ -390,8 +432,17 @@ function openPreferences() {
     e.preventDefault();
     shell.openExternal(url);
   });
-  prefWindow.loadURL(`file://${__dirname}/settings.html`)
+  prefWindow.loadURL(`file://${__dirname}/${htmlContentFile}`)
   prefWindow.show()
+}
+
+
+function openPreferences() {
+  openNewWindow("settings.html")
+}
+
+function openErrorLog() {
+  openNewWindow("error_logs.html")
 }
 
 function showError(error) {
