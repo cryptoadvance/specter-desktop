@@ -186,8 +186,8 @@ def new_wallet(wallet_type):
                     cosigners=wallet_importer.cosigners,
                     unknown_cosigners=wallet_importer.unknown_cosigners,
                     unknown_cosigners_types=wallet_importer.unknown_cosigners_types,
-                    sigs_required=wallet_importer.descriptor.multisig_M,
-                    sigs_total=wallet_importer.descriptor.multisig_N,
+                    sigs_required=wallet_importer.sigs_required,
+                    sigs_total=wallet_importer.sigs_total,
                     specter=app.specter,
                     rand=rand,
                 )

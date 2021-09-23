@@ -285,7 +285,7 @@ class WalletManager:
             logger.debug(f"Updating WalletManager rpc {self._rpc} with None")
         self._rpc = value
 
-    def create_wallet(self, name, sigs_required, key_type, keys, devices):
+    def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
         try:
             walletsindir = [
                 wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]
@@ -314,6 +314,7 @@ class WalletManager:
             keys,
             devices,
             self.bitcoin_core_version_raw,
+            **kwargs,
         )
         # save wallet file to disk
         if w and self.working_folder is not None:

@@ -33,7 +33,7 @@ class LWallet(Wallet):
         )
 
         # get blinding key for the wallet if it's not provided
-        if len(devices) == 1:
+        if len(devices) == 1 and blinding_key is None:
             blinding_key = devices[0].blinding_key
             if not blinding_key:
                 raise SpecterError(
