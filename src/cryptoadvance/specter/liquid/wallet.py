@@ -9,6 +9,7 @@ from .txlist import LTxList
 from .addresslist import LAddressList
 from embit.liquid.addresses import to_unconfidential
 from ..specter_error import SpecterError
+from .util.pset import SpecterPSET
 
 
 class LWallet(Wallet):
@@ -16,7 +17,7 @@ class LWallet(Wallet):
     AddressListCls = LAddressList
     TxListCls = LTxList
     TxCls = LTransaction
-    PSBTCls = PSET
+    PSBTCls = SpecterPSET
     DescriptorCls = LDescriptor
 
     @classmethod

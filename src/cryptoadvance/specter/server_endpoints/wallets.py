@@ -580,7 +580,7 @@ def send_new(wallet_alias):
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = json.loads(request.form["psbt"])
-            b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
+            b64psbt = str(wallet.pending_psbts[psbt["tx"]["txid"]])
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
@@ -683,13 +683,7 @@ def send_pending(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
-    pending_psbts = wallet.pending_psbts
-    ######## Migration to multiple recipients format ###############
-    for psbt in pending_psbts:
-        if not isinstance(pending_psbts[psbt]["address"], list):
-            pending_psbts[psbt]["address"] = [pending_psbts[psbt]["address"]]
-            pending_psbts[psbt]["amount"] = [pending_psbts[psbt]["amount"]]
-    ###############################################################
+    pending_psbts = wallet.pending_psbts_dict()
     return render_template(
         "wallet/send/pending/wallet_sendpending.jinja",
         pending_psbts=pending_psbts,

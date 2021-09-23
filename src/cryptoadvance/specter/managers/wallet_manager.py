@@ -161,16 +161,11 @@ class WalletManager:
                                 for psbt in loaded_wallet.pending_psbts:
                                     logger.info(
                                         "lock %s " % wallet_alias,
-                                        loaded_wallet.pending_psbts[psbt]["tx"]["vin"],
+                                        loaded_wallet.pending_psbts[psbt].utxo_dict(),
                                     )
                                     loaded_wallet.rpc.lockunspent(
                                         False,
-                                        [
-                                            utxo
-                                            for utxo in loaded_wallet.pending_psbts[
-                                                psbt
-                                            ]["tx"]["vin"]
-                                        ],
+                                        loaded_wallet.pending_psbts[psbt].utxo_dict(),
                                     )
                             if len(loaded_wallet.frozen_utxo) > 0:
                                 loaded_wallet.rpc.lockunspent(

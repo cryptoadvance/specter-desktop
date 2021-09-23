@@ -25,7 +25,7 @@ class ResourcePsbt(SecureResource):
         wallet: Wallet = app.specter.user_manager.get_user(
             user
         ).wallet_manager.get_by_alias(wallet_alias)
-        pending_psbts = wallet.pending_psbts
+        pending_psbts = wallet.pending_psbts_dict()
         return {"result": pending_psbts or []}
 
     def post(self, wallet_alias):

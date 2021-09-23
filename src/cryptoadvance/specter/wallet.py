@@ -23,6 +23,7 @@ import requests
 from math import ceil
 from .addresslist import AddressList
 from .txlist import TxList
+from .util.psbt import SpecterPSBT
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -63,7 +64,7 @@ class Wallet:
     AddressListCls = AddressList
     TxListCls = TxList
     TxCls = Transaction
-    PSBTCls = PSBT
+    PSBTCls = SpecterPSBT
     DescriptorCls = Descriptor
 
     def __init__(
@@ -120,7 +121,10 @@ class Wallet:
                 "A device used by this wallet could not have been found!"
             )
         self.sigs_required = int(sigs_required)
-        self.pending_psbts = pending_psbts
+        self.pending_psbts = {
+            psbtid: self.PSBTCls.from_dict(psbtobj, self.descriptor, manager.chain)
+            for psbtid, psbtobj in pending_psbts.items()
+        }
         self.frozen_utxo = frozen_utxo
         self.fullpath = fullpath
         self.manager = manager
@@ -814,10 +818,15 @@ class Wallet:
         if for_export:
             o["labels"] = self.export_labels()
         else:
-            o["pending_psbts"] = self.pending_psbts
+            o["pending_psbts"] = self.pending_psbts_dict()
             o["frozen_utxo"] = self.frozen_utxo
             o["last_block"] = self.last_block
         return o
+
+    def pending_psbts_dict(self):
+        return {
+            psbtid: psbtobj.to_dict() for psbtid, psbtobj in self.pending_psbts.items()
+        }
 
     def save_to_file(self):
         write_json_file(self.to_json(), self.fullpath)
@@ -851,14 +860,8 @@ class Wallet:
     @property
     def locked_amount(self):
         amount = 0
-        for psbt in self.pending_psbts:
-            amount += sum(
-                [
-                    utxo.get("witness_utxo", {}).get("amount", 0)
-                    or utxo.get("value", 0)
-                    for utxo in self.pending_psbts[psbt]["inputs"]
-                ]
-            )
+        for psbt in self.pending_psbts.values():
+            amount += sum([inp.float_amount for inp in psbt.inputs])
         return amount
 
     def delete_spent_pending_psbts(self, txs: list):
@@ -878,9 +881,8 @@ class Wallet:
         utxos = set([(vin.txid, vin.vout) for vin in inputs])
         # get psbt ids we need to delete
         psbtids = []
-        for psbtid, psbtobj in self.pending_psbts.items():
-            psbt = self.PSBTCls.from_string(psbtobj["base64"])
-            psbtutxos = [(inp.vin.txid, inp.vin.vout) for inp in psbt.inputs]
+        for psbtid, psbt in self.pending_psbts.items():
+            psbtutxos = [(inp.txid, inp.vout) for inp in psbt.inputs]
             for utxo in psbtutxos:
                 if utxo in utxos:
                     psbtids.append(psbtid)
@@ -893,10 +895,10 @@ class Wallet:
     def delete_pending_psbt(self, txid, save=True):
         if txid and txid in self.pending_psbts:
             try:
-                self.rpc.lockunspent(True, self.pending_psbts[txid]["tx"]["vin"])
-            except:
+                self.rpc.lockunspent(True, self.pending_psbts[txid].utxo_dict())
+            except Exception as e:
                 # UTXO was spent
-                pass
+                logger.warning(str(e))
             del self.pending_psbts[txid]
             if save:
                 self.save_to_file()
@@ -948,9 +950,11 @@ class Wallet:
             raise SpecterError("Can't find pending PSBT with this txid")
 
     def save_pending_psbt(self, psbt):
-        self.pending_psbts[psbt["tx"]["txid"]] = psbt
+        self.pending_psbts[psbt["tx"]["txid"]] = self.PSBTCls.from_dict(
+            psbt, self.descriptor, self.manager.chain
+        )
         try:
-            self.rpc.lockunspent(False, psbt["tx"]["vin"])
+            self.rpc.lockunspent(False, psbt.utxo_dict())
         except:
             logger.debug(
                 "Failed to lock UTXO for transaction, might be fine if the transaction is an RBF."
