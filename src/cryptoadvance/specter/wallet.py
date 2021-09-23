@@ -6,8 +6,7 @@ from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import der_to_bytes, get_address_from_dict
 from embit import base58, bip32
-from .util.descriptor import Descriptor, sort_descriptor, AddChecksum
-from embit.descriptor import Descriptor as EmbitDescriptor
+from embit.descriptor import Descriptor
 from embit.descriptor.checksum import add_checksum
 from embit.liquid.networks import get_network
 from embit.psbt import PSBT, DerivationPath
@@ -65,7 +64,7 @@ class Wallet:
     TxListCls = TxList
     TxCls = Transaction
     PSBTCls = PSBT
-    DescriptorCls = EmbitDescriptor
+    DescriptorCls = Descriptor
 
     def __init__(
         self,
@@ -1322,6 +1321,41 @@ class Wallet:
             self.network
         )
 
+    def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
+        """
+        Derives descriptor for receiving or change address with `index`.
+        For sortedmulti descriptor also sorts keys.
+        keep_xpubs=False will replace xpubs with sec-serialized pubkeys,
+        keep_xpubs=True will fill derivation after xpub without actually deriving the key.
+        In both cases keys are sorted as will appear in witness script.
+        """
+        branch = int(change)
+        if keep_xpubs:
+            # get receiving or change branch
+            desc = self.descriptor.branch(branch)
+            # sort keys
+            if desc.is_basic_multisig and desc.is_sorted:
+                args = desc.miniscript.args
+                # sort by derived sec(), first arg is a threshold
+                desc.miniscript.args = [args[0]] + sorted(
+                    args[1:], key=lambda k: k.derive(index).sec()
+                )
+            # fill indexes in allowed derivations
+            for k in desc.keys:
+                k.allowed_derivation.indexes = k.allowed_derivation.fill(index)
+        else:
+            desc = self.descriptor.derive(index, branch_index=branch)
+            # replace xpubs with pubkeys
+            for k in desc.keys:
+                k.key = k.key.get_public_key()
+            # sort keys
+            if desc.is_basic_multisig and desc.is_sorted:
+                args = desc.miniscript.args
+                desc.miniscript.args = [args[0]] + sorted(
+                    args[1:], key=lambda k: k.sec()
+                )
+        return desc
+
     def get_descriptor(self, index=None, change=False, address=None):
         """
         Returns address descriptor from index, change
@@ -1337,12 +1371,14 @@ class Wallet:
                 change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
-        desc = self.change_descriptor if change else self.recv_descriptor
-        derived_desc = Descriptor.parse(desc).derive(index).serialize()
-        derived_desc_xpubs = (
-            Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
-        )
-        return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
+        return {
+            "descriptor": add_checksum(
+                str(self.derive_descriptor(index, change, keep_xpubs=False))
+            ),
+            "xpubs_descriptor": add_checksum(
+                str(self.derive_descriptor(index, change, keep_xpubs=True))
+            ),
+        }
 
     def get_address_info(self, address):
         return self._addresses.get(address)

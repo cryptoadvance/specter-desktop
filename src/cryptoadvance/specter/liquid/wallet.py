@@ -62,31 +62,15 @@ class LWallet(Wallet):
             f"blinded(slip77({blinding_key}),{str(btcdescriptor)})"
         )
 
-    def get_descriptor(self, index=None, change=False, address=None):
+    def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
         """
-        Returns address descriptor from index, change
-        or from address belonging to the wallet.
+        For derived descriptor for individual address we remove blinding key
+        as it is used in HWI calls that doesn't support blinding descriptors yet.
+        TODO: handle blinding keys in HWI
         """
-        if address is not None:
-            # only ask rpc if address is not known directly
-            if address not in self._addresses:
-                return self.rpc.getaddressinfo(address).get("desc", "")
-            else:
-                a = self._addresses[address]
-                index = a.index
-                change = a.change
-        if index is None:
-            index = self.change_index if change else self.address_index
-        desc = self.change_descriptor if change else self.recv_descriptor
-        # remove blinding stuff from descriptor so HWI Descriptor can work
-        ldesc = self.DescriptorCls.from_string(desc)
-        ldesc.blinding_key = None
-        desc = str(ldesc)
-        derived_desc = Descriptor.parse(desc).derive(index).serialize()
-        derived_desc_xpubs = (
-            Descriptor.parse(desc).derive(index, keep_xpubs=True).serialize()
-        )
-        return {"descriptor": derived_desc, "xpubs_descriptor": derived_desc_xpubs}
+        desc = super().derive_descriptor(index, change, keep_xpubs)
+        desc.blinding_key = None
+        return desc
 
     def getdata(self):
         self.fetch_transactions()
