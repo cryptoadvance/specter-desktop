@@ -26,7 +26,7 @@ class ResourcePsbt(SecureResource):
             user
         ).wallet_manager.get_by_alias(wallet_alias)
         pending_psbts = wallet.pending_psbts_dict()
-        return {"result": pending_psbts or []}
+        return {"result": pending_psbts or {}}
 
     def post(self, wallet_alias):
         user = auth.current_user()
