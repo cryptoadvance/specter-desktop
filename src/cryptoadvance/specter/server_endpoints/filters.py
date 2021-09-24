@@ -17,8 +17,8 @@ def ascii20(context, name):
 
 
 @contextfilter
-@filters_bp.app_template_filter("unique")
-def unique(context, arr):
+@filters_bp.app_template_filter("unique_len")
+def unique_len(context, arr):
     return len(set(arr))
 
 

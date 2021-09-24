@@ -122,7 +122,12 @@ class Wallet:
             )
         self.sigs_required = int(sigs_required)
         self.pending_psbts = {
-            psbtid: self.PSBTCls.from_dict(psbtobj, self.descriptor, manager.chain)
+            psbtid: self.PSBTCls.from_dict(
+                psbtobj,
+                self.descriptor,
+                manager.chain,
+                devices=list(zip(self.keys, self._devices)),
+            )
             for psbtid, psbtobj in pending_psbts.items()
         }
         self.frozen_utxo = frozen_utxo
@@ -936,17 +941,17 @@ class Wallet:
             raise SpecterError("Can't find pending PSBT with this txid")
 
         cur_psbt = self.pending_psbts[txid]
-        cur_psbt["base64"] = psbt
-        decodedpsbt = self.rpc.decodepsbt(psbt)
-        signed_devices = self.get_signed_devices(decodedpsbt)
-        cur_psbt["devices_signed"] = [dev.alias for dev in signed_devices]
-        if "hex" in raw:
-            cur_psbt["sigs_count"] = self.sigs_required
-            cur_psbt["raw"] = raw["hex"]
-        else:
-            cur_psbt["sigs_count"] = len(signed_devices)
+        cur_psbt.update(psbt, raw)
+        # decodedpsbt = self.rpc.decodepsbt(psbt)
+        # signed_devices = self.get_signed_devices(decodedpsbt)
+        # cur_psbt["devices_signed"] = [dev.alias for dev in signed_devices]
+        # if "hex" in raw:
+        #     cur_psbt["sigs_count"] = self.sigs_required
+        #     cur_psbt["raw"] = raw["hex"]
+        # else:
+        #     cur_psbt["sigs_count"] = len(signed_devices)
         self.save_to_file()
-        return cur_psbt
+        return cur_psbt.to_dict()
 
     def save_pending_psbt(self, psbt):
         self.pending_psbts[psbt.txid] = psbt
@@ -1720,7 +1725,12 @@ class Wallet:
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
 
-        psbt = self.PSBTCls.from_dict(psbt, self.descriptor, self.manager.chain)
+        psbt = self.PSBTCls.from_dict(
+            psbt,
+            self.descriptor,
+            self.manager.chain,
+            devices=list(zip(self.keys, self._devices)),
+        )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()

@@ -119,6 +119,14 @@ class SpecterPSET(SpecterPSBT):
         ]
 
     @property
+    def amounts(self):
+        return [
+            out.float_amount
+            for out in self.outputs
+            if out.scope.script_pubkey.data and not self.descriptor.owns(out.scope)
+        ]
+
+    @property
     def assets(self):
         return [
             out.assetid

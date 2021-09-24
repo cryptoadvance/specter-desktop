@@ -580,7 +580,8 @@ def send_new(wallet_alias):
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = json.loads(request.form["psbt"])
-            b64psbt = str(wallet.pending_psbts[psbt["tx"]["txid"]])
+            current_psbt = wallet.pending_psbts[psbt["tx"]["txid"]]
+            b64psbt = str(current_psbt)
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
@@ -588,15 +589,12 @@ def send_new(wallet_alias):
                     signed_psbt = app.specter.device_manager.get_by_alias(
                         device
                     ).sign_psbt(b64psbt, wallet, passphrase)
+                    raw = None
                     if signed_psbt["complete"]:
-                        if "devices_signed" not in psbt:
-                            psbt["devices_signed"] = []
-                        psbt["devices_signed"].append(device)
-                        psbt["sigs_count"] = len(psbt["devices_signed"])
                         raw = wallet.rpc.finalizepsbt(b64psbt)
-                        if "hex" in raw:
-                            psbt["raw"] = raw["hex"]
+                    current_psbt.update(signed_psbt["psbt"], raw)
                     signed_psbt = signed_psbt["psbt"]
+                    psbt = current_psbt.to_dict()
                 except Exception as e:
                     signed_psbt = None
                     flash(_("Failed to sign PSBT: {}").format(e), "error")
