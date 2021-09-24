@@ -67,7 +67,7 @@ then
     sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "$3" --password "@keychain:AC_PASSWORD" --output-format json)
     mkdir -p signing_logs
     timestamp=$(date +"%Y%m%d-%H%M")
-    echo $sign_result_json > ./signing_logs/${timestamp}_${requestuuid}.log
+    echo $sign_result_json | jq . > ./signing_logs/${timestamp}_${requestuuid}.log
     xcrun stapler staple "dist/mac/Specter.app"
 fi
 

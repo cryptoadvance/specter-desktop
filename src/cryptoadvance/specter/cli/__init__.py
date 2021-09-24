@@ -1,5 +1,6 @@
 import logging
 import click
+import os
 from .cli_server import server
 from .cli_noded import bitcoind, elementsd
 
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.option("--debug", is_flag=True, help="Show debug information on errors.")
+@click.option("--debug", is_flag=False, help="Show debug information on errors.")
 @click.option(
     "--tracerpc/--no-tracerpc",
     default=False,
@@ -17,14 +18,17 @@ logger = logging.getLogger(__name__)
 def entry_point(config_home, debug=False, tracerpc=False):
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-
     if debug:
         # No need for timestamps while developing
         formatter = logging.Formatter("[%(levelname)7s] in %(module)15s: %(message)s")
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
     else:
         formatter = logging.Formatter(
-            "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+            # Too early to format that via the flask-config, so let's copy it from there:
+            os.getenv(
+                "SPECTER_LOGFORMAT",
+                "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            )
         )
         logging.getLogger("cryptoadvance").setLevel(logging.INFO)
     ch.setFormatter(formatter)

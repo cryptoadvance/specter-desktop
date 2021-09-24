@@ -295,6 +295,7 @@ function startSpecterd(specterdPath) {
   updatingLoaderMsg('Launching Specter Desktop...')
   updateSpecterdStatus('Launching Specter...')
   let specterdArgs = ["server"]
+  specterdArgs.push("--no-filelog")
   if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
     if (specterdArgs == null) {
@@ -315,13 +316,13 @@ function startSpecterd(specterdPath) {
   }
   options.env['LC_ALL']='en_US.utf-8'
   options.env['LANG'] = 'en_US.utf-8'
+  options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
   specterdProcess = spawn(specterdPath, specterdArgs, options);
   var procStdout = ""
   var procStderr = ""
   specterdProcess.stdout.on('data', (data) => {
     procStdout += data
-    logger.info(`Data coming from specterdProcess.stdout:`);
-    logger.info(data.toString())
+    logger.info("stdout-"+data.toString())
     if(hasSuccessfullyStarted(data)) {
       logger.info(`App seem to to run ...`);
       if (mainWindow) {
@@ -333,8 +334,7 @@ function startSpecterd(specterdPath) {
   });
   specterdProcess.stderr.on('data', (data) => {
     procStderr += data
-    logger.info(`Data coming from specterdProcess.stderr:`);
-    logger.info(data.toString())
+    logger.info("stderr-"+data.toString())
     if(hasSuccessfullyStarted(data)) {
       logger.info(`App seem to to run ...`);
       if (mainWindow) {
