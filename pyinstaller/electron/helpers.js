@@ -15,6 +15,7 @@ try {
 const appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
 const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
 const specterdLogPath = path.resolve(require('os').homedir(), '.specter/specter.log')
+const specterAppLogPath = path.resolve(require('os').homedir(), '.specter/specterApp.log')
 
 function getFileHash(filename, callback) {
   let shasum = crypto.createHash('sha256')
@@ -72,5 +73,6 @@ module.exports = {
     appSettingsPath: appSettingsPath,
     getAppSettings: getAppSettings,
     specterdDirPath: specterdDirPath,
-    getSpecterLogs: getSpecterLogs
+    getSpecterLogs: getSpecterLogs,
+    specterAppLogPath: specterAppLogPath
 }

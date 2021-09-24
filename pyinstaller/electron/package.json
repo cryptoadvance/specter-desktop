@@ -1,6 +1,5 @@
 {
   "name": "specter-desktop",
-  "version": "v1.6.0",
   "description": "Specter Desktop Electron application",
   "main": "main.js",
   "scripts": {
@@ -46,6 +45,7 @@
     "electron-context-menu": "^2.3.0",
     "electron-default-menu": "^1.0.2",
     "extract-zip": "^2.0.1",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "winston": "^3.3.3"
   }
 }

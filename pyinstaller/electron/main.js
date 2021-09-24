@@ -1,5 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
@@ -11,6 +12,31 @@ const getFileHash = helpers.getFileHash
 const getAppSettings = helpers.getAppSettings
 const appSettingsPath = helpers.appSettingsPath
 const specterdDirPath = helpers.specterdDirPath
+
+// Logging
+const {transports, format, createLogger } = require('winston')
+const combinedLog = new transports.File({ filename: helpers.specterAppLogPath });
+const winstonOptions = {
+    format: format.combine(
+      format.timestamp(),
+      // format.timestamp({format:'MM/DD/YYYY hh:mm:ss.SSS'}),
+      format.json(),
+      format.printf(info => {
+        return `${info.timestamp} [${info.level}] : ${info.message}`;
+      })
+    ),
+    transports: [
+      new transports.Console({json:false}),
+      combinedLog
+    ],
+    exceptionHandlers: [
+      combinedLog
+    ],
+    exitOnError: false 
+}
+const logger = createLogger(winstonOptions)
+
+
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
@@ -40,8 +66,8 @@ contextMenu({
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
-        console.log('content-type:', res.headers['content-type'])
-        console.log('content-length:', res.headers['content-length'])
+        logger.info('content-type:', res.headers['content-type'])
+        logger.info('content-length:', res.headers['content-length'])
         if (res.statusCode != 404) {
           request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
         } else {
@@ -102,7 +128,7 @@ function createWindow (specterURL) {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Start the tray icon
-  console.log("Framework Ready! Starting tray Icon ...");
+  logger.info("Framework Ready! Starting tray Icon ...");
   tray = new Tray(path.join(__dirname, 'assets/icon.png'))
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
@@ -116,7 +142,7 @@ app.whenReady().then(() => {
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
-  console.log("Framework Ready! Initializing Main-Window, popultaing Menu ...");
+  logger.info("Framework Ready! Initializing Main-Window, popultaing Menu ...");
   initMainWindow()
 
   setMainMenu();
@@ -124,13 +150,13 @@ app.whenReady().then(() => {
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
 
   if (!fs.existsSync(specterdDirPath)){
-    console.log("Creating specterd-binaries folder");
+    logger.info("Creating specterd-binaries folder");
     fs.mkdirSync(specterdDirPath, { recursive: true });
   }
 
   let versionData = require('./version-data.json')
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
-    console.log(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
+    logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
     appSettings.specterdVersion = versionData.version
     appSettings.specterdHash = versionData.sha256
     appSettings.versionInitialized = versionData.version
@@ -192,8 +218,8 @@ function initMainWindow(specterURL) {
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...<br>This might take a minute...')
   updateSpecterdStatus('Fetching Specter binary...')
-  console.log("Using version ", appSettings.specterdVersion);
-  console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
+  logger.info("Using version ", appSettings.specterdVersion);
+  logger.info(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
   download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
     if (errored == true) {
       updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
@@ -280,25 +306,34 @@ function startSpecterd(specterdPath) {
   }
 
 
-  console.log(`Starting specterd ${specterdPath} ${specterdArgs}`);
+  logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
   specterdProcess = spawn(specterdPath, specterdArgs);
   var procStdout = ""
+  var procStderr = ""
   specterdProcess.stdout.on('data', (data) => {
     procStdout += data
-    console.log(`checking process output`);
+    logger.info(`Data coming from specterdProcess.stdout:`);
+    logger.info(data.toString())
     if(hasSuccessfullyStarted(data)) {
-      console.log(`App seem to to run ...`);
+      logger.info(`App seem to to run ...`);
       if (mainWindow) {
-        console.log(`... creating window ...`);
+        logger.info(`... creating window ...`);
         createWindow(appSettings.specterURL)
         
       }
     }
   });
-  
+  specterdProcess.stderr.on('data', (data) => {
+    procStderr += data
+    logger.info(`Data coming from specterdProcess.stderr:`);
+    logger.info(data.toString())
+  });
+
   // After 20 seconds, open the log-window if startup is not successfull
   setTimeout(() => {
     if(!hasSuccessfullyStarted(procStdout)) {
+      // CHeck whether log has been created
+      fs.writeFile(path.resolve(require('os').homedir(), '.specter/specter-dump.log'), procStdout, () => { /* Silent error */ });
       openErrorLog()
     }    
   }, 20000)
@@ -316,7 +351,7 @@ function startSpecterd(specterdPath) {
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
     updateSpecterdStatus('Specter stopped...')
-    console.log(`child process exited with code ${code}`);
+    logger.info(`child process exited with code ${code}`);
   });
 }
 
@@ -349,7 +384,7 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
         prefWindow.webContents.executeJavaScript(`savePreferences()`);
       } else {
         specterdProcess.on('close', (code) => {
-          console.log(`child process exited with code ${code}`);
+          logger.info(`child process exited with code ${code}`);
           prefWindow.webContents.executeJavaScript(`savePreferences()`);
         });
         quitSpecterd()
@@ -372,7 +407,7 @@ function quitSpecterd() {
       }
       specterdProcess.kill('SIGINT')
     } catch (e) {
-      console.log('Specterd quit warning: ' + e)
+      logger.info('Specterd quit warning: ' + e)
     }
   }
 }
@@ -452,8 +487,10 @@ function showError(error) {
 
 process.on('unhandledRejection', error => {
   showError(error)
+  logger.error(error.toString(), error)
 })
 
 process.on("uncaughtException", error => {
   showError(error)
+  logger.error(error.toString(), error)
 })
