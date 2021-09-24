@@ -61,10 +61,13 @@ then
     echo 'Attempting to code sign...'
     ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
     output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "$3" --password "@keychain:AC_PASSWORD" --output-format json)
-    echo "Error-Results for notarisation"
-    echo $output_json | jq '."product-errors"[]'
+    echo "JSON-Output:"
+    requestuuid=$(echo $output_json | jq -r '."notarization-upload".RequestUUID')
     sleep 180
-    # xcrun altool --notarization-info 0c517c14-2a1a-4df9-8870-3d8865e447ef -u "$3" --password "@keychain:AC_PASSWORD"
+    sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "$3" --password "@keychain:AC_PASSWORD")
+    mkdir -p signing_logs
+    timestamp=$(date +"%Y%m%d-%H%M")
+    echo $build_result_json > ./signing_logs/${timestamp}_${requestuuid}.log
     xcrun stapler staple "dist/mac/Specter.app"
 fi
 
