@@ -310,10 +310,11 @@ class LWallet(Wallet):
             psbt["asset"] = assets
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
+
+        psbt = self.PSBTCls.from_dict(psbt, self.descriptor, self.manager.chain)
         if not readonly:
             self.save_pending_psbt(psbt)
-
-        return psbt
+        return psbt.to_dict()
 
     def adjust_fee(self, psbt, fee_rate):
         psbt_fees_sats = int(psbt.get("fees", {}).get("bitcoin", 0) * 1e8)

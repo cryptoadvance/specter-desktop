@@ -80,12 +80,18 @@ class SpecterInputScope(InputScope):
     def float_amount(self):
         return round(self.utxo.value * 1e-8, 8)
 
+    @property
+    def sat_amount(self):
+        return self.utxo.value
+
     def to_dict(self, network=None):
         network = network or self.network
         obj = {
             "address": self.address,
             "float_amount": self.float_amount,
             "sat_amount": self.utxo.value,
+            "txid": self.txid.hex(),
+            "vout": self.vout,
         }
         if self.witness_utxo:
             obj["witness_utxo"] = self.witness_utxo.to_dict(network)
@@ -115,6 +121,24 @@ class SpecterOutputScope(OutputScope):
         return NETWORKS["main"]
 
     @property
+    def descriptor(self):
+        if self.parent:
+            return self.parent.descriptor
+        return None
+
+    @property
+    def is_change(self):
+        if self.descriptor:
+            return self.descriptor.branch(1).owns(self)
+        return False
+
+    @property
+    def is_mine(self):
+        if self.descriptor:
+            return self.descriptor.owns(self)
+        return False
+
+    @property
     def address(self):
         return self.script_pubkey.address(self.network)
 
@@ -122,12 +146,18 @@ class SpecterOutputScope(OutputScope):
     def float_amount(self):
         return round(self.value * 1e-8, 8)
 
+    @property
+    def sat_amount(self):
+        return self.value
+
     def to_dict(self, network):
         network = network or self.network
         obj = {
             "address": self.address,
             "float_amount": self.float_amount,
             "sat_amount": self.value,
+            "change": self.is_change,
+            "is_mine": self.is_mine,
         }
         if self.bip32_derivations:
             obj["bip32_derivs"] = [
@@ -155,10 +185,19 @@ class SpecterPSBT(PSBT):
             self.descriptor = kwargs.pop("descriptor")
         if "network" in kwargs:
             self.network = kwargs.pop("network")
+        self.time = time.time()
+        if "time" in kwargs:
+            self.time = kwargs.pop("time")
+        self.signed_devices = []
         super().__init__(*args, **kwargs)
+
+    @classmethod
+    def from_string(cls, *args, **kwargs):
+        psbt = super(cls, cls).from_string(*args, **kwargs)
         # set parent to self so we know about descriptor and network
-        for sc in self.inputs + self.outputs:
-            sc.parent = self
+        for sc in psbt.inputs + psbt.outputs:
+            sc.parent = psbt
+        return psbt
 
     def utxo_dict(self):
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.inputs]
@@ -168,6 +207,7 @@ class SpecterPSBT(PSBT):
         psbt = cls.from_string(obj["base64"])
         psbt.descriptor = descriptor
         psbt.network = NETWORKS.get(chain, NETWORKS["main"])
+        psbt.time = obj.get("time", time.time())
         return psbt
 
     @property
@@ -220,6 +260,10 @@ class SpecterPSBT(PSBT):
     def sats(self):
         return [out.value for out in self.outputs if not self.descriptor.owns(out)]
 
+    @property
+    def txid(self):
+        return self.tx.txid().hex()
+
     def to_dict(self):
         return {
             "tx": self.tx.to_dict(self.network),
@@ -233,5 +277,5 @@ class SpecterPSBT(PSBT):
             "sats": self.sats,
             "tx_full_size": self.full_size,
             "sigs_count": self.sigs_count,
-            "time": round(time.time(), 6),  # TODO: remove
+            "time": self.time,
         }

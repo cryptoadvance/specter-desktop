@@ -932,27 +932,24 @@ class Wallet:
         self.save_to_file()
 
     def update_pending_psbt(self, psbt, txid, raw):
-        if txid in self.pending_psbts:
-            self.pending_psbts[txid]["base64"] = psbt
-            decodedpsbt = self.rpc.decodepsbt(psbt)
-            signed_devices = self.get_signed_devices(decodedpsbt)
-            self.pending_psbts[txid]["devices_signed"] = [
-                dev.alias for dev in signed_devices
-            ]
-            if "hex" in raw:
-                self.pending_psbts[txid]["sigs_count"] = self.sigs_required
-                self.pending_psbts[txid]["raw"] = raw["hex"]
-            else:
-                self.pending_psbts[txid]["sigs_count"] = len(signed_devices)
-            self.save_to_file()
-            return self.pending_psbts[txid]
-        else:
+        if txid not in self.pending_psbts:
             raise SpecterError("Can't find pending PSBT with this txid")
 
+        cur_psbt = self.pending_psbts[txid]
+        cur_psbt["base64"] = psbt
+        decodedpsbt = self.rpc.decodepsbt(psbt)
+        signed_devices = self.get_signed_devices(decodedpsbt)
+        cur_psbt["devices_signed"] = [dev.alias for dev in signed_devices]
+        if "hex" in raw:
+            cur_psbt["sigs_count"] = self.sigs_required
+            cur_psbt["raw"] = raw["hex"]
+        else:
+            cur_psbt["sigs_count"] = len(signed_devices)
+        self.save_to_file()
+        return cur_psbt
+
     def save_pending_psbt(self, psbt):
-        self.pending_psbts[psbt["tx"]["txid"]] = self.PSBTCls.from_dict(
-            psbt, self.descriptor, self.manager.chain
-        )
+        self.pending_psbts[psbt.txid] = psbt
         try:
             self.rpc.lockunspent(False, psbt.utxo_dict())
         except:
@@ -1722,10 +1719,11 @@ class Wallet:
         psbt["address"] = addresses
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
+
+        psbt = self.PSBTCls.from_dict(psbt, self.descriptor, self.manager.chain)
         if not readonly:
             self.save_pending_psbt(psbt)
-
-        return psbt
+        return psbt.to_dict()
 
     def get_rbf_utxo(self, rbf_tx_id):
         decoded_tx = self.decode_tx(rbf_tx_id)

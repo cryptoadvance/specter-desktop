@@ -37,5 +37,5 @@ class ResourcePsbt(SecureResource):
         psbt_creator = PsbtCreator(
             app.specter, wallet, "json", request_json=request.json
         )
-        psbt_creator.create_psbt(wallet)
-        return {"result": psbt_creator.psbt}
+        psbt = psbt_creator.create_psbt(wallet)
+        return {"result": psbt}

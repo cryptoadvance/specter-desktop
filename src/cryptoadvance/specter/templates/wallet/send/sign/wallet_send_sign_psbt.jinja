@@ -127,48 +127,15 @@
 					<b>{{ _("Inputs count:") }}</b> {{ psbt['tx']['vin'] | length }}<br>
 					<b>{{ _("Outputs count:") }}</b> {{ psbt['tx']['vout'] | length }}
 				</p>
-				<h2 class="tx_details_header">{{ _("Inputs") }} ({{psbt['tx']['vin'] | length}})</h2>
-				{% for input in psbt['tx']['vin'] %}
-					{% set tx = wallet.gettransaction(input['txid'], decode=true) %}
+				<h2 class="tx_details_header">{{ _("Inputs") }} ({{psbt['inputs'] | length}})</h2>
+				{% for input in psbt['inputs'] %}
 					{% set bg_color = '#131a24' %}
-					{% if tx and tx.vout and tx.vout|length > input['vout'] and 'addresses' in tx.vout[input['vout']] and tx.vout[input['vout']].addresses|length > 0 %}
-						{% set address = tx.vout[input['vout']].addresses[0] %}
-						{% set bg_color = '#925d07' if wallet.is_address_mine(address) else bg_color %}
-					{% endif %}
+					{% set address=input['address'] %}
+					{% set bg_color = '#925d07' if wallet.is_address_mine(address) else bg_color %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
 						<b>{{ _("Transaction id:") }}</b><br>
-						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }}
-						({{ _("Output") }} #{{ input['vout'] }})<br>
-						{% if tx %}
-							{% if address %}
-								{% set addr_label = wallet.getlabel(address) %}
-								<b>{{ _("Address:") }}</b>
-								{{ address }}
-								<br>
-								{% if addr_label != address %}
-									<b>{{ _("Label:") }}</b>
-									<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
-									<br>
-								{% endif %}
-							{% endif %}
-							{% if specter.is_liquid %}
-								{% set amount = psbt['inputs'][loop.index0].get('value', -1) %}
-								{% set asset = psbt['inputs'][loop.index0].get('asset', "") %}
-								<b>{{ _("Amount:") }}</b> {{ amount|btcamount }} <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
-							{% else %}
-								{% set amount = psbt['inputs'][loop.index0].get('witness_utxo',{}).get('amount', -1) %}
-								<b>{{ _("Amount:") }}</b> {{ amount|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ amount | altunit }})</span>{% endif %}
-							{% endif %}
-						{% endif %}
-					</p>
-				{% endfor %}
-				<h2 class="tx_details_header">{{ _("Outputs") }} ({{psbt['tx']['vout']|length}})</h2>
-				{% for output in psbt['tx']['vout'] if output['scriptPubKey']['type'] != 'fee' %}
-					{% set address = output['scriptPubKey']['addresses'][0] if "addresses" in output["scriptPubKey"] else output["scriptPubKey"]["address"] %}
-					{% set bg_color = '#154984' if wallet.is_address_mine(address) else '#131a24' %}
-					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
-						<b>{{ _("Output") }} #{{loop.index0}}</b> {% if address not in psbt['address'] %}(Change){% endif %}<br><br>
+						{{ explorer_link('tx', input['txid'], input['txid'], specter.explorer) }} : {{ input['vout'] }}<br>
 						{% set addr_label = wallet.getlabel(address) %}
 						<b>{{ _("Address:") }}</b>
 						{{ address }}
@@ -178,7 +145,33 @@
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
-						<b>{{ _("Amount:") }}</b> {{ output['value']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['value'] | altunit }})</span>{% endif %}
+						{% if specter.is_liquid %}
+							<b>{{ _("Amount:") }}</b> {{ input['float_amount']|btcamount }} <asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
+						{% else %}
+							<b>{{ _("Amount:") }}</b> {{ input['float_amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ input['float_amount'] | altunit }})</span>{% endif %}
+						{% endif %}
+					</p>
+				{% endfor %}
+				<h2 class="tx_details_header">{{ _("Outputs") }} ({{psbt['outputs']|length}})</h2>
+				{% for output in psbt['outputs'] %}
+					{% set address = output['address'] %}
+					{% set bg_color = '#154984' if output['is_mine'] else '#131a24' %}
+					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
+						<b>{{ _("Output") }} #{{loop.index0}}</b> {% if output['is_change'] %}(Change){% endif %}<br><br>
+						{% set addr_label = wallet.getlabel(address) %}
+						<b>{{ _("Address:") }}</b>
+						{{ address }}
+						<br>
+						{% if addr_label != address %}
+							<b>{{ _("Label:") }}</b>
+							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
+							<br>
+						{% endif %}
+						{% if specter.is_liquid %}
+							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} <asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
+						{% else %}
+							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['float_amount'] | altunit }})</span>{% endif %}
+						{% endif %}
 					</p>
 				{% endfor %}
 				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] | to_canonical }}</textarea>

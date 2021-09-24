@@ -61,7 +61,7 @@ class SpecterLTx(LTransaction):
                     "value": round(1e-8 * vout.value, 8),
                     "sats": vout.value,
                     "n": i,
-                    "asset": vout.asset.hex(),
+                    "asset": vout.asset[::-1].hex(),
                     "scriptPubKey": {
                         "hex": vout.script_pubkey.data.hex(),
                         "addresses": [get_address(vout.script_pubkey, network)],
@@ -93,6 +93,10 @@ class SpecterLInputScope(LInputScope):
         super().__init__(*args, **kwargs)
 
     @property
+    def assetid(self):
+        return self.asset[::-1].hex()
+
+    @property
     def network(self):
         if self.parent:
             return self.parent.network
@@ -107,11 +111,15 @@ class SpecterLInputScope(LInputScope):
     def float_amount(self):
         return round(self.value * 1e-8, 8)
 
+    @property
+    def sat_amount(self):
+        return self.value
+
     def witness_utxo_dict(self, network):
         return {
             "amount": round(self.value * 1e-8, 8),
             "sats": self.value,
-            "asset": self.asset.hex(),
+            "asset": self.assetid,
             "scriptPubKey": {
                 "hex": self.script_pubkey.data.hex(),
                 "addresses": [self.address],
@@ -123,8 +131,10 @@ class SpecterLInputScope(LInputScope):
         obj = {
             "address": self.address,
             "float_amount": self.float_amount,
-            "asset": self.asset,
+            "asset": self.assetid,
             "sat_amount": self.value,
+            "txid": self.txid.hex(),
+            "vout": self.vout,
         }
         obj["witness_utxo"] = self.witness_utxo_dict(network)
         if self.bip32_derivations:
@@ -145,10 +155,32 @@ class SpecterLOutputScope(LOutputScope):
         super().__init__(*args, **kwargs)
 
     @property
+    def assetid(self):
+        return self.asset[::-1].hex()
+
+    @property
     def network(self):
         if self.parent:
             return self.parent.network
         return get_network("liquidv1")
+
+    @property
+    def descriptor(self):
+        if self.parent:
+            return self.parent.descriptor
+        return None
+
+    @property
+    def is_change(self):
+        if self.descriptor:
+            return self.descriptor.branch(1).owns(self)
+        return False
+
+    @property
+    def is_mine(self):
+        if self.descriptor:
+            return self.descriptor.owns(self)
+        return False
 
     @property
     def address(self):
@@ -167,13 +199,19 @@ class SpecterLOutputScope(LOutputScope):
     def float_amount(self):
         return round(self.value * 1e-8, 8)
 
+    @property
+    def sat_amount(self):
+        return self.value
+
     def to_dict(self, network):
         network = network or self.network
         obj = {
             "address": self.address,
             "float_amount": self.float_amount,
-            "asset": self.asset,
+            "asset": self.assetid,
             "sat_amount": self.value,
+            "is_change": self.is_change,
+            "is_mine": self.is_mine,
         }
         if self.bip32_derivations:
             obj["bip32_derivs"] = [
@@ -201,10 +239,25 @@ class SpecterPSET(PSET):
             self.descriptor = kwargs.pop("descriptor")
         if "network" in kwargs:
             self.network = kwargs.pop("network")
+        self.time = time.time()
+        if "time" in kwargs:
+            self.time = kwargs.pop("time")
         super().__init__(*args, **kwargs)
         # set parent to self so we know about descriptor and network
         for sc in self.inputs + self.outputs:
             sc.parent = self
+
+    @property
+    def txid(self):
+        return self.tx.txid().hex()
+
+    @classmethod
+    def from_string(cls, *args, **kwargs):
+        psbt = super(cls, cls).from_string(*args, **kwargs)
+        # set parent to self so we know about descriptor and network
+        for sc in psbt.inputs + psbt.outputs:
+            sc.parent = psbt
+        return psbt
 
     def utxo_dict(self):
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.inputs]
@@ -214,6 +267,7 @@ class SpecterPSET(PSET):
         psbt = cls.from_string(obj["base64"])
         psbt.descriptor = descriptor
         psbt.network = get_network(chain)
+        psbt.time = obj.get("time", time.time())
         return psbt
 
     @property
@@ -255,6 +309,14 @@ class SpecterPSET(PSET):
         ]
 
     @property
+    def assets(self):
+        return [
+            out.assetid
+            for out in self.outputs
+            if (not self.descriptor.owns(out)) and out.script_pubkey.data
+        ]
+
+    @property
     def amounts(self):
         return [
             round(out.value * 1e-8, 8)
@@ -276,8 +338,9 @@ class SpecterPSET(PSET):
             "fee_sat": self.fee(),
             "address": self.addresses,
             "amount": self.amounts,
+            "asset": self.assets,
             "sats": self.sats,
             "tx_full_size": self.full_size,
             "sigs_count": self.sigs_count,
-            "time": round(time.time(), 6),  # TODO: remove
+            "time": self.time,
         }

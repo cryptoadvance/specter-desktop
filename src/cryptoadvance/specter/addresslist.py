@@ -206,7 +206,7 @@ class AddressList(dict):
         return max(
             0,
             0,
-            *[addr.index for addr in self.values() if addr.change == change],
+            *[addr.index or 0 for addr in self.values() if addr.change == change],
         )
 
     def max_used_index(self, change=False):
@@ -214,7 +214,7 @@ class AddressList(dict):
             -1,
             -1,
             *[
-                addr.index
+                addr.index or -1
                 for addr in self.values()
                 if addr.used and addr.change == change
             ],
