@@ -55,7 +55,7 @@ def test_rr_psbt_get(client, caplog):
     )
     assert result.status_code == 200
     data = json.loads(result.data)
-    assert data["result"] == []
+    assert data["result"] == {}
 
 
 def test_rr_psbt_post(specter_regtest_configured, client, caplog):
@@ -125,7 +125,7 @@ def test_rr_psbt_post(specter_regtest_configured, client, caplog):
     assert data["result"]["tx"]
     assert data["result"]["inputs"]
     assert data["result"]["outputs"]
-    assert data["result"]["fee_rate"] == "0.00064000"
+    assert data["result"]["fee_rate"] == 64
     assert data["result"]["tx_full_size"]
     assert data["result"]["base64"]
     assert data["result"]["time"]

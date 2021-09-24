@@ -37,10 +37,12 @@ def to_canonical_pset(pset):
 def get_address(script_pubkey, network):
     return script_pubkey.address(network) if script_pubkey.data else "Fee"
 
+
 def get_value(value):
     if isinstance(value, int):
         return value
     return -1
+
 
 class SpecterLTx(SpecterTx):
     def vout_to_dict(self, vout):
@@ -96,6 +98,21 @@ class SpecterLOutputScope(SpecterOutputScope):
             self.scope.script_pubkey, self.blinding_key, network=self.network
         )
 
+    def extra_weight(self):
+        wit = 0
+        if self.scope.is_blinded:
+            wit += 33 * 4  # nonce
+            wit += (33 - 9) * 4  # value
+            if self.scope.range_proof and self.scope.surjection_proof:
+                # serialized witness length
+                wit += (
+                    len(self.scope.surjection_proof) + len(self.scope.range_proof) + 3
+                )
+            else:
+                # we don't have proofs yet but we can estimate their size
+                wit += 4245
+        return wit
+
     @property
     def blinding_key(self):
         if self.scope.blinding_pubkey:
@@ -122,6 +139,15 @@ class SpecterPSET(SpecterPSBT):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.psbt.verify(ignore_missing=True)
+
+    @property
+    def full_size(self):
+        size = len(self.psbt.tx.serialize()) * 4
+        # witness and redeem script
+        size += len(self.inputs) * self.extra_input_weight
+        for out in self.outputs:
+            size += out.extra_weight()
+        return ceil(size / 4)
 
     @property
     def addresses(self):

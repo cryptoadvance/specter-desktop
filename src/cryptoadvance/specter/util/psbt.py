@@ -307,20 +307,23 @@ class SpecterPSBT:
         return cls(psbt, descriptor, network, devices=devices, **kwargs)
 
     def to_dict(self):
+        fee = self.fee()
+        full_size = self.full_size
         obj = {
             "tx": self.tx.to_dict(),
             "inputs": [inp.to_dict() for inp in self.inputs],
             "outputs": [out.to_dict() for out in self.outputs],
             "base64": str(self.psbt),
-            "fee": round(self.fee() * 1e-8, 8),
-            "fee_sat": self.fee(),
+            "fee": round(fee * 1e-8, 8),
+            "fee_sat": fee,
             "address": self.addresses,
             "amount": self.amounts,
             "sats": self.sats,
-            "tx_full_size": self.full_size,
+            "tx_full_size": full_size,
             "sigs_count": self.sigs_count,
             "time": self.time,
             "devices_signed": self.get_signed_devices(),
+            "fee_rate": round(fee / full_size, 2),
         }
         if self.raw:
             obj.update({"raw": self.raw.hex()})
