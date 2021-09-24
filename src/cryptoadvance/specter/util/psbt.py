@@ -50,14 +50,8 @@ class SpecterTx:
             "vsize": size,
             "weight": 4 * size,
             "locktime": self.tx.locktime,
-            "vin": [
-                self.vin_to_dict(vin)
-                for vin in self.tx.vin
-            ],
-            "vout": [
-                self.vout_to_dict(vout)
-                for vout in self.tx.vout
-            ],
+            "vin": [self.vin_to_dict(vin) for vin in self.tx.vin],
+            "vout": [self.vout_to_dict(vout) for vout in self.tx.vout],
         }
 
 
@@ -118,6 +112,7 @@ class SpecterScope:
             ]
         return obj
 
+
 class SpecterInputScope(SpecterScope):
     TxCls = SpecterTx
 
@@ -139,10 +134,12 @@ class SpecterInputScope(SpecterScope):
 
     def to_dict(self):
         obj = super().to_dict()
-        obj.update({
-            "txid": self.scope.txid.hex(),
-            "vout": self.scope.vout,
-        })
+        obj.update(
+            {
+                "txid": self.scope.txid.hex(),
+                "vout": self.scope.vout,
+            }
+        )
         if self.scope.witness_utxo:
             obj["witness_utxo"] = {
                 "amount": self.float_amount,
@@ -158,7 +155,6 @@ class SpecterInputScope(SpecterScope):
 
 
 class SpecterOutputScope(SpecterScope):
-
     @property
     def out(self):
         return self.scope
@@ -170,17 +166,13 @@ class SpecterOutputScope(SpecterScope):
 
 class SpecterPSBT:
     """Specter's PSBT class with some handy functions"""
+
     PSBTCls = PSBT
     InputCls = SpecterInputScope
     OutputCls = SpecterOutputScope
     TxCls = SpecterTx
 
-    def __init__(self,
-        psbt,
-        descriptor,
-        network,
-        **kwargs
-    ):
+    def __init__(self, psbt, descriptor, network, **kwargs):
         if isinstance(psbt, str):
             psbt = self.PSBTCls.from_string(psbt)
         self.psbt = psbt

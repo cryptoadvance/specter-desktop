@@ -75,7 +75,6 @@ class SpecterLInputScope(SpecterInputScope):
 
 
 class SpecterLOutputScope(SpecterOutputScope):
-
     @property
     def assetid(self):
         return self.scope.asset[::-1].hex()
@@ -105,6 +104,7 @@ class SpecterLOutputScope(SpecterOutputScope):
 
 class SpecterPSET(SpecterPSBT):
     """Specter's PSBT class with some handy functions"""
+
     PSBTCls = PSET
     InputCls = SpecterLInputScope
     OutputCls = SpecterLOutputScope
@@ -128,7 +128,5 @@ class SpecterPSET(SpecterPSBT):
 
     def to_dict(self):
         obj = super().to_dict()
-        obj.update({
-            "asset": self.assets
-        })
+        obj.update({"asset": self.assets})
         return obj

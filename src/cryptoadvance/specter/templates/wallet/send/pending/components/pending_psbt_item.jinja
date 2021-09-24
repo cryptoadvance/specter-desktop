@@ -18,7 +18,15 @@
             {% endif %}
         </td>
         <td>
+            {% if specter.is_liquid %}
+                {% if pending_psbt['asset'] | unique == 1 %}
+                {{ (pending_psbt['amount'] | sum) | btcunitamount }} <asset-label data-asset="{{pending_psbt['asset'][0]}}" data-label="{{pending_psbt['asset'][0] | assetlabel}}"></asset-label>
+                {% else %}
+                {{ pending_psbt['asset'] | unique }} assets
+                {% endif %}
+            {% else %}
             {{ (pending_psbt['amount'] | sum) | btcunitamount }}{% if specter.price_check %}<span class="note">&nbsp;({{ (pending_psbt['amount'] | sum) | altunit }})</span>{% endif %}
+            {% endif %}
         </td>
         <td class="optional">
             {{ pending_psbt['time'] | datetime }}
