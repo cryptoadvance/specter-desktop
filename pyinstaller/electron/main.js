@@ -17,6 +17,7 @@ const specterdDirPath = helpers.specterdDirPath
 const {transports, format, createLogger } = require('winston')
 const combinedLog = new transports.File({ filename: helpers.specterAppLogPath });
 const winstonOptions = {
+    exitOnError: false,
     format: format.combine(
       format.timestamp(),
       // format.timestamp({format:'MM/DD/YYYY hh:mm:ss.SSS'}),
@@ -31,8 +32,7 @@ const winstonOptions = {
     ],
     exceptionHandlers: [
       combinedLog
-    ],
-    exitOnError: false 
+    ]
 }
 const logger = createLogger(winstonOptions)
 
@@ -42,6 +42,7 @@ let appSettings = getAppSettings()
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
+const { options } = require('request')
 
 contextMenu({
 	menu: (actions) => [
@@ -308,7 +309,13 @@ function startSpecterd(specterdPath) {
 
 
   logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
-  specterdProcess = spawn(specterdPath, specterdArgs);
+  // locale fix (copying from nodejs-env + adding locales)
+  const options = {
+    env: { ...process.env}
+  }
+  options.env['LC_ALL']='en_US.utf-8'
+  options.env['LANG'] = 'en_US.utf-8'
+  specterdProcess = spawn(specterdPath, specterdArgs, options);
   var procStdout = ""
   var procStderr = ""
   specterdProcess.stdout.on('data', (data) => {
@@ -493,5 +500,6 @@ process.on('unhandledRejection', error => {
 
 process.on("uncaughtException", error => {
   showError(error)
+  throw(error)
   logger.error(error.toString()+ error.name)
 })
