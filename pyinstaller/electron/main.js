@@ -500,6 +500,10 @@ process.on('unhandledRejection', error => {
 
 process.on("uncaughtException", error => {
   showError(error)
-  throw(error)
-  logger.error(error.toString()+ error.name)
+  // I would love to rethrow the error here as this would create a stacktrace in the logs
+  // but this will terminate the whole process even though i've set
+  // exitOnError: false in the wistonOptions above.
+  // Unacceptable for the folks which can't use a commandline, clicking an icon
+  //throw(error)
+  logger.error(error.toString())
 })
