@@ -942,14 +942,6 @@ class Wallet:
 
         cur_psbt = self.pending_psbts[txid]
         cur_psbt.update(psbt, raw)
-        # decodedpsbt = self.rpc.decodepsbt(psbt)
-        # signed_devices = self.get_signed_devices(decodedpsbt)
-        # cur_psbt["devices_signed"] = [dev.alias for dev in signed_devices]
-        # if "hex" in raw:
-        #     cur_psbt["sigs_count"] = self.sigs_required
-        #     cur_psbt["raw"] = raw["hex"]
-        # else:
-        #     cur_psbt["sigs_count"] = len(signed_devices)
         self.save_to_file()
         return cur_psbt.to_dict()
 
@@ -1960,43 +1952,19 @@ class Wallet:
         return signed_devices
 
     def importpsbt(self, b64psbt):
-        # TODO: check maybe some of the inputs are already locked
-        psbt = self.rpc.decodepsbt(b64psbt)
-        psbt["base64"] = b64psbt
-        amount = []
-        address = []
-        # get output address and amount
-        for out in psbt["tx"]["vout"]:
-            if (
-                "addresses" not in out["scriptPubKey"]
-                or len(out["scriptPubKey"]["addresses"]) == 0
-            ) and "address" not in out["scriptPubKey"]:
-                # TODO: we need to handle it somehow differently
-                raise SpecterError("Sending to raw scripts is not supported yet")
-            addr = get_address_from_dict(out["scriptPubKey"])
-            info = self.get_address_info(addr)
-            # check if it's a change
-            if info and info.change:
-                continue
-            address.append(addr)
-            amount.append(out["value"])
-
-        psbt = self.createpsbt(
-            addresses=address,
-            amounts=amount,
-            fee_rate=0.0,
-            readonly=False,
-            existing_psbt=psbt,
+        # TODO: check if some of the inputs are already locked
+        psbt = self.PSBTCls(
+            b64psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
         )
-
-        signed_devices = self.get_signed_devices(psbt)
-        psbt["devices_signed"] = [dev.alias for dev in signed_devices]
-        psbt["sigs_count"] = len(signed_devices)
         raw = self.rpc.finalizepsbt(b64psbt)
         if "hex" in raw:
-            psbt["raw"] = raw["hex"]
+            psbt.update(None, raw)
 
-        return psbt
+        self.save_pending_psbt(psbt)
+        return psbt.to_dict()
 
     @property
     def weight_per_input(self):

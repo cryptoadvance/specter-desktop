@@ -29,7 +29,6 @@ from ..helpers import (
     get_devices_with_keys_by_type,
     get_txid,
 )
-from ..liquid.util.pset import to_canonical_pset
 from ..key import Key
 from ..persistence import delete_file
 from ..rpc import RpcError
@@ -893,9 +892,6 @@ def combine(wallet_alias):
         return e.error_msg, e.status_code
     except Exception as e:
         return _("Unknown error: {}").format(e), 500
-    if "psbt" in raw:
-        # returned psbt should be valid for Bitcoin or Elements Core decoding
-        raw["psbt"] = to_canonical_pset(raw["psbt"])
     return json.dumps(raw)
 
 

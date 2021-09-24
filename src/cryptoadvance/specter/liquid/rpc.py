@@ -13,7 +13,6 @@ from embit.liquid import slip77
 from embit.psbt import read_string
 import copy
 from io import BytesIO
-
 from .util.pset import to_canonical_pset
 
 import logging

@@ -2,6 +2,7 @@ from embit.liquid.pset import PSET, LInputScope, LOutputScope
 from embit.liquid.transaction import LTransaction, LTransactionOutput
 from embit.liquid.networks import get_network
 from embit.liquid.addresses import address as liquid_address
+from embit.liquid import slip77
 from embit import bip32, ec
 from math import ceil
 import time
@@ -36,13 +37,17 @@ def to_canonical_pset(pset):
 def get_address(script_pubkey, network):
     return script_pubkey.address(network) if script_pubkey.data else "Fee"
 
+def get_value(value):
+    if isinstance(value, int):
+        return value
+    return -1
 
 class SpecterLTx(SpecterTx):
     def vout_to_dict(self, vout):
         i = self.tx.vout.index(vout)
         return {
-            "value": round(1e-8 * vout.value, 8),
-            "sats": vout.value,
+            "value": round(1e-8 * get_value(vout.value), 8),
+            "sats": get_value(vout.value),
             "n": i,
             "asset": vout.asset[::-1].hex(),
             "scriptPubKey": {
@@ -57,6 +62,8 @@ class SpecterLInputScope(SpecterInputScope):
 
     @property
     def assetid(self):
+        if self.scope.asset is None:
+            return "???"
         return self.scope.asset[::-1].hex()
 
     @property
@@ -66,7 +73,7 @@ class SpecterLInputScope(SpecterInputScope):
 
     @property
     def sat_amount(self):
-        return self.scope.value
+        return self.scope.value or 0
 
     def to_dict(self):
         obj = super().to_dict()
@@ -77,6 +84,8 @@ class SpecterLInputScope(SpecterInputScope):
 class SpecterLOutputScope(SpecterOutputScope):
     @property
     def assetid(self):
+        if self.scope.asset is None:
+            return "???"
         return self.scope.asset[::-1].hex()
 
     @property
@@ -94,7 +103,7 @@ class SpecterLOutputScope(SpecterOutputScope):
 
     @property
     def sat_amount(self):
-        return self.scope.value
+        return self.scope.value or 0
 
     def to_dict(self):
         obj = super().to_dict()
@@ -109,6 +118,10 @@ class SpecterPSET(SpecterPSBT):
     InputCls = SpecterLInputScope
     OutputCls = SpecterLOutputScope
     TxCls = SpecterLTx
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.psbt.verify(ignore_missing=True)
 
     @property
     def addresses(self):

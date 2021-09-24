@@ -187,6 +187,8 @@ class SpecterPSBT:
     def update(self, b64psbt, raw=None):
         if raw and "hex" in raw:
             self.raw = bytes.fromhex(raw["hex"])
+        if not b64psbt:
+            return
         psbt = self.PSBTCls.from_string(b64psbt)
         for inp1, inp2 in zip(self.psbt.inputs, psbt.inputs):
             inp1.update(inp2)

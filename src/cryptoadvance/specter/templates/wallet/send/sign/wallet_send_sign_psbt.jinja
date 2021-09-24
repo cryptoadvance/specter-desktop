@@ -174,15 +174,15 @@
 						{% endif %}
 					</p>
 				{% endfor %}
-				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] | to_canonical }}</textarea>
+				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
-					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] | to_canonical }}">
+					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Save binary") }}
 					</a>&nbsp;
 					<a id="download-psbt-btn" class="btn"
-					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] | to_canonical }}">
+					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Save base64") }}
 					</a>&nbsp;
@@ -237,7 +237,7 @@
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 	<div class="row" style="min-height: 400px;">
         <span style="margin: auto;" id="raw-psbt-qr-holder">
-            <qr-code id="raw-psbt-qr" class='center' value="{{ psbt['base64'] | to_canonical }}" width="400" scalable></qr-code>
+            <qr-code id="raw-psbt-qr" class='center' value="{{ psbt['base64'] }}" width="400" scalable></qr-code>
         </span>
     </div>
 </form>

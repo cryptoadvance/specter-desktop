@@ -311,7 +311,12 @@ class LWallet(Wallet):
         psbt["time"] = time.time()
         psbt["sigs_count"] = 0
 
-        psbt = self.PSBTCls.from_dict(psbt, self.descriptor, self.manager.chain)
+        psbt = self.PSBTCls.from_dict(
+            psbt,
+            self.descriptor,
+            self.manager.chain,
+            devices=list(zip(self.keys, self._devices)),
+        )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
