@@ -281,7 +281,8 @@ function updatingLoaderMsg(msg) {
 }
 
 function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+  return logs.toString().includes('  * Running on http')
+  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
 }
 
 function startSpecterd(specterdPath) {
@@ -327,20 +328,19 @@ function startSpecterd(specterdPath) {
     procStderr += data
     logger.info(`Data coming from specterdProcess.stderr:`);
     logger.info(data.toString())
+    if(hasSuccessfullyStarted(data)) {
+      logger.info(`App seem to to run ...`);
+      if (mainWindow) {
+        logger.info(`... creating window ...`);
+        createWindow(appSettings.specterURL)
+        
+      }
+    }
   });
 
-  // After 20 seconds, open the log-window if startup is not successfull
-  setTimeout(() => {
-    if(!hasSuccessfullyStarted(procStdout)) {
-      // CHeck whether log has been created
-      fs.writeFile(path.resolve(require('os').homedir(), '.specter/specter-dump.log'), procStdout, () => { /* Silent error */ });
-      openErrorLog()
-    }    
-  }, 20000)
-
-  specterdProcess.stderr.on('data', function(_) {
-    // https://stackoverflow.com/questions/20792427/why-is-my-node-child-process-that-i-created-via-spawn-hanging
-    // needed so specterd won't get stuck
+  specterdProcess.on('exit', (code) => {
+    logger.error(`specterd exited with code ${code}`);
+    showError(`specterd exited with code ${code}. Check the logs in the menu!`)
   });
 
   app.on('activate', function () {
@@ -458,9 +458,11 @@ function openNewWindow(htmlContentFile) {
   prefWindow = new BrowserWindow({
     width: 700,
     height: 750,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
+      enableRemoteModule: true,
+      
     }
   })
   prefWindow.webContents.on('new-window', function(e, url) {
@@ -481,16 +483,15 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  console.error('Specter Desktop encounter an error', error.toString())
   updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {
   showError(error)
-  logger.error(error.toString(), error)
+  logger.error(error.toString(), error.name)
 })
 
 process.on("uncaughtException", error => {
   showError(error)
-  logger.error(error.toString(), error)
+  logger.error(error.toString()+ error.name)
 })

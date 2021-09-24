@@ -3,7 +3,7 @@
     <body style="overflow: auto; height: 100%;">
 	<div class="card" style="width:90%; max-width: 1000px;">
 		This window show you the Logs of specter. It might give you hints on why specter is not coming up properly.
-		<pre><code id="specterd-logs"></code></pre>
+		<pre><code id="specterapp-logs"></code></pre>
 		<br>
 	
 	</div>
@@ -11,9 +11,8 @@
         const fs = require('fs')
         const path = require('path')
         const helpers = require('./helpers')
-        const specterdLogs = helpers.getSpecterLogs
-        console.log(specterdLogs())
-        document.getElementById('specterd-logs').innerText = specterdLogs()
+        const specterAppLogs = helpers.getSpecterAppLogs
+        document.getElementById('specterapp-logs').innerText = specterAppLogs()
 
 
         

@@ -14,7 +14,6 @@ try {
 }
 const appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
 const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
-const specterdLogPath = path.resolve(require('os').homedir(), '.specter/specter.log')
 const specterAppLogPath = path.resolve(require('os').homedir(), '.specter/specterApp.log')
 
 function getFileHash(filename, callback) {
@@ -63,9 +62,8 @@ function getAppSettings() {
     return appSettings
 }
 
-function getSpecterLogs() {
-  console.log(specterdLogPath)
-  return fs.readFileSync(specterdLogPath, 'utf8')  
+function getSpecterAppLogs() {
+  return fs.readFileSync(specterAppLogPath, 'utf8')  
 }
 
 module.exports = {
@@ -73,6 +71,6 @@ module.exports = {
     appSettingsPath: appSettingsPath,
     getAppSettings: getAppSettings,
     specterdDirPath: specterdDirPath,
-    getSpecterLogs: getSpecterLogs,
+    getSpecterAppLogs: getSpecterAppLogs,
     specterAppLogPath: specterAppLogPath
 }
