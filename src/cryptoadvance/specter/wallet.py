@@ -154,7 +154,11 @@ class Wallet:
             self.change_index = 0
 
         self.update()
-        if old_format_detected or self.last_block != last_block or "" in [address, change_address]:
+        if (
+            old_format_detected
+            or self.last_block != last_block
+            or "" in [address, change_address]
+        ):
             self.save_to_file()
 
     @property
@@ -520,7 +524,14 @@ class Wallet:
                 ]
                 self._addresses.add(change_addresses, check_rpc=False)
 
-        self.delete_spent_pending_psbts([tx["hex"] for tx in txs.values()])
+        # only delete with confirmed txs
+        self.delete_spent_pending_psbts(
+            [
+                tx["hex"]
+                for tx in txs.values()
+                if tx.get("confirmations", 0) > 0 or tx.get("blockheight")
+            ]
+        )
         self._transactions.add(txs)
 
     def import_electrum_label_export(self, electrum_label_export):
@@ -600,12 +611,12 @@ class Wallet:
                         max_recv = max(max_recv, a.index)
         updated = False
         if max_recv >= self.address_index:
-            self.address = self.get_address(max_recv+1, change=False)
-            self.address_index = max_recv+1
+            self.address = self.get_address(max_recv + 1, change=False)
+            self.address_index = max_recv + 1
             updated = True
         if max_change >= self.change_index:
-            self.change_address = self.get_address(max_change+1, change=True)
-            self.change_index = max_change+1
+            self.change_address = self.get_address(max_change + 1, change=True)
+            self.change_index = max_change + 1
             updated = True
         # save only if needed
         if updated:
@@ -1616,7 +1627,6 @@ class Wallet:
                 f"Wallet {self.name} does not have sufficient funds to make the transaction."
             )
 
-
         if selected_coins:
             # check we have enough balance in selected coins
             sats_in_coins = sum(
@@ -1632,6 +1642,7 @@ class Wallet:
                     "Selected coins does not cover Full amount! Please select more coins!"
                 )
             extra_inputs = selected_coins
+
         elif self.available_balance["trusted"] <= total_btc:
             # if we don't have enough in confirmed txs - add unconfirmed outputs
             txlist = self.rpc.listunspent(0, 0)
@@ -1653,29 +1664,36 @@ class Wallet:
         )
 
         if self.manager.bitcoin_core_version_raw >= 210000:
-            options["add_inputs"] = selected_coins == []
+            options["add_inputs"] = not selected_coins
 
         if fee_rate > 0:
             # bitcoin core needs us to convert sat/B to BTC/kB
             options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
+        locktime = 0
+        try:
+            locktime = min([tip["height"] for tip in self.rpc.getchaintips()])
+        except:
+            pass
+
+        # first run to get estimate
         r = self.rpc.walletcreatefundedpsbt(
             selected_coins,  # inputs
-            [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
-            0,  # locktime
-            options,  # options
+            [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
+            locktime,
+            options,
             True,  # bip32-der
         )
 
         b64psbt = r["psbt"]
         psbt = self.rpc.decodepsbt(b64psbt)
 
+        # second run with adjusted fees
         if fee_rate > 0.0:
             psbt_fees_sats = int(psbt["fee"] * 1e8)
             # estimate final size: add weight of inputs
             tx_full_size = ceil(
-                psbt["tx"]["vsize"]
-                + len(psbt["inputs"]) * self.weight_per_input / 4
+                psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
             )
             adjusted_fee_rate = (
                 fee_rate
@@ -1686,9 +1704,9 @@ class Wallet:
 
             r = self.rpc.walletcreatefundedpsbt(
                 selected_coins,  # inputs
-                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
-                0,  # locktime
-                options,  # options
+                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
+                locktime,
+                options,
                 True,  # bip32-der
             )
 
@@ -1736,10 +1754,10 @@ class Wallet:
 
     def decode_tx(self, txid):
         psbt = self.psbt_from_txid(txid)
-        outs = [out for out in psbt.outputs if not out.is_change]
+        outputs = [out for out in psbt.outputs if not out.is_change]
         return {
-            "addresses": [ out.address for out in outputs],
-            "amounts": [ out.float_amount for out in outputs],
+            "addresses": [out.address for out in outputs],
+            "amounts": [out.float_amount for out in outputs],
             "used_utxo": psbt.utxo_dict(),
         }
 
