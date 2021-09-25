@@ -224,6 +224,14 @@ class SpecterPSBT:
         return ceil(size / 4)
 
     @property
+    def fee(self):
+        return self.psbt.fee()
+
+    @property
+    def fee_rate(self):
+        return self.fee / self.full_size
+
+    @property
     def threshold(self):
         if self.descriptor.is_basic_multisig:
             return self.descriptor.miniscript.args[0].num
@@ -260,9 +268,6 @@ class SpecterPSBT:
     @property
     def txid(self):
         return self.psbt.tx.txid().hex()
-
-    def fee(self):
-        return self.psbt.fee()
 
     @property
     def inputs(self):
@@ -307,7 +312,7 @@ class SpecterPSBT:
         return cls(psbt, descriptor, network, devices=devices, **kwargs)
 
     def to_dict(self):
-        fee = self.fee()
+        fee = self.fee
         full_size = self.full_size
         obj = {
             "tx": self.tx.to_dict(),
