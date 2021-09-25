@@ -345,4 +345,4 @@ def get_address_from_dict(data_dict):
         addr = data_dict.get("address")
     if addr and addr != "Fee":
         return addr
-    raise RuntimeError("Missing address info in object")
+    raise RuntimeError(f"Missing address info in object {data_dict}")
