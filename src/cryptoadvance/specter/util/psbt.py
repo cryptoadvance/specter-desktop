@@ -3,7 +3,7 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
-from embit.psbt import PSBT, InputScope, OutputScope
+from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
 from embit.transaction import Transaction, TransactionOutput
 from embit.liquid.networks import get_network
 from embit import bip32
@@ -339,3 +339,21 @@ class SpecterPSBT:
 
     def __str__(self):
         return str(self.psbt)
+
+    @classmethod
+    def fill_output(cls, out, desc):
+        """
+        Fills derivations and all other information in PSBT output
+        from derived descriptor
+        """
+        if desc.script_pubkey() != out.script_pubkey:
+            return False
+        out.redeem_script = desc.redeem_script()
+        out.witness_script = desc.witness_script()
+        out.bip32_derivations = {
+            key.get_public_key(): DerivationPath(
+                key.origin.fingerprint, key.origin.derivation
+            )
+            for key in desc.keys
+        }
+        return True

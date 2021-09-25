@@ -57,9 +57,7 @@ class Wallet:
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
     GAP_LIMIT = 20
-    # minimal fee rate is slightly above 1 sat/vbyte
-    # to avoid rounding errors
-    MIN_FEE_RATE = 1.01
+    MIN_FEE_RATE = 1
     # for inheritance (to simplify LWallet logic)
     AddressListCls = AddressList
     TxListCls = TxList
@@ -1559,7 +1557,7 @@ class Wallet:
     @property
     def fullbalance(self):
         balance = self.balance
-        return balance["trusted"] + balance["untrusted_pending"]
+        return round(balance["trusted"] + balance["untrusted_pending"], 8)
 
     @property
     def available_balance(self):
@@ -1568,7 +1566,7 @@ class Wallet:
     @property
     def full_available_balance(self):
         balance = self.available_balance
-        return balance["trusted"] + balance["untrusted_pending"]
+        return round(balance["trusted"] + balance["untrusted_pending"], 8)
 
     @property
     def addresses(self):
@@ -1591,65 +1589,67 @@ class Wallet:
         amounts: [float],
         subtract: bool = False,
         subtract_from: int = 0,
-        fee_rate: float = 1.0,
-        selected_coins=[],
-        readonly=False,
+        fee_rate: float = 0,  # fee rate to use, if less than MIN_FEE_RATE will use MIN_FEE_RATE
+        selected_coins=[],  # list of dicts [{"txid": txid, "vout": vout}]
+        readonly=False,  # fee estimation
         rbf=True,
-        existing_psbt=None,
+        existing_psbt=None,  # base64 psbt we are editing
         rbf_edit_mode=False,
     ):
         """
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
         """
-        if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
+        if fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
+        total_btc = round(sum(amounts), 8)
+        total_sats = round(sum(amounts) * 1e8)
+
+        # if creating new tx - check we have enough balance
+        if not existing_psbt and not rbf_edit_mode:
+            if self.full_available_balance < total_btc:
+                raise SpecterError(
+                    f"Wallet {self.name} does not have sufficient funds to make the transaction."
+                )
 
         if not existing_psbt:
-            if not rbf_edit_mode:
-                if self.full_available_balance < sum(amounts):
-                    raise SpecterError(
-                        f"Wallet {self.name} does not have sufficient funds to make the transaction."
-                    )
 
-            if selected_coins != []:
-                still_needed = sum(amounts)
-                for coin in selected_coins:
-                    coin_txid = coin.split(",")[0]
-                    coin_vout = int(coin.split(",")[1])
-                    coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
-                        coin_vout
-                    ]["value"]
-                    extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
-                    still_needed -= coin_amount
-                    if still_needed < 0:
-                        break
-                if still_needed > 0:
+            if selected_coins:
+                # check we have enough balance in selected coins
+                sats_in_coins = sum(
+                    [
+                        self._transactions.getfetch(coin["txid"])
+                        .tx.vout[coin["vout"]]
+                        .value
+                        for coin in selected_coins
+                    ]
+                )
+                if sats_in_coins < total_sats:
                     raise SpecterError(
                         "Selected coins does not cover Full amount! Please select more coins!"
                     )
-            elif self.available_balance["trusted"] <= sum(amounts):
+                extra_inputs = selected_coins
+            elif self.available_balance["trusted"] <= total_btc:
+                # if we don't have enough in confirmed txs - add unconfirmed outputs
                 txlist = self.rpc.listunspent(0, 0)
-                b = sum(amounts) - self.available_balance["trusted"]
+                b = total_btc - self.available_balance["trusted"]
                 for tx in txlist:
-                    extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
+                    extra_inputs.append({"txid": tx["txid"], "vout": int(tx["vout"])})
                     b -= tx["amount"]
                     if b < 0:
                         break
 
             # subtract fee from amount of this output:
-            # currently only one address is supported, so either
-            # empty array (subtract from change) or [0]
             subtract_arr = [subtract_from] if subtract else []
 
-            options = {
-                "includeWatching": True,
-                "changeAddress": self.change_address,
-                "subtractFeeFromOutputs": subtract_arr,
-                "replaceable": rbf,
-            }
+            options.update(
+                {
+                    "changeAddress": self.change_address,
+                    "subtractFeeFromOutputs": subtract_arr,
+                }
+            )
 
             if self.manager.bitcoin_core_version_raw >= 210000:
                 options["add_inputs"] = selected_coins == []
@@ -1659,7 +1659,7 @@ class Wallet:
                 options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
             r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
+                selected_coins,  # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
                 0,  # locktime
                 options,  # options
@@ -1670,7 +1670,7 @@ class Wallet:
             psbt = self.rpc.decodepsbt(b64psbt)
         else:
             psbt = existing_psbt
-            extra_inputs = [
+            selected_coins = [
                 {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
             ]
             if "changeAddress" in psbt:
@@ -1695,7 +1695,7 @@ class Wallet:
             else:
                 options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
             r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
+                selected_coins,  # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # output
                 0,  # locktime
                 options,  # options
@@ -1795,26 +1795,43 @@ class Wallet:
             [self.recv_descriptor, self.change_descriptor],
         )
 
-        psbt = self.rpc.decodepsbt(raw_psbt)
-        decoded_tx = self.decode_tx(txid)
-        selected_coins = [
-            f"{utxo['txid']}, {utxo['vout']}" for utxo in decoded_tx["used_utxo"]
-        ]
-        return self.createpsbt(
-            addresses=[self.address],
-            amounts=[
-                sum(
-                    vout["witness_utxo"]["amount"]
-                    for i, vout in enumerate(psbt["inputs"])
-                )
-            ],
-            subtract=True,
-            fee_rate=float(fee_rate),
-            selected_coins=selected_coins,
-            readonly=False,
-            rbf=True,
-            rbf_edit_mode=True,
+        psbt = self.PSBTCls(
+            raw_psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
         )
+        # find change output
+        change_index = None
+        for i, out in enumerate(psbt.outputs):
+            if out.is_change:
+                change_index = i
+                break
+        sum_outputs = sum([out.value for out in psbt.psbt.outputs])
+        old_fee = psbt.fee()
+        if change_index is not None:
+            change_out = psbt.psbt.outputs[change_index]
+        else:
+            # create fresh output and replace script_pubkey in output
+            desc = self.descriptor.branch(1).derive(self.change_index)
+            change_out = psbt.psbt.PSBTOUT_CLS(vout=psbt.psbt.outputs[0].vout)
+            change_out.script_pubkey = desc.script_pubkey()
+            self.PSBTCls.fill_output(change_out, desc)
+        # set new value - everything to us
+        change_out.value = sum_outputs
+        # set new outputs in psbt - only us
+        psbt.psbt.outputs = [change_out]
+        # how much we need to subtract?
+        fee_delta = psbt.full_size * fee_rate - old_fee
+        # we must use larger fees by at least the txsize * min
+        if fee_delta < psbt.full_size * self.MIN_FEE_RATE:
+            fee_delta = psbt.full_size * self.MIN_FEE_RATE
+        if change_out.value <= round(fee_delta):
+            raise SpecterError("Not enough funds in the transaction")
+        change_out.value -= round(fee_delta)
+        # fill derivation info
+        self.save_pending_psbt(psbt)
+        return psbt.to_dict()
 
     def bumpfee(self, txid, fee_rate):
         raw_tx = self.gettransaction(txid)["hex"]
@@ -1823,45 +1840,29 @@ class Wallet:
             [self.recv_descriptor, self.change_descriptor],
         )
 
-        psbt = self.rpc.decodepsbt(raw_psbt)
-        psbt["changeAddress"] = [
-            get_address_from_dict(vout["scriptPubKey"])
-            for i, vout in enumerate(psbt["tx"]["vout"])
-            if self.get_address_info(get_address_from_dict(vout["scriptPubKey"]))
-            and self.get_address_info(
-                get_address_from_dict(vout["scriptPubKey"])
-            ).change
-        ]
-        if psbt["changeAddress"]:
-            psbt["changeAddress"] = psbt["changeAddress"][0]
-        else:
-            raise Exception("Cannot RBF a transaction with no change output")
-        return self.createpsbt(
-            addresses=[
-                get_address_from_dict(vout["scriptPubKey"])
-                for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(
-                    get_address_from_dict(vout["scriptPubKey"])
-                )
-                or not self.get_address_info(
-                    get_address_from_dict(vout["scriptPubKey"])
-                ).change
-            ],
-            amounts=[
-                vout["value"]
-                for i, vout in enumerate(psbt["tx"]["vout"])
-                if not self.get_address_info(
-                    get_address_from_dict(vout["scriptPubKey"])
-                )
-                or not self.get_address_info(
-                    get_address_from_dict(vout["scriptPubKey"])
-                ).change
-            ],
-            fee_rate=fee_rate,
-            readonly=False,
-            rbf=True,
-            existing_psbt=psbt,
+        psbt = self.PSBTCls(
+            raw_psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
         )
+        fee_delta = fee_rate * psbt.full_size - psbt.fee()
+        if fee_delta < self.MIN_FEE_RATE * psbt.full_size:
+            raise SpecterError("Fee difference is too small to relay the fee")
+        # find change output
+        change_index = None
+        for i, out in enumerate(psbt.outputs):
+            if out.is_change:
+                change_index = i
+                break
+        if change_index is None:
+            raise SpecterError("Can't bump fee in a transaction without change outputs")
+        psbt.psbt.outputs[i].value -= round(fee_delta)
+        if psbt.psbt.outputs[i].value <= 0:
+            # if we went negative - just drop the change output
+            psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
+        self.save_pending_psbt(psbt)
+        return psbt.to_dict()
 
     @property
     def is_taproot(self):

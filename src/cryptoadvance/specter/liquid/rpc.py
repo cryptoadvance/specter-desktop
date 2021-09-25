@@ -229,6 +229,9 @@ class LiquidRPC(BitcoinRPC):
             # check that change is also blinded - fixes a bug in pset branch
             tx = PSET.from_string(psbt)
             changepos = res.get("changepos", None)
+            # no change output
+            if changepos < 0:
+                changepos = None
 
             # generate all blinding stuff ourselves in deterministic way
             tx.unblind(
@@ -299,9 +302,7 @@ class LiquidRPC(BitcoinRPC):
             tx.xpubs.update(t2.xpubs)
             tx.unknown.update(t2.unknown)
 
-            for i in range(len(tx.inputs)):
-                inp1 = tx.inputs[i]
-                inp2 = t2.inputs[i]
+            for inp1, inp2 in zip(tx.inputs, t2.inputs):
                 inp1.value = inp1.value or inp2.value
                 inp1.value_blinding_factor = (
                     inp1.value_blinding_factor or inp2.value_blinding_factor
@@ -326,9 +327,7 @@ class LiquidRPC(BitcoinRPC):
                 inp1.unknown.update(inp2.unknown)
                 inp1.range_proof = inp1.range_proof or inp2.range_proof
 
-            for i in range(len(tx.outputs)):
-                out1 = tx.outputs[i]
-                out2 = t2.outputs[i]
+            for out1, out2 in zip(tx.outputs, t2.outputs):
                 out1.value_commitment = out1.value_commitment or out2.value_commitment
                 out1.value_blinding_factor = (
                     out1.value_blinding_factor or out2.value_blinding_factor

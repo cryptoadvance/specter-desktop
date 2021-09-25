@@ -181,6 +181,18 @@ class TxList(dict):
             write_csv(self.path, list(self.values()), self.ItemCls)
         self._file_exists = True
 
+    def getfetch(self, txid):
+        """
+        Returns TxItem instance if it is known,
+        otherwise tries to get it from rpc, adds to self and returns TxItem
+        """
+        if txid not in self:
+            tx = self.rpc.gettransaction(txid)
+            if "time" not in tx:
+                tx["time"] = tx["timereceived"]
+            self.add({txid: tx})
+        return self[txid]
+
     def gettransaction(self, txid, blockheight=None, decode=False, full=True):
         """
         Will ask Bitcoin Core for a transaction if blockheight is None or txid not known

@@ -230,11 +230,8 @@
             if (newFee <= 1.02) {
                 newFee = 1;
             }
-            if (rbfType == 'cancel') {
-                newFee *= 1.5; // Tx likely to have lower size so will need higher fee
-            } else {
-                newFee += 2;
-            }
+            // TODO: get fee diff from specter
+            newFee += 2;
             txDataPopup.innerHTML = `
             <form action="${url}" method="POST">
             <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>

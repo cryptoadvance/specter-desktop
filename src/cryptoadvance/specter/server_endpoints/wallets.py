@@ -527,11 +527,24 @@ def send_new(wallet_alias):
                     rand=rand,
                 )
 
-        elif action == "rbf":
+        elif action in ["rbf", "rbf_cancel"]:
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
                 rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
+
+                if action == "rbf":
+                    psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
+                elif action == "rbf_cancel":
+                    psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
+                else:
+                    raise SpecterError("Invalid action")
+
+                if psbt["fee_rate"] - rbf_fee_rate > wallet.MIN_FEE_RATE / 10:
+                    flash(
+                        _(
+                            "We had to increase the fee rate from {} to {} sat/vbyte"
+                        ).format(rbf_fee_rate, psbt["fee_rate"])
+                    )
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -543,24 +556,8 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
-        elif action == "rbf_cancel":
-            try:
-                rbf_tx_id = request.form["rbf_tx_id"]
-                rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
-                return render_template(
-                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                    psbt=psbt,
-                    labels=[],
-                    wallet_alias=wallet_alias,
-                    wallet=wallet,
-                    specter=app.specter,
-                    rand=rand,
-                )
-            except Exception as e:
-                flash(
-                    _("Failed to cancel transaction with RBF. Error: {}").format(e),
-                    "error",
+                return redirect(
+                    url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
                 )
         elif action == "rbf_edit":
             try:
