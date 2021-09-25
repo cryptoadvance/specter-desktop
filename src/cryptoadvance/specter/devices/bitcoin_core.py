@@ -24,6 +24,9 @@ class BitcoinCore(Device):
     hot_wallet = True
     taproot_support = True
 
+    # default sighash to use
+    SIGHASH = "ALL"
+
     def __init__(self, *args, **kwargs):
         self._use_descriptors = None
         super().__init__(*args, **kwargs)
@@ -212,7 +215,7 @@ class BitcoinCore(Device):
         )
         if file_password:
             rpc.walletpassphrase(file_password, 60)
-        signed_psbt = rpc.walletprocesspsbt(base64_psbt)
+        signed_psbt = rpc.walletprocesspsbt(base64_psbt, True, self.SIGHASH)
         if base64_psbt == signed_psbt["psbt"]:
             raise Exception(
                 "Make sure you have entered the wallet file password correctly. (If your wallet is not encrypted submit empty password)"
