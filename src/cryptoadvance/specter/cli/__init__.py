@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.option("--debug", is_flag=False, help="Show debug information on errors.")
+@click.option("--debug", is_flag=True, help="Show debug information on errors.")
 @click.option(
     "--tracerpc/--no-tracerpc",
     default=False,
