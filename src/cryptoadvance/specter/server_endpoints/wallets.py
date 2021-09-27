@@ -487,11 +487,10 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
-    fee_estimation_data = get_fees(app.specter, app.config)
-    if fee_estimation_data.get("failed", None):
-        flash(
-            _("Failed to fetch fee estimations. Please use the manual fee calculation.")
-        )
+    fee_estimation = get_fees(app.specter, app.config)
+    fee_estimation_data = fee_estimation.result
+    if fee_estimation.error_message:
+        flash(fee_estimation.error_message, "error")
 
     fee_rate = fee_estimation_data["hourFee"]
 

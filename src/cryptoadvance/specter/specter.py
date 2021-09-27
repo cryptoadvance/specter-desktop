@@ -536,7 +536,7 @@ class Specter:
 
     @property
     def fee_estimator(self):
-        return self.user_config.get("fee_estimator", "mempool")
+        return self.user_config.get("fee_estimator", "bitcoin_core")
 
     @property
     def tor_type(self):
