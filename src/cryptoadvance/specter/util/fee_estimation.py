@@ -37,7 +37,14 @@ def get_fees(specter, config):
     try:
         return _get_fees(specter, config)
     except Exception as e:
-        fee_estimation = FeeEstimationResult()
+        fee_estimation = FeeEstimationResult(
+            {
+                "fastestFee": 1,
+                "halfHourFee": 1,
+                "hourFee": 1,
+                "minimumFee": 1,
+            }
+        )
         fee_estimation.error_message = f"Failed to Fetch fee estimation. Please use manual fee calculation. Error: {e}"
         return fee_estimation
 
@@ -52,7 +59,6 @@ def _get_fees(specter, config):
                 "halfHourFee": 0.1,
                 "hourFee": 0.1,
                 "minimumFee": 0.1,
-                "failed": False,
             }
         )
     if specter.fee_estimator == "mempool":
