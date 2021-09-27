@@ -2,6 +2,7 @@ import logging
 import re
 import requests
 import urllib3
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class FeeEstimationResult:
     @error_message.setter
     def error_message(self, value):
         if self._error_message != None:
-            self._error_message = self._error_message + " and " + value
+            self._error_message = self._error_message + " \n" + value
         else:
             self._error_message = value
 
@@ -45,7 +46,8 @@ def get_fees(specter, config):
                 "minimumFee": 1,
             }
         )
-        fee_estimation.error_message = f"Failed to Fetch fee estimation. Please use manual fee calculation. Error: {e}"
+        fee_estimation.error_message = f"Failed to Fetch fee estimation. Please use manual fee calculation, check the logs for details. Error: {e}"
+        logger.exception(e)
         return fee_estimation
 
 
@@ -71,15 +73,23 @@ def _get_fees(specter, config):
                     timeout=timeout,
                 ).json()
             )
-        except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
+        except (
+            requests.exceptions.Timeout,
+            urllib3.exceptions.ReadTimeoutError,
+            ConnectionError,
+        ) as to:
             # Timeout is effectively one of the two:
             # ConnectTimeout: The request timed out while trying to connect to the remote server
             # ReadTimeout: The server did not send any data in the allotted amount of time.
             # ReadTimeoutError: Raised when a socket timeout occurs while receiving data from a server
 
             # Try without Tor if failed, or fall back to Bitcoin Core if only Tor is on
-            fee_estimation_result.error_message = f"Timeout while fetching fee estimation from mempool.space Tor hidden service (timeout {timeout}). Using Bitcoin Core instead."
+            if to.__class__.__name__ == "ConnectionError":
+                issue_text = "Tor not working"
+            else:
+                issue_text = "Timeout"
 
+            fee_estimation_result.error_message = f"{issue_text} while fetching fee estimation from mempool.space Tor hidden service (timeout {timeout})."
             if not specter.only_tor:
                 try:
                     requests_session = specter.requests_session(force_tor=False)
@@ -87,13 +97,18 @@ def _get_fees(specter, config):
                         f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE']['url']}api/v1/fees/recommended",
                         timeout=timeout,
                     ).json()
+                    fee_estimation_result.error_message = (
+                        f"Using mempool.space without Tor instead."
+                    )
                     logger.warn(fee_estimation_result.error_message)
                     return fee_estimation_result
                 except (
                     requests.exceptions.Timeout,
                     urllib3.exceptions.ReadTimeoutError,
                 ) as to:
-                    fee_estimation_result.error_message = f"Timeout while fetching estimation from mempool.space (timeout {timeout}). Using Bitcoin Core instead."
+                    pass
+
+            fee_estimation_result.error_message = f"Using Bitcoin Core instead."
 
     elif specter.fee_estimator == "custom":
         try:
