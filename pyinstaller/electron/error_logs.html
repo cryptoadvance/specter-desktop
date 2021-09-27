@@ -1,0 +1,22 @@
+<html>
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+    <body style="overflow: auto; height: 100%;">
+	<div class="card" style="width:90%; max-width: 1000px;">
+		This window show you the Logs of specter. It might give you hints on why specter is not coming up properly.
+		<pre><code id="specterapp-logs"></code></pre>
+		<br>
+	
+	</div>
+    <script>
+        const fs = require('fs')
+        const path = require('path')
+        const helpers = require('./helpers')
+        const specterAppLogs = helpers.getSpecterAppLogs
+        document.getElementById('specterapp-logs').innerText = specterAppLogs()
+
+
+        
+
+    </script>
+    </body>
+</html>
