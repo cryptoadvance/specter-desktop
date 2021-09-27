@@ -19,7 +19,10 @@ class FeeEstimationResult:
 
     @error_message.setter
     def error_message(self, value):
-        self._error_message = value
+        if self._error_message != None:
+            self._error_message = self._error_message + " and " + value
+        else:
+            self._error_message = value
 
     @property
     def result(self):
@@ -75,7 +78,8 @@ def _get_fees(specter, config):
                 try:
                     requests_session = specter.requests_session(force_tor=False)
                     fee_estimation_result.result = requests_session.get(
-                        f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE']['url']}api/v1/fees/recommended"
+                        f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE']['url']}api/v1/fees/recommended",
+                        timeout=timeout,
                     ).json()
                     logger.warn(fee_estimation_result.error_message)
                     return fee_estimation_result
@@ -100,7 +104,9 @@ def _get_fees(specter, config):
             requests_session = specter.requests_session(
                 force_tor=".onion/" in custom_url
             )
-            fee_estimation_result.result = requests_session.get(custom_url).json()
+            fee_estimation_result.result = requests_session.get(
+                custom_url, timeout=timeout
+            ).json()
             logger.warn(fee_estimation_result.error_message)
             return fee_estimation_result
         except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
@@ -119,8 +125,9 @@ def _get_fees(specter, config):
         "minimumFee": int(
             (float(specter.estimatesmartfee(20).get("feerate", 0.00001)) / 1000) * 1e8
         ),
-        "failed": "feerate" not in specter.estimatesmartfee(1),
     }
+    if "feerate" not in specter.estimatesmartfee(1):
+        fee_estimation_result.error_message = "There was an issue while fetching fee estimation with  Bitcoin core. Please use manual fee estimation"
     if not fee_estimation_result.error_message:
         logger.warn(fee_estimation_result.error_message)
     return fee_estimation_result
