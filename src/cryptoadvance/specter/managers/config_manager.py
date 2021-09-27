@@ -63,7 +63,7 @@ class ConfigManager(GenericDataManager):
             "price_provider": "",
             "weight_unit": "oz",
             "validate_merkle_proofs": False,
-            "fee_estimator": "mempool",
+            "fee_estimator": "bitcoin_core",
             "fee_estimator_custom_url": "",
             "hide_sensitive_info": False,
             # TODO: remove
