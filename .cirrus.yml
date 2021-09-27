@@ -3,6 +3,8 @@ container:
 #  image: ubuntu:focal
 #  image: python:3.8-buster
   image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:20210831
+  cpu: 4
+  memory: 8G
 
 # We assume here that we're having a proper python3 system including virtualenv and pip
 prep_stuff_template: &PREP_STUFF_TEMPLATE
