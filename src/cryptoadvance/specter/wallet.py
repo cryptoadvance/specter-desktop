@@ -1670,15 +1670,14 @@ class Wallet:
             # bitcoin core needs us to convert sat/B to BTC/kB
             options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
-        locktime = 0
         try:
             locktime = min([tip["height"] for tip in self.rpc.getchaintips()])
         except:
-            pass
+            locktime = 0
 
         # first run to get estimate
         r = self.rpc.walletcreatefundedpsbt(
-            selected_coins,  # inputs
+            extra_inputs,  # inputs
             [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
             locktime,
             options,
@@ -1686,24 +1685,22 @@ class Wallet:
         )
 
         b64psbt = r["psbt"]
-        psbt = self.rpc.decodepsbt(b64psbt)
+        psbt = self.PSBTCls(
+            b64psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
+        )
 
-        # second run with adjusted fees
-        if fee_rate > 0.0:
-            psbt_fees_sats = int(psbt["fee"] * 1e8)
-            # estimate final size: add weight of inputs
-            tx_full_size = ceil(
-                psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-            )
-            adjusted_fee_rate = (
-                fee_rate
-                * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-                * (tx_full_size / psbt["tx"]["vsize"])
-            )
-            options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
+        # Core's fee rate is wrong so we need to "adjust" it
+        if fee_rate > 0:
+            # scale by which Core misses the fee rate
+            scale = fee_rate / psbt.fee_rate
+            adjusted_fee_rate = fee_rate * scale
+            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
 
             r = self.rpc.walletcreatefundedpsbt(
-                selected_coins,  # inputs
+                extra_inputs,  # inputs
                 [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
                 locktime,
                 options,
@@ -1711,17 +1708,13 @@ class Wallet:
             )
 
             b64psbt = r["psbt"]
-            psbt = self.rpc.decodepsbt(b64psbt)
-            psbt["fee_rate"] = options["feeRate"]
+            psbt = self.PSBTCls(
+                b64psbt,
+                self.descriptor,
+                self.network,
+                devices=list(zip(self.keys, self._devices)),
+            )
 
-        psbt["base64"] = b64psbt
-
-        psbt = self.PSBTCls.from_dict(
-            psbt,
-            self.descriptor,
-            self.manager.chain,
-            devices=list(zip(self.keys, self._devices)),
-        )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
