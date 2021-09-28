@@ -1808,7 +1808,9 @@ class Wallet:
         psbt = self.psbt_from_txid(txid)
         fee_delta = fee_rate * psbt.full_size - psbt.fee
         if fee_delta < self.MIN_FEE_RATE * psbt.full_size:
-            raise SpecterError("Fee difference is too small to relay the RBF transaction")
+            raise SpecterError(
+                "Fee difference is too small to relay the RBF transaction"
+            )
         # find change output
         change_index = None
         for i, out in enumerate(psbt.outputs):
