@@ -490,7 +490,7 @@ def send_new(wallet_alias):
     fee_estimation = get_fees(app.specter, app.config)
     fee_estimation_data = fee_estimation.result
     if fee_estimation.error_message:
-        flash(fee_estimation.error_message, "error")
+        [flash(message, "error") for message in fee_estimation.error_messages]
 
     fee_rate = fee_estimation_data["hourFee"]
 

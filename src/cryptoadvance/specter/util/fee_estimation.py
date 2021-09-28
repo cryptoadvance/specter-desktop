@@ -8,22 +8,19 @@ logger = logging.getLogger(__name__)
 
 
 class FeeEstimationResult:
-    """A tiny object to pass the Fee Estimation Results around"""
+    """A tiny object to pass the Fee Estimation Results around including a list of errors which might have occured"""
 
     def __init__(self, result):
         self.result = result
-        self._error_message = None
+        self._error_messages = []
+
+    @property
+    def error_messages(self):
+        return self._error_messages
 
     @property
     def error_message(self):
-        return self._error_message
-
-    @error_message.setter
-    def error_message(self, value):
-        if self._error_message != None:
-            self._error_message = self._error_message + " \n" + value
-        else:
-            self._error_message = value
+        return " AND ".join(self.error_messages)
 
     @property
     def result(self):
@@ -32,6 +29,10 @@ class FeeEstimationResult:
     @result.setter
     def result(self, value):
         self._result = value
+
+    def add_error_message(self, message):
+        """Appends an error-message to the list of existing ones"""
+        self._error_messages.append(message)
 
 
 def get_fees(specter, config):
@@ -46,7 +47,9 @@ def get_fees(specter, config):
                 "minimumFee": 1,
             }
         )
-        fee_estimation.error_message = f"Failed to Fetch fee estimation. Please use manual fee calculation, check the logs for details. Error: {e}"
+        fee_estimation.add_error_message(
+            f"Failed to Fetch fee estimation. Please use manual fee calculation, check the logs for details. Error: {e}"
+        )
         logger.exception(e)
         return fee_estimation
 
@@ -89,7 +92,9 @@ def _get_fees(specter, config):
             else:
                 issue_text = "Timeout"
 
-            fee_estimation_result.error_message = f"{issue_text} while fetching fee estimation from mempool.space Tor hidden service (timeout {timeout})."
+            fee_estimation_result.add_error_message(
+                f"{issue_text} while fetching fee estimation from mempool.space Tor hidden service (timeout {timeout})."
+            )
             if not specter.only_tor:
                 try:
                     requests_session = specter.requests_session(force_tor=False)
@@ -97,7 +102,7 @@ def _get_fees(specter, config):
                         f"{config['EXPLORERS_LIST']['MEMPOOL_SPACE']['url']}api/v1/fees/recommended",
                         timeout=timeout,
                     ).json()
-                    fee_estimation_result.error_message = (
+                    fee_estimation_result.add_error_message(
                         f"Using mempool.space without Tor instead."
                     )
                     logger.warn(fee_estimation_result.error_message)
@@ -108,7 +113,7 @@ def _get_fees(specter, config):
                 ) as to:
                     pass
 
-            fee_estimation_result.error_message = f"Using Bitcoin Core instead."
+            fee_estimation_result.add_error_message(f"Using Bitcoin Core instead.")
 
     elif specter.fee_estimator == "custom":
         try:
@@ -131,7 +136,9 @@ def _get_fees(specter, config):
             logger.warn(fee_estimation_result.error_message)
             return fee_estimation_result
         except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
-            fee_estimation_result.error_message = f"Timeout while fetching fee estimation from custom provider (timeout {timeout}). Using Bitcoin Core instead."
+            fee_estimation_result.add_error_message(
+                f"Timeout while fetching fee estimation from custom provider (timeout {timeout}). Using Bitcoin Core instead."
+            )
 
     fee_estimation_result.result = {
         "fastestFee": int(
@@ -152,7 +159,14 @@ def _get_fees(specter, config):
         # The error-message is covering "transactions" and so the cypress-tests are not succeeding
         # Not a perfect fix but better than to fix it everywhere in the test-code:
         if specter.chain != "regtest":
-            fee_estimation_result.error_message = "There was an issue while fetching fee estimation with  Bitcoin core. Please use manual fee estimation"
-    if not fee_estimation_result.error_message:
+            fee_estimation_result.add_error_message(
+                "There was an issue while fetching fee estimation with  Bitcoin core. Please use manual fee estimation"
+            )
+            try:
+                for error in specter.estimatesmartfee(1)["errors"]:
+                    fee_estimation_result.add_error_message(error)
+            except Exception as e:
+                logger.exception(e)
+    if fee_estimation_result.error_message:
         logger.warn(fee_estimation_result.error_message)
     return fee_estimation_result
