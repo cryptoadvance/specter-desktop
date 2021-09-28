@@ -179,7 +179,8 @@ class LiquidRPC(BitcoinRPC):
         )
         psbt = res.get("psbt", None)
 
-        # remove strange zero-output (bug in Elements?)
+        # remove zero-output (bug in Elements)
+        # TODO: keep it if send address is unblinded
         if psbt:
             try:
                 tx = PSET.from_string(psbt)
@@ -361,65 +362,6 @@ class LiquidRPC(BitcoinRPC):
                 out1.unknown.update(out2.unknown)
         return str(tx)
 
-    def decodepsbt(self, b64psbt, *args, **kwargs):
-        tx = PSET.from_string(b64psbt)
-        # pre-processing of the transaction
-        # so Elements Core doesn't complain
-        inputs = [
-            (inp.value or inp.utxo.value, inp.asset or inp.utxo.asset)
-            for inp in tx.inputs
-        ]
-        for inp in tx.inputs:
-            inp.value = None
-            inp.asset = None
-            inp.value_blinding_factor = None
-            inp.asset_blinding_factor = None
-
-        for out in tx.outputs:
-            if out.asset and out.value:
-                # out.asset = None
-                out.asset_blinding_factor = None
-                # out.value = None
-                out.value_blinding_factor = None
-                out.asset_commitment = None
-                out.value_commitment = None
-                out.range_proof = None
-                out.surjection_proof = None
-                out.ecdh_pubkey = None
-        b64psbt = str(tx)
-
-        decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
-        # pset branch - no fee and global tx fields...
-        if "fees" in decoded and "bitcoin" in decoded["fees"]:
-            decoded["fee"] = decoded["fees"]["bitcoin"]
-        if "tx" not in decoded or "fee" not in decoded:
-            pset = PSET.from_string(b64psbt)
-            if "tx" not in decoded:
-                decoded["tx"] = self.decoderawtransaction(str(pset.tx))
-            if "fee" not in decoded:
-                decoded["fee"] = pset.fee() * 1e-8
-        for out in decoded["outputs"]:
-            if "value" not in out:
-                out["value"] = -1
-        for out in decoded["tx"]["vout"]:
-            if "value" not in out:
-                out["value"] = -1
-        for i, (v, a) in enumerate(inputs):
-            inp = decoded["tx"]["vin"][i]  # old psbt
-            inp2 = decoded["inputs"][i]  # new psbt
-            if "utxo_rangeproof" in inp2:
-                inp2.pop("utxo_rangeproof")
-            a = bytes(reversed(a[-32:])).hex()
-            v = round(v * 1e-8, 8)
-            if "value" not in inp:
-                inp["value"] = v
-            if "asset" not in inp:
-                inp["asset"] = a
-            if "value" not in inp2:
-                inp2["value"] = v
-            if "asset" not in inp2:
-                inp2["asset"] = a
-        return decoded
 
     def decoderawtransaction(self, tx):
         blinded = super().__getattr__("decoderawtransaction")(tx)
