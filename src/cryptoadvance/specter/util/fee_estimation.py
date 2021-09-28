@@ -55,7 +55,14 @@ def get_fees(specter, config):
 
 
 def _get_fees(specter, config):
-    fee_estimation_result = FeeEstimationResult(None)  # Just in case we have errors
+    fee_estimation_result = FeeEstimationResult(
+        {
+            "fastestFee": 1,
+            "halfHourFee": 1,
+            "hourFee": 1,
+            "minimumFee": 1,
+        }
+    )  # Just in case we have errors and no result is set, deliver some defaults which don't break anything
     timeout = config["FEEESTIMATION_REQUEST_TIMEOUT"]
     if specter.is_liquid:
         return FeeEstimationResult(
