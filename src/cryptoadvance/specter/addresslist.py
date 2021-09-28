@@ -59,9 +59,11 @@ class Address(dict):
 
     @property
     def is_receiving(self):
-        # change can be True, False or None
-        # None means it's external
-        return not self.is_external and not self.change
+        return self.is_mine and not self.change
+
+    @property
+    def is_change(self):
+        return self.is_mine and self.change
 
     @property
     def index(self):
@@ -73,7 +75,7 @@ class Address(dict):
 
     @property
     def change(self):
-        return not self.is_external and self["change"]
+        return self["change"]
 
     @property
     def used(self):
@@ -210,7 +212,11 @@ class AddressList(dict):
         return max(
             0,
             0,
-            *[addr.index or 0 for addr in self.values() if addr.change == change],
+            *[
+                addr.index or 0
+                for addr in self.values()
+                if addr.is_mine and addr.change == change
+            ],
         )
 
     def max_used_index(self, change=False):
@@ -220,7 +226,7 @@ class AddressList(dict):
             *[
                 addr.index or -1
                 for addr in self.values()
-                if addr.used and addr.change == change
+                if addr.is_mine and addr.used and addr.change == change
             ],
         )
 
