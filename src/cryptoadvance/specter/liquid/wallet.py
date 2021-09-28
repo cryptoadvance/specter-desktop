@@ -263,6 +263,12 @@ class LWallet(Wallet):
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
 
+    def canceltx(self, *args, **kwargs):
+        raise SpecterError("RBF is not implemented on Liquid")
+
+    def bumpfee(self, *args, **kwargs):
+        raise SpecterError("RBF is not implemented on Liquid")
+
     def addresses_info(self, is_change):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.

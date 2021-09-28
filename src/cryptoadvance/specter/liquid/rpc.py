@@ -179,7 +179,7 @@ class LiquidRPC(BitcoinRPC):
         )
         psbt = res.get("psbt", None)
 
-        # remove strange zero-output
+        # remove strange zero-output (bug in Elements?)
         if psbt:
             try:
                 tx = PSET.from_string(psbt)
