@@ -161,8 +161,7 @@ class LWallet(Wallet):
         fee_rate: float = 1.0,
         selected_coins=[],
         readonly=False,
-        rbf=True,
-        existing_psbt=None,
+        rbf=False,
         rbf_edit_mode=False,
         assets=None,
     ):
@@ -172,6 +171,9 @@ class LWallet(Wallet):
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
+        if not assets:
+            raise SpecterError("Missing assets information")
+
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
         # get change addresses for all assets + for LBTC
@@ -180,169 +182,86 @@ class LWallet(Wallet):
             for i in range(len(assets) + 1)
         ]
 
-        if not existing_psbt:
-            # if not rbf_edit_mode:
-            #     if self.full_available_balance < sum(amounts):
-            #         raise SpecterError(
-            #             "The wallet does not have sufficient funds to make the transaction."
-            #         )
+        if selected_coins:
+            extra_inputs = selected_coins
 
-            # if selected_coins != []:
-            #     still_needed = sum(amounts)
-            #     for coin in selected_coins:
-            #         coin_txid = coin.split(",")[0]
-            #         coin_vout = int(coin.split(",")[1])
-            #         coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
-            #             coin_vout
-            #         ]["value"]
-            #         extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
-            #         still_needed -= coin_amount
-            #         if still_needed < 0:
-            #             break
-            #     if still_needed > 0:
-            #         raise SpecterError(
-            #             "Selected coins does not cover Full amount! Please select more coins!"
-            #         )
-            # elif self.available_balance["trusted"] <= sum(amounts):
-            #     txlist = self.rpc.listunspent(0, 0)
-            #     b = sum(amounts) - self.available_balance["trusted"]
-            #     for tx in txlist:
-            #         extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-            #         b -= tx["amount"]
-            #         if b < 0:
-            #             break
+        # subtract fee from amount of this output:
+        # currently only one address is supported, so either
+        # empty array (subtract from change) or [0]
+        subtract_arr = [subtract_from] if subtract else []
 
-            # subtract fee from amount of this output:
-            # currently only one address is supported, so either
-            # empty array (subtract from change) or [0]
-            subtract_arr = [subtract_from] if subtract else []
-
-            options = {
-                "includeWatching": True,
-                # FIXME: get back change addresses
-                # "changeAddress": self.change_address,
-                "subtractFeeFromOutputs": subtract_arr,
-                "replaceable": rbf,
-                "changeAddresses": change_addresses,  # not supported by Elements - custom field for out LiquidRPC
-            }
-
-            # 209900 is pre-v21 for Elements Core
-            if self.manager.bitcoin_core_version_raw >= 209900:
-                options["add_inputs"] = selected_coins == []
-
-            if fee_rate > 0:
-                # bitcoin core needs us to convert sat/B to BTC/kB
-                options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
-
-            # looks like change_type is required in nested segwit wallets
-            # but not in native segwit
-            if "changeAddress" not in options and self.address_type:
-                options["change_type"] = self.address_type
-
-            r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
-                [
-                    {addresses[i]: amounts[i], "asset": assets[i]}
-                    for i in range(len(addresses))
-                ],  # output
-                0,  # locktime
-                options,  # options
-                True,  # bip32-der
-            )
-
-            b64psbt = r["psbt"]
-            psbt = self.rpc.decodepsbt(b64psbt)
-        else:
-            psbt = existing_psbt
-            # vins from psbt v0 or v2
-            if "tx" in psbt:
-                extra_inputs = [
-                    {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
-                ]
-            else:
-                extra_inputs = [
-                    {"txid": inp["previous_txid"], "vout": inp["previous_vout"]}
-                    for inp in psbt["inputs"]
-                ]
+        options = {
+            "includeWatching": True,
             # FIXME: get back change addresses
-            # if "changeAddress" in psbt:
-            #     options["changeAddress"] = psbt["changeAddress"]
-            #     if "change_type" in options:
-            #         options.pop("change_type")
-            if "base64" in psbt:
-                b64psbt = psbt["base64"]
+            # "changeAddress": self.change_address,
+            "subtractFeeFromOutputs": subtract_arr,
+            "replaceable": rbf,
+            "changeAddresses": change_addresses,  # not supported by Elements - custom field for our LiquidRPC
+        }
+
+        options["add_inputs"] = not selected_coins
+
+        if fee_rate > 0:
+            # bitcoin core needs us to convert sat/B to BTC/kB
+            options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
         # looks like change_type is required in nested segwit wallets
         # but not in native segwit
         if "changeAddress" not in options and self.address_type:
             options["change_type"] = self.address_type
 
-        if fee_rate > 0.0:
-            if not existing_psbt:
-                adjusted_fee_rate = self.adjust_fee(psbt, fee_rate)
-                options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
-            else:
-                options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
+        try:
+            locktime = min([tip["height"] for tip in self.rpc.getchaintips()])
+        except:
+            locktime = 0
+
+        r = self.rpc.walletcreatefundedpsbt(
+            extra_inputs,  # inputs
+            [
+                {addresses[i]: amounts[i], "asset": assets[i]}
+                for i in range(len(addresses))
+            ],  # outputs
+            locktime,
+            options,  # options
+            True,  # bip32-der
+        )
+
+        b64psbt = r["psbt"]
+        psbt = self.PSBTCls(
+            b64psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
+        )
+
+        if fee_rate > 0:
+            # scale by which Core misses the fee rate
+            scale = fee_rate / psbt.fee_rate
+            adjusted_fee_rate = fee_rate * scale
+            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
+
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
                     {addresses[i]: amounts[i], "asset": assets[i]}
                     for i in range(len(addresses))
                 ],  # output
-                0,  # locktime
+                locktime,
                 options,  # options
                 True,  # bip32-der
             )
 
             b64psbt = r["psbt"]
-            psbt = self.rpc.decodepsbt(b64psbt)
-            psbt["fee_rate"] = options["feeRate"]
-        # estimate full size
-        tx_full_size = ceil(
-            psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-        )
-        psbt["tx_full_size"] = tx_full_size
+            psbt = self.PSBTCls(
+                b64psbt,
+                self.descriptor,
+                self.network,
+                devices=list(zip(self.keys, self._devices)),
+            )
 
-        psbt["base64"] = b64psbt
-        psbt["amount"] = amounts
-        psbt["address"] = addresses
-        if assets:
-            psbt["asset"] = assets
-        psbt["time"] = time.time()
-        psbt["sigs_count"] = 0
-
-        psbt = self.PSBTCls.from_dict(
-            psbt,
-            self.descriptor,
-            self.manager.chain,
-            devices=list(zip(self.keys, self._devices)),
-        )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
-
-    def adjust_fee(self, psbt, fee_rate):
-        psbt_fees_sats = int(psbt.get("fees", {}).get("bitcoin", 0) * 1e8)
-
-        # TODO: handle non-blind outputs differently
-        num_blinded_outs = len(psbt["outputs"]) - 1
-        # estimate final size: add weight of inputs and outputs
-        # out witness weight is 4245 (from some random tx)
-        # commitments in blinded tx: 33 for nonce and 33 for value
-        commitment_size = 33 + 33
-        tx_full_size = ceil(
-            psbt["tx"]["vsize"]
-            + len(psbt["inputs"]) * self.weight_per_input / 4
-            + num_blinded_outs * 4245 / 4
-            # probably elements doesn't count commitments
-            + len(psbt["inputs"]) * commitment_size
-            + num_blinded_outs * commitment_size
-        )
-        return (
-            fee_rate
-            * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-            * (tx_full_size / psbt["tx"]["vsize"])
-        )
 
     def addresses_info(self, is_change):
         """Create a list of (receive or change) addresses from cache and retrieve the
@@ -353,7 +272,7 @@ class LWallet(Wallet):
         addresses_info = []
 
         addresses_cache = [
-            v for _, v in self._addresses.items() if v.change == is_change
+            v for _, v in self._addresses.items() if v.change == is_change and v.is_mine
         ]
 
         for addr in addresses_cache:

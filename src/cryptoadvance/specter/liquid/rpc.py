@@ -178,6 +178,16 @@ class LiquidRPC(BitcoinRPC):
             inputs, outputs, locktime, options, *args, **kwargs
         )
         psbt = res.get("psbt", None)
+
+        # remove strange zero-output
+        if psbt:
+            try:
+                tx = PSET.from_string(psbt)
+                tx.outputs = [out for out in tx.outputs if out.value > 0]
+                psbt = str(tx)
+                res["psbt"] = psbt
+            except:
+                pass
         # replace change addresses from the transactions if we can
         if change_addresses and psbt:
             try:

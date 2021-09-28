@@ -54,6 +54,10 @@ class Address(dict):
         return self.index is None
 
     @property
+    def is_mine(self):
+        return not self.is_external
+
+    @property
     def is_receiving(self):
         # change can be True, False or None
         # None means it's external

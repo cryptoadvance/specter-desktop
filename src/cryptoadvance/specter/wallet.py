@@ -1957,7 +1957,7 @@ class Wallet:
         addresses_info = []
 
         addresses_cache = [
-            v for _, v in self._addresses.items() if v.change == is_change
+            v for _, v in self._addresses.items() if v.change == is_change and v.is_mine
         ]
 
         for addr in addresses_cache:
