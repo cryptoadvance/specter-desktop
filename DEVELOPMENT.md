@@ -98,7 +98,10 @@ python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
 #### If `pip install` fails on `cryptography==3.4.x`
-Certain platform/python3 version combos require a Rust compiler. Install via:
+
+If you're using pip older than v19.0, upgrade it with `pip install --upgrade pip`. This is needed to use the pre-built `cryptography` wheel instead of building it.
+
+If this still doesn't work, certain platform/python3 version combos require a Rust compiler. Install via:
 
 * Linux/macOS:
     ```

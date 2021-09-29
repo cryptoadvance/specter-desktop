@@ -1,4 +1,4 @@
-import json, logging, pytest, time, os
+import json, logging, pytest
 from decimal import Decimal
 from cryptoadvance.specter.helpers import alias, generate_mnemonic
 from cryptoadvance.specter.key import Key
@@ -6,7 +6,6 @@ from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
-from conftest import instantiate_bitcoind_controller
 
 
 def test_alias():
@@ -36,6 +35,7 @@ def test_abandon_purged_tx(
     # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
     # easier to spam the mempool and purge our target tx.
     # TODO: Similar test but for maxmempoolexpiry?
+
     # Copied and adapted from:
     #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
     from bitcoin_core.test.functional.test_framework.util import (
@@ -43,6 +43,7 @@ def test_abandon_purged_tx(
         satoshi_round,
         create_lots_of_big_transactions,
     )
+    from conftest import instantiate_bitcoind_controller
 
     caplog.set_level(logging.DEBUG)
 
@@ -52,7 +53,7 @@ def test_abandon_purged_tx(
     bitcoind_controller = instantiate_bitcoind_controller(
         docker,
         request,
-        rpcport=18968,
+        rpcport=18998,
         extra_args=["-acceptnonstdtxn=1", "-maxmempool=5", "-spendzeroconfchange=0"],
     )
     try:
