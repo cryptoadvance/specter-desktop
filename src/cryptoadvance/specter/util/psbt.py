@@ -3,31 +3,50 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
+from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
-from embit.transaction import Transaction, TransactionOutput
+from embit.transaction import Transaction, TransactionOutput, TransactionInput
 from embit.liquid.networks import get_network
 from embit import bip32
+from embit.descriptor import Descriptor
 from math import ceil
 import time
+from typing import Union, Tuple, List
 
 
-class SpecterTx:
-    def __init__(self, parent, tx):
+class AbstractTxContext:
+    """Class inherited from this one must have the following properties:
+    - self.network : dict with network constants (see embit.networks)
+    - self.descriptor : Descriptor class that can check if it owns a PSBT scope or not
+    Allows to pass context Wallet -> SpecterPSBT -> SpecterScope -> SpecterTx
+    """
+
+    @property
+    def network(self) -> dict:
+        if hasattr(self, "parent"):
+            return self.parent.network
+        raise NotImplementedError("Implement this!")
+
+    @property
+    def descriptor(self) -> Descriptor:
+        if hasattr(self, "parent"):
+            return self.parent.descriptor
+        raise NotImplementedError("Implement this!")
+
+
+class SpecterTx(AbstractTxContext):
+    def __init__(self, parent: AbstractTxContext, tx: Transaction):
         self.parent = parent
         self.tx = tx
 
-    @property
-    def network(self):
-        return self.parent.network
-
-    def vin_to_dict(self, vin):
+    def vin_to_dict(self, vin: TransactionInput) -> dict:
         return {
             "txid": vin.txid.hex(),
             "vout": vin.vout,
             "sequence": vin.sequence,
         }
 
-    def vout_to_dict(self, vout):
+    def vout_to_dict(self, vout: TransactionOutput) -> dict:
         i = self.tx.vout.index(vout)
         return {
             "value": round(1e-8 * vout.value, 8),
@@ -39,7 +58,7 @@ class SpecterTx:
             },
         }
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         txid = self.tx.txid().hex()
         size = len(self.tx.serialize())
         return {
@@ -55,45 +74,40 @@ class SpecterTx:
         }
 
 
-class SpecterScope:
-    def __init__(self, parent, scope):
+class SpecterScope(AbstractTxContext):
+    def __init__(
+        self, parent: AbstractTxContext, scope: Union[InputScope, OutputScope]
+    ):
         self.parent = parent
         self.scope = scope
 
     @property
-    def network(self):
-        return self.parent.network
-
-    @property
-    def descriptor(self):
-        return self.parent.descriptor
-
-    @property
-    def is_mine(self):
+    def is_mine(self) -> bool:
         return self.descriptor.owns(self.scope)
 
     @property
-    def is_change(self):
+    def is_change(self) -> bool:
+        """Returns True only if the scope belongs to change descriptor (branch 1)"""
         return self.descriptor.branch(1).owns(self.scope)
 
     @property
-    def is_receiving(self):
+    def is_receiving(self) -> bool:
         return self.is_mine and not self.is_change
 
     @property
-    def address(self):
+    def address(self) -> str:
         return self.scope.script_pubkey.address(self.network)
 
     @property
-    def sat_amount(self):
+    def sat_amount(self) -> int:
         """Implement this!"""
         raise NotImplementedError("Not implemented for this scope")
 
     @property
-    def float_amount(self):
+    def float_amount(self) -> float:
         return round(self.sat_amount * 1e-8, 8)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         obj = {
             "address": self.address,
             "float_amount": self.float_amount,
@@ -117,22 +131,22 @@ class SpecterInputScope(SpecterScope):
     TxCls = SpecterTx
 
     @property
-    def inp(self):
+    def inp(self) -> InputScope:
         return self.scope
 
     @property
-    def sat_amount(self):
+    def sat_amount(self) -> int:
         return self.scope.utxo.value
 
     @property
-    def txid(self):
+    def txid(self) -> bytes:
         return self.scope.txid
 
     @property
-    def vout(self):
+    def vout(self) -> int:
         return self.scope.vout
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         obj = super().to_dict()
         obj.update(
             {
@@ -156,15 +170,15 @@ class SpecterInputScope(SpecterScope):
 
 class SpecterOutputScope(SpecterScope):
     @property
-    def out(self):
+    def out(self) -> OutputScope:
         return self.scope
 
     @property
-    def sat_amount(self):
+    def sat_amount(self) -> int:
         return self.out.value
 
 
-class SpecterPSBT:
+class SpecterPSBT(AbstractTxContext):
     """Specter's PSBT class with some handy functions"""
 
     PSBTCls = PSBT
@@ -172,19 +186,42 @@ class SpecterPSBT:
     OutputCls = SpecterOutputScope
     TxCls = SpecterTx
 
-    def __init__(self, psbt, descriptor, network, **kwargs):
+    def __init__(
+        self,
+        psbt: Union[str, PSBT],
+        descriptor: Descriptor,
+        network: dict,
+        raw: Union[None, str] = None,
+        devices: List[Tuple[Key, str]] = [],  # list of tuples: (Key, device_alias)
+        **kwargs
+    ):
+        """
+        kwargs can contain:
+        - "time" - creation time of the transaction, time.time() is used if missing,
+        - other keys in kwargs are dropped
+        """
         if isinstance(psbt, str):
             psbt = self.PSBTCls.from_string(psbt)
         self.psbt = psbt
-        self.descriptor = descriptor
-        self.network = network
+        self._descriptor = descriptor
+        self._network = network
+        self.devices = devices
+        self.raw = bytes.fromhex(raw) if raw else None
         self.time = kwargs.get("time", time.time())
-        self.devices = kwargs.get("devices", [])
-        self.raw = None
-        if "raw" in kwargs:
-            self.raw = bytes.fromhex(kwargs["raw"])
 
-    def update(self, b64psbt, raw=None):
+    @property
+    def network(self) -> dict:
+        return self._network
+
+    @property
+    def descriptor(self) -> Descriptor:
+        return self._descriptor
+
+    def update(self, b64psbt: str, raw: dict = {}) -> None:
+        """
+        b64psbt - PSBT transaction with some extra data that we should take
+        raw dict can contain "hex" key with hex string of the finalized transaction. Or not.
+        """
         if raw and "hex" in raw:
             self.raw = bytes.fromhex(raw["hex"])
         if not b64psbt:
@@ -195,11 +232,11 @@ class SpecterPSBT:
         for out1, out2 in zip(self.psbt.outputs, psbt.outputs):
             out1.update(out2)
 
-    def utxo_dict(self):
+    def utxo_dict(self) -> dict:
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.psbt.inputs]
 
     @property
-    def extra_input_weight(self):
+    def extra_input_weight(self) -> int:
         redeem_script = self.descriptor.redeem_script()
         witness_script = self.descriptor.witness_script()
         weight = 0
@@ -218,27 +255,27 @@ class SpecterPSBT:
         return weight
 
     @property
-    def full_size(self):
+    def full_size(self) -> int:
         size = len(self.psbt.tx.serialize()) * 4
         size += len(self.inputs) * self.extra_input_weight
         return ceil(size / 4)
 
     @property
-    def fee(self):
+    def fee(self) -> int:
         return self.psbt.fee()
 
     @property
-    def fee_rate(self):
+    def fee_rate(self) -> float:
         return self.fee / self.full_size
 
     @property
-    def threshold(self):
+    def threshold(self) -> int:
         if self.descriptor.is_basic_multisig:
             return self.descriptor.miniscript.args[0].num
         return 1
 
     @property
-    def sigs_count(self):
+    def sigs_count(self) -> int:
         # everything is signed if final witness is there or
         if self.raw or any([inp.final_scriptwitness for inp in self.psbt.inputs]):
             return self.threshold
@@ -246,7 +283,7 @@ class SpecterPSBT:
         return max([len(inp.partial_sigs) for inp in self.psbt.inputs])
 
     @property
-    def addresses(self):
+    def addresses(self) -> List[str]:
         return [
             out.script_pubkey.address(self.network)
             for out in self.psbt.outputs
@@ -254,7 +291,7 @@ class SpecterPSBT:
         ]
 
     @property
-    def amounts(self):
+    def amounts(self) -> List[float]:
         return [
             round(out.value * 1e-8, 8)
             for out in self.psbt.outputs
@@ -262,26 +299,26 @@ class SpecterPSBT:
         ]
 
     @property
-    def sats(self):
+    def sats(self) -> List[int]:
         return [out.value for out in self.psbt.outputs if not self.descriptor.owns(out)]
 
     @property
-    def txid(self):
+    def txid(self) -> str:
         return self.psbt.tx.txid().hex()
 
     @property
-    def inputs(self):
+    def inputs(self) -> List[SpecterInputScope]:
         return [self.InputCls(self, inp) for inp in self.psbt.inputs]
 
     @property
-    def outputs(self):
+    def outputs(self) -> List[SpecterOutputScope]:
         return [self.OutputCls(self, out) for out in self.psbt.outputs]
 
     @property
-    def tx(self):
+    def tx(self) -> Transaction:
         return self.TxCls(self, self.psbt.tx)
 
-    def get_signed_devices(self):
+    def get_signed_devices(self) -> List[str]:
         if not self.devices:
             return []
         devices = []
@@ -303,7 +340,7 @@ class SpecterPSBT:
         return devices
 
     @classmethod
-    def from_dict(cls, obj, descriptor, chain, devices=[]):
+    def from_dict(cls, obj: dict, descriptor: Descriptor, chain: str, devices=[]):
         psbt = cls.PSBTCls.from_string(obj["base64"])
         network = get_network(chain)
         kwargs = {}
@@ -311,7 +348,7 @@ class SpecterPSBT:
         kwargs.pop("base64")
         return cls(psbt, descriptor, network, devices=devices, **kwargs)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         fee = self.fee
         full_size = self.full_size
         obj = {
@@ -335,18 +372,18 @@ class SpecterPSBT:
         return obj
 
     @classmethod
-    def from_string(cls, b64psbt):
+    def from_string(cls, b64psbt: str) -> PSBT:
         """Returns PSBTCls, not cls"""
         return cls.PSBTCls.from_string(b64psbt)
 
-    def to_string(self):
+    def to_string(self) -> str:
         return str(self.psbt)
 
     def __str__(self):
         return str(self.psbt)
 
     @classmethod
-    def fill_output(cls, out, desc):
+    def fill_output(cls, out: OutputScope, desc: Descriptor) -> bool:
         """
         Fills derivations and all other information in PSBT output
         from derived descriptor

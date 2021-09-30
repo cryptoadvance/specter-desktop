@@ -3,13 +3,13 @@ from embit.liquid.transaction import LTransaction, LTransactionOutput
 from embit.liquid.networks import get_network
 from embit.liquid.addresses import address as liquid_address
 from embit.liquid import slip77
-from embit import bip32, ec
+from embit import bip32, ec, script
 from math import ceil
 import time
 from cryptoadvance.specter.util.psbt import *
 
 
-def to_canonical_pset(pset):
+def to_canonical_pset(pset: str) -> str:
     """
     Removes unblinded information from the transaction
     so Elements Core can decode it
@@ -34,18 +34,18 @@ def to_canonical_pset(pset):
     return str(tx)
 
 
-def get_address(script_pubkey, network):
+def get_address(script_pubkey: script.Script, network: dict) -> str:
     return script_pubkey.address(network) if script_pubkey.data else "Fee"
 
 
-def get_value(value):
+def get_value(value) -> int:
     if isinstance(value, int):
         return value
     return -1
 
 
 class SpecterLTx(SpecterTx):
-    def vout_to_dict(self, vout):
+    def vout_to_dict(self, vout: LOutputScope) -> dict:
         i = self.tx.vout.index(vout)
         return {
             "value": round(1e-8 * get_value(vout.value), 8),
@@ -63,21 +63,21 @@ class SpecterLInputScope(SpecterInputScope):
     TxCls = SpecterLTx
 
     @property
-    def assetid(self):
+    def assetid(self) -> str:
         if self.scope.asset is None:
             return "???"
         return self.scope.asset[::-1].hex()
 
     @property
-    def address(self):
+    def address(self) -> str:
         # TODO: blinding key?
         return liquid_address(self.scope.script_pubkey, network=self.network)
 
     @property
-    def sat_amount(self):
+    def sat_amount(self) -> int:
         return self.scope.value or 0
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         obj = super().to_dict()
         obj.update({"asset": self.assetid})
         return obj
@@ -85,20 +85,20 @@ class SpecterLInputScope(SpecterInputScope):
 
 class SpecterLOutputScope(SpecterOutputScope):
     @property
-    def assetid(self):
+    def assetid(self) -> str:
         if self.scope.asset is None:
             return "???"
         return self.scope.asset[::-1].hex()
 
     @property
-    def address(self):
+    def address(self) -> str:
         if not self.scope.script_pubkey.data:
             return "Fee"
         return liquid_address(
             self.scope.script_pubkey, self.blinding_key, network=self.network
         )
 
-    def extra_weight(self):
+    def extra_weight(self) -> int:
         wit = 0
         if self.scope.is_blinded:
             wit += 33 * 4  # nonce
@@ -114,15 +114,15 @@ class SpecterLOutputScope(SpecterOutputScope):
         return wit
 
     @property
-    def blinding_key(self):
+    def blinding_key(self) -> ec.PublicKey:
         if self.scope.blinding_pubkey:
             return ec.PublicKey.parse(self.scope.blinding_pubkey)
 
     @property
-    def sat_amount(self):
+    def sat_amount(self) -> int:
         return self.scope.value or 0
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         obj = super().to_dict()
         obj.update({"asset": self.assetid})
         return obj
@@ -141,7 +141,7 @@ class SpecterPSET(SpecterPSBT):
         self.psbt.verify(ignore_missing=True)
 
     @property
-    def full_size(self):
+    def full_size(self) -> int:
         size = len(self.psbt.tx.serialize()) * 4
         # witness and redeem script
         size += len(self.inputs) * self.extra_input_weight
@@ -150,7 +150,7 @@ class SpecterPSET(SpecterPSBT):
         return ceil(size / 4)
 
     @property
-    def addresses(self):
+    def addresses(self) -> List[str]:
         return [
             out.address
             for out in self.outputs
@@ -158,7 +158,7 @@ class SpecterPSET(SpecterPSBT):
         ]
 
     @property
-    def amounts(self):
+    def amounts(self) -> List[float]:
         return [
             out.float_amount
             for out in self.outputs
@@ -166,14 +166,14 @@ class SpecterPSET(SpecterPSBT):
         ]
 
     @property
-    def assets(self):
+    def assets(self) -> List[str]:
         return [
             out.assetid
             for out in self.outputs
             if out.scope.script_pubkey.data and not self.descriptor.owns(out.scope)
         ]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         obj = super().to_dict()
         obj.update({"asset": self.assets})
         return obj
