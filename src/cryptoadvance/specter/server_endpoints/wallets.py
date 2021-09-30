@@ -1648,7 +1648,12 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
     if app.specter.is_liquid:
         for tx in txlist:
             if "asset" in tx:
-                tx["assetlabel"] = app.specter.asset_label(tx["asset"])
+                if isinstance(tx["asset"], list):
+                    tx["assetlabel"] = [
+                        app.specter.asset_label(asset) for asset in tx["asset"]
+                    ]
+                else:
+                    tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 

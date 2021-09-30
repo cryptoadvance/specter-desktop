@@ -148,9 +148,22 @@
             if (this.amount == 1e-8) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
-                this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
-                if("assetlabel" in this.tx){
-                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                if(this.hideSensitiveInfo){
+                    this.amountText.innerHTML = '#########';
+                }else{
+                    this.amountText.innerHTML = `${numberWithCommas(this.amount.toString())}`;
+                    if("assetlabel" in this.tx){ // liquid
+                        if (Array.isArray(this.tx.assetlabel)) { // multiple assets
+                            let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
+                            if (unique_assets.length == 1){
+                                this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset[0]}" data-label="${this.tx.assetlabel[0]}"></asset-label>`;
+                            }else{
+                                this.amountText.innerHTML = `${unique_assets.length} assets`;
+                            }
+                        }else{
+                            this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                        }
+                    }
                 }
             }
 

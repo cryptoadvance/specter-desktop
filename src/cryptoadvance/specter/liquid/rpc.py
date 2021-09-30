@@ -196,13 +196,18 @@ class LiquidRPC(BitcoinRPC):
         psbt = res.get("psbt", None)
 
         # remove zero-output (bug in Elements)
-        # TODO: keep it if send address is unblinded
+        # TODO: remove after release
         if psbt:
             try:
                 tx = PSET.from_string(psbt)
-                tx.outputs = [out for out in tx.outputs if out.value > 0]
-                psbt = str(tx)
-                res["psbt"] = psbt
+                # check if there are zero outputs
+                has_zero = len([out for out in tx.outputs if out.value == 0]) > 0
+                has_blinded = any([out.blinding_pubkey for out in tx.outputs])
+                logger.error(has_zer, has_blinded)
+                if has_blinded and has_zero:
+                    tx.outputs = [out for out in tx.outputs if out.value > 0]
+                    psbt = str(tx)
+                    res["psbt"] = psbt
             except:
                 pass
 

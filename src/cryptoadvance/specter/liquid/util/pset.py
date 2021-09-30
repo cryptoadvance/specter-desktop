@@ -35,7 +35,17 @@ def to_canonical_pset(pset: str) -> str:
 
 
 def get_address(script_pubkey: script.Script, network: dict) -> str:
-    return script_pubkey.address(network) if script_pubkey.data else "Fee"
+    if not script_pubkey.data:
+        return "Fee"
+    if script_pubkey.data.startswith(b"\x6a"):
+        if len(script_pubkey.data) == 1:
+            return "DUMMY"  # dummy output to blind
+        else:
+            return "OP_RETURN " + script_pubkey.data[1:].hex()
+    try:
+        return script_pubkey.address(network)
+    except:
+        return script_pubkey.data.hex()
 
 
 def get_value(value) -> int:
@@ -94,9 +104,19 @@ class SpecterLOutputScope(SpecterOutputScope):
     def address(self) -> str:
         if not self.scope.script_pubkey.data:
             return "Fee"
-        return liquid_address(
-            self.scope.script_pubkey, self.blinding_key, network=self.network
-        )
+        if self.scope.script_pubkey.data.startswith(b"\x6a"):
+            if len(self.scope.script_pubkey.data) == 1:
+                return "DUMMY"  # dummy output to blind
+            else:
+                return "OP_RETURN " + self.scope.script_pubkey.data[1:].hex()
+        try:
+            # try making a liquid address
+            return liquid_address(
+                self.scope.script_pubkey, self.blinding_key, network=self.network
+            )
+        except:
+            # if failed - return hex of the scriptpubkey
+            return self.scope.script_pubkey.data.hex()
 
     def extra_weight(self) -> int:
         wit = 0
@@ -149,29 +169,19 @@ class SpecterPSET(SpecterPSBT):
             size += out.extra_weight()
         return ceil(size / 4)
 
-    @property
-    def addresses(self) -> List[str]:
-        return [
-            out.address
-            for out in self.outputs
-            if out.scope.script_pubkey.data and not self.descriptor.owns(out.scope)
-        ]
-
-    @property
-    def amounts(self) -> List[float]:
-        return [
-            out.float_amount
-            for out in self.outputs
-            if out.scope.script_pubkey.data and not self.descriptor.owns(out.scope)
-        ]
+    def should_display(self, out: SpecterLOutputScope) -> bool:
+        """Checks if this output should be displayed"""
+        if not out.scope.script_pubkey.data:
+            # Fee
+            return False
+        if out.scope.value == 0 and out.scope.script_pubkey.data == b"\x6a":
+            # Dummy output
+            return False
+        return super().should_display(out)
 
     @property
     def assets(self) -> List[str]:
-        return [
-            out.assetid
-            for out in self.outputs
-            if out.scope.script_pubkey.data and not self.descriptor.owns(out.scope)
-        ]
+        return [out.assetid for out in self.outputs if self.should_display(out)]
 
     def to_dict(self) -> dict:
         obj = super().to_dict()

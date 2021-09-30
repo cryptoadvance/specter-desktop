@@ -282,21 +282,17 @@ class SpecterPSBT(AbstractTxContext):
         # not quite true but ok for most common cases
         return max([len(inp.partial_sigs) for inp in self.psbt.inputs])
 
+    def should_display(self, out: SpecterOutputScope) -> bool:
+        """Checks if this output should be displayed"""
+        return not self.descriptor.branch(1).owns(out.scope)
+
     @property
     def addresses(self) -> List[str]:
-        return [
-            out.script_pubkey.address(self.network)
-            for out in self.psbt.outputs
-            if not self.descriptor.owns(out)
-        ]
+        return [out.address for out in self.outputs if self.should_display(out)]
 
     @property
     def amounts(self) -> List[float]:
-        return [
-            round(out.value * 1e-8, 8)
-            for out in self.psbt.outputs
-            if not self.descriptor.owns(out)
-        ]
+        return [out.float_amount for out in self.outputs if self.should_display(out)]
 
     @property
     def sats(self) -> List[int]:

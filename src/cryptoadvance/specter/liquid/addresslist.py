@@ -39,9 +39,12 @@ class LAddressList(AddressList):
 
     def __contains__(self, addr):
         """finds address by confidential or unconfidential address by converting to scriptpubkey"""
-        sc, _ = addr_decode(addr)
-        if sc and self._scripts.__contains__(sc):
-            return True
+        try:  # can fail if addr is "Fee", "Dummy" or hex-scriptpubkey
+            sc, _ = addr_decode(addr)
+            if sc and self._scripts.__contains__(sc):
+                return True
+        except:
+            pass
         return super().__contains__(addr)
 
     def __getitem__(self, addr):
