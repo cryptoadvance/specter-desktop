@@ -568,11 +568,14 @@ def send_new(wallet_alias):
                 decoded_tx = wallet.decode_tx(rbf_tx_id)
                 addresses = decoded_tx["addresses"]
                 amounts = decoded_tx["amounts"]
-                amount_units = decoded_tx.get("assets", ["btc"]*len(addresses))
+                amount_units = decoded_tx.get("assets", ["btc"] * len(addresses))
                 # get_label returns a label or address if no label is set
                 labels = [wallet.getlabel(addr) for addr in addresses]
                 # set empty label to addresses that don't have labels
-                labels = [label if label != addr else "" for addr, label in zip(addresses, labels)]
+                labels = [
+                    label if label != addr else ""
+                    for addr, label in zip(addresses, labels)
+                ]
 
                 selected_coins = [
                     f"{utxo['txid']}, {utxo['vout']}"
