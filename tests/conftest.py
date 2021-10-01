@@ -25,6 +25,7 @@ from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.common import str2bool
+from cryptoadvance.specter.util.shell import which
 import code, traceback, signal
 
 pytest_plugins = ["ghost_machine"]
@@ -154,6 +155,16 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
         % (running_version, requested_version)
     )
     return elementsd_controller
+
+
+@pytest.fixture(scope="session")
+def bitcoind_path():
+    if os.path.isfile("tests/bitcoin/src/bitcoind"):
+        return "tests/bitcoin/src/bitcoind"
+    elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+        return "tests/bitcoin/bin/bitcoind"
+    else:
+        return which("bitcoind")
 
 
 @pytest.fixture(scope="session")

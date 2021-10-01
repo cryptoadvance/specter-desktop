@@ -41,6 +41,7 @@ from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
 from .util.checker import Checker
+from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
@@ -65,6 +66,11 @@ class Specter:
             os.makedirs(data_folder)
 
         self.data_folder = data_folder
+
+        # version checker
+        # checks for new versions once per hour
+        self.version = VersionChecker(specter=self)
+        self.version.start()
 
         self.user_manager = UserManager(self)
 
