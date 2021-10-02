@@ -2,6 +2,18 @@ import pytest
 import json
 import base64
 import logging
+from numbers import Number
+
+
+def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
+    """
+    Checks if a and b are not very different.
+    Default precision is 1%
+    """
+    if a == b:
+        return True
+    diff = 2 * (a - b) / (a + b)
+    return (diff < precision) and (diff > -precision)
 
 
 def test_rr_psbt_get(client, caplog):
@@ -125,7 +137,7 @@ def test_rr_psbt_post(specter_regtest_configured, client, caplog):
     assert data["result"]["tx"]
     assert data["result"]["inputs"]
     assert data["result"]["outputs"]
-    assert data["result"]["fee_rate"] == 64
+    assert almost_equal(data["result"]["fee_rate"], 64)
     assert data["result"]["tx_full_size"]
     assert data["result"]["base64"]
     assert data["result"]["time"]

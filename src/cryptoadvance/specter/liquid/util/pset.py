@@ -51,17 +51,25 @@ def get_address(script_pubkey: script.Script, network: dict) -> str:
 def get_value(value) -> int:
     if isinstance(value, int):
         return value
-    return -1
+    return 0  # confidential
+
+
+def get_asset(asset) -> bytes:
+    if len(asset) != 32:
+        return (b"\xFF" * 32).hex()  # confidential
+    return asset[::-1].hex()
 
 
 class SpecterLTx(SpecterTx):
-    def vout_to_dict(self, vout: LOutputScope) -> dict:
+    TxCls = LTransaction
+
+    def vout_to_dict(self, vout: LTransactionOutput) -> dict:
         i = self.tx.vout.index(vout)
         return {
             "value": round(1e-8 * get_value(vout.value), 8),
             "sats": get_value(vout.value),
             "n": i,
-            "asset": vout.asset[::-1].hex(),
+            "asset": get_asset(vout.asset),
             "scriptPubKey": {
                 "hex": vout.script_pubkey.data.hex(),
                 "addresses": [get_address(vout.script_pubkey, self.network)],
@@ -81,7 +89,10 @@ class SpecterLInputScope(SpecterInputScope):
     @property
     def address(self) -> str:
         # TODO: blinding key?
-        return liquid_address(self.scope.script_pubkey, network=self.network)
+        try:
+            return liquid_address(self.scope.script_pubkey, network=self.network)
+        except:
+            return None
 
     @property
     def sat_amount(self) -> int:

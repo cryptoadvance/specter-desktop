@@ -9,7 +9,7 @@
         .svg-receive, .svg-immature, .svg-generate {
             filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);
         }
-        .svg-selftransfer {
+        .svg-selftransfer, .svg-mixed {
             filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
         }
         .svg-cancelled {
@@ -287,11 +287,12 @@
                     return `{{ url_for('static', filename='img') }}/send.svg`;
                 case "receive":
                 case "immature":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "generate":
-                    return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "selftransfer":
                     return `{{ url_for('static', filename='img') }}/transfer.svg`;
+                case "mixed":
+                    return `{{ url_for('static', filename='img') }}/mixed.svg`;
             }
         }
     }

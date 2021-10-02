@@ -1,5 +1,12 @@
 from ..txlist import *
-from embit.liquid.transaction import LTransaction
+from embit.liquid.transaction import LTransaction, TxOutWitness, unblind
+from embit.liquid.pset import PSET
+from embit.liquid import slip77
+from embit.hashes import tagged_hash
+from embit.ec import PrivateKey
+from .util.pset import SpecterLTx, get_value, get_asset, SpecterPSET
+from io import BytesIO
+from embit.psbt import read_string
 
 
 class LTxItem(TxItem):
@@ -33,6 +40,112 @@ class LTxItem(TxItem):
         bool,
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # unblind what's blinded and remove
+        # will fill automatically
+        self.vsize
+        self._unblind()
+
+    def _unblind(self):
+        if not self.descriptor.is_blinded:
+            return
+
+        b = self.tx
+
+        mbpk = self.descriptor.blinding_key.key
+        net = self.network
+
+        values = [0 for out in b.vout]
+        assets = [b"\xFF" * 32 for out in b.vout]
+        datas = []
+        # search for datas encoded in rangeproofs
+        for i, out in enumerate(b.vout):
+            # unblinded
+            if isinstance(out.value, int):
+                values[i] = out.value
+                assets[i] = out.asset
+                continue
+
+            pk = slip77.blinding_key(mbpk, out.script_pubkey)
+            try:
+                res = out.unblind(pk.secret, message_length=1000)
+                value, asset, vbf, abf, extra, *_ = res
+                if len(extra.rstrip(b"\x00")) > 0:
+                    datas.append(extra)
+                values[i] = value
+                assets[i] = asset
+            except Exception as e:
+                logger.warn(e)  # TODO: remove, it's ok
+                pass
+
+        # to calculate blinding seed
+        tx = PSET(b)
+        seed = tagged_hash("liquid/blinding_seed", mbpk.secret)
+        txseed = tx.txseed(seed)
+        pubkeys = {}
+
+        for extra in datas:
+            s = BytesIO(extra)
+            while True:
+                k = read_string(s)
+                if len(k) == 0:
+                    break
+                v = read_string(s)
+                if k[0] == 1 and len(k) == 5:
+                    idx = int.from_bytes(k[1:], "little")
+                    pubkeys[idx] = v
+                elif k == b"\x01\x00":
+                    txseed = v
+
+        for i, out in enumerate(b.vout):
+            if out.witness.range_proof.is_empty:
+                continue
+            if i in pubkeys and len(pubkeys[i]) in [33, 65]:
+                nonce = tagged_hash(
+                    "liquid/range_proof", txseed + i.to_bytes(4, "little")
+                )
+                if out.ecdh_pubkey == PrivateKey(nonce).sec():
+                    try:
+                        res = unblind(
+                            pubkeys[i],
+                            nonce,
+                            out.witness.range_proof.data,
+                            out.value,
+                            out.asset,
+                            out.script_pubkey,
+                        )
+                        value, asset, vbf, abf, extra, min_value, max_value = res
+                        assets[i] = asset
+                        values[i] = value
+                    except Exception as e:
+                        logger.warn(f"Failed at unblinding output {i}: {e}")
+                else:
+                    logger.warn(f"Failed at unblinding: {e}")
+
+        for i, out in enumerate(b.vout):
+            out.asset = assets[i]
+            out.value = values[i]
+            out.witness = TxOutWitness()
+
+    @property
+    def vsize(self):
+        if self.get("vsize"):
+            return self["vsize"]
+        tx = self.tx
+        txsize = len(tx.serialize())
+        # tx size - flag - marker - witness
+        non_witness_size = (
+            txsize
+            - 2
+            - sum([len(inp.witness.serialize()) for inp in tx.vin])
+            - sum([len(out.witness.serialize()) for out in tx.vout])
+        )
+        witness_size = txsize - non_witness_size
+        weight = non_witness_size * 4 + witness_size
+        vsize = math.ceil(weight / 4)
+        return vsize
+
     def __dict__(self):
         return {
             "txid": self["txid"],
@@ -52,102 +165,29 @@ class LTxItem(TxItem):
 
 class LTxList(TxList):
     ItemCls = LTxItem
+    PSBTCls = SpecterPSET
     counter = 0
 
-    def fill_missing(self, tx):
-        raw_tx = self.decoderawtransaction(tx.hex)
-        tx["vsize"] = raw_tx["vsize"]
+    def _get_psbt(self, raw_tx):
+        psbt = self.PSBTCls.from_transaction(raw_tx, self.descriptor, self.network)
+        psbt.psbt.version = 2
+        # fill derivation paths etc
+        updated = self.rpc.walletprocesspsbt(str(psbt), False).get("psbt", None)
+        if updated:
+            psbt.update(updated)
+        return psbt
 
-        category = ""
-        addresses = []
-        amounts = {}
-        assets = {}
-        inputs_mine_count = 0
-        for vin in raw_tx["vin"]:
-            # coinbase tx
-            if (
-                vin["txid"]
-                == "0000000000000000000000000000000000000000000000000000000000000000"
-            ):
-                category = "generate"
-                break
-            if vin["txid"] in self:
-                try:
-                    address = get_address_from_dict(
-                        self.decoderawtransaction(self[vin["txid"]].hex)["vout"][
-                            vin["vout"]
-                        ]
-                    )
-                    address_info = self._addresses.get(address, None)
-                    if address_info and not address_info.is_external:
-                        inputs_mine_count += 1
-                except Exception as e:
-                    logger.error(e)
-                    continue
-
-        outputs_mine_count = 0
-        for out in raw_tx["vout"]:
-            try:
-                address = get_address_from_dict(out)
-            except Exception as e:
-                # couldn't get address...
-                logger.error(e)
-                continue
-            address_info = self._addresses.get(address)
-            if address_info and not address_info.is_external:
-                outputs_mine_count += 1
-            addresses.append(address)
-            amounts[address] = out.get("value", 0)
-            assets[address] = out.get("asset", "Unknown")
-
-        if inputs_mine_count:
-            if outputs_mine_count == len(raw_tx["vout"]):
-                category = "selftransfer"
-                # remove change addresses from the dest list
-                addresses2 = [
-                    address
-                    for address in addresses
-                    if self._addresses.get(address, None)
-                    and not self._addresses[address].change
-                ]
-                # use new list only if it's not empty
-                if addresses2:
-                    addresses = addresses2
-            else:
-                category = "send"
-                addresses = [
-                    address
-                    for address in addresses
-                    if not self._addresses.get(address, None)
-                    or self._addresses[address].is_external
-                ]
-        else:
-            if not category:
-                category = "receive"
-            addresses = [
-                address
-                for address in addresses
-                if self._addresses.get(address, None)
-                and not self._addresses[address].is_external
-            ]
-
-        amounts = [amounts[address] for address in addresses]
-        assets = [assets[address] for address in addresses]
-
+    def _update_destinations(self, tx, outs):
+        addresses = [out.get("address", "Unknown") for out in outs]
+        amounts = [out.get("float_amount", 0) for out in outs]
+        assets = [out.get("asset", "ff" * 32) for out in outs]
         if len(addresses) == 1:
             addresses = addresses[0]
             amounts = amounts[0]
             assets = assets[0]
-
-        tx["category"] = category
         tx["address"] = addresses
         tx["amount"] = amounts
         tx["asset"] = assets
-        if not addresses:
-            tx["ismine"] = False
-        else:
-            tx["ismine"] = True
 
-    def decoderawtransaction(self, txhex):
-        # TODO: using rpc for now, can be moved to utils
-        return self.rpc.decoderawtransaction(txhex)
+    def decoderawtransaction(self, tx: Union[LTransaction, str, bytes]):
+        return SpecterLTx(self, tx).to_dict()

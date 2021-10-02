@@ -112,6 +112,10 @@ class Wallet:
         self.keys = keys
 
         self.device_manager = device_manager
+        self.manager = manager
+        self.rpc = self.manager.rpc.wallet(
+            os.path.join(self.manager.rpc_path, self.alias)
+        )
         self._devices = devices
         # check that all of the devices exist
         if None in self.devices:
@@ -123,17 +127,13 @@ class Wallet:
             psbtid: self.PSBTCls.from_dict(
                 psbtobj,
                 self.descriptor,
-                manager.chain,
+                self.network,
                 devices=list(zip(self.keys, self._devices)),
             )
             for psbtid, psbtobj in pending_psbts.items()
         }
         self.frozen_utxo = frozen_utxo
         self.fullpath = fullpath
-        self.manager = manager
-        self.rpc = self.manager.rpc.wallet(
-            os.path.join(self.manager.rpc_path, self.alias)
-        )
         self.last_block = last_block
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
@@ -142,9 +142,7 @@ class Wallet:
             self.fetch_labels()
 
         txs_path = self.fullpath.replace(".json", "_txs.csv")
-        self._transactions = self.TxListCls(
-            txs_path, self.rpc, self._addresses, self.manager.chain
-        )
+        self._transactions = self.TxListCls(txs_path, self, self._addresses)
 
         if address == "":
             self.address = self.get_address(0, change=False)
@@ -380,15 +378,13 @@ class Wallet:
             unconfirmed_selftransfers_txs = self.rpc.multi(
                 [("gettransaction", txid) for txid in unconfirmed_selftransfers]
             )
+        arr = [tx["result"] for tx in unconfirmed_selftransfers_txs if tx.get("result")]
         while True:
-            txlist = (
-                self.rpc.listtransactions(
-                    "*",
-                    LISTTRANSACTIONS_BATCH_SIZE,
-                    LISTTRANSACTIONS_BATCH_SIZE * idx,
-                    True,
-                )
-                + [tx["result"] for tx in unconfirmed_selftransfers_txs]
+            txlist = self.rpc.listtransactions(
+                "*",
+                LISTTRANSACTIONS_BATCH_SIZE,  # count
+                LISTTRANSACTIONS_BATCH_SIZE * idx,  # skip
+                True,
             )
             # list of transactions that we don't know about,
             # or that it has a different blockhash (reorg / confirmed)
@@ -397,21 +393,20 @@ class Wallet:
             res = [
                 tx
                 for tx in txlist
+                # we don't know about tx
                 if tx["txid"] not in self._transactions
+                # we don't know addresses
                 or not self._transactions[tx["txid"]].get("address", None)
+                # blockhash is different (reorg / unconfirmed)
                 or self._transactions[tx["txid"]].get("blockhash", None)
                 != tx.get("blockhash", None)
-                or (
-                    self._transactions[tx["txid"]].get("blockhash", None)
-                    and not self._transactions[tx["txid"]].get("blockheight", None)
-                )  # Fix for Core v19 with Specter v1
+                # we have conflicts
                 or self._transactions[tx["txid"]].get("conflicts", [])
                 != tx.get("walletconflicts", [])
             ]
-            # TODO: Looks like Core ignore a consolidation (self-transfer) going into the change address (in listtransactions)
-            # This means it'll show unconfirmed for us forever...
             arr.extend(res)
             idx += 1
+            # stop if we reached known transactions
             # not sure if Core <20 returns last batch or empty array at the end
             if (
                 len(res) < LISTTRANSACTIONS_BATCH_SIZE
@@ -746,6 +741,8 @@ class Wallet:
 
     def check_utxo(self):
         try:
+            # listunspent only lists not locked utxos
+            # so we need to unlock, then list, then lock back
             locked_utxo = self.rpc.listlockunspent()
             if locked_utxo:
                 self.rpc.lockunspent(True, locked_utxo)
@@ -764,16 +761,9 @@ class Wallet:
             for tx in utxo:
                 tx_data = self.gettransaction(tx["txid"], 0, full=False)
                 tx["time"] = tx_data["time"]
-                tx["category"] = "send"
+                tx["category"] = tx_data.get("category") or "send"
                 if "locked" not in tx:
                     tx["locked"] = False
-                try:
-                    # get category from the descriptor - recv or change
-                    idx = tx["desc"].split("[")[1].split("]")[0].split("/")[-2]
-                    if idx == "0":
-                        tx["category"] = "receive"
-                except:
-                    pass
             self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
             self.full_utxo = []
@@ -1928,27 +1918,6 @@ class Wallet:
 
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
-
-    @property
-    def weight_per_input(self):
-        """Calculates the weight of a signed input"""
-        if self.is_multisig:
-            input_size = 3  # OP_M OP_N ... OP_CHECKMULTISIG
-            # pubkeys
-            input_size += 34 * len(self.keys)
-            # signatures
-            input_size += 75 * self.sigs_required
-
-            if not self.recv_descriptor.startswith("wsh"):
-                # P2SH scriptsig: 22 00 20 <32-byte-hash>
-                input_size += 35 * 4
-            return input_size
-        # else: single-sig
-        if self.recv_descriptor.startswith("wpkh"):
-            # pubkey, signature
-            return 75 + 34
-        # pubkey, signature, 4* P2SH: 16 00 14 20-byte-hash
-        return 75 + 34 + 23 * 4
 
     def addresses_info(self, is_change):
         """Create a list of (receive or change) addresses from cache and retrieve the

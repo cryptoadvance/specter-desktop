@@ -35,8 +35,14 @@ class AbstractTxContext:
 
 
 class SpecterTx(AbstractTxContext):
-    def __init__(self, parent: AbstractTxContext, tx: Transaction):
+    TxCls = Transaction
+
+    def __init__(self, parent: AbstractTxContext, tx: Union[Transaction, str, bytes]):
         self.parent = parent
+        if isinstance(tx, str):
+            tx = self.TxCls.from_string(tx)
+        elif isinstance(tx, bytes):
+            tx = self.TxCls.parse(tx)
         self.tx = tx
 
     def vin_to_dict(self, vin: TransactionInput) -> dict:
@@ -48,15 +54,26 @@ class SpecterTx(AbstractTxContext):
 
     def vout_to_dict(self, vout: TransactionOutput) -> dict:
         i = self.tx.vout.index(vout)
-        return {
+        obj = {
             "value": round(1e-8 * vout.value, 8),
             "sats": vout.value,
             "n": i,
             "scriptPubKey": {
                 "hex": vout.script_pubkey.data.hex(),
-                "addresses": [vout.script_pubkey.address(self.network)],
             },
         }
+        try:
+            if scope.script_pubkey.data.startswith(b"\x6a"):
+                obj["scriptPubKey"]["addresses"] = [
+                    "OP_RETURN " + scope.script_pubkey.data.hex()
+                ]
+            else:
+                obj["scriptPubKey"]["addresses"] = [
+                    vout.script_pubkey.address(self.network)
+                ]
+        except:
+            pass
+        return obj
 
     def to_dict(self) -> dict:
         txid = self.tx.txid().hex()
@@ -96,7 +113,13 @@ class SpecterScope(AbstractTxContext):
 
     @property
     def address(self) -> str:
-        return self.scope.script_pubkey.address(self.network)
+        try:
+            if self.scope.script_pubkey.data.startswith(b"\x6a"):
+                return "OP_RETURN " + self.scope.script_pubkey.data.hex()
+            else:
+                return self.scope.script_pubkey.address(self.network)
+        except:
+            return None
 
     @property
     def sat_amount(self) -> int:
@@ -108,13 +131,24 @@ class SpecterScope(AbstractTxContext):
         return round(self.sat_amount * 1e-8, 8)
 
     def to_dict(self) -> dict:
+        addr = self.address
+        try:
+            sats = self.sat_amount
+        except:
+            sats = None
         obj = {
-            "address": self.address,
-            "float_amount": self.float_amount,
-            "sat_amount": self.sat_amount,
             "change": self.is_change,
             "is_mine": self.is_mine,
         }
+        if addr:
+            obj["address"] = addr
+        if sats is not None:
+            obj.update(
+                {
+                    "float_amount": round(sats * 1e-8, 8),
+                    "sat_amount": sats,
+                }
+            )
         if self.scope.bip32_derivations:
             obj["bip32_derivs"] = [
                 {
@@ -243,7 +277,9 @@ class SpecterPSBT(AbstractTxContext):
         if redeem_script:
             weight += len(redeem_script.data) * 4
         if witness_script:
-            weight += len(witness_script.data)
+            weight += (
+                len(witness_script.data) + 2
+            )  # number of items in witness + script length
             if self.descriptor.is_basic_multisig:
                 threshold = self.descriptor.miniscript.args[0].num
                 num_keys = len(self.descriptor.keys)
@@ -256,9 +292,9 @@ class SpecterPSBT(AbstractTxContext):
 
     @property
     def full_size(self) -> int:
-        size = len(self.psbt.tx.serialize()) * 4
-        size += len(self.inputs) * self.extra_input_weight
-        return ceil(size / 4)
+        weight = len(self.psbt.tx.serialize()) * 4 + 4  # marker will be added
+        weight += len(self.inputs) * self.extra_input_weight
+        return ceil(weight / 4)
 
     @property
     def fee(self) -> int:
@@ -336,16 +372,34 @@ class SpecterPSBT(AbstractTxContext):
         return devices
 
     @classmethod
-    def from_dict(cls, obj: dict, descriptor: Descriptor, chain: str, devices=[]):
+    def from_dict(cls, obj: dict, descriptor: Descriptor, network: dict, devices=[]):
         psbt = cls.PSBTCls.from_string(obj["base64"])
-        network = get_network(chain)
         kwargs = {}
         kwargs.update(obj)
         kwargs.pop("base64")
         return cls(psbt, descriptor, network, devices=devices, **kwargs)
 
+    @classmethod
+    def from_transaction(
+        cls,
+        tx: Union[Transaction, str, bytes],
+        descriptor: Descriptor,
+        network: dict,
+        devices=[],
+    ):
+        if isinstance(tx, str):
+            tx = cls.TxCls.from_string(tx)
+        elif isinstance(tx, bytes):
+            tx = cls.TxCls.parse(tx)
+        psbt = cls.PSBTCls(tx)
+        return cls(psbt, descriptor, network, devices=devices)
+
     def to_dict(self) -> dict:
-        fee = self.fee
+        # fee calculation may fail if inputs info is missing
+        try:
+            fee = self.fee
+        except:
+            fee = 0
         full_size = self.full_size
         obj = {
             "tx": self.tx.to_dict(),
