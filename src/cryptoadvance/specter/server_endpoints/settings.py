@@ -59,11 +59,15 @@ def general():
     if request.method == "POST":
         action = request.form["action"]
 
-        autohide_sensitive_info_timeout = request.form["autohide_sensitive_info_timeout"]
+        autohide_sensitive_info_timeout = request.form[
+            "autohide_sensitive_info_timeout"
+        ]
         if autohide_sensitive_info_timeout == "NEVER":
             autohide_sensitive_info_timeout = None
         elif autohide_sensitive_info_timeout == "CUSTOM":
-            autohide_sensitive_info_timeout = int(request.form["custom_autohide_sensitive_info_timeout"])
+            autohide_sensitive_info_timeout = int(
+                request.form["custom_autohide_sensitive_info_timeout"]
+            )
         else:
             autohide_sensitive_info_timeout = int(autohide_sensitive_info_timeout)
 
@@ -95,8 +99,12 @@ def general():
             if current_user.is_admin:
                 set_loglevel(app, loglevel)
 
-            app.specter.config_manager.update_autohide_sensitive_info_timeout(autohide_sensitive_info_timeout, current_user)
-            app.specter.config_manager.update_autologout_timeout(autologout_timeout, current_user)
+            app.specter.config_manager.update_autohide_sensitive_info_timeout(
+                autohide_sensitive_info_timeout, current_user
+            )
+            app.specter.config_manager.update_autologout_timeout(
+                autologout_timeout, current_user
+            )
 
             app.specter.update_explorer(explorer_id, explorer_data, current_user)
             app.specter.update_unit(unit, current_user)
