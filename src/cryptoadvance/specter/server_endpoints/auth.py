@@ -30,9 +30,10 @@ def login():
     if request.method == "POST":
         rate_limit()
         auth = app.specter.config["auth"]
+
         if auth["method"] == "none":
             app.login("admin")
-            app.logger.info("AUDIT: Successfull Login no credentials")
+            app.logger.info("AUDIT: Successful Login no credentials")
             return redirect_login(request)
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
@@ -165,13 +166,22 @@ please request a new link from the node operator."
 @auth_endpoint.route("/logout", methods=["GET", "POST"])
 def logout():
     logout_user()
-    flash(_("You were logged out"), "info")
+    if "timeout" in request.args:
+        flash(_("You were automatically logged out"), "info")
+    else:
+        flash(_("You were logged out"), "info")
     return redirect(url_for("auth_endpoint.login"))
 
 
 ################### Util ######################
 def redirect_login(request):
     flash(_("Logged in successfully."), "info")
+
+    # If the user is auto-logged out, hide_sensitive_info will be set. If they're
+    #   explicitly logging in now, clear the setting and reveal user's info.
+    if app.specter.hide_sensitive_info:
+        app.specter.update_hide_sensitive_info(False, current_user)
+
     if request.form.get("next") and request.form.get("next") != "None":
         response = redirect(request.form["next"])
     else:

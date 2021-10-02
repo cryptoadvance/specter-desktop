@@ -294,6 +294,28 @@
 					showError(e);
 				}
 			}
+
+			{% if current_user.is_authenticated and not specter.hide_sensitive_info and specter.autohide_sensitive_info_timeout %}
+				document.addEventListener("DOMContentLoaded", function(){
+					var privacyTimeout = setTimeout(function(){
+							// Automatically trigger the privacy toggle
+							toggleHideSensitiveInfo();
+						},
+						{{ specter.autohide_sensitive_info_timeout }} * 60 * 1000
+					);
+				});
+			{% endif %}
+
+			{% if current_user.is_authenticated and specter.config.auth.method != "none" and specter.autologout_timeout %}
+				document.addEventListener("DOMContentLoaded", function(){
+					var logoutTimeout = setTimeout(function(){
+							// Automatically log out the user
+							location.href="{{ url_for('auth_endpoint.logout') }}?timeout=1";
+						},
+						{{ specter.autologout_timeout }} * 60 * 1000
+					);
+				});
+			{% endif %}
 		</script>
 	{% endif %}
 	{% block scripts %}

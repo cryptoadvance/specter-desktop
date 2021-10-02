@@ -11,6 +11,35 @@
 			{% include "includes/language/language_select.jinja" %}<br/>
 			<br><br>
 
+			<h1>{{ _("Privacy") }}</h1>
+		    </label>&nbsp;{{ _("Auto-hide sensitive info") }}:<br>
+			<select name="autohide_sensitive_info_timeout" id="autohide_sensitive_info_timeout" onchange="updateAutoHideSensitiveInfoTimeout()">
+				<option value="NEVER" {% if specter.autohide_sensitive_info_timeout %}selected{% endif %}>{{ _("Never") }}</option>
+				<option value="10" {% if specter.autohide_sensitive_info_timeout == 10 %}selected{% endif %}>{{ _("After being idle for 10 minutes") }}</option>
+				<option value="20" {% if specter.autohide_sensitive_info_timeout == 20 %}selected{% endif %}>{{ _("After being idle for 20 minutes") }}</option>
+				<option value="40" {% if specter.autohide_sensitive_info_timeout == 40 %}selected{% endif %}>{{ _("After being idle for 40 minutes") }}</option>
+				<option value="CUSTOM" {% if specter.autohide_sensitive_info_timeout and specter.autohide_sensitive_info_timeout not in [10, 20, 40] %}selected{% endif %}>{{ _("Custom idle time (minutes)") }}</option>
+			</select>
+			<br>
+			<input type="number" min="1" name="custom_autohide_sensitive_info_timeout" id="custom_autohide_sensitive_info_timeout" class="hidden" placeholder='{{ _("minutes") }}' {% if specter.autohide_sensitive_info_timeout and specter.autohide_sensitive_info_timeout not in [10, 20, 40] %}value="{{ specter.autohide_sensitive_info_timeout }}"{% endif %} style="margin-top: 15px; margin-bottom: 30px;"/>
+			<br>
+
+			{% if specter.config.auth.method != "none" %}
+				</label>&nbsp;{{ _("Auto-logout user") }}:<br>
+				<select name="autologout_timeout" id="autologout_timeout" onchange="updateAutoLogoutTimeout()">
+					<option value="NEVER" {% if not specter.autologout_timeout %}selected{% endif %}>{{ _("Never") }}</option>
+					<option value="1" {% if specter.autologout_timeout == 1 %}selected{% endif %}>{{ _("After being idle for 1 hour") }}</option>
+					<option value="4" {% if specter.autologout_timeout == 4 %}selected{% endif %}>{{ _("After being idle for 4 hours") }}</option>
+					<option value="24" {% if specter.autologout_timeout == 24 %}selected{% endif %}>{{ _("After being idle for 24 hours") }}</option>
+					<option value="CUSTOM" {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}selected{% endif %}>{{ _("Custom idle time (hours)") }}</option>
+				</select>
+				<br>
+				<input type="number" min="1" name="custom_autologout_timeout" id="custom_autologout_timeout" class="hidden" placeholder='{{ _("hours") }}' {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}value="{{ specter.autologout_timeout }}"{% endif %} style="margin-top: 15px; margin-bottom: 30px;"/>
+				<br>
+			{% endif %}
+			<br/>
+
+
 			<h1>{{ _("Backup and Restore") }}</h1>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
@@ -170,6 +199,28 @@
 				});
 			}
 		});
+
+    function updateAutoHideSensitiveInfoTimeout() {
+        if (document.getElementById('autohide_sensitive_info_timeout').value == "CUSTOM") {
+            document.getElementById('custom_autohide_sensitive_info_timeout').classList.remove('hidden');
+        } else {
+            document.getElementById('custom_autohide_sensitive_info_timeout').classList.add('hidden');
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function(){
+        updateAutoHideSensitiveInfoTimeout();
+    });
+
+    function updateAutoLogoutTimeout() {
+        if (document.getElementById('autologout_timeout').value == "CUSTOM") {
+            document.getElementById('custom_autologout_timeout').classList.remove('hidden');
+        } else {
+            document.getElementById('custom_autologout_timeout').classList.add('hidden');
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function(){
+        updateAutoLogoutTimeout();
+    });
 
 	{% include "includes/language/language_js.jinja" %}
 

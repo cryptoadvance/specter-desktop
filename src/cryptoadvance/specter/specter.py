@@ -616,6 +616,14 @@ class Specter:
     def hide_sensitive_info(self):
         return self.user_config.get("hide_sensitive_info", False)
 
+    @property
+    def autohide_sensitive_info_timeout(self):
+        return self.user_config.get("autohide_sensitive_info_timeout_minutes", 10)
+
+    @property
+    def autologout_timeout(self):
+        return self.user_config.get("autologout_timeout_hours", 4)
+
     def requests_session(self, force_tor=False):
         requests_session = requests.Session()
         if self.only_tor or force_tor:
