@@ -312,7 +312,7 @@
 							// Automatically log out the user
 							location.href="{{ url_for('auth_endpoint.logout') }}?timeout=1";
 						},
-						{{ specter.autologout_timeout }} * 60 * 1000
+						{{ specter.autologout_timeout }} * 60 * 60 * 1000
 					);
 				});
 			{% endif %}
