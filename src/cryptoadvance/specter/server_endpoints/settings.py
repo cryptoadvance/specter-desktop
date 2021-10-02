@@ -63,7 +63,9 @@ def general():
         if autohide_sensitive_info_timeout == "NEVER":
             autohide_sensitive_info_timeout = None
         elif autohide_sensitive_info_timeout == "CUSTOM":
-            autohide_sensitive_info_timeout = request.form["custom_autohide_sensitive_info_timeout"]
+            autohide_sensitive_info_timeout = int(request.form["custom_autohide_sensitive_info_timeout"])
+        else:
+            autohide_sensitive_info_timeout = int(autohide_sensitive_info_timeout)
 
         if "autologout_timeout" in request.form:
             # Is only in the form if specter.config.auth.method != "none"
@@ -71,7 +73,9 @@ def general():
             if autologout_timeout == "NEVER":
                 autologout_timeout = None
             elif autologout_timeout == "CUSTOM":
-                autologout_timeout = request.form["custom_autologout_timeout"]
+                autologout_timeout = int(request.form["custom_autologout_timeout"])
+            else:
+                autologout_timeout = int(autologout_timeout)
         else:
             autologout_timeout = None
 

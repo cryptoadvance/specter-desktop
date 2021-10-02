@@ -618,7 +618,7 @@ class Specter:
 
     @property
     def autohide_sensitive_info_timeout(self):
-        return self.user_config.get("autohide_sensitive_info_timeout_minutes", 10)
+        return self.user_config.get("autohide_sensitive_info_timeout_minutes", 20)
 
     @property
     def autologout_timeout(self):
