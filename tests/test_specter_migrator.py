@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 def test_SpecterMigrator(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG)
+    assert len(os.listdir(empty_data_folder)) == 0
     # For migration1
     btc_tar = tarfile.open(
         "./tests/helpers_testdata/bitcoin_minimum_mainnet_datadir.tgz", "r:gz"
