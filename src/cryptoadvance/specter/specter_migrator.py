@@ -98,13 +98,21 @@ class MigDataManager(GenericDataManager):
         raise SpecterError("You should not check the first_event before you've set it!")
 
     def create_new_event(self, version):
-        self.events.append({"timestamp": str(datetime.now()), "version": version})
+        timestamp = datetime.now()
+        logger.debug(
+            f"Creating new Execution log with version {version} at {timestamp}"
+        )
+        self.events.append({"timestamp": str(timestamp), "version": version})
         self._save()
 
     def create_new_execution_log(self, migration_no):
+        timestamp = datetime.now()
+        logger.debug(
+            f"Creating new Execution log with id {migration_no} at {timestamp}"
+        )
         self.migration_executions.append(
             {
-                "timestamp": str(datetime.now()),
+                "timestamp": str(timestamp),
                 "migration_no": migration_no,
                 "status": "started",
             }
@@ -112,10 +120,12 @@ class MigDataManager(GenericDataManager):
         self._save()
 
     def set_execution_log_status(self, number, status):
+        logger.debug(f"Setting execution log status of {number} to {status}")
         self._find_exec_log(number)["status"] = status
         self._save()
 
     def set_Execution_log_error_msg(self, number, msg):
+        logger.debug(f"Setting execution log error_message of {number} to {msg}")
         self._find_exec_log(number)["error_msg"] = msg
         self._save()
 
