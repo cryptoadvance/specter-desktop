@@ -20,6 +20,8 @@ def test_SpecterMigrator(empty_data_folder, caplog):
     os.makedirs(os.path.join(empty_data_folder, "bitcoin-binaries"))
 
     mm = SpecterMigrator(empty_data_folder)
+    # initally, zero executed migrations
+    assert len(mm.mig.migration_executions) == 0
     # With instantiation, the event get stored just right away
     assert mm.mig.latest_event["version"] == "custom"
     mylist = mm.plan_migration()

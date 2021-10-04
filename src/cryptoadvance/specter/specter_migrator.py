@@ -168,7 +168,6 @@ class SpecterMigrator:
             logger.info("Checking for necessary migrations ...")
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
-                logger.debug(f" Checking {attribute}")
                 if isclass(attribute):
                     logger.debug(
                         f" Checking {attribute.__name__}, it's a class! Subclass of SpecterMigration? {issubclass(attribute, SpecterMigration)}"
