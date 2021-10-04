@@ -165,9 +165,14 @@ class SpecterMigrator:
             [package_dir]
         ):  # import the module and iterate through its attributes
             module = import_module(f"cryptoadvance.specter.migrations.{module_name}")
+            logger.info("Checking for necessary migrations ...")
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
+                logger.debug(f" Checking {attribute}")
                 if isclass(attribute):
+                    logger.debug(
+                        f" Checking {attribute.__name__}, it's a class! Subclass of SpecterMigration? {issubclass(attribute, SpecterMigration)}"
+                    )
                     if (
                         issubclass(attribute, SpecterMigration)
                         and not attribute.__name__ == "SpecterMigration"
