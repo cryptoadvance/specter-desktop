@@ -1433,7 +1433,7 @@ class Wallet:
             ]
             self._addresses.add(addresses, check_rpc=False)
         except Exception as e:
-            logger.warn(f"Error while calculating addresses: {e}")
+            logger.warning(f"Error while calculating addresses: {e}")
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
