@@ -157,6 +157,12 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
     return elementsd_controller
 
 
+# Below this point are fixtures. Fixtures have a scope. Check about scopes here:
+# https://docs.pytest.org/en/6.2.x/fixture.html#scope-sharing-fixtures-across-classes-modules-packages-or-session
+# possible values: function, class, module, package or session.
+# The nodes are of scope session. All else is the default (function)
+
+
 @pytest.fixture(scope="session")
 def bitcoind_path():
     if os.path.isfile("tests/bitcoin/src/bitcoind"):
