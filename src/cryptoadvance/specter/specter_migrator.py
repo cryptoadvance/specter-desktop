@@ -76,6 +76,7 @@ class MigDataManager(GenericDataManager):
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
         super().__init__(data_folder)
+        logger.debug(f"Initiated MigDataManager in {data_folder}")
 
     @property
     def events(self):
@@ -162,7 +163,6 @@ class SpecterMigrator:
                 f"New version executing right now: {self.current_binary_version}"
             )
             self.mig.create_new_event(self.current_binary_version)
-            self.mig._save()
 
     def plan_migration(self):
         """Returns a list of instances from all the migration_1234-classes which hasn't been

@@ -59,7 +59,8 @@ class VersionChecker:
                 # check if it's installed from master
                 if current == "vx.y.z-get-replaced-by-release-script":
                     current = "custom"
-            except:
+            except Exception as e:
+                logger.exception(e)
                 pass
         return current
 

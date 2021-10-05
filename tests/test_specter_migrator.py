@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def test_SpecterMigrator(empty_data_folder, caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter.specter_migrator")
     assert len(os.listdir(empty_data_folder)) == 0
     # For migration1
     btc_tar = tarfile.open(
@@ -21,20 +21,22 @@ def test_SpecterMigrator(empty_data_folder, caplog):
     os.makedirs(os.path.join(empty_data_folder, "bitcoin-binaries"))
 
     mm = SpecterMigrator(empty_data_folder)
+    # not executed yet
+    assert "Setting execution log status of 1 to completed" not in caplog.text
     # initally, zero executed migrations
     assert len(mm.mig.migration_executions) == 0
     # With instantiation, the event get stored just right away
     assert mm.mig.latest_event["version"] == "custom"
     mylist = mm.plan_migration()
+
     # This assertion will break every time you create a new migration-script
     assert len(mylist) == 2
 
     mm.execute_migrations(mylist)
     assert len(mm.mig.migration_executions) == 2
+    assert "Setting execution log status of 1 to completed" in caplog.text
 
     assert mm.mig.migration_executions[0]["migration_no"] == 0
-    # Nothing to test here
-
     assert mm.mig.migration_executions[1]["migration_no"] == 1
     assert os.path.isdir(
         os.path.join(
@@ -57,3 +59,4 @@ def test_SpecterMigrator(empty_data_folder, caplog):
     assert config["host"] == "localhost"
     assert config["external_node"] == False
     # yeah, some more but should be ok
+    # assert False
