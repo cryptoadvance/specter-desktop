@@ -30,7 +30,9 @@ class GenericDataManager:
             self.data = read_json_file(self.data_file)
         # otherwise - create one and assign unique id
         else:
-            logger.debug(f"{self.data_file} Not existing. Creating with initial_data")
+            logger.debug(
+                f"{self.data_file} not existing. Creating with initial_data: {self.__class__.initial_data}"
+            )
             self.data = self.__class__.initial_data
             self._save()
 
