@@ -1,6 +1,8 @@
 import os
-
+import logging
 from ..persistence import read_json_file, write_json_file
+
+logger = logging.getLogger(__name__)
 
 
 class GenericDataManager:
@@ -24,13 +26,12 @@ class GenericDataManager:
     def load(self):
         # if whatever-the-name.json file exists - load from it
         if os.path.isfile(self.data_file):
+            logger.debug(f"Loading existing file {self.data_file}")
             self.data = read_json_file(self.data_file)
         # otherwise - create one and assign unique id
         else:
+            logger.debug(f"{self.data_file} Not existing. Creating with initial_data")
             self.data = self.__class__.initial_data
-        # convert to stronger typed instances
-        # self.data = self.__class__.convert_to_list_of_type(data)
-        if not os.path.isfile(self.data_file):
             self._save()
 
     def _save(self):

@@ -19,7 +19,7 @@ def test_SpecterMigrator(empty_data_folder, caplog):
     btc_tar.extractall(os.path.join(empty_data_folder, ".bitcoin"))
     # Fake the existence of bitcoin-binaries
     os.makedirs(os.path.join(empty_data_folder, "bitcoin-binaries"))
-
+    assert len(os.listdir(empty_data_folder)) == 2
     mm = SpecterMigrator(empty_data_folder)
     # not executed yet
     assert "Setting execution log status of 1 to completed" not in caplog.text
