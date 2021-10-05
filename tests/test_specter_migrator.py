@@ -4,13 +4,15 @@ import os
 import tarfile
 import time
 
-from cryptoadvance.specter.specter_migrator import SpecterMigrator
+from cryptoadvance.specter.specter_migrator import SpecterMigrator, MigDataManager
 
 logger = logging.getLogger(__name__)
 
 
 def test_SpecterMigrator(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter.specter_migrator")
+    assert MigDataManager.initial_data["events"] == []
+    assert MigDataManager.initial_data["migration_executions"] == []
     assert len(os.listdir(empty_data_folder)) == 0
     # For migration1
     btc_tar = tarfile.open(
