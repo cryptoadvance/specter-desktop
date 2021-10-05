@@ -76,7 +76,7 @@ class MigDataManager(GenericDataManager):
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
         super().__init__(data_folder)
-        logger.debug(f"Initiated MigDataManager in {data_folder}")
+        logger.info(f"Initiated {self}")
 
     @property
     def events(self):
@@ -145,8 +145,11 @@ class MigDataManager(GenericDataManager):
             migration_execution["migration_no"]
             for migration_execution in self.migration_executions
         ]
-        logger.debug(f"Executed migration_function numbers: {executed_list}")
+        logger.debug(f"Executed migration_classes ids: {executed_list}")
         return migration_no in executed_list
+
+    def __repr__(self):
+        return f"MigDataManager({self.data_file} events:{len(self.events)} execs:{len(self.migration_executions)} )"
 
 
 class SpecterMigrator:
@@ -160,9 +163,10 @@ class SpecterMigrator:
         self.mig = MigDataManager(data_folder)
         if self.mig.latest_event["version"] != self.current_binary_version:
             logger.info(
-                f"New version executing right now: {self.current_binary_version}"
+                f"A new version has been started compared to last time: {self.current_binary_version}"
             )
             self.mig.create_new_event(self.current_binary_version)
+        logger.debug(f"Initiated SpecterMigrator({self.mig})")
 
     def plan_migration(self):
         """Returns a list of instances from all the migration_1234-classes which hasn't been

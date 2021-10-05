@@ -59,4 +59,4 @@ def test_SpecterMigrator(empty_data_folder, caplog):
     assert config["host"] == "localhost"
     assert config["external_node"] == False
     # yeah, some more but should be ok
-    # assert False
+    assert False
