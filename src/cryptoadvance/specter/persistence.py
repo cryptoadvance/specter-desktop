@@ -72,7 +72,8 @@ def _write_json_file(content, path, lock=None):
             with open(path, "r") as f:
                 c = json.load(f)
         # if not - move back backup
-        except:
+        except Exception as e:
+            logger.exception(e)
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)

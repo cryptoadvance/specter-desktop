@@ -64,10 +64,13 @@ class SpecterMigration:
 class MigDataManager(GenericDataManager):
     """A class handling the data for the SpecterMigrator in migration_data.json with some convenience-methods"""
 
-    initial_data = {
-        "events": [],  # contains elements like {"timestamp": someTimestamp, "version": "v1.5.0"}
-        "migration_executions": [],  # contains elements like {"timestamp": someTimestamp, "migration_no": 0}
-    }
+    @classmethod
+    def initial_data(cls):
+        return {
+            "events": [],  # contains elements like {"timestamp": someTimestamp, "version": "v1.5.0"}
+            "migration_executions": [],  # contains elements like {"timestamp": someTimestamp, "migration_no": 0}
+        }
+
     name_of_json_file = "migration_data.json"
 
     def __init__(self, data_folder):

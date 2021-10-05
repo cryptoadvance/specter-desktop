@@ -11,7 +11,10 @@ class GenericDataManager:
     be derived from. See OtpManager
     """
 
-    initial_data = {}
+    @classmethod
+    def initial_data(cls):
+        return {}
+
     name_of_json_file = "some_data.json"
 
     # of them via json-files in an empty data folder
@@ -31,9 +34,9 @@ class GenericDataManager:
         # otherwise - create one and assign unique id
         else:
             logger.debug(
-                f"{self.data_file} not existing. Creating with initial_data: {self.__class__.initial_data}"
+                f"{self.data_file} not existing. Creating with initial_data: {self.__class__.initial_data()}"
             )
-            self.data = self.__class__.initial_data
+            self.data = self.__class__.initial_data()
             self._save()
 
     def _save(self):
