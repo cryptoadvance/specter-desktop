@@ -143,7 +143,7 @@ Cypress.Commands.add("mine2wallet", (chain) => {
         })
       , {
         errorMsg: 'Waited for the funds arriving in the wallet from chain mining but it never did (timeout 30s) ',
-        timeout: 30000,
+        timeout: 60000,
         interval: 2000
       })
   })
