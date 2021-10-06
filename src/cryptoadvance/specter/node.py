@@ -4,6 +4,7 @@ import os
 
 from embit.liquid.networks import get_network
 from flask_babel import lazy_gettext as _
+from requests.exceptions import ConnectionError
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -175,7 +176,10 @@ class Node:
         except RpcError as rpce:
             if rpce.status_code == 401:
                 return rpc  # The user is failing to configure correctly
-            logger.exception(rpce)
+            logger.error(rpce)
+            return None
+        except ConnectionError as e:
+            logger.error(e)
             return None
         except Exception as e:
             logger.exception(e)
