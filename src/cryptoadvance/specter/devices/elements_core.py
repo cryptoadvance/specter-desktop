@@ -58,11 +58,3 @@ class ElementsCore(BitcoinCore):
             return ""
         if not is_liquid(network):
             return "This wallet can only sign on Liquid"
-
-    def sign_psbt(self, base64_psbt, wallet, *args, **kwargs):
-        # TODO: remove after dynafed is activated
-        if not wallet.manager.rpc.is_dynafed:
-            self.SIGHASH = "ALL"
-        else:
-            self.SIGHASH = "ALL|RANGEPROOF"
-        return super().sign_psbt(base64_psbt, wallet, *args, **kwargs)
