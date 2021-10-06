@@ -8,8 +8,6 @@ from cryptoadvance.specter.util.descriptor import Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
 
-logger = logging.getLogger(__name__)
-
 
 def test_WalletImporter_unit():
     specter_mock = MagicMock()
@@ -106,16 +104,7 @@ def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest)
     bitcoin_regtest.testcoin_faucet(
         address=wallet.getnewaddress(), confirm_payment=False
     )
-
     # Realize that the wallet has funds:
-    for i in range(0, 10):
-        wallet.update()
-        wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
-        if wallet.get_balance()["untrusted_pending"] != 20:
-            logger.info(f"balance check {i} failed; sleeping")
-            time.sleep(5)
-        else:
-            logger.info(f"found the balance after {i} rounds")
-            break
-
+    wallet.update()
+    wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
     assert wallet.get_balance()["untrusted_pending"] == 20

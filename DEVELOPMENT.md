@@ -175,6 +175,11 @@ pytest tests/test_specter.py::test_specter
 pytest --setup-show
 ```
 
+Print the logging output live to the terminal:
+```
+pytest --capture=no --log-cli-level=DEBUG
+```
+
 Get the log-output of bitcoind side by side with the test-output. For sure you will only see the logs if the test fails.
 ```
 pytest --bitcoind-log-stdout
