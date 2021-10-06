@@ -183,3 +183,7 @@ class CypressTestConfig(TestConfig):
 
 class ProductionConfig(BaseConfig):
     SECRET_KEY = secrets.token_urlsafe(16)
+    # There are some really slow machines out there. Creating a 2/4 multisig on an older MacBookAir
+    # Take already >30secs
+    BITCOIN_RPC_TIMEOUT = 60
+    LIQUID_RPC_TIMEOUT = 120
