@@ -178,6 +178,9 @@ class LTxList(TxList):
         return psbt
 
     def _update_destinations(self, tx, outs):
+        # remove dummy and fee
+        outs = [out for out in outs if out.get("address") not in ["Fee", "DUMMY"]]
+        # process the rest
         addresses = [out.get("address", "Unknown") for out in outs]
         amounts = [out.get("float_amount", 0) for out in outs]
         assets = [out.get("asset", "ff" * 32) for out in outs]
