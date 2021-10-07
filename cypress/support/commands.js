@@ -24,6 +24,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
+import 'cypress-wait-until';
+
 Cypress.Commands.add("addDevice", (name) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
@@ -134,14 +136,16 @@ Cypress.Commands.add("mine2wallet", (chain) => {
       } else {
         throw new Error("Unknown chain: " + chain)
       }
-      cy.wait(15000)
-      cy.reload()
-      cy.get('#fullbalance_amount') // Wait 5 secs + 15 secs timeout
-          .should(($div) => {
+      cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
+        .then(($div) => {
           const n = parseFloat($div.text())
-          expect(n).to.be.gt(oldBalance)
-          }
-      )
+          return n > oldBalance
+        })
+      , {
+        errorMsg: 'Waited for the funds arriving in the wallet from chain mining but it never did (timeout 30s) ',
+        timeout: 30000,
+        interval: 2000
+      })
   })
 })
 

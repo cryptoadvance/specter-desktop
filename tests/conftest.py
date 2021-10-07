@@ -22,10 +22,13 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.common import str2bool
 import code, traceback, signal
+
+logger = logging.getLogger(__name__)
 
 pytest_plugins = ["ghost_machine"]
 
@@ -396,12 +399,22 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     )
     dm: DeviceManager = someuser.device_manager
     wallet = wallet_importer.create_wallet(someuser.wallet_manager)
-    # fund it with some coins
-    bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
-    # make sure it's confirmed
-    bitcoin_regtest.mine()
-    # Realize that the wallet has funds:
-    wallet.update()
+    try:
+        # fund it with some coins
+        bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+        # make sure it's confirmed
+        bitcoin_regtest.mine()
+        # Realize that the wallet has funds:
+        wallet.update()
+    except SpecterError as se:
+        if str(se).startswith("Timeout"):
+            pytest.fail(
+                "We got a Bitcoin-RPC timeout while setting up the test, minting some coins. Test Error! Check cpu/mem utilastion and btc/elem logs!"
+            )
+            return
+        else:
+            raise se
+
     assert wallet.fullbalance >= 20
     assert not specter.wallet_manager.working_folder is None
     try:
