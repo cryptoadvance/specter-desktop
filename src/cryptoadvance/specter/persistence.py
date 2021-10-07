@@ -3,15 +3,17 @@
     call the call-back-method.
 """
 
-import os
-import json
 import csv
-import threading
+import json
 import logging
-from flask import current_app as app
-from .util.shell import run_shell
+import os
 import shutil
+import threading
 
+from flask import current_app as app
+
+from .specter_error import SpecterError
+from .util.shell import run_shell
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +75,14 @@ def _write_json_file(content, path, lock=None):
                 c = json.load(f)
         # if not - move back backup
         except Exception as e:
-            logger.exception(e)
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)
-            os.rename(bkp, path)
-            logger.error(f"Failed to write to file {path}")
+            shutil.copyfile(bkp, path)
+            logger.exception(e)
+            raise SpecterError(
+                f"Error:{path} could not be saved. The old version has been restored. Check the logs for details. This is probably a bug."
+            )
 
 
 def write_json_file(content, path, lock=None):
