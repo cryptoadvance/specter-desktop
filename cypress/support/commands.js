@@ -24,6 +24,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
+import 'cypress-wait-until';
+
 Cypress.Commands.add("addDevice", (name) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
@@ -61,6 +63,8 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
         var refName = "#device_list_item_"+name.toLowerCase().replace(/ /g,"_")
         cy.get(refName).click()
         cy.get('#forget_device').click()
+        // We might get an error here, if the device is used in a wallet
+        // We assume therefore that this is ok (see below)
       } 
       cy.get('#side-content').click()
       cy.get('#btn_new_device').click()
@@ -69,17 +73,22 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
+      // It's a bit hackish as if the device already exists, we'll get an error
+      // but continue flaslessly nevertheless
       cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
     })
 })
 
-Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi) => { 
+Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, wallet_type, single_multi) => { 
   if (wallet_type == null) {
     wallet_type = "segwit"
   }
+  if (device_name == null) {
+    device_name = "Hot Elements Device 1"
+  }
   cy.get('body').then(($body) => {
-      if ($body.text().includes(name)) {
-        cy.contains(name).click()
+      if ($body.text().includes(wallet_name)) {
+        cy.contains(wallet_name).click()
         cy.get('#btn_settings' ).click( {force: true})
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
@@ -89,8 +98,9 @@ Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi
       
       cy.get('#btn_new_wallet').click()
       cy.get('[href="./simple/"]').click()
-      cy.get('#hot_elements_device_1').click()
-      cy.get('#wallet_name').type(name)
+      var device_button = "#"+device_name.toLowerCase().replace(/ /g,"_")
+      cy.get(device_button).click()
+      cy.get('#wallet_name').type(wallet_name)
       if (wallet_type == "nested_segwit") {
         cy.get(':nth-child(1) > #type_nested_segwit_btn').click()
       }
@@ -103,7 +113,7 @@ Cypress.Commands.add("addHotWallet", (name, node_type, wallet_type, single_multi
       cy.get('#btn_continue').click()
 
       //Get some funds
-      cy.mine2wallet("elm")
+      cy.mine2wallet(node_type)
 
     })
 })
@@ -127,21 +137,23 @@ Cypress.Commands.add("mine2wallet", (chain) => {
   cy.get('#btn_transactions').click()
   cy.get('#fullbalance_amount').then(($div) => {
       const oldBalance = parseFloat($div.text())
-      if (chain=="elm") {
+      if (chain=="elm" || chain=="elements") {
         cy.task("elm:mine")
-      } else if (chain=="btc") {
+      } else if (chain=="btc" || chain=="bitcoin") {
         cy.task("btc:mine")
       } else {
         throw new Error("Unknown chain: " + chain)
       }
-      cy.wait(15000)
-      cy.reload()
-      cy.get('#fullbalance_amount') // Wait 5 secs + 15 secs timeout
-          .should(($div) => {
+      cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
+        .then(($div) => {
           const n = parseFloat($div.text())
-          expect(n).to.be.gt(oldBalance)
-          }
-      )
+          return n > oldBalance
+        })
+      , {
+        errorMsg: 'Waited for the funds arriving in the wallet from chain mining but it never did (timeout 30s) ',
+        timeout: 30000,
+        interval: 2000
+      })
   })
 })
 
