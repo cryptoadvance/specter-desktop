@@ -8,7 +8,7 @@ class SpecterMigration_0000(SpecterMigration):
     # the version that the stuff which is suppose to be migrated has been introduced
     # If this instance has been started AFTER this version, then this migration will never
     # get executed ( see the default-implementation of SpecterMigration.should_execute())
-    version = "v1.5.0"
+    version = "v1.5.0"  # Faking it here for the unit-tests
 
     def __init__(self, specter_migrator):
         self.specter_migrator = specter_migrator

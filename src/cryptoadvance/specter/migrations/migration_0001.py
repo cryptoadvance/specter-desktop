@@ -2,6 +2,9 @@ import logging
 import os
 import shutil
 
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
+
 from cryptoadvance.specter.specter_error import SpecterError
 from ..config import BaseConfig
 from ..specter_migrator import SpecterMigration
@@ -14,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 class SpecterMigration_0001(SpecterMigration):
     version = "v1.6.1"  # the version this migration has been rolled out
+    # irrelevant though because we'll execute this script in any case
+    # as we can't have yet a say on when specter has been started first
+
+    def should_execute(self):
+        return True
 
     def execute(self):
         source_folder = os.path.join(self.data_folder, ".bitcoin")
@@ -94,11 +102,12 @@ class SpecterMigration_0001(SpecterMigration):
         try:
             result = requests.get(f"http://localhost:{port}")
             return False
-        except ConnectionRefusedError:
+        except (ConnectionRefusedError, ConnectionError, NewConnectionError):
             pass
         # Now let's check internal Nodes
-        configs = load_jsons(os.path.join(self.data_folder, "nodes"))
-        ports = [node.port for node in configs.keys()]
-        if port in ports:
-            return False
+        if os.path.isfile(os.path.join(self.data_folder, "nodes")):
+            configs = load_jsons(os.path.join(self.data_folder, "nodes"))
+            ports = [node.port for node in configs.keys()]
+            if port in ports:
+                return False
         return True
