@@ -39,7 +39,9 @@ def test_WalletImporter_unit():
         {"label": "MyTestTrezor", "type": "trezor"},
     ]
     # The descriptor (very briefly)
-    assert wallet_importer.descriptor.origin_fingerprint == ["fb7c1f11", "1ef4e492"]
+    assert [
+        key.origin.fingerprint.hex() for key in wallet_importer.descriptor.keys
+    ] == ["fb7c1f11", "1ef4e492"]
     assert len(wallet_importer.keys) == 0
     assert len(wallet_importer.cosigners) == 0
     assert len(wallet_importer.unknown_cosigners) == 2

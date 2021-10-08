@@ -12,10 +12,10 @@ describe('Operating with an elements singlesig wallet', () => {
         cy.addHotDevice("Hot Elements Device 1","elements")
     
         // Segwit Wallet
-        cy.addHotWallet("Elm Single Segwit Hot Wallet","elements", "segwit")
+        cy.addHotWallet("Elm Single Segwit Hot Wallet","Hot Elements Device 1", "elements", "segwit")
         
         // Nested Segwit Wallet
-        cy.addHotWallet("Elm Single Nested Hot Wallet","elements", "nested_segwit")
+        cy.addHotWallet("Elm Single Nested Hot Wallet","Hot Elements Device 1", "elements", "nested_segwit")
     })
 
     it('send confidential transaction from segwit', () => {

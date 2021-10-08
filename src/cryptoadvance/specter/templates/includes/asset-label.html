@@ -70,6 +70,16 @@
         async connectedCallback() {
             this.asset = this.getAttribute('data-asset');
             this.labelValue = this.getAttribute('data-label');
+            // edit-mode can be 'hover', 'disabled', 'enabled'
+            this.mode = this.getAttribute('edit-mode');
+            // we don't know the asset
+            if( (this.asset == null) ||
+                (this.asset == "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") ||
+                (this.asset == "0000000000000000000000000000000000000000000000000000000000000000")){
+                this.asset = "Confidential";
+                this.labelValue = "Confidential";
+                this.mode = "disabled";
+            }
 
             // Set the label - fetch if not specified
             if (this.labelValue) {
@@ -78,8 +88,6 @@
                 await this.fetchAssetLabel();
             }
 
-            // edit-mode can be 'hover', 'disabled', 'enabled'
-            this.mode = this.getAttribute('edit-mode');
             if(!this.mode){
                 this.mode = 'hover';
             }
