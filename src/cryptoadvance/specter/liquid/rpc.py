@@ -7,7 +7,7 @@ from embit.liquid.pset import PSET, PSBTError
 from embit.liquid.addresses import addr_decode
 from embit.liquid.addresses import address as liquid_address
 from embit.liquid.networks import get_network
-from embit.liquid.transaction import LTransaction, unblind, LSIGHASH
+from embit.liquid.transaction import LTransaction, unblind
 from embit.liquid import finalizer
 from embit.liquid import slip77
 from embit.psbt import read_string
@@ -37,22 +37,6 @@ class LiquidRPC(BitcoinRPC):
 
     _master_blinding_key = None
     _asset_labels = None
-    _dynafed = None
-
-    @property
-    def is_dynafed(self):
-        # if True - then it's always true
-        if self._dynafed:
-            return self._dynafed
-        active = (
-            self.getblockchaininfo()
-            .get("softforks", {})
-            .get("dynafed", {})
-            .get("active", False)
-        )
-        if active:
-            self._dynafed = active
-        return active
 
     @property
     def asset_labels(self):
@@ -208,19 +192,6 @@ class LiquidRPC(BitcoinRPC):
                     tx.outputs = [out for out in tx.outputs if out.value > 0]
                     psbt = str(tx)
                     res["psbt"] = psbt
-            except:
-                pass
-
-        # set sighash to ALL if not dynafed
-        # Required by Specter-DIY
-        # TODO: remove after dynafed is activated
-        if psbt and not self.is_dynafed:
-            try:
-                tx = PSET.from_string(psbt)
-                for inp in tx.inputs:
-                    inp.sighash_type = LSIGHASH.ALL
-                psbt = str(tx)
-                res["psbt"] = psbt
             except:
                 pass
 

@@ -16,7 +16,7 @@ requests==2.25.0
 pysocks==1.7.1
 six==1.12.0
 stem==1.8.0
-embit==0.4.9
+embit==0.4.10
 psutil==5.7.3
 pyopenssl==20.0.1
 flask_wtf==0.14.3

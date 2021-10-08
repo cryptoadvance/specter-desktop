@@ -143,11 +143,20 @@ class TxItem(dict, AbstractTxListContext):
         # nothing to do if file exists or we don't have binary tx
         if os.path.isfile(self.fname) or not self._tx:
             return
-        # create dir if it doesn't exist
-        if not os.path.isdir(self.rawdir):
-            os.mkdir(self.rawdir)
-        with open(self.fname, "wb") as f:
-            self.tx.write_to(f)
+        # Try to create a directory if it's not there
+        # and write raw tx to file
+        # Can fail if multiple threads create the same dir
+        try:
+            # create dir if it doesn't exist
+            if not os.path.isdir(self.rawdir):
+                os.mkdir(self.rawdir)
+        except Exception as e:
+            logger.error(e)
+        try:
+            with open(self.fname, "wb") as f:
+                self.tx.write_to(f)
+        except Exception as e:
+            logger.error(e)
         # clear cached tx as we saved the transaction to file
         self._tx = None
 

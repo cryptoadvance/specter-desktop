@@ -65,19 +65,20 @@ def _write_json_file(content, path, lock=None):
                 os.remove(bkp)
             # move file to backup
             os.rename(path, bkp)
-        with open(path, "w") as f:
-            json.dump(content, f, indent=4)
-        # check if write was sucessfull
         try:
+            with open(path, "w") as f:
+                json.dump(content, f, indent=4)
+            # check if write was sucessfull
             with open(path, "r") as f:
                 c = json.load(f)
         # if not - move back backup
-        except:
+        except Exception as e:
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)
-            os.rename(bkp, path)
-            logger.error(f"Failed to write to file {path}")
+            shutil.copyfile(bkp, path)
+            logger.error(f"Failed to write to file {path}, rolled back to backup")
+            raise e
 
 
 def write_json_file(content, path, lock=None):

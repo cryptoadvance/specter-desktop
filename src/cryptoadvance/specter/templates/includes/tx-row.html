@@ -145,7 +145,7 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            if (this.amount == 1e-8) {
+            if (this.amount == 1e-8 || this.amount == 0) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
                 if(this.hideSensitiveInfo){
