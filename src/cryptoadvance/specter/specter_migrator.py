@@ -186,9 +186,6 @@ class SpecterMigrator:
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
                 if isclass(attribute):
-                    logger.debug(
-                        f" Checking {attribute.__name__}, it's a class! Subclass of SpecterMigration? {issubclass(attribute, SpecterMigration)}"
-                    )
                     if (
                         issubclass(attribute, SpecterMigration)
                         and not attribute.__name__ == "SpecterMigration"
@@ -204,19 +201,26 @@ class SpecterMigrator:
     def execute_migrations(self, migration_object_list=None):
         if migration_object_list == None:
             migration_object_list = self.plan_migration()
-        for object in migration_object_list:
-            exec_id = SpecterMigrator.calculate_number(object)
-            try:
-                logger.info(f"  --> Starting Migration {object.__class__.__name__}")
-                self.mig.create_new_execution_log(exec_id)
-                object.execute()
-                logger.info(f"  --> Completed Migration {object.__class__.__name__}")
-                self.mig.set_execution_log_status(exec_id, "completed")
-            except Exception as e:
-                logger.error(f"  --> Error in Migration {object.__class__.__name__}")
-                logger.exception(e)
-                self.mig.set_execution_log_status(exec_id, "error")
-                self.mig.set_Execution_log_error_msg(exec_id, str(e))
+        if not migration_object_list:
+            logger.info("No Migrations to execute!")
+        else:
+            for object in migration_object_list:
+                exec_id = SpecterMigrator.calculate_number(object)
+                try:
+                    logger.info(f"  --> Starting Migration {object.__class__.__name__}")
+                    self.mig.create_new_execution_log(exec_id)
+                    object.execute()
+                    logger.info(
+                        f"  --> Completed Migration {object.__class__.__name__}"
+                    )
+                    self.mig.set_execution_log_status(exec_id, "completed")
+                except Exception as e:
+                    logger.error(
+                        f"  --> Error in Migration {object.__class__.__name__}"
+                    )
+                    logger.exception(e)
+                    self.mig.set_execution_log_status(exec_id, "error")
+                    self.mig.set_Execution_log_error_msg(exec_id, str(e))
 
     @classmethod
     def calculate_number(cls, migration_obj):

@@ -3,8 +3,11 @@ import os
 import shutil
 
 from cryptoadvance.specter.specter_error import SpecterError
+from ..config import BaseConfig
 from ..specter_migrator import SpecterMigration
+from ..helpers import load_jsons
 from ..managers.node_manager import NodeManager
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +26,13 @@ class SpecterMigration_0001(SpecterMigration):
             raise SpecterError(
                 "Could not proceed with migration as bitcoin-binaries are not existing."
             )
-        # potentially we could dynamically figure out which version it is but 1.3.1 used:
-        bitcoin_version = "0.21.0"
+        if not self._check_port_free():
+            logger.error(
+                "There is already a Node with the default port configured or running. Won't migrate!"
+            )
+            return
+        # The version will be the version shipped with specter
+        bitcoin_version = BaseConfig.INTERNAL_BITCOIND_VERSION
         logger.info(".bitcoin directory detected in {self.data_folder}. Migrating ...")
         recommended_name = self._find_appropriate_name()
         target_folder = os.path.join(self.data_folder, "nodes", recommended_name)
@@ -44,28 +52,25 @@ class SpecterMigration_0001(SpecterMigration):
             ),
             internal_bitcoind_version=bitcoin_version,
         )
+        # Should create a json (see fullpath) like the one below:
         node = nm.add_internal_node(recommended_name)
 
-        #         {
+        # {
         #     "name": "Specter Bitcoin",
         #     "alias": "specter_bitcoin",
         #     "autodetect": false,
-        #     "datadir": "/home/kim/.specter/nodes/specter_bitcoin/.bitcoin-main",
+        #     "datadir": "/home/someuser/.specter/nodes/specter_bitcoin/.bitcoin-main",
         #     "user": "bitcoin",
         #     "password": "3ah0yc-2dDEwUSqHuuZi-w",
         #     "port": 8332,
         #     "host": "localhost",
         #     "protocol": "http",
         #     "external_node": false,
-        #     "fullpath": "/home/kim/.specter/nodes/specter_bitcoin.json",
-        #     "bitcoind_path": "/home/kim/.specter/bitcoin-binaries/bin/bitcoind",
+        #     "fullpath": "/home/someuser/.specter/nodes/specter_bitcoin.json",
+        #     "bitcoind_path": "/home/someuser/.specter/bitcoin-binaries/bin/bitcoind",
         #     "bitcoind_network": "main",
         #     "version": "0.21.1"
         # }
-
-        logger.debug(
-            f"migration_0000 is an example method showing how to implement a migration"
-        )
 
     def _find_appropriate_name(self):
         if not os.path.isdir(os.path.join(self.data_folder, "nodes")):
@@ -83,3 +88,17 @@ class SpecterMigration_0001(SpecterMigration):
         raise SpecterError(
             "I found a node called 'specter_migrated'. This migration script should not run twice."
         )
+
+    def _check_port_free(self, port=8332):
+        # For external nodes, we assume that there are already running
+        try:
+            result = requests.get(f"http://localhost:{port}")
+            return False
+        except ConnectionRefusedError:
+            pass
+        # Now let's check internal Nodes
+        configs = load_jsons(os.path.join(self.data_folder, "nodes"))
+        ports = [node.port for node in configs.keys()]
+        if port in ports:
+            return False
+        return True
