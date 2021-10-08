@@ -142,9 +142,8 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         unspents = wallet.rpc.listunspent(0)
         # Lets take 3 more or less random txs from the unspents:
         selected_coins = [
-            "{},{}".format(unspents[5]["txid"], unspents[5]["vout"]),
-            "{},{}".format(unspents[9]["txid"], unspents[9]["vout"]),
-            "{},{}".format(unspents[12]["txid"], unspents[12]["vout"]),
+            {"txid": u["txid"], "vout": u["vout"]}
+            for u in [unspents[5], unspents[9], unspents[12]]
         ]
         selected_coins_amount_sum = (
             unspents[5]["amount"] + unspents[9]["amount"] + unspents[12]["amount"]
@@ -163,7 +162,7 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         assert len(psbt["tx"]["vin"]) == 3
         psbt_txs = [tx["txid"] for tx in psbt["tx"]["vin"]]
         for coin in selected_coins:
-            assert coin.split(",")[0] in psbt_txs
+            assert coin["txid"] in psbt_txs
 
         # Now let's spend more coins than we have selected. This should result in an exception:
         try:

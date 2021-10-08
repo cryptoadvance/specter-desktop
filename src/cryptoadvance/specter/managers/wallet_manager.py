@@ -161,16 +161,11 @@ class WalletManager:
                                 for psbt in loaded_wallet.pending_psbts:
                                     logger.info(
                                         "lock %s " % wallet_alias,
-                                        loaded_wallet.pending_psbts[psbt]["tx"]["vin"],
+                                        loaded_wallet.pending_psbts[psbt].utxo_dict(),
                                     )
                                     loaded_wallet.rpc.lockunspent(
                                         False,
-                                        [
-                                            utxo
-                                            for utxo in loaded_wallet.pending_psbts[
-                                                psbt
-                                            ]["tx"]["vin"]
-                                        ],
+                                        loaded_wallet.pending_psbts[psbt].utxo_dict(),
                                     )
                             if len(loaded_wallet.frozen_utxo) > 0:
                                 loaded_wallet.rpc.lockunspent(
@@ -285,7 +280,7 @@ class WalletManager:
             logger.debug(f"Updating WalletManager rpc {self._rpc} with None")
         self._rpc = value
 
-    def create_wallet(self, name, sigs_required, key_type, keys, devices):
+    def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
         try:
             walletsindir = [
                 wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]
@@ -314,6 +309,7 @@ class WalletManager:
             keys,
             devices,
             self.bitcoin_core_version_raw,
+            **kwargs,
         )
         # save wallet file to disk
         if w and self.working_folder is not None:
