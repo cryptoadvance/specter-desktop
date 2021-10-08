@@ -1,14 +1,18 @@
 """
 Manages the list of transactions for the wallet
 """
+from typing import Union
 import os
 from .persistence import write_csv, read_csv
 from .helpers import get_address_from_dict
 from embit.transaction import Transaction
 from embit.liquid.networks import get_network
+from embit import bip32
 import json
+import math
 import logging
 from .util.tx import decoderawtransaction
+from .util.psbt import SpecterTx, AbstractTxContext, SpecterPSBT
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +26,21 @@ def parse_arr(v):
         return v
 
 
-class TxItem(dict):
+class AbstractTxListContext(AbstractTxContext):
+    @property
+    def rpc(self):
+        if hasattr(self, "parent"):
+            return self.parent.rpc
+        raise NotImplementedError("Implement this!")
+
+    @property
+    def chain(self) -> str:
+        if hasattr(self, "parent"):
+            return self.parent.chain
+        raise NotImplementedError("Implement this!")
+
+
+class TxItem(dict, AbstractTxListContext):
     TransactionCls = Transaction
     columns = [
         "txid",  # str, txid in hex
@@ -51,11 +69,10 @@ class TxItem(dict):
         bool,
     ]
 
-    def __init__(self, rpc, addresses, rawdir, chain, **kwargs):
-        self.rpc = rpc
+    def __init__(self, parent, addresses, rawdir, **kwargs):
+        self.parent = parent
         self._addresses = addresses
         self.rawdir = rawdir
-        self.chain = chain
         # copy
         kwargs = dict(**kwargs)
         # replace with None or convert
@@ -66,8 +83,11 @@ class TxItem(dict):
         super().__init__(**kwargs)
         self._tx = None
         # if we have hex data
-        if kwargs.get("hex"):
+        if "hex" in kwargs:
             self._tx = self.TransactionCls.from_string(kwargs["hex"])
+        # conflicts were renamed to walletconflicts
+        if "walletconflicts" in kwargs:
+            self["conflicts"] = kwargs["walletconflicts"]
 
     @property
     def fname(self):
@@ -99,16 +119,44 @@ class TxItem(dict):
                 logger.error(e)
         return self._tx
 
+    @property
+    def vsize(self):
+        if self.get("vsize"):
+            return self["vsize"]
+        tx = self.tx
+        txsize = len(tx.serialize())
+        if tx.is_segwit:
+            # tx size - flag - marker - witness
+            non_witness_size = (
+                txsize - 2 - sum([len(inp.witness.serialize()) for inp in tx.vin])
+            )
+            witness_size = txsize - non_witness_size
+            weight = non_witness_size * 4 + witness_size
+            vsize = math.ceil(weight / 4)
+        else:
+            vsize = txsize
+            weight = txsize * 4
+        return vsize
+
     def dump(self):
         """Dumps transaction in binary to the folder if it's not there"""
         # nothing to do if file exists or we don't have binary tx
         if os.path.isfile(self.fname) or not self._tx:
             return
-        # create dir if it doesn't exist
-        if not os.path.isdir(self.rawdir):
-            os.mkdir(self.rawdir)
-        with open(self.fname, "wb") as f:
-            self.tx.write_to(f)
+        # Try to create a directory if it's not there
+        # and write raw tx to file
+        # Can fail if multiple threads create the same dir
+        try:
+            # create dir if it doesn't exist
+            if not os.path.isdir(self.rawdir):
+                os.mkdir(self.rawdir)
+        except Exception as e:
+            logger.error(e)
+        try:
+            with open(self.fname, "wb") as f:
+                self.tx.write_to(f)
+        except Exception as e:
+            logger.error(e)
         # clear cached tx as we saved the transaction to file
         self._tx = None
 
@@ -142,15 +190,15 @@ class TxItem(dict):
         }
 
 
-class TxList(dict):
+class TxList(dict, AbstractTxListContext):
     ItemCls = TxItem  # for inheritance
+    PSBTCls = SpecterPSBT
 
-    def __init__(self, path, rpc, addresses, chain):
-        self.chain = chain
+    def __init__(self, path, parent, addresses):
+        self.parent = parent
         self.path = path
         # folder to store transactions in binary form
         self.rawdir = path.replace(".csv", "_raw")
-        self.rpc = rpc
         self._addresses = addresses
         txs = []
         file_exists = False
@@ -159,10 +207,9 @@ class TxList(dict):
                 txs = read_csv(
                     self.path,
                     self.ItemCls,
-                    self.rpc,
+                    self,
                     self._addresses,
                     self.rawdir,
-                    self.chain,
                 )
                 for tx in txs:
                     self[tx.txid] = tx
@@ -180,6 +227,18 @@ class TxList(dict):
                 tx.dump()
             write_csv(self.path, list(self.values()), self.ItemCls)
         self._file_exists = True
+
+    def getfetch(self, txid):
+        """
+        Returns TxItem instance if it is known,
+        otherwise tries to get it from rpc, adds to self and returns TxItem
+        """
+        if txid not in self:
+            tx = self.rpc.gettransaction(txid)
+            if "time" not in tx:
+                tx["time"] = tx["timereceived"]
+            self.add({txid: tx})
+        return self[txid]
 
     def gettransaction(self, txid, blockheight=None, decode=False, full=True):
         """
@@ -207,8 +266,8 @@ class TxList(dict):
             res.update(self.decoderawtransaction(tx.hex))
         return res
 
-    def decoderawtransaction(self, txhex):
-        return decoderawtransaction(txhex, self.chain)
+    def decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
+        return SpecterTx(self, tx).to_dict()
 
     def add(self, txs):
         """
@@ -247,9 +306,7 @@ class TxList(dict):
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
             }
-            txitem = self.ItemCls(
-                self.rpc, self._addresses, self.rawdir, self.chain, **obj
-            )
+            txitem = self.ItemCls(self, self._addresses, self.rawdir, **obj)
             self[txid] = txitem
             if txitem.tx:
                 for vout in txitem.tx.vout:
@@ -265,97 +322,68 @@ class TxList(dict):
             self.fill_missing(tx)
         self.save()
 
-    def fill_missing(self, tx):
-        raw_tx = self.decoderawtransaction(tx.hex)
-        tx["vsize"] = raw_tx["vsize"]
-
-        category = ""
-        addresses = []
-        amounts = {}
-        inputs_mine_count = 0
-        for vin in raw_tx["vin"]:
-            # coinbase tx
-            if (
-                vin["txid"]
-                == "0000000000000000000000000000000000000000000000000000000000000000"
-            ):
-                category = "generate"
-                break
-            if vin["txid"] in self:
-                try:
-                    address = get_address_from_dict(
-                        self.decoderawtransaction(self[vin["txid"]].hex)["vout"][
-                            vin["vout"]
-                        ]
-                    )
-                    address_info = self._addresses.get(address, None)
-                    if address_info and not address_info.is_external:
-                        inputs_mine_count += 1
-                except Exception as e:
-                    logger.error(e)
-                    continue
-
-        outputs_mine_count = 0
-        for out in raw_tx["vout"]:
-            try:
-                address = get_address_from_dict(out)
-            except Exception as e:
-                # couldn't get address...
-                logger.error(e)
-                continue
-            address_info = self._addresses.get(address)
-            if address_info and not address_info.is_external:
-                outputs_mine_count += 1
-            addresses.append(address)
-            amounts[address] = out.get("value", 0)
-
-        if inputs_mine_count:
-            if outputs_mine_count == len(raw_tx["vout"]):
-                category = "selftransfer"
-                # remove change addresses from the dest list
-                addresses2 = [
-                    address
-                    for address in addresses
-                    if self._addresses.get(address, None)
-                    and not self._addresses[address].change
-                ]
-                # use new list only if it's not empty
-                if addresses2:
-                    addresses = addresses2
-            else:
-                category = "send"
-                addresses = [
-                    address
-                    for address in addresses
-                    if not self._addresses.get(address, None)
-                    or self._addresses[address].is_external
-                ]
-        else:
-            if not category:
-                category = "receive"
-            addresses = [
-                address
-                for address in addresses
-                if self._addresses.get(address, None)
-                and not self._addresses[address].is_external
-            ]
-
-        amounts = [amounts[address] for address in addresses]
-
+    def _update_destinations(self, tx, outs):
+        addresses = [out.get("address", "Unknown") for out in outs]
+        amounts = [out["float_amount"] for out in outs]
         if len(addresses) == 1:
             addresses = addresses[0]
             amounts = amounts[0]
-
-        tx["category"] = category
         tx["address"] = addresses
         tx["amount"] = amounts
-        if not addresses:
-            tx["ismine"] = False
+
+    def _get_psbt(self, raw_tx):
+        psbt = self.PSBTCls.from_transaction(raw_tx, self.descriptor, self.network)
+        # fill derivation paths etc
+        updated = self.rpc.walletprocesspsbt(str(psbt), False).get("psbt", None)
+        if updated:
+            psbt.update(updated)
+        return psbt
+
+    def fill_missing(self, tx):
+        raw_tx = tx.tx
+        psbt = self._get_psbt(raw_tx)
+        # detect category
+        category = "mixed"
+
+        # calculate everything once
+        inputs = [inp.to_dict() for inp in psbt.inputs]
+        outputs = [out.to_dict() for out in psbt.outputs]
+        all_inputs_mine = all([inp["is_mine"] for inp in inputs])
+        all_outputs_mine = all([out["is_mine"] for out in outputs])
+        all_inputs_external = not any([inp["is_mine"] for inp in inputs])
+
+        if b"\x00" * 32 in [vin.txid for vin in raw_tx.vin]:
+            category = "generate"
+        elif all_inputs_mine and all_outputs_mine:
+            category = "selftransfer"
+        elif all_inputs_external:
+            category = "receive"
+        elif all_inputs_mine:
+            category = "send"
+
+        all_outs = [out for out in outputs]
+        my_outs = [out for out in all_outs if out["is_mine"]]
+        my_receiving = [out for out in my_outs if not out["change"]]
+        external = [out for out in all_outs if out not in my_outs]
+        # decide what addresses to show
+        if category in ["generate", "receive", "selftransfer"]:
+            # either receiving only (if not empty), or only mine (if not empty), or all
+            outs = my_receiving or my_outs or all_outs
+        elif category in ["send"]:
+            # keep only external addresses if they are present
+            outs = external or all_outs
         else:
-            tx["ismine"] = True
+            # not sure what's the best here
+            outs = my_receiving or my_outs or external or all_outs
+
+        self._update_destinations(tx, outs)
+        tx["category"] = category
+        # at least one input or output is ours - tx is ours
+        tx["ismine"] = any(scope["is_mine"] for scope in (inputs + outputs))
 
     def load(self, arr):
         """
+        TODO: load transactions from backup
         Load transactions to Core with merkle proofs to avoid rescan
         arr should be a dict with dicts:
         "<txid>": {
