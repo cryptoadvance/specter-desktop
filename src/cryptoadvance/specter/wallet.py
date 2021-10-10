@@ -838,7 +838,7 @@ class Wallet:
 
     def save_to_file(self):
         write_json_file(self.to_json(), self.fullpath)
-        self.manager.update()
+        # self.manager.update()
 
     def delete_files(self):
         delete_file(self.fullpath)
