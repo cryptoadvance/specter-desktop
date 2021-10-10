@@ -65,6 +65,8 @@ class ConfigManager(GenericDataManager):
             "fee_estimator": "mempool",
             "fee_estimator_custom_url": "",
             "hide_sensitive_info": False,
+            "autohide_sensitive_info_timeout_minutes": 20,
+            "autologout_timeout_hours": 4,
             # TODO: remove
             "bitcoind": False,
         }
@@ -266,6 +268,24 @@ class ConfigManager(GenericDataManager):
             self._save()
         else:
             user.set_hide_sensitive_info(hide_sensitive_info_bool)
+
+    def update_autohide_sensitive_info_timeout(self, timeout_minutes, user):
+        if isinstance(user, str):
+            raise Exception("Please pass a real user, not a string-user")
+        if user.is_admin:
+            self.data["autohide_sensitive_info_timeout_minutes"] = timeout_minutes
+            self._save()
+        else:
+            user.set_autohide_sensitive_info_timeout(timeout_minutes)
+
+    def update_autologout_timeout(self, timeout_hours, user):
+        if isinstance(user, str):
+            raise Exception("Please pass a real user, not a string-user")
+        if user.is_admin:
+            self.data["autologout_timeout_hours"] = timeout_hours
+            self._save()
+        else:
+            user.set_autologout_timeout(timeout_hours)
 
     def update_price_provider(self, price_provider, user):
         if isinstance(user, str):
