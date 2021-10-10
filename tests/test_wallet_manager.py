@@ -53,7 +53,7 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
         random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
         wallet.rpc.generatetoaddress(100, random_address)
         # update the balance
-        wallet.get_balance()
+        wallet.update_balance()
         assert wallet.fullbalance >= 25
 
         # You can create a multisig wallet with the wallet manager like this
@@ -73,7 +73,7 @@ def test_WalletManager(docker, request, devices_filled_data_folder, device_manag
         multisig_wallet.rpc.generatetoaddress(1, multisig_address)
         multisig_wallet.rpc.generatetoaddress(100, random_address)
         # update balance
-        multisig_wallet.get_balance()
+        multisig_wallet.update_balance()
         assert multisig_wallet.fullbalance >= 12.5
         # The WalletManager also has a `wallets_names` property, returning a sorted list of the names of all wallets
         assert wm.wallets_names == ["a_multisig_test_wallet", "a_test_wallet"]
@@ -134,7 +134,7 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         random_address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
         wallet.rpc.generatetoaddress(110, random_address)
         # update the wallet data
-        wallet.get_balance()
+        wallet.update_balance()
         # Now we have loads of potential inputs
         # Let's spend 500 coins
         assert wallet.fullbalance >= 250
@@ -286,7 +286,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     # update utxo
     wallet.getdata()
     # update balance
-    wallet.get_balance()
+    wallet.update_balance()
 
     address_balance = wallet.fullbalance
     assert len(wallet.full_utxo) == 20
@@ -299,7 +299,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.rpc.generatetoaddress(100, random_address)
 
     wallet.getdata()
-    wallet.get_balance()
+    wallet.update_balance()
 
     assert len(wallet.full_utxo) == 40
 
@@ -382,7 +382,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     wallet.rpc.generatetoaddress(101, address)
 
     # update the wallet data
-    balance = wallet.get_balance()
+    balance = wallet.update_balance()
     assert balance["trusted"] > 0.0
 
     # Save the json backup
@@ -440,7 +440,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
-    assert wallet.get_balance()["trusted"] > 0.0
+    assert wallet.update_balance()["trusted"] > 0.0
 
     # Now do it again, but without the newer "devices" attr
     del wallet_backup["devices"]
@@ -495,7 +495,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
-    assert wallet.get_balance()["trusted"] > 0.0
+    assert wallet.update_balance()["trusted"] > 0.0
 
 
 def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
@@ -560,7 +560,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     wallet.rpc.generatetoaddress(101, address)
 
     # update the wallet data
-    balance = wallet.get_balance()
+    balance = wallet.update_balance()
     assert balance["trusted"] > 0.0
 
     # Save the json backup
@@ -622,7 +622,7 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
-    assert wallet.get_balance()["trusted"] > 0.0
+    assert wallet.update_balance()["trusted"] > 0.0
 
     # Now do it again, but without the newer "devices" attr
     del wallet_backup["devices"]
@@ -682,4 +682,4 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
     wallet.rpc.rescanblockchain(0)
 
     # We restored the wallet's utxos
-    assert wallet.get_balance()["trusted"] > 0.0
+    assert wallet.update_balance()["trusted"] > 0.0

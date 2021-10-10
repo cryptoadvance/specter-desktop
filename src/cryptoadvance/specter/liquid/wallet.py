@@ -99,7 +99,7 @@ class LWallet(Wallet):
             self.change_index += 1
             self.getnewaddress(change=True)
 
-    def get_balance(self):
+    def update_balance(self):
         try:
             full_balance = (
                 self.rpc.getbalances(assetlabel=None)["mine"]

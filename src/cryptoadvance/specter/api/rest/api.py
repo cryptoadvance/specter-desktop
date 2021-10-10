@@ -42,7 +42,7 @@ class ResourceWallet(SecureResource):
             logger.error(se)
             return abort(500)
 
-        wallet.get_balance()
+        wallet.update_balance()
         wallet.check_utxo()
         wallet.check_unused()
 
