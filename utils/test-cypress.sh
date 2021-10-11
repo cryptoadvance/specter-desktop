@@ -75,15 +75,6 @@ function open() {
   esac
 }
 
-exit_if_macos() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Very sorry but this functionality is not yet ready for MacOS :-(."
-    echo "If you can fix that, PRs are very much appreciated!"
-    echo "it's basically the different behaviour of GNU-tools on Linux/MacOS."
-    echo "first step to help is find the calls of \"exit_if_macos\" and deactivate it!"
-    exit 2
-  fi
-}
 
 function send_signal() {
   # use like send_signal <SIGNAL> <PID>
@@ -244,11 +235,18 @@ function restore_snapshot {
     echo "./utils/test-cypress.sh snapshot $spec_file"
     exit 1
   fi
-  exit_if_macos
-  ts_snapshot=$(stat --print="%X" ${snapshot_file})
+  if [ $(uname) = "Darwin" ]; then
+	  ts_snapshot=$(stat -f "%m" ${snapshot_file})
+  else
+	  ts_snapshot=$(stat --print="%X" ${snapshot_file})
+  fi
   for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
   do 
-    ts_spec_file=$(stat --print="%X" $file)
+    if [ $(uname) = "Darwin" ]; then
+      ts_spec_file=$(stat -f "%m" $file)
+    else
+      ts_spec_file=$(stat --print="%X" $file)
+    fi
     if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
       echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
       echo "please consider to create a new snapshot:"
@@ -401,7 +399,11 @@ function parse_and_execute() {
       ;;
     *)
       shift
+      START=$(date +%s)
       sub_${arg} $@
+      END=$(date +%s)
+      DIFF=$(echo "( $END - $START ) / 60" | bc)
+      echo "    --> End $(date) took $DIFF minutes"
       ret_value=$?
       if [ $ret_value = 127 ]; then
         echo "Error: '$arg' is not a known subcommand." >&2
@@ -416,4 +418,5 @@ function parse_and_execute() {
   esac
   done
 }
+export ELECTRON_EXTRA_LAUNCH_ARGS=--lang=en
 parse_and_execute $@

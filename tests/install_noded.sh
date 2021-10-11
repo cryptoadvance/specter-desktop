@@ -104,7 +104,12 @@ function build_node_impl {
         cd contrib
         # This is hopefully fullfilles (via .travis.yml most relevantly)
         # sudo apt install make automake cmake curl g++-multilib libtool binutils-gold bsdmainutils pkg-config python3 patch
-        echo "    --> Building db4"
+        
+	if [ $(uname) = "Darwin" ]; then
+		brew install berkeley-db@4
+	else
+		echo "    --> Building db4"
+	fi
         ./install_db4.sh $(pwd)
         echo "    --> Finishing db4"
         ls -l
@@ -150,31 +155,40 @@ function sub_help {
 }
 
 function check_compile_prerequisites {
-    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
-    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
-    REQUIRED_PKGS="$REQUIRED_PKGS wget"
-    for REQUIRED_PKG in $REQUIRED_PKGS; do
-        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-        echo Checking for $REQUIRED_PKG: $PKG_OK
-        if [ "" = "$PKG_OK" ]; then
-            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
-            apt-get --yes install $REQUIRED_PKG 
-        fi
-    done
+    if [ $(uname) = "Darwin" ]; then
+        echo "    --> No binary prerequisites checking for MacOS, GOOD LUCK!"
+	#brew install automake berkeley-db4 libtool boost miniupnpc pkg-config python qt libevent qrencode sqlite
+    else
+	    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
+	    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+	    REQUIRED_PKGS="$REQUIRED_PKGS wget"
+	    for REQUIRED_PKG in $REQUIRED_PKGS; do
+	        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+	        echo Checking for $REQUIRED_PKG: $PKG_OK
+	        if [ "" = "$PKG_OK" ]; then
+	            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+	            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+	            apt-get --yes install $REQUIRED_PKG 
+	        fi
+	    done
+    fi
 }
 
 function check_binary_prerequisites {
-    REQUIRED_PKGS="wget"
-    for REQUIRED_PKG in $REQUIRED_PKGS; do
-        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-        echo Checking for $REQUIRED_PKG: $PKG_OK
-        if [ "" = "$PKG_OK" ]; then
-            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
-            apt-get --yes install $REQUIRED_PKG 
-        fi
-    done
+    if [ $(uname) = "Darwin" ]; then
+        echo "    --> No binary prerequisites checking for MacOS, GOOD LUCK!"
+    else
+        REQUIRED_PKGS="wget"
+        for REQUIRED_PKG in $REQUIRED_PKGS; do
+            PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+            echo Checking for $REQUIRED_PKG: $PKG_OK
+            if [ "" = "$PKG_OK" ]; then
+                echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+                echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+                apt-get --yes install $REQUIRED_PKG 
+            fi
+        done
+    fi
 }
 
 function sub_compile {
@@ -189,7 +203,11 @@ function sub_compile {
     update=$?
     build_node_impl $node_impl $update
     echo "    --> Listing binaries"
-    find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    if [ $(uname) = "Darwin" ]; then
+    	find tests/${node_impl}/src -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
+    else
+	find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    fi
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
     echo "    --> install_node.sh End $(date) took $DIFF"
@@ -202,17 +220,22 @@ function sub_binary {
         exit 2
     fi
     echo "    --> install_noded.sh Start $(date) (binary) for node_impl $node_impl"
-    START=$(date +%s.%N)
+    START=$(date +%s)
     check_binary_prerequisites
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
     echo "    --> install version $version"
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
-    if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
-        wget https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
+    if [ $(uname) = "Darwin" ]; then
+        binary_file=bitcoin-${version}-osx64.tar.gz
+    else
+        binary_file=bitcoin-${version}-x86_64-linux-gnu.tar.gz
     fi
-    tar -xzf bitcoin-${version}-x86_64-linux-gnu.tar.gz
+    if [[ ! -f $binary_file ]]; then
+        wget https://bitcoincore.org/bin/bitcoin-core-${version}/${binary_file}
+    fi
+    tar -xzf ${binary_file}
     if [[ -d ./bitcoin ]]; then
         if [[ -d ./bitcoin/src ]]; then
             mv ./bitcoin ./bitcoin-src
@@ -222,13 +245,17 @@ function sub_binary {
     fi
     ln -s ./bitcoin-${version} bitcoin
     echo "    --> Listing binaries"
-    find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    if [ $(uname) = "Darwin" ]; then
+        find ./bitcoin/bin -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
+    else
+        find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    fi
     echo "    --> checking for bitcoind"
-    test -x ./bitcoin/bin/bitcodind || (echo "not found" && exit 2)
+    test -x ./bitcoin/bin/bitcoind || exit 2
     echo "    --> Finished installing bitcoind binary"
-    END=$(date +%s.%N)
+    END=$(date +%s)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_noded.sh End $(date) took $DIFF"
+    echo "    --> install_noded.sh End $(date) took $DIFF seconds"
 }
 
 
