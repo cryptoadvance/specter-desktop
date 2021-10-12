@@ -134,8 +134,8 @@ def test_abandon_purged_tx(
         dummy.rpc.generatetoaddress(101, dummy_address)
 
         # update the wallet data
-        wallet.get_balance()
-        dummy.get_balance()
+        wallet.update_balance()
+        dummy.update_balance()
 
         # ==== Begin test from mempool_limit.py ====
         txouts = gen_return_txouts()
@@ -201,7 +201,7 @@ def test_abandon_purged_tx(
 
         # at this point we should have all the balance in trusted
         # nothing in untrusted
-        untrusted = wallet.get_balance()["untrusted_pending"]
+        untrusted = wallet.update_balance()["untrusted_pending"]
         assert untrusted == 0
         # Can we now spend those same inputs?
         outputs = {wallet.getnewaddress(): 0.0001}
@@ -223,7 +223,7 @@ def test_abandon_purged_tx(
         # Should have been accepted by the mempool
         assert txid in wallet.rpc.getrawmempool()
         # Our balance should go to untrusted now as it's unconfirmed
-        assert wallet.get_balance()["untrusted_pending"] > 0
+        assert wallet.update_balance()["untrusted_pending"] > 0
     finally:
         # Clean up
         bitcoind_controller.stop_bitcoind()

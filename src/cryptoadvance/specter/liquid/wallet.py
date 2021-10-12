@@ -99,7 +99,7 @@ class LWallet(Wallet):
             self.change_index += 1
             self.getnewaddress(change=True)
 
-    def get_balance(self):
+    def update_balance(self):
         try:
             full_balance = (
                 self.rpc.getbalances(assetlabel=None)["mine"]
@@ -124,29 +124,11 @@ class LWallet(Wallet):
                     balance.update(asset_balance)
                 else:
                     balance["assets"][asset] = asset_balance
-
-            # calculate available balance
-            available = {}
-            available.update(balance)
-            # locked_utxo = self.rpc.listlockunspent()
-            # we need better tx decoding here to include assets
-            # for tx in locked_utxo:
-            #     tx_data = self.gettransaction(tx["txid"])
-            #     raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-            #     delta = raw_tx["vout"][tx["vout"]]["value"]
-            #     if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-            #         available["untrusted_pending"] -= delta
-            #     else:
-            #         available["trusted"] -= delta
-            #         available["trusted"] = round(available["trusted"], 8)
-            # available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["available"] = available
         except:
             balance = {
                 "trusted": 0,
                 "untrusted_pending": 0,
                 "immature": 0,
-                "available": {"trusted": 0, "untrusted_pending": 0},
                 "assets": {},
             }
         self.balance = balance
