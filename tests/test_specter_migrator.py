@@ -4,7 +4,7 @@ import os
 import tarfile
 import time
 
-from cryptoadvance.specter.specter_migrator import (
+from cryptoadvance.specter.util.specter_migrator import (
     MigDataManager,
     SpecterMigration,
     SpecterMigrator,
@@ -36,7 +36,7 @@ def test_SpecterMigrator_classnaming():
 def test_SpecterMigrator_versioning(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG)
     with patch(
-        "cryptoadvance.specter.specter_migrator.VersionChecker"
+        "cryptoadvance.specter.util.specter_migrator.VersionChecker"
     ) as mock_version_checker_class:
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()
@@ -56,7 +56,7 @@ def test_SpecterMigrator_versioning(empty_data_folder, caplog):
 def test_SpecterMigrator_versioning2(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG)
     with patch(
-        "cryptoadvance.specter.specter_migrator.VersionChecker"
+        "cryptoadvance.specter.util.specter_migrator.VersionChecker"
     ) as mock_version_checker_class:
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()
@@ -87,7 +87,7 @@ def test_SpecterMigrator(empty_data_folder, caplog):
 
     # Patch the Class where it's used, not where it's defined
     with patch(
-        "cryptoadvance.specter.specter_migrator.VersionChecker"
+        "cryptoadvance.specter.util.specter_migrator.VersionChecker"
     ) as mock_version_checker_class:
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()

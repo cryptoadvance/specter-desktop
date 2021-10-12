@@ -18,9 +18,9 @@ from pkgutil import iter_modules
 
 from cryptoadvance import specter
 
-from .managers.genericdata_manager import GenericDataManager
-from .specter_error import SpecterError
-from .util.version import VersionChecker, compare
+from ..managers.genericdata_manager import GenericDataManager
+from ..specter_error import SpecterError
+from .version import VersionChecker, compare
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class SpecterMigration:
 
 
 class MigDataManager(GenericDataManager):
-    """Handling the data for the SpecterMigrator in migration_data.json with some convenience-methods"""
+    """A class handling the data for the SpecterMigrator in migration_data.json with some convenience-methods"""
 
     @classmethod
     def initial_data(cls):
@@ -163,7 +163,7 @@ class MigDataManager(GenericDataManager):
 
 
 class SpecterMigrator:
-    """Managing Migrations. Not calling it managers, as this is reserved for Instances attached to the specter instance"""
+    """A Class managing Migrations. Not calling it managers, as this is reserved for Instances attached to the specter instance"""
 
     def __init__(self, data_folder):
         version = VersionChecker(specter=self)

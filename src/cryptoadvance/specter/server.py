@@ -18,7 +18,7 @@ from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
 from .util.version import VersionChecker
-from .specter_migrator import SpecterMigrator
+from .util.specter_migrator import SpecterMigrator
 from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
 

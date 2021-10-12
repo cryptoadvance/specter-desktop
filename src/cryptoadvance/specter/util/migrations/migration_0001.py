@@ -6,10 +6,10 @@ from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 
 from cryptoadvance.specter.specter_error import SpecterError
-from ..config import BaseConfig
+from ...config import BaseConfig
 from ..specter_migrator import SpecterMigration
-from ..helpers import load_jsons
-from ..managers.node_manager import NodeManager
+from ...helpers import load_jsons
+from ...managers.node_manager import NodeManager
 import requests
 
 logger = logging.getLogger(__name__)
