@@ -161,7 +161,8 @@ def _get_fees(specter, config):
             (float(specter.estimatesmartfee(20).get("feerate", 0.00001)) / 1000) * 1e8
         ),
     }
-    if "feerate" not in specter.estimatesmartfee(1):
+    fee_estimate = specter.estimatesmartfee(1)
+    if "feerate" not in fee_estimate:
         # regtest does not seem to have a reasonable result for estimatesmartfee.
         # The error-message is covering "transactions" and so the cypress-tests are not succeeding
         # Not a perfect fix but better than to fix it everywhere in the test-code:
@@ -169,11 +170,8 @@ def _get_fees(specter, config):
             fee_estimation_result.add_error_message(
                 "There was an issue while fetching fee estimation with  Bitcoin core. Please use manual fee estimation"
             )
-            try:
-                for error in specter.estimatesmartfee(1)["errors"]:
-                    fee_estimation_result.add_error_message(error)
-            except Exception as e:
-                logger.exception(e)
+            for error in fee_estimate.get("errors", []):
+                fee_estimation_result.add_error_message(error)
     if fee_estimation_result.error_message:
         logger.warn(fee_estimation_result.error_message)
     return fee_estimation_result
