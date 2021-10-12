@@ -31,3 +31,4 @@ elmd-conn.json
 tests/bitcoin*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
+tests/elements

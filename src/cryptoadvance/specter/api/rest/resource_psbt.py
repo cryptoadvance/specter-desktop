@@ -25,8 +25,8 @@ class ResourcePsbt(SecureResource):
         wallet: Wallet = app.specter.user_manager.get_user(
             user
         ).wallet_manager.get_by_alias(wallet_alias)
-        pending_psbts = wallet.pending_psbts
-        return {"result": pending_psbts or []}
+        pending_psbts = wallet.pending_psbts_dict()
+        return {"result": pending_psbts or {}}
 
     def post(self, wallet_alias):
         user = auth.current_user()
@@ -37,5 +37,5 @@ class ResourcePsbt(SecureResource):
         psbt_creator = PsbtCreator(
             app.specter, wallet, "json", request_json=request.json
         )
-        psbt_creator.create_psbt(wallet)
-        return {"result": psbt_creator.psbt}
+        psbt = psbt_creator.create_psbt(wallet)
+        return {"result": psbt}

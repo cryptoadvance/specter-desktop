@@ -29,7 +29,6 @@ from ..helpers import (
     get_devices_with_keys_by_type,
     get_txid,
 )
-from ..liquid.util.pset import to_canonical_pset
 from ..key import Key
 from ..persistence import delete_file
 from ..rpc import RpcError
@@ -76,7 +75,7 @@ def check_wallet(func):
 def wallets_overview():
     app.specter.check_blockheight()
     for wallet in list(app.specter.wallet_manager.wallets.values()):
-        wallet.get_balance()
+        wallet.update_balance()
         wallet.check_utxo()
 
     return render_template(
@@ -186,8 +185,8 @@ def new_wallet(wallet_type):
                     cosigners=wallet_importer.cosigners,
                     unknown_cosigners=wallet_importer.unknown_cosigners,
                     unknown_cosigners_types=wallet_importer.unknown_cosigners_types,
-                    sigs_required=wallet_importer.descriptor.multisig_M,
-                    sigs_total=wallet_importer.descriptor.multisig_N,
+                    sigs_required=wallet_importer.sigs_required,
+                    sigs_total=wallet_importer.sigs_total,
                     specter=app.specter,
                     rand=rand,
                 )
@@ -409,7 +408,7 @@ def history(wallet_alias):
 
     # update balances in the wallet
     app.specter.check_blockheight()
-    wallet.get_balance()
+    wallet.update_balance()
     wallet.check_utxo()
 
     return render_template(
@@ -469,7 +468,7 @@ def send(wallet_alias):
 def send_new(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
-    wallet.get_balance()
+    wallet.update_balance()
     # update utxo list for coin selection
     wallet.check_utxo()
     psbt = None
@@ -527,11 +526,24 @@ def send_new(wallet_alias):
                     rand=rand,
                 )
 
-        elif action == "rbf":
+        elif action in ["rbf", "rbf_cancel"]:
             try:
                 rbf_tx_id = request.form["rbf_tx_id"]
                 rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
+
+                if action == "rbf":
+                    psbt = wallet.bumpfee(rbf_tx_id, rbf_fee_rate)
+                elif action == "rbf_cancel":
+                    psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
+                else:
+                    raise SpecterError("Invalid action")
+
+                if psbt["fee_rate"] - rbf_fee_rate > wallet.MIN_FEE_RATE / 10:
+                    flash(
+                        _(
+                            "We had to increase the fee rate from {} to {} sat/vbyte"
+                        ).format(rbf_fee_rate, psbt["fee_rate"])
+                    )
                 return render_template(
                     "wallet/send/sign/wallet_send_sign_psbt.jinja",
                     psbt=psbt,
@@ -543,24 +555,8 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
-        elif action == "rbf_cancel":
-            try:
-                rbf_tx_id = request.form["rbf_tx_id"]
-                rbf_fee_rate = float(request.form["rbf_fee_rate"])
-                psbt = wallet.canceltx(rbf_tx_id, rbf_fee_rate)
-                return render_template(
-                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                    psbt=psbt,
-                    labels=[],
-                    wallet_alias=wallet_alias,
-                    wallet=wallet,
-                    specter=app.specter,
-                    rand=rand,
-                )
-            except Exception as e:
-                flash(
-                    _("Failed to cancel transaction with RBF. Error: {}").format(e),
-                    "error",
+                return redirect(
+                    url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
                 )
         elif action == "rbf_edit":
             try:
@@ -588,7 +584,8 @@ def send_new(wallet_alias):
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = json.loads(request.form["psbt"])
-            b64psbt = wallet.pending_psbts[psbt["tx"]["txid"]]["base64"]
+            current_psbt = wallet.pending_psbts[psbt["tx"]["txid"]]
+            b64psbt = str(current_psbt)
             device = request.form["device"]
             if "devices_signed" not in psbt or device not in psbt["devices_signed"]:
                 try:
@@ -596,15 +593,12 @@ def send_new(wallet_alias):
                     signed_psbt = app.specter.device_manager.get_by_alias(
                         device
                     ).sign_psbt(b64psbt, wallet, passphrase)
+                    raw = None
                     if signed_psbt["complete"]:
-                        if "devices_signed" not in psbt:
-                            psbt["devices_signed"] = []
-                        psbt["devices_signed"].append(device)
-                        psbt["sigs_count"] = len(psbt["devices_signed"])
                         raw = wallet.rpc.finalizepsbt(b64psbt)
-                        if "hex" in raw:
-                            psbt["raw"] = raw["hex"]
+                    current_psbt.update(signed_psbt["psbt"], raw)
                     signed_psbt = signed_psbt["psbt"]
+                    psbt = current_psbt.to_dict()
                 except Exception as e:
                     signed_psbt = None
                     flash(_("Failed to sign PSBT: {}").format(e), "error")
@@ -691,13 +685,7 @@ def send_pending(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
-    pending_psbts = wallet.pending_psbts
-    ######## Migration to multiple recipients format ###############
-    for psbt in pending_psbts:
-        if not isinstance(pending_psbts[psbt]["address"], list):
-            pending_psbts[psbt]["address"] = [pending_psbts[psbt]["address"]]
-            pending_psbts[psbt]["amount"] = [pending_psbts[psbt]["amount"]]
-    ###############################################################
+    pending_psbts = wallet.pending_psbts_dict()
     return render_template(
         "wallet/send/pending/wallet_sendpending.jinja",
         pending_psbts=pending_psbts,
@@ -754,7 +742,7 @@ def addresses(wallet_alias):
 
     # update balances in the wallet
     app.specter.check_blockheight()
-    wallet.get_balance()
+    wallet.update_balance()
     wallet.check_utxo()
 
     return render_template(
@@ -909,9 +897,6 @@ def combine(wallet_alias):
         return e.error_msg, e.status_code
     except Exception as e:
         return _("Unknown error: {}").format(e), 500
-    if "psbt" in raw:
-        # returned psbt should be valid for Bitcoin or Elements Core decoding
-        raw["psbt"] = to_canonical_pset(raw["psbt"])
     return json.dumps(raw)
 
 
@@ -1671,7 +1656,12 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
     if app.specter.is_liquid:
         for tx in txlist:
             if "asset" in tx:
-                tx["assetlabel"] = app.specter.asset_label(tx["asset"])
+                if isinstance(tx["asset"], list):
+                    tx["assetlabel"] = [
+                        app.specter.asset_label(asset) for asset in tx["asset"]
+                    ]
+                else:
+                    tx["assetlabel"] = app.specter.asset_label(tx["asset"])
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 

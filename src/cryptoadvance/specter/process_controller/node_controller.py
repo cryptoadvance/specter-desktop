@@ -257,11 +257,12 @@ class NodeController:
             default_address = default_rpc.getaddressinfo(default_address)[
                 "unconfidential"
             ]
-        while True:
-            btc_balance = default_rpc.getbalance()
+
+        btc_balance = default_rpc.getbalance()
+        while btc_balance <= amount * 5:
             rpc.generatetoaddress(102, default_address)
-            if btc_balance > amount:
-                break
+            btc_balance = default_rpc.getbalance()
+
         default_rpc.sendtoaddress(address, amount)
         if confirm_payment:
             # confirm it

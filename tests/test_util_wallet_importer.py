@@ -39,7 +39,9 @@ def test_WalletImporter_unit():
         {"label": "MyTestTrezor", "type": "trezor"},
     ]
     # The descriptor (very briefly)
-    assert wallet_importer.descriptor.origin_fingerprint == ["fb7c1f11", "1ef4e492"]
+    assert [
+        key.origin.fingerprint.hex() for key in wallet_importer.descriptor.keys
+    ] == ["fb7c1f11", "1ef4e492"]
     assert len(wallet_importer.keys) == 0
     assert len(wallet_importer.cosigners) == 0
     assert len(wallet_importer.unknown_cosigners) == 2
@@ -107,4 +109,4 @@ def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest)
     # Realize that the wallet has funds:
     wallet.update()
     wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
-    assert wallet.get_balance()["untrusted_pending"] == 20
+    assert wallet.update_balance()["untrusted_pending"] == 20

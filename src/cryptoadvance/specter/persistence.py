@@ -90,9 +90,11 @@ def delete_files(paths):
     """deletes multiple files and calls storage callback once"""
     need_callback = False
     for path in paths:
-        if os.path.exists(path):
+        try:
             os.remove(path)
             need_callback = True
+        except FileNotFoundError:
+            pass
     if need_callback:
         storage_callback()
 

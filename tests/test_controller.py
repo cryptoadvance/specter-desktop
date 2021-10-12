@@ -66,6 +66,8 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
         "/settings/general",
         data=dict(
             action="restore",
+            autohide_sensitive_info_timeout="NEVER",
+            autologout_timeout="NEVER",
             explorer="CUSTOM",
             custom_explorer="",
             unit="btc",
