@@ -17,3 +17,12 @@ class SpecterMigration_0000(SpecterMigration):
         logger.debug(
             f"migration_0000 is an example method showing how to implement a migration"
         )
+
+    @property
+    def description(self) -> str:
+        """Should return a (multiline) description of the migration which will get log.info() at execution-time"""
+        return """A dummy migration:
+            * It will do nothing
+            * It's just here to explain how SpecterMigration works
+            * It will be shown in the logs when it's executed (just like the other real migrations but doing nothing)
+        """

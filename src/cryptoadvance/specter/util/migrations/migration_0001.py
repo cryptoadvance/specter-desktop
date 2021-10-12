@@ -21,7 +21,21 @@ class SpecterMigration_0001(SpecterMigration):
     # as we can't have yet a say on when specter has been started first
 
     def should_execute(self):
+        # This Migration cannot rely on the default-mechanism as the migration_framework was not
+        # in place when the functionality has been implemented
         return True
+
+    @property
+    def description(self) -> str:
+        return """Single-Node migration:
+            In v1.3.1 Single Node implementation has been implemented
+            Later we had multiple nodes. This migrates the single installation to one of many.
+            Effectively it will:
+            * Check whether an internal node was existing in ~/.specter/.bitcoin
+            * Check whether a new internal default node (bitcoin/main) is NOT existing
+            * Move the ~/.specter/.bitcoin to ~/.specter/nodes/specter_bitcoin/.bitcoin-main
+            * Creates a json-definition in ~/.specter/nodes/specter_bitcoin.json
+        """
 
     def execute(self):
         source_folder = os.path.join(self.data_folder, ".bitcoin")
@@ -41,7 +55,7 @@ class SpecterMigration_0001(SpecterMigration):
             return
         # The version will be the version shipped with specter
         bitcoin_version = BaseConfig.INTERNAL_BITCOIND_VERSION
-        logger.info(".bitcoin directory detected in {self.data_folder}. Migrating ...")
+        logger.info(f".bitcoin directory detected in {self.data_folder}. Migrating ...")
         recommended_name = self._find_appropriate_name()
         target_folder = os.path.join(self.data_folder, "nodes", recommended_name)
         logger.info(f"Migrating to folder {target_folder}")
@@ -52,7 +66,9 @@ class SpecterMigration_0001(SpecterMigration):
             logger.info("Removing bitcoin.conf file")
             os.remove(os.path.join(source_folder, "bitcoin.conf"))
         definition_file = os.path.join(target_folder, "specter_bitcoin.json")
-        logger.info(f"Creating {definition_file}")
+        logger.info(
+            f"Creating {definition_file}. This will cause some warnings and even errors about not being able to connect to the node which can be ignored."
+        )
         nm = NodeManager(
             data_folder=os.path.join(self.data_folder, "nodes"),
             bitcoind_path=os.path.join(

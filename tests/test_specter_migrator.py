@@ -4,6 +4,7 @@ import os
 import tarfile
 import time
 
+import pytest
 from cryptoadvance.specter.util.specter_migrator import (
     MigDataManager,
     SpecterMigration,
@@ -26,11 +27,13 @@ def test_SpecterMigration():
 def test_SpecterMigrator_classnaming():
     for clazz in SpecterMigrator.get_migration_classes():
         # instantiation of a migration-class should not have any side-effects:
-        mig_obj = clazz(Mock())
+        mig_obj: SpecterMigration = clazz(Mock())
         # will also tests the prefix implicitely
         assert (
             SpecterMigrator.calculate_id(mig_obj) >= 0
         ), "a migration-class needs an id (int)"
+        # If implemented right, this should not throw an Exception:
+        assert type(mig_obj.description) == str
 
 
 def test_SpecterMigrator_versioning(empty_data_folder, caplog):
