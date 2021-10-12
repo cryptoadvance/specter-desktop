@@ -562,7 +562,7 @@ class Wallet:
 
     def update(self):
         self.getdata()
-        self.get_balance()
+        self.update_balance()
         self.check_addresses()
 
     def check_unused(self):
@@ -838,7 +838,7 @@ class Wallet:
 
     def save_to_file(self):
         write_json_file(self.to_json(), self.fullpath)
-        self.manager.update()
+        self.update_balance()
 
     def delete_files(self):
         delete_file(self.fullpath)
@@ -1466,7 +1466,7 @@ class Wallet:
 
         return to_return
 
-    def get_balance(self):
+    def update_balance(self):
         try:
             balance = (
                 self.rpc.getbalances()["mine"]
@@ -1487,7 +1487,8 @@ class Wallet:
                     available["trusted"] -= delta
                     available["trusted"] = round(available["trusted"], 8)
             available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["available"] = available
+            balance["trusted"] = available["trusted"]
+            balance["untrusted_pending"] = available["untrusted_pending"]
         except Exception as e:
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
@@ -1562,16 +1563,11 @@ class Wallet:
     @property
     def fullbalance(self):
         balance = self.balance
-        return round(balance["trusted"] + balance["untrusted_pending"], 8)
-
-    @property
-    def available_balance(self):
-        return self.balance["available"]
+        return round(balance["trusted"], 8)
 
     @property
     def full_available_balance(self):
-        balance = self.available_balance
-        return round(balance["trusted"] + balance["untrusted_pending"], 8)
+        return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
     def addresses(self):
@@ -1633,10 +1629,10 @@ class Wallet:
                 )
             extra_inputs = selected_coins
 
-        elif self.available_balance["trusted"] <= total_btc:
+        elif self.balance["trusted"] <= total_btc:
             # if we don't have enough in confirmed txs - add unconfirmed outputs
             txlist = self.rpc.listunspent(0, 0)
-            b = total_btc - self.available_balance["trusted"]
+            b = total_btc - self.balance["trusted"]
             for tx in txlist:
                 extra_inputs.append({"txid": tx["txid"], "vout": int(tx["vout"])})
                 b -= tx["amount"]
