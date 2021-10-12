@@ -98,10 +98,12 @@ function start_node {
     case $arg in
       --bitcoin)
         node_impl=bitcoind
+        node_impl_abbrev=btcd
         shift
         ;;
       --elements)
         node_impl=elementsd
+        node_impl_abbrev=elmd
         shift
         ;;
       --reset)
@@ -124,11 +126,9 @@ function start_node {
     if [ "$node_impl" = "bitcoind" ]; then
       echo "--> Purging $BTCD_REGTEST_DATA_DIR"
       rm -rf $BTCD_REGTEST_DATA_DIR
-      node_impl_abbrev=btcd
     else
       echo "--> Purging $ELMD_REGTEST_DATA_DIR"
       rm -rf $ELMD_REGTEST_DATA_DIR
-      node_impl_abbrev=elmd
     fi
   fi
   if [ "$CLEANUPHARD" = "true" ]; then
@@ -226,11 +226,15 @@ trap cleanup EXIT
 function restore_snapshot {
   spec_file=$1
   # Checking whether spec-files exists
-  [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq -r ".testFiles[]"; exit 1)
+  if ! [ -f ./cypress/integration/${spec_file} ]; then
+    echo "Spec-file $spec_file does not exist, these are the options:"
+    cat cypress.json | jq -r ".testFiles[]" 
+    exit 1
+  fi
   snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
   if ! [ -f ${snapshot_file} ]; then
     echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"
-    ls ./cypress/fixtures -1 | sed -e 's/_btcdir.tar.gz//' -e 's/_specterdir.tar.gz//' | uniq
+    ls ./cypress/fixtures | awk '{ print $1 }' | sed -e 's/_btcdir.tar.gz//' -e 's/_specterdir.tar.gz//' | uniq # single line, awk for macos
     echo "But maybe you want to create that snapshot like this:"
     echo "./utils/test-cypress.sh snapshot $spec_file"
     exit 1
