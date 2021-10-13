@@ -105,11 +105,11 @@ function build_node_impl {
         # This is hopefully fullfilles (via .travis.yml most relevantly)
         # sudo apt install make automake cmake curl g++-multilib libtool binutils-gold bsdmainutils pkg-config python3 patch
         
-	if [ $(uname) = "Darwin" ]; then
-		brew install berkeley-db@4
-	else
+        if [ $(uname) = "Darwin" ]; then
+            brew install berkeley-db@4
+            brew link berkeley-db4 --force || :
+        fi
 		echo "    --> Building db4"
-	fi
         ./install_db4.sh $(pwd)
         echo "    --> Finishing db4"
         ls -l
