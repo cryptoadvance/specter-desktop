@@ -109,4 +109,4 @@ def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest)
     # Realize that the wallet has funds:
     wallet.update()
     wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
-    assert wallet.get_balance()["untrusted_pending"] == 20
+    assert wallet.update_balance()["untrusted_pending"] == 20

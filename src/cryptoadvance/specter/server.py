@@ -18,7 +18,7 @@ from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
 from .util.version import VersionChecker
-
+from .util.specter_migrator import SpecterMigrator
 from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
 
@@ -104,6 +104,10 @@ def create_app(config=None):
 
 def init_app(app, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
+    # First: Migrations
+    mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
+    mm.execute_migrations()
+
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     app.secret_key = app.config["SECRET_KEY"]
@@ -118,11 +122,6 @@ def init_app(app, hwibridge=False, specter=None):
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
-
-    # version checker
-    # checks for new versions once per hour
-    specter.version = VersionChecker(specter=specter)
-    specter.version.start()
 
     login_manager = LoginManager()
     login_manager.session_protection = "strong"
