@@ -8,6 +8,8 @@ import os
 import requests
 import importlib_metadata
 
+from cryptoadvance.specter.specter_error import SpecterError
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,7 +59,8 @@ class VersionChecker:
                 # check if it's installed from master
                 if current == "vx.y.z-get-replaced-by-release-script":
                     current = "custom"
-            except:
+            except Exception as e:
+                logger.exception(e)
                 pass
         return current
 
@@ -151,3 +154,53 @@ class VersionChecker:
         else:
             self.stop()
         return current, latest, False
+
+
+def compare(version1: str, version2: str) -> int:
+    """Compares two version strings like v1.5.1 and v1.6.0 and returns
+    * 1 : version2 is bigger that version1
+    * -1 : version1 is bigger than version2
+    * 0 : both are the same
+    This is not supporting semver and it doesn't take any postfix (-pre5)
+    into account and is therefore a naive implementation
+    """
+    version1 = _parse_version(version1)
+    version2 = _parse_version(version2)
+
+    if version1["postfix"] != "" or version2["postfix"] != "":
+        raise SpecterError(
+            f"Cannot compare if either version has a postfix : {version1} and {version2}"
+        )
+    if version1["major"] > version2["major"]:
+        return -1
+    elif version1["major"] < version2["major"]:
+        return 1
+    if version1["minor"] > version2["minor"]:
+        return -1
+    elif version1["minor"] < version2["minor"]:
+        return 1
+    if version1["patch"] > version2["patch"]:
+        return -1
+    elif version1["patch"] < version2["patch"]:
+        return 1
+    return 0
+
+
+def _parse_version(version: str) -> dict:
+    """Parses version-strings like v1.5.6-pre5 and returns a dict"""
+    if version[0] != "v":
+        raise SpecterError(f"version {version} does not have a preceding 'v'")
+    version = version[1:]
+    version_ar = version.split(".")
+    if len(version_ar) != 3:
+        raise SpecterError(f"version {version} does not have 3 separated digits")
+    postfix = ""
+    if "-" in version_ar[2]:
+        postfix = version_ar[2].split("-")[1]
+        version_ar[2] = version_ar[2].split("-")[0]
+    return {
+        "major": int(version_ar[0]),
+        "minor": int(version_ar[1]),
+        "patch": int(version_ar[2]),
+        "postfix": postfix,
+    }

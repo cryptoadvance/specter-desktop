@@ -22,7 +22,6 @@ class ConfigManager(GenericDataManager):
     with a lot of validation and computing while setting/getting
     """
 
-    initial_data = {}
     name_of_json_file = "config.json"
     lock = threading.Lock()
 

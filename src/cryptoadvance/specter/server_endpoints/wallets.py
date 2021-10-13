@@ -75,7 +75,7 @@ def check_wallet(func):
 def wallets_overview():
     app.specter.check_blockheight()
     for wallet in list(app.specter.wallet_manager.wallets.values()):
-        wallet.get_balance()
+        wallet.update_balance()
         wallet.check_utxo()
 
     return render_template(
@@ -408,7 +408,7 @@ def history(wallet_alias):
 
     # update balances in the wallet
     app.specter.check_blockheight()
-    wallet.get_balance()
+    wallet.update_balance()
     wallet.check_utxo()
 
     return render_template(
@@ -468,7 +468,7 @@ def send(wallet_alias):
 def send_new(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
-    wallet.get_balance()
+    wallet.update_balance()
     # update utxo list for coin selection
     wallet.check_utxo()
     psbt = None
@@ -743,7 +743,7 @@ def addresses(wallet_alias):
 
     # update balances in the wallet
     app.specter.check_blockheight()
-    wallet.get_balance()
+    wallet.update_balance()
     wallet.check_utxo()
 
     return render_template(
