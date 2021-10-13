@@ -35,6 +35,7 @@ class UserManager:
                     "username": "admin",
                     "password": hash_password("admin"),
                     "is_admin": True,
+                    "encrypted_user_secret": None,
                 }
             ]
         # convert to User instances

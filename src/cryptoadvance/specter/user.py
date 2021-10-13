@@ -36,11 +36,31 @@ def verify_password(stored_password, provided_password):
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password, config, specter, is_admin=False):
+    """
+    The user_secret is used to encrypt/decrypt other user-specific data
+    (e.g. services data). It is encrypted for storage using the user's
+    password (the method == "none" auth type cannot enable options that
+    require encrypted storage because it has no password). user_secret is
+    decrypted on login (see: SpecterFlask.login()) and stored in memory
+    in plaintext.
+    """
+
+    def __init__(
+        self,
+        id,
+        username,
+        hashed_password,
+        config,
+        specter,
+        encrypted_user_secret=None,
+        is_admin=False,
+    ):
         self.id = id
         self.username = username
-        self.password = password
+        self.hashed_password = hashed_password
         self.config = config
+        self.encrypted_user_secret = encrypted_user_secret
+        self.plaintext_user_secret = None
         self.is_admin = is_admin
         self.uid = specter.config["uid"]
         self.specter = specter
@@ -48,61 +68,71 @@ class User(UserMixin):
         self.device_manager = None
         self.manager = None
 
+    @classmethod
+    def from_json(cls, user_dict, specter):
+        try:
+            user_args = {
+                "id": user_dict["id"],
+                "username": user_dict["username"],
+                "hashed_password": user_dict["password"],
+                "config": {},
+                "specter": specter,
+                "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
+            }
+            if not user_dict["is_admin"]:
+                user_args["config"] = user_dict["config"]
+                return cls(**user_args)
+            else:
+                user_args["is_admin"] = True
+                return cls(**user_args)
+        except Exception as e:
+            raise SpecterError(f"Unable to parse user JSON.:{e}")
+
     @property
     def folder_id(self):
         if self.is_admin:
             return ""
         return f"_{self.id}"
 
-    @property
-    def password(self):
-        return self._password
+    def set_password(self, plaintext_password):
+        # Hash the incoming plaintext password and update the encrypted
+        #   user_secret as needed.
+        self.hashed_password = hash_password(plaintext_password)
 
-    @password.setter
-    def password(self, value):
-        """pass a json or a plain-password here"""
-        try:
-            if value.get("salt") and value.get("pwdhash"):
-                self._password = value
-        except:
-            salted_hashed_password = hash_password(value)
-            self._password = salted_hashed_password
-
-    @classmethod
-    def from_json(cls, user_dict, specter):
-        # TODO: Unify admin in backwards compatible way
-        try:
-            if not user_dict["is_admin"]:
-                return cls(
-                    user_dict["id"],
-                    user_dict["username"],
-                    user_dict["password"],
-                    user_dict["config"],
-                    specter,
+        # Must keep encrypted_user_secret in sync with password changes
+        if self.encrypted_user_secret is not None:
+            if self.plaintext_user_secret is None:
+                raise Exception(
+                    "encrypted_user_secret wasn't decrypted during user login"
                 )
-            else:
-                return cls(
-                    user_dict["id"],
-                    user_dict["username"],
-                    user_dict["password"],
-                    {},
-                    specter,
-                    is_admin=True,
-                )
-        except Exception as e:
-            raise SpecterError(f"Unable to parse user JSON.:{e}")
+            self.encrypted_user_secret = self.encrypt_string(
+                self.plaintext_user_secret, plaintext_password
+            )
 
     @property
     def json(self):
         user_dict = {
             "id": self.id,
             "username": self.username,
-            "password": self.password,
+            "password": self.hashed_password,  # TODO: Migrate attr to "hashed_password"?
             "is_admin": self.is_admin,
+            "encrypted_user_secret": self.encrypted_user_secret,
         }
         if not self.is_admin:
             user_dict["config"] = self.config
         return user_dict
+
+    def decrypt_user_secret(self, password):
+        if not self.encrypted_user_secret:
+            # Generate a new user_secret
+            self.plaintext_user_secret = Fernet.generate_key()
+            self.encrypted_user_secret = self.encrypt_string(
+                self.plaintext_user_secret, password
+            )
+        else:
+            self.plaintext_user_secret = self.decrypt_string(
+                self.encrypted_user_secret, password
+            )
 
     def check(self):
         self.check_device_manager()

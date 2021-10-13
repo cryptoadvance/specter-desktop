@@ -94,7 +94,7 @@ Run the server:
 
 ```sh
 cd specter-desktop
-export FLASK_ENV=development && python3 -m cryptoadvance.specter server --config DevelopmentConfig
+python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 ```
 
 #### If `pip install` fails on `cryptography==3.4.x`

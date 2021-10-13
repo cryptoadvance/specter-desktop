@@ -27,7 +27,6 @@ from ..helpers import (
 )
 from ..persistence import write_devices, write_wallet
 from ..specter_error import ExtProcTimeoutException, handle_exception
-from ..user import hash_password
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
@@ -434,7 +433,7 @@ def auth():
                             current_version=current_version,
                             rand=rand,
                         )
-                    current_user.password = hash_password(specter_password)
+                    current_user.set_password(specter_password)
                 current_user.save_info()
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
@@ -460,7 +459,7 @@ def auth():
                                     rand=rand,
                                 )
 
-                            current_user.password = hash_password(new_password)
+                            current_user.set_password(new_password)
                             current_user.save_info()
                     if method == "usernamepassword":
                         users = [
