@@ -355,13 +355,20 @@ class BitcoinRPC:
             # ReadTimeout: The server did not send any data in the allotted amount of time.
             # ReadTimeoutError: Raised when a socket timeout occurs while receiving data from a server
             logger.error(
-                "Timeout while {} call({: <28}) payload:{} Exception: {}".format(
-                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload, to
+                "Timeout after {} secs while {} call({: <28}) payload:{} Exception: {}".format(
+                    timeout,
+                    self.__class__.__name__,
+                    "/".join(url.split("/")[3:]),
+                    payload,
+                    to,
                 )
             )
             raise SpecterError(
-                "Timeout while {} call({: <28}) payload:{}".format(
-                    self.__class__.__name__, "/".join(url.split("/")[3:]), payload
+                "Timeout after {} secs while {} call({: <28}). Check the logs for more details.".format(
+                    timeout,
+                    self.__class__.__name__,
+                    "/".join(url.split("/")[3:]),
+                    payload,
                 )
             )
         self.r = r

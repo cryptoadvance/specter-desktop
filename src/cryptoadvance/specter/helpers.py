@@ -32,10 +32,7 @@ EMOJIS = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍😘😗�
 
 def get_asset_label(asset, known_assets={}):
     # TODO: lookup in the registry
-    if (
-        asset is None
-        or asset == "0000000000000000000000000000000000000000000000000000000000000000"
-    ):
+    if asset in [None, "00" * 32, "ff" * 32]:
         return "???"
     if asset == "bitcoin":
         return "LBTC"
@@ -136,7 +133,7 @@ def load_jsons(folder, key=None):
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
         except Exception as e:
-            logger.error(f"Can't load json file {fname} at path {folder} because {e}")
+            logger.exception(e)
     return dd
 
 
@@ -345,4 +342,4 @@ def get_address_from_dict(data_dict):
         addr = data_dict.get("address")
     if addr and addr != "Fee":
         return addr
-    raise RuntimeError("Missing address info in object")
+    raise RuntimeError(f"Missing address info in object {data_dict}")

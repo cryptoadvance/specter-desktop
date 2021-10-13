@@ -257,9 +257,13 @@ class PsbtCreator:
         rbf = bool(request_form.get("rbf", False))
         # workaround for making the tests work with a dict
         if hasattr(request_form, "getlist"):
-            selected_coins = request_form.getlist("coinselect")
+            coins = [coin.split(",") for coin in request_form.getlist("coinselect")]
+            # convert to tuples
+            selected_coins = [
+                {"txid": txid.strip(), "vout": int(vout)} for txid, vout in coins
+            ]
         else:
-            selected_coins = None
+            selected_coins = []
         rbf_tx_id = request_form.get("rbf_tx_id", "")
         kwargs = {
             "subtract": subtract,
@@ -267,8 +271,8 @@ class PsbtCreator:
             "fee_rate": fee_rate,
             "rbf": rbf,
             "selected_coins": selected_coins,
-            "readonly": "estimate_fee"
-            in request_form,  # determines whether the psbt gets persisted
+            # determines whether the psbt gets persisted
+            "readonly": "estimate_fee" in request_form,
             "rbf_edit_mode": (rbf_tx_id != ""),
         }
         return kwargs

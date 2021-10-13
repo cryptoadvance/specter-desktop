@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
+const readLastLines = require('read-last-lines');
 
 let versionData
 try {
@@ -62,8 +63,9 @@ function getAppSettings() {
     return appSettings
 }
 
-function getSpecterAppLogs() {
-  return fs.readFileSync(specterAppLogPath, 'utf8')  
+function getSpecterAppLogs(callback) {  
+  readLastLines.read(specterAppLogPath, 700)
+	.then(callback);
 }
 
 module.exports = {

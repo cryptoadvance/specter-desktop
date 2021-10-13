@@ -94,7 +94,7 @@ Run the server:
 
 ```sh
 cd specter-desktop
-python3 -m cryptoadvance.specter server --config DevelopmentConfig
+export FLASK_ENV=development && python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
 #### If `pip install` fails on `cryptography==3.4.x`
@@ -173,6 +173,11 @@ pytest tests/test_specter.py::test_specter
 
 # Run tests and show the fixture-setup and usage
 pytest --setup-show
+```
+
+Print the logging output live to the terminal:
+```
+pytest --capture=no --log-cli-level=DEBUG
 ```
 
 Get the log-output of bitcoind side by side with the test-output. For sure you will only see the logs if the test fails.
