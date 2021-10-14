@@ -3,7 +3,13 @@ import shutil
 import hashlib
 import binascii
 import json
+
+from base64 import b64encode, b64decode
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from cryptography.fernet import Fernet
 from flask_login import UserMixin
+
 from .specter_error import SpecterError
 from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
@@ -11,12 +17,14 @@ from .managers.device_manager import DeviceManager
 from .helpers import deep_update
 
 
-def hash_password(password):
+def hash_password(plaintext_password):
     """Hash a password for storing."""
     salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
     pwdhash = (
         binascii.b2a_base64(
-            hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)
+            hashlib.pbkdf2_hmac(
+                "sha256", plaintext_password.encode("utf-8"), salt, 10000
+            )
         )
         .strip()
         .decode()
@@ -33,6 +41,16 @@ def verify_password(stored_password, provided_password):
         10000,
     )
     return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
+
+
+def encrypt_string(message, key):
+    fernet = Fernet(key)
+    return fernet.encrypt(message)
+
+
+def decrypt_string(message, key):
+    fernet = Fernet(key)
+    return fernet.encrypt(message)
 
 
 class User(UserMixin):
@@ -94,20 +112,78 @@ class User(UserMixin):
             return ""
         return f"_{self.id}"
 
+    def _encrypt_user_secret(self, plaintext_password):
+        # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
+        # generate a random salt
+        salt = get_random_bytes(AES.block_size)
+
+        # use the Scrypt KDF to get a private key from the password
+        private_key = hashlib.scrypt(
+            plaintext_password.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32
+        )
+
+        # create cipher config
+        cipher_config = AES.new(private_key, AES.MODE_GCM)
+
+        # return a dictionary with the encrypted text
+        cipher_text, tag = cipher_config.encrypt_and_digest(self.plaintext_user_secret)
+        self.encrypted_user_secret = {
+            "cipher_text": b64encode(cipher_text).decode("utf-8"),
+            "salt": b64encode(salt).decode("utf-8"),
+            "nonce": b64encode(cipher_config.nonce).decode("utf-8"),
+            "tag": b64encode(tag).decode("utf-8"),
+        }
+
+        print(
+            f"encrypted_user_secret: {json.dumps(self.encrypted_user_secret, indent=4)}"
+        )
+
+    def decrypt_user_data(self, plaintext_password):
+        # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
+        if not self.encrypted_user_secret:
+            self._generate_user_secret(plaintext_password)
+
+        # decode the dictionary entries from base64
+        salt = b64decode(self.encrypted_user_secret["salt"])
+        cipher_text = b64decode(self.encrypted_user_secret["cipher_text"])
+        nonce = b64decode(self.encrypted_user_secret["nonce"])
+        tag = b64decode(self.encrypted_user_secret["tag"])
+
+        # generate the private key from the password and salt
+        private_key = hashlib.scrypt(
+            plaintext_password.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32
+        )
+
+        # create the cipher config
+        cipher = AES.new(private_key, AES.MODE_GCM, nonce=nonce)
+
+        # decrypt the cipher text
+        self.plaintext_user_secret = cipher.decrypt_and_verify(cipher_text, tag)
+
+        print(f"decrypted user_secret: {self.plaintext_user_secret}")
+
+    def _generate_user_secret(self, plaintext_password):
+        # Encryption using the user_secret uses a Fernet key. But the Fernet
+        #   key itself will be encrypted with the user's password.
+        self.plaintext_user_secret = Fernet.generate_key()
+        print(f"generated user_secret: {self.plaintext_user_secret}")
+        self._encrypt_user_secret(plaintext_password)
+
     def set_password(self, plaintext_password):
         # Hash the incoming plaintext password and update the encrypted
         #   user_secret as needed.
         self.hashed_password = hash_password(plaintext_password)
+        print(f"set user password: {plaintext_password}")
 
         # Must keep encrypted_user_secret in sync with password changes
-        if self.encrypted_user_secret is not None:
+        if self.encrypted_user_secret is None:
+            self._generate_user_secret(plaintext_password)
+        else:
             if self.plaintext_user_secret is None:
                 raise Exception(
                     "encrypted_user_secret wasn't decrypted during user login"
                 )
-            self.encrypted_user_secret = self.encrypt_string(
-                self.plaintext_user_secret, plaintext_password
-            )
+            self._encrypt_user_secret(plaintext_password)
 
     @property
     def json(self):
@@ -121,18 +197,6 @@ class User(UserMixin):
         if not self.is_admin:
             user_dict["config"] = self.config
         return user_dict
-
-    def decrypt_user_secret(self, password):
-        if not self.encrypted_user_secret:
-            # Generate a new user_secret
-            self.plaintext_user_secret = Fernet.generate_key()
-            self.encrypted_user_secret = self.encrypt_string(
-                self.plaintext_user_secret, password
-            )
-        else:
-            self.plaintext_user_secret = self.decrypt_string(
-                self.encrypted_user_secret, password
-            )
 
     def check(self):
         self.check_device_manager()

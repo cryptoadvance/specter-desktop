@@ -73,7 +73,9 @@ def login():
 
         elif auth["method"] == "passwordonly":
             password = request.form["password"]
-            if verify_password(app.specter.user_manager.admin.password, password):
+            if verify_password(
+                app.specter.user_manager.admin.hashed_password, password
+            ):
                 app.login("admin", request.form["password"])
                 return redirect_login(request)
 

@@ -138,9 +138,9 @@ def init_app(app, hwibridge=False, specter=None):
         login_user(user)
 
         if password:
-            # Decrypts and stores the user_secret in memory so that other
-            #   encrypted data can be decrypted/encrypted as needed.
-            user.decrypt_user_secret(password)
+            # Use the password while we have it to decrypt any protected
+            #   user data (e.g. services).
+            user.decrypt_user_data(password)
 
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it

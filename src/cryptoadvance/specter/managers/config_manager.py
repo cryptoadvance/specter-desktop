@@ -5,7 +5,6 @@ import secrets
 import threading
 import time
 
-from cryptography.fernet import Fernet
 from urllib.parse import urlparse
 
 from ..helpers import deep_update

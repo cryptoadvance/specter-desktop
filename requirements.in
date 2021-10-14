@@ -22,3 +22,4 @@ flask_wtf==0.14.3
 pgpy==0.5.4
 cbor==1.0.0
 mnemonic==0.20
+pycryptodome==3.11.0

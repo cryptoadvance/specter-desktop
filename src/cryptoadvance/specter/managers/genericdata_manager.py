@@ -1,8 +1,6 @@
 import os
 import logging
 
-from cryptography.fernet import Fernet
-
 from ..persistence import read_json_file, write_json_file
 
 
@@ -40,16 +38,6 @@ class GenericDataManager:
         return some_list
         # example implementation for users:
         # return [u.json for u in some_list]
-
-    @classmethod
-    def encrypt_string(cls, message, key):
-        fernet = Fernet(key)
-        return fernet.encrypt(message.encode())
-
-    @classmethod
-    def decrypt_string(cls, message, key):
-        fernet = Fernet(key)
-        return fernet.encrypt(message.encode())
 
     def __init__(self, data_folder):
         # password indicates that the data needs to be encrypted at rest. Specter should
