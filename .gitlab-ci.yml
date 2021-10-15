@@ -179,8 +179,8 @@ release_signatures:
     - python3 -m utils.download-gitlab-artifacts download # downloads the job-artifacts from gitlab
     - python3 -m utils.download-gitlab-artifacts create   # creates a SHA256SUM.txt
     - python3 -m utils.download-gitlab-artifacts upload   # uploads it to github
-    - if [[ -f /credentials/private.key ]]; then echo "signing ..." ; gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
-    - if [[ -f ./SHA256SUMS.txt.sig ]]; then python3 ../utils/github.py upload ./SHA256SUMS.txt.sig ; fi
+    - if [[ -f /credentials/private.key ]]; then echo "signing ..." ; gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./signing_dir/SHA256SUMS.txt || true ; fi
+    - if [[ -f ./signing_dir/SHA256SUMS.txt.sig ]]; then python3 ../utils/github.py upload ./signing_dir/SHA256SUMS.txt.sig ; fi
 
 release_docker:
   stage: post_releasing
