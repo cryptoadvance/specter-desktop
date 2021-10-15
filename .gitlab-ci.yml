@@ -17,6 +17,7 @@ cache:
 stages:
   - testing
   - releasing
+  - post_releasing
 
 before_script:
   - docker info || echo "no docker-command found" # Print out docker version for debugging
@@ -146,6 +147,7 @@ release_electron_linux_windows:
     - source .env/bin/activate
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
+    - echo "release_electron_linux_windows ${CI_JOB_ID}" > 
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
     - cd pyinstaller
     - ./build-ci.sh $CI_COMMIT_TAG "make-hash"
@@ -153,7 +155,8 @@ release_electron_linux_windows:
     - ls -l release-win
     - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS.txt
     - cat ./SHA256SUMS.txt
-    - if [[ -f /credentials/private.key ]]; then gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
+    - ls -l /credentials
+    - if [[ -f /credentials/private.key ]]; then echo "signing ..." ; gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
     - python ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
@@ -167,5 +170,21 @@ release_electron_linux_windows:
       - pyinstaller/SHA256SUMS.txt
     expire_in: 1 day
 
+release_signatures:
+  stage: post_releasing
+  only: 
+    - tags
+  script:
+    - ./utils/create-gitlab-cli-cfg.sh
+    - python3 -m utils.download-gitlab-artifacts download # downloads the job-artifacts from gitlab
+    - python3 -m utils.download-gitlab-artifacts create   # creates a SHA256SUM.txt
+    - python3 -m utils.download-gitlab-artifacts upload   # uploads it to github
+    - if [[ -f /credentials/private.key ]]; then echo "signing ..." ; gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
+    - if [[ -f ./SHA256SUMS.txt.sig ]]; then python3 ../utils/github.py upload ./SHA256SUMS.txt.sig ; fi
 
-
+release_docker:
+  stage: post_releasing
+  only: 
+    - tags
+  script:
+    - ./utils/trigger_docker_build.sh
