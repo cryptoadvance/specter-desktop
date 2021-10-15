@@ -147,7 +147,6 @@ release_electron_linux_windows:
     - source .env/bin/activate
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
-    - echo "release_electron_linux_windows ${CI_JOB_ID}" > 
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
     - cd pyinstaller
     - ./build-ci.sh $CI_COMMIT_TAG "make-hash"
