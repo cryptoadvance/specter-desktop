@@ -48,6 +48,9 @@ Path(target_dir).mkdir(parents=True, exist_ok=True)
 
 
 def download_and_unpack_all_artifacts(pipeline):
+    if os.path.isdir(target_dir):
+        logger.info(f"First purging {target_dir}")
+        shutil.rmtree(target_dir)
     for job in pipeline.jobs.list():
         if job.name in [
             "release_electron_linux_windows",
@@ -62,9 +65,6 @@ def download_and_unpack_all_artifacts(pipeline):
                     job.artifacts(streamed=True, action=f.write)
 
             logger.info(f"Unzipping in target-folder")
-            if os.path.isdir(target_dir):
-                logger.info(f"First purging {target_dir}")
-                shutil.rmtree(target_dir)
             with zipfile.ZipFile(zipfn, "r") as zip:
                 for zip_info in zip.infolist():
                     if zip_info.filename[-1] == "/":
