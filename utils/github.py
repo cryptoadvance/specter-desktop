@@ -10,7 +10,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from gitlab.v4.objects.events import UserEventManager
 import requests
 
 import argparse
