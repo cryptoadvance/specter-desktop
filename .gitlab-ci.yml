@@ -155,7 +155,7 @@ release_electron_linux_windows:
     - ls -l release-win
     - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-winlin.txt
     - cat ./SHA256SUMS-winlin.txt
-    - ../utils/sign_artifact.sh --artifact ../signing_dir/SHA256SUMS-winlin.txt
+    - ../utils/sign_artifact.sh --artifact ./SHA256SUMS-winlin.txt
     - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
