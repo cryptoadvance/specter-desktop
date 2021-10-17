@@ -98,9 +98,11 @@ release_pip:
     # Either testing it or doing the real thing depending on which gitlab-project we're running:
     - if ! [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* --repository-url https://test.pypi.org/legacy/ ; fi
     - if [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* ; fi
-    - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS-pip.txt
-    - cat ./dist/SHA256SUMS-pip.txt
-    - python ./utils/github.py upload ./dist/SHA256SUMS-pip.txt 
+    - cd dist
+    - sha256sum cryptoadvance.specter-*.tar.gz > SHA256SUMS-pip
+    - cd ..
+    - cat ./dist/SHA256SUMS-pip
+    - python ./utils/github.py upload ./dist/SHA256SUMS-pip
     - python ./utils/github.py upload ./dist/cryptoadvance.specter-*.tar.gz
   artifacts:
     when: always
@@ -153,21 +155,33 @@ release_electron_linux_windows:
     - ./build-ci.sh $CI_COMMIT_TAG "make-hash"
     - ls -l release-linux
     - ls -l release-win
-    - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-winlin.txt
-    - cat ./SHA256SUMS-winlin.txt
-    - ../utils/sign_artifact.sh --artifact ./SHA256SUMS-winlin.txt
+    - cd release-linux
+    - sha256sum  specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz > ./SHA256SUMS-linux
+    - cat ./SHA256SUMS-linux
+    - cd ..
+    - cd release-win
+    - sha256sum  Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-win
+    - cat ./SHA256SUMS-win.txt
+    - cd ..
+    - ../utils/sign_artifact.sh --artifact ./release-win/SHA256SUMS-win
+    - ../utils/sign_artifact.sh --artifact ./release-linux/SHA256SUMS-linux
     - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
-    - python3 ../utils/github.py upload ./SHA256SUMS-winlin.txt
-    - python3 ../utils/github.py upload ./SHA256SUMS-winlin.txt.asc
+    - python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
+    - python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
+    - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
+    - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
   artifacts:
     when: always
     paths:
-      - pyinstaller/release-linux/*
-      - pyinstaller/release-win/*
-      - pyinstaller/SHA256SUMS-winlin.txt
-      - pyinstaller/SHA256SUMS-winlin.txt.asc
+      - pyinstaller/release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
+      - pyinstaller/release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
+      - pyinstaller/release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
+      - pyinstaller/release-linux/SHA256SUMS-linux
+      - pyinstaller/release-linux/SHA256SUMS-linux.asc
+      - pyinstaller/release-win/SHA256SUMS-win
+      - pyinstaller/release-win/SHA256SUMS-win.asc
     expire_in: 1 day
 
 release_signatures:
@@ -177,11 +191,14 @@ release_signatures:
   script:
     - pip3 install -r test_requirements.txt
     - ./utils/create-gitlab-cli-cfg.sh
-    - python3 -m utils.download-gitlab-artifacts download # downloads the job-artifacts from gitlab
-    - python3 -m utils.download-gitlab-artifacts create   # creates a SHA256SUM.txt
-    - python3 -m utils.download-gitlab-artifacts upload   # uploads it to github
-    - if [[ -f /credentials/private.key ]]; then echo "signing ..." ; gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --clear-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./signing_dir/SHA256SUMS.txt || true ; fi
-    - if [[ -f ./signing_dir/SHA256SUMS.txt.sig ]]; then python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.txt.sig ; fi
+    - gpg --import --no-tty --batch --yes /credentials/private.key
+    - python3 -m utils.download-gitlab-artifacts download    # downloads the job-artifacts from gitlab
+    - python3 -m utils.download-gitlab-artifacts checkhashes # checks all SHA256SUMM* files
+    - python3 -m utils.download-gitlab-artifacts checksig    # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.download-gitlab-artifacts create      # creates a SHA256SUM.txt
+    - python3 -m utils.download-gitlab-artifacts upload      # uploads it to github
+    - ./utils/sign_artifact.sh --artifact ./signing_dir/SHA256SUMS
+    - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc ; fi
 
 release_docker:
   stage: post_releasing

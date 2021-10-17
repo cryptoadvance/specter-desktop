@@ -75,7 +75,7 @@ def download_and_unpack_all_artifacts(pipeline):
 
 
 def create_sha256sum_file():
-    with open(f"{target_dir}/SHA256SUMS.txt", "w") as shafile:
+    with open(f"{target_dir}/SHA256SUMS", "w") as shafile:
         for file in os.listdir(target_dir):
             if file.startswith("SHA256"):
                 continue
@@ -83,9 +83,25 @@ def create_sha256sum_file():
                 bytes = f.read()  # read entire file as bytes
                 readable_hash = hashlib.sha256(bytes).hexdigest()
                 shafile.write(f"{readable_hash} {file}\n")
-    returncode = subprocess.call(["sha256sum", "-c", "SHA256SUMS.txt"], cwd=target_dir)
+    returncode = subprocess.call(["sha256sum", "-c", "SHA256SUMS"], cwd=target_dir)
     if returncode != 0:
         raise Exception("One of the hashes is not matching")
+
+
+def check_all_hashes():
+    for file in os.listdir(target_dir):
+        if file.startswith("SHA256SUM") and not file.endswith(".asc"):
+            returncode = subprocess.call(["sha256sum", "-c", file], cwd=target_dir)
+            if returncode != 0:
+                raise Exception(f"Could not validate hashes for file {file}")
+
+
+def check_all_sigs():
+    for file in os.listdir(target_dir):
+        if file.endswith(".asc"):
+            returncode = subprocess.call(["gpg", "--verify", file], cwd=target_dir)
+            if returncode != 0:
+                raise Exception(f"Could not validate signature of file {file}")
 
 
 def calculate_publish_params():
@@ -108,7 +124,7 @@ def calculate_publish_params():
 
 
 def upload_sha256sum_file():
-    artifact = os.path.join("signing_dir", "SHA256SUMS.txt")
+    artifact = os.path.join("signing_dir", "SHA256SUMS")
     project, tag, password = calculate_publish_params()
 
     if github.artifact_exists(project, tag, Path(artifact).name):
@@ -129,6 +145,10 @@ def upload_sha256sum_file():
 if __name__ == "__main__":
     if "download" in sys.argv:
         download_and_unpack_all_artifacts(pipeline)
+    if "checkhashes" in sys.argv:
+        check_all_hashes()
+    if "checksigs" in sys.argv:
+        check_all_sigs()
     if "create" in sys.argv:
         create_sha256sum_file()
     if "upload" in sys.argv:

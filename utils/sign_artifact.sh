@@ -26,10 +26,14 @@ if [[ -z $artifact ]]; then
     exit 1
 fi
 
+
+# We want a detached signature in cleartext. Extension: .asc (as in bitcoin)
+output_file=${artifact}.asc
+
 if [[ -f /credentials/private.key ]]; then 
     echo "signing ..." ; 
     gpg --import --no-tty --batch --yes /credentials/private.key
-    echo $GPG_PASSPHRASE | gpg --clear-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
+    echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
 else
-    gpg --clear-sign $artifact
+    gpg --detach-sign --armor $artifact
 fi
