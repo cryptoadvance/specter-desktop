@@ -210,7 +210,7 @@ function sub_binary {
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
     if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
-        wget https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
+        wget --progress=dot -e dotbytes=10M https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
     fi
     tar -xzf bitcoin-${version}-x86_64-linux-gnu.tar.gz
     if [[ -d ./bitcoin ]]; then
