@@ -9,7 +9,7 @@ timeout = 5
 [specterdesktop]
 url = https://gitlab.com
 #private_token = ${CI_JOB_TOKEN}
-job_token = helper: ${CI_JOB_TOKEN}
+job_token =${CI_JOB_TOKEN}
 api_version = 4
 
 

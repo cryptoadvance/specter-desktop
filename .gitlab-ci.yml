@@ -90,7 +90,7 @@ release_pip:
     - pip3 install -r test_requirements.txt
     - python3 setup.py install
     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
-    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
+    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-pre(0|[1-9][0-9]*))? ]]; then exit 1; fi
     # set version number in setup.py
     - echo Releasing $CI_COMMIT_TAG
     - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
@@ -103,9 +103,11 @@ release_pip:
     - if [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* ; fi
     - cd dist
     - sha256sum cryptoadvance.specter-*.tar.gz > SHA256SUMS-pip
+    - ../utils/sign_artifact.sh --artifact ./SHA256SUMS-pip
     - cd ..
     - cat ./dist/SHA256SUMS-pip
-    - python ./utils/github.py upload ./dist/SHA256SUMS-pip
+    #- python ./utils/github.py upload ./dist/SHA256SUMS-pip
+    #- python ./utils/github.py upload ./dist/SHA256SUMS-pip.asc
     - python ./utils/github.py upload ./dist/cryptoadvance.specter-*.tar.gz
   artifacts:
     when: always
@@ -178,10 +180,10 @@ release_electron_linux_windows:
     - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
-    - python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
-    - python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
-    - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
-    - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
+    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
+    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
+    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
+    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
   cache:
     key:
         files:
@@ -215,11 +217,12 @@ release_signatures:
     - ./utils/create-gitlab-cli-cfg.sh
     - gpg --import --no-tty --batch --yes /credentials/private.key
   script:
-    - python3 -m utils.download-gitlab-artifacts download    # downloads the job-artifacts from gitlab
-    - python3 -m utils.download-gitlab-artifacts checkhashes # checks all SHA256SUM* files
-    - python3 -m utils.download-gitlab-artifacts checksig    # checks the signatures of all SHA256SUMM*.asc files
-    - python3 -m utils.download-gitlab-artifacts create      # creates a SHA256SUM.txt
-    - python3 -m utils.download-gitlab-artifacts upload      # uploads it to github
+    - python3 -m utils.download-gitlab-artifacts download          # downloads the job-artifacts from gitlab
+    - python3 -m utils.download-gitlab-artifacts downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
+    - python3 -m utils.download-gitlab-artifacts checkhashes       # checks all SHA256SUM* files
+    - python3 -m utils.download-gitlab-artifacts checksig          # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.download-gitlab-artifacts create            # creates a SHA256SUM.txt
+    - python3 -m utils.download-gitlab-artifacts upload            # uploads it to github
     - ./utils/sign_artifact.sh --artifact ./signing_dir/SHA256SUMS
     - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc
 
