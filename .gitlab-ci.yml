@@ -8,11 +8,16 @@ variables:
 
 cache:
   # enable per-job and per-branch caching
-  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-  paths:
-    - .cache/pip
-    - .env/
-    - ./tests/elements
+  - key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - .cache/pip
+      - .env/
+      - ./tests/elements
+  - key:
+      files:
+        - ./pyinstaller/electron/package-lock.json
+    paths:
+      - ./pyinstaller/electron/node_modules
 
 stages:
   - testing
