@@ -8,16 +8,14 @@ variables:
 
 cache:
   # enable per-job and per-branch caching
-  - key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+  - key: 
+      files: 
+        - ./requirements.txt
+        - ./test_requirements.txt
+      prefix: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - .cache/pip
       - .env/
-      - ./tests/elements
-  - key:
-      files:
-        - ./pyinstaller/electron/package-lock.json
-    paths:
-      - ./pyinstaller/electron/node_modules
 
 stages:
   - testing
@@ -166,7 +164,7 @@ release_electron_linux_windows:
     - cd ..
     - cd release-win
     - sha256sum  Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-win
-    - cat ./SHA256SUMS-win.txt
+    - cat ./SHA256SUMS-win
     - cd ..
     - ../utils/sign_artifact.sh --artifact ./release-win/SHA256SUMS-win
     - ../utils/sign_artifact.sh --artifact ./release-linux/SHA256SUMS-linux
@@ -177,6 +175,14 @@ release_electron_linux_windows:
     - python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
     - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
     - python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
+  cache:
+    key:
+        files:
+          - ./pyinstaller/electron/package-lock.json
+        prefix: $CI_JOB_NAME
+    paths:
+      - ./pyinstaller/electron/node_modules
+
   artifacts:
     when: always
     paths:
