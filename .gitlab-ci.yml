@@ -12,10 +12,10 @@ cache:
       files: 
         - ./requirements.txt
         - ./test_requirements.txt
-      prefix: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+      prefix: "$CI_JOB_NAME"
     paths:
       - .cache/pip
-      - .env/
+      - .env
 
 stages:
   - testing
@@ -137,6 +137,13 @@ release_binary_windows:
     paths:
       - pyinstaller/release/*
     expire_in: 1 day
+  cache:
+    key:
+        files:
+          - ./pyinstaller/electron/package-lock.json
+        prefix: $CI_JOB_NAME
+    paths:
+      - ./pyinstaller/electron/node_modules
 
 release_electron_linux_windows:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
@@ -199,17 +206,22 @@ release_signatures:
   stage: post_releasing
   only: 
     - tags
-  script:
+  before_script:
+    - python -V  # Print out python version for debugging
+    - pip3 install --upgrade virtualenv
+    - virtualenv --python=python3 .env
+    - source .env/bin/activate
     - pip3 install -r test_requirements.txt
     - ./utils/create-gitlab-cli-cfg.sh
     - gpg --import --no-tty --batch --yes /credentials/private.key
+  script:
     - python3 -m utils.download-gitlab-artifacts download    # downloads the job-artifacts from gitlab
-    - python3 -m utils.download-gitlab-artifacts checkhashes # checks all SHA256SUMM* files
+    - python3 -m utils.download-gitlab-artifacts checkhashes # checks all SHA256SUM* files
     - python3 -m utils.download-gitlab-artifacts checksig    # checks the signatures of all SHA256SUMM*.asc files
     - python3 -m utils.download-gitlab-artifacts create      # creates a SHA256SUM.txt
     - python3 -m utils.download-gitlab-artifacts upload      # uploads it to github
     - ./utils/sign_artifact.sh --artifact ./signing_dir/SHA256SUMS
-    - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc ; fi
+    - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc
 
 release_docker:
   stage: post_releasing
