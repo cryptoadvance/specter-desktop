@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 class GenericDataManager:
     """
     A GenericDataManager manages json-data in self.data in a json file. It's meant to
-    be derived from. See OtpManager
+    be derived from. See OtpManager.
+
+    Supports encrypting the files at rest.
     """
 
     name_of_json_file = "some_data.json"
@@ -39,28 +41,28 @@ class GenericDataManager:
         # example implementation for users:
         # return [u.json for u in some_list]
 
-    def __init__(self, data_folder):
+    def __init__(self, data_folder, encryption_key=None):
         # password indicates that the data needs to be encrypted at rest. Specter should
         #   never internally store the password. It is only provided here to decrypt
         #   storage!
         self.data_folder = data_folder
-        self.load()
+        self.load(encryption_key)
 
     @property
     def data_file(self):
         return os.path.join(self.data_folder, self.__class__.name_of_json_file)
 
-    def load(self):
+    def load(self, encryption_key=None):
         # if whatever-the-name.json file exists - load from it
         if os.path.isfile(self.data_file):
             logger.debug(f"Loading existing file {self.data_file}")
-            self.data = read_json_file(self.data_file)
+            self.data = read_json_file(self.data_file, encryption_key=encryption_key)
         # otherwise - create one and assign unique id
         else:
             logger.debug(f"{self.data_file} not existing. Creating ...")
             self.data = self.__class__.initial_data()
-            self._save()
+            self._save(encryption_key=encryption_key)
 
-    def _save(self):
+    def _save(self, encryption_key=None):
         # data_json = convert_to_list_of_dict(self.data)
-        write_json_file(self.data, self.data_file)
+        write_json_file(self.data, self.data_file, encryption_key=encryption_key)
