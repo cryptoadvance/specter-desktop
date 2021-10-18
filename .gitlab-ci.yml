@@ -134,6 +134,11 @@ release_binary_windows:
     - cd pyinstaller 
     - .\build-win-ci.bat $CI_COMMIT_TAG
     - python ../utils/github.py upload ./release/specterd-$CI_COMMIT_TAG-win64.zip
+    - cd release
+    - sha256sum specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-win
+    - type SHA256SUMS-win
+    - echo %GPG_PASSPHRASE% | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-win
+    - dir
   artifacts:
     when: always
     paths:
@@ -142,7 +147,7 @@ release_binary_windows:
   cache:
     key:
         files:
-          - ./pyinstaller/electron/package-lock.json
+          - ./pyinstaller/electron/package-lock.jsonhkp://keyserver.ubuntu.com
         prefix: $CI_JOB_NAME
     paths:
       - ./pyinstaller/electron/node_modules
