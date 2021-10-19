@@ -7,8 +7,6 @@ import sys
 import zipfile
 from pathlib import Path
 
-import gitlab
-
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -84,6 +82,8 @@ class ReleaseHelper:
         pass
 
     def init_gitlab(self):
+        import gitlab
+
         if os.environ.get("GITLAB_PRIVATE_TOKEN"):
             logger.info("Using GITLAB_PRIVATE_TOKEN")
             self.gl = gitlab.Gitlab(

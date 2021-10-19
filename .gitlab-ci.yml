@@ -126,6 +126,7 @@ release_binary_windows:
     - pip3 install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
+    - pip3 install -r test_requirements.txt
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
