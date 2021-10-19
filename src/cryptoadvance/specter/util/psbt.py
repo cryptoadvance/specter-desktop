@@ -414,7 +414,10 @@ class SpecterPSBT(AbstractTxContext):
             "tx_full_size": full_size,
             "sigs_count": self.sigs_count,
             "time": self.time,
-            "devices_signed": [device.alias for device in self.get_signed_devices()],
+            "devices_signed": [
+                device if isinstance(device, str) else device.alias
+                for device in self.get_signed_devices()
+            ],
             "fee_rate": round(fee / full_size, 2),
         }
         if self.raw:
