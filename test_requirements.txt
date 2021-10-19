@@ -8,3 +8,4 @@ PySocks==1.7.1
 pytest-cov==2.10.1
 mock==4.0.2
 babel==2.9.1
+python-gitlab==2.10.1
