@@ -44,11 +44,11 @@ Subcommands:
     run  [spec-file]    will run the tests.
                         open and run take a spec-file optionally. If you add a spec-file, 
                         then automatically the corresponding snapshot is untarred before and,
-                        in the case of run, only the spec-file and all subsequent spec_files 
-                        are executed.
-    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball
-                        of the btc-dir and the specter-dir and store those files in the 
-                        ./cypress/fixtures directory
+                          in the case of run, only the spec-file and all subsequent spec_files 
+                          are executed.
+    snapshot [spec_file]  will create a snapshot of the spec-file. It will create a tarball
+                          of the btc-/elm-dir and the specter-dir and store those files in the 
+                          ./cypress/fixtures directory
 
 generic-options:
     --debug             Run as much stuff in debug as we can
