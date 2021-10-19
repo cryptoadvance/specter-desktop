@@ -26,6 +26,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.common import str2bool
+from cryptoadvance.specter.util.shell import which
 import code, traceback, signal
 
 logger = logging.getLogger(__name__)
@@ -157,6 +158,22 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
         % (running_version, requested_version)
     )
     return elementsd_controller
+
+
+# Below this point are fixtures. Fixtures have a scope. Check about scopes here:
+# https://docs.pytest.org/en/6.2.x/fixture.html#scope-sharing-fixtures-across-classes-modules-packages-or-session
+# possible values: function, class, module, package or session.
+# The nodes are of scope session. All else is the default (function)
+
+
+@pytest.fixture(scope="session")
+def bitcoind_path():
+    if os.path.isfile("tests/bitcoin/src/bitcoind"):
+        return "tests/bitcoin/src/bitcoind"
+    elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+        return "tests/bitcoin/bin/bitcoind"
+    else:
+        return which("bitcoind")
 
 
 @pytest.fixture(scope="session")

@@ -8,15 +8,19 @@ variables:
 
 cache:
   # enable per-job and per-branch caching
-  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-  paths:
-    - .cache/pip
-    - .env/
-    - ./tests/elements
+  - key: 
+      files: 
+        - ./requirements.txt
+        - ./test_requirements.txt
+      prefix: "$CI_JOB_NAME"
+    paths:
+      - .cache/pip
+      - .env
 
 stages:
   - testing
   - releasing
+  - post_releasing
 
 before_script:
   - docker info || echo "no docker-command found" # Print out docker version for debugging
@@ -86,7 +90,7 @@ release_pip:
     - pip3 install -r test_requirements.txt
     - python3 setup.py install
     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
-    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then exit 1; fi
+    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-pre(0|[1-9][0-9]*))? ]]; then exit 1; fi
     # set version number in setup.py
     - echo Releasing $CI_COMMIT_TAG
     - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
@@ -97,8 +101,13 @@ release_pip:
     # Either testing it or doing the real thing depending on which gitlab-project we're running:
     - if ! [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* --repository-url https://test.pypi.org/legacy/ ; fi
     - if [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* ; fi
-    - sha256sum dist/cryptoadvance.specter-*.tar.gz > ./dist/SHA256SUMS-pip.txt
-    - python ./utils/github.py upload ./dist/SHA256SUMS-pip.txt 
+    - cd dist
+    - sha256sum cryptoadvance.specter-*.tar.gz > SHA256SUMS-pip
+    - ../utils/sign_artifact.sh --artifact ./SHA256SUMS-pip
+    - cd ..
+    - cat ./dist/SHA256SUMS-pip
+    #- python ./utils/github.py upload ./dist/SHA256SUMS-pip
+    #- python ./utils/github.py upload ./dist/SHA256SUMS-pip.asc
     - python ./utils/github.py upload ./dist/cryptoadvance.specter-*.tar.gz
   artifacts:
     when: always
@@ -117,6 +126,7 @@ release_binary_windows:
     - pip3 install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
+    - pip3 install -r test_requirements.txt
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
@@ -125,11 +135,23 @@ release_binary_windows:
     - cd pyinstaller 
     - .\build-win-ci.bat $CI_COMMIT_TAG
     - python ../utils/github.py upload ./release/specterd-$CI_COMMIT_TAG-win64.zip
+    - cd release
+    - python ..\..\utils\release-helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
+    - type SHA256SUMS-windows
+    - echo $GPG_PASSPHRASE | c:\Program` Files` `(x86`)\GnuPg\bin\gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
+    - dir
   artifacts:
     when: always
     paths:
       - pyinstaller/release/*
     expire_in: 1 day
+  cache:
+    key:
+        files:
+          - ./pyinstaller/electron/package-lock.json
+        prefix: $CI_JOB_NAME
+    paths:
+      - ./pyinstaller/electron/node_modules
 
 release_electron_linux_windows:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
@@ -151,21 +173,70 @@ release_electron_linux_windows:
     - ./build-ci.sh $CI_COMMIT_TAG "make-hash"
     - ls -l release-linux
     - ls -l release-win
-    - sha256sum  ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS.txt
-    - cat ./SHA256SUMS.txt
-    - if [[ -f /credentials/private.key ]]; then gpg --import --no-tty --batch --yes /credentials/private.key; echo $GPG_PASSPHRASE | gpg --detach-sign  --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback ./SHA256SUMS.txt || true ; fi
-    - python ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
-    - python ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
-    - python ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
-    - python ../utils/github.py upload ./SHA256SUMS.txt
-    - if [[ -f ./SHA256SUMS.txt.sig ]]; then python3 ../utils/github.py upload ./SHA256SUMS.txt.sig ; fi
+    - cd release-linux
+    - sha256sum  specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz > ./SHA256SUMS-linux
+    - cat ./SHA256SUMS-linux
+    - cd ..
+    - cd release-win
+    - sha256sum  Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-win
+    - cat ./SHA256SUMS-win
+    - cd ..
+    - ../utils/sign_artifact.sh --artifact ./release-win/SHA256SUMS-win
+    - ../utils/sign_artifact.sh --artifact ./release-linux/SHA256SUMS-linux
+    - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
+    - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
+    - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
+    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
+    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
+    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
+    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
+  cache:
+    key:
+        files:
+          - ./pyinstaller/electron/package-lock.json
+        prefix: $CI_JOB_NAME
+    paths:
+      - ./pyinstaller/electron/node_modules
+
   artifacts:
     when: always
     paths:
-      - pyinstaller/release-linux/*
-      - pyinstaller/release-win/*
-      - pyinstaller/SHA256SUMS.txt
+      - pyinstaller/release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
+      - pyinstaller/release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
+      - pyinstaller/release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
+      - pyinstaller/release-linux/SHA256SUMS-linux
+      - pyinstaller/release-linux/SHA256SUMS-linux.asc
+      - pyinstaller/release-win/SHA256SUMS-win
+      - pyinstaller/release-win/SHA256SUMS-win.asc
     expire_in: 1 day
 
+release_signatures:
+  stage: post_releasing
+  only: 
+    - tags
+  before_script:
+    - python -V  # Print out python version for debugging
+    - pip3 install --upgrade virtualenv
+    - virtualenv --python=python3 .env
+    - source .env/bin/activate
+    - pip3 install -r test_requirements.txt
+    - ./utils/create-gitlab-cli-cfg.sh
+    - gpg --import --no-tty --batch --yes /credentials/private.key
+  script:
+    - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
+    - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
+    - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files
+    - python3 -m utils.release-helper checksig          # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.release-helper create            # creates a SHA256SUM.txt
+    - python3 -m utils.release-helper upload            # uploads it to github
+    - ./utils/sign_artifact.sh --artifact ./signing_dir/SHA256SUMS
+    - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc
 
-
+release_docker:
+  stage: post_releasing
+  only: 
+    - tags
+  before_script:
+    - echo "Triggering Docker Release"
+  script:
+    - ./utils/trigger_docker_build.sh

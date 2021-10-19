@@ -92,8 +92,8 @@ After that, Specter will be available at [http://127.0.0.1:25441/](http://127.0.
 The above installation-method is quite easy but you have to trust pypi. If you want to verify the software completely yourself while still installing via pip3, you can do something like this:
 ```
 wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/cryptoadvance.specter-1.4.6.tar.gz
-wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/SHA256SUMS-pip.txt
-sha256sum --check SHA256SUMS-pip.txt 
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/SHA256SUMS-pip
+sha256sum --check SHA256SUMS-pip 
 # Do your usual GPG-check here
 # Now, let's extract the requirements-file and install all requirements with require-hashes
 tar -xvzf cryptoadvance.specter-1.4.6.tar.gz cryptoadvance.specter-1.4.6/requirements.txt
