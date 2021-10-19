@@ -31,9 +31,15 @@ fi
 output_file=${artifact}.asc
 
 if [[ -f /credentials/private.key ]]; then 
-    echo "signing ..." ; 
+    echo "Importing single private key"
     gpg --import --no-tty --batch --yes /credentials/private.key
-    echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
-else
-    gpg --detach-sign --armor $artifact
 fi
+
+if [[ -f /credentials/gnupg.tar.gz ]]; then 
+    echo "extracting gnupg.tar.gz"
+    tar -xzf /credentials/gnupg.tar.gz -C /root
+    chown -R root:root ~/.gnupg
+fi
+
+echo "signing ..."
+echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 

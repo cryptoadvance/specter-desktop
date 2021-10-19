@@ -30,7 +30,7 @@ class Sha256sumFile:
     def download_hashed_files(self, gc):
         for file in self.hashed_files.keys():
             logger.info(f"Downloading {file} from {tag}")
-            gc.download_artifact(tag, file, target_dir=self.target_dir)
+            gc.download_artifact(self.tag, file, target_dir=self.target_dir)
 
     def read(self):
         with open(os.path.join(self.target_dir, self.name), "r") as file:
@@ -113,7 +113,7 @@ class ReleaseHelper:
             self.github_project = f"{project_root_namespace}/specter-desktop"
         else:
             self.project_id = 15721074  # cryptoadvance/specter-desktop
-            self.project_id = 15541285
+            # self.project_id =
             self.github_project = f"{project_root_namespace}/specter-desktop"
 
         logger.info(f"Using project_id: {self.project_id}")
@@ -121,25 +121,28 @@ class ReleaseHelper:
 
         self.project = self.gl.projects.get(self.project_id)
 
-        if os.environ.get("CI_PIPELINE_ID"):
-            pipeline_id = os.environ.get("CI_PIPELINE_ID")
-        else:
-            pipeline_id = 387387482  # cryptoadavance v1.7.0-pre1
-            pipeline_id = 389780348  # k9ert v0.0.1-pre1
-
-        logger.info(f"Using pipeline_id: {pipeline_id}")
-
         if os.environ.get("CI_COMMIT_TAG"):
             self.tag = os.environ.get("CI_COMMIT_TAG")
         else:
             raise Exception("no tag given ( export CI_COMMIT_TAG=v0.0.0.0-pre13 )")
-
         logger.info(f"Using tag: {self.tag}")
 
-        self.pipeline = self.project.pipelines.get(pipeline_id)
+        if os.environ.get("CI_PIPELINE_ID"):
+            pipeline_id = os.environ.get("CI_PIPELINE_ID")
+        else:
+            logger.info(
+                "no CI_PIPELINE_ID given, trying to find an appropriate one ..."
+            )
+            pipelines = self.project.pipelines.list()
+            for pipeline in pipelines:
+                if pipeline.ref == self.tag:
+                    self.pipeline = pipeline
+                    logger.info(f"Found matching pipeline: {pipeline}")
+            if not self.pipeline:
+                raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
+        logger.info(f"Using pipeline_id: {self.pipeline.id}")
         self.target_dir = "signing_dir"
-
         Path(self.target_dir).mkdir(parents=True, exist_ok=True)
 
     def download_and_unpack_all_artifacts(self):
