@@ -274,7 +274,7 @@ class ReleaseHelper:
 def sha256sum(filenames):
     sha_file = Sha256sumFile("SHA256SUMS", target_dir=".")
     for filename in filenames:
-        # logger.info(f"Adding {filename}")
+        logger.info(f"Adding {filename}")
         sha_file.add_file(filename)
     sha_file.print()
 

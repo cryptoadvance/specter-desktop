@@ -136,7 +136,7 @@ release_binary_windows:
     - .\build-win-ci.bat $CI_COMMIT_TAG
     - python ../utils/github.py upload ./release/specterd-$CI_COMMIT_TAG-win64.zip
     - cd release
-    - python ..\..\utils\release-helper.py sha256sums specterd-%CI_COMMIT_TAG%-win64.zip > SHA256SUMS-windows
+    - python ..\..\utils\release-helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
     - type SHA256SUMS-windows
     - echo %GPG_PASSPHRASE% | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
     - dir
@@ -148,7 +148,7 @@ release_binary_windows:
   cache:
     key:
         files:
-          - ./pyinstaller/electron/package-lock.jsonhkp://keyserver.ubuntu.com
+          - ./pyinstaller/electron/package-lock.json
         prefix: $CI_JOB_NAME
     paths:
       - ./pyinstaller/electron/node_modules
