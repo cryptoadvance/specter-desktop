@@ -254,12 +254,14 @@ class ReleaseHelper:
         artifact = os.path.join("signing_dir", "SHA256SUMS")
         self.calculate_publish_params()
 
-        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
+        if self.github.artifact_exists(
+            self.github_project, self.tag, Path(artifact).name
+        ):
             logger.info(f"Github artifact {artifact} existing. Skipping upload.")
             exit(0)
         else:
             logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
-        github.publish_release_from_tag(
+        self.github.publish_release_from_tag(
             self.github_project,
             self.tag,
             [artifact],
@@ -270,7 +272,7 @@ class ReleaseHelper:
 
 
 def sha256sum(filenames):
-    sha_file = Sha256sumFile("SHA256SUMS")
+    sha_file = Sha256sumFile("SHA256SUMS", target_dir=".")
     for filename in filenames:
         # logger.info(f"Adding {filename}")
         sha_file.add_file(filename)
