@@ -135,7 +135,7 @@ release_binary_windows:
     - .\build-win-ci.bat $CI_COMMIT_TAG
     - python ../utils/github.py upload ./release/specterd-$CI_COMMIT_TAG-win64.zip
     - cd release
-    - python3 -m utils.release-helper sha256sums specterd-%CI_COMMIT_TAG%-win64.zip > SHA256SUMS-windows
+    - python -m utils.release-helper sha256sums specterd-%CI_COMMIT_TAG%-win64.zip > SHA256SUMS-windows
     - type SHA256SUMS-windows
     - echo %GPG_PASSPHRASE% | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
     - dir
