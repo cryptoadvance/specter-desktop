@@ -74,7 +74,7 @@ def main():
         logger.info("Github artifact existing. Skipping upload.")
         exit(0)
     else:
-        logger.info("Github artifact does not exist. Let's upload!")
+        logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
 
     if not "GH_BIN_UPLOAD_PW" in os.environ:
         logger.error("GH_BIN_UPLOAD_PW not found.")
