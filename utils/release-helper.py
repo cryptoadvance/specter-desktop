@@ -9,7 +9,6 @@ from pathlib import Path
 
 import gitlab
 
-from utils import github
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -173,6 +172,8 @@ class ReleaseHelper:
                         zip.extract(zip_info, self.target_dir)
 
     def download_and_unpack_new_artifacts_from_github(self):
+        from utils import github
+
         gc = github.GithubConnection(self.github_project)
         release = gc.fetch_existing_release(self.tag)
         assets = gc.list_assets(release)
