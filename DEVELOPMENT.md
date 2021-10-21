@@ -196,6 +196,14 @@ there is a git [pre-commit hook](https://ljvmiranda921.github.io/notebook/2018/0
 pre-commit install
 ```
 
+If this throws an error: `command not found: pre-commit`, you need to install `pre-commit`.
+
+macOS users can run:
+```
+brew install pre-commit
+```
+
+
 ## Developing on tests
 We use pytest and for frontend-testing the amazing [cypress.io](https://www.cypress.io/).
 
