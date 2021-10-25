@@ -249,7 +249,7 @@ class MigDataManager(GenericDataManager):
 
     def _find_exec_log(self, id):
         for migration in self.migration_executions:
-            if migration["migration_id"] == id:
+            if migration.get("migration_id") == id:
                 return migration
         raise SpecterError(f"Can't find migration_execution with id {id}")
 
@@ -259,7 +259,7 @@ class MigDataManager(GenericDataManager):
 
     def has_migration_executed(self, migration_id):
         executed_list = [
-            migration_execution["migration_id"]
+            migration_execution.get("migration_id")
             for migration_execution in self.migration_executions
         ]
         logger.debug(f"Executed migration_classes ids: {executed_list}")

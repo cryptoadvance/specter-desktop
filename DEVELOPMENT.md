@@ -121,9 +121,9 @@ _note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate
 _TODO: Need more thorough tests!_
 
 In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
-* `./tests/install_bitcoind.sh --bitcoin binary` will install bitcoind in tests/bitcoin
-* `./tests/install_bitcoind.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
-* `./tests/install_bitcoind.sh --elements compile` will compile elements in tests/elements
+* `./tests/install_noded.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+* `./tests/install_noded.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+* `./tests/install_noded.sh --elements compile` will compile elements in tests/elements
 
 If you're not interested in elements, you can skip the liquid specific tests as described below.
 
@@ -222,17 +222,14 @@ Executing the tests is done via `./utils/test-cypress.sh`:
 # open the cypress application (to develop/debug/run tests interactively)
 ./utils/test-cypress.sh open
 ```
-The test_specifications which get executed are specified in cypress.json which looks something like this:
+The test_specifications which get executed are specified in `cypress.json`.
 
 More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
-Make sure to read it. The tooling we created around cypress quite helpful in daily development.
-In short, you can do this and the last command will give you a reliable development-environment which is the very same
-whenever you start it anew:
+Make sure to read it. The tooling we created around cypress might be quite helpful in daily development.
+In short, you can do this and the last command will give you a reliable development-environment which is the very same whenever you start it anew:
 ```
-./utils/test-cypress.sh snapshot spec_existing_history.js
-./utils/test-cypress.sh dev spec_existing_history.js
-# CTRL-C
-./utils/test-cypress.sh dev spec_existing_history.js
+./utils/test-cypress.sh snapshot spec_empty_specter_home.js
+./utils/test-cypress.sh dev spec_empty_specter_home.js # does not seem to work yet on MacOS
 # CTRL-C
 [...]
 ```
