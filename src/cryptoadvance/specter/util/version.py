@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 class VersionChecker:
     def __init__(self, name="cryptoadvance.specter", specter=None):
         self.name = name
-        self.current = self.get_current_version()
+
+        self.current = self._get_current_version()
+        logger.info(f" ......... initialized with {self.current}")
         self.latest = "unknown"
         self.upgrade = False
         self.running = False
@@ -35,7 +37,16 @@ class VersionChecker:
 
     @property
     def info(self):
-        return {"current": self.current, "latest": self.latest, "upgrade": self.upgrade}
+        info = {"current": self.current, "latest": self.latest, "upgrade": self.upgrade}
+        return info
+
+    @property
+    def installation_type(self):
+        """app or pip"""
+        if getattr(sys, "frozen", False):
+            return "app"
+        else:
+            return "pip"
 
     def loop(self, dt=3600):
         """Checks for updates once per hour"""
@@ -44,76 +55,69 @@ class VersionChecker:
             logger.info(f"version checked. upgrade: {self.upgrade}")
             time.sleep(dt)
 
-    def get_current_version(self):
+    def _get_current_version(self):
         current = "unknown"
-        try:
-            # try binary file
-            version_file = "version.txt"
-            if getattr(sys, "frozen", False):
-                version_file = os.path.join(sys._MEIPASS, "version.txt")
-            with open(version_file) as f:
-                current = f.read().strip()
-        except:
-            try:
-                current = importlib_metadata.version("cryptoadvance.specter")
-                # check if it's installed from master
-                if current == "vx.y.z-get-replaced-by-release-script":
-                    current = "custom"
-            except Exception as e:
-                logger.exception(e)
-                pass
+        if self.installation_type == "app":
+            current = VersionChecker._version_txt_content()
+            print("APP !!")
+        else:
+            current = importlib_metadata.version(self.name)
+            print("PIP !!")
+        if current == "vx.y.z-get-replaced-by-release-script":
+            current = "custom"
         return current
 
-    def get_binary_version(self):
+    def _get_binary_version(self):
         """
         Get binary version: current, latest.
         Fails if version.txt is not present.
         Returns latest = "unknown" if fetch failed.
         """
-        version_file = "version.txt"
-        if getattr(sys, "frozen", False):
-            version_file = os.path.join(sys._MEIPASS, "version.txt")
-        with open(version_file) as f:
-            current = f.read().strip()
+        current = self._get_current_version()
+        latest = "unknown"
+        if self.name != "cryptoadvance.specter":
+            logger.warning(
+                "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
+            )
         try:
             if self.specter:
                 requests_session = self.specter.requests_session(force_tor=False)
             else:
                 requests_session = requests.Session()
             releases = requests_session.get(
-                "https://api.github.com/repos/cryptoadvance/specter-desktop/releases"
+                f"https://api.github.com/repos/cryptoadvance/specter-desktop/releases"
             ).json()
-            latest = "unknown"
             for release in releases:
                 if release["prerelease"] or release["draft"]:
                     continue
                 latest = release["name"]
                 break
-        except:
+        except Exception as e:
+            logger.exception(e)
             latest = "unknown"
         return current, latest
 
-    def get_pip_version(self):
-        if self.specter:
-            requests_session = self.specter.requests_session(force_tor=False)
-        else:
-            requests_session = requests.Session()
+    def _get_pip_version(self):
+        """
+        returns current, latest
+        """
+        current = self._get_current_version()
         try:
+            if self.specter:
+                requests_session = self.specter.requests_session(force_tor=False)
+            else:
+                requests_session = requests.Session()
+
             releases = (
-                requests_session.get("https://pypi.org/pypi/cryptoadvance.specter/json")
+                requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
                 .json()["releases"]
                 .keys()
             )
 
             latest = list(releases)[-1]
-        except:
+        except Exception as e:
+            logger.exception(e)
             latest = "unknown"
-
-        current = importlib_metadata.version("cryptoadvance.specter")
-        # check if it's installed from master
-        if current == "vx.y.z-get-replaced-by-release-script":
-            current = "custom"
-
         return current, latest
 
     def get_version_info(self):
@@ -127,17 +131,10 @@ class VersionChecker:
         current = "unknown"
         latest = "unknown"
         # check binary version
-        try:
-            current, latest = self.get_binary_version()
-        # if file not found
-        except FileNotFoundError as exc:
-            try:
-                current, latest = self.get_pip_version()
-            except Exception as exc:
-                logger.error(exc)
-        # other exceptions
-        except Exception as exc:
-            logger.error(exc)
+        if self.installation_type == "app":
+            current, latest = self._get_binary_version()
+        else:
+            current, latest = self._get_pip_version()
 
         # check that both current and latest versions match the pattern
         # vA.B.C or just A.B.C
@@ -154,6 +151,12 @@ class VersionChecker:
         else:
             self.stop()
         return current, latest, False
+
+    @classmethod
+    def _version_txt_content(cls):
+        version_file = "version.txt"
+        with open(version_file) as f:
+            return f.read().strip()
 
 
 def compare(version1: str, version2: str) -> int:
