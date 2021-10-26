@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 fslock = threading.Lock()
 
 
-def read_json_file(path, encryption_key=None):
+def read_json_file(path):
     """read_json_file from the .specter-directory. Don't use it for
     something else"""
     with fslock:
@@ -29,13 +29,7 @@ def read_json_file(path, encryption_key=None):
         # try reading file
         try:
             with open(path, "r") as f:
-                if encryption_key is None:
-                    content = json.load(f)
-                else:
-                    encrypted_json = f.read()
-                    fernet = Fernet(encryption_key)
-                    plaintext_json = fernet.decrypt(encrypted_json)
-                    content = json.loads(plaintext_json)
+                content = json.load(f)
 
         # if failed - try reading from the backup
         except Exception as e:
@@ -60,7 +54,7 @@ def _delete_folder(path):
             shutil.rmtree(path)
 
 
-def _write_json_file(content, path, lock=None, encryption_key=None):
+def _write_json_file(content, path, lock=None):
     """Internal method which won't trigger the callback"""
     if lock is None:
         lock = fslock
@@ -77,23 +71,11 @@ def _write_json_file(content, path, lock=None, encryption_key=None):
             os.rename(path, bkp)
         try:
             with open(path, "w") as f:
-                if encryption_key is None:
-                    json.dump(content, f, indent=4)
-                else:
-                    plaintext_json = json.dumps(content)
-                    fernet = Fernet(encryption_key)
-                    encrypted_json = fernet.encrypt(plaintext_json)
-                    f.write(encrypted_json)
+                json.dump(content, f, indent=4)
 
             # check if write was sucessful
             with open(path, "r") as f:
-                if encryption_key is None:
-                    c = json.load(f)
-                else:
-                    encrypted_json = f.read()
-                    fernet = Fernet(encryption_key)
-                    plaintext_json = fernet.decrypt(encrypted_json)
-                    json.loads(plaintext_json)
+                c = json.load(f)
 
         # if not - move back backup
         except Exception as e:

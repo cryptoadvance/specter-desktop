@@ -43,16 +43,6 @@ def verify_password(stored_password, provided_password):
     return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
 
 
-def encrypt_string(message, key):
-    fernet = Fernet(key)
-    return fernet.encrypt(message)
-
-
-def decrypt_string(message, key):
-    fernet = Fernet(key)
-    return fernet.encrypt(message)
-
-
 class User(UserMixin):
     """
     The user_secret is used to encrypt/decrypt other user-specific data
