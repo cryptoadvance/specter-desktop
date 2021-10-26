@@ -398,8 +398,6 @@ def auth():
                 rate_limit = request.form["rate_limit"]
                 registration_link_timeout = request.form["registration_link_timeout"]
 
-                logger.debug(f"method: {method}")
-
             min_chars = int(auth["password_min_chars"])
             if specter_username:
                 if current_user.username != specter_username:
