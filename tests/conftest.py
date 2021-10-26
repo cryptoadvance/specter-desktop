@@ -23,7 +23,7 @@ from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.user import User
+from cryptoadvance.specter.user import User, hash_password
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.common import str2bool
 from cryptoadvance.specter.util.shell import which
@@ -388,16 +388,17 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     assert specter.chain == "regtest"
     # Create a User
-    someuser: User = specter.user_manager.add_user(
+    someuser = specter.user_manager.add_user(
         User.from_json(
-            {
+            user_dict={
                 "id": "someuser",
                 "username": "someuser",
-                "password": "somepassword",
+                "password": hash_password("somepassword"),
                 "config": {},
                 "is_admin": False,
+                "services": None,
             },
-            specter,
+            specter=specter,
         )
     )
     specter.user_manager.save()

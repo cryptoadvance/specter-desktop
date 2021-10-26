@@ -62,6 +62,7 @@ class User(UserMixin):
         specter,
         encrypted_user_secret=None,
         is_admin=False,
+        services=None,
     ):
         self.id = id
         self.username = username
@@ -75,7 +76,9 @@ class User(UserMixin):
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
+        self.services = services
 
+    # TODO: User obj instantiation belongs in UserManager
     @classmethod
     def from_json(cls, user_dict, specter):
         try:
@@ -86,6 +89,7 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
+                "services": user_dict.get("services", None),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]
@@ -93,6 +97,7 @@ class User(UserMixin):
             else:
                 user_args["is_admin"] = True
                 return cls(**user_args)
+
         except Exception as e:
             raise SpecterError(f"Unable to parse user JSON.:{e}")
 
@@ -128,7 +133,7 @@ class User(UserMixin):
             f"encrypted_user_secret: {json.dumps(self.encrypted_user_secret, indent=4)}"
         )
 
-    def decrypt_user_data(self, plaintext_password):
+    def decrypt_user_secret(self, plaintext_password):
         # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
         if not self.encrypted_user_secret:
             self._generate_user_secret(plaintext_password)
@@ -156,14 +161,12 @@ class User(UserMixin):
         # Encryption using the user_secret uses a Fernet key. But the Fernet
         #   key itself will be encrypted with the user's password.
         self.plaintext_user_secret = Fernet.generate_key()
-        print(f"generated user_secret: {self.plaintext_user_secret}")
         self._encrypt_user_secret(plaintext_password)
 
     def set_password(self, plaintext_password):
         # Hash the incoming plaintext password and update the encrypted
         #   user_secret as needed.
         self.hashed_password = hash_password(plaintext_password)
-        print(f"set user password: {plaintext_password}")
 
         # Must keep encrypted_user_secret in sync with password changes
         if self.encrypted_user_secret is None:
@@ -180,9 +183,10 @@ class User(UserMixin):
         user_dict = {
             "id": self.id,
             "username": self.username,
-            "password": self.hashed_password,  # TODO: Migrate attr to "hashed_password"?
+            "password": self.hashed_password,  # TODO: Migrate attr name to "hashed_password"?
             "is_admin": self.is_admin,
             "encrypted_user_secret": self.encrypted_user_secret,
+            "services": self.services,
         }
         if not self.is_admin:
             user_dict["config"] = self.config
@@ -231,6 +235,7 @@ class User(UserMixin):
         else:
             self.device_manager.update(data_folder=devices_folder)
 
+    # TODO: Refactor this into UserManager
     def save_info(self, delete=False):
         if self.manager is None:
             self.manager = self.specter.user_manager
@@ -244,6 +249,9 @@ class User(UserMixin):
             self.specter.delete_user(self)
         self.manager.save()
 
+    # TODO: Refactor calling code to explicitly call User.save() rather than embedding
+    #   self.save_info() on every update and setter. It ends up saving to disk multiple
+    #   times for a single Settings submit.
     def update_asset_label(self, asset, label, chain):
         if "asset_labels" not in self.config:
             self.config["asset_labels"] = {}

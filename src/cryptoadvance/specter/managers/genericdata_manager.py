@@ -2,6 +2,8 @@ import copy
 import logging
 import os
 
+from cryptography.fernet import Fernet
+
 from ..persistence import read_json_file, write_json_file
 
 
@@ -84,8 +86,8 @@ class GenericDataManager:
                 )
 
             for attr in self.encrypted_fields:
-                if attr in self.data and self.data["attr"] is not None:
-                    self.data[attr] = fernet.decrypt(self.data[attr])
+                if attr in self.data and self.data[attr] is not None:
+                    self.data[attr] = fernet.decrypt(self.data[attr].encode()).decode()
 
     def _save(self):
         if self.encryption_key:
@@ -94,7 +96,9 @@ class GenericDataManager:
             output_dict = copy.deepcopy(self.data)
             for attr in self.encrypted_fields:
                 if attr in output_dict and output_dict[attr] is not None:
-                    output_dict[attr] = fernet.encrypt(output_dict[attr])
+                    output_dict[attr] = fernet.encrypt(
+                        output_dict[attr].encode()
+                    ).decode()
         else:
             output_dict = self.data
 
