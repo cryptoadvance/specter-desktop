@@ -463,8 +463,6 @@ def auth():
                             # Set to the default
                             new_password = "admin"
 
-                        print(f"new_password: {new_password}")
-
                         current_user.set_password(new_password)
                         current_user.save_info()
 
