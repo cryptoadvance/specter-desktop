@@ -10,7 +10,6 @@ import os
 import shutil
 import threading
 
-from cryptography.fernet import Fernet
 from flask import current_app as app
 
 from .specter_error import SpecterError
