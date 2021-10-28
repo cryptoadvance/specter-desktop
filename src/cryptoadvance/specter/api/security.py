@@ -25,14 +25,14 @@ def verify_password(username, password):
     if not the_user:
         return abort(401)
     g.user = app.specter.user_manager.get_user_by_username(username)
-    if user_verify_password(g.user.password, password):
+    if user_verify_password(g.user.password_hash, password):
         logger.info(f"Rest-Request for user {username} PASSED password-test")
         return username
     else:
         logger.info(f"Rest-Request for user {username} FAILED password-test")
         return abort(401)
 
-    return g.user is not None and verify_password(g.user.password, password)
+    return g.user is not None and verify_password(g.user.password_hash, password)
 
 
 def require_admin(func):

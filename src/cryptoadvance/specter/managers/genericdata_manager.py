@@ -102,6 +102,7 @@ class GenericDataManager:
         else:
             output_dict = self.data
 
-        output_dict["encrypted_storage_version"] = self.encrypted_storage_version
+        if self.encrypted_fields:
+            output_dict["encrypted_storage_version"] = self.encrypted_storage_version
 
         write_json_file(output_dict, self.data_file)
