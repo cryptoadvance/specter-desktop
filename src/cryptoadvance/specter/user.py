@@ -129,10 +129,6 @@ class User(UserMixin):
             "tag": b64encode(tag).decode("utf-8"),
         }
 
-        print(
-            f"encrypted_user_secret: {json.dumps(self.encrypted_user_secret, indent=4)}"
-        )
-
     def decrypt_user_secret(self, plaintext_password):
         # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
         if not self.encrypted_user_secret:
@@ -155,13 +151,12 @@ class User(UserMixin):
         # decrypt the cipher text
         self.plaintext_user_secret = cipher.decrypt_and_verify(cipher_text, tag)
 
-        print(f"decrypted user_secret: {self.plaintext_user_secret}")
-
     def _generate_user_secret(self, plaintext_password):
         # Encryption using the user_secret uses a Fernet key. But the Fernet
         #   key itself will be encrypted with the user's password.
         self.plaintext_user_secret = Fernet.generate_key()
         self._encrypt_user_secret(plaintext_password)
+        self.save_info()
 
     def set_password(self, plaintext_password):
         # Hash the incoming plaintext password and update the encrypted

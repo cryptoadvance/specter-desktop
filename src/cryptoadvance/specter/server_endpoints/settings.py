@@ -515,6 +515,7 @@ def auth():
             delete_user = request.form["deleteuser"]
             user = app.specter.user_manager.get_user(delete_user)
             if current_user.is_admin:
+                # TODO: delete should be done by UserManager
                 app.specter.delete_user(user)
                 users.remove(user)
                 flash(

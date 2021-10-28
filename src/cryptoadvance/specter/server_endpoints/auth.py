@@ -148,9 +148,13 @@ def register():
                 "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
+
+            # TODO: These four lines should be a single call to UserManager
             password_hash = hash_password(password)
             user = User(user_id, username, password_hash, config, app.specter)
+            user.decrypt_user_secret(password)
             app.specter.user_manager.add_user(user)
+
             flash(
                 _(
                     "You have registered successfully, \
