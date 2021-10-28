@@ -73,9 +73,7 @@ def login():
 
         elif auth["method"] == "passwordonly":
             password = request.form["password"]
-            if verify_password(
-                app.specter.user_manager.admin.hashed_password, password
-            ):
+            if verify_password(app.specter.user_manager.admin.password_hash, password):
                 app.login("admin", request.form["password"])
                 return redirect_login(request)
 
@@ -85,7 +83,7 @@ def login():
             password = request.form["password"]
             user = app.specter.user_manager.get_user_by_username(username)
             if user:
-                if verify_password(user.password, password):
+                if verify_password(user.password_hash, password):
                     app.login(user.id, request.form["password"])
                     return redirect_login(request)
 

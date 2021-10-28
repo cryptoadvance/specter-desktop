@@ -10,9 +10,9 @@ def test_password_hash():
     password that was hashed. It should fail when given a different password.
     """
     password = "somepassword"
-    hashed_password = hash_password(password)
-    assert verify_password(hashed_password, password)
-    assert not verify_password(hashed_password, "wrongpassword")
+    password_hash = hash_password(password)
+    assert verify_password(password_hash, password)
+    assert not verify_password(password_hash, "wrongpassword")
 
 
 def test_generate_user_secret_on_decrypt_user_secret(empty_data_folder):

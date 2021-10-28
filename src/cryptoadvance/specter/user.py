@@ -57,7 +57,7 @@ class User(UserMixin):
         self,
         id,
         username,
-        hashed_password,
+        password_hash,
         config,
         specter,
         encrypted_user_secret=None,
@@ -66,7 +66,7 @@ class User(UserMixin):
     ):
         self.id = id
         self.username = username
-        self.hashed_password = hashed_password
+        self.password_hash = password_hash
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
         self.plaintext_user_secret = None
@@ -85,7 +85,9 @@ class User(UserMixin):
             user_args = {
                 "id": user_dict["id"],
                 "username": user_dict["username"],
-                "hashed_password": user_dict["password"],
+                "password_hash": user_dict[
+                    "password"
+                ],  # TODO: Migrate attr name to "password_hash"?
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
@@ -161,7 +163,7 @@ class User(UserMixin):
     def set_password(self, plaintext_password):
         # Hash the incoming plaintext password and update the encrypted
         #   user_secret as needed.
-        self.hashed_password = hash_password(plaintext_password)
+        self.password_hash = hash_password(plaintext_password)
 
         # Must keep encrypted_user_secret in sync with password changes
         if self.encrypted_user_secret is None:
@@ -178,7 +180,7 @@ class User(UserMixin):
         user_dict = {
             "id": self.id,
             "username": self.username,
-            "password": self.hashed_password,  # TODO: Migrate attr name to "hashed_password"?
+            "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
@@ -239,7 +241,7 @@ class User(UserMixin):
 
         # update specter users
         if not existing and not delete:
-            self.specter.add_user(self)
+            self.specter.user_manager.add_user(self)
         if existing and delete:
             self.specter.delete_user(self)
         self.manager.save()
