@@ -86,7 +86,7 @@ class SpecterMigrator:
 
     def __init__(self, data_folder):
         version = VersionChecker(specter=self)
-        self.current_binary_version = version.get_current_version()
+        self.current_binary_version = version._get_current_version()
         self.current_data_version = "unknown"
         self.data_folder = data_folder
         self.mig = MigDataManager(data_folder)
