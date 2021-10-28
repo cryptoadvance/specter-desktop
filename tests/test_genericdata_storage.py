@@ -1,5 +1,4 @@
 import json, logging, pytest
-from cryptoadvance.specter.services import ALL_SERVICES
 from cryptoadvance.specter.managers.genericdata_manager import GenericDataManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User, hash_password
