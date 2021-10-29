@@ -1,6 +1,13 @@
+import datetime
+import errno
+import json
 import logging
-import requests, urllib3, json, os
-import os, sys, errno
+import os
+import sys
+
+import requests
+import urllib3
+
 from .helpers import is_ip_private
 from .specter_error import SpecterError
 
@@ -344,7 +351,7 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
-        self.trace_call(url, payload)
+        ts = self.trace_call_before(url, payload)
         try:
             r = self.session.post(
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
@@ -371,6 +378,7 @@ class BitcoinRPC:
                     payload,
                 )
             )
+        self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
             logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
@@ -381,11 +389,18 @@ class BitcoinRPC:
         return r
 
     @classmethod
-    def trace_call(cls, url, payload):
-        """logs out the call and its payload, reduces noise by suppressing repeated calls"""
-        if False:  # noise-reduction
-            logger.debug(f"call({url}) payload:{payload}")
-        else:
+    def trace_call_before(cls, url, payload):
+        """get a timestamp if needed in order to measure how long the call takes"""
+        if logger.level == logging.DEBUG:
+            return datetime.datetime.now()
+
+    @classmethod
+    def trace_call_after(cls, url, payload, timestamp):
+        """logs out the call and its payload (if necessary), reduces noise by suppressing repeated calls"""
+        if logger.level == logging.DEBUG:
+            timediff_ms = int(
+                (datetime.datetime.now() - timestamp).total_seconds() * 1000
+            )
             current_hash = hash(
                 json.dumps({"url": url, "payload": payload}, sort_keys=True)
             )
@@ -403,7 +418,9 @@ class BitcoinRPC:
                 else:
                     cls.last_call_hash = current_hash
             logger.debug(
-                "call({: <28}) payload:{}".format("/".join(url.split("/")[3:]), payload)
+                "call({: <28})({: >5}ms)  payload:{}".format(
+                    "/".join(url.split("/")[3:]), timediff_ms, payload
+                )
             )
 
     def __getattr__(self, method):
