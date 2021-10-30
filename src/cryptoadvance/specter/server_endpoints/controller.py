@@ -1,9 +1,10 @@
 import random, traceback
+from time import time
 from binascii import unhexlify
 from flask import make_response
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, g
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from ..helpers import (
@@ -139,6 +140,29 @@ def selfcheck():
             app.specter.check()
     if app.config.get("LOGIN_DISABLED"):
         app.login("admin")
+
+
+@app.before_request
+def slow_request_detection():
+    """ """
+    g.start = time()
+
+
+@app.after_request
+def after_request(response):
+    diff = time() - g.start
+    if (
+        (response.response)
+        and (200 <= response.status_code < 300)
+        and (response.content_type.startswith("text/html"))
+    ):
+        treshold = app.config["REQUEST_TIME_WARNING_TRESHOLD"]
+        if diff > treshold:
+            flash(
+                f"The request before this one took {int(diff)} seconds which is longer than the threshold ({treshold}). Checkout the perfomance-improvement-hints in the documentation",
+                "warning",
+            )
+    return response
 
 
 ########## template injections #############

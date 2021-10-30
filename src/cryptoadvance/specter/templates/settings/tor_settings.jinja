@@ -109,6 +109,7 @@
 			{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
 			{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
 			{{ _("Note: Some external sources may stop working if they block Tor call.") }}
+			{{ _("This will have a significant performance impact. Specter will be much slower!") }}
 			</tool-tip>
 			<label class="switch" style="float: right; margin-top: 30px;">
 				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
