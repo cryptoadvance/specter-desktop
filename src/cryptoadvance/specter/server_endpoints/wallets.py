@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 from functools import wraps
 
@@ -14,8 +15,10 @@ from flask_login import login_required
 from ..helpers import get_devices_with_keys_by_type
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, handle_exception
 from ..util.fee_estimation import get_fees
+
+logger = logging.getLogger(__name__)
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -81,6 +84,7 @@ def failed_wallets():
                 delete_file(fullpath.replace(".json", "_txs.csv"))
                 app.specter.wallet_manager.update()
             except Exception as e:
+                handle_exception(e)
                 flash(_("Failed to delete wallet: {}").format(str(e)), "error")
     return redirect("/")
 
@@ -98,7 +102,9 @@ def new_wallet_type():
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()
-    except Exception:
+    except Exception as e:
+        handle_exception(e)
+        # Hmm, would be better to be more precise with this exception. Best assumption:
         err = _(
             '<p><br>Bitcoin Core is running with wallets disabled.<br><br>Please make sure disablewallet is off (set disablewallet=0 in your bitcoin.conf), then restart Bitcoin Core and try again.<br>See <a href="https://github.com/cryptoadvance/specter-desktop/blob/34ca139694ecafb2e7c2bd5ad5c4ac74c6d11501/docs/faq.md#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure" target="_blank" style="color: white;">here</a> for more information.</p>'
         )
@@ -274,7 +280,7 @@ def new_wallet(wallet_type):
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
             except Exception as e:
-                app.logger.exception(e)
+                handle_exception(e)
                 err = _("Failed to create wallet. Error: {}").format(e)
                 return render_template(
                     "wallet/new_wallet/new_wallet_keys.jinja",
@@ -318,9 +324,7 @@ def new_wallet(wallet_type):
                         # this is normal behavior in our usecase
                         pass
                     except Exception as e:
-                        app.logger.error(
-                            "Exception while rescanning blockchain: %e" % e
-                        )
+                        handle_exception(e)
                         err = "%r" % e
                     wallet.getdata()
             return redirect(
@@ -531,6 +535,7 @@ def send_new(wallet_alias):
                     rand=rand,
                 )
             except Exception as e:
+                handle_exception(e)
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
                 return redirect(
                     url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
@@ -557,6 +562,7 @@ def send_new(wallet_alias):
                 fee_options = "manual"
                 rbf = True
             except Exception as e:
+                handle_exception(e)
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
@@ -577,6 +583,7 @@ def send_new(wallet_alias):
                     signed_psbt = signed_psbt["psbt"]
                     psbt = current_psbt.to_dict()
                 except Exception as e:
+                    handle_exception(e)
                     signed_psbt = None
                     flash(_("Failed to sign PSBT: {}").format(e), "error")
             else:
@@ -597,6 +604,7 @@ def send_new(wallet_alias):
         try:
             rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
         except Exception as e:
+            handle_exception(e)
             flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
 
     show_advanced_settings = (
@@ -650,7 +658,7 @@ def send_pending(wallet_alias):
                     json.loads(request.form["pending_psbt"])["tx"]["txid"]
                 )
             except Exception as e:
-                app.logger.error("Could not delete Pending PSBT: %s" % e)
+                handle_exception(e)
                 flash(_("Could not delete Pending PSBT!"), "error")
         elif action == "openpsbt":
             psbt = json.loads(request.form["pending_psbt"])
@@ -683,6 +691,7 @@ def import_psbt(wallet_alias):
                 b64psbt = "".join(request.form["rawpsbt"].split())
                 psbt = wallet.importpsbt(b64psbt)
             except Exception as e:
+                handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")
                 return redirect(
                     url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
@@ -751,7 +760,7 @@ def settings(wallet_alias):
                 # this is normal behaviour in our usecase
                 pass
             except Exception as e:
-                app.logger.error("%s while rescanblockchain" % e)
+                handle_exception(e)
                 error = "%r" % e
             wallet.getdata()
         elif action == "abortrescan":

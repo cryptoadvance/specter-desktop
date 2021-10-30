@@ -24,8 +24,7 @@ from ..util.descriptor import Descriptor
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 
-################## Wallet util endpoints #######################
-# TODO: move these to an API endpoint
+logger = logging.getLogger(__name__)
 
 wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 
@@ -83,6 +82,7 @@ def combine(wallet_alias):
     except RpcError as e:
         return e.error_msg, e.status_code
     except Exception as e:
+        handle_exception(e)
         return _("Unknown error: {}").format(e), 500
     return json.dumps(raw)
 
@@ -150,6 +150,7 @@ def broadcast_blockexplorer(wallet_alias):
             wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
         except Exception as e:
+            handle_exception(e)
             return jsonify(
                 success=False,
                 error=_("Failed to broadcast transaction with error: {}").format(e),
@@ -216,7 +217,7 @@ def decoderawtx(wallet_alias):
                 walletName=wallet.name,
             )
     except Exception as e:
-        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+        handle_exception(e)
     return jsonify(success=False)
 
 
@@ -398,7 +399,7 @@ def addressinfo(wallet_alias):
                 **address_info,
             }
     except Exception as e:
-        app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
+        handle_exception(e)
     return jsonify(success=False)
 
 
@@ -460,7 +461,7 @@ def addresses_list_csv(wallet_alias):
         )
         return response
     except Exception as e:
-        app.logger.error("Failed to export addresses list. Error: %s" % e)
+        handle_exception(e)
         flash(_("Failed to export addresses list. Error: {}").format(e), "error")
         return redirect(url_for("index"))
 
@@ -529,7 +530,7 @@ def utxo_csv(wallet_alias):
         response.headers.set("Content-Disposition", "attachment", filename="utxo.csv")
         return response
     except Exception as e:
-        logging.exception(e)
+        handle_exception(e)
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
@@ -564,7 +565,7 @@ def wallet_overview_txs_csv():
         )
         return response
     except Exception as e:
-        logging.exception(e)
+        handle_exception(e)
         return _("Failed to export wallets overview history. Error: {}").format(e), 500
 
 
@@ -596,7 +597,7 @@ def wallet_overview_utxo_csv():
         )
         return response
     except Exception as e:
-        logging.exception(e)
+        handle_exception(e)
         return _("Failed to export wallets overview utxo. Error: {}").format(e), 500
 
 
