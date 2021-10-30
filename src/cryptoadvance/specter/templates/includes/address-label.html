@@ -206,7 +206,7 @@
         }
 
         async fetchAddressLabel() {
-            let url = `{{ url_for('wallets_endpoint.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let url = `{{ url_for('wallets_endpoint_api.get_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();
             formData.append('address', this.address);
             formData.append('csrf_token', '{{ csrf_token() }}');
@@ -237,7 +237,7 @@
         }
 
         async setAddressLabel() {
-            let url = `{{ url_for('wallets_endpoint.set_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let url = `{{ url_for('wallets_endpoint_api.set_label', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();
             formData.append('address', this.address);
             formData.append('label', this.label.innerText);

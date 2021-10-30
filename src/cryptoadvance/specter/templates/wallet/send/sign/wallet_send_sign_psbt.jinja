@@ -342,7 +342,7 @@
 		}
 
 		async function combine(psbt1) {
-			let url = "{{ url_for('wallets_endpoint.combine', wallet_alias=wallet.alias) }}";
+			let url = "{{ url_for('wallets_endpoint_api.combine', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("csrf_token", "{{ csrf_token() }}");
@@ -410,7 +410,7 @@
 
 		async function broadcastLocal(tx) {
 			showNotification(`{{ _('Sending transaction...') }}`);
-			let url="{{ url_for('wallets_endpoint.broadcast', wallet_alias=wallet.alias) }}";
+			let url="{{ url_for('wallets_endpoint_api.broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("csrf_token", "{{ csrf_token() }}");
@@ -440,7 +440,7 @@
 
 		async function broadcastBlockExplorer(tx, explorer, useTor) {
 			showNotification(`{{ _('Sending transaction...') }}`, 0);
-			let url = "{{ url_for('wallets_endpoint.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
+			let url = "{{ url_for('wallets_endpoint_api.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
 	
 
 			var formData = new FormData();

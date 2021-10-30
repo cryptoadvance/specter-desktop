@@ -94,7 +94,7 @@
                 this.verify.classList.add('hidden');
             } else {
                 this.verify.onclick = async () => {
-                    let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                    let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     var formData = new FormData();
                     formData.append('address', this.addressData.address)
                     formData.append('csrf_token', '{{ csrf_token() }}');

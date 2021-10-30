@@ -497,20 +497,20 @@
             switch (this.listType) {
                 case "txlist":
                     if (this.wallet) {
-                        this.export.href = `{{ url_for('wallets_endpoint.tx_history_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-                        url = `{{ url_for('wallets_endpoint.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                        this.export.href = `{{ url_for('wallets_endpoint_api.tx_history_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                        url = `{{ url_for('wallets_endpoint_api.txlist', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     } else {
-                        this.export.href = `{{ url_for('wallets_endpoint.wallet_overview_txs_csv') }}`;
-                        url = `{{ url_for('wallets_endpoint.wallets_overview_txlist') }}`;
+                        this.export.href = `{{ url_for('wallets_endpoint_api.wallet_overview_txs_csv') }}`;
+                        url = `{{ url_for('wallets_endpoint_api.wallets_overview_txlist') }}`;
                     }
                     break;
                 case "utxo":
                     if (this.wallet) {
-                        this.export.href = `{{ url_for('wallets_endpoint.utxo_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-                        url = `{{ url_for('wallets_endpoint.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                        this.export.href = `{{ url_for('wallets_endpoint_api.utxo_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                        url = `{{ url_for('wallets_endpoint_api.utxo_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     } else {
-                        this.export.href = `{{ url_for('wallets_endpoint.wallet_overview_utxo_csv') }}`;
-                        url = `{{ url_for('wallets_endpoint.wallets_overview_utxo_list') }}`;
+                        this.export.href = `{{ url_for('wallets_endpoint_api.wallet_overview_utxo_csv') }}`;
+                        url = `{{ url_for('wallets_endpoint_api.wallets_overview_utxo_list') }}`;
                     }
                     break
                 default:

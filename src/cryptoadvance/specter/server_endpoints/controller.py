@@ -32,6 +32,7 @@ from .price import price_endpoint
 from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
+from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
 
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
@@ -41,6 +42,7 @@ app.register_blueprint(price_endpoint, url_prefix="/price")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(setup_endpoint, url_prefix="/setup")
 app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
+app.register_blueprint(wallets_endpoint_api, url_prefix="/wallets")
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
