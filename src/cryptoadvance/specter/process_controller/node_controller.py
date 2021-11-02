@@ -566,4 +566,7 @@ def fetch_wallet_addresses_for_mining(node_impl, data_folder):
     address_array = [value["address"] for key, value in wallets.items()]
     # remove duplicates
     address_array = list(dict.fromkeys(address_array))
+    logger.debug(
+        f"Found {len(address_array)} addresses in {len(wallets.items())} wallets located in {wallet_folder}"
+    )
     return address_array
