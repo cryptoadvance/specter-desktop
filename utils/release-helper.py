@@ -97,7 +97,9 @@ class ReleaseHelper:
                 "http://gitlab.com", job_token=os.environ["CI_JOB_TOKEN"]
             )
         else:
-            raise Exception("Can't authenticate against Gitlab ( export CI_JOB_TOKEN )")
+            raise Exception(
+                "Can't authenticate against Gitlab ( export GITLAB_PRIVATE_TOKEN )"
+            )
 
         if os.environ.get("CI_PROJECT_ROOT_NAMESPACE"):
             project_root_namespace = os.environ.get("CI_PROJECT_ROOT_NAMESPACE")
@@ -222,6 +224,10 @@ class ReleaseHelper:
     def check_all_hashes(self):
         for file in os.listdir(self.target_dir):
             if file.startswith("SHA256SUM") and not file.endswith(".asc"):
+                logger.info(f"Checking hashes in {file}")
+                if file.endswith("windows"):
+                    logger.info(f"Converting dos2unix for {file}")
+                    dos2unix(os.path.join("signing_dir", file))
                 returncode = subprocess.call(
                     ["sha256sum", "-c", file], cwd=self.target_dir
                 )
@@ -275,6 +281,17 @@ class ReleaseHelper:
             "gitlab_upload_release_binaries",
             self.password,
         )
+
+
+def dos2unix(filename):
+    content = ""
+    outsize = 0
+    with open(filename, "rb") as infile:
+        content = infile.read()
+    with open(filename, "wb") as output:
+        for line in content.splitlines():
+            outsize += len(line) + 1
+            output.write(line + b"\n")
 
 
 def sha256sum(filenames):
