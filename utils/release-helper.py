@@ -82,6 +82,7 @@ class ReleaseHelper:
         pass
 
     def init_gitlab(self):
+        # https://python-gitlab.readthedocs.io/en/stable/api-usage.html
         import gitlab
 
         if os.environ.get("GITLAB_PRIVATE_TOKEN"):
@@ -96,9 +97,7 @@ class ReleaseHelper:
                 "http://gitlab.com", job_token=os.environ["CI_JOB_TOKEN"]
             )
         else:
-            raise Exception(
-                "Can't authenticate against Gitlab ( export GITLAB_PRIVATE_TOKEN )"
-            )
+            raise Exception("Can't authenticate against Gitlab ( export CI_JOB_TOKEN )")
 
         if os.environ.get("CI_PROJECT_ROOT_NAMESPACE"):
             project_root_namespace = os.environ.get("CI_PROJECT_ROOT_NAMESPACE")
@@ -112,9 +111,12 @@ class ReleaseHelper:
             self.project_id = os.environ.get("CI_PROJECT_ID")
             self.github_project = f"{project_root_namespace}/specter-desktop"
         else:
-            self.project_id = 15721074  # cryptoadvance/specter-desktop
-            # self.project_id =
-            self.github_project = f"{project_root_namespace}/specter-desktop"
+            logger.error("No Project given. choose one:")
+            for project in self.gl.projects.list(search="specter-desktop"):
+                logger.info(
+                    f"     export CI_PROJECT_ID={project.id}  # {project.name_with_namespace}"
+                )
+            exit(1)
 
         logger.info(f"Using project_id: {self.project_id}")
         logger.info(f"Using github_project: {self.github_project}")
@@ -129,6 +131,7 @@ class ReleaseHelper:
 
         if os.environ.get("CI_PIPELINE_ID"):
             self.pipeline_id = os.environ.get("CI_PIPELINE_ID")
+            self.pipeline = self.project.pipelines.get(self.pipeline_id)
         else:
             logger.info(
                 "no CI_PIPELINE_ID given, trying to find an appropriate one ..."
@@ -138,7 +141,10 @@ class ReleaseHelper:
                 if pipeline.ref == self.tag:
                     self.pipeline = pipeline
                     logger.info(f"Found matching pipeline: {pipeline}")
-            if not self.pipeline:
+            if not hasattr(self, "pipeline"):
+                logger.error(
+                    f"Could not find tag {self.tag} in the peipline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
+                )
                 raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
         logger.info(f"Using pipeline_id: {self.pipeline.id}")
@@ -285,7 +291,12 @@ if __name__ == "__main__":
         exit(0)
     rh = ReleaseHelper()
     rh.init_gitlab()
-    from utils import github
+    try:
+        from utils import github
+    except Exception as e:
+        logger.fatal(e)
+        logger.error("You might have called this script wrong. Execute it like:")
+        logger.error("python3 -m utils.release-helper ...")
 
     if "download" in sys.argv:
         rh.download_and_unpack_all_artifacts()
