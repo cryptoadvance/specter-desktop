@@ -128,7 +128,7 @@ class ReleaseHelper:
         logger.info(f"Using tag: {self.tag}")
 
         if os.environ.get("CI_PIPELINE_ID"):
-            pipeline_id = os.environ.get("CI_PIPELINE_ID")
+            self.pipeline_id = os.environ.get("CI_PIPELINE_ID")
         else:
             logger.info(
                 "no CI_PIPELINE_ID given, trying to find an appropriate one ..."
@@ -175,7 +175,6 @@ class ReleaseHelper:
                         zip.extract(zip_info, self.target_dir)
 
     def download_and_unpack_new_artifacts_from_github(self):
-        from utils import github
 
         gc = github.GithubConnection(self.github_project)
         release = gc.fetch_existing_release(self.tag)
@@ -257,14 +256,12 @@ class ReleaseHelper:
         artifact = os.path.join("signing_dir", "SHA256SUMS")
         self.calculate_publish_params()
 
-        if self.github.artifact_exists(
-            self.github_project, self.tag, Path(artifact).name
-        ):
+        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
             logger.info(f"Github artifact {artifact} existing. Skipping upload.")
             exit(0)
         else:
             logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
-        self.github.publish_release_from_tag(
+        github.publish_release_from_tag(
             self.github_project,
             self.tag,
             [artifact],
@@ -288,6 +285,8 @@ if __name__ == "__main__":
         exit(0)
     rh = ReleaseHelper()
     rh.init_gitlab()
+    from utils import github
+
     if "download" in sys.argv:
         rh.download_and_unpack_all_artifacts()
     if "downloadgithub" in sys.argv:
