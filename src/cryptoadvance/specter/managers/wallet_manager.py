@@ -62,7 +62,7 @@ class WalletManager:
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
-    def update(self, data_folder=None, rpc=None, chain=None):
+    def update(self, data_folder=None, rpc=None, chain=None, allow_threading=True):
         if self.is_loading:
             return
         self.is_loading = True
@@ -102,7 +102,7 @@ class WalletManager:
             for k in list(self.wallets.keys()):
                 if k not in self.wallets_update_list:
                     self.wallets.pop(k)
-            if self.allow_threading:
+            if allow_threading and self.allow_threading:
                 t = threading.Thread(
                     target=self._update,
                     args=(
