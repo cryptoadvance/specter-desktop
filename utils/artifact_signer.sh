@@ -10,6 +10,14 @@ case $key in
     shift
     shift
     ;;
+    sign)
+    action=sign
+    shift
+    ;;
+    init)
+    action=init
+    shift
+    ;;
     --debug)
     set -x
     shift # past argument
@@ -30,16 +38,21 @@ fi
 # We want a detached signature in cleartext. Extension: .asc (as in bitcoin)
 output_file=${artifact}.asc
 
-if [[ -f /credentials/private.key ]]; then 
-    echo "Importing single private key"
-    gpg --import --no-tty --batch --yes /credentials/private.key
-fi
-
+# lazy init: We're initializing anytime.
+# So that action "init" is just to have a bit more semantics and enable to call 
+# this script to do this:
 if [[ -f /credentials/gnupg.tar.gz ]]; then 
-    echo "extracting gnupg.tar.gz"
+    echo "Init: extracting gnupg.tar.gz"
     tar -xzf /credentials/gnupg.tar.gz -C /root
     chown -R root:root ~/.gnupg
 fi
 
-echo "signing ..."
-echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
+if [[ -f /credentials/private.key ]]; then 
+    echo "Init: Importing single private key"
+    gpg --import --no-tty --batch --yes /credentials/private.key
+fi
+
+if [ "action" = sign ]; then
+    echo "signing ..."
+    echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
+fi

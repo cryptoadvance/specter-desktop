@@ -103,7 +103,7 @@ release_pip:
     - if [[ ${CI_PROJECT_ROOT_NAMESPACE} = "cryptoadvance" ]]; then  python3 -m twine upload --verbose --user __token__ dist/* ; fi
     - cd dist
     - sha256sum cryptoadvance.specter-*.tar.gz > SHA256SUMS-pip
-    - ../utils/sign_artifact.sh --artifact ./SHA256SUMS-pip
+    - ../utils/artifact_signer.sh sign --artifact ./SHA256SUMS-pip
     - cd ..
     - cat ./dist/SHA256SUMS-pip
     #- python ./utils/github.py upload ./dist/SHA256SUMS-pip
@@ -181,8 +181,8 @@ release_electron_linux_windows:
     - sha256sum  Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-win
     - cat ./SHA256SUMS-win
     - cd ..
-    - ../utils/sign_artifact.sh --artifact ./release-win/SHA256SUMS-win
-    - ../utils/sign_artifact.sh --artifact ./release-linux/SHA256SUMS-linux
+    - ../utils/artifact_signer.sh sign --artifact ./release-win/SHA256SUMS-win
+    - ../utils/artifact_signer.sh sign --artifact ./release-linux/SHA256SUMS-linux
     - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
@@ -221,7 +221,7 @@ release_signatures:
     - source .env/bin/activate
     - pip3 install -r test_requirements.txt
     - ./utils/create-gitlab-cli-cfg.sh
-    - gpg --import --no-tty --batch --yes /credentials/private.key
+    - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
     - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
     - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
@@ -229,7 +229,7 @@ release_signatures:
     - python3 -m utils.release-helper checksigs          # checks the signatures of all SHA256SUMM*.asc files
     - python3 -m utils.release-helper create            # creates a SHA256SUM.txt
     - python3 -m utils.release-helper upload            # uploads it to github
-    - ./utils/sign_artifact.sh --artifact ./signing_dir/SHA256SUMS
+    - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS
     - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc
 
 release_docker:
