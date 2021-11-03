@@ -13,3 +13,4 @@ class DeviceTypes:
     SPECTERDIY = "specter"
     TREZOR = "trezor"
     KEYSTONE = "keystone"
+    PASSPORT = "passport"

@@ -89,6 +89,21 @@ pip3 install cryptoadvance.specter --upgrade
 
 After that, Specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
 
+The above installation-method is quite easy but you have to trust pypi. If you want to verify the software completely yourself while still installing via pip3, you can do something like this:
+```
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/cryptoadvance.specter-1.4.6.tar.gz
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/SHA256SUMS-pip
+sha256sum --check SHA256SUMS-pip 
+# Do your usual GPG-check here
+# Now, let's extract the requirements-file and install all requirements with require-hashes
+tar -xvzf cryptoadvance.specter-1.4.6.tar.gz cryptoadvance.specter-1.4.6/requirements.txt
+pip3 install -r cryptoadvance.specter-1.4.6/requirements.txt --require-hashes --upgrade
+# The package cryptoadvance.specter itself cannot be included into requirements.txt
+# But we have checked the checksum before so it's safe to install without checking it's hash
+pip3 install cryptoadvance.specter-1.4.6.tar.gz
+```
+
+
 You can also run it using Tor, provide SSL certificates to run over https. Https is especially important because browsers don't allow the website to access the camera without secure connection, and we need camera access to scan QR codes.
 
 An example how to run Specter server with SSL certificates (`--key`, `--cert`) over Tor (make sure to walk through the [Tor-document](docs/tor.md) ):
@@ -122,24 +137,24 @@ If you're stuck while installing/configuring Specter or you're looking for more 
 
 ### Adding a new device
 
-![](screenshots/devices.png)
+![](./docs/images/README/devices.png)
 
-![](screenshots/device_keys.png)
+![](./docs/images/README/device_keys.png)
 
 ### Creating a new wallet
 
-![](screenshots/wallets.png)
+![](./docs/images/README/wallets.png)
 
-![](screenshots/new_multisig.png)
+![](./docs/images/README/new_multisig.png)
 
 ### Wallet interface
 
-![](screenshots/transactions.png)
+![](./docs/images/README/transactions.png)
 
-![](screenshots/receive.png)
+![](./docs/images/README/receive.png)
 
-![](screenshots/send.png)
+![](./docs/images/README/send.png)
 
 ### Configuration
 
-![](screenshots/bitcoin-rpc.png)
+![](./docs/images/README/bitcoin-rpc.png)

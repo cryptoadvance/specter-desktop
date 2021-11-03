@@ -22,15 +22,43 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.util.common import str2bool
+from cryptoadvance.specter.util.shell import which
+import code, traceback, signal
+
+logger = logging.getLogger(__name__)
 
 pytest_plugins = ["ghost_machine"]
+
+# This is from https://stackoverflow.com/questions/132058/showing-the-stack-trace-from-a-running-python-application
+# it enables stopping a hanging test via sending the pytest-process a SIGUSR2 (12)
+# kill 12 pid-of-pytest
+# In the article they claim to open a debug-console which didn't work for me but at least
+# you get a stacktrace in the output.
+def debug(sig, frame):
+    """Interrupt running process, and provide a python prompt for
+    interactive debugging."""
+    d = {"_frame": frame}  # Allow access to frame object.
+    d.update(frame.f_globals)  # Unless shadowed by global
+    d.update(frame.f_locals)
+
+    i = code.InteractiveConsole(d)
+    message = "Signal received : entering python shell.\nTraceback:\n"
+    message += "".join(traceback.format_stack(frame))
+    i.interact(message)
+
+
+def listen():
+    signal.signal(signal.SIGUSR2, debug)  # Register handler
 
 
 def pytest_addoption(parser):
     """Internally called to add options to pytest
     see pytest_generate_tests(metafunc) on how to check that
+    Also used to register the SIGUSR2 (12) as decribed in conftest.py
     """
     parser.addoption("--docker", action="store_true", help="run bitcoind in docker")
     parser.addoption(
@@ -40,11 +68,18 @@ def pytest_addoption(parser):
         help="Version of bitcoind (something which works with git checkout ...)",
     )
     parser.addoption(
+        "--bitcoind-log-stdout",
+        action="store",
+        default=False,
+        help="Whether bitcoind should log to stdout (default:False)",
+    )
+    parser.addoption(
         "--elementsd-version",
         action="store",
         default="master",
         help="Version of elementsd (something which works with git checkout ...)",
     )
+    listen()
 
 
 def pytest_generate_tests(metafunc):
@@ -61,6 +96,7 @@ def pytest_generate_tests(metafunc):
 def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
+    log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
     if docker:
         from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
             BitcoindDockerController,
@@ -83,7 +119,10 @@ def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[
                 rpcport=rpcport
             )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(
-        cleanup_at_exit=True, cleanup_hard=True, extra_args=extra_args
+        cleanup_at_exit=True,
+        cleanup_hard=True,
+        extra_args=extra_args,
+        log_stdout=log_stdout,
     )
     assert not bitcoind_controller.datadir is None
     running_version = bitcoind_controller.version()
@@ -119,6 +158,22 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
         % (running_version, requested_version)
     )
     return elementsd_controller
+
+
+# Below this point are fixtures. Fixtures have a scope. Check about scopes here:
+# https://docs.pytest.org/en/6.2.x/fixture.html#scope-sharing-fixtures-across-classes-modules-packages-or-session
+# possible values: function, class, module, package or session.
+# The nodes are of scope session. All else is the default (function)
+
+
+@pytest.fixture(scope="session")
+def bitcoind_path():
+    if os.path.isfile("tests/bitcoin/src/bitcoind"):
+        return "tests/bitcoin/src/bitcoind"
+    elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+        return "tests/bitcoin/bin/bitcoind"
+    else:
+        return which("bitcoind")
 
 
 @pytest.fixture(scope="session")
@@ -361,12 +416,23 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     )
     dm: DeviceManager = someuser.device_manager
     wallet = wallet_importer.create_wallet(someuser.wallet_manager)
-    # fund it with some coins
-    bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
-    # make sure it's confirmed
-    bitcoin_regtest.mine()
-    # Realize that the wallet has funds:
-    wallet.update()
+    try:
+        # fund it with some coins
+        bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+        # make sure it's confirmed
+        bitcoin_regtest.mine()
+        # Realize that the wallet has funds:
+        wallet.update()
+    except SpecterError as se:
+        if str(se).startswith("Timeout"):
+            pytest.fail(
+                "We got a Bitcoin-RPC timeout while setting up the test, minting some coins. Test Error! Check cpu/mem utilastion and btc/elem logs!"
+            )
+            return
+        else:
+            raise se
+
+    assert wallet.fullbalance >= 20
     assert not specter.wallet_manager.working_folder is None
     try:
         yield specter

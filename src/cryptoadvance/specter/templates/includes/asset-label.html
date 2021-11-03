@@ -67,11 +67,27 @@
             shadow.appendChild(clone);
         }
 
-        connectedCallback() {
+        async connectedCallback() {
             this.asset = this.getAttribute('data-asset');
             this.labelValue = this.getAttribute('data-label');
             // edit-mode can be 'hover', 'disabled', 'enabled'
             this.mode = this.getAttribute('edit-mode');
+            // we don't know the asset
+            if( (this.asset == null) ||
+                (this.asset == "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") ||
+                (this.asset == "0000000000000000000000000000000000000000000000000000000000000000")){
+                this.asset = "Confidential";
+                this.labelValue = "Confidential";
+                this.mode = "disabled";
+            }
+
+            // Set the label - fetch if not specified
+            if (this.labelValue) {
+                this.label.innerText = this.labelValue;
+            } else {
+                await this.fetchAssetLabel();
+            }
+
             if(!this.mode){
                 this.mode = 'hover';
             }
@@ -86,14 +102,6 @@
             }
             this.label.title = this.asset;
             this.isEditing = false;
-
-            // Set the label - fetch if not specified
-            if (this.labelValue) {
-                this.label.innerText = this.labelValue;
-            } else {
-                this.label.innerText = this.asset;
-                // fetchAssetLabel(this);
-            }
 
             // Set title mode for asset-label element
             if (this.getAttribute('date-size') == 'title') {
@@ -151,7 +159,7 @@
             this.update.onclick = async () => {
                 if (await this.setAssetLabel()) {
                     this.labelValue = this.label.innerText;
-                    this.closeEditMode(this);
+                    this.closeEditMode();
                     let event = new CustomEvent('updateAssetLabel', { detail: {
                         label: this.labelValue,
                         asset: this.asset,
@@ -161,7 +169,7 @@
                         this.label.innerText = this.asset
                     }
                 } else {
-                    showError('Failed to update asset label. Please refresh the page and try again.')
+                    showError(`{{ _("Failed to update asset label. Please refresh the page and try again.") }}`)
                 }
             }
         
@@ -179,6 +187,7 @@
                 }
             });
         }
+        
         closeEditMode() {
             this.label.removeAttribute('contenteditable')
             if (this.isTitle) {
@@ -190,6 +199,19 @@
             this.cancel.classList.add('hidden');
             this.update.classList.add('hidden');
             this.isEditing = false;
+        }
+
+        async fetchAssetLabel() {
+            const url = `{{ url_for('settings_endpoint.get_asset', asset="HEXID_ASSET") }}`.replaceAll('HEXID_ASSET', this.asset);
+            const response = await fetch(url);
+            const jsonResponse = await response.json();
+            if("label" in jsonResponse){
+                this.labelValue = jsonResponse.label;
+                this.label.innerText = this.labelValue;
+            }
+            if("error" in jsonResponse){
+                showError(jsonResponse.error);
+            }
         }
 
         async setAssetLabel() {

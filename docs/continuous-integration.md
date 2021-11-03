@@ -94,7 +94,7 @@ While installing, make sure you know the locations of where that stuff is instal
 
 Now open and check the "Environment-variables" and check that the following lines are in there:
 
-![](./runner_windows_envvars.png)
+![](./images/continuous-integration_runner_windows_envvars.png)
 
 ## Runner
 

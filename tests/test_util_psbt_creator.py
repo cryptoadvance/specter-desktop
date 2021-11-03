@@ -52,7 +52,7 @@ def test_PsbtCreator_ui(caplog):
         "rbf": True,
         "rbf_edit_mode": False,
         "readonly": False,
-        "selected_coins": None,
+        "selected_coins": [],
         "subtract": False,
         "subtract_from": 0,
     }
@@ -107,7 +107,7 @@ bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a, 0.5
         "rbf": True,
         "rbf_edit_mode": False,
         "readonly": False,
-        "selected_coins": None,
+        "selected_coins": [],
         "subtract": False,
         "subtract_from": 0,
     }

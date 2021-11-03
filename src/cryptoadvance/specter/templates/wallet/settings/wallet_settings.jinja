@@ -124,6 +124,12 @@
 			</p>
 			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Export") }}</button>
 			<div class="section-separator"></div>
+			<h2 class="subtitle">{{ _("Export Specter format") }}</h2>
+			<p class="center">
+				{{ _("Export a JSON file containing complete wallet data including labels.") }}
+			</p>
+			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Export Specter format</a>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Export PDF backup") }}</h2>
 			<p style="max-width: 500px;" class="center">
 			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
@@ -134,9 +140,24 @@
 			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
 				<label style="font-size: 1em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 				<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
-				<span class="slider"></span>
-			</label><br>
+					<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+					<span class="slider"></span>
+				</label>
+				<br>
+				{% if not wallet.is_multisig %} 
+				<br>
+				<tool-tip title="{{ _("A Paper Wallet") }}" style="float: right;">
+					{{ _('This PDF is optimized for singlesig Paperwallets: Wallets created by uncle Jim (<a href="https://stephanlivera.com/episode/265/">inspired by</a>) for family&friends which want a coldstorage but can\'t afford a Hardwarewallet yet.') }} 
+					{{ _('So we enable the import in a specter-desktop later and list many single addresses (#0 is dedicated for a penny-test) for later use when the HWW is gone.') }}
+					{{ _('A checkbox can be used to verify the address on the (probably Specter-DIY or seedsigner) hardwarewallet as long as it\'s around and still hold that seed in memory.') }}
+					{{ _('It\'s assumed to be folded into DIN-A5 to fit in a transparent sealing-bag (together with the seed).') }}
+				</tool-tip>
+				Paper-Wallet (xpub-part): <br>
+				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" style="margin: 30px auto;">
+					Save Paperxpub PDF
+				</button>
+				
+				{% endif %}
 			</div>
 			<br>
 			<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
@@ -153,6 +174,33 @@
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
+			<h2 class="subtitle">{{ _("Import Electrum address labels") }}</h2>
+			<form action="." method="POST" class="padded" style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<div class="row aligned">
+					<textarea name="import_electrum_labels_json" 
+					id="import_electrum_labels_json" 
+					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
+					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
+					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
+					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
+					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
+					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
+					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Importing electrum labels") }}</span><br><br>
+									{{ _("The expected json format contains utxo ids and addresses with the labels:") }}<br><br>
+									{{ _('{ "8a5e4...": "some utxo label", "bc1qj3...": "some address label" }') }}<br><br>
+								</span>
+							</p>
+						</div>
+					</button>
+				</div>
+			</form>
+			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Keypool control") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -168,7 +216,7 @@
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
-						<div style="margin-right: 30px; flex-grow: 1;">Rescanning blockchain: <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
+						<div style="margin-right: 30px; flex-grow: 1;">{{ _("Rescanning blockchain:") }} <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
 						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 					</div>
 				{% else %}
@@ -180,7 +228,7 @@
 							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 						{% endif %}
 						<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
-						<button type="submit" name="action" value="rescanblockchain" class="btn">Rescan</button>
+						<button type="submit" name="action" value="rescanblockchain" class="btn">{{ _("Rescan") }}</button>
 					</div>
 					{% if specter.info['pruned']  %}
 						<div class="note center full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
@@ -259,17 +307,80 @@
 	<br><br>
 {% endblock %}
 
-{% block scripts %}
+{% block scripts %} 
+	<script type="text/javascript">
+		function paste_file_in_textarea(file, textarea) {
+			if (file != null  ) {
+				console.log(file.name);
+				let reader = new FileReader();
+				reader.onload = function(e) { 
+					textarea.value = reader.result;
+				}
+				reader.readAsBinaryString(file);
+			}
+		}
+
+		function dropHandler(ev, textarea_name) {
+			console.log('File(s) dropped');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+					// If dropped items aren't files, reject them
+					if (ev.dataTransfer.items[i].kind === 'file') {
+						var file = ev.dataTransfer.items[i].getAsFile();
+						paste_file_in_textarea(file, document.getElementById(textarea_name))
+						console.log('... file[' + i + '].name = ' + file.name);
+					}
+				}
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+					paste_file_in_textarea(ev.dataTransfer.files[i], document.getElementById(textarea_name))
+					console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+				}
+			}
+		}
+
+		function dragOverHandler(ev, textarea_name) {
+			//console.log('File(s) in drop zone');
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			document.getElementById(textarea_name).value = "Drop file here"
+		}
+
+		function dragLeaveHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragExitHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+		function dragEndHandler(ev, textarea_name) {
+			// Prevent default behavior (Prevent file from being opened)
+			document.getElementById(textarea_name).value = ""
+		}
+	</script>
 	<script>
+		document.addEventListener("DOMContentLoaded", function(){
+			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
+			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
+		});
+
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');
 			let keysList = document.getElementById('keys_list');
 			if (keysList.style.display !== 'none') {
 				keysList.style.display = 'none';
-				titleButton.innerHTML = '{{ _("Show keys details") }}';
+				titleButton.innerHTML = `{{ _("Show keys details") }}`;
 			} else {
 				keysList.style.display = 'block';
-				titleButton.innerHTML = '{{ _("Hide keys details") }}';
+				titleButton.innerHTML = `{{ _("Hide keys details") }}`;
 			}
 		}
 
@@ -299,10 +410,10 @@
 			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
 			if (advancedSettings.classList.contains("hidden")) {
 				advancedSettings.classList.remove("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
 			} else {
 				advancedSettings.classList.add("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
 			}
 		}
 

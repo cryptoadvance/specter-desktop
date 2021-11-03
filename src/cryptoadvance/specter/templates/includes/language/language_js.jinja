@@ -21,7 +21,7 @@ function changeLanguage(selectObj) {
         if (jsonResponse.success) {
             location.reload();
         } else {
-            showError('{{ _("Failed to change language") }}')
+            showError(`{{ _("Failed to change language") }}`)
         }
         return;
     })

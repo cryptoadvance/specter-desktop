@@ -8,6 +8,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def to_bool(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, int):
+        return bool(v)
+    return v == "True"
+
+
 class Address(dict):
     columns = [
         "address",  # str, address itself
@@ -19,9 +27,9 @@ class Address(dict):
     type_converter = [
         str,
         int,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
         str,
-        lambda v: v if isinstance(v, bool) else v == "True",
+        to_bool,
     ]
 
     def __init__(self, rpc, **kwargs):
@@ -46,10 +54,16 @@ class Address(dict):
         return self.index is None
 
     @property
+    def is_mine(self):
+        return not self.is_external
+
+    @property
     def is_receiving(self):
-        # change can be True, False or None
-        # None means it's external
-        return not self.is_external and not self.change
+        return self.is_mine and not self.change
+
+    @property
+    def is_change(self):
+        return self.is_mine and self.change
 
     @property
     def index(self):
@@ -115,8 +129,23 @@ class AddressList(dict):
             write_csv(self.path, list(self.values()), self.AddressCls)
         self._file_exists = True
 
+    def set_labels(self, arr):
+        """
+        Sets the labels for existing addresses
+
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
+        for addr in arr:
+            if addr["address"] in self:
+                self[addr["address"]].set_label(addr["label"])
+        self.save()
+
     def add(self, arr, check_rpc=False):
-        """arr should be a list of dicts"""
+        """
+        arr should be a list with dicts, example:
+            [{'address':'bc1qabc...', 'label':'mylabel1'}, {'address':'bc1qabd...', 'label':'mylabel2'}, ...]
+        """
         labeled_addresses = {}
         if check_rpc:
             # get all available labels
@@ -183,7 +212,11 @@ class AddressList(dict):
         return max(
             0,
             0,
-            *[addr.index for addr in self.values() if addr.change == change],
+            *[
+                addr.index or 0
+                for addr in self.values()
+                if addr.is_mine and addr.change == change
+            ],
         )
 
     def max_used_index(self, change=False):
@@ -191,9 +224,9 @@ class AddressList(dict):
             -1,
             -1,
             *[
-                addr.index
+                addr.index or -1
                 for addr in self.values()
-                if addr.used and addr.change == change
+                if addr.is_mine and addr.used and addr.change == change
             ],
         )
 

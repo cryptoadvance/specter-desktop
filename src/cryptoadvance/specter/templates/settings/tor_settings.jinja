@@ -139,7 +139,7 @@
 			function checkAuthEabled() {
 				{% if specter.config.auth.method == "none" %}
 					document.getElementById('hidden_service').checked = false;
-					showError('{{ _("Please set an authentication method before enabling the hidden service") }}')
+					showError(`{{ _("Please set an authentication method before enabling the hidden service") }}`)
 				{% else %}
 				return true;
 				{% endif %}

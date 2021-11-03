@@ -32,6 +32,7 @@ class BitcoindPlainController(NodePlainController):
         cleanup_at_exit=False,
         cleanup_hard=False,
         datadir=None,
+        log_stdout=False,
         extra_args=[],
         timeout=60,
     ):
@@ -46,6 +47,7 @@ class BitcoindPlainController(NodePlainController):
             cleanup_at_exit,
             cleanup_hard,
             datadir,
+            log_stdout,
             extra_args,
             timeout,
         )

@@ -40,18 +40,23 @@
                      {% endif %}
             )</small>
         {% endif %}
-        {% if specter.is_liquid and balance.get("assets", {}) %}
-        <div>
-            <small style="line-height:30px">{{ _("Assets:") }}<br>
-            {% for asset in balance.get("assets",{}).keys() | sort %}
-                {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
-                <div style="margin: 0 10px; display: inline-block;">
-                    {{ (asset_balance.get("trusted", 0) + asset_balance.get("untrusted_pending", 0) + asset_balance.get("immature", 0)) | btcamount }}
-                    <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
-                </div>
-            {% endfor %}
-            </small>
-        </div>
+        {% if specter.is_liquid %}
+        {% if balance.get("assets", {}) %}
+            <div style="margin-bottom: 15px;">
+                <small style="line-height:30px">{{ _("Assets:") }}<br>
+                {% for asset in balance.get("assets",{}).keys() | sort %}
+                    {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
+                    <div style="margin: 0 10px; display: inline-block;">
+                        {{ (asset_balance.get("trusted", 0) + asset_balance.get("untrusted_pending", 0) + asset_balance.get("immature", 0)) | btcamount }}
+                        <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
+                    </div>
+                {% endfor %}
+                </small>
+            </div>
+        {% endif %}
+        {% include 'includes/overlay/liquid_assets_registry.html' %}
+        <small><button type="button" class="btn" style="margin: auto;" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button></small>
+        <br>
         {% endif %}
     </h1>
     <div class="table-holder">

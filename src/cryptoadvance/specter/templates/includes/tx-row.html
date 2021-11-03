@@ -9,7 +9,7 @@
         .svg-receive, .svg-immature, .svg-generate {
             filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);
         }
-        .svg-selftransfer {
+        .svg-selftransfer, .svg-mixed {
             filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
         }
         .svg-cancelled {
@@ -76,7 +76,7 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             // Set category image
-            this.category.src = getCategoryImg(this.tx.category, this.tx.confirmations > 0);
+            this.category.src = this.getCategoryImg(this.tx.category, this.tx.confirmations > 0);
             this.category.classList.add('svg-' + this.tx.category)
             
             // TODO:
@@ -145,12 +145,25 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            if (this.amount == 1e-8) {
+            if (this.amount == 1e-8 || this.amount == 0) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
-                this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
-                if("assetlabel" in this.tx){
-                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                if(this.hideSensitiveInfo){
+                    this.amountText.innerHTML = '#########';
+                }else{
+                    this.amountText.innerHTML = `${numberWithCommas(this.amount.toString())}`;
+                    if("assetlabel" in this.tx){ // liquid
+                        if (Array.isArray(this.tx.assetlabel)) { // multiple assets
+                            let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
+                            if (unique_assets.length == 1){
+                                this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset[0]}" data-label="${this.tx.assetlabel[0]}"></asset-label>`;
+                            }else{
+                                this.amountText.innerHTML = `${unique_assets.length} assets`;
+                            }
+                        }else{
+                            this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                        }
+                    }
                 }
             }
 
@@ -174,11 +187,11 @@
                 } else {
                     this.rbfCancel.classList.remove('hidden');
                     this.rbfCancel.onclick = () => {
-                        rbfPopup(this, 'cancel');
+                        this.rbfPopup('cancel');
                     }
                 }
                 this.rbf.onclick = () => {
-                    rbfPopup(this, 'speedup');
+                    this.rbfPopup('speedup');
                 }
             } else {
                 this.rbf.classList.add('hidden');
@@ -222,69 +235,66 @@
                 this.selectTxImg.classList.add('hidden');
             }
         }
-    }
 
-    function rbfPopup(self, rbfType) {
-        let txDataPopup = document.getElementById('tx-popup');
-        let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", self.wallet);
-        let newFee = parseFloat((((self.tx.fee * -1) / self.tx.vsize) * 1e8).toFixed(2));
-        if (newFee <= 1.02) {
-            newFee = 1;
-        }
-        if (rbfType == 'cancel') {
-            newFee *= 1.5; // Tx likely to have lower size so will need higher fee
-        } else {
+        rbfPopup(rbfType) {
+            let txDataPopup = document.getElementById('tx-popup');
+            let url = `{{ url_for('wallets_endpoint.send_new', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let newFee = parseFloat((((this.tx.fee * -1) / this.tx.vsize) * 1e8).toFixed(2));
+            if (newFee <= 1.02) {
+                newFee = 1;
+            }
+            // TODO: get fee diff from specter
             newFee += 2;
+            txDataPopup.innerHTML = `
+            <form action="${url}" method="POST">
+            <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
+            <p>{{ _("You can") }} ${rbfType == 'cancel' ? `{{ _("cancel") }}` : `{{ _("speed up") }}`} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ` {{ _("and sending the funds back to yourself") }}` : ''}:</p>
+            <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
+            <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <br>
+            <br>
+            <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? `{{ _("Cancel transaction") }}` : `{{ _("Speed up!") }}`}</button>
+            <br>
+            <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+            <div class="advanced_rbf hidden warning">
+                <p style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
+                <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
+            </div>
+            </form>
+            `;
+            txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
+                let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
+                let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
+                if (advancedSettings.classList.contains('hidden')) {
+                    advancedSettings.classList.remove('hidden')
+                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
+                } else {
+                    advancedSettings.classList.add('hidden')
+                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
+                }
+            }
+
+            showPageOverlay('tx-popup');
         }
-        txDataPopup.innerHTML = `
-        <form action="${url}" method="POST">
-        <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
-        <p>{{ _("You can") }} ${rbfType == 'cancel' ? '{{ _("cancel") }}' : '{{ _("speed up") }}'} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ' {{ _("and sending the funds back to yourself") }}' : ''}:</p>
-        <input type="hidden" name="rbf_tx_id" value='${self.tx.txid}' />
-        <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
-        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <br>
-        <br>
-        <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? '{{ _("Cancel transaction") }}' : '{{ _("Speed up!") }}'}</button>
-        <br>
-        <span class="toggle_advanced_rbf" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-        <div class="advanced_rbf hidden warning">
-            <p style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
-            <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
-        </div>
-        </form>
-        `;
-        txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
-            let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
-            let advancedSettings = txDataPopup.querySelector('.advanced_rbf')
-            if (advancedSettings.classList.contains('hidden')) {
-                advancedSettings.classList.remove('hidden')
-                advancedButton.innerHTML = 'Advanced &#9660;';
-            } else {
-                advancedSettings.classList.add('hidden')
-                advancedButton.innerHTML = 'Advanced &#9654;';
+
+        getCategoryImg(category, isConfirmed) {
+            if (!isConfirmed) {
+                return `{{ url_for('static', filename='img') }}/clock.svg`;
+            }
+            switch (category) {
+                case "send":
+                    return `{{ url_for('static', filename='img') }}/send.svg`;
+                case "receive":
+                case "immature":
+                case "generate":
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                case "selftransfer":
+                    return `{{ url_for('static', filename='img') }}/transfer.svg`;
+                case "mixed":
+                    return `{{ url_for('static', filename='img') }}/mixed.svg`;
             }
         }
-
-        showPageOverlay('tx-popup');
     }
-
-    function getCategoryImg(category, isConfirmed) {
-        if (!isConfirmed) {
-            return `{{ url_for('static', filename='img') }}/clock.svg`;
-        }
-        switch (category) {
-            case "send":
-                return `{{ url_for('static', filename='img') }}/send.svg`;
-            case "receive":
-            case "immature":
-                return `{{ url_for('static', filename='img') }}/receive.svg`;
-            case "generate":
-                return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
-            case "selftransfer":
-                return `{{ url_for('static', filename='img') }}/transfer.svg`;
-        }
-    }
-
     customElements.define('tx-row', TxRowElement);
 </script>

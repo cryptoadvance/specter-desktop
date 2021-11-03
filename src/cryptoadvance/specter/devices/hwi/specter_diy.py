@@ -16,10 +16,12 @@ from hwilib.errors import (
     DeviceFailureError,
     UnavailableActionError,
 )
+import logging
 import hashlib
 from binascii import a2b_base64, b2a_base64
 
 py_enumerate = enumerate
+logger = logging.getLogger(__name__)
 
 
 class SpecterClient(HardwareWalletClient):
@@ -97,8 +99,10 @@ class SpecterClient(HardwareWalletClient):
 
     def sign_b64psbt(self, psbt: str) -> str:
         # works with both PSBT and PSET
-        print("sign %s" % psbt)
         return self.query("sign %s" % psbt)
+
+    def sign_pset(self, pset: str) -> str:
+        return self.sign_b64psbt(pset)
 
     def sign_tx(self, psbt: PSBT) -> PSBT:
         """
@@ -240,8 +244,8 @@ def enumerate(password=""):
         s.connect(("127.0.0.1", 8789))
         s.close()
         ports.append("127.0.0.1:8789")
-    except Exception as e:
-        print(e)
+    except ConnectionRefusedError as e:
+        # simulator is probably not running
         pass
 
     for port in ports:

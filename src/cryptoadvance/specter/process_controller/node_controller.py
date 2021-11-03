@@ -127,6 +127,7 @@ class NodeController:
         cleanup_at_exit=False,
         cleanup_hard=False,
         datadir=None,
+        log_stdout=False,
         extra_args=[],
         timeout=60,
     ):
@@ -146,6 +147,7 @@ class NodeController:
             cleanup_at_exit,
             cleanup_hard=cleanup_hard,
             datadir=datadir,
+            log_stdout=log_stdout,
             extra_args=extra_args,
         )
         try:
@@ -204,7 +206,12 @@ class NodeController:
         return self.rpcconn.get_rpc()
 
     def _start_node(
-        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit,
+        cleanup_hard=False,
+        datadir=None,
+        log_stdout=False,
+        extra_args=[],
     ):
         raise Exception(f"This should not be used in the baseclass! self: {self}")
 
@@ -226,7 +233,7 @@ class NodeController:
                 address = "el1qqf6tv4n8qp55qc04v4xts5snd9v5uurkry4vskef6lmecahj6c42jt9lnj0432287rs67z9vzq2zvuer036s5mahptwxgyd8k"
         self.get_rpc().generatetoaddress(block_count, address)
 
-    def testcoin_faucet(self, address, amount=20):
+    def testcoin_faucet(self, address, amount=20, confirm_payment=True):
         """an easy way to get some testcoins"""
         rpc = self.get_rpc()
         try:
@@ -250,12 +257,16 @@ class NodeController:
             default_address = default_rpc.getaddressinfo(default_address)[
                 "unconfidential"
             ]
-        while True:
-            btc_balance = default_rpc.getbalance()
+
+        btc_balance = default_rpc.getbalance()
+        while btc_balance <= amount * 5:
             rpc.generatetoaddress(102, default_address)
-            if btc_balance > amount:
-                break
+            btc_balance = default_rpc.getbalance()
+
         default_rpc.sendtoaddress(address, amount)
+        if confirm_payment:
+            # confirm it
+            rpc.generatetoaddress(1, default_address)
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):
@@ -324,6 +335,7 @@ class NodeController:
         rpcconn,
         run_docker=True,
         datadir=None,
+        log_stdout=False,
         node_path="bitcoind",
         network="regtest",
         extra_args=[],
@@ -341,7 +353,8 @@ class NodeController:
         )
         btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
-            btcd_cmd += " -noprinttoconsole"
+            if not log_stdout:
+                btcd_cmd += " -noprinttoconsole"
             if datadir == None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += ' -datadir="{}" '.format(datadir)
@@ -379,7 +392,12 @@ class NodePlainController(NodeController):
             raise e
 
     def _start_node(
-        self, cleanup_at_exit=True, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit=True,
+        cleanup_hard=False,
+        datadir=None,
+        log_stdout=False,
+        extra_args=[],
     ):
         if datadir == None:
             datadir = tempfile.mkdtemp(
@@ -391,6 +409,7 @@ class NodePlainController(NodeController):
             self.rpcconn,
             run_docker=False,
             datadir=datadir,
+            log_stdout=log_stdout,
             node_path=self.node_path,
             network=self.network,
             extra_args=extra_args,
@@ -547,4 +566,7 @@ def fetch_wallet_addresses_for_mining(node_impl, data_folder):
     address_array = [value["address"] for key, value in wallets.items()]
     # remove duplicates
     address_array = list(dict.fromkeys(address_array))
+    logger.debug(
+        f"Found {len(address_array)} addresses in {len(wallets.items())} wallets located in {wallet_folder}"
+    )
     return address_array

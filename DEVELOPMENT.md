@@ -94,11 +94,14 @@ Run the server:
 
 ```sh
 cd specter-desktop
-python3 -m cryptoadvance.specter server --config DevelopmentConfig
+export FLASK_ENV=development && python3 -m cryptoadvance.specter server --config DevelopmentConfig
 ```
 
 #### If `pip install` fails on `cryptography==3.4.x`
-Certain platform/python3 version combos require a Rust compiler. Install via:
+
+If you're using pip older than v19.0, upgrade it with `pip install --upgrade pip`. This is needed to use the pre-built `cryptography` wheel instead of building it.
+
+If this still doesn't work, certain platform/python3 version combos require a Rust compiler. Install via:
 
 * Linux/macOS:
     ```
@@ -117,6 +120,13 @@ _note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate
 ## How to run the tests
 _TODO: Need more thorough tests!_
 
+In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
+* `./tests/install_noded.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+* `./tests/install_noded.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+* `./tests/install_noded.sh --elements compile` will compile elements in tests/elements
+
+If you're not interested in elements, you can skip the liquid specific tests as described below.
+
 Set up the dependencies:
 ```sh
 pip3 install -r test_requirements.txt
@@ -129,19 +139,28 @@ If you have a local bitcoind already installed:
 pytest 
 ```
 
-OR run against bitcoind in Docker:
+OR run against bitcoind in Docker (deprecated):
 ```
 # Pull the bitcoind image if you haven't already:
 docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
 
+# install prerequisites
+pip3 install docker
+
 # Run all the tests against the docker bitcoind image
-pytest --docker 
+pytest -m "no elm" --docker 
 ```
 
 Running specific test subsets:
 ```
 # Run all tests but not the slow ones
 pytest -m "not slow"
+
+# Run all tests but not the elements
+pytest -m "not elm"
+
+# Run all tests but not the slow ones and not the slow ones
+pytest -m "not elm and not slow"
 
 # Run all the tests in a specific test file
 pytest tests/test_specter.py
@@ -154,6 +173,18 @@ pytest tests/test_specter.py::test_specter
 
 # Run tests and show the fixture-setup and usage
 pytest --setup-show
+```
+
+Print the logging output live to the terminal:
+```
+pytest --capture=no --log-cli-level=DEBUG
+```
+
+Get the log-output of bitcoind side by side with the test-output. For sure you will only see the logs if the test fails.
+```
+pytest --bitcoind-log-stdout
+# Probably better to redirect into a file
+pytest --bitcoind-log-stdout > testoutput.log
 ```
 
 Check the cypress-section on how to run cypress-frontend-tests.
@@ -191,17 +222,14 @@ Executing the tests is done via `./utils/test-cypress.sh`:
 # open the cypress application (to develop/debug/run tests interactively)
 ./utils/test-cypress.sh open
 ```
-The test_specifications which get executed are specified in cypress.json which looks something like this:
+The test_specifications which get executed are specified in `cypress.json`.
 
 More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
-Make sure to read it. The tooling we created around cypress quite helpful in daily development.
-In short, you can do this and the last command will give you a reliable development-environment which is the very same
-whenever you start it anew:
+Make sure to read it. The tooling we created around cypress might be quite helpful in daily development.
+In short, you can do this and the last command will give you a reliable development-environment which is the very same whenever you start it anew:
 ```
-./utils/test-cypress.sh snapshot spec_existing_history.js
-./utils/test-cypress.sh dev spec_existing_history.js
-# CTRL-C
-./utils/test-cypress.sh dev spec_existing_history.js
+./utils/test-cypress.sh snapshot spec_empty_specter_home.js
+./utils/test-cypress.sh dev spec_empty_specter_home.js # does not seem to work yet on MacOS
 # CTRL-C
 [...]
 ```

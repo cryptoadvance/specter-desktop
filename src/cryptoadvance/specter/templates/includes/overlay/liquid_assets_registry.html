@@ -1,0 +1,135 @@
+<div id="liquid-assets-registry" class="hidden">
+    <h2>{{ _("Liquid Assets List:") }}</h2><br>
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: center;">{{ _("Asset label") }}</th>
+                <th style="text-align: center;">{{ _("Asset ID") }}</th>
+                <th style="text-align: center;">{{ _("Action") }}</th>
+            </tr>
+        </thead>
+        <tbody id="liquid-assets-list">
+            {% set assets = specter.wallet_manager.joined_balance().get("assets", {}) %}
+            {% set _none = assets.update(specter.asset_labels) %}
+            {% for asset in assets.keys() | sort %}
+                <tr id="{{asset}}-asset-registry-row">
+                    <td><asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label></td>
+                    <td>{{asset}}</td>
+                    <td>
+                        {% if (asset | assetlabel) != 'LBTC' and (asset | assetlabel) != 'tLBTC' and asset not in specter.wallet_manager.joined_balance().get("assets", {}).keys() %}
+                            <button style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('{{asset}}')">{{ _("Remove") }}</button>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td><input type="text" id="new_asset_label" placeholder="{{ _('New asset label') }}"/></td>
+                <td>
+                    <input type="text" id="new_asset_id" placeholder="{{ _('New asset ID') }}"/>
+                </td>
+                <td>
+                    <button style="display: inline-block;" type="button" class="btn" onclick="addAssetLabel()">{{ _("Add asset") }}</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    let existingAssets = []
+    {% for asset in assets.keys() %}
+    existingAssets.push('{{asset}}');
+    {% endfor %}
+    async function addAssetLabel() {
+        let url = `{{ url_for('settings_endpoint.set_asset_label') }}`;
+        var formData = new FormData();
+        let assetIDField = document.getElementById('new_asset_id');
+        let assetLabelField = document.getElementById('new_asset_label');
+        let assetsList = document.getElementById('liquid-assets-list');
+        if (!isHex(assetIDField.value) || assetIDField.value.length !== 64) {
+            showError(`{{_("Asset ID is invalid, must be 64 hex characters")}}`, 5000);
+            return false;
+        }
+        if (existingAssets.indexOf(assetIDField.value) != -1) {
+            showError(`{{_("This asset is already in the registry.")}}`, 5000);
+            return false;
+        }
+        if (assetLabelField.value == '') {
+            showError(`{{_("Asset label must not be empty.")}}`, 5000);
+            return false;
+        }
+        formData.append('asset', assetIDField.value);
+        formData.append('label', assetLabelField.value);
+        formData.append('csrf_token', '{{ csrf_token() }}');
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+
+            let newAssetRow = document.createElement('tr');
+            newAssetRow.innerHTML = `
+            <td><asset-label data-asset="${assetIDField.value}" data-label="${assetLabelField.value}" edit-mode="enabled"></asset-label></td>
+            <td>${assetIDField.value}</td>
+            <td><button style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('${assetIDField.value}')">{{ _("Remove") }}</button></td>
+            `;
+            newAssetRow.id = `${assetIDField.value}-asset-registry-row`;
+            assetsList.insertBefore(newAssetRow, assetsList.childNodes[assetsList.childNodes.length - 3]);
+            existingAssets.push(assetIDField.value);
+
+            assetIDField.value = '';
+            assetLabelField.value = '';
+            return jsonResponse.success;
+        } catch(e) {
+            console.log("Caught error: ", e);
+            showError(e);
+            return false;
+        }
+    }
+
+    async function removeAsset(asset) {
+        if (existingAssets.indexOf(asset) == -1) {
+            showError(`{{_("Asset ID does not exist")}}`, 5000);
+            return false;
+        }
+        let url = `{{ url_for('settings_endpoint.set_asset_label') }}`;
+        var formData = new FormData();
+        formData.append('asset', asset);
+        formData.append('label', '');
+        formData.append('csrf_token', '{{ csrf_token() }}');
+        
+        try {
+            const response = await fetch(
+                url,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            if(response.status != 200){
+                showError(await response.text());
+                return;
+            }
+            const jsonResponse = await response.json();
+            document.getElementById(`${asset}-asset-registry-row`).remove();
+            existingAssets.splice(existingAssets.indexOf(asset), 1);
+            return jsonResponse.success;
+        } catch(e) {
+            console.log("Caught error: ", e);
+            showError(e);
+            return false;
+        }
+    }
+
+    function isHex(num) {
+        return Boolean(num.match(/^[0-9a-f]+$/i))
+    }
+</script>

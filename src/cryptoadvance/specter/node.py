@@ -4,6 +4,7 @@ import os
 
 from embit.liquid.networks import get_network
 from flask_babel import lazy_gettext as _
+from requests.exceptions import ConnectionError
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -145,7 +146,8 @@ class Node:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
                 )
-            # autodetect won't result in any logging, even if None
+            if rpc == None:
+                logger.warning(f"No rpc was found for {self}")
             return rpc
         else:
             # if autodetect is disabled and port is not defined
@@ -171,8 +173,17 @@ class Node:
             if is_liquid(res.get("chain")):
                 # convert to LiquidRPC class
                 rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        except RpcError as rpce:
+            if rpce.status_code == 401:
+                return rpc  # The user is failing to configure correctly
+            logger.error(rpce)
+            return None
+        except ConnectionError as e:
+            logger.error(e)
+            return None
         except Exception as e:
-            return rpc
+            logger.exception(e)
+            return None
         if rpc.test_connection():
             return rpc
         else:
@@ -280,7 +291,7 @@ class Node:
                 logger.exception("Exception %s while check_info()" % e)
         else:
             if self.rpc is None:
-                logger.error(f"connection of {self} is None in check_info")
+                logger.warning(f"connection of {self} is None in check_info")
             elif not self.rpc.test_connection():
                 logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
@@ -334,20 +345,21 @@ class Node:
                 rpc.listwallets()
                 r["tests"]["wallets"] = True
             except RpcError as rpce:
-                logger.error(rpce)
+                logger.info(f"Couldn't list wallets while test_rpc {rpce}")
                 r["tests"]["wallets"] = False
                 r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
         except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: %s", e)
+            logger.info("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
             r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: %s", rpce)
-            logger.error(rpce.status_code)
+            logger.info(
+                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code:{rpce.error_code}"
+            )
             r["tests"]["connectable"] = True
             r["code"] = rpc.r.status_code
             if rpce.status_code == 401:
@@ -418,6 +430,17 @@ class Node:
         return self.network_info["version"]
 
     @property
+    def taproot_support(self):
+        try:
+            # currently only master branch supports tr() descriptors
+            # TODO: replace to 220000
+            return (self.bitcoin_core_version_raw >= 219900) and (
+                self.info.get("softforks", {}).get("taproot", {}).get("active", False)
+            )
+        except Exception as e:
+            return False
+
+    @property
     def chain(self):
         return self.info["chain"]
 
@@ -427,11 +450,14 @@ class Node:
 
     @property
     def asset_labels(self):
+        if not self.is_liquid:
+            return {}
         if self._asset_labels is None:
             asset_labels = self.rpc.dumpassetlabels()
             assets = {}
+            LBTC = "LBTC" if self.chain == "liquidv1" else "tLBTC"
             for k in asset_labels:
-                assets[asset_labels[k]] = k if k != "bitcoin" else "LBTC"
+                assets[asset_labels[k]] = k if k != "bitcoin" else LBTC
             self._asset_labels = assets
         return self._asset_labels
 

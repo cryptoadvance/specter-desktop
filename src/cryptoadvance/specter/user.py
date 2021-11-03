@@ -163,7 +163,11 @@ class User(UserMixin):
     def update_asset_label(self, asset, label, chain):
         if "asset_labels" not in self.config:
             self.config["asset_labels"] = {}
-        deep_update(self.config["asset_labels"], {chain: {asset: label}})
+        if not label:
+            if self.config["asset_labels"].get(chain, {}).get(asset):
+                del self.config["asset_labels"][chain][asset]
+        else:
+            deep_update(self.config["asset_labels"], {chain: {asset: label}})
         self.save_info()
 
     def set_explorer(self, explorer_id, explorer):
@@ -202,6 +206,14 @@ class User(UserMixin):
 
     def set_hide_sensitive_info(self, hide_sensitive_info_bool):
         self.config["hide_sensitive_info"] = hide_sensitive_info_bool
+        self.save_info()
+
+    def set_autohide_sensitive_info_timeout(self, timeout_minutes):
+        self.config["autohide_sensitive_info_timeout_minutes"] = timeout_minutes
+        self.save_info()
+
+    def set_autologout_timeout(self, timeout_hours):
+        self.config["autologout_timeout_hours"] = timeout_hours
         self.save_info()
 
     def set_price_provider(self, price_provider):

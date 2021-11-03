@@ -24,26 +24,6 @@ def cli():
 
 
 @cli.command()
-@click.option(
-    "--daemon",
-    is_flag=True,
-    help="Deprecated, don't use this options and expect future removal.",
-)
-@click.option(
-    "--stop",
-    is_flag=True,
-    help="Deprecated, don't use this options and expect future removal.",
-)
-@click.option(
-    "--restart",
-    is_flag=True,
-    help="Deprecated, don't use this options and expect future removal.",
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Deprecated, don't use this options and expect future removal.",
-)
 # options below can help to run it on a remote server,
 # but better use nginx
 @click.option(
@@ -89,10 +69,6 @@ def cli():
     help="A class from the config.py which sets reasonable default values.",
 )
 def server(
-    daemon,
-    stop,
-    restart,
-    force,
     port,
     host,
     cert,
@@ -147,41 +123,7 @@ def server(
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)
 
-    # This stuff here is deprecated
-    # When we remove it, we should imho keep the pid_file thing which can be very useful!
-    # we will store our daemon PID here
-    pid_file = path.join(app.specter.data_folder, "daemon.pid")
-
     toraddr_file = path.join(app.specter.data_folder, "onion.txt")
-    # check if pid file exists
-    if path.isfile(pid_file):
-        # if we need to stop daemon
-        if stop or restart:
-            print("Stopping the Specter server...")
-            with open(pid_file) as f:
-                pid = int(f.read())
-            os.kill(pid, signal.SIGTERM)
-            time.sleep(0.3)
-            try:
-                os.remove(pid_file)
-            except OSError:
-                pass
-        elif daemon:
-            if not force:
-                print(
-                    f'PID file "{pid_file}" already exists. \
-                        Use --force to overwrite'
-                )
-                return
-            else:
-                os.remove(pid_file)
-        if stop:
-            return
-    else:
-        if stop or restart:
-            print(f'Can\'t find PID file "{pid_file}"')
-            if stop:
-                return
 
     # watch templates folder to reload when something changes
     extra_dirs = ["templates"]
@@ -253,31 +195,10 @@ def server(
                 # no reason to break startup here
                 logger.error("Could not initialize tor-system")
 
-    # check if we should run a daemon or not
-    if daemon or restart:
-        print("Starting server in background...")
-        protocol = "http"
-        if "ssl_context" in kwargs:
-            protocol = "https"
-        print(" * Running on %s://%s:%d/" % (protocol, host, app.config["PORT"]))
-        # macOS + python3.7 is buggy
-        if sys.platform == "darwin" and (
-            sys.version_info.major == 3 and sys.version_info.minor < 8
-        ):
-            raise Exception(
-                " ERROR: --daemon mode is no longer \
-                   supported in Python 3.7 and lower \
-                   on MacOS. Upgrade to Python 3.8+. (Might not work anyway.)"
-            )
-        from daemonize import Daemonize
-
-        d = Daemonize(app="specter", pid=pid_file, action=run)
-        d.start()
-    else:
-        # if not a daemon we can use DEBUG
-        if debug is None:
-            debug = app.config["DEBUG"]
-        run(debug=debug)
+    # if not a daemon we can use DEBUG
+    if debug is None:
+        debug = app.config["DEBUG"]
+    run(debug=debug)
 
 
 def configure_ssl(kwargs, app_config, ssl):

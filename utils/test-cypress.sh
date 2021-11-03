@@ -44,11 +44,11 @@ Subcommands:
     run  [spec-file]    will run the tests.
                         open and run take a spec-file optionally. If you add a spec-file, 
                         then automatically the corresponding snapshot is untarred before and,
-                        in the case of run, only the spec-file and all subsequent spec_files 
-                        are executed.
-    snapshot <spec_file>  will create a snapshot of the spec-file. It will create a tarball
-                        of the btc-dir and the specter-dir and store those files in the 
-                        ./cypress/fixtures directory
+                          in the case of run, only the spec-file and all subsequent spec_files 
+                          are executed.
+    snapshot [spec_file]  will create a snapshot of the spec-file. It will create a tarball
+                          of the btc-/elm-dir and the specter-dir and store those files in the 
+                          ./cypress/fixtures directory
 
 generic-options:
     --debug             Run as much stuff in debug as we can
@@ -75,15 +75,6 @@ function open() {
   esac
 }
 
-exit_if_macos() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Very sorry but this functionality is not yet ready for MacOS :-(."
-    echo "If you can fix that, PRs are very much appreciated!"
-    echo "it's basically the different behaviour of GNU-tools on Linux/MacOS."
-    echo "first step to help is find the calls of \"exit_if_macos\" and deactivate it!"
-    exit 2
-  fi
-}
 
 function send_signal() {
   # use like send_signal <SIGNAL> <PID>
@@ -107,10 +98,12 @@ function start_node {
     case $arg in
       --bitcoin)
         node_impl=bitcoind
+        node_impl_abbrev=btcd
         shift
         ;;
       --elements)
         node_impl=elementsd
+        node_impl_abbrev=elmd
         shift
         ;;
       --reset)
@@ -141,6 +134,15 @@ function start_node {
   if [ "$CLEANUPHARD" = "true" ]; then
       addopts="--cleanuphard"
   fi
+  if [ "$node_impl" = "bitcoind" ]; then
+    if [ "$BTCLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
+  else
+    if [ "$ELMLOGSTDOUT" = "true" ]; then
+      addopts="--log-stdout"
+    fi
+  fi
   if [ "$DOCKER" != "true" ]; then
     if [ "$node_impl" != "elementsd" ]; then # no docker for elementsd yet
       addopts="$addopts --nodocker"
@@ -154,9 +156,11 @@ function start_node {
     elementsd_pid=$!
   fi
 
-  while ! [ -f ./btcd-conn.json ] ; do
+  echo "--> Waiting for Starting ${node_impl_abbrev}-conn.json to be created ..."
+  while ! [ -f ./${node_impl_abbrev}-conn.json ] ; do
       sleep 0.5
   done
+  echo "--> ${node_impl_abbrev}-conn.json created ..."
 
 }
 
@@ -222,20 +226,31 @@ trap cleanup EXIT
 function restore_snapshot {
   spec_file=$1
   # Checking whether spec-files exists
-  [ -f ./cypress/integration/${spec_file} ] || (echo "Spec-file $spec_file does not exist, these are the options:"; cat cypress.json | jq -r ".testFiles[]"; exit 1)
+  if ! [ -f ./cypress/integration/${spec_file} ]; then
+    echo "Spec-file $spec_file does not exist, these are the options:"
+    cat cypress.json | jq -r ".testFiles[]" 
+    exit 1
+  fi
   snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
   if ! [ -f ${snapshot_file} ]; then
     echo "Snapshot for Spec-file $spec_file does not exist, these are the options:"
-    ls ./cypress/fixtures -1 | sed -e 's/_btcdir.tar.gz//' -e 's/_specterdir.tar.gz//' | uniq
+    ls ./cypress/fixtures | awk '{ print $1 }' | sed -e 's/_btcdir.tar.gz//' -e 's/_specterdir.tar.gz//' | uniq # single line, awk for macos
     echo "But maybe you want to create that snapshot like this:"
     echo "./utils/test-cypress.sh snapshot $spec_file"
     exit 1
   fi
-  exit_if_macos
-  ts_snapshot=$(stat --print="%X" ${snapshot_file})
+  if [ $(uname) = "Darwin" ]; then
+	  ts_snapshot=$(stat -f "%m" ${snapshot_file})
+  else
+	  ts_snapshot=$(stat --print="%X" ${snapshot_file})
+  fi
   for file in $(./utils/calc_cypress_test_spec.py --delimiter " " $spec_file) 
   do 
-    ts_spec_file=$(stat --print="%X" $file)
+    if [ $(uname) = "Darwin" ]; then
+      ts_spec_file=$(stat -f "%m" $file)
+    else
+      ts_spec_file=$(stat --print="%X" $file)
+    fi
     if [ "$ts_spec_file" -gt "$ts_snapshot" ]; then
       echo "$file is newer ($ts_spec_file)than the snapshot for $spec_file ($ts_snapshot)"
       echo "please consider to create a new snapshot:"
@@ -378,13 +393,21 @@ function parse_and_execute() {
       DEBUG=--debug
       shift
       ;;
+    --elm-log-stdout)
+      ELMLOGSTDOUT=true
+      shift
+      ;;
     --docker)
       DOCKER=true
       shift
       ;;
     *)
       shift
+      START=$(date +%s)
       sub_${arg} $@
+      END=$(date +%s)
+      DIFF=$(echo "( $END - $START ) / 60" | bc)
+      echo "    --> End $(date) took $DIFF minutes"
       ret_value=$?
       if [ $ret_value = 127 ]; then
         echo "Error: '$arg' is not a known subcommand." >&2
@@ -399,4 +422,5 @@ function parse_and_execute() {
   esac
   done
 }
+export ELECTRON_EXTRA_LAUNCH_ARGS=--lang=en
 parse_and_execute $@

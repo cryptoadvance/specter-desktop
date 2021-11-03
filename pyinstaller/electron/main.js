@@ -1,5 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
@@ -11,11 +12,37 @@ const getFileHash = helpers.getFileHash
 const getAppSettings = helpers.getAppSettings
 const appSettingsPath = helpers.appSettingsPath
 const specterdDirPath = helpers.specterdDirPath
+
+// Logging
+const {transports, format, createLogger } = require('winston')
+const combinedLog = new transports.File({ filename: helpers.specterAppLogPath });
+const winstonOptions = {
+    exitOnError: false,
+    format: format.combine(
+      format.timestamp(),
+      // format.timestamp({format:'MM/DD/YYYY hh:mm:ss.SSS'}),
+      format.json(),
+      format.printf(info => {
+        return `${info.timestamp} [${info.level}] : ${info.message}`;
+      })
+    ),
+    transports: [
+      new transports.Console({json:false}),
+      combinedLog
+    ],
+    exceptionHandlers: [
+      combinedLog
+    ]
+}
+const logger = createLogger(winstonOptions)
+
+
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
+const { options } = require('request')
 
 contextMenu({
 	menu: (actions) => [
@@ -40,8 +67,8 @@ contextMenu({
 
 const download = (uri, filename, callback) => {
     request.head(uri, (err, res, body) => {
-        console.log('content-type:', res.headers['content-type'])
-        console.log('content-length:', res.headers['content-length'])
+        logger.info('content-type:', res.headers['content-type'])
+        logger.info('content-length:', res.headers['content-length'])
         if (res.statusCode != 404) {
           request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
         } else {
@@ -102,6 +129,7 @@ function createWindow (specterURL) {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Start the tray icon
+  logger.info("Framework Ready! Starting tray Icon ...");
   tray = new Tray(path.join(__dirname, 'assets/icon.png'))
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
@@ -115,6 +143,7 @@ app.whenReady().then(() => {
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
+  logger.info("Framework Ready! Initializing Main-Window, popultaing Menu ...");
   initMainWindow()
 
   setMainMenu();
@@ -122,11 +151,13 @@ app.whenReady().then(() => {
   mainWindow.loadURL(`file://${__dirname}/splash.html`);
 
   if (!fs.existsSync(specterdDirPath)){
-      fs.mkdirSync(specterdDirPath, { recursive: true });
+    logger.info("Creating specterd-binaries folder");
+    fs.mkdirSync(specterdDirPath, { recursive: true });
   }
 
   let versionData = require('./version-data.json')
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
+    logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
     appSettings.specterdVersion = versionData.version
     appSettings.specterdHash = versionData.sha256
     appSettings.versionInitialized = versionData.version
@@ -136,6 +167,7 @@ app.whenReady().then(() => {
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
       if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
+        
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
         updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
@@ -187,8 +219,8 @@ function initMainWindow(specterURL) {
 function downloadSpecterd(specterdPath) {
   updatingLoaderMsg('Fetching the Specter binary...<br>This might take a minute...')
   updateSpecterdStatus('Fetching Specter binary...')
-  console.log("Using version ", appSettings.specterdVersion);
-  console.log(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
+  logger.info("Using version ", appSettings.specterdVersion);
+  logger.info(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
   download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
     if (errored == true) {
       updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
@@ -249,6 +281,11 @@ function updatingLoaderMsg(msg) {
   } 
 }
 
+function hasSuccessfullyStarted(logs) {
+  return logs.toString().includes('  * Running on http')
+  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+}
+
 function startSpecterd(specterdPath) {
   if (platformName == 'win64') {
     specterdPath += '.exe'
@@ -257,7 +294,9 @@ function startSpecterd(specterdPath) {
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
   updatingLoaderMsg('Launching Specter Desktop...')
   updateSpecterdStatus('Launching Specter...')
-  let specterdArgs = hwiBridgeMode ? ['--hwibridge'] : null
+  let specterdArgs = ["server"]
+  specterdArgs.push("--no-filelog")
+  if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
     if (specterdArgs == null) {
       specterdArgs = []
@@ -268,17 +307,47 @@ function startSpecterd(specterdPath) {
     
     specterdArgs = specterdArgs.concat(specterdExtraArgs)
   }
-  specterdProcess = spawn(specterdPath, specterdArgs);
+
+
+  logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
+  // locale fix (copying from nodejs-env + adding locales)
+  const options = {
+    env: { ...process.env}
+  }
+  options.env['LC_ALL']='en_US.utf-8'
+  options.env['LANG'] = 'en_US.utf-8'
+  options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
+  specterdProcess = spawn(specterdPath, specterdArgs, options);
+  var procStdout = ""
+  var procStderr = ""
   specterdProcess.stdout.on('data', (data) => {
-    if(data.toString().includes('Serving Flask app "cryptoadvance.specter.server"')) {
+    procStdout += data
+    logger.info("stdout-"+data.toString())
+    if(hasSuccessfullyStarted(data)) {
+      logger.info(`App seem to to run ...`);
       if (mainWindow) {
+        logger.info(`... creating window ...`);
         createWindow(appSettings.specterURL)
+        
       }
     }
   });
-  specterdProcess.stderr.on('data', function(_) {
-    // https://stackoverflow.com/questions/20792427/why-is-my-node-child-process-that-i-created-via-spawn-hanging
-    // needed so specterd won't get stuck
+  specterdProcess.stderr.on('data', (data) => {
+    procStderr += data
+    logger.info("stderr-"+data.toString())
+    if(hasSuccessfullyStarted(data)) {
+      logger.info(`App seem to to run ...`);
+      if (mainWindow) {
+        logger.info(`... creating window ...`);
+        createWindow(appSettings.specterURL)
+        
+      }
+    }
+  });
+
+  specterdProcess.on('exit', (code) => {
+    logger.error(`specterd exited with code ${code}`);
+    showError(`specterd exited with code ${code}. Check the logs in the menu!`)
   });
 
   app.on('activate', function () {
@@ -289,7 +358,7 @@ function startSpecterd(specterdPath) {
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
     updateSpecterdStatus('Specter stopped...')
-    console.log(`child process exited with code ${code}`);
+    logger.info(`child process exited with code ${code}`);
   });
 }
 
@@ -322,7 +391,7 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
         prefWindow.webContents.executeJavaScript(`savePreferences()`);
       } else {
         specterdProcess.on('close', (code) => {
-          console.log(`child process exited with code ${code}`);
+          logger.info(`child process exited with code ${code}`);
           prefWindow.webContents.executeJavaScript(`savePreferences()`);
         });
         quitSpecterd()
@@ -345,7 +414,7 @@ function quitSpecterd() {
       }
       specterdProcess.kill('SIGINT')
     } catch (e) {
-      console.log('Specterd quit warning: ' + e)
+      logger.info('Specterd quit warning: ' + e)
     }
   }
 }
@@ -362,14 +431,28 @@ function setMainMenu() {
         accelerator: "CmdOrCtrl+,"
       }
     );
+    menu[0].submenu.splice(1, 0,
+      {
+        label: 'Specter Logs',
+        click: openErrorLog,
+        accelerator: "CmdOrCtrl+,"
+      }
+    );
   } else {
     menu.unshift({
         label: 'Specter',
-        submenu: [{
+        submenu: [
+        {
           label: 'Preferences',
           click: openPreferences,
           accelerator: "CmdOrCtrl+,"
-        }]
+        },
+        {
+          label: 'Specter Logs',
+          click: openErrorLog,
+          accelerator: "CmdOrCtrl+,"
+        }
+        ]
       } 
     );
   }
@@ -377,32 +460,50 @@ function setMainMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }
 
-function openPreferences() {
+
+function openNewWindow(htmlContentFile) {
   prefWindow = new BrowserWindow({
     width: 700,
     height: 750,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
+      enableRemoteModule: true,
+      
     }
   })
   prefWindow.webContents.on('new-window', function(e, url) {
     e.preventDefault();
     shell.openExternal(url);
   });
-  prefWindow.loadURL(`file://${__dirname}/settings.html`)
+  prefWindow.loadURL(`file://${__dirname}/${htmlContentFile}`)
   prefWindow.show()
 }
 
+
+function openPreferences() {
+  openNewWindow("settings.html")
+}
+
+function openErrorLog() {
+  openNewWindow("error_logs.html")
+}
+
 function showError(error) {
-  console.error('Specter Desktop encounter an error', error.toString())
   updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {
   showError(error)
+  logger.error(error.toString(), error.name)
 })
 
 process.on("uncaughtException", error => {
   showError(error)
+  // I would love to rethrow the error here as this would create a stacktrace in the logs
+  // but this will terminate the whole process even though i've set
+  // exitOnError: false in the wistonOptions above.
+  // Unacceptable for the folks which can't use a commandline, clicking an icon
+  //throw(error)
+  logger.error(error.toString())
 })

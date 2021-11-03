@@ -79,12 +79,16 @@
 			var generateregistrationlinkDiv = document.getElementById("generateregistrationlink");
 			if (select.options[select.selectedIndex].value === 'usernamepassword'){
 				usernamepasswordDiv.style.display = 'block';
-				generateregistrationlinkDiv.style.display = 'flex';
+				if (generateregistrationlinkDiv !== null) {
+					generateregistrationlinkDiv.style.display = 'flex';
+				}
 			} else {
 				usernamepasswordDiv.style.display = 'none';
 				specterUsername.value = '{{ current_user.username }}';
 				specterPassword.value = '';
-				generateregistrationlinkDiv.style.display = 'none';
+				if (generateregistrationlinkDiv !== null) {
+					generateregistrationlinkDiv.style.display = 'none';
+				}
 			}
 
 			// Password Only mode

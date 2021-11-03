@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import pathlib
 from flask_babel import lazy_gettext as _
 
 from ..helpers import alias, load_jsons
@@ -36,8 +37,7 @@ class DeviceManager:
             if data_folder.startswith("~"):
                 data_folder = os.path.expanduser(data_folder)
             # creating folders if they don't exist
-            if not os.path.isdir(data_folder):
-                os.mkdir(data_folder)
+            pathlib.Path(data_folder).mkdir(parents=True, exist_ok=True)
         devices = {}
         devices_files = load_jsons(self.data_folder, key="name")
         for device_alias in devices_files:

@@ -22,7 +22,6 @@ class ConfigManager(GenericDataManager):
     with a lot of validation and computing while setting/getting
     """
 
-    initial_data = {}
     name_of_json_file = "config.json"
     lock = threading.Lock()
 
@@ -63,9 +62,11 @@ class ConfigManager(GenericDataManager):
             "price_provider": "",
             "weight_unit": "oz",
             "validate_merkle_proofs": False,
-            "fee_estimator": "mempool",
+            "fee_estimator": "bitcoin_core",
             "fee_estimator_custom_url": "",
             "hide_sensitive_info": False,
+            "autohide_sensitive_info_timeout_minutes": 20,
+            "autologout_timeout_hours": 4,
             # TODO: remove
             "bitcoind": False,
         }
@@ -118,7 +119,11 @@ class ConfigManager(GenericDataManager):
         if user.is_admin:
             if "asset_labels" not in self.data:
                 self.data["asset_labels"] = {}
-            deep_update(self.data["asset_labels"], {chain: {asset: label}})
+            if not label:
+                if self.data["asset_labels"].get(chain, {}).get(asset):
+                    del self.data["asset_labels"][chain][asset]
+            else:
+                deep_update(self.data["asset_labels"], {chain: {asset: label}})
             self._save()
         else:
             user.update_asset_label(asset, label, chain)
@@ -263,6 +268,24 @@ class ConfigManager(GenericDataManager):
             self._save()
         else:
             user.set_hide_sensitive_info(hide_sensitive_info_bool)
+
+    def update_autohide_sensitive_info_timeout(self, timeout_minutes, user):
+        if isinstance(user, str):
+            raise Exception("Please pass a real user, not a string-user")
+        if user.is_admin:
+            self.data["autohide_sensitive_info_timeout_minutes"] = timeout_minutes
+            self._save()
+        else:
+            user.set_autohide_sensitive_info_timeout(timeout_minutes)
+
+    def update_autologout_timeout(self, timeout_hours, user):
+        if isinstance(user, str):
+            raise Exception("Please pass a real user, not a string-user")
+        if user.is_admin:
+            self.data["autologout_timeout_hours"] = timeout_hours
+            self._save()
+        else:
+            user.set_autologout_timeout(timeout_hours)
 
     def update_price_provider(self, price_provider, user):
         if isinstance(user, str):
