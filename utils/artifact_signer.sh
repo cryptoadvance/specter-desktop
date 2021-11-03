@@ -29,12 +29,6 @@ case $key in
 esac
 done
 
-if [[ -z $artifact ]]; then
-    echo "no --artifact given "
-    exit 1
-fi
-
-
 # We want a detached signature in cleartext. Extension: .asc (as in bitcoin)
 output_file=${artifact}.asc
 
@@ -53,6 +47,10 @@ if [[ -f /credentials/private.key ]]; then
 fi
 
 if [ "action" = sign ]; then
+    if [[ -z $artifact ]]; then
+        echo "no --artifact given "
+        exit 1
+    fi
     echo "signing ..."
     echo $GPG_PASSPHRASE | gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback $artifact 
 fi
