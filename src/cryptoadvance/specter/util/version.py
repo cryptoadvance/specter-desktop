@@ -18,7 +18,6 @@ class VersionChecker:
         self.name = name
 
         self.current = self._get_current_version()
-        logger.info(f" ......... initialized with {self.current}")
         self.latest = "unknown"
         self.upgrade = False
         self.running = False
@@ -59,10 +58,8 @@ class VersionChecker:
         current = "unknown"
         if self.installation_type == "app":
             current = VersionChecker._version_txt_content()
-            print("APP !!")
         else:
             current = importlib_metadata.version(self.name)
-            print("PIP !!")
         if current == "vx.y.z-get-replaced-by-release-script":
             current = "custom"
         return current
