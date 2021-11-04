@@ -228,7 +228,8 @@ release_signatures:
     - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
     - python3 -m utils.release-helper create            # creates a SHA256SUM
     - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS # Signs the SHA256SUM
-    - python3 -m utils.release-helper upload            # uploads SHA256SUM.asc to github
+    - python3 -m utils.release-helper upload_shasums    # uploads SHA256SUMS to github
+    - python3 -m utils.release-helper upload_shasumssig # uploads SHA256SUMS.asc to github
 
 release_docker:
   stage: post_releasing
