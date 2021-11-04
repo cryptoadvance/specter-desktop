@@ -225,8 +225,8 @@ release_signatures:
   script:
     - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
     - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
-    - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files
-    - python3 -m utils.release-helper checksigs          # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.release-helper checksigs         # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
     - python3 -m utils.release-helper create            # creates a SHA256SUM.txt
     - python3 -m utils.release-helper upload            # uploads it to github
     - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS
