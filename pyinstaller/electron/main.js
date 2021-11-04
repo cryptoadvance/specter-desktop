@@ -143,7 +143,7 @@ app.whenReady().then(() => {
   dimensions = screen.getPrimaryDisplay().size;
 
   // create a new `splash`-Window 
-  logger.info("Framework Ready! Initializing Main-Window, popultaing Menu ...");
+  logger.info("Framework Ready! Initializing Main-Window, populating Menu ...");
   initMainWindow()
 
   setMainMenu();
