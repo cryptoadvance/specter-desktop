@@ -145,7 +145,7 @@ class ReleaseHelper:
                     logger.info(f"Found matching pipeline: {pipeline}")
             if not hasattr(self, "pipeline"):
                 logger.error(
-                    f"Could not find tag {self.tag} in the peipline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
+                    f"Could not find tag {self.tag} in the pipeline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
                 )
                 raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
