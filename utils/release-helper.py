@@ -30,7 +30,7 @@ class Sha256sumFile:
     def download_hashed_files(self, gc):
         for file in self.hashed_files.keys():
             logger.info(f"Downloading {file} from {tag}")
-            gc.download_artifact(tag, file, target_dir=self.target_dir)
+            gc.download_artifact(self.tag, file, target_dir=self.target_dir)
 
     def read(self):
         with open(os.path.join(self.target_dir, self.name), "r") as file:
@@ -79,9 +79,10 @@ class Sha256sumFile:
 
 class ReleaseHelper:
     def __init__(self):
-        pass
+        self.target_dir = "signing_dir"
 
     def init_gitlab(self):
+        # https://python-gitlab.readthedocs.io/en/stable/api-usage.html
         import gitlab
 
         if os.environ.get("GITLAB_PRIVATE_TOKEN"):
@@ -112,34 +113,43 @@ class ReleaseHelper:
             self.project_id = os.environ.get("CI_PROJECT_ID")
             self.github_project = f"{project_root_namespace}/specter-desktop"
         else:
-            self.project_id = 15721074  # cryptoadvance/specter-desktop
-            self.project_id = 15541285
-            self.github_project = f"{project_root_namespace}/specter-desktop"
+            logger.error("No Project given. choose one:")
+            for project in self.gl.projects.list(search="specter-desktop"):
+                logger.info(
+                    f"     export CI_PROJECT_ID={project.id}  # {project.name_with_namespace}"
+                )
+            exit(1)
 
         logger.info(f"Using project_id: {self.project_id}")
         logger.info(f"Using github_project: {self.github_project}")
 
         self.project = self.gl.projects.get(self.project_id)
 
-        if os.environ.get("CI_PIPELINE_ID"):
-            pipeline_id = os.environ.get("CI_PIPELINE_ID")
-        else:
-            pipeline_id = 387387482  # cryptoadavance v1.7.0-pre1
-            pipeline_id = 389780348  # k9ert v0.0.1-pre1
-
-        logger.info(f"Using pipeline_id: {pipeline_id}")
-
         if os.environ.get("CI_COMMIT_TAG"):
             self.tag = os.environ.get("CI_COMMIT_TAG")
         else:
             raise Exception("no tag given ( export CI_COMMIT_TAG=v0.0.0.0-pre13 )")
-
         logger.info(f"Using tag: {self.tag}")
 
-        self.pipeline = self.project.pipelines.get(pipeline_id)
+        if os.environ.get("CI_PIPELINE_ID"):
+            self.pipeline_id = os.environ.get("CI_PIPELINE_ID")
+            self.pipeline = self.project.pipelines.get(self.pipeline_id)
+        else:
+            logger.info(
+                "no CI_PIPELINE_ID given, trying to find an appropriate one ..."
+            )
+            pipelines = self.project.pipelines.list()
+            for pipeline in pipelines:
+                if pipeline.ref == self.tag:
+                    self.pipeline = pipeline
+                    logger.info(f"Found matching pipeline: {pipeline}")
+            if not hasattr(self, "pipeline"):
+                logger.error(
+                    f"Could not find tag {self.tag} in the pipeline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
+                )
+                raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
-        self.target_dir = "signing_dir"
-
+        logger.info(f"Using pipeline_id: {self.pipeline.id}")
         Path(self.target_dir).mkdir(parents=True, exist_ok=True)
 
     def download_and_unpack_all_artifacts(self):
@@ -172,7 +182,6 @@ class ReleaseHelper:
                         zip.extract(zip_info, self.target_dir)
 
     def download_and_unpack_new_artifacts_from_github(self):
-        from utils import github
 
         gc = github.GithubConnection(self.github_project)
         release = gc.fetch_existing_release(self.tag)
@@ -214,6 +223,10 @@ class ReleaseHelper:
     def check_all_hashes(self):
         for file in os.listdir(self.target_dir):
             if file.startswith("SHA256SUM") and not file.endswith(".asc"):
+                logger.info(f"Checking hashes in {file}")
+                if file.endswith("windows"):
+                    logger.info(f"Converting dos2unix for {file}")
+                    dos2unix(os.path.join("signing_dir", file))
                 returncode = subprocess.call(
                     ["sha256sum", "-c", file], cwd=self.target_dir
                 )
@@ -254,14 +267,12 @@ class ReleaseHelper:
         artifact = os.path.join("signing_dir", "SHA256SUMS")
         self.calculate_publish_params()
 
-        if self.github.artifact_exists(
-            self.github_project, self.tag, Path(artifact).name
-        ):
+        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
             logger.info(f"Github artifact {artifact} existing. Skipping upload.")
             exit(0)
         else:
             logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
-        self.github.publish_release_from_tag(
+        github.publish_release_from_tag(
             self.github_project,
             self.tag,
             [artifact],
@@ -269,6 +280,35 @@ class ReleaseHelper:
             "gitlab_upload_release_binaries",
             self.password,
         )
+
+    def upload_sha256sumsig_file(self):
+        artifact = os.path.join("signing_dir", "SHA256SUMS.asc")
+        self.calculate_publish_params()
+
+        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
+            logger.info(f"Github artifact {artifact} existing. Skipping upload.")
+            exit(0)
+        else:
+            logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
+        github.publish_release_from_tag(
+            self.github_project,
+            self.tag,
+            [artifact],
+            "github.com",
+            "gitlab_upload_release_binaries",
+            self.password,
+        )
+
+
+def dos2unix(filename):
+    content = ""
+    outsize = 0
+    with open(filename, "rb") as infile:
+        content = infile.read()
+    with open(filename, "wb") as output:
+        for line in content.splitlines():
+            outsize += len(line) + 1
+            output.write(line + b"\n")
 
 
 def sha256sum(filenames):
@@ -285,6 +325,13 @@ if __name__ == "__main__":
         exit(0)
     rh = ReleaseHelper()
     rh.init_gitlab()
+    try:
+        from utils import github
+    except Exception as e:
+        logger.fatal(e)
+        logger.error("You might have called this script wrong. Execute it like:")
+        logger.error("python3 -m utils.release-helper ...")
+
     if "download" in sys.argv:
         rh.download_and_unpack_all_artifacts()
     if "downloadgithub" in sys.argv:
@@ -295,5 +342,7 @@ if __name__ == "__main__":
         rh.check_all_sigs()
     if "create" in sys.argv:
         rh.create_sha256sum_file()
-    if "upload" in sys.argv:
+    if "upload_shasums" in sys.argv:
         rh.upload_sha256sum_file()
+    if "upload_shasumssig" in sys.argv:
+        rh.upload_sha256sumsig_file()

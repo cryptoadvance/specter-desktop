@@ -1,6 +1,47 @@
 import pytest
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.version import _parse_version, compare
+from cryptoadvance.specter.util.version import VersionChecker
+from mock import Mock, patch, PropertyMock
+
+
+@patch(
+    "cryptoadvance.specter.util.version.VersionChecker.installation_type",
+    new_callable=PropertyMock,
+)
+@patch("cryptoadvance.specter.util.version.importlib_metadata.version")
+@patch("cryptoadvance.specter.util.version.VersionChecker._version_txt_content")
+def test_VersionChecker(
+    VersionChecker_version_txt_content, imp_lib_mock, mock_installation_type
+):
+    imp_lib_mock.return_value = "1.2.3"
+    VersionChecker_version_txt_content.return_value = "2.3.4"
+    mock_installation_type.return_value = "pip"
+
+    # We're mocking cryptoadvance by another package because that package is installed but not cryptoadvance.specter
+    vc = VersionChecker(name="joke")
+
+    assert vc.installation_type == "pip"
+    asssert = vc._get_current_version() == "1.2.3"
+    assert vc.current == "1.2.3"
+
+    assert vc._get_binary_version() == (
+        "1.2.3",
+        "v1.7.0",
+    )  # will break with a new release
+    # assert vc._get_pip_version() == ("1.2.3", "v5.3.0")    # Might break anytime
+    # assert vc.info == "h"
+
+    mock_installation_type.return_value = "app"
+    vc = VersionChecker(name="joke")
+    assert vc.installation_type == "app"
+    assert vc._get_current_version() == "2.3.4"
+    assert vc.current == "2.3.4"
+
+    assert vc._get_binary_version() == (
+        "2.3.4",
+        "v1.7.0",
+    )
 
 
 def test_parse_version():
