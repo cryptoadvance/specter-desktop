@@ -146,9 +146,13 @@ def general():
                             ),
                             "error",
                         )
+                        handle_exception(e)
                         continue
+                    logger.debug(
+                        f"Wallet {wallet['alias']} already exists, skipping creation"
+                    )
                 write_wallet(wallet)
-                app.specter.wallet_manager.update()
+                app.specter.wallet_manager.update(allow_threading=False)
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
@@ -179,10 +183,11 @@ def general():
                             "error",
                         )
                     wallet_obj.getdata()
-                except Exception:
+                except Exception as e:
                     flash(
                         _("Failed to import wallet {}").format(wallet["name"]), "error"
                     )
+                    handle_exception(e)
             flash(_("Specter data was successfully loaded from backup"), "info")
             if rescanning:
                 flash(
