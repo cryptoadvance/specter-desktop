@@ -3,10 +3,13 @@ from ..addresslist import Address
 from embit import ec
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from embit.liquid.descriptor import LDescriptor
+from embit.descriptor.checksum import add_checksum
 from .txlist import LTxList
 from .addresslist import LAddressList
 from embit.liquid.addresses import to_unconfidential
 from ..specter_error import SpecterError
+from .util.pset import SpecterPSET
 
 
 class LWallet(Wallet):
@@ -14,51 +17,24 @@ class LWallet(Wallet):
     AddressListCls = LAddressList
     TxListCls = LTxList
     TxCls = LTransaction
-    PSBTCls = PSET
+    PSBTCls = SpecterPSET
+    DescriptorCls = LDescriptor
 
     @classmethod
-    def create(
-        cls,
-        rpc,
-        rpc_path,
-        working_folder,
-        device_manager,
-        wallet_manager,
-        name,
-        alias,
-        sigs_required,
-        key_type,
-        keys,
-        devices,
-        core_version=None,
+    def construct_descriptor(
+        cls, sigs_required, key_type, keys, devices, blinding_key=None
     ):
-        """Creates a wallet. If core_version is not specified - get it from rpc"""
-        # get xpubs in a form [fgp/der]xpub from all keys
-        xpubs = [key.metadata["combined"] for key in keys]
-        recv_keys = ["%s/0/*" % xpub for xpub in xpubs]
-        change_keys = ["%s/1/*" % xpub for xpub in xpubs]
-        is_multisig = len(keys) > 1
-        # we start by constructing an argument for descriptor wrappers
-        if is_multisig:
-            recv_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(recv_keys)
-            )
-            change_descriptor = "sortedmulti({},{})".format(
-                sigs_required, ",".join(change_keys)
-            )
-        else:
-            recv_descriptor = recv_keys[0]
-            change_descriptor = change_keys[0]
-        # now we iterate over script-type in reverse order
-        # to get sh(wpkh(xpub)) from sh-wpkh and xpub
-        arr = key_type.split("-")
-        for el in arr[::-1]:
-            recv_descriptor = "%s(%s)" % (el, recv_descriptor)
-            change_descriptor = "%s(%s)" % (el, change_descriptor)
+        """
+        Creates a wallet descriptor from arguments.
+        We need to pass `devices` for Liquid wallet, here it's not used.
+        """
+        # construct normal bitcoin descriptor first
+        btcdescriptor = Wallet.construct_descriptor(
+            sigs_required, key_type, keys, devices
+        )
 
-        # get blinding key for the wallet
-        blinding_key = None
-        if len(devices) == 1:
+        # get blinding key for the wallet if it's not provided
+        if len(devices) == 1 and blinding_key is None:
             blinding_key = devices[0].blinding_key
             if not blinding_key:
                 raise SpecterError(
@@ -68,14 +44,13 @@ class LWallet(Wallet):
         # if we don't have slip77 key for a device or it is multisig
         # we use chaincodes to generate slip77 key.
         if not blinding_key:
-            desc = LDescriptor.from_string(recv_descriptor)
             # For now we use sha256(b"blinding_key", xor(chaincodes)) as a blinding key
             # where chaincodes are corresponding to xpub of the first receiving address.
             # It's not a standard but we use that until musig(blinding_xpubs) is implemented.
             # Chaincodes of the first address are not used anywhere else so they can be used
             # as a source for the blinding keys. They are also independent of the xpub's origin.
             xor = bytearray(32)
-            desc_keys = desc.derive(0).keys
+            desc_keys = btcdescriptor.derive(0, branch_index=0).keys
             for k in desc_keys:
                 if k.is_extended:
                     chaincode = k.key.chain_code
@@ -83,80 +58,20 @@ class LWallet(Wallet):
                         xor[i] = xor[i] ^ chaincode[i]
             secret = hashlib.sha256(b"blinding_key" + bytes(xor)).digest()
             blinding_key = ec.PrivateKey(secret).wif()
-        if blinding_key:
-            recv_descriptor = f"blinded(slip77({blinding_key}),{recv_descriptor})"
-            change_descriptor = f"blinded(slip77({blinding_key}),{change_descriptor})"
 
-        recv_descriptor = AddChecksum(recv_descriptor)
-        change_descriptor = AddChecksum(change_descriptor)
-        assert recv_descriptor != change_descriptor
-
-        # get Core version if we don't know it
-        if core_version is None:
-            core_version = rpc.getnetworkinfo().get("version", 0)
-
-        use_descriptors = core_version >= 209900
-        # v20.99 is pre-v21 Elements Core for descriptors
-        if use_descriptors:
-            # Use descriptor wallet
-            rpc.createwallet(os.path.join(rpc_path, alias), True, True, "", False, True)
-        else:
-            rpc.createwallet(os.path.join(rpc_path, alias), True)
-
-        wallet_rpc = rpc.wallet(os.path.join(rpc_path, alias))
-        # import descriptors
-        args = [
-            {
-                "desc": desc,
-                "internal": change,
-                "timestamp": "now",
-                "watchonly": True,
-            }
-            for (change, desc) in [(False, recv_descriptor), (True, change_descriptor)]
-        ]
-        for arg in args:
-            if use_descriptors:
-                arg["active"] = True
-            else:
-                arg["keypool"] = True
-                arg["range"] = [0, cls.GAP_LIMIT]
-
-        assert args[0] != args[1]
-
-        # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
-        # still have legacy wallets. Use getwalletinfo to check the wallet type.
-        # The "keypool" for descriptor wallets is automatically refilled
-        if use_descriptors:
-            res = wallet_rpc.importdescriptors(args)
-        else:
-            res = wallet_rpc.importmulti(args, {"rescan": False})
-
-        assert all([r["success"] for r in res])
-
-        return cls(
-            name,
-            alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
-            if len(keys) > 1
-            else purposes[key_type],
-            addrtypes[key_type],
-            "",
-            -1,
-            "",
-            -1,
-            0,
-            0,
-            recv_descriptor,
-            change_descriptor,
-            keys,
-            devices,
-            sigs_required,
-            {},
-            [],
-            os.path.join(working_folder, "%s.json" % alias),
-            device_manager,
-            wallet_manager,
+        return cls.DescriptorCls.from_string(
+            f"blinded(slip77({blinding_key}),{str(btcdescriptor)})"
         )
+
+    def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
+        """
+        For derived descriptor for individual address we remove blinding key
+        as it is used in HWI calls that doesn't support blinding descriptors yet.
+        TODO: handle blinding keys in HWI
+        """
+        desc = super().derive_descriptor(index, change, keep_xpubs)
+        desc.blinding_key = None
+        return desc
 
     def getdata(self):
         self.fetch_transactions()
@@ -184,7 +99,7 @@ class LWallet(Wallet):
             self.change_index += 1
             self.getnewaddress(change=True)
 
-    def get_balance(self):
+    def update_balance(self):
         try:
             full_balance = (
                 self.rpc.getbalances(assetlabel=None)["mine"]
@@ -209,29 +124,11 @@ class LWallet(Wallet):
                     balance.update(asset_balance)
                 else:
                     balance["assets"][asset] = asset_balance
-
-            # calculate available balance
-            available = {}
-            available.update(balance)
-            # locked_utxo = self.rpc.listlockunspent()
-            # we need better tx decoding here to include assets
-            # for tx in locked_utxo:
-            #     tx_data = self.gettransaction(tx["txid"])
-            #     raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-            #     delta = raw_tx["vout"][tx["vout"]]["value"]
-            #     if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-            #         available["untrusted_pending"] -= delta
-            #     else:
-            #         available["trusted"] -= delta
-            #         available["trusted"] = round(available["trusted"], 8)
-            # available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["available"] = available
         except:
             balance = {
                 "trusted": 0,
                 "untrusted_pending": 0,
                 "immature": 0,
-                "available": {"trusted": 0, "untrusted_pending": 0},
                 "assets": {},
             }
         self.balance = balance
@@ -246,8 +143,7 @@ class LWallet(Wallet):
         fee_rate: float = 1.0,
         selected_coins=[],
         readonly=False,
-        rbf=True,
-        existing_psbt=None,
+        rbf=False,
         rbf_edit_mode=False,
         assets=None,
     ):
@@ -257,6 +153,9 @@ class LWallet(Wallet):
         if fee_rate > 0 and fee_rate < self.MIN_FEE_RATE:
             fee_rate = self.MIN_FEE_RATE
 
+        if not assets:
+            raise SpecterError("Missing assets information")
+
         options = {"includeWatching": True, "replaceable": rbf}
         extra_inputs = []
         # get change addresses for all assets + for LBTC
@@ -265,163 +164,92 @@ class LWallet(Wallet):
             for i in range(len(assets) + 1)
         ]
 
-        if not existing_psbt:
-            # if not rbf_edit_mode:
-            #     if self.full_available_balance < sum(amounts):
-            #         raise SpecterError(
-            #             "The wallet does not have sufficient funds to make the transaction."
-            #         )
+        if selected_coins:
+            extra_inputs = selected_coins
 
-            # if selected_coins != []:
-            #     still_needed = sum(amounts)
-            #     for coin in selected_coins:
-            #         coin_txid = coin.split(",")[0]
-            #         coin_vout = int(coin.split(",")[1])
-            #         coin_amount = self.gettransaction(coin_txid, decode=True)["vout"][
-            #             coin_vout
-            #         ]["value"]
-            #         extra_inputs.append({"txid": coin_txid, "vout": coin_vout})
-            #         still_needed -= coin_amount
-            #         if still_needed < 0:
-            #             break
-            #     if still_needed > 0:
-            #         raise SpecterError(
-            #             "Selected coins does not cover Full amount! Please select more coins!"
-            #         )
-            # elif self.available_balance["trusted"] <= sum(amounts):
-            #     txlist = self.rpc.listunspent(0, 0)
-            #     b = sum(amounts) - self.available_balance["trusted"]
-            #     for tx in txlist:
-            #         extra_inputs.append({"txid": tx["txid"], "vout": tx["vout"]})
-            #         b -= tx["amount"]
-            #         if b < 0:
-            #             break
+        # subtract fee from amount of this output:
+        # currently only one address is supported, so either
+        # empty array (subtract from change) or [0]
+        subtract_arr = [subtract_from] if subtract else []
 
-            # subtract fee from amount of this output:
-            # currently only one address is supported, so either
-            # empty array (subtract from change) or [0]
-            subtract_arr = [subtract_from] if subtract else []
-
-            options = {
-                "includeWatching": True,
-                # FIXME: get back change addresses
-                # "changeAddress": self.change_address,
-                "subtractFeeFromOutputs": subtract_arr,
-                "replaceable": rbf,
-                "changeAddresses": change_addresses,  # not supported by Elements - custom field for out LiquidRPC
-            }
-
-            # 209900 is pre-v21 for Elements Core
-            if self.manager.bitcoin_core_version_raw >= 209900:
-                options["add_inputs"] = selected_coins == []
-
-            if fee_rate > 0:
-                # bitcoin core needs us to convert sat/B to BTC/kB
-                options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
-
-            # looks like change_type is required in nested segwit wallets
-            # but not in native segwit
-            if "changeAddress" not in options and self.address_type:
-                options["change_type"] = self.address_type
-
-            r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
-                [
-                    {addresses[i]: amounts[i], "asset": assets[i]}
-                    for i in range(len(addresses))
-                ],  # output
-                0,  # locktime
-                options,  # options
-                True,  # bip32-der
-            )
-
-            b64psbt = r["psbt"]
-            psbt = self.rpc.decodepsbt(b64psbt)
-        else:
-            psbt = existing_psbt
-            # vins from psbt v0 or v2
-            if "tx" in psbt:
-                extra_inputs = [
-                    {"txid": tx["txid"], "vout": tx["vout"]} for tx in psbt["tx"]["vin"]
-                ]
-            else:
-                extra_inputs = [
-                    {"txid": inp["previous_txid"], "vout": inp["previous_vout"]}
-                    for inp in psbt["inputs"]
-                ]
+        options = {
+            "includeWatching": True,
             # FIXME: get back change addresses
-            # if "changeAddress" in psbt:
-            #     options["changeAddress"] = psbt["changeAddress"]
-            #     if "change_type" in options:
-            #         options.pop("change_type")
-            if "base64" in psbt:
-                b64psbt = psbt["base64"]
+            # "changeAddress": self.change_address,
+            "subtractFeeFromOutputs": subtract_arr,
+            "replaceable": rbf,
+            "changeAddresses": change_addresses,  # not supported by Elements - custom field for our LiquidRPC
+        }
+
+        options["add_inputs"] = not selected_coins
+
+        if fee_rate > 0:
+            # bitcoin core needs us to convert sat/B to BTC/kB
+            options["feeRate"] = round((fee_rate * 1000) / 1e8, 8)
 
         # looks like change_type is required in nested segwit wallets
         # but not in native segwit
         if "changeAddress" not in options and self.address_type:
             options["change_type"] = self.address_type
 
-        if fee_rate > 0.0:
-            if not existing_psbt:
-                adjusted_fee_rate = self.adjust_fee(psbt, fee_rate)
-                options["feeRate"] = "%.8f" % round((adjusted_fee_rate * 1000) / 1e8, 8)
-            else:
-                options["feeRate"] = "%.8f" % round((fee_rate * 1000) / 1e8, 8)
+        try:
+            locktime = min([tip["height"] for tip in self.rpc.getchaintips()])
+        except:
+            locktime = 0
+
+        r = self.rpc.walletcreatefundedpsbt(
+            extra_inputs,  # inputs
+            [
+                {addresses[i]: amounts[i], "asset": assets[i]}
+                for i in range(len(addresses))
+            ],  # outputs
+            locktime,
+            options,  # options
+            True,  # bip32-der
+        )
+
+        b64psbt = r["psbt"]
+        psbt = self.PSBTCls(
+            b64psbt,
+            self.descriptor,
+            self.network,
+            devices=list(zip(self.keys, self._devices)),
+        )
+
+        if fee_rate > 0:
+            # scale by which Core misses the fee rate
+            scale = fee_rate / psbt.fee_rate
+            adjusted_fee_rate = fee_rate * scale
+            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
+
             r = self.rpc.walletcreatefundedpsbt(
                 extra_inputs,  # inputs
                 [
                     {addresses[i]: amounts[i], "asset": assets[i]}
                     for i in range(len(addresses))
                 ],  # output
-                0,  # locktime
+                locktime,
                 options,  # options
                 True,  # bip32-der
             )
 
             b64psbt = r["psbt"]
-            psbt = self.rpc.decodepsbt(b64psbt)
-            psbt["fee_rate"] = options["feeRate"]
-        # estimate full size
-        tx_full_size = ceil(
-            psbt["tx"]["vsize"] + len(psbt["inputs"]) * self.weight_per_input / 4
-        )
-        psbt["tx_full_size"] = tx_full_size
+            psbt = self.PSBTCls(
+                b64psbt,
+                self.descriptor,
+                self.network,
+                devices=list(zip(self.keys, self._devices)),
+            )
 
-        psbt["base64"] = b64psbt
-        psbt["amount"] = amounts
-        psbt["address"] = addresses
-        if assets:
-            psbt["asset"] = assets
-        psbt["time"] = time.time()
-        psbt["sigs_count"] = 0
         if not readonly:
             self.save_pending_psbt(psbt)
+        return psbt.to_dict()
 
-        return psbt
+    def canceltx(self, *args, **kwargs):
+        raise SpecterError("RBF is not implemented on Liquid")
 
-    def adjust_fee(self, psbt, fee_rate):
-        psbt_fees_sats = int(psbt.get("fees", {}).get("bitcoin", 0) * 1e8)
-
-        # TODO: handle non-blind outputs differently
-        num_blinded_outs = len(psbt["outputs"]) - 1
-        # estimate final size: add weight of inputs and outputs
-        # out witness weight is 4245 (from some random tx)
-        # commitments in blinded tx: 33 for nonce and 33 for value
-        commitment_size = 33 + 33
-        tx_full_size = ceil(
-            psbt["tx"]["vsize"]
-            + len(psbt["inputs"]) * self.weight_per_input / 4
-            + num_blinded_outs * 4245 / 4
-            # probably elements doesn't count commitments
-            + len(psbt["inputs"]) * commitment_size
-            + num_blinded_outs * commitment_size
-        )
-        return (
-            fee_rate
-            * (fee_rate / (psbt_fees_sats / psbt["tx"]["vsize"]))
-            * (tx_full_size / psbt["tx"]["vsize"])
-        )
+    def bumpfee(self, *args, **kwargs):
+        raise SpecterError("RBF is not implemented on Liquid")
 
     def addresses_info(self, is_change):
         """Create a list of (receive or change) addresses from cache and retrieve the
@@ -432,7 +260,7 @@ class LWallet(Wallet):
         addresses_info = []
 
         addresses_cache = [
-            v for _, v in self._addresses.items() if v.change == is_change
+            v for _, v in self._addresses.items() if v.change == is_change and v.is_mine
         ]
 
         for addr in addresses_cache:

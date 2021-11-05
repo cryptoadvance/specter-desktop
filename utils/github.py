@@ -43,6 +43,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+github_api_root_url = f"https://api.github.com"
+
+github_username = "gitlab_upload_release_binaries"
+
+
 def main():
     if sys.argv[1] != "upload":
         # Maybe something more fancy in the future:
@@ -69,7 +74,7 @@ def main():
         logger.info("Github artifact existing. Skipping upload.")
         exit(0)
     else:
-        logger.info("Github artifact does not exist. Let's upload!")
+        logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
 
     if not "GH_BIN_UPLOAD_PW" in os.environ:
         logger.error("GH_BIN_UPLOAD_PW not found.")
@@ -80,8 +85,7 @@ def main():
         project,
         tag,
         [artifact],
-        "github.com",
-        "gitlab_upload_release_binaries",
+        github_username,
         password,
     )
 
@@ -202,11 +206,101 @@ def get_mimetype(filepath: str) -> str:
     return mime_type
 
 
+def strip_asset_upload_url(asset_upload_url_with_get_params: str) -> str:
+    match_obj = re.match(r"([^{]+)(?:\{.*\})?", asset_upload_url_with_get_params)
+    if not match_obj:
+        raise InvalidUploadUrlError(
+            'The upload url "{}" is not in the expected format.'.format(
+                asset_upload_url_with_get_params
+            )
+        )
+    asset_upload_url = match_obj.group(1)  # type: str
+    return asset_upload_url
+
+
+class GithubConnection:
+    def __init__(self, project):
+        self.github_api_root_url = github_api_root_url
+        self.project = project
+        self.username = github_username
+        self.password = os.environ["GH_BIN_UPLOAD_PW"]
+
+    def fetch_existing_release(self, tag) -> Optional[Release]:
+        try:
+            release_query_url = "{}/repos/{}/releases/tags/{}".format(
+                self.github_api_root_url, self.project, tag
+            )
+            response = requests.get(
+                release_query_url,
+                auth=(self.username, self.password),
+                headers={"Accept": "application/json"},
+            )
+            response.raise_for_status()
+            logger.info(
+                'Fetched the existing release "%s" in the GitHub repository "%s"',
+                tag,
+                self.project,
+            )
+            response_json = response.json()
+            asset_upload_url_with_get_params = response_json["upload_url"]
+            asset_upload_url = strip_asset_upload_url(asset_upload_url_with_get_params)
+            release = Release(response_json["id"], asset_upload_url)
+            return release
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
+                return None
+            raise HTTPError(
+                'Could not fetch the release "{}" due to a severe HTTP error.'.format(
+                    tag
+                )
+            )
+
+    def list_assets(self, release: Release) -> List[Asset]:
+        try:
+            asset_list_url = "{}/repos/{}/releases/{}/assets".format(
+                self.github_api_root_url, self.project, release.id
+            )
+            response = requests.get(asset_list_url, auth=(self.username, self.password))
+            response.raise_for_status()
+            assets = [
+                Asset(asset_dict["id"], asset_dict["name"])
+                for asset_dict in response.json()
+            ]
+            return assets
+        except requests.HTTPError:
+            raise HTTPError(
+                'Could not get a list of assets for project "{}".'.format(self.project)
+            )
+        except json.decoder.JSONDecodeError:
+            raise JSONError("Got an invalid json string.")
+        except KeyError as e:
+            raise JSONError(
+                'Got an unexpected json object missing the key "{}".'.format(e.args[0])
+            )
+
+    def download_artifact(self, tag, artifact, target_dir="."):
+        artifact_url = (
+            f"https://github.com/{self.project}/releases/download/{tag}/{artifact}"
+        )
+        response = requests.get(artifact_url)
+
+        # If the HTTP GET request can be served
+        if response.status_code == 200:
+
+            # Write the file contents in the response to a file specified by local_file_path
+            with open(os.path.join(target_dir, artifact), "wb") as local_file:
+                for chunk in response.iter_content(chunk_size=128):
+                    local_file.write(chunk)
+        else:
+            raise Exception(
+                f"Status-code {response.status_code} for url {artifact_url}"
+            )
+
+
 def publish_release_from_tag(
     project: str,
     tag: Optional[str],
     asset_filepaths: List[str],
-    github_server: str,
     username: str,
     password: str,
     dry_run: bool = False,
@@ -215,8 +309,6 @@ def publish_release_from_tag(
         raise MissingDependencyError(
             'The "requests" package is missing. Please install and run again.'
         )
-
-    github_api_root_url = "https://api.{}".format(github_server)
 
     def fetch_latest_tag() -> str:
         try:
@@ -253,19 +345,6 @@ def publish_release_from_tag(
             )
 
     def publish_release(tag: str) -> Release:
-        def strip_asset_upload_url(asset_upload_url_with_get_params: str) -> str:
-            match_obj = re.match(
-                r"([^{]+)(?:\{.*\})?", asset_upload_url_with_get_params
-            )
-            if not match_obj:
-                raise InvalidUploadUrlError(
-                    'The upload url "{}" is not in the expected format.'.format(
-                        asset_upload_url_with_get_params
-                    )
-                )
-            asset_upload_url = match_obj.group(1)  # type: str
-            return asset_upload_url
-
         def fetch_existing_release() -> Optional[Release]:
             try:
                 release_query_url = "{}/repos/{}/releases/tags/{}".format(

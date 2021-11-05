@@ -13,6 +13,7 @@ from embit.liquid import slip77
 from embit.psbt import read_string
 import copy
 from io import BytesIO
+from .util.pset import to_canonical_pset
 
 import logging
 
@@ -35,6 +36,41 @@ class LiquidRPC(BitcoinRPC):
     """
 
     _master_blinding_key = None
+    _asset_labels = None
+
+    @property
+    def asset_labels(self):
+        if self._asset_labels is None:
+            self._asset_labels = super().__getattr__("dumpassetlabels")()
+        return self._asset_labels
+
+    @property
+    def master_blinding_key(self):
+        if self._master_blinding_key is None:
+            self._master_blinding_key = PrivateKey(
+                bytes.fromhex(self.dumpmasterblindingkey())
+            )
+        return self._master_blinding_key
+
+    def dumpassetlabels(self, *args, **kwargs):
+        # inject cache
+        res = super().__getattr__("dumpassetlabels")()
+        self._asset_labels = res
+        return res
+
+    def importmasterblindingkey(self, *args, **kwargs):
+        # clear cache
+        self._master_blinding_key = None
+        return super().__getattr__("importmasterblindingkey")(*args, **kwargs)
+
+    def _patch_assetlabels(self, obj):
+        # check if assets are labeled and replace with real assetsids
+        if isinstance(obj, dict):
+            for asset in list(obj.keys()):
+                if asset in self.asset_labels and asset != "bitcoin":
+                    assetid = self.asset_labels[asset]
+                    obj[assetid] = obj[asset]
+                    del obj[asset]
 
     def getbalance(
         self,
@@ -53,7 +89,9 @@ class LiquidRPC(BitcoinRPC):
         # if assetlabel is explicitly set to None - return all assets
         if assetlabel is not None:
             args.append(assetlabel)
-        return super().__getattr__("getbalance")(*args, **kwargs)
+        res = super().__getattr__("getbalance")(*args, **kwargs)
+        self._patch_assetlabels(res)
+        return res
 
     def _patch_descriptors(self, arr):
         # used by importmulti and importdescriptors
@@ -95,6 +133,9 @@ class LiquidRPC(BitcoinRPC):
         res = super().__getattr__("getbalances")(**kwargs)
         # if assetlabel is explicitly set to None - return as is
         if assetlabel is None:
+            for k in res:
+                for kk in res[k]:
+                    self._patch_assetlabels(res[k][kk])
             return res
         # otherwise get balances for a particular assetlabel
         for k in res:
@@ -137,6 +178,23 @@ class LiquidRPC(BitcoinRPC):
             inputs, outputs, locktime, options, *args, **kwargs
         )
         psbt = res.get("psbt", None)
+
+        # remove zero-output (bug in Elements)
+        # TODO: remove after release
+        if psbt:
+            try:
+                tx = PSET.from_string(psbt)
+                # check if there are zero outputs
+                has_zero = len([out for out in tx.outputs if out.value == 0]) > 0
+                has_blinded = any([out.blinding_pubkey for out in tx.outputs])
+                logger.error(has_zer, has_blinded)
+                if has_blinded and has_zero:
+                    tx.outputs = [out for out in tx.outputs if out.value > 0]
+                    psbt = str(tx)
+                    res["psbt"] = psbt
+            except:
+                pass
+
         # replace change addresses from the transactions if we can
         if change_addresses and psbt:
             try:
@@ -163,12 +221,13 @@ class LiquidRPC(BitcoinRPC):
                     super().__getattr__("walletprocesspsbt")(str(tx), False).get("psbt")
                 )
                 patchedtx = PSET.from_string(patched)
+                assert len(tx.outputs) == len(patchedtx.outputs)
                 for out1, out2 in zip(tx.outputs, patchedtx.outputs):
                     # fee
                     if out1.script_pubkey.data == b"":
                         continue
                     # not change for sure
-                    if not out1.bip32_derivations:
+                    if not out2.bip32_derivations:
                         continue
                     # do change replacement
                     if out1.script_pubkey not in destinations:
@@ -177,15 +236,19 @@ class LiquidRPC(BitcoinRPC):
                         out1.witness_script = out2.witness_script
 
                 res["psbt"] = str(tx)
-                psbt = res.get("psbt", None)
             except Exception as e:
                 logger.error(e)
                 raise e
+
+        psbt = res.get("psbt", None)
         # check if we should blind the transaction
         if psbt and blind:
             # check that change is also blinded - fixes a bug in pset branch
             tx = PSET.from_string(psbt)
             changepos = res.get("changepos", None)
+            # no change output
+            if changepos < 0:
+                changepos = None
 
             # generate all blinding stuff ourselves in deterministic way
             tx.unblind(
@@ -223,33 +286,16 @@ class LiquidRPC(BitcoinRPC):
             res["psbt"] = str(tx)
         return res
 
-    def _cleanpsbt(self, psbt):
-        """Removes stuff that Core doesn't like"""
-        tx = PSET.from_string(psbt)
-        for inp in tx.inputs:
-            inp.value = None
-            inp.asset = None
-            inp.value_blinding_factor = None
-            inp.asset_blinding_factor = None
-
-        for out in tx.outputs:
-            if out.is_blinded:
-                out.asset = None
-                out.asset_blinding_factor = None
-                out.value = None
-                out.value_blinding_factor = None
-        return str(tx)
-
     def walletprocesspsbt(self, psbt, *args, **kwargs):
         try:
             if self.getwalletinfo().get("private_keys_enabled", False):
-                psbt = self._cleanpsbt(psbt)
+                psbt = to_canonical_pset(psbt)
         except Exception as e:
             logger.warn(f"Failed to clean psbt: {e}")
         return super().__getattr__("walletprocesspsbt")(psbt, *args, **kwargs)
 
     def finalizepsbt(self, psbt, *args, **kwargs):
-        psbt = self._cleanpsbt(psbt)
+        psbt = to_canonical_pset(psbt)
         res = super().__getattr__("finalizepsbt")(psbt, *args, **kwargs)
         if res["complete"] == False:
             try:
@@ -273,9 +319,7 @@ class LiquidRPC(BitcoinRPC):
             tx.xpubs.update(t2.xpubs)
             tx.unknown.update(t2.unknown)
 
-            for i in range(len(tx.inputs)):
-                inp1 = tx.inputs[i]
-                inp2 = t2.inputs[i]
+            for inp1, inp2 in zip(tx.inputs, t2.inputs):
                 inp1.value = inp1.value or inp2.value
                 inp1.value_blinding_factor = (
                     inp1.value_blinding_factor or inp2.value_blinding_factor
@@ -300,9 +344,7 @@ class LiquidRPC(BitcoinRPC):
                 inp1.unknown.update(inp2.unknown)
                 inp1.range_proof = inp1.range_proof or inp2.range_proof
 
-            for i in range(len(tx.outputs)):
-                out1 = tx.outputs[i]
-                out2 = t2.outputs[i]
+            for out1, out2 in zip(tx.outputs, t2.outputs):
                 out1.value_commitment = out1.value_commitment or out2.value_commitment
                 out1.value_blinding_factor = (
                     out1.value_blinding_factor or out2.value_blinding_factor
@@ -325,74 +367,6 @@ class LiquidRPC(BitcoinRPC):
                 out1.bip32_derivations.update(out2.bip32_derivations)
                 out1.unknown.update(out2.unknown)
         return str(tx)
-
-    def decodepsbt(self, b64psbt, *args, **kwargs):
-        tx = PSET.from_string(b64psbt)
-        # pre-processing of the transaction
-        # so Elements Core doesn't complain
-        inputs = [
-            (inp.value or inp.utxo.value, inp.asset or inp.utxo.asset)
-            for inp in tx.inputs
-        ]
-        for inp in tx.inputs:
-            inp.value = None
-            inp.asset = None
-            inp.value_blinding_factor = None
-            inp.asset_blinding_factor = None
-
-        for out in tx.outputs:
-            if out.asset and out.value:
-                # out.asset = None
-                out.asset_blinding_factor = None
-                # out.value = None
-                out.value_blinding_factor = None
-                out.asset_commitment = None
-                out.value_commitment = None
-                out.range_proof = None
-                out.surjection_proof = None
-                out.ecdh_pubkey = None
-        b64psbt = str(tx)
-
-        decoded = super().__getattr__("decodepsbt")(b64psbt, *args, **kwargs)
-        # pset branch - no fee and global tx fields...
-        if "fees" in decoded and "bitcoin" in decoded["fees"]:
-            decoded["fee"] = decoded["fees"]["bitcoin"]
-        if "tx" not in decoded or "fee" not in decoded:
-            pset = PSET.from_string(b64psbt)
-            if "tx" not in decoded:
-                decoded["tx"] = self.decoderawtransaction(str(pset.tx))
-            if "fee" not in decoded:
-                decoded["fee"] = pset.fee() * 1e-8
-        for out in decoded["outputs"]:
-            if "value" not in out:
-                out["value"] = -1
-        for out in decoded["tx"]["vout"]:
-            if "value" not in out:
-                out["value"] = -1
-        for i, (v, a) in enumerate(inputs):
-            inp = decoded["tx"]["vin"][i]  # old psbt
-            inp2 = decoded["inputs"][i]  # new psbt
-            if "utxo_rangeproof" in inp2:
-                inp2.pop("utxo_rangeproof")
-            a = bytes(reversed(a[-32:])).hex()
-            v = round(v * 1e-8, 8)
-            if "value" not in inp:
-                inp["value"] = v
-            if "asset" not in inp:
-                inp["asset"] = a
-            if "value" not in inp2:
-                inp2["value"] = v
-            if "asset" not in inp2:
-                inp2["asset"] = a
-        return decoded
-
-    @property
-    def master_blinding_key(self):
-        if self._master_blinding_key is None:
-            self._master_blinding_key = PrivateKey(
-                bytes.fromhex(self.dumpmasterblindingkey())
-            )
-        return self._master_blinding_key
 
     def decoderawtransaction(self, tx):
         blinded = super().__getattr__("decoderawtransaction")(tx)
@@ -542,7 +516,7 @@ class LiquidRPC(BitcoinRPC):
             port=rpc.port,
             protocol=rpc.protocol,
             path=rpc.path,
-            timeout=rpc.timeout,
+            timeout=cls.default_timeout,  # Elements is slower
             session=rpc.session,
             proxy_url=rpc.proxy_url,
             only_tor=rpc.only_tor,

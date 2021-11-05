@@ -3,15 +3,17 @@
     call the call-back-method.
 """
 
-import os
-import json
 import csv
-import threading
+import json
 import logging
-from flask import current_app as app
-from .util.shell import run_shell
+import os
 import shutil
+import threading
 
+from flask import current_app as app
+
+from .specter_error import SpecterError
+from .util.shell import run_shell
 
 logger = logging.getLogger(__name__)
 
@@ -65,19 +67,22 @@ def _write_json_file(content, path, lock=None):
                 os.remove(bkp)
             # move file to backup
             os.rename(path, bkp)
-        with open(path, "w") as f:
-            json.dump(content, f, indent=4)
-        # check if write was sucessfull
         try:
+            with open(path, "w") as f:
+                json.dump(content, f, indent=4)
+            # check if write was sucessfull
             with open(path, "r") as f:
                 c = json.load(f)
         # if not - move back backup
-        except:
+        except Exception as e:
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)
-            os.rename(bkp, path)
-            logger.error(f"Failed to write to file {path}")
+            shutil.copyfile(bkp, path)
+            logger.exception(e)
+            raise SpecterError(
+                f"Error:{path} could not be saved. The old version has been restored. Check the logs for details. This is probably a bug."
+            )
 
 
 def write_json_file(content, path, lock=None):
@@ -89,9 +94,11 @@ def delete_files(paths):
     """deletes multiple files and calls storage callback once"""
     need_callback = False
     for path in paths:
-        if os.path.exists(path):
+        try:
             os.remove(path)
             need_callback = True
+        except FileNotFoundError:
+            pass
     if need_callback:
         storage_callback()
 

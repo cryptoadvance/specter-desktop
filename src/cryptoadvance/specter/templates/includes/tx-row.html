@@ -9,7 +9,7 @@
         .svg-receive, .svg-immature, .svg-generate {
             filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);
         }
-        .svg-selftransfer {
+        .svg-selftransfer, .svg-mixed {
             filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
         }
         .svg-cancelled {
@@ -145,12 +145,25 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            if (this.amount == 1e-8) {
+            if (this.amount == 1e-8 || this.amount == 0) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
-                this.amountText.innerHTML = this.hideSensitiveInfo ? '#########' : `${numberWithCommas(this.amount.toString())}`;
-                if("assetlabel" in this.tx){
-                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                if(this.hideSensitiveInfo){
+                    this.amountText.innerHTML = '#########';
+                }else{
+                    this.amountText.innerHTML = `${numberWithCommas(this.amount.toString())}`;
+                    if("assetlabel" in this.tx){ // liquid
+                        if (Array.isArray(this.tx.assetlabel)) { // multiple assets
+                            let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
+                            if (unique_assets.length == 1){
+                                this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset[0]}" data-label="${this.tx.assetlabel[0]}"></asset-label>`;
+                            }else{
+                                this.amountText.innerHTML = `${unique_assets.length} assets`;
+                            }
+                        }else{
+                            this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                        }
+                    }
                 }
             }
 
@@ -230,11 +243,8 @@
             if (newFee <= 1.02) {
                 newFee = 1;
             }
-            if (rbfType == 'cancel') {
-                newFee *= 1.5; // Tx likely to have lower size so will need higher fee
-            } else {
-                newFee += 2;
-            }
+            // TODO: get fee diff from specter
+            newFee += 2;
             txDataPopup.innerHTML = `
             <form action="${url}" method="POST">
             <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
@@ -277,11 +287,12 @@
                     return `{{ url_for('static', filename='img') }}/send.svg`;
                 case "receive":
                 case "immature":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "generate":
-                    return `{{ url_for('static', filename='img') }}/generate_icon.svg`;
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "selftransfer":
                     return `{{ url_for('static', filename='img') }}/transfer.svg`;
+                case "mixed":
+                    return `{{ url_for('static', filename='img') }}/mixed.svg`;
             }
         }
     }

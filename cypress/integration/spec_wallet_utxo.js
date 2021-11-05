@@ -1,26 +1,41 @@
 describe('Send transactions from wallets', () => {
     it('Freeze and unfreeze UTXO', () => {
+        const name = "UTXO Hot Bitcoin3"
+        const wallet_name = name+" wallet"
+        var wallet_name_ref = wallet_name.toLowerCase().replace(/ /g,"_")
         cy.viewport(1200,660)
-        cy.task("btc:mine")
-        cy.wait(10000)
-        cy.task("btc:mine")
-        cy.wait(10000)
-        cy.task("btc:mine")
-        cy.wait(10000)
+        cy.visit('/')
+        cy.addHotDevice(name+" device","bitcoin")
+        cy.addHotWallet(wallet_name,name+" device", "bitcoin", "segwit")
+        cy.get('#fullbalance_amount').then(($div) => {
+            const balance = parseFloat($div.text())
+            if ( balance <= 20) {
+                cy.log("balance " + balance + " too low. Mining!")
+                cy.mine2wallet("btc")
+                cy.mine2wallet("btc")
+                cy.mine2wallet("btc")
+            }
+        })
+        
+        cy.contains(wallet_name).click()
 
-        cy.visit('/wallets/wallet/test_hot_wallet_1/history')
+        // The table as component is only available through the shadow tree
+        // That's why we have this stupid .shadow() ...
+        cy.get('tx-table').shadow().find('.utxo-view-btn').click({ force: true })
 
-        cy.wait(1000)
-        cy.get('tx-table').shadow().find('.utxo-view-btn').click()
-
+        cy.log("Check that nothis is frozen")
         cy.get('tx-table').shadow().find('tx-row').each(($el, index, $list) => {
             cy.wrap($el).shadow().find('.tx-row').should('not.have.class', 'frozen')
             cy.wrap($el).shadow().find('.frozen-img').should('have.class', 'hidden')
         })
 
-        // Freeze the UTXO
+        
+        cy.log("First select it, then freeze it")
         cy.get('tx-table').shadow().find('tx-row').eq(0).shadow().find('.select-tx-img').click()
+        cy.wait(100)
+        // then click the freeze-button
         cy.get('tx-table').shadow().find('.freeze-tx-btn').click()
+        cy.wait(100)
 
         cy.get('tx-table').shadow().find('tx-row').each(($el, index, $list) => {
             if (index == 0) {
@@ -33,6 +48,7 @@ describe('Send transactions from wallets', () => {
         })
 
         // Test freeze UTXO can't be spend, and unfreeze works for coin selection option
+        cy.log("Select 3 UTXOs and freeze them")
         cy.get('tx-table').shadow().find('tx-row').eq(0).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('tx-row').eq(1).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('tx-row').eq(3).shadow().find('.select-tx-img').click()

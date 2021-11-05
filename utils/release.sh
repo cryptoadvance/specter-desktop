@@ -28,6 +28,11 @@ case $key in
     DEV="yes"
     shift
     ;;
+    --new-version)
+    new_version=$2
+    shift
+    shift
+    ;;
     --tag)
     TAG="yes"
     shift
@@ -77,10 +82,13 @@ function main() {
         fi
     fi
 
-    echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
-    read new_version
+    if [[ -z "$new_version" ]]; then
+        echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
+        read new_version
+    fi
+
     if ! [[ $new_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-([0-9A-Za-z-]+))?$ ]]; then 
-        echo "Does not match the pattern!"
+        echo "version $new_version Does not match the pattern!"
         exit 1; 
     fi
 

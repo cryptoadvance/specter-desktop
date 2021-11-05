@@ -58,6 +58,31 @@ def general():
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
+
+        autohide_sensitive_info_timeout = request.form[
+            "autohide_sensitive_info_timeout"
+        ]
+        if autohide_sensitive_info_timeout == "NEVER":
+            autohide_sensitive_info_timeout = None
+        elif autohide_sensitive_info_timeout == "CUSTOM":
+            autohide_sensitive_info_timeout = int(
+                request.form["custom_autohide_sensitive_info_timeout"]
+            )
+        else:
+            autohide_sensitive_info_timeout = int(autohide_sensitive_info_timeout)
+
+        if "autologout_timeout" in request.form:
+            # Is only in the form if specter.config.auth.method != "none"
+            autologout_timeout = request.form["autologout_timeout"]
+            if autologout_timeout == "NEVER":
+                autologout_timeout = None
+            elif autologout_timeout == "CUSTOM":
+                autologout_timeout = int(request.form["custom_autologout_timeout"])
+            else:
+                autologout_timeout = int(autologout_timeout)
+        else:
+            autologout_timeout = None
+
         explorer_id = request.form["explorer"]
         explorer_data = app.config["EXPLORERS_LIST"][explorer_id]
         if explorer_id == "CUSTOM":
@@ -74,6 +99,13 @@ def general():
             if current_user.is_admin:
                 set_loglevel(app, loglevel)
 
+            app.specter.config_manager.update_autohide_sensitive_info_timeout(
+                autohide_sensitive_info_timeout, current_user
+            )
+            app.specter.config_manager.update_autologout_timeout(
+                autologout_timeout, current_user
+            )
+
             app.specter.update_explorer(explorer_id, explorer_data, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
@@ -85,6 +117,7 @@ def general():
                 user=current_user,
             )
             app.specter.check()
+
         elif action == "restore":
             restore_devices = []
             restore_wallets = []
@@ -114,9 +147,13 @@ def general():
                             ),
                             "error",
                         )
+                        handle_exception(e)
                         continue
+                    logger.debug(
+                        f"Wallet {wallet['alias']} already exists, skipping creation"
+                    )
                 write_wallet(wallet)
-                app.specter.wallet_manager.update()
+                app.specter.wallet_manager.update(allow_threading=False)
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
@@ -147,10 +184,11 @@ def general():
                             "error",
                         )
                     wallet_obj.getdata()
-                except Exception:
+                except Exception as e:
                     flash(
                         _("Failed to import wallet {}").format(wallet["name"]), "error"
                     )
+                    handle_exception(e)
             flash(_("Specter data was successfully loaded from backup"), "info")
             if rescanning:
                 flash(
@@ -288,8 +326,7 @@ def tor():
                 requests_session.proxies["http"] = proxy_url
                 requests_session.proxies["https"] = proxy_url
                 res = requests_session.get(
-                    # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
-                    "https://protonirockerxow.onion",  # Proton mail onion website
+                    "http://2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion/",  # Tor Project onion v3 website
                     timeout=30,
                 )
                 tor_connectable = res.status_code == 200

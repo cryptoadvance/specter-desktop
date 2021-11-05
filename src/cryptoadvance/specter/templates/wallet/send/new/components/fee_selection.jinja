@@ -41,7 +41,7 @@
         </div>
     </div>
     <br>
-    <label><input type="checkbox" class="inline" name="rbf" id="rbf" {% if rbf %}checked{% endif %}> {{ _("RBF Enabled") }}</label>
+    <label  {% if specter.is_liquid %}style="display: none"{% endif %}><input type="checkbox" class="inline" name="rbf" id="rbf" {% if rbf %}checked{% endif %}> {{ _("RBF Enabled") }}</label>
 </div>
 
 <script>

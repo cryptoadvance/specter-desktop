@@ -346,13 +346,11 @@
 				showError(`{{ _("Please first enter a valid address") }}`);
 				return;
 			}
-			if(units[i] == 'sat' || units[i] == 'btc'){
-				let subtract = document.getElementById('subtract');
-				subtract.checked = true;
-				if (amounts.length > 1) {
-					document.getElementById('subtract_from').style.display = 'block';
-					document.getElementById('subtract_from_input').value = i + 1;
-				}
+			let subtract = document.getElementById('subtract');
+			subtract.checked = (units[i] == 'sat' || units[i] == 'btc');
+			if (amounts.length > 1) {
+				document.getElementById('subtract_from').style.display = 'block';
+				document.getElementById('subtract_from_input').value = i + 1;
 			}
 			let othersAmount = 0;
 			for(let j in amounts) {
