@@ -27,10 +27,10 @@ class Sha256sumFile:
         gc.download_artifact(tag, self.name + ".asc", target_dir=self.target_dir)
         self.read()
 
-    def download_hashed_files(self, gc):
+    def download_hashed_files(self, tag, gc):
         for file in self.hashed_files.keys():
             logger.info(f"Downloading {file} from {tag}")
-            gc.download_artifact(self.tag, file, target_dir=self.target_dir)
+            gc.download_artifact(tag, file, target_dir=self.target_dir)
 
     def read(self):
         with open(os.path.join(self.target_dir, self.name), "r") as file:
@@ -103,7 +103,9 @@ class ReleaseHelper:
 
         if os.environ.get("CI_PROJECT_ROOT_NAMESPACE"):
             project_root_namespace = os.environ.get("CI_PROJECT_ROOT_NAMESPACE")
-            logger.info(f"Using project_root_namespace: {project_root_namespace}")
+            logger.info(
+                f"Using project_root_namespace: {project_root_namespace} ( export CI_PROJECT_ROOT_NAMESPACE={project_root_namespace} )"
+            )
         else:
             raise Exception(
                 "no CI_PROJECT_ROOT_NAMESPACE given ( export CI_PROJECT_ROOT_NAMESPACE=k9ert )"
@@ -120,10 +122,24 @@ class ReleaseHelper:
                 )
             exit(1)
 
-        logger.info(f"Using project_id: {self.project_id}")
+        logger.info(f"Using project_id: {self.project_id} ")
         logger.info(f"Using github_project: {self.github_project}")
+        try:
+            from gitlab.v4.objects import Project
 
-        self.project = self.gl.projects.get(self.project_id)
+            self.project: Project = self.gl.projects.get(self.project_id)
+        except gitlab.exceptions.GitlabAuthenticationError as e:
+            logger.fatal(e)
+            logger.error("Your token might be expired or wrong. Get a new one here:")
+            logger.error("  https://gitlab.com/-/profile/personal_access_tokens")
+            exit(2)
+
+        if self.project.attributes["namespace"]["path"] != project_root_namespace:
+            logger.fatal(
+                f"project_root_namespace ({ project_root_namespace }) does not match namespace of Project ({self.project.attributes['namespace']['path']}) "
+            )
+            logger.error("You might want to: unset CI_PROJECT_ID")
+            exit(2)
 
         if os.environ.get("CI_COMMIT_TAG"):
             self.tag = os.environ.get("CI_COMMIT_TAG")
@@ -144,10 +160,12 @@ class ReleaseHelper:
                     self.pipeline = pipeline
                     logger.info(f"Found matching pipeline: {pipeline}")
             if not hasattr(self, "pipeline"):
-                logger.error(
-                    f"Could not find tag {self.tag} in the pipeline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
+                logger.error(f"Could not find tag {self.tag} in the pipeline-refs:")
+                for pipeline in self.project.pipelines.list():
+                    logger.error(pipeline.ref)
+                raise Exception(
+                    "no CI_PIPELINE_ID given ( export CI_PIPELINE_ID= ) or maybe you're on the wrong project ( export CI_PROJECT_ROOT_NAMESPACE= )"
                 )
-                raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
         logger.info(f"Using pipeline_id: {self.pipeline.id}")
         Path(self.target_dir).mkdir(parents=True, exist_ok=True)
@@ -196,7 +214,7 @@ class ReleaseHelper:
             shasumfile = Sha256sumFile(asset.name)
             if not shasumfile.is_in_target_dir():
                 shasumfile.download_from_tag(self.tag, gc)
-                shasumfile.download_hashed_files(gc)
+                shasumfile.download_hashed_files(self.tag, gc)
                 shasumfile.check_hashes()
                 shasumfile.check_sig()
 
