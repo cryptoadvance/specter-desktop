@@ -152,6 +152,8 @@ class VersionChecker:
     @classmethod
     def _version_txt_content(cls):
         version_file = "version.txt"
+        if getattr(sys, "frozen", False):
+            version_file = os.path.join(sys._MEIPASS, "version.txt")
         with open(version_file) as f:
             return f.read().strip()
 
