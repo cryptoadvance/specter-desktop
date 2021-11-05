@@ -276,7 +276,6 @@ class ReleaseHelper:
             self.github_project,
             self.tag,
             [artifact],
-            "github.com",
             "gitlab_upload_release_binaries",
             self.password,
         )
@@ -294,7 +293,6 @@ class ReleaseHelper:
             self.github_project,
             self.tag,
             [artifact],
-            "github.com",
             "gitlab_upload_release_binaries",
             self.password,
         )
