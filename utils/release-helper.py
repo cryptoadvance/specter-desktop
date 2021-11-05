@@ -79,7 +79,7 @@ class Sha256sumFile:
 
 class ReleaseHelper:
     def __init__(self):
-        pass
+        self.target_dir = "signing_dir"
 
     def init_gitlab(self):
         # https://python-gitlab.readthedocs.io/en/stable/api-usage.html
@@ -150,7 +150,6 @@ class ReleaseHelper:
                 raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
         logger.info(f"Using pipeline_id: {self.pipeline.id}")
-        self.target_dir = "signing_dir"
         Path(self.target_dir).mkdir(parents=True, exist_ok=True)
 
     def download_and_unpack_all_artifacts(self):
@@ -282,6 +281,24 @@ class ReleaseHelper:
             self.password,
         )
 
+    def upload_sha256sumsig_file(self):
+        artifact = os.path.join("signing_dir", "SHA256SUMS.asc")
+        self.calculate_publish_params()
+
+        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
+            logger.info(f"Github artifact {artifact} existing. Skipping upload.")
+            exit(0)
+        else:
+            logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
+        github.publish_release_from_tag(
+            self.github_project,
+            self.tag,
+            [artifact],
+            "github.com",
+            "gitlab_upload_release_binaries",
+            self.password,
+        )
+
 
 def dos2unix(filename):
     content = ""
@@ -325,5 +342,7 @@ if __name__ == "__main__":
         rh.check_all_sigs()
     if "create" in sys.argv:
         rh.create_sha256sum_file()
-    if "upload" in sys.argv:
+    if "upload_shasums" in sys.argv:
         rh.upload_sha256sum_file()
+    if "upload_shasumssig" in sys.argv:
+        rh.upload_sha256sumsig_file()
