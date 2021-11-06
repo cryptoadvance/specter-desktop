@@ -1,3 +1,4 @@
+[TOC]
 # Connect to your node
 Specter is a very flexible tool and can be used in a lot of different setups. There are some popular setups which we want to address first. If you want to use Specter with MyNode or Raspiblitz, that might be easy but you might still want to have some guidance. Here is some awesome material to watch and study for MyNode users:
 

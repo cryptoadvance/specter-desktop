@@ -1,0 +1,27 @@
+site_name: Specter Desktop Documentation
+repo_url: https://github.com/cryptoadvance/specter-desktop/
+nav:
+    - Home:
+      - index.md
+      - release-notes.md
+    - User Guide:
+      - faq.md
+      - multisig-security-tradeoffs.md
+      - 'Using Tor': tor.md
+    - Operating Guide:
+      - connect-your-node.md
+      - daemon.md
+      - reverse-proxy.md
+      - self-signed-certificates.md
+      - hwibridge.md
+      - elements.md
+      - windows.md
+    - Development: 
+      - 'Dev': ../DEVELOPMENT.md
+      - build-instructions.md
+      - 'Continuous Integration': continuous-integration.md
+      - cypress-testing.md
+      - 'Some Random Dev Thoughts': archblog.md
+
+theme: 
+  name: 'rtd-dropdown'
