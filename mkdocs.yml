@@ -15,7 +15,7 @@ nav:
       - self-signed-certificates.md
       - hwibridge.md
       - elements.md
-      - windows.md
+      - windows.mdpython -m pip install --upgrade pip-tools
     - Development: 
       - 'Dev': ../DEVELOPMENT.md
       - build-instructions.md
@@ -31,4 +31,4 @@ nav:
       - api/ep_wallets_psbt.md
       - api/ep_wallets_wallet.md
 theme: 
-  name: 'rtd-dropdown'
+  name: readthedocs
