@@ -17,7 +17,8 @@ nav:
       - elements.md
       - windows.mdpython -m pip install --upgrade pip-tools
     - Development: 
-      - 'Dev': ../DEVELOPMENT.md
+      - 'Contributing': contributing.md
+      - 'Developing': ../development.md
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md

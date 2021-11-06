@@ -124,7 +124,7 @@ If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This s
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
-Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on Specter-desktop.
+Have a look at [development.md](docs/development.md) for further information about hacking on Specter-desktop.
 
 ## Tips and tricks (detailed instructions)
 

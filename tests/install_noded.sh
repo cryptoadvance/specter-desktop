@@ -151,7 +151,7 @@ function sub_help {
     echo "$ ./install_node.sh --bitcoin compile"
     echo "$ ./install_node.sh --elements compile"
     echo "$ ./install_node.sh binary # only works for bitcoind currently, no binaries for elements"
-    echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md#how-to-run-the-tests"
+    echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/docs/development.md#how-to-run-the-tests"
 }
 
 function check_compile_prerequisites {

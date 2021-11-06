@@ -7,7 +7,7 @@ export SPECTER_API_ACTIVE=True
 
 The Authentication is also necessary if you don't activate any Authentication mechanism.
 In order to make reasonable assumptions about how stable a specific endpoint is, we're versioning them via the URL. Currently, all endpoints are preset with `v1alpha` which pretty much don't give you any guarantee.
-# Basic Usage
+## Basic Usage
 
 Curl:
 
@@ -23,7 +23,7 @@ response = requests.get('http://127.0.0.1:25441/api/v1alpha/specter', auth=('adm
 json.loads(response.text)
 ```
 
-# Endpoints
+## Endpoints
 
 * [Liveness](./ep_liveness.md): Is specter up and running?
 * [Readyness](./ep_readyness.md): Is specter ready to serve requests?
