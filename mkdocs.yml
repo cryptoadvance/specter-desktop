@@ -2,7 +2,7 @@ site_name: Specter Desktop Documentation
 repo_url: https://github.com/cryptoadvance/specter-desktop/
 nav:
     - Home:
-      - index.md
+      - 'Introduction': README.md
       - release-notes.md
     - User Guide:
       - faq.md
