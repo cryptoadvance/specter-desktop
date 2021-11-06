@@ -5,13 +5,12 @@ Specter is a very flexible tool and can be used in a lot of different setups. Th
 * BTC Sessions [showing](https://www.youtube.com/watch?v=ZQvCncdFMPo) how to start with Specter on Mynode
 * Bitcoin-Magazine showing also [some things](https://www.youtube.com/watch?v=ZQvCncdFMPo) MyNode and Specter
 
-If you want to use Specter with a node on your Windows machine:
-* Ministry of Nodes [explains](https://www.youtube.com/watch?v=4koKF2MDXtk)
+If you want to use Specter with a node on your Windows machine: Ministry of Nodes [explains](https://www.youtube.com/watch?v=4koKF2MDXtk) that setup.
 
 The installation on the Raspiblitz is quite simple as there is an installation option in the ssh-menu. 
 There is also a walk-through on [how to connect the Specter Desktop App with the RaspiBlitz](https://d11n.net/connect-specter-desktor-with-raspiblitz.html).
 
-# General thoughts
+## General thoughts
 But let's approach the connection issue more generically. We assume here, that you want to setup everything in your local network. Every computer needs an IP address in your network. So either, Bitcoin Core is running on the same computer as Specter or on two different ones. But both should have private IP addresses - e.g. (most popular) 192.198.X.Y.
 For this setup, you don't need to modify your router. Also your Bitcoin Core node doesn't need to be exposed to the internet.
 
@@ -19,7 +18,7 @@ If both are running on the same machine, there are usually a lot less potential 
 
 Let's look at all the issues which can potentially occur.
 
-# Potential connection issues
+## Potential connection issues
 
 The first thing you should do if it doesn't work out of the box is explicitly configuring the connection to Bitcoin Core. For that, there are the following values to be set:
 * Your Bitcoin RPC username is specified in your bitcoin.conf file on the computer where Bitcoin Core is running. If you open the file, it should like this: `rpcuser=bitcoin`
@@ -27,7 +26,7 @@ The first thing you should do if it doesn't work out of the box is explicitly co
 * Your node's IP address could simply be `http://localhost` if you're running Bitcoin Core on the same machine as Specter. Otherwise, it's, as discussed above, a local network-address starting often enough with 192.168.X.Y.
 * Your nodes RPC port (usually 8332)
 
-## Connection failure
+### Connection failure
 
 `Process finished with code -1Error message: Failed to connect`
 

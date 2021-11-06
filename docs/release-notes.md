@@ -685,15 +685,15 @@
 - Use specter-diy to sign via USB (#77) (@stepansnigirev)
 
 ## v0.1.0 Feb 27, 2020
-- #73 - Rescan Blockchain to import older wallets easily (@stepansnigirev)
+- Rescan Blockchain to import older wallets easily (#73) (@stepansnigirev)
 - Command-line options for server: daemon, ssl-certs and tor
 
 ## v0.0.2 Feb 20, 2020
-- #69 - First PIP-Release available on [PyPi](https://pypi.org/project/cryptoadvance.specter/#history) (@k9ert)
-- #23 - HWI support enables a whole bunch of hardwarewallets to work with specter (@kdmukai)
-- #19 - Tor integration (@kdmukai)
-- #56 - Support for coldcard (@kdmukai)
-- #64 - https support (@stepansnigirev)
+- First PIP-Release available on [PyPi](https://pypi.org/project/cryptoadvance.specter/#history) (#69) (@k9ert)
+- HWI support enables a whole bunch of hardwarewallets to work with specter (#23) (@kdmukai)
+- Tor integration (#19) (@kdmukai)
+- Support for coldcard (#56) (@kdmukai)
+- https support (#64) (@stepansnigirev)
 
 ## v0.0.1-alpha Sep 28, 2019
 Specter Desktop has been started by @stepansnigirev since Aug 30, 2019.
