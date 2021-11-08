@@ -110,7 +110,7 @@ class VaultoroApi:
         )
 
     def _call_api(self, path, method, params=None, data=None):
-        """ call the Vaultoro API (or the proxy) """
+        """call the Vaultoro API (or the proxy)"""
         headers = self._get_headers(path)
         url = self._calc_url(path)
         session = requests.session()
@@ -152,7 +152,7 @@ class VaultoroApi:
         return headers
 
     def _calc_url(self, path):
-        """ returns either Vaultoro or proxy-url """
+        """returns either Vaultoro or proxy-url"""
         if self._is_proxy_call(path):
             return "https://specter-cloud.bitcoinops.de/.vaultoro/v1" + path
             # local development of specter-cloud
@@ -163,7 +163,7 @@ class VaultoroApi:
             return app.config["VAULTORO_API"] + path
 
     def _is_proxy_call(self, path):
-        """ Should we call the proxy or Vaultoro directly ? """
+        """Should we call the proxy or Vaultoro directly ?"""
         proxy_filter = ["/private/orders"]
         for exc_path in proxy_filter:
             if path.endswith(exc_path):

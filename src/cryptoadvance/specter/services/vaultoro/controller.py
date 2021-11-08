@@ -47,7 +47,7 @@ def index():
 @vaultoro_endpoint.route("/balances/", methods=["GET", "POST"])
 # @login_required
 def balances():
-    """ shows the balance and history and such stuff """
+    """shows the balance and history and such stuff"""
     api = get_api()
     try:
         return render_template(
@@ -187,7 +187,7 @@ def get_api():
 
 @vaultoro_endpoint.route("/api/buy/quote", methods=["POST"])
 def api_buy_quote():
-    """ implements https://api-docs.vaultoro.com/otc """
+    """implements https://api-docs.vaultoro.com/otc"""
     pair = request.json["pair"]
     total = request.json["total"]
     quantity = request.json["quantity"]
@@ -197,7 +197,7 @@ def api_buy_quote():
 
 @vaultoro_endpoint.route("/api/buy/order", methods=["POST"])
 def api_buy_order():
-    """ implements https://api-docs.vaultoro.com/otc """
+    """implements https://api-docs.vaultoro.com/otc"""
     try:
         return get_api().create_order(
             request.json["pair"],
@@ -212,13 +212,13 @@ def api_buy_order():
 
 @vaultoro_endpoint.route("/api/history/trades", methods=["GET"])
 def api_history_trades():
-    """ implements https://api-docs.vaultoro.com/history/untitled """
+    """implements https://api-docs.vaultoro.com/history/untitled"""
     return get_api().get_trades()
 
 
 @vaultoro_endpoint.route("/api/coins/withdraw", methods=["POST"])
 def api_coins_withdraw():
-    """ implements https://api-docs.vaultoro.com/assets """
+    """implements https://api-docs.vaultoro.com/assets"""
     address = request.json["address"]
     quantity = request.json["quantity"]
     otp = request.json["otp"]
@@ -227,7 +227,7 @@ def api_coins_withdraw():
 
 @vaultoro_endpoint.route("/api/coins/withdraw/fees", methods=["POST"])
 def api_coins_withdraw_fees():
-    """ implements https://api-docs.vaultoro.com/assets """
+    """implements https://api-docs.vaultoro.com/assets"""
     quantity = request.json["quantity"]
     return get_api().coins_withdraw_fees(quantity)
 
