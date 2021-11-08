@@ -1,4 +1,5 @@
 site_name: Specter Desktop Documentation
+site_url: https://docs.specter.solutions/desktop
 repo_url: https://github.com/cryptoadvance/specter-desktop/
 nav:
     - Home:
@@ -15,10 +16,10 @@ nav:
       - self-signed-certificates.md
       - hwibridge.md
       - elements.md
-      - windows.mdpython -m pip install --upgrade pip-tools
+      - windows.md
     - Development: 
       - 'Contributing': contributing.md
-      - 'Developing': ../development.md
+      - 'Developing': development.md
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
