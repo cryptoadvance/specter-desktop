@@ -4,6 +4,7 @@ import os
 
 from embit.liquid.networks import get_network
 from flask_babel import lazy_gettext as _
+from requests.exceptions import ConnectionError
 from .helpers import is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
 from .persistence import write_node
@@ -172,8 +173,17 @@ class Node:
             if is_liquid(res.get("chain")):
                 # convert to LiquidRPC class
                 rpc = LiquidRPC.from_bitcoin_rpc(rpc)
+        except RpcError as rpce:
+            if rpce.status_code == 401:
+                return rpc  # The user is failing to configure correctly
+            logger.error(rpce)
+            return None
+        except ConnectionError as e:
+            logger.error(e)
+            return None
         except Exception as e:
-            return rpc
+            logger.exception(e)
+            return None
         if rpc.test_connection():
             return rpc
         else:
@@ -335,20 +345,21 @@ class Node:
                 rpc.listwallets()
                 r["tests"]["wallets"] = True
             except RpcError as rpce:
-                logger.error(rpce)
+                logger.info(f"Couldn't list wallets while test_rpc {rpce}")
                 r["tests"]["wallets"] = False
                 r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
         except ConnectionError as e:
-            logger.error("Caught an ConnectionError while test_rpc: %s", e)
+            logger.info("Caught an ConnectionError while test_rpc: %s", e)
 
             r["tests"]["connectable"] = False
             r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
-            logger.error("Caught an RpcError while test_rpc: %s", rpce)
-            logger.error(rpce.status_code)
+            logger.info(
+                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code:{rpce.error_code}"
+            )
             r["tests"]["connectable"] = True
             r["code"] = rpc.r.status_code
             if rpce.status_code == 401:

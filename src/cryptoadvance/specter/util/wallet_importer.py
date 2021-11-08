@@ -5,8 +5,10 @@ from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
 
-from ..helpers import is_testnet
-from .descriptor import AddChecksum, Descriptor
+from embit.descriptor import Descriptor
+from embit.descriptor import Key as DescriptorKey
+from embit.liquid.descriptor import LDescriptor
+from cryptoadvance.specter.key import Key
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,7 @@ class WalletImporter:
         * unknown_cosigners
         * unknown_cosigners_types
         """
+        DescriptorCls = LDescriptor if specter.is_liquid else Descriptor
         if device_manager is None:
             device_manager = specter.device_manager
         try:
@@ -40,12 +43,8 @@ class WalletImporter:
             logger.warning(f"Trying to import: {wallet_json}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
         try:
-            self.descriptor = Descriptor.parse(
-                AddChecksum(self.recv_descriptor.split("#")[0]),
-                testnet=is_testnet(specter.chain),
-            )
-            if self.descriptor is None:
-                raise SpecterError(f"Invalid wallet descriptor. (returns None)")
+            self.descriptor = DescriptorCls.from_string(self.recv_descriptor)
+            self.check_descriptor()
         except Exception as e:
             raise SpecterError(f"Invalid wallet descriptor: {e}")
         if self.wallet_name in specter.wallet_manager.wallets_names:
@@ -55,8 +54,57 @@ class WalletImporter:
             self.cosigners,
             self.unknown_cosigners,
             self.unknown_cosigners_types,
-        ) = self.descriptor.parse_signers(device_manager.devices, self.cosigners_types)
-        self.wallet_type = "multisig" if self.descriptor.multisig_N > 1 else "simple"
+        ) = self.parse_signers(device_manager.devices, self.cosigners_types)
+        self.wallet_type = "multisig" if self.descriptor.is_basic_multisig else "simple"
+
+    def check_descriptor(self):
+        for key in self.descriptor.keys:
+            if not key.is_extended:
+                raise SpecterError("Only HD keys are supported in descriptor")
+            if key.allowed_derivation is None or key.allowed_derivation.indexes != [
+                0,
+                None,
+            ]:
+                raise SpecterError(
+                    "Descriptor key has wrong derivation, only /0/* derivation is supported."
+                )
+
+    def parse_signers(self, devices, cosigners_types):
+        keys = []
+        cosigners = []
+        unknown_cosigners = []
+        unknown_cosigners_types = []
+
+        for i, descriptor_key in enumerate(self.descriptor.keys):
+            # remove derivation from the key for comparison
+            account_key = DescriptorKey.from_string(str(descriptor_key))
+            account_key.allowed_derivation = None
+            # Specter Key class
+            desc_key = Key.parse_xpub(str(account_key))
+            cosigner_found = False
+            for cosigner in devices.values():
+                for key in cosigner.keys:
+                    # check key matches
+                    if key.to_string(slip132=False) == desc_key.to_string(
+                        slip132=False
+                    ):
+                        keys.append(key)
+                        cosigners.append(cosigner)
+                        cosigner_found = True
+                        break
+                if cosigner_found:
+                    break
+            if not cosigner_found:
+                if len(cosigners_types) > i:
+                    unknown_cosigners.append((desc_key, cosigners_types[i]["label"]))
+                else:
+                    unknown_cosigners.append((desc_key, None))
+                if len(unknown_cosigners) > len(cosigners_types):
+                    unknown_cosigners_types.append("other")
+                else:
+                    unknown_cosigners_types.append(cosigners_types[i]["type"])
+
+        return (keys, cosigners, unknown_cosigners, unknown_cosigners_types)
 
     def create_nonexisting_signers(self, device_manager, request_form):
         """creates non existinging signer via the device_manager
@@ -82,17 +130,56 @@ class WalletImporter:
             self.keys.append(unknown_cosigner_key)
             self.cosigners.append(device)
 
+    @property
+    def address_type(self):
+        if self.descriptor.is_taproot:
+            return "tr"
+        res = ""
+        if self.descriptor.miniscript:
+            if self.descriptor.wsh:
+                res = "wsh"
+        else:
+            if self.descriptor.wpkh:
+                res = "wpkh"
+            else:
+                return "pkh"
+        if self.descriptor.sh:
+            if res:
+                return f"sh-{res}"
+            else:
+                return "sh"
+        return res
+
+    @property
+    def sigs_required(self):
+        sigs_required = 1
+        if self.descriptor.is_basic_multisig:
+            sigs_required = self.descriptor.miniscript.args[0].num
+        return sigs_required
+
+    @property
+    def sigs_total(self):
+        return len(self.descriptor.keys)
+
     def create_wallet(self, wallet_manager):
         """creates the wallet. Assumes all devices are there (create with create_nonexisting_signers)
         will also keypoolrefill and import_labels
         """
         try:
+            kwargs = {}
+            if (
+                isinstance(self.descriptor, LDescriptor)
+                and self.descriptor.blinding_key
+            ):
+                kwargs["blinding_key"] = self.descriptor.blinding_key.key
+
             self.wallet = wallet_manager.create_wallet(
                 name=self.wallet_name,
-                sigs_required=self.descriptor.multisig_M,
-                key_type=self.descriptor.address_type,
+                sigs_required=self.sigs_required,
+                key_type=self.address_type,
                 keys=self.keys,
                 devices=self.cosigners,
+                **kwargs,
             )
         except Exception as e:
             raise SpecterError(f"Failed to create wallet: {e}")
@@ -154,7 +241,7 @@ class WalletImporter:
         """
         cosigners_types = []
 
-        # Specter-DIY format
+        # Specter-Desktop format
         if "recv_descriptor" in wallet_data:
             wallet_name = wallet_data.get("name", "Imported Wallet")
             recv_descriptor = wallet_data.get("recv_descriptor", None)

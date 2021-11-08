@@ -103,7 +103,7 @@
 						download="{{ wallet.name | ascii20 }}.txt"
 						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
 						{% if device.device_type == 'coldcard' %}
-							onclick="showNotification('{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}', 0)"
+							onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
 						{% endif %}
 						class="btn centered padded">
 							{{ _("Save") }} {{ device.name }} {{ _("file") }}
@@ -177,10 +177,10 @@
 			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
 			if (advancedSettings.classList.contains("hidden")) {
 				advancedSettings.classList.remove("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
 			} else {
 				advancedSettings.classList.add("hidden");
-				advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
 			}
 		}
 

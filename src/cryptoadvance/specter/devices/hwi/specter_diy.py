@@ -99,8 +99,10 @@ class SpecterClient(HardwareWalletClient):
 
     def sign_b64psbt(self, psbt: str) -> str:
         # works with both PSBT and PSET
-        print("sign %s" % psbt)
         return self.query("sign %s" % psbt)
+
+    def sign_pset(self, pset: str) -> str:
+        return self.sign_b64psbt(pset)
 
     def sign_tx(self, psbt: PSBT) -> PSBT:
         """
@@ -243,9 +245,8 @@ def enumerate(password=""):
         s.close()
         ports.append("127.0.0.1:8789")
     except ConnectionRefusedError as e:
-        logger.warning(
-            f"Warning: Specter DIY failed to establish socket connection. Error: {e}"
-        )
+        # simulator is probably not running
+        pass
 
     for port in ports:
         # for every port try to get a fingerprint

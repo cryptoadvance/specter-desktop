@@ -208,6 +208,14 @@ class User(UserMixin):
         self.config["hide_sensitive_info"] = hide_sensitive_info_bool
         self.save_info()
 
+    def set_autohide_sensitive_info_timeout(self, timeout_minutes):
+        self.config["autohide_sensitive_info_timeout_minutes"] = timeout_minutes
+        self.save_info()
+
+    def set_autologout_timeout(self, timeout_hours):
+        self.config["autologout_timeout_hours"] = timeout_hours
+        self.save_info()
+
     def set_price_provider(self, price_provider):
         self.config["price_provider"] = price_provider
         self.save_info()

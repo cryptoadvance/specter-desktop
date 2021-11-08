@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-07-08 12:04-0500\n"
+"POT-Creation-Date: 2021-09-04 12:37-0500\n"
 "PO-Revision-Date: 2021-07-07 00:17+0800\n"
 "Last-Translator: \n"
 "Language: zh_TW\n"
@@ -17,23 +17,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 
-#: src/cryptoadvance/specter/node.py:316
+#: src/cryptoadvance/specter/node.py:317
 msgid "Connection to node failed"
 msgstr "连接节点失败"
 
-#: src/cryptoadvance/specter/node.py:326
+#: src/cryptoadvance/specter/node.py:330
 msgid "Core Node might be too old"
 msgstr "核心节点版本可能太旧"
 
-#: src/cryptoadvance/specter/node.py:343
+#: src/cryptoadvance/specter/node.py:347
 msgid "Failed to connect!"
 msgstr "连接失败！"
 
-#: src/cryptoadvance/specter/node.py:352
+#: src/cryptoadvance/specter/node.py:356
 msgid "RPC authentication failed!"
 msgstr "RPC 验证失败！"
 
-#: src/cryptoadvance/specter/node.py:366
+#: src/cryptoadvance/specter/node.py:370
 msgid "Failed to connect"
 msgstr "连接失败"
 
@@ -100,20 +100,20 @@ msgid "You need a mainnet node to retrieve the whitepaper. Check your node confi
 msgstr "您需要一个 mainnet 节点来检索白皮书，请检查您的节点配置。"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:64
-#: src/cryptoadvance/specter/server_endpoints/devices.py:290
-#: src/cryptoadvance/specter/server_endpoints/devices.py:308
-#: src/cryptoadvance/specter/server_endpoints/devices.py:434
+#: src/cryptoadvance/specter/server_endpoints/devices.py:296
+#: src/cryptoadvance/specter/server_endpoints/devices.py:314
+#: src/cryptoadvance/specter/server_endpoints/devices.py:440
 msgid "Device name cannot be empty"
 msgstr "设备名称不可为空"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:66
-#: src/cryptoadvance/specter/server_endpoints/devices.py:292
-#: src/cryptoadvance/specter/server_endpoints/devices.py:310
+#: src/cryptoadvance/specter/server_endpoints/devices.py:298
+#: src/cryptoadvance/specter/server_endpoints/devices.py:316
 msgid "Device with this name already exists"
 msgstr "此设备名称已存在"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:84
-#: src/cryptoadvance/specter/server_endpoints/devices.py:298
+#: src/cryptoadvance/specter/server_endpoints/devices.py:304
 msgid "Failed to parse these xpubs"
 msgstr "无法解析这些 xpubs"
 
@@ -132,7 +132,7 @@ msgid "{} was added successfully!"
 msgstr "{} 添加成功！"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:133
-#: src/cryptoadvance/specter/server_endpoints/devices.py:350
+#: src/cryptoadvance/specter/server_endpoints/devices.py:356
 msgid "Failed to setup hot wallet. Error: {}"
 msgstr "热钱包配置失败，错误：{}"
 
@@ -141,55 +141,59 @@ msgid "xpubs list must not be empty"
 msgstr "xpubs 列表不可为空"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:198
-#: src/cryptoadvance/specter/server_endpoints/devices.py:312
+#: src/cryptoadvance/specter/server_endpoints/devices.py:318
 msgid "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
 msgstr "输入的助记符无效：必须包含以下其一：12、15、18、21 或 24 个单词。"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:202
-#: src/cryptoadvance/specter/server_endpoints/devices.py:317
+#: src/cryptoadvance/specter/server_endpoints/devices.py:323
 msgid "Invalid mnemonic entered."
 msgstr "输入的助记符无效。"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:206
-#: src/cryptoadvance/specter/server_endpoints/devices.py:321
+#: src/cryptoadvance/specter/server_endpoints/devices.py:327
 msgid "Invalid address range selected."
 msgstr "选择的地址范围无效。"
 
 #: src/cryptoadvance/specter/server_endpoints/devices.py:248
-#: src/cryptoadvance/specter/server_endpoints/devices.py:386
+#: src/cryptoadvance/specter/server_endpoints/devices.py:392
 msgid "Device not found"
 msgstr "找不到设备"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:257
+#: src/cryptoadvance/specter/server_endpoints/devices.py:258
 msgid "Master blinding key was added successfully"
 msgstr "Master blinding key 添加成功"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:295
+#: src/cryptoadvance/specter/server_endpoints/devices.py:265
+msgid "Invalid master blinding key! It should be in WIF or hex format."
+msgstr ""
+
+#: src/cryptoadvance/specter/server_endpoints/devices.py:301
 msgid "xpubs name cannot be empty"
 msgstr "xpubs 名称不可为空"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:397
+#: src/cryptoadvance/specter/server_endpoints/devices.py:403
 msgid "Device could not be removed since it is used in wallets: {}"
 msgstr "设备正在钱包中使用，无法移除：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:401
+#: src/cryptoadvance/specter/server_endpoints/devices.py:407
 msgid "You must delete those wallets before you can remove this device."
 msgstr "在移除此设备前您必须先删除这些钱包。"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:405
-#: src/cryptoadvance/specter/server_endpoints/devices.py:427
+#: src/cryptoadvance/specter/server_endpoints/devices.py:411
+#: src/cryptoadvance/specter/server_endpoints/devices.py:433
 msgid "You can delete a wallet from its Settings -> Advanced page."
 msgstr "您可以从钱包的 \"设置\" -> \"高级\" 页面内删除钱包。"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:421
+#: src/cryptoadvance/specter/server_endpoints/devices.py:427
 msgid "Key could not be removed since it is used in wallets: {}"
 msgstr "Key 正在钱包中使用，无法移除：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:425
+#: src/cryptoadvance/specter/server_endpoints/devices.py:431
 msgid "You must delete those wallets before you can remove this key."
 msgstr "在移除此 Key 前您必须先删除这些钱包。"
 
-#: src/cryptoadvance/specter/server_endpoints/devices.py:438
+#: src/cryptoadvance/specter/server_endpoints/devices.py:444
 msgid "Device already exists"
 msgstr "设备已存在"
 
@@ -384,33 +388,33 @@ msgstr "错误：只有管理员帐户可以删除用户"
 msgid "HWIBridge URL is updated! Don't forget to whitelist Specter!"
 msgstr "HWIBridge URL 已更新！记得将 Specter 列入白名单！"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:124
+#: src/cryptoadvance/specter/server_endpoints/setup.py:126
 msgid "Tor is already installed"
 msgstr "Tor 已安装"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:126
+#: src/cryptoadvance/specter/server_endpoints/setup.py:128
 msgid "Tor installation is still in progress"
 msgstr "Tor 安装仍在进行中"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:127
+#: src/cryptoadvance/specter/server_endpoints/setup.py:129
 msgid "Starting Tor setup!"
 msgstr "启动 Tor 安装！"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:144
+#: src/cryptoadvance/specter/server_endpoints/setup.py:146
 msgid "Bitcoin Core is already installed"
 msgstr "Bitcoin Core 已安装"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:146
-#: src/cryptoadvance/specter/server_endpoints/setup.py:208
+#: src/cryptoadvance/specter/server_endpoints/setup.py:148
+#: src/cryptoadvance/specter/server_endpoints/setup.py:199
 msgid "Bitcoin Core installation is still in progress"
 msgstr "Bitcoin Core 安装仍在进行中"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:147
-#: src/cryptoadvance/specter/server_endpoints/setup.py:209
+#: src/cryptoadvance/specter/server_endpoints/setup.py:149
+#: src/cryptoadvance/specter/server_endpoints/setup.py:200
 msgid "Starting Bitcoin Core setup!"
 msgstr "启动 Bitcoin Core 安装！"
 
-#: src/cryptoadvance/specter/server_endpoints/setup.py:206
+#: src/cryptoadvance/specter/server_endpoints/setup.py:197
 msgid "Bitcoin Core in not installed but required for this step"
 msgstr "此步骤需要 Bitcoin Core 但尚未安装"
 
@@ -447,7 +451,7 @@ msgid "Device {} doesn't have keys matching this wallet type"
 msgstr "设备 {} 没有与此钱包类型匹配的密钥"
 
 #: src/cryptoadvance/specter/server_endpoints/wallets.py:240
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:826
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:829
 msgid "Wallet already exists"
 msgstr "钱包已存在"
 
@@ -496,24 +500,24 @@ msgstr "无法导入 PSBT：{}"
 msgid "Failed to abort rescan. Maybe already complete?"
 msgstr "无法中止重新扫描，也许已完成了？"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:822
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:825
 msgid "Wallet name cannot be empty"
 msgstr "钱包名称不可为空"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:858
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:861
 msgid "Cannot parse empty data as PSBT"
 msgstr "无法为 PSBT 解析空数据"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:882
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:885
 msgid "Invalid transaction format"
 msgstr "交易格式无效"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:898
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:901
 msgid "Unknown error: {}"
 msgstr "未知错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:915
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:972
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:918
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:975
 msgid ""
 "Failed to broadcast transaction: transaction is invalid\n"
 "{}"
@@ -521,139 +525,135 @@ msgstr ""
 "交易广播失败：交易无效\n"
 "{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:944
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:947
 msgid "Failed to broadcast transaction. Network not supported."
 msgstr "交易广播失败，网络不支持。"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:953
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:956
 msgid "Failed to broadcast transaction. Block explorer not supported."
 msgstr "交易广播失败，区块浏览器不支持。"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:967
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:970
 msgid "Failed to broadcast transaction with error: {}"
 msgstr "交易广播失败因错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1066
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1069
 msgid "Exception trying to get address label: Error: {}"
 msgstr "尝试获取地址标签异常：错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1274
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1277
 msgid "Failed to export addresses list. Error: {}"
 msgstr "地址清单导出失败，错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1343
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1346
 msgid "Failed to export wallet utxo. Error: {}"
 msgstr "钱包 utxo 导出失败，错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1378
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1381
 msgid "Failed to export wallets overview history. Error: {}"
 msgstr "钱包历史记录概览导出失败，错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1410
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1413
 msgid "Failed to export wallets overview utxo. Error: {}"
 msgstr "钱包 utxo 概览导出失败，错误：{}"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1436
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
 msgid "Date"
 msgstr "日期"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1437
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
-#: src/cryptoadvance/specter/templates/includes/address-data.html:83
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1524
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
+#: src/cryptoadvance/specter/templates/includes/address-data.html:82
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:142
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:159
 msgid "Label"
 msgstr "标签"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1438
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
 msgid "Category"
 msgstr "类别"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1439
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1442
 msgid "Amount ({})"
 msgstr "金额/数量 ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1440
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
 msgid "Value ({})"
 msgstr "数值 ({})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1441
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
 msgid "Rate (BTC/{})"
 msgstr "费用/比率 (BTC/{})"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1443
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
 msgid "Rate ({}/SAT)"
 msgstr "费用/比率 ({}/SAT)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1444
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 msgid "TxID"
 msgstr "TxID"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1445
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
-#: src/cryptoadvance/specter/templates/includes/address-data.html:82
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1523
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1575
+#: src/cryptoadvance/specter/templates/includes/address-data.html:81
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:140
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Address"
 msgstr "地址"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1446
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1449
 msgid "Block Height"
 msgstr "区块高度"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1447
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1450
 msgid "Timestamp"
 msgstr "时间标签"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1448
-msgid "Raw Transaction"
-msgstr "原始交易"
-
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1451
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1453
 msgid "Wallet"
 msgstr "钱包"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1528
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1577
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1525
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1574
 msgid "Index"
 msgstr "索引"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1529
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1581
-#: src/cryptoadvance/specter/templates/includes/address-data.html:87
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1526
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1578
+#: src/cryptoadvance/specter/templates/includes/address-data.html:86
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:144
 msgid "Used"
 msgstr "已使用"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1530
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1527
 msgid "Current balance"
 msgstr "目前余额"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1545
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1542
 msgid "(external)"
 msgstr "(外部)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1549
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1546
 msgid " (change)"
 msgstr " (更改)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1554
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1551
 msgid "unknown (external address)"
 msgstr "未知的(外部地址)"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1576
 msgid "Type"
 msgstr "类型"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1582
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1579
 msgid "UTXO"
 msgstr "UTXO"
 
-#: src/cryptoadvance/specter/server_endpoints/wallets.py:1583
+#: src/cryptoadvance/specter/server_endpoints/wallets.py:1580
 msgid "Amount (BTC)"
 msgstr "金额/数量(BTC)"
 
@@ -706,161 +706,173 @@ msgstr "此过程发生问题，请通过下方日志内容来反映"
 msgid "Details from the log file"
 msgstr "日志文件中的详细信息"
 
-#: src/cryptoadvance/specter/templates/base.jinja:66
+#: src/cryptoadvance/specter/templates/base.jinja:94
 msgid "ERROR:"
 msgstr "错误："
 
-#: src/cryptoadvance/specter/templates/base.jinja:72
+#: src/cryptoadvance/specter/templates/base.jinja:100
 msgid "Something went wrong:"
 msgstr "出错了："
 
-#: src/cryptoadvance/specter/templates/base.jinja:78
+#: src/cryptoadvance/specter/templates/base.jinja:106
 msgid "Welcome to Specter Desktop"
 msgstr "欢迎使用 Specter Desktop"
 
-#: src/cryptoadvance/specter/templates/base.jinja:81
+#: src/cryptoadvance/specter/templates/base.jinja:109
 msgid "Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices."
 msgstr "Specter Desktop 是一款方便的钱包介面让您能用更好的方式来使用您的 Bitcoin Core 节点，它很适合单一签名钱包，但对于各种多重签名设置的硬件钱包设备也都特别好用。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:88
+#: src/cryptoadvance/specter/templates/base.jinja:116
 msgid "Get started!"
 msgstr "来开始吧！"
 
-#: src/cryptoadvance/specter/templates/base.jinja:88
+#: src/cryptoadvance/specter/templates/base.jinja:116
 msgid "Continue setup"
 msgstr "继续其他设置"
 
-#: src/cryptoadvance/specter/templates/base.jinja:91
+#: src/cryptoadvance/specter/templates/base.jinja:119
 msgid "Getting Started"
 msgstr "从这里开始"
 
-#: src/cryptoadvance/specter/templates/base.jinja:97
+#: src/cryptoadvance/specter/templates/base.jinja:125
 msgid "Using Specter from a remote machine?"
 msgstr "正从远程机器使用 Specter？"
 
-#: src/cryptoadvance/specter/templates/base.jinja:99
+#: src/cryptoadvance/specter/templates/base.jinja:127
 msgid "If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB."
 msgstr "如果您在远程机器上运行 Specter，例如 Umbrel 或 myNode，您需要更新配置来通过 USB 连接硬件钱包设备。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:101
+#: src/cryptoadvance/specter/templates/base.jinja:129
 msgid "Update your settings"
 msgstr "更新您的配置"
 
-#: src/cryptoadvance/specter/templates/base.jinja:116
+#: src/cryptoadvance/specter/templates/base.jinja:144
 msgid "Connect Specter with Bitcoin Core node."
 msgstr "连接 Specter 与 Bitcoin Core 节点。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:123
+#: src/cryptoadvance/specter/templates/base.jinja:151
 msgid "Connecting Specter to your Bitcoin Core node"
 msgstr "连接 Specter 到您的 Bitcoin Core 节点"
 
-#: src/cryptoadvance/specter/templates/base.jinja:125
+#: src/cryptoadvance/specter/templates/base.jinja:153
 msgid "I don't have a Bitcoin Core node yet."
 msgstr "我还没有 Bitcoin Core 节点。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:126
+#: src/cryptoadvance/specter/templates/base.jinja:154
 msgid "I have Bitcoin Core on this computer."
 msgstr "我在此台计算机上有 Bitcoin Core。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:127
+#: src/cryptoadvance/specter/templates/base.jinja:155
 msgid "I have a remote Bitcoin Core node."
 msgstr "我有一个远程的 Bitcoin Core 节点。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:131
+#: src/cryptoadvance/specter/templates/base.jinja:159
 msgid "Installing and Setting Up Bitcoin Core"
 msgstr "安装并设置Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:132
+#: src/cryptoadvance/specter/templates/base.jinja:160
 msgid "Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop"
 msgstr "查看如何使用 Specter Desktop 下载与设置 Bitcoin Core 的教学影片"
 
-#: src/cryptoadvance/specter/templates/base.jinja:140
+#: src/cryptoadvance/specter/templates/base.jinja:168
 msgid "Connecting Specter to your local Bitcoin Core node"
 msgstr "连接 Specter 到您的本地 Bitcoin Core 节点"
 
-#: src/cryptoadvance/specter/templates/base.jinja:141
+#: src/cryptoadvance/specter/templates/base.jinja:169
 msgid "If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location."
 msgstr "如果您正在运行本地 Bitcoin Core 节点，而其数据文件夹位于预设位置的话，Specter 应该能够自动检测它。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:142
+#: src/cryptoadvance/specter/templates/base.jinja:170
 msgid "In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page."
 msgstr "如果不是，您可能需要在 Specter 的配置页中指定 Bitcoin Core 数据文件夹路径。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:143
+#: src/cryptoadvance/specter/templates/base.jinja:171
 msgid "Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr "或者，您可以从设置中关闭自动检测并手动提供 Bitcoin Core RPC 凭证和主机 URL。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:144
+#: src/cryptoadvance/specter/templates/base.jinja:172
 msgid "<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file."
 msgstr "<b>请注意：</b><br>您的节点必须使用 <code>bitcoin.conf</code> 文件中的 <code>server=1</code> 此行来进行设置。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:145
+#: src/cryptoadvance/specter/templates/base.jinja:173
 msgid "If you don't have that, add it and restart Bitcoin Core."
 msgstr "您如果没有，请添加它并重新启动 Bitcoin Core。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:148
+#: src/cryptoadvance/specter/templates/base.jinja:176
 msgid "In addition, you can check out these video tutorials for setting up Bitcoin Core with Specter Desktop"
 msgstr "此外，您可以查看这些教学影片来使用 Specter Desktop 配置 Bitcoin Core"
 
-#: src/cryptoadvance/specter/templates/base.jinja:156
+#: src/cryptoadvance/specter/templates/base.jinja:184
 msgid "Connecting Specter to your remote Bitcoin Core node"
 msgstr "连接 Specter 到您的远程 Bitcoin Core 节点"
 
-#: src/cryptoadvance/specter/templates/base.jinja:157
+#: src/cryptoadvance/specter/templates/base.jinja:185
 msgid "Connecting to a \"node in a box\""
 msgstr "连接到 \"node in a box\""
 
-#: src/cryptoadvance/specter/templates/base.jinja:159
+#: src/cryptoadvance/specter/templates/base.jinja:187
 msgid "Specter can be used with a remote Bitcoin Core node running on a machine like RaspiBlitz, myNode, Nodl, Umbrel, and Embassy."
 msgstr "Specter 可以与在 RaspiBlitz、myNode、Nodl、Umbrel 和 Embassy 等机器上运行的远程 Bitcoin Core 节点一起使用。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:160
+#: src/cryptoadvance/specter/templates/base.jinja:188
 msgid "RaspiBlitz and myNode currently allow running Specter in the remote machine directly, which means it's possible to use it and skip setting up connection manually."
 msgstr "RaspiBlitz 和 myNode 目前允许 Specter 直接在远程机器上运行，这意味著有机会使用它并跳过手动设置连接。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:161
+#: src/cryptoadvance/specter/templates/base.jinja:189
 msgid "If you use a different node or would still like to connect run Specter locally but connect remotely, you can do so by going to Settings, Bitcoin Core tab, and provide the Bitcoin Core RPC credentials and host URL manually."
 msgstr "如果您使用不同的节点或仍想在本地运行 Specter 但由远程连接，您可以通过到设置中的 Bitcoin Core 选项内手动提供 Bitcoin Core RPC 凭证和主机 URL 来实现。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:163
+#: src/cryptoadvance/specter/templates/base.jinja:191
 msgid "Connecting over Tor"
 msgstr "通过 Tor 连接"
 
-#: src/cryptoadvance/specter/templates/base.jinja:164
+#: src/cryptoadvance/specter/templates/base.jinja:192
 msgid "Connecting over Tor requires that you first configure Tor on your local machine."
 msgstr "要通过 Tor 连接您需要先在本地机器上配置 Tor。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:177
+#: src/cryptoadvance/specter/templates/base.jinja:205
 msgid "Add signing devices you wish to use."
 msgstr "添加您希望使用的签名设备。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:189
+#: src/cryptoadvance/specter/templates/base.jinja:217
 msgid "Create your first wallet!"
 msgstr "创建您的第一个钱包！"
 
-#: src/cryptoadvance/specter/templates/base.jinja:202
+#: src/cryptoadvance/specter/templates/base.jinja:230
 msgid "And when you are all set: Get the whitepaper from the timechain."
 msgstr "当您一切就绪后：从时间链中获取白皮书。"
 
-#: src/cryptoadvance/specter/templates/base.jinja:214
+#: src/cryptoadvance/specter/templates/base.jinja:242
 msgid "Having issues? Try reading <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
 msgstr "遇到问题吗？尝试阅读 <a href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md\" target=\"_blank\" style=\"color: #fff; font-size: 1.05em; font-weight: bolder;\">the FAQ</a>"
 
-#: src/cryptoadvance/specter/templates/base.jinja:215
+#: src/cryptoadvance/specter/templates/base.jinja:243
 msgid "Still having issues?"
 msgstr "还是有问题吗？"
 
-#: src/cryptoadvance/specter/templates/base.jinja:216
+#: src/cryptoadvance/specter/templates/base.jinja:244
 msgid "Feel free to <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">open an issue on the GitHub</a> or ask in the <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">Specter Community telegram chat</a>"
 msgstr "欢迎到 <a href=\"https://github.com/cryptoadvance/specter-desktop/issues/new\" target=\"_blank\" style=\"color: #fff;\">在 GitHub 上开启一个议题</a> 或是在 Specter Community telegram chat <a href=\"https://t.me/spectersupport\" target=\"_blank\" style=\"color: #fff;\">中询问</a>"
 
-#: src/cryptoadvance/specter/templates/base.jinja:220
+#: src/cryptoadvance/specter/templates/base.jinja:248
 msgid "Help wanted: Do you like Specter?"
 msgstr "征求帮手：你喜欢 Specter 吗？"
 
-#: src/cryptoadvance/specter/templates/base.jinja:223
+#: src/cryptoadvance/specter/templates/base.jinja:251
 msgid "Supported and maintained by"
 msgstr "支持和维护 by"
+
+#: src/cryptoadvance/specter/templates/base.jinja:270
+msgid "Revealing"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/base.jinja:270
+msgid "Hiding"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/base.jinja:291
+msgid "Failed to toggle sensitive info mode..."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/hwi_bridge.jinja:11
 msgid "HWI Bridge Settings"
@@ -901,7 +913,8 @@ msgid "Username"
 msgstr "用户名称"
 
 #: src/cryptoadvance/specter/templates/login.jinja:13
-msgid "password"
+#: src/cryptoadvance/specter/templates/register.jinja:13
+msgid "Password"
 msgstr "密码"
 
 #: src/cryptoadvance/specter/templates/login.jinja:19
@@ -912,17 +925,13 @@ msgstr "登录"
 msgid "Register to the Specter Node"
 msgstr "注册 Specter Node"
 
-#: src/cryptoadvance/specter/templates/register.jinja:13
-msgid "Password"
-msgstr "密码"
-
 #: src/cryptoadvance/specter/templates/register.jinja:19
 msgid "Register"
 msgstr "注册"
 
 #: src/cryptoadvance/specter/templates/components/editable_title.jinja:12
 #: src/cryptoadvance/specter/templates/includes/address-label.html:66
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:11
 msgid "Cancel"
 msgstr "取消"
@@ -931,108 +940,108 @@ msgstr "取消"
 msgid "Edit Name"
 msgstr "编辑名称"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:38
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:46
 msgid "Price Settings"
 msgstr "价格配置"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:41
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:49
 msgid "Please set custom rate or choose between the automated price provider options."
 msgstr "请设置自定义费率或在自动价格供应商选项之间选择。"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:43
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
 msgid "Manual"
 msgstr "手动"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:44
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:52
 msgid "Automatic"
 msgstr "自动"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:48
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:56
 msgid "Price:"
 msgstr "价格："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:51
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:59
 msgid "Symbol:"
 msgstr "标志/符号："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:56
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:64
 msgid "Select price provider:"
 msgstr "选择价格供应商："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:61
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:69
 msgid "Currency:"
 msgstr "货币："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:94
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:102
 msgid "Provider:"
 msgstr "供应商："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:158
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:166
 msgid "Weight Unit:"
 msgstr "重量单位："
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:172
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:180
 msgid "Price will automatically be fetched from the selected provider every 10 minutes."
 msgstr "价格会每 10 分钟从选择的供应商端自动获取。"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:176
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:184
 #: src/cryptoadvance/specter/templates/node/node_settings.jinja:67
 #: src/cryptoadvance/specter/templates/settings/auth_settings.jinja:53
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:109
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:111
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:109
 msgid "Save"
 msgstr "保存"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:179
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:187
 msgid "Disable showing price"
 msgstr "关闭价格显示"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:181
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
 msgid "You can enable showing price feature to see the price<br>information of your Bitcoin amounts across Specter."
 msgstr "您可以启用价格显示功能查看<br>您在 Specter 中比特币金额的价格信息。"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:183
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
 msgid "Enable showing price"
 msgstr "启用价格显示"
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:189
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:197
 msgid "Turning on show price mode..."
 msgstr "正在开启价格显示模式..."
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:191
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:199
 msgid "Turning off show price mode..."
 msgstr "正在关闭价格显示模式..."
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:212
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
 msgid "Failed to toggle price mode..."
 msgstr "无法切换价格模式..."
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:220
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:228
 msgid "Updating price data..."
 msgstr "正在更新价格信息..."
 
-#: src/cryptoadvance/specter/templates/components/price_bar.jinja:240
+#: src/cryptoadvance/specter/templates/components/price_bar.jinja:248
 msgid "Failed to fetch price data from selected provider, please try again or select another provider."
 msgstr "无法从选择的供应商端获取价格信息，请重试或选择其他供应商。"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
 #: src/cryptoadvance/specter/templates/includes/sidebar/components/bitcoin_core_info.jinja:12
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:122
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:130
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:59
 msgid "Network"
 msgstr "网络"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:123
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:131
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:60
 msgid "Purpose"
 msgstr "目的"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:183
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:124
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:132
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:61
 msgid "Derivation"
 msgstr "衍生"
@@ -1048,13 +1057,13 @@ msgid "Export"
 msgstr "导出"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:125
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:133
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:62
 msgid "Key"
 msgstr "密钥"
 
 #: src/cryptoadvance/specter/templates/device/device.jinja:28
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:126
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:134
 #: src/cryptoadvance/specter/templates/wallet/send/pending/components/pending_psbt_table.jinja:15
 msgid "Actions"
 msgstr "动作"
@@ -1139,27 +1148,32 @@ msgid "Get the master blinding key"
 msgstr "获取 master blinding key"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:15
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:102
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:110
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:77
 msgid "Get via USB"
 msgstr "通过 USB 获取"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:20
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:114
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
 msgid "Scan QR code"
 msgstr "扫描二维码"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:25
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:28
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:119
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:122
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:127
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:130
 msgid "Paste xpub"
 msgstr "粘贴 xpub"
 
 #: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:31
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:125
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:133
 msgid "Add xpub"
 msgstr "添加 xpub"
+
+#: src/cryptoadvance/specter/templates/device/device_blinding_key.jinja:57
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:322
+msgid "No devices found :("
+msgstr "找不到设备 :("
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:7
 msgid "Adding keys to"
@@ -1199,7 +1213,7 @@ msgstr "在这里输入您的 xpubs"
 
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:43
 #: src/cryptoadvance/specter/templates/wallet/send/import/wallet_importpsbt.jinja:18
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:178
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:187
 msgid "Scan"
 msgstr "扫描"
 
@@ -1260,13 +1274,13 @@ msgstr "关闭"
 msgid "Examples"
 msgstr "范例"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:130
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:138
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:103
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:96
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:166
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:33
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:150
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:152
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:157
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:159
 msgid "Continue"
 msgstr "继续"
 
@@ -1301,6 +1315,7 @@ msgstr "生成"
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:56
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:112
 #: src/cryptoadvance/specter/templates/wallet/send/components/send_nav.jinja:14
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:174
 msgid "Import"
 msgstr "导入"
 
@@ -1320,25 +1335,27 @@ msgid "Encrypt Wallet File"
 msgstr "加密钱包文件"
 
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:85
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:184
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:187
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:205
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:208
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:142
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:180
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:186
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:250
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:249
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:261
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:264
 #: src/cryptoadvance/specter/templates/setup/bitcoind_datadir.jinja:67
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:63
 #: src/cryptoadvance/specter/templates/setup/setup_page.jinja:66
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:128
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:173
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:176
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:135
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:180
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:183
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:85
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:502
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:508
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:511
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:517
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:18
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:132
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:302
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:305
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:138
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:398
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:401
 msgid "Advanced"
 msgstr "高级"
 
@@ -1375,7 +1392,7 @@ msgstr "到"
 msgid "No devices found"
 msgstr "找不到设备"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:523
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:488
 #: src/cryptoadvance/specter/templates/device/new_device_manual.jinja:434
 msgid "Unknown key format"
 msgstr "未知的密钥格式"
@@ -1436,62 +1453,67 @@ msgstr ""
 "                    Cobo Vault 接下来会显示您应该扫描到 Specter 的二维码 code。<br><br>\n"
 "                    使用 SD 卡导入，点击与二维码 code 相同画面上的\"点这里来使用 microSD 导出文件\"。"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:85
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:86
+msgid "Pair your Passport to Specter using QR codes or a microSD card."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:89
+msgid "To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.<br>If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:93
 msgid "Connect your hardware device to the computer via USB."
 msgstr "通过 USB 将您的硬件设备连接到计算机。"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:91
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:278
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:282
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:99
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:196
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:289
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:293
 msgid "Edit"
 msgstr "编辑"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:108
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:116
 msgid "Upload from SD Card"
 msgstr "从 SD 卡上传"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:158
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:213
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:166
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:221
 msgid "XPUB purpose"
 msgstr "XPUB 目的"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:180
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:188
 msgid "#0 Single Sig (Nested)"
 msgstr "#0 Single Sig(Nested)"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:182
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:190
 msgid "#0 Single Sig (Segwit)"
 msgstr "#0 Single Sig(Segwit)"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:201
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:209
 msgid "Account #"
 msgstr "帐户 #"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:202
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:227
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:210
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:235
 msgid "Add account"
 msgstr "添加帐户"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:216
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:224
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:37
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:162
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
 msgid "Add"
 msgstr "添加"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:228
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:236
 msgid "Add custom derivation"
 msgstr "添加自定义衍生"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:279
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:290
 #: src/cryptoadvance/specter/templates/setup/end.jinja:7
 msgid "Done"
 msgstr "完成"
 
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:311
-msgid "No devices found :("
-msgstr "找不到设备 :("
-
-#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:345
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_keys.jinja:356
 msgid "Failed to retrive device data. Please try again."
 msgstr "无法获取设备数据，请重试。"
 
@@ -1528,6 +1550,10 @@ msgstr "从："
 msgid "to:"
 msgstr "到："
 
+#: src/cryptoadvance/specter/templates/device/new_device/new_device_mnemonic.jinja:128
+msgid "You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit."
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/device/new_device/new_device_type.jinja:3
 msgid "Add Device"
 msgstr "添加设备"
@@ -1556,31 +1582,31 @@ msgstr "加载地址中"
 msgid "details"
 msgstr "详细信息"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:84
+#: src/cryptoadvance/specter/templates/includes/address-data.html:83
 msgid "From wallet"
 msgstr "从钱包"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:85
+#: src/cryptoadvance/specter/templates/includes/address-data.html:84
 msgid "Address index"
 msgstr "地址索引"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "Is change address"
 msgstr "更改地址"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "Yes"
 msgstr "是"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:86
+#: src/cryptoadvance/specter/templates/includes/address-data.html:85
 msgid "No"
 msgstr "否"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:88
+#: src/cryptoadvance/specter/templates/includes/address-data.html:87
 msgid "UTXO count"
 msgstr "UTXO 计数"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:89
+#: src/cryptoadvance/specter/templates/includes/address-data.html:88
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:148
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:160
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/coin_selection_table.jinja:15
@@ -1588,33 +1614,33 @@ msgstr "UTXO 计数"
 msgid "Amount"
 msgstr "数量/金额"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:97
+#: src/cryptoadvance/specter/templates/includes/address-data.html:96
 msgid "Verify address on device"
 msgstr "确认设备上的地址"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:102
+#: src/cryptoadvance/specter/templates/includes/address-data.html:101
 msgid "Or scan this QR code"
 msgstr "或扫描这个二维码"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:108
+#: src/cryptoadvance/specter/templates/includes/address-data.html:107
 msgid "Address descriptor"
 msgstr "地址描述"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:111
+#: src/cryptoadvance/specter/templates/includes/address-data.html:110
 msgid "Show raw public keys"
 msgstr "显示原始公钥"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:117
-#: src/cryptoadvance/specter/templates/includes/address-data.html:124
+#: src/cryptoadvance/specter/templates/includes/address-data.html:116
+#: src/cryptoadvance/specter/templates/includes/address-data.html:123
 msgid "Copied address descriptor"
 msgstr "复制的地址描述"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:126
+#: src/cryptoadvance/specter/templates/includes/address-data.html:125
 msgid "Copied address descripto"
 msgstr "复制的地址描述"
 
-#: src/cryptoadvance/specter/templates/includes/address-data.html:132
-#: src/cryptoadvance/specter/templates/includes/address-data.html:134
+#: src/cryptoadvance/specter/templates/includes/address-data.html:131
+#: src/cryptoadvance/specter/templates/includes/address-data.html:133
 msgid "Failed to load address details..."
 msgstr "无法加载地址详细信息..."
 
@@ -1626,18 +1652,18 @@ msgstr "正在获取地址标签..."
 msgid "Failed to update address label. Please refresh the page and try again."
 msgstr "地址标签更新失败，请刷新页面并重试。"
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:198
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:550
+#: src/cryptoadvance/specter/templates/includes/address-label.html:197
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:549
 msgid "Copied address"
 msgstr "复制的地址"
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:234
-#: src/cryptoadvance/specter/templates/includes/address-label.html:237
+#: src/cryptoadvance/specter/templates/includes/address-label.html:232
+#: src/cryptoadvance/specter/templates/includes/address-label.html:235
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:68
 msgid "Failed to fetch data. Please refresh the page and retry."
 msgstr "无法获取数据，请刷新页面并重试。"
 
-#: src/cryptoadvance/specter/templates/includes/address-label.html:236
+#: src/cryptoadvance/specter/templates/includes/address-label.html:234
 msgid "Caught error fetching address label"
 msgstr "获取地址标签时出现错误"
 
@@ -1645,8 +1671,8 @@ msgstr "获取地址标签时出现错误"
 msgid "Verify on device"
 msgstr "在设备上确认"
 
-#: src/cryptoadvance/specter/templates/includes/address-row.html:114
-#: src/cryptoadvance/specter/templates/includes/address-row.html:116
+#: src/cryptoadvance/specter/templates/includes/address-row.html:120
+#: src/cryptoadvance/specter/templates/includes/address-row.html:122
 msgid "Failed to load address data to display..."
 msgstr "无法加载地址数据来显示..."
 
@@ -1668,30 +1694,34 @@ msgid "Export addresses to CSV"
 msgstr "导出地址到 CSV"
 
 #: src/cryptoadvance/specter/templates/includes/addresses-table.html:161
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:405
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:403
 msgid "Fetching addresses..."
 msgstr "获取地址中..."
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:409
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:407
 msgid "Failed to fetch addresses..."
 msgstr "无法获取地址..."
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:417
 msgid "Only receive addresses"
 msgstr "仅接收地址"
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:421
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:419
 msgid "Only change addresses"
 msgstr "仅更改地址"
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:481
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:479
 msgid "No addresses found..."
 msgstr "找不到地址..."
 
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:520
-#: src/cryptoadvance/specter/templates/includes/addresses-table.html:523
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:518
+#: src/cryptoadvance/specter/templates/includes/addresses-table.html:521
 msgid "Failed to fetch addresses list"
 msgstr "无法获取地址清单"
+
+#: src/cryptoadvance/specter/templates/includes/asset-label.html:164
+msgid "Failed to update asset label. Please refresh the page and try again."
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/merkletooltip.html:2
 msgid "Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash."
@@ -1714,18 +1744,20 @@ msgid "All"
 msgstr "全部"
 
 #: src/cryptoadvance/specter/templates/includes/qr-code.html:207
+#: src/cryptoadvance/specter/templates/includes/qr-code.html:404
 msgid "Click to animate"
 msgstr "点击开始动画"
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:128
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:139
 msgid "Number of frames in QR code mismatch!"
 msgstr "二维码影格帧数不匹配！"
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:202
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:213
 msgid "Can't get access to the camera. Specter should run on localhost or over https to enable QR code scanning."
 msgstr "无法访问相机，Specter 应该在 localhost 或 https 上运行以启用二维码扫描。"
 
-#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:209
+#: src/cryptoadvance/specter/templates/includes/qr-scanner.html:220
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/components/import_wallet_account_map.jinja:41
 msgid "Can't start the QR scanner!"
 msgstr "无法启动二维码扫描！"
 
@@ -1744,108 +1776,108 @@ msgstr ""
 "交易 ID:"
 
 #: src/cryptoadvance/specter/templates/includes/tx-data.html:66
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:255
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:256
 msgid "Failed to load transaction details..."
 msgstr "加载交易详情失败..."
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:84
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:85
 msgid "This transaction (aka \"tx\") could not be found in your node's mempool!"
 msgstr "在您节点的矿池(mempool)中找不到此交易(或称为\"tx\")！"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:85
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:86
 msgid "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged."
 msgstr "如果比特币网络非常繁忙时，节点将开始以最低的费用清除待处理的 txs，超过两周的 txs 也将被清除。"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:86
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:87
 msgid "A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again."
 msgstr "被清除的 tx 将永远不会完成交易，放弃此 tx 会将其从您的钱包中清除，使这些资金可以再次使用。"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:87
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:88
 msgid "But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx."
 msgstr "但首先要确认其他节点是否也清除了您的 tx！将 tx id 输入公共区块浏览器(警告：轻度隐私泄露)，如果找不到 tx，即表示可安全地放弃此 tx。"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:94
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:95
 msgid "Abandon transaction"
 msgstr "放弃交易"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:102
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:195
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:103
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:196
 msgid "Transaction id"
 msgstr "交易 ID"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:114
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:115
 msgid "Fee"
 msgstr "费用"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:115
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:116
 msgid "Fee rate"
 msgstr "费率"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:120
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:121
 msgid "Mined at block"
 msgstr "在开采区块"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:121
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:122
 msgid "Block hash"
 msgstr "区块 hash"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:122
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:123
 msgid "Block time"
 msgstr "区块时间"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:126
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:127
 msgid "Inputs count"
 msgstr "输入数"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:127
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:128
 msgid "Outputs count"
 msgstr "输出数"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:178
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:245
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:179
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:246
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:146
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:173
 msgid "Address:"
 msgstr "地址："
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:179
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:246
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:180
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:247
 msgid "Value:"
 msgstr "值："
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:185
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:194
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:186
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:195
 msgid "Input #"
 msgstr "输入 #"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:186
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:187
 msgid "Coinbase transaction"
 msgstr "Coinbase 交易"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:196
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:197
 msgid "Output #"
 msgstr "输出 #"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:202
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:203
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:166
 msgid "Outputs"
 msgstr "输出"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:244
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:245
 msgid "Output #${i}"
 msgstr "输出 #${i}"
 
-#: src/cryptoadvance/specter/templates/includes/tx-data.html:279
+#: src/cryptoadvance/specter/templates/includes/tx-data.html:281
 msgid "Failed to load address data..."
 msgstr "加载地址数据失败..."
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:33
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 msgid "Speed up"
 msgstr "加速"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:34
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:247
 msgid "Cancel transaction"
 msgstr "取消交易"
 
@@ -1855,6 +1887,7 @@ msgid "Recipients"
 msgstr "收件人"
 
 #: src/cryptoadvance/specter/templates/includes/tx-row.html:149
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:41
 msgid "Confidential"
 msgstr "机密"
 
@@ -1871,44 +1904,44 @@ msgstr "未确认"
 msgid "Cancelled (replaced by sender)"
 msgstr "已取消(由发送者替换)"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:240
 msgid "the Transaction"
 msgstr "此交易"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "You can"
 msgstr "您可以"
 
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:5
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "cancel"
 msgstr "取消"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "speed up"
 msgstr "加速"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "the transaction by increasing its fee rate"
 msgstr "此交易，通过提高费率"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:242
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:241
 msgid "and sending the funds back to yourself"
 msgstr "并将资金返回给您自己"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:248
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:247
 msgid "Speed up!"
 msgstr "加速！"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:251
 msgid "If you would like further customization, you can click here to fully edit the transaction."
 msgstr "如果您想自定义更多内容，您可以点击此处来编辑完整交易。"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:251
 msgid "(advanced, not recommended for new users)"
 msgstr "(高级功能，不建议新用户使用)"
 
-#: src/cryptoadvance/specter/templates/includes/tx-row.html:253
+#: src/cryptoadvance/specter/templates/includes/tx-row.html:252
 msgid "Edit the transaction (advanced)"
 msgstr "编辑交易(高级)"
 
@@ -1954,25 +1987,25 @@ msgid "Block Hash"
 msgstr "区块 Hash"
 
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:172
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:484
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:481
 msgid "Fetching transactions..."
 msgstr "获取交易中..."
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:488
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:521
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:485
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:518
 msgid "Failed to fetch transactions..."
 msgstr "获取交易失败..."
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:595
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:592
 msgid "No transactions found..."
 msgstr "找不到交易..."
 
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:654
 #: src/cryptoadvance/specter/templates/includes/tx-table.html:657
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:660
 msgid "Failed to fetch transactions list."
 msgstr "无法获取交易清单。"
 
-#: src/cryptoadvance/specter/templates/includes/tx-table.html:685
+#: src/cryptoadvance/specter/templates/includes/tx-table.html:684
 msgid "Copied transaction"
 msgstr "复制的交易"
 
@@ -2068,7 +2101,7 @@ msgid "Please confirm action on your"
 msgstr "请确认此操作在您的"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/hwi.jinja:204
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:114
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:112
 msgid "device"
 msgstr "设备"
@@ -2091,8 +2124,13 @@ msgid "Select USB Wallet"
 msgstr "选择 USB 钱包"
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:78
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:122
 msgid "Failed to unlock device! Invalid PIN code?"
 msgstr "设备解锁失败！PIN 码无效？"
+
+#: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:89
+msgid "Operation is terminated"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/includes/hwi/components/select_device.jinja:125
 msgid "passphrase toggled successfully"
@@ -2196,6 +2234,55 @@ msgstr "显示衍生路径"
 msgid "Use SLIP-132"
 msgstr "使用 SLIP-132"
 
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:2
+msgid "Liquid Assets List:"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:6
+msgid "Asset label"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:7
+msgid "Asset ID"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:8
+msgid "Action"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:20
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:82
+msgid "Remove"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:26
+msgid "New asset label"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:28
+msgid "New asset ID"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:31
+msgid "Add asset"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:50
+msgid "Asset ID is invalid, must be 64 hex characters"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:54
+msgid "This asset is already in the registry."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:58
+msgid "Asset label must not be empty."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/includes/overlay/liquid_assets_registry.html:100
+msgid "Asset ID does not exist"
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/includes/overlay/overlay.html:14
 msgid "Loading... It may take a while..."
 msgstr "加载中... 可能需要一些时间..."
@@ -2268,106 +2355,106 @@ msgstr "钱包未加密，点击按钮即可。"
 msgid "Sign transaction"
 msgstr "签署交易"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:43
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:48
 msgid "Bitcoin Core is still syncing...<br>(data might be outdated)"
 msgstr "Bitcoin Core 仍在同步中...<br>(数据可能已过时)"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:46
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:51
 msgid "Bitcoin Core version is outdated.<br>Some features might not work...<br>(minimum required: v20.0.0)."
 msgstr "Bitcoin Core 版本已过时。<br>某些功能可能无法使用...<br>(最低需求：v20.0.0)。"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:76
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:81
 msgid "Unavailable. Click to configure."
 msgstr "不可用，点击进行配置。"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:129
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:134
 msgid "See setup progress"
 msgstr "查看设置进度"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:132
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:290
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:137
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:292
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:295
 msgid "Wallets"
 msgstr "钱包"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:135
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:140
 msgid "Wallets overview"
 msgstr "钱包概览"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:142
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:147
 msgid "Updating wallets data..."
 msgstr "正在更新钱包数据..."
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:145
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:150
 msgid "Finished updating your wallets"
 msgstr "您的钱包已更新完成"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:148
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:153
 msgid "Click here to refresh"
 msgstr "点击这里刷新"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:162
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:167
 msgid "Add new wallet"
 msgstr "添加钱包"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:167
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:172
 msgid "Failed to load some wallets"
 msgstr "加载某些钱包失败"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:168
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:173
 msgid "Retry loading wallets"
 msgstr "重试加载钱包"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:169
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:174
 msgid "Show Details"
 msgstr "显示详细数据"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:175
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:180
 msgid "Wallet Name"
 msgstr "钱包名称"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:176
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:181
 msgid "Error Details"
 msgstr "错误详情"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:182
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:187
 msgid "Download wallet file"
 msgstr "下载钱包文件"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:183
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:188
 msgid "Recreate the wallet"
 msgstr "重建钱包"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:184
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:252
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:189
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:285
 msgid "Delete wallet"
 msgstr "删除钱包"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:198
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:203
 msgid "Wallets are unavailable if Specter is not connected to Bitcoin Core!"
 msgstr "钱包无法使用如果 Specter 未连接到 Bitcoin Core！"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:201
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:206
 msgid "Configure Node"
 msgstr "配置节点"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:210
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:279
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:282
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:215
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:284
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:287
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:26
 msgid "Devices"
 msgstr "所有设备"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:217
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:222
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:29
 msgid "Add new device"
 msgstr "添加设备"
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:221
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:226
 msgid "Specter Version:"
 msgstr "Specter 版本："
 
-#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:223
+#: src/cryptoadvance/specter/templates/includes/sidebar/sidebar.jinja:228
 msgid "About Specter"
 msgstr "关于 Specter"
 
@@ -2772,90 +2859,98 @@ msgstr "建议进行备份以确保即使在多重签名钱包丢失的情况下
 msgid "Specter Data Backup"
 msgstr "Specter 数据备份"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:28
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:27
+msgid "Warning: This backup does not include private seed of the hot wallets or, obviously, the private seed of your Hardwarewallets."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:30
 msgid "Download Specter backup files"
 msgstr "下载 Specter 备份文件"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:35
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:37
 msgid "Restoring Specter from backup"
 msgstr "从备份还原 Specter"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:36
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:38
 msgid "Here you can restore your wallets and devices from an existing Specter backup."
 msgstr "这里您可以从现有的 Specter 备份中还原您的钱包和设备。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:37
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:39
 msgid "Please make sure to unzip the backup file first, then select the extracted folder for upload."
 msgstr "请确认先解压缩备份文件，然后选择解压缩后的文件夹进行上传。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:38
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:40
 msgid "Note: Loading devices/ wallets with names identical to existing ones may overwrite the existing ones."
 msgstr "注意：加载与现有设备/钱包名称相同的设备/钱包可能会复盖现有设备/钱包。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:42
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:53
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:44
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:55
 msgid "Load Specter backup"
 msgstr "加载 Specter 备份"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:48
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:50
 msgid "Choose backup folder"
 msgstr "选择备份文件夹"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:56
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:58
 msgid "Miscellaneous"
 msgstr "其他"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:57
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:59
 msgid "Bitcoin unit to use"
 msgstr "使用比特币单位"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:63
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:65
 msgid "Block explorer URL"
 msgstr "区块浏览器 URL"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:67
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:69
 msgid "Specter does not use the block explorer to get any data whatsoever. This setting is only to allow opening transactions and addresses in a block explorer directly from Specter. All data Specter uses comes directly from your own connected full node."
 msgstr "Specter 不会使用区块浏览器来获取任何数据，此设置仅允许直接从 Specter 在区块浏览器中打开交易和地址，Specter 使用的所有数据都直接来自您自己连接的完整节点。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:70
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:72
 msgid "Fees estimation source"
 msgstr "费用估算来源"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:73
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:75
 msgid "Self hosted mempool.space"
 msgstr "自管 mempool.space"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:78
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
 msgid "Log Level"
 msgstr "日志级别"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:82
 msgid "Specter-Desktop created a Logfile in"
 msgstr "Specter-Desktop 创建了一个日志文件在"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:80
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:82
 msgid "The Debug-Level will create a lot of data, so make sure to avoid that if you don't have a reason."
 msgstr "调试等级会创建大量数据，因此如果没有特定原因，请尽量避免这种情况。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:91
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:93
 msgid "Validate Merkle Proofs"
 msgstr "验证 Merkle Proofs"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:93
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:95
 msgid "Cannot enable when using a pruned bitcoin node"
 msgstr "使用修剪的比特币节点时无法启用"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:100
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:102
 msgid "What's this?"
 msgstr "这是什么？"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:104
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:106
 msgid "Specter-Desktop validates <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that displayed as confirmed have been included in the specified block hash."
 msgstr "Specter-Desktop 已从您的完整节点验证 <a href=\"https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki\" target=\"_blank\">BIP 37</a> Merkle Proofs <strong>保证</strong> 显示为已确认的已包含在指定的区块 hash 中。"
 
-#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:105
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:107
 msgid "However, a compromised full node could return a fake block that was never mined into Bitcoin's blockchain! If you find the displayed block hash in other locations (other nodes, block explorers, etc) <strong>and you trust specter-desktop isn't lying to you</strong>, then you can be sure this transaction exists in their blockchain as well."
 msgstr "然而，被破解损害的完整节点可能会回传一个从未被挖掘的假区块到比特币的区块链中！如果您在其他地方(其他节点、区块浏览器等)发现显示的区块 hash <strong>并且您相信 specter-desktop 没有在欺骗您</strong>，那么您便可以确定此交易也存在于他们的区块链中。"
+
+#: src/cryptoadvance/specter/templates/settings/general_settings.jinja:145
+msgid "Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/settings/hwi_settings.jinja:14
 msgid "Hardware Devices Bridge"
@@ -3331,9 +3426,14 @@ msgid "immature"
 msgstr "未完成"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:41
-#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:45
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:46
 msgid "Assets:"
 msgstr "资产："
+
+#: src/cryptoadvance/specter/templates/wallet/history/components/total_wallet_balances.jinja:46
+#: src/cryptoadvance/specter/templates/wallet/wallets_overview.jinja:58
+msgid "Show assets list"
+msgstr ""
 
 #: src/cryptoadvance/specter/templates/wallet/components/editable_label.jinja:12
 msgid "Edit Label"
@@ -3428,6 +3528,10 @@ msgstr "我们使用排序多重签名(sorted multisig)(BIP-67)，所以 <b>顺�
 msgid "Be aware of <a style=\"color: #fff\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md\" target=\"_blank\">multisig security tradeoffs</a>."
 msgstr "注意 <a style=\"color: #fff\" href=\"https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md\" target=\"_blank\">衡量多重签名安全性</a>."
 
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet.jinja:58
+msgid "Please select at least 2 devices for your multisig"
+msgstr ""
+
 #: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:5
 msgid "Name your Wallet"
 msgstr "为您的钱包命名"
@@ -3436,142 +3540,146 @@ msgstr "为您的钱包命名"
 msgid "Type of the wallet"
 msgstr "钱包类型"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:15
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:16
 msgid "Nested Segwit"
 msgstr "Nested Segwit"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:20
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:21
 msgid "Segwit"
 msgstr "Segwit"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:26
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:27
+msgid "Taproot"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:34
 msgid "<b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy."
 msgstr "<b>Segwit</b> 使用 bech32-encoded 地址 (bc1), <b>Nested Segwit</b> 可相容旧版软件，不要使用旧版。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:32
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:40
 msgid "Using"
 msgstr "使用"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:34
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:42
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:105
 msgid "of"
 msgstr "的/于"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:42
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:50
 msgid "Scan for existing funds?"
 msgstr "扫描现有资金？"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:47
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:55
 msgid "Importing an existing wallet"
 msgstr "导入现有钱包"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:48
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:56
 msgid "Check this option to scan the blockchain for existing wallet balance and history."
 msgstr "勾选此选项来扫描区块链获取现有钱包余额和历史记录。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:56
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:64
 msgid "Rescan type:"
 msgstr "重新扫描类型："
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:57
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:65
 msgid "Full rescan"
 msgstr "完整重新扫描"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:58
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:66
 msgid "UTXO only"
 msgstr "仅 UTXO"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:63
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:71
 msgid "Choosing Rescan Type"
 msgstr "选择重新扫描类型"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:64
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:72
 msgid "Full rescan is a relativly slow process which looks for and imports the full wallet transaction history and balance."
 msgstr "完整重新扫描是比较慢的过程，它会查找完整的钱包交易历史记录和余额并导入。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:65
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:73
 msgid "UTXO only is a fast rescan option which only looks for existing balances (UTXO), but will not import the full transaction history."
 msgstr "仅 UTXO 是快速重新扫描选项，它只查找现有余额(UTXO)，但不会导入完整的交易历史记录。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:77
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:175
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:85
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:208
 msgid "Rescan blockchain from block:"
 msgstr "重新扫描区块链从区块："
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:80
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:88
 msgid "You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block:"
 msgstr "您正在使用修剪节点。<br>钱包历史记录可能不会完整显示。<br>重新扫描会受到区块修剪高度限制："
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:83
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:91
 msgid "In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block."
 msgstr "如果您不确定，最好保留预设值。<br><b>481824</b> 是第一个 Segwit 区块。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:88
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:218
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:96
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:251
 msgid "fetch missing data from block explorer"
 msgstr "从区块浏览器获取丢失的数据"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:89
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:97
 msgid "Fetch missing data"
 msgstr "获取丢失数据"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:90
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:220
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:98
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:253
 msgid "You are using a pruned node. Blocks for some transactions may be missing."
 msgstr "您正在使用修剪节点，某些交易的区块可能会丢失。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:91
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:221
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:254
 msgid "Check this checkbox if you want to fetch missing information from block explorer."
 msgstr "请勾选此选项如果您想从区块浏览器中获取丢失的信息。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:96
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:227
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:104
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:260
 msgid "Block explorer URL:"
 msgstr "区块浏览器 URL："
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:99
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:230
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:263
 msgid "Careful with block explorers!"
 msgstr "小心区块浏览器！"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:100
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:231
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:108
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:264
 msgid "This may have privacy implications!"
 msgstr "这可能会影响隐私性！"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:101
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:232
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:109
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:265
 msgid "Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks."
 msgstr "区块浏览器获取的信息包含来自旧(修剪)区块您钱包的未花费交易清单。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:102
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:233
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:110
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:266
 msgid "\"They\" will know what transactions you are interested in."
 msgstr "\"他们\"会知道您对哪些交易感兴趣。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:115
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:123
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:54
 msgid "Signer"
 msgstr "签署人"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:141
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:149
 msgid "Use this key"
 msgstr "使用此密钥"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:148
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:156
 msgid "The device does not have keys matching the wallet type selected."
 msgstr "设备没有与所选钱包类型匹配的密钥。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:151
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:159
 msgid "Please choose a different type or add the keys to the device..."
 msgstr "请选择其他类型或将密钥添加到设备..."
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:164
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:172
 msgid "Looks like this device doesn't have keys matching this type of wallet."
 msgstr "此设备似乎没有与此类型钱包匹配的密钥。"
 
-#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:168
+#: src/cryptoadvance/specter/templates/wallet/new_wallet/new_wallet_keys.jinja:176
 msgid "Create wallet"
 msgstr "创建钱包"
 
@@ -3620,121 +3728,125 @@ msgstr "点击这里从钱包软件导入现有钱包(如 Electrum、Fully-Noded
 msgid "Multisig is better for large-ish amounts."
 msgstr "多重签名较适合大金额使用。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:40
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:42
+msgid "Unconfidential"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:46
 msgid "Copied Address:"
 msgstr "复制的地址："
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:41
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:47
 msgid "(click to copy)"
 msgstr "(点击复制)"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:47
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:54
 msgid "Get new address"
 msgstr "获取新地址"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:54
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:61
 msgid "Scan to Verify Address on Your Device"
 msgstr "扫描以验证您设备上的地址"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:57
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:64
 msgid "Specter can verify this address if you scan it.<br>It has an address index included in the QR code."
 msgstr "如果您扫描它 Specter 便可以验证此地址。<br>它的二维码中包含地址索引。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:60
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:67
 msgid "Verify address via QR code"
 msgstr "从二维码验证地址"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:71
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:78
 msgid "Display address on device"
 msgstr "在设备上显示地址"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:73
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:80
 msgid "Multsig address on-device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices."
 msgstr "在设备上显示多重签名地址仅适用于 BitBox02、ColdCard、KeepKey、Specter 和 Trezor 设备。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:86
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:93
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:92
 msgid "Export To Device"
 msgstr "导出到设备"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:87
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:94
 msgid "Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions."
 msgstr "您的某些设备要求先将多重签名钱包数据导入设备后才能开始验证地址和发送交易。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:89
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:96
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:94
 msgid "Import this wallet to a device by scanning its QR code or importing its data file."
 msgstr "扫描二维码或导入数据档来将此钱包导入设备。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:99
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:106
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:104
 msgid "Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD"
 msgstr "将钱包文件导入您的 ColdCard：设置 -> 多重签名钱包 -> 从 SD 导入"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:102
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:109
 msgid "file"
 msgstr "文件"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:112
 msgid "Show"
 msgstr "显示"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:105
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:112
 msgid "QR Code"
 msgstr "二维码"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:114
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:112
 msgid "Scan this with your"
 msgstr "扫描这个用"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:110
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:117
 msgid "Back"
 msgstr "返回"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:117
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:124
 msgid "You can always do this later from the wallet Settings tab."
 msgstr "您随时可以从\"钱包设置\"选项卡中进行此操作。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:118
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:125
 msgid "Finish"
 msgstr "完成"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:121
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:128
 msgid "New wallet was created successfully!"
 msgstr "新钱包创建成功！"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:124
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:131
 msgid "Save Backup PDF"
 msgstr "保存备份 PDF"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:132
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:139
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:44
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:135
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:141
 msgid "Use SLIP-132:"
 msgstr "使用 SLIP-132："
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:138
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:142
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:145
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:148
 msgid "To format master keys on the PDF backup document."
 msgstr "格式化 PDF 备份文件上的主密钥。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:140
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:129
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:147
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:135
 msgid "It is recommended that you print and save this wallet backup file with each of your devices."
 msgstr "建议您列印并保存此钱包备份文件在每台设备上。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:143
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:144
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:150
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:150
 msgid "This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself."
 msgstr "此备份包含您在 Specter Desktop 或其他相容钱包(包括 Bitcoin Core)中恢复钱包所需的全部信息。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:146
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:147
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:153
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:153
 msgid "It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history."
 msgstr "建议您将此文件保密，因为它包含可追踪所有钱包余额和交易历史所需的所有信息。"
 
-#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:148
+#: src/cryptoadvance/specter/templates/wallet/receive/wallet_receive.jinja:155
 msgid "You can always download this file later from the wallet Settings tab."
 msgstr "您随时可以从钱包设置选项卡中下载此文件。"
 
@@ -3842,66 +3954,66 @@ msgstr "交易编辑者："
 msgid "Add recipient"
 msgstr "添加接收人"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:100
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:101
 msgid "Select coins"
 msgstr "选择币"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:100
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:101
 msgid "manually"
 msgstr "手动"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:107
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:109
 msgid "Create <span class=\"optional\">&nbsp;unsigned&nbsp;</span>transaction"
 msgstr "创建 <span class=\"optional\">&nbsp;未签名&nbsp;</span>交易"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:173
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:182
 msgid "Recipient address:"
 msgstr "接收人地址："
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:182
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:191
 msgid "Address label (optional):"
 msgstr "地址标签(可选)："
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:185
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:194
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:158
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:161
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:181
 msgid "Amount:"
 msgstr "金额："
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:190
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:199
 msgid "send max"
 msgstr "发送最大值"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:337
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:346
 msgid "Please first enter a valid address"
 msgstr "请先输入有效地址"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:385
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:394
 msgid "Amount entered is invalid!"
 msgstr "输入的金额无效！"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:399
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:408
 msgid "You cannot send more than"
 msgstr "您不能发送超过"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:404
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:413
 msgid "You need to select more coins to match your amount!"
 msgstr "您需要选择更多币以符合您的金额！"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:409
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:418
 msgid "Invalid amount! Wrong unit?"
 msgstr "金额无效！单位错误？"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:445
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:454
 msgid "Please enter the amount that you wish to send"
 msgstr "请输入您要发送的金额"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:459
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:468
 msgid "Please enter a valid recipient address"
 msgstr "请输入有效的接收人地址"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:585
+#: src/cryptoadvance/specter/templates/wallet/send/new/wallet_send.jinja:595
 msgid "failed to calculate transaction fees"
 msgstr "交易费用计算失败"
 
@@ -3935,44 +4047,40 @@ msgid "manual"
 msgstr "手动的"
 
 #: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:26
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:39
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:40
 #: src/cryptoadvance/specter/templates/wallet/send/sign/wallet_send_sign_psbt.jinja:119
 msgid "Fee rate:"
 msgstr "费率："
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:29
-msgid "leave blank to set automatically, 1 sat/vbyte is the minimal fee rate."
-msgstr "留空以自动设置，1 sat/vbyte 是最低费率。"
-
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:37
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:38
 msgid "Estimated speed:"
 msgstr "估计速度："
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:43
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:44
 msgid "RBF Enabled"
 msgstr "启用 RBF"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:69
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:70
 msgid "Very slow"
 msgstr "非常慢"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:71
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:72
 msgid "Slow"
 msgstr "慢"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:73
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:74
 msgid "Medium (1 hour)"
 msgstr "中等(1 小时)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:75
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:76
 msgid "Fast (30 minutes)"
 msgstr "快速(30 分钟)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:77
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:78
 msgid "Very fast (10 minutes)"
 msgstr "非常快(10 分钟)"
 
-#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:79
+#: src/cryptoadvance/specter/templates/wallet/send/new/components/fee_selection.jinja:80
 msgid "Overpaid! (10 minutes)"
 msgstr "付太多了！(10分钟)"
 
@@ -4118,7 +4226,7 @@ msgid "Wallet Info"
 msgstr "钱包信息"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:41
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:269
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:365
 msgid "Show keys details"
 msgstr "显示密钥详情"
 
@@ -4139,87 +4247,115 @@ msgid "Import this wallet to another Specter instance or other supported wallet 
 msgstr "扫描二维码或导入 JSON 文件来将此钱包导入另一个实体 Specter 或其他支持的钱包软体。"
 
 #: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:127
+msgid "Export Specter format"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:129
+msgid "Export a JSON file containing complete wallet data including labels."
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:133
 msgid "Export PDF backup"
 msgstr "导出 PDF 备份"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:154
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:160
 msgid "Advanced Options"
 msgstr "高级选项"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:156
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:162
+msgid "Import Electrum address labels"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:168
+msgid "Paste json here  or  Drag&Drop electrum_labels.json"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:179
+msgid "Importing electrum labels"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:180
+msgid "The expected json format contains utxo ids and addresses with the labels:"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:181
+msgid "{ \"8a5e4...\": \"some utxo label\", \"bc1qj3...\": \"some address label\" }"
+msgstr ""
+
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:189
 msgid "Keypool control"
 msgstr "密钥池(Keypool)控制项"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "Currently watching"
 msgstr "正在观看"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "receiving and"
 msgstr "接收和"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:159
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:192
 msgid "change addresses."
 msgstr "更改地址。"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:194
 msgid "Watch"
 msgstr "观看"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:161
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:194
 msgid "more addresses"
 msgstr "更多地址"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:166
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:199
 msgid "Blockchain rescan"
 msgstr "重新扫描区块链"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:172
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:196
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:205
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:229
 msgid "Abort rescan"
 msgstr "中止重新扫描"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:186
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:219
 msgid "Note: You are using a pruned node. Rescan is limited by the pruned height to block:"
 msgstr "注意：您正在使用修剪节点，重新扫描会受到区块修剪高度限制："
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:188
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:221
 msgid "was the first Segwit block."
 msgstr "是第一个 Segwit 区块。"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:195
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:228
 msgid "UTXO rescan in process:"
 msgstr "正在重新扫描 UTXO："
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:200
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:233
 msgid "Or rescan only unspent transactions:"
 msgstr "或者只重新扫描未花费的交易："
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:203
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:236
 msgid "Rescan UTXO"
 msgstr "重新扫描 UTXO"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:208
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:241
 msgid "Rescanning UTXO set"
 msgstr "正在重新扫描 UTXO set"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:209
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:242
 msgid "Only unspent transactions will be imported, so you won't see the full history, but your balance will be there."
 msgstr "只导入未花费的交易，因此您不会看到完整的历史记录，但会有您的余额。"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:243
 msgid "Note:"
 msgstr "注意："
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:210
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:243
 msgid "Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found."
 msgstr "确保您在密钥池(keypool)中的地址足够，否则可能无法找到所有未花费的交易。"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:255
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:288
 msgid "Delete Wallet"
 msgstr "删除钱包"
 
-#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:272
+#: src/cryptoadvance/specter/templates/wallet/settings/wallet_settings.jinja:368
 msgid "Hide keys details"
 msgstr "隐藏密钥详细信息"
 
@@ -4231,4 +4367,13 @@ msgstr "隐藏密钥详细信息"
 
 #~ msgid "If you haven’t done so already, head to \"Preferences\" on your desktop app (found on the top navigation). Select the option to connect remotely."
 #~ msgstr "如果您没有这样做过，请前往您 desktop app 上的 \"偏好设置(Preferences)\" (可在上方导航中找到)，选择远程连接选项。"
+
+#~ msgid "Raw Transaction"
+#~ msgstr "原始交易"
+
+#~ msgid "password"
+#~ msgstr "密码"
+
+#~ msgid "leave blank to set automatically, 1 sat/vbyte is the minimal fee rate."
+#~ msgstr "留空以自动设置，1 sat/vbyte 是最低费率。"
 
