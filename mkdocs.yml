@@ -1,5 +1,6 @@
 site_name: Specter Desktop Documentation
 site_url: https://docs.specter.solutions/desktop
+site_dir: site/desktop
 repo_url: https://github.com/cryptoadvance/specter-desktop/
 nav:
     - Home:
