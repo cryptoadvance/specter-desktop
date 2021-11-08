@@ -204,7 +204,7 @@
 				document.getElementById('host').value = host;
 				document.getElementById('port').value = port;
 			} catch {
-				showError('{{ _("Failed to read connection data from the QR") }}', 3000)
+				showError(`{{ _("Failed to read connection data from the QR") }}`, 3000)
 			}
 		});
 	}

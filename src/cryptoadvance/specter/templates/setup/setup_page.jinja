@@ -60,10 +60,10 @@
             let advancedSettings = document.getElementById(`advanced_settings`);
             if (advancedSettings.classList.contains("hidden")) {
                 advancedSettings.classList.remove("hidden");
-                advancedButton.innerHTML = '{{ _("Advanced") }} &#9660;';
+                advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
             } else {
                 advancedSettings.classList.add("hidden");
-                advancedButton.innerHTML = '{{ _("Advanced") }} &#9654;';
+                advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
             }
         }
 
@@ -80,7 +80,7 @@
                     );
                     let result = await response.json();
                     if (result.error) {
-                        showError('{{ _("Encountered an error:") }}' + result.error);
+                        showError(`{{ _("Encountered an error:") }}` + result.error);
                         document.getElementById('progress-details').classList.add('hidden');
                         hidePageOverlay('progress-details');
                         return;
@@ -104,7 +104,7 @@
             document.getElementById('show-progress-details').classList.remove('hidden');
             document.getElementById('reset-setup-process').classList.remove('hidden');
             showPageOverlay('progress-details');
-            document.getElementById('progress-details').innerHTML = '{{ _("Starting up...") }}';
+            document.getElementById('progress-details').innerHTML = `{{ _("Starting up...") }}`;
             
             setTimeout(fetchProgress, 1000);
         }

@@ -1,17 +1,15 @@
-import random, traceback, socket, threading, os
-from datetime import datetime
+import random, traceback
 from binascii import unhexlify
 from flask import make_response
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed
-from flask import render_template, request, redirect, url_for, flash, Markup
+from flask import render_template, request, redirect, url_for, flash
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
     notify_upgrade,
 )
-from ..specter import Specter
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
 

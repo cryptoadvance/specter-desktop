@@ -10,5 +10,8 @@
       "spec_elm_single_segwit_wallet.js",
       "spec_elm_multi_segwit_wallet.js"
     ],
-    "baseUrl": "http://localhost:25444"
+    "baseUrl": "http://localhost:25444",
+    "env": {
+      "broadcast_timeout":"8000"
+    }
 }

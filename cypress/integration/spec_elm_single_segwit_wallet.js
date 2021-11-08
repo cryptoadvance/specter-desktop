@@ -12,10 +12,10 @@ describe('Operating with an elements singlesig wallet', () => {
         cy.addHotDevice("Hot Elements Device 1","elements")
     
         // Segwit Wallet
-        cy.addHotWallet("Elm Single Segwit Hot Wallet","elements", "segwit")
+        cy.addHotWallet("Elm Single Segwit Hot Wallet","Hot Elements Device 1", "elements", "segwit")
         
         // Nested Segwit Wallet
-        cy.addHotWallet("Elm Single Nested Hot Wallet","elements", "nested_segwit")
+        cy.addHotWallet("Elm Single Nested Hot Wallet","Hot Elements Device 1", "elements", "nested_segwit")
     })
 
     it('send confidential transaction from segwit', () => {
@@ -31,7 +31,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -56,7 +56,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -77,7 +77,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -102,7 +102,7 @@ describe('Operating with an elements singlesig wallet', () => {
             cy.get('#hot_elements_device_1_hot_sign_btn').click()
             cy.get('#hot_enter_passphrase__submit').click()
             cy.get('#broadcast_local_btn').click()
-            cy.get('#fullbalance_amount')
+            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)

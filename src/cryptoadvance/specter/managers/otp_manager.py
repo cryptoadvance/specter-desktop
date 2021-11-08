@@ -10,7 +10,6 @@ class OtpManager(GenericDataManager):
     The OtpManager manages otps (one time passwords) in otps.json
     """
 
-    initial_data = {}
     name_of_json_file = "otps.json"
 
     def add_new_user_otp(self, otp_dict):

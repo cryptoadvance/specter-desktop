@@ -651,7 +651,7 @@
                     }
                     return
                 };
-                showError('{{ _("Failed to fetch transactions list.") }}')
+                showError(`{{ _("Failed to fetch transactions list.") }}`)
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);

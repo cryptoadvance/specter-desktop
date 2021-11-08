@@ -133,6 +133,7 @@ def setup_bitcoind_directory_thread(
             )
             file.write(f"\nserver=1")
             file.write(f"\nlisten=1")
+            file.write(f"\ndisablewallet=0")
             file.write(f"\nonion=127.0.0.1:9050")
             file.write(f"\nbind=127.0.0.1")
             file.write(f"\ntorcontrol=127.0.0.1:9051")

@@ -7,7 +7,7 @@ function addKeys(data){
 	let candidates = data.split("\n");
 	candidates = candidates.filter(e=>!loaded.includes(e));
 	if(candidates.length == 0){
-		showNotification("No new keys are added.");
+		showNotification(`{{ _("No new keys are added.") }}`);
 	}else{
 		showNotification(`Added ${candidates.length} keys.`);
 	}
