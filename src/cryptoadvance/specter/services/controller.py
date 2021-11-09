@@ -31,4 +31,4 @@ services_endpoint = Blueprint(
 )
 app.register_blueprint(services_endpoint)
 
-app.register_blueprint(vaultoro_endpoint, url_prefix="/vaultoro")
+app.register_blueprint(vaultoro_endpoint, url_prefix="/svc/vaultoro")

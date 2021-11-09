@@ -1,7 +1,8 @@
 {% extends "vaultoro/components/vaultoro_tab.jinja" %}
 {% set tab = 'settings' %}
 {% block content %}
-	<form action="?" method="POST" onsubmit="showPacman()">
+	<form action="{{ url_for('vaultoro_endpoint.settings')}}" method="POST" onsubmit="showPacman()">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="card" style="margin: 20px auto;">
 			<h1 style="margin-bottom: 25px;">
 			<img src="{{ url_for('vaultoro_endpoint.static', filename='img/Vaultoro-logo-white.svg') }}" height="30px">

@@ -2,7 +2,7 @@ import random, traceback
 from binascii import unhexlify
 from flask import make_response
 from flask_wtf.csrf import CSRFError
-from werkzeug.exceptions import MethodNotAllowed
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 from flask import render_template, request, redirect, url_for, flash
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
@@ -70,6 +70,14 @@ def server_specter_error(se):
     except SpecterError as se:
         flash(str(se), "error")
     return redirect(url_for("about"))
+
+
+@app.errorhandler(NotFound)
+def server_notFound_error(e):
+    """Unspecific Exceptions get a 404 Error-Page"""
+    # if rpc is not available
+    app.logger.error("Could not find Resource (404): %s" % request.url)
+    return render_template("500.jinja", error=e), 500
 
 
 @app.errorhandler(Exception)

@@ -1,10 +1,5 @@
-import os
-import json
 import logging
-from .helpers import alias, load_jsons
-from .rpc import get_default_datadir
-
-from .persistence import write_device, delete_file, delete_folder
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 

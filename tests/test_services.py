@@ -8,7 +8,7 @@ import pytest
 def test_ServiceSettingsManager(specter_regtest_configured):
     # A DeviceManager manages devices, specifically the persistence
     # of them via json-files in an empty data folder
-    um = ServiceSettingsManager(specter_regtest_configured, "vaultoro")
+    um = ServiceSettingsManager(specter_regtest_configured.data_folder, "vaultoro")
 
     with pytest.raises(Exception):
         assert um.get_key("admin", "wurstbrot")

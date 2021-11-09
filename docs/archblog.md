@@ -1,6 +1,13 @@
 # Purpose
 Let's find a place to docoment non straightforward design decisions.
 
+## 09nd Nov 2021 - k9ertYou
+The service-integrations should somehow scale and it should be easy to add more services. Let's have a look on how they are implemented.
+On the data side of the topic, there is a key in the `config.json` callled `services`. It contains a map of services where each one is described with `name`, `title`, `logo` (link to an image) and a `desc`. They are accessed and (de-)activated via the service_manager. That can be managed in the settings by the admin. Each service is either activated for all users or not.
+Each Service has it's own blueprint which need to have the name `service['name']_endpoint` and it needs an endpoint called "index".
+If a Service wants to persist things, it should use the ServiceSettingsManager.
+To be continued ...
+
 ## 02nd Oct 2020 - Kim
 It's already mentioned in Development.md. I spend far too much time figuring out that we have created a nasty workaround in server.py.
 So the problem looks like this: The fixtures are creating the app anew for each test in test_controller. For some reason hwi-view-endpoints are somehow treated differently then the normal endpoints. As a result, the second test gets a app-object which, for some reason doesn't have the normal endpoints, but just the hwi-endpoint. A healthy app.view_functions looks like this:

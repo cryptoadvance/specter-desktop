@@ -37,7 +37,7 @@ from .rpc import (
     detect_rpc_confs,
     get_default_datadir,
 )
-from .service_manager import ServiceManager
+from .services.service_manager import ServiceManager
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User

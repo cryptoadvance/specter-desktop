@@ -35,7 +35,7 @@ vaultoro_url = os.getenv("VAULTORO_API", "https://api.vaultoro.com")
 @vaultoro_endpoint.route("/")
 # @login_required
 def index():
-    settings_manager = ServiceSettingsManager(app.specter, "vaultoro")
+    settings_manager = ServiceSettingsManager(app.specter.data_folder, "vaultoro")
     if not settings_manager.get_key(
         app.specter.user_manager.get_user(current_user).id, "token"
     ):
@@ -144,7 +144,7 @@ def withdraw():
 # @login_required
 def settings():
 
-    settings_manager = ServiceSettingsManager(app.specter, "vaultoro")
+    settings_manager = ServiceSettingsManager(app.specter.data_folder, "vaultoro")
 
     if request.method == "POST":
         action = request.form["action"]
@@ -178,7 +178,7 @@ def settings():
 
 
 def get_api():
-    settings_manager = ServiceSettingsManager(app.specter, "vaultoro")
+    settings_manager = ServiceSettingsManager(app.specter.data_folder, "vaultoro")
     token = settings_manager.get_key(
         app.specter.user_manager.get_user(current_user).id, "token"
     )
