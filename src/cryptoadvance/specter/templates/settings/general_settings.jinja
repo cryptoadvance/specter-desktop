@@ -91,19 +91,19 @@
 					<b>Some services might not respect the Tor-only policy.</b>
 				</div>
 				<br>
-				{% for service_name in services %}
+				{% for _, service in services.items() %}
 					<div class="row" style="margin-bottom: 10px;">
 						<label class="switch" style="margin-right: 30px">
-							<input type="checkbox" id="service_{{service_name}}" name="service_{{service_name}}" {% if services[service_name]["active"] %}checked{% endif %}>
+							<input type="checkbox" id="service_{{service.id}}" name="service_{{service.id}}" {% if service.active %}checked{% endif %}>
 							<span class="slider"></span>
 						</label>
-						{% if services[service_name].logo %}
-							<img src="{{ url_for(service_name + '_endpoint' + '.static', filename=services[service_name].logo) }}" height="25px">
+						{% if service.logo %}
+							<img src="{{ url_for(service.id + '_endpoint' + '.static', filename=service.logo) }}" height="25px">
 						{% else %}
-							{{ services[service_name]["title"] }}
+							{{ service.name }}
 						{% endif %}
-						<tool-tip title="{{services[service_name].title}}" style="float: right;">
-							{{ services[service_name]["desc"] }}
+						<tool-tip title="{{service.name}}" style="float: right;">
+							{{ service.desc }}
 						</tool-tip>
 					</div>
 				{% endfor %}

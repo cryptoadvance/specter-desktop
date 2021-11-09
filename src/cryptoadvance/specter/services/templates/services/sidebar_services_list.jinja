@@ -2,10 +2,10 @@
     <span id="toggle_services_list" style="cursor: pointer;">Services &nbsp; &#9660;</span>
 </div>
 <div id="services_list">
-    {% for service_name, service in specter.service_manager.services.items() %}
-        {% if service["active"] %}
-        <a href="{{ url_for(service['name']+'_endpoint.index') }}" class="item service">
-            <img src="{{ url_for(service['name']+'_endpoint' + '.static', filename=service.logo) }}" height="30px">
+    {% for service in specter.service_manager.services %}
+        {% if service.active and service.has_blueprint %}
+        <a href="{{ url_for(service.id +'_endpoint.index') }}" class="item service">
+            <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" height="30px">
         </a>
         <br>
         {% endif %}

@@ -115,7 +115,7 @@ def general():
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
-            app.specter.update_services(active_services)
+            app.specter.service_manager.set_active_services(active_services)
             app.specter.update_fee_estimator(
                 fee_estimator=fee_estimator,
                 custom_url=fee_estimator_custom_url,
