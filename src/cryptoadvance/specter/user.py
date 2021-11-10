@@ -10,7 +10,7 @@ from Crypto.Random import get_random_bytes
 from cryptography.fernet import Fernet
 from flask_login import UserMixin
 
-from .specter_error import SpecterError
+from .specter_error import SpecterError, handle_exception
 from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
@@ -101,6 +101,7 @@ class User(UserMixin):
                 return cls(**user_args)
 
         except Exception as e:
+            handle_exception(e)
             raise SpecterError(f"Unable to parse user JSON.:{e}")
 
     @property
