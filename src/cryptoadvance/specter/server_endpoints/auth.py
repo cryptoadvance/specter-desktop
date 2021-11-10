@@ -147,11 +147,12 @@ def register():
                 "hwi_bridge_url": "/hwi/api/",
             }
 
-            # TODO: These four lines should be a single call to UserManager
-            password_hash = hash_password(password)
-            user = User(user_id, username, password_hash, config, app.specter)
-            user.decrypt_user_secret(password)
-            app.specter.user_manager.add_user(user)
+            user = app.specter.user_manager.create_user(
+                user_id=user_id,
+                username=username,
+                plaintext_password=password,
+                config=config,
+            )
 
             flash(
                 _(
