@@ -117,3 +117,49 @@ def test_reencrypt_user_secret_on_set_password(empty_data_folder):
 
     # ...but the plaintext_user_secret remains unchanged
     assert first_plaintext_user_secret == user.plaintext_user_secret
+
+
+def test_reencrypt_user_secret_on_iterations_increase(empty_data_folder):
+    """
+    Should re-encrypt the user_secret when the User.encryption_iterations is increased
+    """
+    specter = Specter(data_folder=empty_data_folder)
+
+    password = "somepassword"
+    user = User.from_json(
+        user_dict={
+            "id": "someuser",
+            "username": "someuser",
+            "password": hash_password(password),
+            "config": {},
+            "is_admin": False,
+            "services": None,
+        },
+        specter=specter,
+    )
+
+    # Override current default iterations setting
+    original_encryption_iterations = user.encryption_iterations
+    user.encryption_iterations -= 10000
+
+    # Force generation of a new user_secret
+    user.decrypt_user_secret(password)
+    assert user.encrypted_user_secret is not None
+    assert user.plaintext_user_secret is not None
+    assert user.encrypted_user_secret["iterations"] < original_encryption_iterations
+
+    first_encrypted_user_secret = user.encrypted_user_secret
+    first_plaintext_user_secret = user.plaintext_user_secret
+
+    # Reset iterations to default
+    user.encryption_iterations = original_encryption_iterations
+
+    # On decrypt, should automatically re-encrypt the `user_secret`
+    user.decrypt_user_secret(password)
+    assert user.encrypted_user_secret["iterations"] == original_encryption_iterations
+
+    # The new encrypted_user_secret will be different...
+    assert first_encrypted_user_secret != user.encrypted_user_secret
+
+    # ...but the plaintext_user_secret remains unchanged
+    assert first_plaintext_user_secret == user.plaintext_user_secret

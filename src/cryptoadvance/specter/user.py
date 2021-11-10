@@ -79,6 +79,9 @@ class User(UserMixin):
         self.manager = None
         self.services = services
 
+        # Iterations will need to be increased over time to keep ahead of CPU advances.
+        self.encryption_iterations = 390000
+
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
     def from_json(cls, user_dict, specter):
@@ -116,15 +119,13 @@ class User(UserMixin):
         Implementation taken from the pyca/cryptography docs:
         https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
         """
-        # Iterations will need to be increased over time to keep ahead of CPU advances
-        iterations = 390000
         salt = os.urandom(16)
 
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
-            iterations=iterations,
+            iterations=self.encryption_iterations,
         )
         key = base64.urlsafe_b64encode(kdf.derive(plaintext_password.encode()))
         f = Fernet(key)
@@ -133,7 +134,7 @@ class User(UserMixin):
         self.encrypted_user_secret = {
             "token": token.decode(),
             "salt": base64.b64encode(salt).decode(),
-            "iterations": iterations,
+            "iterations": self.encryption_iterations,
         }
 
     def decrypt_user_secret(self, plaintext_password):
@@ -155,6 +156,11 @@ class User(UserMixin):
         f = Fernet(key)
 
         self.plaintext_user_secret = f.decrypt(token)
+
+        # If this encrypted_user_secret has an outdated (weaker) number of iterations,
+        #   re-encrypt with the current higher iteration count.
+        if iterations < self.encryption_iterations:
+            self._encrypt_user_secret(plaintext_password)
 
     def _generate_user_secret(self, plaintext_password):
         # Encryption using the user_secret uses a Fernet key. But the Fernet
