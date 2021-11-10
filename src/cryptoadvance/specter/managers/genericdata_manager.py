@@ -30,26 +30,6 @@ class GenericDataManager:
     def initial_data(cls):
         return {}
 
-    @classmethod
-    def convert_to_list_of_type(cls, some_list):
-        """This is not yet used but might be convenient
-        An array of elements get converted to a list of a specific types
-        Maybe this method simply does nothing, though
-        """
-        return some_list
-        # example implementation for users:
-        # return [User.from_json(u, self.specter) for u in some_list]
-
-    @classmethod
-    def convert_to_list_of_dict(cls, some_list):
-        """This is not yet used but might be convenient
-        An array of a specific type gets converted to a list of dicts
-        Maybe this method simply does nothing, though
-        """
-        return some_list
-        # example implementation for users:
-        # return [u.json for u in some_list]
-
     def __init__(self, data_folder, encryption_key=None):
         # encryption_key indicates that the encrypted_fields (if any) need to be
         #   encrypted at rest.
