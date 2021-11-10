@@ -6,6 +6,7 @@ from pathlib import Path
 from pkgutil import iter_modules
 
 from flask import current_app as app
+from flask.blueprints import Blueprint
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,19 @@ class Service:
         if not hasattr(self, "name"):
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
+        if self.has_blueprint:
+            self.__class__.blueprint = Blueprint(
+                f"{self.id}_endpoint",
+                f"cryptoadvance.specter.services.service_manager",  # To Do: move to subfolder
+                template_folder="templates",
+                static_folder="static",
+            )
+            self.init_controller()
+
+    def init_controller(self):
+        """This is importing the controller for this service"""
+        module = import_module(f"cryptoadvance.specter.services.{self.id}.controller")
+        app.register_blueprint(self.__class__.blueprint, url_prefix=f"/svc/{self.id}")
 
     def is_active(self):
         return self.active

@@ -617,6 +617,7 @@ def send_new(wallet_alias):
                 rand=rand,
             )
         elif action == "fillform":
+            # can be used to recommend a transaction from a service (goind to an exchange or so)
             addresses = request.form.getlist("addresses[]")
             labels = request.form.getlist("labels[]")
             amounts = request.form.getlist("amounts[]")

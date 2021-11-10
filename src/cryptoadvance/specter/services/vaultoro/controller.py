@@ -21,13 +21,9 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# Setup endpoint blueprint
-vaultoro_endpoint = Blueprint(
-    "vaultoro_endpoint",
-    "cryptoadvance.specter.services.controller",
-    template_folder="templates",
-    static_folder="static",
-)
+from .manifest import VaultoroService
+
+vaultoro_endpoint = VaultoroService.blueprint
 
 vaultoro_url = os.getenv("VAULTORO_API", "https://api.vaultoro.com")
 
