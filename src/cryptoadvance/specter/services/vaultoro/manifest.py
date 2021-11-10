@@ -1,3 +1,5 @@
+import os
+
 from ..service_manager import Service
 
 
@@ -6,3 +8,6 @@ class VaultoroService(Service):
     name = "vaultoro"
     logo = "img/Vaultoro-logo-white.svg"
     desc = "A Bitcoin and precious metals exchange allows trading Bitcoin against Gold and Silver"
+
+    # The API for the Vaultoro Service
+    VAULTORO_API = os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")

@@ -138,9 +138,6 @@ class BaseConfig(object):
     # One of "prod", "beta" or "alpha". Every Service below will be not available
     SERVICE_MATURITY_TRESHOLD = os.getenv("SERVICE_MATURITY_TRESHOLD", "prod")
 
-    # The API for the Vaultoro Service
-    VAULTORO_API = os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
-
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key

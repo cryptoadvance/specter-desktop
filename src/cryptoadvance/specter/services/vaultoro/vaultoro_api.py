@@ -4,6 +4,8 @@ import json
 import logging
 from flask import current_app as app
 
+from cryptoadvance.specter.services.vaultoro.manifest import VaultoroService
+
 logger = logging.getLogger(__name__)
 
 
@@ -148,7 +150,7 @@ class VaultoroApi:
         headers = {"Vtoken": self.token, "Content-type": "application/json"}
         if self._is_proxy_call(path):
             headers["Specter-Version"] = app.specter.version.info["current"]
-            headers["Specter-Destination"] = app.config["VAULTORO_API"]
+            headers["Specter-Destination"] = VaultoroService.VAULTORO_API
         return headers
 
     def _calc_url(self, path):
@@ -160,7 +162,7 @@ class VaultoroApi:
             # with the proxy still in specter-desktop
             # return "http://localhost.localdomain:5000/vaultoro/.vaultoro/v1"+path
         else:
-            return app.config["VAULTORO_API"] + path
+            return VaultoroService.VAULTORO_API + path
 
     def _is_proxy_call(self, path):
         """Should we call the proxy or Vaultoro directly ?"""

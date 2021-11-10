@@ -487,7 +487,7 @@
             const params = new URLSearchParams({
                 "pair": ticker
             })
-            let url = `{{vaultoro_url}}/v1/public/ticker?${params.toString()}`;
+            let url = `{{vaultoro_url}}/public/ticker?${params.toString()}`;
             const response = await fetch(
                 url,
                 {

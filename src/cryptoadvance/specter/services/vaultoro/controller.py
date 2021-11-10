@@ -1,31 +1,32 @@
-import copy, random
-import os
+import copy
 import logging
+import os
+import random
+
+import requests
 from cryptoadvance.specter import services
+from flask import Blueprint, Flask
+from flask import current_app as app
 from flask import (
-    Flask,
-    Blueprint,
+    flash,
+    jsonify,
+    make_response,
+    redirect,
     render_template,
     request,
-    redirect,
     url_for,
-    jsonify,
-    flash,
-    make_response,
 )
-from flask_login import login_required, current_user
-from flask import current_app as app
+from flask_login import current_user, login_required
+
 from ..service_settings_manager import ServiceSettingsManager
+from .manifest import VaultoroService
 from .vaultoro_api import VaultoroApi
-import requests
 
 logger = logging.getLogger(__name__)
 
-from .manifest import VaultoroService
-
 vaultoro_endpoint = VaultoroService.blueprint
 
-vaultoro_url = os.getenv("VAULTORO_API", "https://api.vaultoro.com")
+vaultoro_url = VaultoroService.VAULTORO_API
 
 
 @vaultoro_endpoint.route("/")
@@ -242,7 +243,7 @@ def vaultoro_proxy(mypath):
     for path in tracefilter:
         if mypath.endswith(path):
             trace_call()
-    url = app.config["VAULTORO_API"] + "/" + mypath
+    url = VaultoroService.VAULTORO_API + "/" + mypath
     logger.debug(f"VTProxy {url}")
     # Not sure what about request.data ... irgnore it for now
     session = requests.session()

@@ -31,7 +31,7 @@ class Service:
         if self.has_blueprint:
             self.__class__.blueprint = Blueprint(
                 f"{self.id}_endpoint",
-                f"cryptoadvance.specter.services.service_manager",  # To Do: move to subfolder
+                f"cryptoadvance.specter.services.{self.id}.manifest",  # To Do: move to subfolder
                 template_folder="templates",
                 static_folder="static",
             )
