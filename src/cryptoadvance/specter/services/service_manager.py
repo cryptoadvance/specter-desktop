@@ -10,10 +10,16 @@ from flask import current_app as app
 logger = logging.getLogger(__name__)
 
 
+maturity_alpha = "alpha"
+maturity_beta = "beta"
+maturity_prod = "prod"
+
+
 class Service:
     """A BaseClass for Services"""
 
     has_blueprint = True  # the default
+    maturity = maturity_alpha
 
     def __init__(self, active):
         if not hasattr(self, "id"):
@@ -34,11 +40,10 @@ class ServiceManager:
 
     def __init__(self, specter):
         self.specter = specter
-        self._services = {}
-        for clazz in self.get_service_classes():
-            self._services[clazz.id] = clazz(
-                clazz.id in self.specter.config.get("services", [])
-            )
+        self.maturity_treshold = app.config.get(
+            "SERVICE_MATURITY_TRESHOLD", "production"
+        )
+        self.services
 
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")
@@ -51,6 +56,19 @@ class ServiceManager:
 
     @property
     def services(self):
+        if hasattr(self, "_services"):
+            return self._services
+        self._services = {}
+        for clazz in self.get_service_classes():
+            compare_map = {"alpha": 1, "beta": 2, "prod": 3}
+            if compare_map[self.maturity_treshold] <= compare_map[clazz.maturity]:
+                self._services[clazz.id] = clazz(
+                    clazz.id in self.specter.config.get("services", [])
+                )
+            else:
+                logger.info(
+                    "Service {clazz.__name__} not activated due to maturity ( {self.maturity_treshold} > {clazz.maturity} )"
+                )
         return self._services
 
     @classmethod

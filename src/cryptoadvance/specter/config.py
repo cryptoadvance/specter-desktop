@@ -135,6 +135,9 @@ class BaseConfig(object):
     # Babel integration. List of languages written from right to left for RTL support in the UI
     RTL_LANGUAGES = ["he"]
 
+    # One of "prod", "beta" or "alpha". Every Service below will be not available
+    SERVICE_MATURITY_TRESHOLD = os.getenv("SERVICE_MATURITY_TRESHOLD", "prod")
+
     # The API for the Vaultoro Service
     VAULTORO_API = os.getenv("VAULTORO_API", "https://api.vaultoro.com/v1")
 
@@ -150,6 +153,9 @@ class DevelopmentConfig(BaseConfig):
     )
     # API active by default in dev-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
+
+    # One of "prod", "beta" or "alpha". Every Service below will be not available
+    SERVICE_MATURITY_TRESHOLD = os.getenv("SERVICE_MATURITY_TRESHOLD", "alpha")
 
 
 class TestConfig(BaseConfig):
