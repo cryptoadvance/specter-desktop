@@ -1,13 +1,14 @@
+import base64
+import binascii
+import hashlib
+import json
 import os
 import shutil
-import hashlib
-import binascii
-import json
 
-from base64 import b64encode, b64decode
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 from flask_login import UserMixin
 
 from .specter_error import SpecterError, handle_exception
@@ -111,48 +112,49 @@ class User(UserMixin):
         return f"_{self.id}"
 
     def _encrypt_user_secret(self, plaintext_password):
-        # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
-        # generate a random salt
-        salt = get_random_bytes(AES.block_size)
+        """
+        Implementation taken from the pyca/cryptography docs:
+        https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
+        """
+        # Iterations will need to be increased over time to keep ahead of CPU advances
+        iterations = 390000
+        salt = os.urandom(16)
 
-        # use the Scrypt KDF to get a private key from the password
-        private_key = hashlib.scrypt(
-            plaintext_password.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=iterations,
         )
+        key = base64.urlsafe_b64encode(kdf.derive(plaintext_password.encode()))
+        f = Fernet(key)
+        token = f.encrypt(self.plaintext_user_secret)
 
-        # create cipher config
-        cipher_config = AES.new(private_key, AES.MODE_GCM)
-
-        # return a dictionary with the encrypted text
-        cipher_text, tag = cipher_config.encrypt_and_digest(self.plaintext_user_secret)
         self.encrypted_user_secret = {
-            "cipher_text": b64encode(cipher_text).decode("utf-8"),
-            "salt": b64encode(salt).decode("utf-8"),
-            "nonce": b64encode(cipher_config.nonce).decode("utf-8"),
-            "tag": b64encode(tag).decode("utf-8"),
+            "token": token.decode(),
+            "salt": base64.b64encode(salt).decode(),
+            "iterations": iterations,
         }
 
     def decrypt_user_secret(self, plaintext_password):
-        # See: https://qvault.io/cryptography/aes-256-cipher-python-cryptography-examples/
+        # see: https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
         if not self.encrypted_user_secret:
             self._generate_user_secret(plaintext_password)
 
-        # decode the dictionary entries from base64
-        salt = b64decode(self.encrypted_user_secret["salt"])
-        cipher_text = b64decode(self.encrypted_user_secret["cipher_text"])
-        nonce = b64decode(self.encrypted_user_secret["nonce"])
-        tag = b64decode(self.encrypted_user_secret["tag"])
+        token = self.encrypted_user_secret["token"].encode()
+        salt = base64.b64decode(self.encrypted_user_secret["salt"])
+        iterations = self.encrypted_user_secret["iterations"]
 
-        # generate the private key from the password and salt
-        private_key = hashlib.scrypt(
-            plaintext_password.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=iterations,
         )
+        key = base64.urlsafe_b64encode(kdf.derive(plaintext_password.encode()))
+        f = Fernet(key)
 
-        # create the cipher config
-        cipher = AES.new(private_key, AES.MODE_GCM, nonce=nonce)
-
-        # decrypt the cipher text
-        self.plaintext_user_secret = cipher.decrypt_and_verify(cipher_text, tag)
+        self.plaintext_user_secret = f.decrypt(token)
 
     def _generate_user_secret(self, plaintext_password):
         # Encryption using the user_secret uses a Fernet key. But the Fernet
