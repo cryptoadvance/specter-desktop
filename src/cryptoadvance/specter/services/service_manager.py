@@ -79,9 +79,10 @@ class ServiceManager:
                 self._services[clazz.id] = clazz(
                     clazz.id in self.specter.config.get("services", [])
                 )
+                logger.info(f"Service {clazz.__name__} activated")
             else:
                 logger.info(
-                    "Service {clazz.__name__} not activated due to maturity ( {self.maturity_treshold} > {clazz.maturity} )"
+                    f"Service {clazz.__name__} not activated due to maturity ( {self.maturity_treshold} > {clazz.maturity} )"
                 )
         return self._services
 
@@ -109,7 +110,6 @@ class ServiceManager:
                     f"Service Directory cryptoadvance.specter.services.{item} does not have a manifest file! Skipping!"
                 )
                 continue
-            logger.info("Collecting possible Services ...")
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
                 if isclass(attribute):
