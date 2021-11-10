@@ -47,7 +47,7 @@ def balances():
     api = get_api()
     try:
         return render_template(
-            "vaultoro/balances.jinja",
+            "balances.jinja",
             specter=app.specter,
             balances=api.get_balances(),
             history=api.get_trades(),
@@ -63,7 +63,7 @@ def balances():
 def trade():
     try:
         return render_template(
-            "vaultoro/trade.jinja",
+            "trade.jinja",
             specter=app.specter,
             balances=get_api().get_balances(),
             vaultoro_url=vaultoro_url,
@@ -85,7 +85,7 @@ def deposit():
         ]
         deposit_address = deposit_address[0]
         return render_template(
-            "vaultoro/deposit.jinja",
+            "deposit.jinja",
             deposit_address=deposit_address,
             all_addresses=all_addresses,
             specter=app.specter,
@@ -130,7 +130,7 @@ def withdraw():
         flash("Please provide a Vaultoro API token to access this page", "error")
         return redirect(url_for("vaultoro_endpoint.settings"))
     return render_template(
-        "vaultoro/withdraw.jinja",
+        "withdraw.jinja",
         balance=balance,
         specter=app.specter,
     )
@@ -150,7 +150,7 @@ def settings():
                 app.specter.user_manager.get_user(current_user).id, "token", token
             )
             return render_template(
-                "vaultoro/settings.jinja", specter=app.specter, vaultoro_token=token
+                "settings.jinja", specter=app.specter, vaultoro_token=token
             )
         elif action == "test_token":
             v_api = VaultoroApi(token)
@@ -160,7 +160,7 @@ def settings():
             except Exception as e:
                 flash(f"token-test failed: {e}", "error")
             return render_template(
-                "vaultoro/settings.jinja", specter=app.specter, vaultoro_token=token
+                "settings.jinja", specter=app.specter, vaultoro_token=token
             )
         else:
             raise Exception(f"Unknown action {action}")
@@ -169,7 +169,7 @@ def settings():
             app.specter.user_manager.get_user(current_user).id, "token"
         )
         return render_template(
-            "vaultoro/settings.jinja", specter=app.specter, vaultoro_token=token
+            "settings.jinja", specter=app.specter, vaultoro_token=token
         )
 
 

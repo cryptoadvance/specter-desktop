@@ -2,12 +2,12 @@
 {% block main %}
     <h1 id="title">Vaultoro</h1>
     {% if tab == 'trade' %}
-        {% include "vaultoro/includes/direct-buy.html" %}
+        {% include "includes/direct-buy.html" %}
     {% endif %}
     {% if tab == 'balances' %}
-        {% include "vaultoro/includes/balances.html" %}
+        {% include "includes/balances.html" %}
     {% endif %}
-    {% from 'vaultoro/components/vaultoro_menu.jinja' import vaultoro_menu %}
+    {% from 'components/vaultoro_menu.jinja' import vaultoro_menu %}
     {{ vaultoro_menu(tab) }}
     {% block content %}
     {% endblock %}

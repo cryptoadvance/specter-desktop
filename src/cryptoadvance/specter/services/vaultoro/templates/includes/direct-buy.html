@@ -96,7 +96,7 @@
      * check https://medium.com/swlh/https-medium-com-drmoerkerke-data-binding-for-web-components-in-just-a-few-lines-of-code-33f0a46943b3
      * for infos about CustomElement
      */
-    import {CustomElement} from '/vaultoro/static/CustomElement.js';
+    import {CustomElement} from 'static/CustomElement.js';
     /**
 
       * This custome Element used a state which might look like this, when
@@ -507,7 +507,7 @@
     }
 
     async function fetchQuote(self, pair, type, total, quantity) {
-        var url = '/vaultoro/api/buy/quote'
+        var url = 'api/buy/quote'
         console.log(`Calling fetchQuote pair: ${pair} total/quantity: ${total} / ${quantity} type: ${type}`) 
 
         try {
@@ -539,7 +539,7 @@
     }
 
     async function execTrade(self, pair, type, total, quantity) {
-        var url = '/vaultoro/api/buy/order'
+        var url = 'svc/vaultoro/api/buy/order'
         console.log(`Calling execTrade pair: ${pair} type: ${type} total/quantity: ${total} / ${quantity} type: ${type}`) 
         try {
             const response = await fetch(
