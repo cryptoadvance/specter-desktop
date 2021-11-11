@@ -35,6 +35,12 @@ class Service:
                 template_folder="templates",
                 static_folder="static",
             )
+
+            def inject_stuff():
+                """Can be used in all jinja2 templates"""
+                return dict(specter=app.specter, service=self)
+
+            self.__class__.blueprint.context_processor(inject_stuff)
             self.init_controller()
 
     def init_controller(self):
@@ -54,9 +60,7 @@ class ServiceManager:
 
     def __init__(self, specter):
         self.specter = specter
-        self.maturity_treshold = app.config.get(
-            "SERVICE_MATURITY_TRESHOLD", "production"
-        )
+        self.maturity_treshold = app.config.get("SERVICE_MATURITY_TRESHOLD", "prod")
         self.services
 
     def set_active_services(self, service_names_active):

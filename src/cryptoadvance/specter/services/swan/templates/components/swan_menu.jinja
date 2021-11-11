@@ -5,7 +5,7 @@
     Parameters:
     - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
  #}
-{% macro vaultoro_menu(active_menuitem) -%}
+{% macro swan_menu(active_menuitem) -%}
 	<nav class="row collapse-on-mobile">
 		{{ menu_item(service.id, 'balances', 'Balances', active_menuitem, isLeft=true) }}
 		{{ menu_item(service.id, 'trade', 'Trade', active_menuitem) }}

@@ -1,13 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <h1 id="title">Vaultoro</h1>
-    {% if tab == 'trade' %}
-        {% include "includes/direct-buy.html" %}
-    {% endif %}
-    {% if tab == 'balances' %}
-        {% include "includes/balances.html" %}
-    {% endif %}
-    {% from 'components/vaultoro_menu.jinja' import vaultoro_menu %}
+    <h1 id="title">{{service.id}}</h1>
+    {% from 'components/vaultoro_menu.jinja' import vaultoro_menu with context %}
     {{ vaultoro_menu(tab) }}
     {% block content %}
     {% endblock %}

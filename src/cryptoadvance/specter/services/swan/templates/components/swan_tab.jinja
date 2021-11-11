@@ -1,0 +1,8 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <h1 id="title">{{service.id}}</h1>
+    {% from 'components/swan_menu.jinja' import swan_menu with context %}
+    {{ swan_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

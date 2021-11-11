@@ -1,9 +1,12 @@
 import pytest
+from cryptoadvance.specter.services.service_apikey_storage import ServiceApiKeyStorage
 from cryptoadvance.specter.services.service_manager import ServiceManager
 from cryptoadvance.specter.services.service_settings_manager import (
     ServiceSettingsManager,
 )
 from mock import patch, Mock
+
+from cryptoadvance.specter.user import User, hash_password
 
 
 def test_ServiceSettingsManager(specter_regtest_configured):
@@ -20,7 +23,14 @@ def test_ServiceSettingsManager(specter_regtest_configured):
     assert um.get_key("admin", "wurstbrot") == "lecker"
 
 
-def test_ServiceManager(empty_data_folder):
+@patch("cryptoadvance.specter.services.service_manager.app")
+def test_ServiceManager(empty_data_folder, app):
+    print(
+        "---------------------------ddddddddddddddd------------------------------------------------"
+    )
+    print(app)
+    app.config = Mock()
+    app.config.get.return_value = "prod"
     specter_mock = Mock()
     specter_mock.config = Mock()
     specter_mock.config.get.return_value = ["dummyservice"]
@@ -33,3 +43,24 @@ def test_ServiceManager(empty_data_folder):
     assert scls[0].id == "dummyservice"
     assert scls[1].id == "vaultoro"
     # assert False
+
+
+def test_ServiceApiKeyStorage(empty_data_folder):
+    specter_mock = Mock()
+    specter_mock.config = {"uid": ""}
+    specter_mock.user_manager = Mock()
+    specter_mock.user_manager.users = [""]
+
+    someuser = User.from_json(
+        user_dict={
+            "id": "someuser",
+            "username": "someuser",
+            "password": hash_password("somepassword"),
+            "config": {},
+            "is_admin": False,
+            "services": None,
+        },
+        specter=specter_mock,
+    )
+    someuser._generate_user_secret("muh")
+    saks = ServiceApiKeyStorage(empty_data_folder, someuser)
