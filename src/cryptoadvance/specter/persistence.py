@@ -29,6 +29,7 @@ def read_json_file(path):
         try:
             with open(path, "r") as f:
                 content = json.load(f)
+
         # if failed - try reading from the backup
         except Exception as e:
             # if no backup exists - raise
@@ -70,9 +71,11 @@ def _write_json_file(content, path, lock=None):
         try:
             with open(path, "w") as f:
                 json.dump(content, f, indent=4)
-            # check if write was sucessfull
+
+            # check if write was sucessful
             with open(path, "r") as f:
                 c = json.load(f)
+
         # if not - move back backup
         except Exception as e:
             # remove damaged file

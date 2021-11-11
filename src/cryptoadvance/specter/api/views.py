@@ -7,5 +7,5 @@ from flask import current_app as app
 def api():
     """rendering the documentation for the api"""
     return render_template(
-        "api.html", version=app.specter.version.get_current_version()
+        "api.html", version=app.specter.version._get_current_version()
     )

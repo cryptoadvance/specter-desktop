@@ -35,6 +35,7 @@ def login():
             app.login("admin")
             app.logger.info("AUDIT: Successful Login no credentials")
             return redirect_login(request)
+
         if auth["method"] == "rpcpasswordaspin":
             # TODO: check the password via RPC-call
             if (
@@ -42,11 +43,12 @@ def login():
                 or not app.specter.default_node.rpc.test_connection()
             ):
                 if app.specter.default_node.password == request.form["password"]:
-                    app.login("admin")
+                    app.login("admin", request.form["password"])
                     app.logger.info(
                         "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
                     )
                     return redirect_login(request)
+
                 flash(
                     _(
                         "We could not check your password, maybe Bitcoin Core is not running or not configured?"
@@ -65,23 +67,26 @@ def login():
             rpc = app.specter.default_node.rpc.clone()
             rpc.password = request.form["password"]
             if rpc.test_connection():
-                app.login("admin")
+                app.login("admin", request.form["password"])
                 app.logger.info("AUDIT: Successfull Login via RPC-credentials")
                 return redirect_login(request)
+
         elif auth["method"] == "passwordonly":
             password = request.form["password"]
-            if verify_password(app.specter.user_manager.admin.password, password):
-                app.login("admin")
+            if verify_password(app.specter.user_manager.admin.password_hash, password):
+                app.login("admin", request.form["password"])
                 return redirect_login(request)
+
         elif auth["method"] == "usernamepassword":
             # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
             username = request.form["username"]
             password = request.form["password"]
             user = app.specter.user_manager.get_user_by_username(username)
             if user:
-                if verify_password(user.password, password):
-                    app.login(user.id)
+                if verify_password(user.password_hash, password):
+                    app.login(user.id, request.form["password"])
                     return redirect_login(request)
+
         # Either invalid method or incorrect credentials
         flash(_("Invalid username or password"), "error")
         app.logger.info("AUDIT: Invalid password login attempt")
@@ -141,9 +146,14 @@ def register():
                 "explorers": {"main": "", "test": "", "regtest": "", "signet": ""},
                 "hwi_bridge_url": "/hwi/api/",
             }
-            password_hash = hash_password(password)
-            user = User(user_id, username, password_hash, config, app.specter)
-            app.specter.user_manager.add_user(user)
+
+            user = app.specter.user_manager.create_user(
+                user_id=user_id,
+                username=username,
+                plaintext_password=password,
+                config=config,
+            )
+
             flash(
                 _(
                     "You have registered successfully, \
