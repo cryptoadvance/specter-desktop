@@ -133,8 +133,14 @@ def init_app(app, hwibridge=False, specter=None):
     def user_loader(id):
         return specter.user_manager.get_user(id)
 
-    def login(id):
-        login_user(user_loader(id))
+    def login(id, password: str = None):
+        user = user_loader(id)
+        login_user(user)
+
+        if password:
+            # Use the password while we have it to decrypt any protected
+            #   user data (e.g. services).
+            user.decrypt_user_secret(password)
 
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it
