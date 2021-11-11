@@ -1,22 +1,31 @@
+import base64
+import binascii
+import hashlib
+import json
 import os
 import shutil
-import hashlib
-import binascii
-import json
+
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 from flask_login import UserMixin
-from .specter_error import SpecterError
+
+from .specter_error import SpecterError, handle_exception
 from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
 
 
-def hash_password(password):
+def hash_password(plaintext_password):
     """Hash a password for storing."""
     salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
     pwdhash = (
         binascii.b2a_base64(
-            hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)
+            hashlib.pbkdf2_hmac(
+                "sha256", plaintext_password.encode("utf-8"), salt, 10000
+            )
         )
         .strip()
         .decode()
@@ -36,17 +45,68 @@ def verify_password(stored_password, provided_password):
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password, config, specter, is_admin=False):
+    """
+    The user_secret is used to encrypt/decrypt other user-specific data
+    (e.g. services data). It is encrypted for storage using the user's
+    password (the method == "none" auth type cannot enable options that
+    require encrypted storage because it has no password). user_secret is
+    decrypted on login (see: SpecterFlask.login()) and stored in memory
+    in plaintext.
+    """
+
+    def __init__(
+        self,
+        id,
+        username,
+        password_hash,
+        config,
+        specter,
+        encrypted_user_secret=None,
+        is_admin=False,
+        services=None,
+    ):
         self.id = id
         self.username = username
-        self.password = password
+        self.password_hash = password_hash
         self.config = config
+        self.encrypted_user_secret = encrypted_user_secret
+        self.plaintext_user_secret = None
         self.is_admin = is_admin
         self.uid = specter.config["uid"]
         self.specter = specter
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
+        self.services = services
+
+        # Iterations will need to be increased over time to keep ahead of CPU advances.
+        self.encryption_iterations = 390000
+
+    # TODO: User obj instantiation belongs in UserManager
+    @classmethod
+    def from_json(cls, user_dict, specter):
+        try:
+            user_args = {
+                "id": user_dict["id"],
+                "username": user_dict["username"],
+                "password_hash": user_dict[
+                    "password"
+                ],  # TODO: Migrate attr name to "password_hash"?
+                "config": {},
+                "specter": specter,
+                "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
+                "services": user_dict.get("services", None),
+            }
+            if not user_dict["is_admin"]:
+                user_args["config"] = user_dict["config"]
+                return cls(**user_args)
+            else:
+                user_args["is_admin"] = True
+                return cls(**user_args)
+
+        except Exception as e:
+            handle_exception(e)
+            raise SpecterError(f"Unable to parse user JSON.:{e}")
 
     @property
     def folder_id(self):
@@ -54,51 +114,85 @@ class User(UserMixin):
             return ""
         return f"_{self.id}"
 
-    @property
-    def password(self):
-        return self._password
+    def _encrypt_user_secret(self, plaintext_password):
+        """
+        Implementation taken from the pyca/cryptography docs:
+        https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
+        """
+        salt = os.urandom(16)
 
-    @password.setter
-    def password(self, value):
-        """pass a json or a plain-password here"""
-        try:
-            if value.get("salt") and value.get("pwdhash"):
-                self._password = value
-        except:
-            salted_hashed_password = hash_password(value)
-            self._password = salted_hashed_password
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=self.encryption_iterations,
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(plaintext_password.encode()))
+        f = Fernet(key)
+        token = f.encrypt(self.plaintext_user_secret)
 
-    @classmethod
-    def from_json(cls, user_dict, specter):
-        # TODO: Unify admin in backwards compatible way
-        try:
-            if not user_dict["is_admin"]:
-                return cls(
-                    user_dict["id"],
-                    user_dict["username"],
-                    user_dict["password"],
-                    user_dict["config"],
-                    specter,
+        self.encrypted_user_secret = {
+            "token": token.decode(),
+            "salt": base64.b64encode(salt).decode(),
+            "iterations": self.encryption_iterations,
+        }
+
+    def decrypt_user_secret(self, plaintext_password):
+        # see: https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
+        if not self.encrypted_user_secret:
+            self._generate_user_secret(plaintext_password)
+
+        token = self.encrypted_user_secret["token"].encode()
+        salt = base64.b64decode(self.encrypted_user_secret["salt"])
+        iterations = self.encrypted_user_secret["iterations"]
+
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=iterations,
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(plaintext_password.encode()))
+        f = Fernet(key)
+
+        self.plaintext_user_secret = f.decrypt(token)
+
+        # If this encrypted_user_secret has an outdated (weaker) number of iterations,
+        #   re-encrypt with the current higher iteration count.
+        if iterations < self.encryption_iterations:
+            self._encrypt_user_secret(plaintext_password)
+
+    def _generate_user_secret(self, plaintext_password):
+        # Encryption using the user_secret uses a Fernet key. But the Fernet
+        #   key itself will be encrypted with the user's password.
+        self.plaintext_user_secret = Fernet.generate_key()
+        self._encrypt_user_secret(plaintext_password)
+        self.save_info()
+
+    def set_password(self, plaintext_password):
+        # Hash the incoming plaintext password and update the encrypted
+        #   user_secret as needed.
+        self.password_hash = hash_password(plaintext_password)
+
+        # Must keep encrypted_user_secret in sync with password changes
+        if self.encrypted_user_secret is None:
+            self._generate_user_secret(plaintext_password)
+        else:
+            if self.plaintext_user_secret is None:
+                raise Exception(
+                    "encrypted_user_secret wasn't decrypted during user login"
                 )
-            else:
-                return cls(
-                    user_dict["id"],
-                    user_dict["username"],
-                    user_dict["password"],
-                    {},
-                    specter,
-                    is_admin=True,
-                )
-        except Exception as e:
-            raise SpecterError(f"Unable to parse user JSON.:{e}")
+            self._encrypt_user_secret(plaintext_password)
 
     @property
     def json(self):
         user_dict = {
             "id": self.id,
             "username": self.username,
-            "password": self.password,
+            "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
+            "encrypted_user_secret": self.encrypted_user_secret,
+            "services": self.services,
         }
         if not self.is_admin:
             user_dict["config"] = self.config
@@ -147,6 +241,7 @@ class User(UserMixin):
         else:
             self.device_manager.update(data_folder=devices_folder)
 
+    # TODO: Refactor this into UserManager
     def save_info(self, delete=False):
         if self.manager is None:
             self.manager = self.specter.user_manager
@@ -155,11 +250,14 @@ class User(UserMixin):
 
         # update specter users
         if not existing and not delete:
-            self.specter.add_user(self)
+            self.specter.user_manager.add_user(self)
         if existing and delete:
             self.specter.delete_user(self)
         self.manager.save()
 
+    # TODO: Refactor calling code to explicitly call User.save() rather than embedding
+    #   self.save_info() on every update and setter. It ends up saving to disk multiple
+    #   times for a single Settings submit.
     def update_asset_label(self, asset, label, chain):
         if "asset_labels" not in self.config:
             self.config["asset_labels"] = {}

@@ -4,8 +4,8 @@ import random
 import secrets
 import threading
 import time
-from urllib.parse import urlparse
 
+from urllib.parse import urlparse
 
 from ..helpers import deep_update
 from ..persistence import read_json_file, write_json_file
@@ -19,7 +19,7 @@ class ConfigManager(GenericDataManager):
     """
     The ConfigManager manages the configuration persisted in config.json
     It's not suppose to have any side-effects. Setting and getting only
-    with a lot of validation and computing while setting/getting
+    with a lot of validation and computing while setting/getting.
     """
 
     name_of_json_file = "config.json"
@@ -70,6 +70,8 @@ class ConfigManager(GenericDataManager):
             # TODO: remove
             "bitcoind": False,
         }
+
+        # TODO: change this to just override load()
         self.check_config()
 
     def check_config(self):
