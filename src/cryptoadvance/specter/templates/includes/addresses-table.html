@@ -515,7 +515,7 @@
                     }
                     return;
                 }
-                showError('{{ _("Failed to fetch addresses list") }}')
+                showError(`{{ _("Failed to fetch addresses list") }}`)
             } catch (e) {
                 console.log("Caught error: ", e);
                 showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);

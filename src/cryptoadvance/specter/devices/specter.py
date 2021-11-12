@@ -23,7 +23,11 @@ def fill_external_wallet_derivations(psbt, wallet):
             # check if output derivation is empty
             if out.bip32_derivations:
                 continue
-            addr = out.script_pubkey.address(net)
+            try:
+                # if there is no address representation - continue
+                addr = out.script_pubkey.address(net)
+            except:
+                continue
             for w in wallets:
                 # skip sending wallet
                 if w == wallet:

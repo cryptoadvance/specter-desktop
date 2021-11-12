@@ -65,15 +65,15 @@ class InternalNode(Node):
         self._status = self.DOWN
         if self.bitcoind_network != "main":
             if self.bitcoind_network == "testnet" and not self.datadir.endswith(
-                "/testnet3"
+                "testnet3"
             ):
                 self.datadir = os.path.join(self.datadir, "testnet3")
             elif self.bitcoind_network == "regtest" and not self.datadir.endswith(
-                "/regtest"
+                "regtest"
             ):
                 self.datadir = os.path.join(self.datadir, "regtest")
             elif self.bitcoind_network == "signet" and not self.datadir.endswith(
-                "/signet"
+                "signet"
             ):
                 self.datadir = os.path.join(self.datadir, "signet")
             logger.info(f"persisting {self} in __init__")

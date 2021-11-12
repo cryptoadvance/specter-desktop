@@ -9,13 +9,16 @@ from flask import Flask, redirect, request, url_for, jsonify, session
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+
+from cryptoadvance.specter.rpc import BitcoinRPC
 
 from .helpers import hwi_get_config
 from .specter import Specter
 from .hwi_server import hwi_server
 from .user import User
 from .util.version import VersionChecker
-
+from .util.specter_migrator import SpecterMigrator
 from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
 
@@ -101,9 +104,16 @@ def create_app(config=None):
 
 def init_app(app, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
+    # First: Migrations
+    mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
+    mm.execute_migrations()
+
     # Login via Flask-Login
     app.logger.info("Initializing LoginManager")
     app.secret_key = app.config["SECRET_KEY"]
+    BitcoinRPC.default_timeout = app.config["BITCOIN_RPC_TIMEOUT"]
+    LiquidRPC.default_timeout = app.config["LIQUID_RPC_TIMEOUT"]
+
     if specter is None:
         # the default. If not None, then it got injected for testing
         app.logger.info("Initializing Specter")
@@ -112,11 +122,6 @@ def init_app(app, hwibridge=False, specter=None):
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
-
-    # version checker
-    # checks for new versions once per hour
-    specter.version = VersionChecker(specter=specter)
-    specter.version.start()
 
     login_manager = LoginManager()
     login_manager.session_protection = "strong"
@@ -128,8 +133,14 @@ def init_app(app, hwibridge=False, specter=None):
     def user_loader(id):
         return specter.user_manager.get_user(id)
 
-    def login(id):
-        login_user(user_loader(id))
+    def login(id, password: str = None):
+        user = user_loader(id)
+        login_user(user)
+
+        if password:
+            # Use the password while we have it to decrypt any protected
+            #   user data (e.g. services).
+            user.decrypt_user_secret(password)
 
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it

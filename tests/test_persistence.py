@@ -73,9 +73,11 @@ def test_write_device(app):
             "original": "tpubDDZ5jjGT5RvrAyjoLZfdCfv1PAPmicnhNctwZGKiCMF1Zy5hCGMqppxwYZzWgvPqk7LucMMHo7rkB6Dyj5ZLd2W62FAEP3U6pV4jD5gb9ma"
         }
     )
-    app.specter.device_manager.add_device("some_name", "the_type", [a_key, another_key])
+    app.specter.device_manager.add_device(
+        "some_name2", "the_type", [a_key, another_key]
+    )
     write_device(
-        app.specter.device_manager.get_by_alias("some_name"),
+        app.specter.device_manager.get_by_alias("some_name2"),
         "/tmp/delete_me_test_file.json",
     )
     os.remove("/tmp/delete_me_test_file.json")
