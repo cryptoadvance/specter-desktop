@@ -1,0 +1,25 @@
+{% extends "components/swan_tab.jinja" %}
+{% block title %}Settings{% endblock %}
+{% set tab = 'settings' %}
+{% block content %}
+
+<h1>Swan Service</h1>
+
+<br><br>
+
+
+
+<div class="card">
+    <div>
+        The only thing you can do here, right now, is to delete your access-token.<br>
+    </div>
+    <br>
+    <form action="{{ url_for(service.bp_name+'.oauth2_delete_token') }}" method="POST" role="form">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="row">
+            <button type="submit" class="btn">{{ _("Delete Access Token") }}</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

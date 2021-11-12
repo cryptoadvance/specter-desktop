@@ -5,8 +5,10 @@ from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
 
-from flask import current_app as app
+from flask import current_app as app, url_for
 from flask.blueprints import Blueprint
+
+from cryptoadvance.specter.services.service_apikey_storage import SecretStorage
 
 logger = logging.getLogger(__name__)
 
@@ -16,19 +18,22 @@ devstatus_beta = "beta"
 devstatus_prod = "prod"
 
 
-class Service:
+class ServiceBase:
     """A BaseClass for Services"""
 
     has_blueprint = True  # the default
     devstatus = devstatus_alpha
+    _ = None
 
-    def __init__(self, active):
+    def __init__(self, active, specter):
         if not hasattr(self, "id"):
             raise Exception(f"Service {self.__class__} needs ID")
         if not hasattr(self, "name"):
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
+        self.specter = specter
         if self.has_blueprint:
+            self.__class__._ = self
             self.__class__.blueprint = Blueprint(
                 f"{self.id}_endpoint",
                 f"cryptoadvance.specter.services.{self.id}.manifest",  # To Do: move to subfolder
@@ -42,6 +47,11 @@ class Service:
 
             self.__class__.blueprint.context_processor(inject_stuff)
             self.init_controller()
+        self._sec_storage = SecretStorage(specter.data_folder, specter.user_manager)
+
+    @property
+    def bp_name(self):
+        return f"{self.id}_endpoint"
 
     def init_controller(self):
         """This is importing the controller for this service"""
@@ -53,6 +63,14 @@ class Service:
 
     def set_active(self, value):
         self.active = value
+
+
+class Service(ServiceBase):
+    def set_sec_data(self, api_data: dict):
+        self._sec_storage.set_sec_data(self.id, api_data)
+
+    def get_sec_data(self) -> dict:
+        return self._sec_storage.get_sec_data(self.id)
 
 
 class ServiceManager:
@@ -81,7 +99,7 @@ class ServiceManager:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_treshold] <= compare_map[clazz.devstatus]:
                 self._services[clazz.id] = clazz(
-                    clazz.id in self.specter.config.get("services", [])
+                    clazz.id in self.specter.config.get("services", []), self.specter
                 )
                 logger.info(f"Service {clazz.__name__} activated")
             else:

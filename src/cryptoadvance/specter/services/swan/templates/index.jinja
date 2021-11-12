@@ -3,11 +3,14 @@
 
 {% block content %}
 
-<h1>Landing Page</h1>
+<h1>Swan Service</h1>
 
 <br><br>
 
-<a href="{{ flow_url }}">Initialize the PKCE-FLOW to get an access-token</a>
+<div>
+    You need to authenticate against Swan to use this functionality.<br>
+    <a href="{{ flow_url }}" style="color: #fff;">Initialize the PKCE-FLOW to get an access-token</a>
+</div>
 
 <pre>
 {{ session_data }}

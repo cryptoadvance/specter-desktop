@@ -10,6 +10,10 @@ from cryptoadvance.specter.user import User
 logger = logging.getLogger("__name__")
 
 
+class ServiceApiKeyStorageError(Exception):
+    pass
+
+
 class ServiceApiKeyStorage(GenericDataManager):
     """
     Encrypted storage class for *ALL* Services-related API secrets for a given user.
@@ -23,7 +27,7 @@ class ServiceApiKeyStorage(GenericDataManager):
 
     def __init__(self, data_folder: str, user: User):
         if not user.plaintext_user_secret:
-            raise Exception(
+            raise ServiceApiKeyStorageError(
                 f"User {user} must be authenticated with password before encrypted service data can be loaded"
             )
 
@@ -57,10 +61,12 @@ class ServiceApiKeyStorage(GenericDataManager):
         if api_data:
             # Convert string back into json blob
             api_data = json.loads(api_data)
+        else:
+            api_data = {}
         return api_data
 
 
-class ServiceApiKeyStorageUserAware:
+class SecretStorage:
     """Store and receive your Secrets automagically by user"""
 
     def __init__(self, data_folder: str, user_manager: UserManager):
@@ -79,8 +85,8 @@ class ServiceApiKeyStorageUserAware:
             self.user_storage_map[user] = ServiceApiKeyStorage(self.data_folder, user)
         return self.user_storage_map[user]
 
-    def set_api_data(self, service_id: str, api_data: dict):
+    def set_sec_data(self, service_id: str, api_data: dict):
         self._user_storage().set_api_data(service_id, api_data)
 
-    def get_api_data(self, service_id: str) -> dict:
+    def get_sec_data(self, service_id: str) -> dict:
         return self._user_storage().get_api_data(service_id)
