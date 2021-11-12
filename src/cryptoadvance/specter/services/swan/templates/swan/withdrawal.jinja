@@ -1,0 +1,64 @@
+{% extends "swan/components/swan_tab.jinja" %}
+{% block title %}Balances{% endblock %}
+
+{% block content %}
+
+<h1>Existing Withdrawals</h1>
+<pre>
+{{ withdrawals }}   
+
+</pre>
+
+<h1>Creating Withdrawal</h1>
+
+<style>
+    .css-1rbd7t8 {
+        box-sizing: border-box;
+        margin: 60px 0px 24px;
+        min-width: 0px;
+    }
+    .css-yn7azs {
+        box-sizing: border-box;
+        margin: 0px;
+        min-width: 0px;
+        -moz-box-pack: justify;
+        justify-content: space-between;
+        position: relative;
+        font-family: "Source Serif Pro", serif;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: -0.02em;
+        font-variant: common-ligatures;
+        text-rendering: optimizelegibility;
+        font-size: 16px;
+        display: flex;
+    }
+
+</style>
+
+<div class="card">
+    <div>
+        When do you want your Bitcoin?<br>
+        Withdrawing your Bitcoin once it reaches a threshold reduces future fees and improves your privacy.<br>
+    </div>
+    <br>
+    
+    <form action="{{ url_for(service.bp_name+'.oauth2_delete_token') }}" method="POST" role="form">
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+        
+        <div class="css-yn7azs"><div class="css-10heydn"><div class="css-1im0k5g"><div class="css-vurnku">0 BTC</div><div class="css-r7xp1a">weekly</div><div class="css-joto2y"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.01 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>204<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.025 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>510<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a1yeyh"><div class="css-vurnku">0.05 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>1020<div class="css-1ddofgy"> USD</div></div><div class="css-1en436m"></div></div></div></div>
+
+
+        <input type="range" id="thresholdSlider" min="0" max="3" aria-valuemin="0" aria-valuemax="0.05" aria-valuenow="0.01" class="css-w3x6xz" value="1">
+        
+        
+        <div class="row">
+            <button type="submit" class="btn">{{ _("Delete Access Token") }}</button>
+        </div>
+
+    </form>
+</div>
+
+
+
+{% endblock %}

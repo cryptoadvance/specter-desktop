@@ -13,6 +13,10 @@ def get_wallets():
     return _call_api("/wallets", "GET")
 
 
+def get_automatic_withdrawal():
+    return _call_api("/automatic-withdrawal", "GET")
+
+
 def _call_api(path, method="GET", params=None, data=None):
     """call the Swan API"""
     headers = _get_headers(path)

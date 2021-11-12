@@ -14,7 +14,7 @@ from cryptoadvance.specter.services.service_apikey_storage import (
 )
 from ..service_settings_manager import ServiceSettingsManager
 from .manifest import SwanService
-from .swan_client import get_wallets
+from .swan_client import get_wallets, get_automatic_withdrawal
 
 client_id = "specter-dev"
 client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
@@ -132,7 +132,7 @@ def oauth2_auth():
     return redirect(url_for(f"{SwanService._.bp_name}.balances"))
 
 
-@swan_endpoint.route("/oauth2/delete-token")
+@swan_endpoint.route("/oauth2/delete-token", methods=["POST"])
 def oauth2_delete_token():
     SwanService._.set_sec_data({})
     return redirect(url_for(f"{SwanService._.bp_name}.oauth2_start"))
@@ -142,7 +142,7 @@ def oauth2_delete_token():
 @login_required
 @accesstoken_required
 def balances():
-    return render_template("swan/balances.jinja", tokens=tokens, wallets=get_wallets())
+    return render_template("swan/balances.jinja", wallets=get_wallets())
 
 
 @swan_endpoint.route("/trade")
@@ -183,11 +183,8 @@ def deposit():
 @accesstoken_required
 def withdraw():
     return render_template(
-        "swan/resources.html",
-        tokens=tokens,
-        wallets=None,
-        me=None,
-        cookies=request.cookies,
+        "swan/withdrawal.jinja",
+        wallets=get_automatic_withdrawal(),
     )
 
 
