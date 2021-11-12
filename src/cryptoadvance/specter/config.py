@@ -136,7 +136,7 @@ class BaseConfig(object):
     RTL_LANGUAGES = ["he"]
 
     # One of "prod", "beta" or "alpha". Every Service below will be not available
-    SERVICE_MATURITY_TRESHOLD = os.getenv("SERVICE_DEVSTATUS_TRESHOLD", "prod")
+    SERVICES_DEVSTATUS_TRESHOLD = os.getenv("SERVICES_DEVSTATUS_TRESHOLD", "prod")
 
 
 class DevelopmentConfig(BaseConfig):
@@ -152,7 +152,7 @@ class DevelopmentConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # One of "prod", "beta" or "alpha". Every Service below will be not available
-    SERVICE_MATURITY_TRESHOLD = os.getenv("SERVICE_DEVSTATUS_TRESHOLD", "alpha")
+    SERVICES_DEVSTATUS_TRESHOLD = os.getenv("SERVICES_DEVSTATUS_TRESHOLD", "alpha")
 
 
 class TestConfig(BaseConfig):
