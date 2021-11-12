@@ -10,6 +10,7 @@ import time
 import docker
 import pytest
 from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -366,6 +367,34 @@ def wallets_filled_data_folder(devices_filled_data_folder):
 @pytest.fixture
 def device_manager(devices_filled_data_folder):
     return DeviceManager(os.path.join(devices_filled_data_folder, "devices"))
+
+
+@pytest.fixture
+def user_manager(empty_data_folder):
+    """A UserManager having users alice, bob and eve"""
+    specter = Specter(data_folder=empty_data_folder)
+    user_manager = UserManager(specter=specter)
+    config = {}
+    user_manager.get_user("admin").decrypt_user_secret("admin")
+    user_manager.create_user(
+        user_id="alice",
+        username="alice",
+        plaintext_password="plain_pass_alice",
+        config=config,
+    )
+    user_manager.create_user(
+        user_id="bob",
+        username="bob",
+        plaintext_password="plain_pass_bob",
+        config=config,
+    )
+    user_manager.create_user(
+        user_id="eve",
+        username="eve",
+        plaintext_password="plain_pass_eve",
+        config=config,
+    )
+    return user_manager
 
 
 @pytest.fixture

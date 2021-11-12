@@ -1,5 +1,9 @@
+from flask_login.utils import login_user
 import pytest
-from cryptoadvance.specter.services.service_apikey_storage import ServiceApiKeyStorage
+from cryptoadvance.specter.services.service_apikey_storage import (
+    ServiceApiKeyStorage,
+    ServiceApiKeyStorageUserAware,
+)
 from cryptoadvance.specter.services.service_manager import ServiceManager
 from cryptoadvance.specter.services.service_settings_manager import (
     ServiceSettingsManager,
@@ -62,3 +66,30 @@ def test_ServiceApiKeyStorage(empty_data_folder):
     )
     someuser._generate_user_secret("muh")
     saks = ServiceApiKeyStorage(empty_data_folder, someuser)
+    saks.set_api_data("a_service_id", {"somekey": "green"})
+    assert saks.get_api_data("a_service_id") == {"somekey": "green"}
+    assert saks.get_api_data("another_service_id") == None
+    saks.set_api_data("another_service_id", {"somekey": "red"})
+    assert saks.get_api_data("another_service_id") == {"somekey": "red"}
+    saks.set_api_data("a_service_id", {"somekey": "blue"})
+    assert saks.get_api_data("a_service_id") == {"somekey": "blue"}
+    assert saks.get_api_data("another_service_id") == {"somekey": "red"}
+
+
+def test_ServiceApiKeyStorageUserAware(app, empty_data_folder, user_manager):
+    saksua = ServiceApiKeyStorageUserAware(empty_data_folder, user_manager)
+    with app.app_context():
+        saksua.set_api_data("a_service_id", {"somekey": "green"})
+        assert saksua.get_api_data("a_service_id") == {"somekey": "green"}
+        assert saksua.get_api_data("another_service_id") == None
+        saksua.set_api_data("another_service_id", {"somekey": "red"})
+        assert saksua.get_api_data("another_service_id") == {"somekey": "red"}
+        saksua.set_api_data("a_service_id", {"somekey": "blue"})
+        assert saksua.get_api_data("a_service_id") == {"somekey": "blue"}
+        assert saksua.get_api_data("another_service_id") == {"somekey": "red"}
+
+        with app.test_request_context():
+            login_user(user_manager.get_user("bob"))
+            assert saksua.get_api_data("a_service_id") == None
+            saksua.set_api_data("a_service_id", {"someotherkey": "green"})
+            assert saksua.get_api_data("a_service_id") == {"someotherkey": "green"}
