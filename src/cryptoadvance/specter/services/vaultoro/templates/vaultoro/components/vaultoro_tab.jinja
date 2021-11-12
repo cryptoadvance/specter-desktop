@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
     <h1 id="title">{{service.id}}</h1>
-    {% from 'components/vaultoro_menu.jinja' import vaultoro_menu with context %}
+    {% from 'vaultoro/components/vaultoro_menu.jinja' import vaultoro_menu with context %}
     {{ vaultoro_menu(tab) }}
     {% block content %}
     {% endblock %}

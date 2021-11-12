@@ -1,4 +1,4 @@
-{% extends "components/vaultoro_tab.jinja" %}
+{% extends "vaultoro/components/vaultoro_tab.jinja" %}
 {% set tab = 'settings' %}
 {% block content %}
 	<form action="{{ url_for('vaultoro_endpoint.settings')}}" method="POST" onsubmit="showPacman()">

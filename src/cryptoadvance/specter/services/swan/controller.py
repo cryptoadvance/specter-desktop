@@ -87,7 +87,7 @@ def oauth2_start():
         "scope=openid v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
     ]
     flow_url = flow_url + "&".join(query_params)
-    return render_template("index.jinja", flow_url=flow_url)
+    return render_template("swan/index.jinja", flow_url=flow_url)
 
 
 @swan_endpoint.route("/oauth2/callback")
@@ -142,7 +142,7 @@ def oauth2_delete_token():
 @login_required
 @accesstoken_required
 def balances():
-    return render_template("balances.jinja", tokens=tokens, wallets=get_wallets())
+    return render_template("swan/balances.jinja", tokens=tokens, wallets=get_wallets())
 
 
 @swan_endpoint.route("/trade")
@@ -150,7 +150,11 @@ def balances():
 @accesstoken_required
 def trade():
     return render_template(
-        "dashboard.html", tokens=tokens, wallets=wallets, me=me, cookies=request.cookies
+        "swan/dashboard.html",
+        tokens=tokens,
+        wallets=wallets,
+        me=me,
+        cookies=request.cookies,
     )
 
 
@@ -158,7 +162,7 @@ def trade():
 @login_required
 @accesstoken_required
 def resources():
-    return render_template("resources.html")
+    return render_template("swan/resources.html")
 
 
 @swan_endpoint.route("/deposit")
@@ -166,7 +170,11 @@ def resources():
 @accesstoken_required
 def deposit():
     return render_template(
-        "resources.html", tokens=tokens, wallets=None, me=None, cookies=request.cookies
+        "swan/resources.html",
+        tokens=tokens,
+        wallets=None,
+        me=None,
+        cookies=request.cookies,
     )
 
 
@@ -175,7 +183,11 @@ def deposit():
 @accesstoken_required
 def withdraw():
     return render_template(
-        "resources.html", tokens=tokens, wallets=None, me=None, cookies=request.cookies
+        "swan/resources.html",
+        tokens=tokens,
+        wallets=None,
+        me=None,
+        cookies=request.cookies,
     )
 
 
@@ -184,5 +196,9 @@ def withdraw():
 @accesstoken_required
 def settings():
     return render_template(
-        "settings.jinja", tokens=tokens, wallets=None, me=None, cookies=request.cookies
+        "swan/settings.jinja",
+        tokens=tokens,
+        wallets=None,
+        me=None,
+        cookies=request.cookies,
     )
