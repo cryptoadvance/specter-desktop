@@ -35,6 +35,7 @@ class UserManager:
                     "username": "admin",
                     "password": hash_password("admin"),
                     "is_admin": True,
+                    "encrypted_user_secret": None,
                 }
             ]
         # convert to User instances
@@ -57,6 +58,12 @@ class UserManager:
         self.save()  # save files
         user.check()
         return self.get_user(user)
+
+    def create_user(self, user_id, username, plaintext_password, config):
+        password_hash = hash_password(plaintext_password)
+        user = User(user_id, username, password_hash, config, self.specter)
+        user.decrypt_user_secret(plaintext_password)
+        return self.add_user(user)
 
     @property
     def admin(self):

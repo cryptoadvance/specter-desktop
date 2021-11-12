@@ -23,3 +23,4 @@ pgpy==0.5.4
 cbor==1.0.0
 mnemonic==0.20
 mkdocs==1.2.3
+cryptography==3.4.7

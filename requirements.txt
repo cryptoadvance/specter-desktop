@@ -109,6 +109,7 @@ cryptography==3.4.7 \
     --hash=sha256:eb8cc2afe8b05acbd84a43905832ec78e7b3873fb124ca190f574dca7389a87d \
     --hash=sha256:ee77aa129f481be46f8d92a1a7db57269a2f23052d5f2433b4621bb457081cc9
     # via
+    #   -r requirements.in
     #   noiseprotocol
     #   pgpy
     #   pyopenssl
