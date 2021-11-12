@@ -57,7 +57,13 @@ class Specter:
     lock = threading.Lock()
     _default_asset = None
 
-    def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
+    def __init__(
+        self,
+        data_folder="./data",
+        config={},
+        internal_bitcoind_version="",
+        service_devstatus_treshold="prod",
+    ):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -74,7 +80,7 @@ class Specter:
         self.version.start()
 
         self.user_manager = UserManager(self)
-        self.service_manager = ServiceManager(self)
+        self.service_manager = ServiceManager(self, service_devstatus_treshold)
 
         self._config_manager = ConfigManager(self.data_folder, config)
 

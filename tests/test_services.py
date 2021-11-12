@@ -25,9 +25,6 @@ def test_ServiceSettingsManager(specter_regtest_configured):
 
 @patch("cryptoadvance.specter.services.service_manager.app")
 def test_ServiceManager(empty_data_folder, app):
-    print(
-        "---------------------------ddddddddddddddd------------------------------------------------"
-    )
     print(app)
     app.config = Mock()
     app.config.get.return_value = "prod"
@@ -37,11 +34,12 @@ def test_ServiceManager(empty_data_folder, app):
     assert specter_mock.config.get("services", []) == ["dummyservice"]
     specter_mock.data_folder.return_value = empty_data_folder
 
-    sm = ServiceManager(specter_mock)
+    sm = ServiceManager(specter_mock, "alpha")
     scls = sm.get_service_classes()
-    assert len(scls) == 2
+    assert len(scls) == 3
     assert scls[0].id == "dummyservice"
-    assert scls[1].id == "vaultoro"
+    assert scls[1].id == "swan"
+    assert scls[2].id == "vaultoro"
     # assert False
 
 

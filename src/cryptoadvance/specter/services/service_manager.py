@@ -11,16 +11,16 @@ from flask.blueprints import Blueprint
 logger = logging.getLogger(__name__)
 
 
-maturity_alpha = "alpha"
-maturity_beta = "beta"
-maturity_prod = "prod"
+devstatus_alpha = "alpha"
+devstatus_beta = "beta"
+devstatus_prod = "prod"
 
 
 class Service:
     """A BaseClass for Services"""
 
     has_blueprint = True  # the default
-    maturity = maturity_alpha
+    devstatus = devstatus_alpha
 
     def __init__(self, active):
         if not hasattr(self, "id"):
@@ -58,9 +58,9 @@ class Service:
 class ServiceManager:
     """A ServiceManager which is quite dumb right now but it should decide which services to show"""
 
-    def __init__(self, specter):
+    def __init__(self, specter, devstatus_treshold):
         self.specter = specter
-        self.maturity_treshold = app.config.get("SERVICE_MATURITY_TRESHOLD", "prod")
+        self.devstatus_treshold = devstatus_treshold
         self.services
 
     def set_active_services(self, service_names_active):
@@ -79,14 +79,14 @@ class ServiceManager:
         self._services = {}
         for clazz in self.get_service_classes():
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
-            if compare_map[self.maturity_treshold] <= compare_map[clazz.maturity]:
+            if compare_map[self.devstatus_treshold] <= compare_map[clazz.devstatus]:
                 self._services[clazz.id] = clazz(
                     clazz.id in self.specter.config.get("services", [])
                 )
                 logger.info(f"Service {clazz.__name__} activated")
             else:
                 logger.info(
-                    f"Service {clazz.__name__} not activated due to maturity ( {self.maturity_treshold} > {clazz.maturity} )"
+                    f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_treshold} > {clazz.devstatus} )"
                 )
         return self._services
 

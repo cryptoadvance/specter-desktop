@@ -121,6 +121,7 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
+            service_devstatus_treshold=app.config["DEVSTATUS_TRESHOLD"],
         )
 
     login_manager = LoginManager()
