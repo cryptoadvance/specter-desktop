@@ -27,10 +27,10 @@ class Sha256sumFile:
         gc.download_artifact(tag, self.name + ".asc", target_dir=self.target_dir)
         self.read()
 
-    def download_hashed_files(self, gc):
+    def download_hashed_files(self, tag, gc):
         for file in self.hashed_files.keys():
             logger.info(f"Downloading {file} from {tag}")
-            gc.download_artifact(self.tag, file, target_dir=self.target_dir)
+            gc.download_artifact(tag, file, target_dir=self.target_dir)
 
     def read(self):
         with open(os.path.join(self.target_dir, self.name), "r") as file:
@@ -79,7 +79,7 @@ class Sha256sumFile:
 
 class ReleaseHelper:
     def __init__(self):
-        pass
+        self.target_dir = "signing_dir"
 
     def init_gitlab(self):
         # https://python-gitlab.readthedocs.io/en/stable/api-usage.html
@@ -103,7 +103,9 @@ class ReleaseHelper:
 
         if os.environ.get("CI_PROJECT_ROOT_NAMESPACE"):
             project_root_namespace = os.environ.get("CI_PROJECT_ROOT_NAMESPACE")
-            logger.info(f"Using project_root_namespace: {project_root_namespace}")
+            logger.info(
+                f"Using project_root_namespace: {project_root_namespace} ( export CI_PROJECT_ROOT_NAMESPACE={project_root_namespace} )"
+            )
         else:
             raise Exception(
                 "no CI_PROJECT_ROOT_NAMESPACE given ( export CI_PROJECT_ROOT_NAMESPACE=k9ert )"
@@ -120,10 +122,24 @@ class ReleaseHelper:
                 )
             exit(1)
 
-        logger.info(f"Using project_id: {self.project_id}")
+        logger.info(f"Using project_id: {self.project_id} ")
         logger.info(f"Using github_project: {self.github_project}")
+        try:
+            from gitlab.v4.objects import Project
 
-        self.project = self.gl.projects.get(self.project_id)
+            self.project: Project = self.gl.projects.get(self.project_id)
+        except gitlab.exceptions.GitlabAuthenticationError as e:
+            logger.fatal(e)
+            logger.error("Your token might be expired or wrong. Get a new one here:")
+            logger.error("  https://gitlab.com/-/profile/personal_access_tokens")
+            exit(2)
+
+        if self.project.attributes["namespace"]["path"] != project_root_namespace:
+            logger.fatal(
+                f"project_root_namespace ({ project_root_namespace }) does not match namespace of Project ({self.project.attributes['namespace']['path']}) "
+            )
+            logger.error("You might want to: unset CI_PROJECT_ID")
+            exit(2)
 
         if os.environ.get("CI_COMMIT_TAG"):
             self.tag = os.environ.get("CI_COMMIT_TAG")
@@ -144,13 +160,14 @@ class ReleaseHelper:
                     self.pipeline = pipeline
                     logger.info(f"Found matching pipeline: {pipeline}")
             if not hasattr(self, "pipeline"):
-                logger.error(
-                    f"Could not find tag {self.tag} in the pipeline-refs {[pipeline.ref for pipeline in self.project.pipelines.list()]}"
+                logger.error(f"Could not find tag {self.tag} in the pipeline-refs:")
+                for pipeline in self.project.pipelines.list():
+                    logger.error(pipeline.ref)
+                raise Exception(
+                    "no CI_PIPELINE_ID given ( export CI_PIPELINE_ID= ) or maybe you're on the wrong project ( export CI_PROJECT_ROOT_NAMESPACE= )"
                 )
-                raise Exception("no CI_PIPELINE_ID given ( export CI_PIPELINE_ID")
 
         logger.info(f"Using pipeline_id: {self.pipeline.id}")
-        self.target_dir = "signing_dir"
         Path(self.target_dir).mkdir(parents=True, exist_ok=True)
 
     def download_and_unpack_all_artifacts(self):
@@ -197,7 +214,7 @@ class ReleaseHelper:
             shasumfile = Sha256sumFile(asset.name)
             if not shasumfile.is_in_target_dir():
                 shasumfile.download_from_tag(self.tag, gc)
-                shasumfile.download_hashed_files(gc)
+                shasumfile.download_hashed_files(self.tag, gc)
                 shasumfile.check_hashes()
                 shasumfile.check_sig()
 
@@ -277,7 +294,23 @@ class ReleaseHelper:
             self.github_project,
             self.tag,
             [artifact],
-            "github.com",
+            "gitlab_upload_release_binaries",
+            self.password,
+        )
+
+    def upload_sha256sumsig_file(self):
+        artifact = os.path.join("signing_dir", "SHA256SUMS.asc")
+        self.calculate_publish_params()
+
+        if github.artifact_exists(self.github_project, self.tag, Path(artifact).name):
+            logger.info(f"Github artifact {artifact} existing. Skipping upload.")
+            exit(0)
+        else:
+            logger.info(f"Github artifact {artifact} does not exist. Let's upload!")
+        github.publish_release_from_tag(
+            self.github_project,
+            self.tag,
+            [artifact],
             "gitlab_upload_release_binaries",
             self.password,
         )
@@ -325,5 +358,7 @@ if __name__ == "__main__":
         rh.check_all_sigs()
     if "create" in sys.argv:
         rh.create_sha256sum_file()
-    if "upload" in sys.argv:
+    if "upload_shasums" in sys.argv:
         rh.upload_sha256sum_file()
+    if "upload_shasumssig" in sys.argv:
+        rh.upload_sha256sumsig_file()

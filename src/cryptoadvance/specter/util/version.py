@@ -76,22 +76,7 @@ class VersionChecker:
             logger.warning(
                 "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
             )
-        try:
-            if self.specter:
-                requests_session = self.specter.requests_session(force_tor=False)
-            else:
-                requests_session = requests.Session()
-            releases = requests_session.get(
-                f"https://api.github.com/repos/cryptoadvance/specter-desktop/releases"
-            ).json()
-            for release in releases:
-                if release["prerelease"] or release["draft"]:
-                    continue
-                latest = release["name"]
-                break
-        except Exception as e:
-            logger.exception(e)
-            latest = "unknown"
+        latest = VersionChecker._get_latest_version_from_github(self.specter)
         return current, latest
 
     def _get_pip_version(self):
@@ -150,8 +135,29 @@ class VersionChecker:
         return current, latest, False
 
     @classmethod
+    def _get_latest_version_from_github(cls, specter):
+        try:
+            if specter:
+                requests_session = specter.requests_session(force_tor=False)
+            else:
+                requests_session = requests.Session()
+
+            releases = (
+                requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
+                .json()["releases"]
+                .keys()
+            )
+            latest = list(releases)[-1]
+        except Exception as e:
+            logger.exception(e)
+            latest = "unknown"
+        return latest
+
+    @classmethod
     def _version_txt_content(cls):
         version_file = "version.txt"
+        if getattr(sys, "frozen", False):
+            version_file = os.path.join(sys._MEIPASS, "version.txt")
         with open(version_file) as f:
             return f.read().strip()
 

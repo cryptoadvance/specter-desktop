@@ -1,3 +1,11 @@
+## v1.7.1 November 05, 2021
+- Bugfix: Bitcoin Core as default for fee estimation, error handling improvements #1408 (Kim Neunert)
+- Bugfix: fix unknown version bug in pip-installs fixes #1442 #1450 (Kim Neunert)
+- Bugfix: no threading for update after creation of wallets #1457 (Kim Neunert)
+- Bugfix: version.txt does not get detected #1462 (Kim Neunert)
+- Chore: Bump electron from 10.2.0 to 11.5.0 in /pyinstaller/electron #1429 (dependabot[bot])
+- Chore: Release signature process #1459 (Kim Neunert)
+
 ## v1.7.0 October 19, 2021
 - Feature: a framework for migrations and migrating single-node #1414 (Kim Neunert)
 - Feature: Auto privacy settings #1415 (kdmukai)

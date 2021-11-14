@@ -220,17 +220,16 @@ release_signatures:
     - virtualenv --python=python3 .env
     - source .env/bin/activate
     - pip3 install -r test_requirements.txt
-    - ./utils/create-gitlab-cli-cfg.sh
     - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
     - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
     - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
     - python3 -m utils.release-helper checksigs         # checks the signatures of all SHA256SUMM*.asc files
     - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
-    - python3 -m utils.release-helper create            # creates a SHA256SUM.txt
-    - python3 -m utils.release-helper upload            # uploads it to github
-    - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS
-    - python3 ./utils/github.py upload ./signing_dir/SHA256SUMS.asc
+    - python3 -m utils.release-helper create            # creates a SHA256SUM
+    - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS # Signs the SHA256SUM
+    - python3 -m utils.release-helper upload_shasums    # uploads SHA256SUMS to github
+    - python3 -m utils.release-helper upload_shasumssig # uploads SHA256SUMS.asc to github
 
 release_docker:
   stage: post_releasing
