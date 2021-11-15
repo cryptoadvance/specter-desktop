@@ -71,6 +71,7 @@ def server_specter_error(se):
         flash(str(se), "error")
     if request.method == "POST":
         return redirect(request.url)
+    # potentially avoiding http loops. Might be improvable but how?
     else:
         return redirect(url_for("about"))
 
