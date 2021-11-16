@@ -287,6 +287,8 @@
                 toggleList('devices', '{{ _("Devices") }}');
             });
         }
+        // Make the default state hidden
+        toggleList('devices', '{{ _("Devices") }}');
 
         if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
             document.getElementById('toggle_wallets_list').innerHTML = `{{ _("Wallets") }}`;
