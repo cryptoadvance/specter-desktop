@@ -174,26 +174,31 @@
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
-			<h2 class="subtitle">{{ _("Import Electrum address labels") }}</h2>
+			<h2 class="subtitle">{{ _("Import address labels (Electrum or Specter)") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<textarea name="import_electrum_labels_json" 
-					id="import_electrum_labels_json" 
-					placeholder="{{ _('Paste json here  or  Drag&Drop electrum_labels.json') }}"  
-					ondrop="dropHandler(event, 'import_electrum_labels_json');" 
-					ondragover="dragOverHandler(event, 'import_electrum_labels_json');"
-					ondragleave="dragLeaveHandler(event, 'import_electrum_labels_json');" 
-					ondragexit="dragExitHandler(event, 'import_electrum_labels_json');" 
-					ondragend="dragEndHandler(event, 'import_electrum_labels_json');"></textarea>
-					<button type="submit" name="action" value="import_electrum_label_export" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+					<textarea name="address_labels_data" 
+					id="address_labels_data" 
+					placeholder="{{ _('You can paste or drag & drop here: Electrum JSON file, Specter addresses CSV or Specter JSON file.') }}"  
+					ondrop="dropHandler(event, 'address_labels_data');" 
+					ondragover="dragOverHandler(event, 'address_labels_data');"
+					ondragleave="dragLeaveHandler(event, 'address_labels_data');" 
+					ondragexit="dragExitHandler(event, 'address_labels_data');" 
+					ondragend="dragEndHandler(event, 'address_labels_data');"></textarea>
+					<button type="submit" name="action" value="import_address_labels" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
 						<div class="tool-tip">
 							<i class="tool-tip__icon">i</i>
 							<p class="tool-tip__info">
 								<span class="info">
-									<span class="info__title">{{ _("Importing electrum labels") }}</span><br><br>
-									{{ _("The expected json format contains utxo ids and addresses with the labels:") }}<br><br>
-									{{ _('{ "8a5e4...": "some utxo label", "bc1qj3...": "some address label" }') }}<br><br>
+									<span class="info__title">{{ _("Importing labels") }}</span><br><br>
+									{{ _('The expected format for Electrum contains:') }}<br>
+									{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
+									{{ _('The expected format for Specter JSON contains:') }}<br>
+									{{ _('{"labels": {"some_label": ["bc1qj3..."], ...}') }}<br><br>
+									{{ _('The expected format for Specter CSV contains:') }}<br>
+									{{ _('Address,Label') }}<br>
+        							{{ _('bc1qj3...,some_label') }}<br> 
 								</span>
 							</p>
 						</div>

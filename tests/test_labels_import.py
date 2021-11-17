@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.slow
-def test_electrum_label_import(
+def test_import_address_labels(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
     caplog.set_level(logging.DEBUG)
@@ -83,7 +83,7 @@ def test_electrum_label_import(
 
         # Fund the wallet. Going to need a LOT of utxos to play with.
         logger.info("Generating utxos to wallet")
-        test_address = wallet.getnewaddress()
+        test_address = wallet.getnewaddress()  # 2NCSZrX49HHyzUy6oj8ggm9WD19hFvjzzou
 
         wallet.rpc.generatetoaddress(1, test_address)[0]
 
@@ -100,8 +100,9 @@ def test_electrum_label_import(
         assert wallet._addresses[test_address]["label"] is None
         number_of_addresses = len(wallet._addresses)
 
+        # Electrum
         # Test it with a txid label that does not belong to the wallet -> should be ignored
-        wallet.import_electrum_label_export(
+        wallet.import_address_labels(
             json.dumps(
                 {
                     "8d0958cb8701fac7421eb077e44b36809b90c7ad4a35e0c607c2cd591c522668": "txid label"
@@ -112,19 +113,36 @@ def test_electrum_label_import(
         assert len(wallet._addresses) == number_of_addresses
 
         # Test it with an address label that does not belong to the wallet -> should be ignored
-        wallet.import_electrum_label_export(
+        wallet.import_address_labels(
             json.dumps({"12dRugNcdxK39288NjcDV4GX7rMsKCGn6B": "address label"})
         )
         assert wallet._addresses[test_address]["label"] is None
         assert len(wallet._addresses) == number_of_addresses
 
         # Test it with a txid label
-        wallet.import_electrum_label_export(json.dumps({txid: "txid label"}))
+        wallet._addresses[test_address].set_label(
+            "some_label"
+        )  # some label has to be set before
+        wallet.import_address_labels(json.dumps({txid: "txid label"}))
         assert wallet._addresses[test_address]["label"] == "txid label"
 
         # The txid label should now be replaced by the address label
-        wallet.import_electrum_label_export(json.dumps({test_address: "address label"}))
+        wallet.import_address_labels(json.dumps({test_address: "address label"}))
         assert wallet._addresses[test_address]["label"] == "address label"
+
+        # Specter JSON
+        wallet._addresses[test_address].set_label("some_fancy_label_json")
+        specter_json = json.dumps(wallet.to_json(for_export=True))
+        wallet._addresses[test_address].set_label("label_got_lost")
+        wallet.import_address_labels(specter_json)
+        assert wallet._addresses[test_address]["label"] == "some_fancy_label_json"
+
+        # Specter CSV
+        csv_string = """Index,Address,Type,Label,Used,UTXO,Amount (BTC)
+        0,2NCSZrX49HHyzUy6oj8ggm9WD19hFvjzzou,receive,some_fancy_label_csv,Yes,0,0"""
+        wallet._addresses[test_address].set_label("label_got_lost")
+        wallet.import_address_labels(csv_string)
+        assert wallet._addresses[test_address]["label"] == "some_fancy_label_csv"
 
     finally:
         # Clean up
