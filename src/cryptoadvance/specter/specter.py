@@ -67,12 +67,14 @@ class Specter:
 
         self.data_folder = data_folder
 
+        self.user_manager = UserManager(
+            self
+        )  # has to come before calling VersionChecker()
+
         # version checker
         # checks for new versions once per hour
         self.version = VersionChecker(specter=self)
         self.version.start()
-
-        self.user_manager = UserManager(self)
 
         self._config_manager = ConfigManager(self.data_folder, config)
 
