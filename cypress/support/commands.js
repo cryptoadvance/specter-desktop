@@ -29,10 +29,14 @@ import 'cypress-wait-until';
 Cypress.Commands.add("addDevice", (name) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
+          cy.get('#toggle_devices_list').click()
           cy.get('#devices_list > .item > div').click()
           cy.get('#forget_device').click()
         } 
         cy.get('#side-content').click()
+        if (!cy.get('#btn_new_device').isVisible) {
+          cy.get('#toggle_devices_list').click()
+        }
         cy.get('#btn_new_device').click()
         // Creating a Device
         cy.contains('Select Your Device Type')
@@ -51,6 +55,7 @@ Cypress.Commands.add("addDevice", (name) => {
         cy.get('#txt').type("\n[6ea15da6/48h/1h/0h/2h]Vpub5mvDKGjRsucYGM7PWahGKJKkC3um3oJMqCYDf6SzdkPp8yES65bLfvxhE1bCZsqWobZKpcdTk3niqKR3f6T4B2zJDSyDdes3TyRM17vXYQs")
         cy.get('#txt').type("\n[6ea15da6/48h/1h/0h/1h]Upub5T5x1c4WjE54P7PsaPCUa9WNtcZuNyijXdytoHAzcK5AWrMHXX8ebWyQCXaBJuRVLDgKJMjTGSmZUans2ghMGBA8g9xRjdhuFrTyJxKYKDE")
         cy.get('#cold_device > [type="submit"]').click()
+        cy.get('#toggle_devices_list').click()
         cy.get('#devices_list > .item > div').contains(name)
       })
 })
@@ -67,12 +72,16 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
         // We assume therefore that this is ok (see below)
       } 
       cy.get('#side-content').click()
+      if (!cy.get('#btn_new_device').isVisible) {
+        cy.get('#toggle_devices_list').click()
+      }
       cy.get('#btn_new_device').click()
       cy.contains('Select Your Device Type')
       cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
+      cy.get('#toggle_devices_list').click()
       // It's a bit hackish as if the device already exists, we'll get an error
       // but continue flaslessly nevertheless
       cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
