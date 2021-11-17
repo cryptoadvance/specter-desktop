@@ -79,18 +79,24 @@ function maybe_update {
 function calc_pytestinit_nodeimpl_version {
 
     # returns the version of $node_impl from pytest.ini from a line which looks like:
-    # addopts = --bitcoind-version v0.21.1 --elementsd-version v0.20.99
+    # addopts = --bitcoind-version v22.0 --elementsd-version v0.20.99
     local node_impl=$1
-    if cat ../pytest.ini | grep -q "addopts = --${node_impl}d-version" ; then
-        # in this case, we use the expected version from the test also as the tag to be checked out
-        # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
-        PINNED=$(cat ../pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
-       
-        if [ "$node_impl" = "elements" ]; then
-            # in the case of elements, the tags have a "elements-" prefix
-            PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
-        fi
+    if [ "$node_impl" = "bitcoin" ]; then
+        PINNED=v22.0
+    elif [ "$node_impl" = "elements" ]; then
+        PINNED=v0.21.0
     fi
+
+    # if cat ../pytest.ini | grep -q "addopts = --${node_impl}d-version" ; then
+    #     # in this case, we use the expected version from the test also as the tag to be checked out
+    #     # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
+    #     PINNED=$(cat ../pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
+       
+    #     if [ "$node_impl" = "elements" ]; then
+    #         # in the case of elements, the tags have a "elements-" prefix
+    #         PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
+    #     fi
+    # fi
     echo $PINNED
 }
 
