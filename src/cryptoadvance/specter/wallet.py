@@ -1,4 +1,6 @@
-import copy, hashlib, json, logging, os, re
+import copy, hashlib, json, logging, os, re, csv
+from csv import Error
+from io import StringIO
 import time
 from collections import OrderedDict
 from .device import Device
@@ -529,36 +531,70 @@ class Wallet:
         )
         self._transactions.add(txs)
 
-    def import_electrum_label_export(self, electrum_label_export):
-        if not electrum_label_export:
-            logger.warning(f"No electrum export json provided.")
-            return
-
-        labeled_addresses = json.loads(electrum_label_export)
-
-        # write tx_label to address_label in labels
-        for txitem in self._transactions.values():
-            if txitem["txid"] not in labeled_addresses:
-                continue
-
-            address_list = (
-                [txitem["address"]]
-                if isinstance(txitem["address"], str)
-                else txitem["address"]
-            )
-            for one_address in address_list:
-                if one_address in labeled_addresses:
-                    continue  # if there is an address label, it supercedes the tx label
-                labeled_addresses[one_address] = labeled_addresses[txitem["txid"]]
-
-        # convert labeled_addresses to arr (for AddressList.set_labels) and allow only already existing addresses
+    def import_address_labels(self, address_labels):
+        if not address_labels:
+            logger.warning(f"No argument was passed.")
+            raise SpecterError("Looks like you didn't input any data. Try again!")
+        try:
+            # Specter JSON
+            if "alias" in json.loads(
+                address_labels
+            ):  # Key that is only present in Specter JSON
+                logger.debug("In the Specter JSON part.")
+                raw_dictionary = json.loads(address_labels)
+                labeled_addresses = {}
+                for label, address in raw_dictionary["labels"].items():
+                    labeled_addresses[address[0]] = label
+                logger.info(f"Specter JSON was converted to {labeled_addresses}.")
+            # Electrum
+            else:
+                logger.debug("In the Electrum JSON part.")
+                labeled_addresses = json.loads(address_labels)
+                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
+                # write tx_label to address_label in labels
+                for txitem in self._transactions.values():
+                    if txitem["txid"] not in labeled_addresses:
+                        continue
+                    address_list = (
+                        [txitem["address"]]
+                        if isinstance(txitem["address"], str)
+                        else txitem["address"]
+                    )
+                    for one_address in address_list:
+                        if one_address in labeled_addresses:
+                            continue  # if there is an address label, it supercedes the tx label
+                        labeled_addresses[one_address] = labeled_addresses[
+                            txitem["txid"]
+                        ]
+        # Specter CSV
+        except ValueError:  # If json.loads is not possible it throws a ValueError
+            labeled_addresses = {}
+            logger.debug(address_labels)
+            try:
+                f = StringIO(
+                    address_labels
+                )  # Drag & drop / pasting of CSV results in one giant string
+                dialect = csv.Sniffer().sniff(
+                    address_labels
+                )  # Delimiter is not always the same
+                reader = csv.DictReader(f, delimiter=dialect.delimiter)
+                reader.fieldnames = [name.lower() for name in reader.fieldnames]
+                for row in reader:
+                    labeled_addresses[row["address"]] = row["label"]
+                logger.info(f"Specter label CSV was converted to {labeled_addresses}.")
+            except (Error, KeyError) as e:
+                raise SpecterError(
+                    f"Labels import failed. Check the import info box for the expected formats. Error: {e}"
+                )
+        # convert labeled_addresses to arr (for AddressList.set_labels), only allow existing addresses for which a label had been set
         arr = [
             {"address": address, "label": label}
             for address, label in labeled_addresses.items()
-            if address in self._addresses
+            if address in self._addresses and self._addresses[address].is_labeled
         ]
+        logger.info(f"Array for set_labels is: {arr}")
         self._addresses.set_labels(arr)
-        logger.info(f"Imported {len(arr)} address labels.")
+        return len(arr)
 
     def update(self):
         self.getdata()
