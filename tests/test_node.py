@@ -119,7 +119,7 @@ def test_Node_elm(elements_elreg):
         # something like:
         # {'version': 200100, 'subversion': '/Satoshi:0.20.1/', 'protocolversion': 70015, 'localservices': '0000000000000409', 'localservicesnames': ['NETWORK', 'WITNESS', 'NETWORK_LIMITED'], 'localrelay': True, 'timeoffset': 0, 'networkactive': True, 'connections': 0, 'networks': [{'name': 'ipv4', 'limited': False, 'reachable': True, 'proxy': '', 'proxy_randomize_credentials': False}, {'name': 'ipv6', 'limited': False, 'reachable': True, 'proxy': '', 'proxy_randomize_credentials': False}, {'name': 'onion', 'limited': True, 'reachable': False, 'proxy': '', 'proxy_randomize_credentials': False}], 'relayfee': 1e-05, 'incrementalfee': 1e-05, 'localaddresses': [{'address': '2a02:810d:d00:7700:233e:a7e:ded8:f2da', 'port': 18542, 'score': 1}, {'address': '2a02:810d:d00:7700:29ec:5c5b:196b:78b2', 'port': 18542, 'score': 1}], 'warnings': ''}
         assert node.network_info["connections"] == 0
-        # currently:
+        # TODO: Elements v0.21.0 fully released
         assert (
             node.network_info["warnings"]
             == "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
