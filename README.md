@@ -24,8 +24,8 @@
 
     "A specter is haunting the modern world, the specter of crypto anarchy."
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
- 
-[![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
+
+[![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
 [![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
 
 ## DISCLAIMER
@@ -89,18 +89,22 @@ pip3 install cryptoadvance.specter --upgrade
 
 After that, Specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
 
-The above installation-method is quite easy but you have to trust pypi. If you want to verify the software completely yourself while still installing via pip3, you can do something like this:
+The above installation-method is quite easy but you have to trust pypi. If you want to verify the software completely yourself while still installing via pip3, you can do something like this (adjust yourself for other versions):
 ```
-wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/cryptoadvance.specter-1.4.6.tar.gz
-wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.4.6/SHA256SUMS-pip
-sha256sum --check SHA256SUMS-pip 
-# Do your usual GPG-check here
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/cryptoadvance.specter-1.7.0.tar.gz
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/SHA256SUMS
+sha256sum --ignore-missing --check SHA256SUMS
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/SHA256SUMS.asc
+gpg --verify SHA256SUMS.asc
 # Now, let's extract the requirements-file and install all requirements with require-hashes
-tar -xvzf cryptoadvance.specter-1.4.6.tar.gz cryptoadvance.specter-1.4.6/requirements.txt
-pip3 install -r cryptoadvance.specter-1.4.6/requirements.txt --require-hashes --upgrade
+tar -xvzf cryptoadvance.specter-1.7.0.tar.gz cryptoadvance.specter-1.7.0/requirements.txt
+# create your ususal virtualenv
+virtualenv --python=python3 .env
+# activate
+pip3 install -r cryptoadvance.specter-1.7.0/requirements.txt --require-hashes --upgrade
 # The package cryptoadvance.specter itself cannot be included into requirements.txt
 # But we have checked the checksum before so it's safe to install without checking it's hash
-pip3 install cryptoadvance.specter-1.4.6.tar.gz
+pip3 install cryptoadvance.specter-1.7.0.tar.gz
 ```
 
 

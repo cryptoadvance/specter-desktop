@@ -466,11 +466,10 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
-    fee_estimation_data = get_fees(app.specter, app.config)
-    if fee_estimation_data.get("failed", None):
-        flash(
-            _("Failed to fetch fee estimations. Please use the manual fee calculation.")
-        )
+    fee_estimation = get_fees(app.specter, app.config)
+    fee_estimation_data = fee_estimation.result
+    if fee_estimation.error_message:
+        [flash(message, "error") for message in fee_estimation.error_messages]
 
     fee_rate = fee_estimation_data["hourFee"]
 
@@ -787,9 +786,15 @@ def settings(wallet_alias):
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
-        elif action == "import_electrum_label_export":
-            electrum_label_export = request.form["import_electrum_labels_json"]
-            wallet.import_electrum_label_export(electrum_label_export)
+        elif action == "import_address_labels":
+            address_labels = request.form["address_labels_data"]
+            imported_addresses_len = wallet.import_address_labels(address_labels)
+            if imported_addresses_len > 1:
+                flash(f"Successfully imported {imported_addresses_len} address labels.")
+            elif imported_addresses_len == 1:
+                flash(f"Successfully imported {imported_addresses_len} address label.")
+            else:
+                flash("No address labels were imported.")
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)

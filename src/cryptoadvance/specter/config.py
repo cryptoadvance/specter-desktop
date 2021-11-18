@@ -108,6 +108,10 @@ class BaseConfig(object):
             "url": "",
         },
     }
+    # in seconds, tor is slow, so let's choose 10 seconds
+    FEEESTIMATION_REQUEST_TIMEOUT = int(
+        os.getenv("FEEESTIMATION_REQUEST_TIMEOUT", "10")
+    )
 
     # Babel integration. English listed first; other alphabetical by language code
     LANGUAGES = {

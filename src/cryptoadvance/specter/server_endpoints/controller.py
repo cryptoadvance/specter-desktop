@@ -66,13 +66,17 @@ def server_rpc_error(rpce):
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """Specific EpecterErrors get passed on to the User as flash"""
+    """Specific SpecterErrors get passed on to the User as flash"""
     flash(str(se), "error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
         flash(str(se), "error")
-    return redirect(url_for("about"))
+    if request.method == "POST":
+        return redirect(request.url)
+    # potentially avoiding http loops. Might be improvable but how?
+    else:
+        return redirect(url_for("about"))
 
 
 @app.errorhandler(Exception)

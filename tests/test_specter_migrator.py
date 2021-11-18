@@ -44,7 +44,7 @@ def test_SpecterMigrator_versioning(empty_data_folder, caplog):
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()
         # Specify that the mock should return a funny version
-        the_obj.get_current_version.return_value = "v1.5.0"
+        the_obj._get_current_version.return_value = "v1.5.0"
         # Specify that the constructor of the mock_version_checker_class should return the_obj
         mock_version_checker_class.side_effect = [the_obj]
         mm = SpecterMigrator(empty_data_folder)
@@ -64,7 +64,7 @@ def test_SpecterMigrator_versioning2(empty_data_folder, caplog):
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()
         # Specify that the mock should return a funny version
-        the_obj.get_current_version.return_value = "v1.7.1"
+        the_obj._get_current_version.return_value = "v1.7.1"
         # Specify that the constructor of the mock_version_checker_class should return the_obj
         mock_version_checker_class.side_effect = [the_obj]
         mm = SpecterMigrator(empty_data_folder)
@@ -95,7 +95,7 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         # Specifiy a mock which will represent the VersionChecker Object
         the_obj = Mock()
         # Specify that the mock should return a funny version
-        the_obj.get_current_version.return_value = "v1.6.1"
+        the_obj._get_current_version.return_value = "v1.6.1"
         # Specify that the constructor of the mock_version_checker_class should return the_obj
         mock_version_checker_class.side_effect = [the_obj]
         mm = SpecterMigrator(empty_data_folder)
