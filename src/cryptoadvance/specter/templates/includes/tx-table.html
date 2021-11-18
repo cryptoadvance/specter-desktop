@@ -92,7 +92,7 @@
             height: 38px;
         }
     </style>
-    <nav class="row">
+    <nav class="switcher row">
         <button
             type="button"
             class="txlist-view-btn btn radio left">
@@ -154,38 +154,45 @@
     <table class="tx-table">
         <thead>
             <tr>
-                <th value="category" class="category-header"><div class="category-arrow"></div></th>
-                <th value="txid" class="optional txid-header">TxID<div class="txid-arrow"></div></th>
-                <th value="label" class="optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
-                <th value="amount" class="amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                <th value="time" class="time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
-                <th value="confirmations" class="confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
-                <th value="blockhash" class="optional hidden blockhash-header">
+                <th value="callbackaction" class="column-callbackaction customaction-header"></th>
+                <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
+                <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
+                <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
+                <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
+                <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
+                <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
                     {% include "includes/merkletooltip.html" %}
                     {{ _("Block Hash") }}
                 </th>
-                <th style="width: 50px; padding: 10px;"><button type="button" class="export-btn btn" style="width: 50px;">{{ _("Export") }}</button></th>
+                <th class="column-action" style="width: 50px; padding: 10px;">
+                    <button type="button" class="export-btn btn" style="width: 50px;">
+                        {{ _("Export") }}
+                    </button>
+                </th>
             </tr>
     </thead>
     <tr class="empty">
-        <td></td>
-        <td>{{ _("Fetching transactions...") }}</td>
-        <td class="optional"></td>
-        <td class="optional"></td>
-        <td></td>
-        <td></td>
-        <td class="optional hidden blockhash-empty"></td>
-        <td></td>
+        <td class="column-callbackaction"></td>
+        <td class="column-category"></td>
+        <td class="column-txid">{{ _("Fetching transactions...") }}</td>
+        <td class="column-label optional"></td>
+        <td class="column-amount optional"></td>
+        <td class="column-time" ></td>
+        <td class="column-confirmations"></td>
+        <td class="column-blockhash optional hidden blockhash-empty"></td>
+        <td class="column-action"></td>
     </tr>
     <tr class="summary-row hidden">
-        <td></td>
-        <td class="summary-tx-count"></td>
-        <td class="optional"></td>
-        <td class="summary-amount"></td>
-        <td class="optional"></td>
-        <td></td>
-        <td class="optional hidden blockhash-summary"></td>
-        <td></td>
+        <td class="column-callbackaction"></td>
+        <td class="column-category" ></td>
+        <td class="column-txid summary-tx-count"></td>
+        <td class="column-label optional"></td>
+        <td class="column-amount summary-amount"></td>
+        <td class="column-time optional"></td>
+        <td class="column-confirmations"> </td>
+        <td class="column-blockhash optional hidden blockhash-summary"></td>
+        <td class="column-action"></td>
     </tr>
 	<tbody class="tx-tbody">
 	</tbody>
@@ -213,6 +220,7 @@
      *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
      *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
      *  - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
+     *  - Hide columns by hide-columns="category time"
     */
     class TxTableElement extends HTMLElement {
         constructor() {
@@ -428,6 +436,41 @@
             return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet'];
         }
 
+        connectedCallback() {
+            // Hide columns
+            this.hideColumns = this.getAttribute("hide-columns") ?? "callbackaction"
+            if (this.hideColumns && this.hideColumns != "null") {
+                this.hideColumns.split(" ").forEach((column_name) => {
+                    if (column_name !== null) {
+                        this.shadowRoot.querySelectorAll(".column-"+ column_name).forEach((element) => {
+                            element.remove()
+                        })
+                    }
+                })
+            }
+            // Hide the switcher
+            this.hideSwitcher = this.getAttribute("hide-switcher")
+            if (this.hideSwitcher && this.hideSwitcher.toLowerCase() == "true") {
+                this.shadowRoot.querySelector(".switcher").classList.add('hidden')
+            }
+        }
+
+        getSelectedTxs() {
+            var selectedTxs = []
+            this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
+                if (item.isSelected()) {
+                    selectedTxs.push(item.tx)
+                }
+            })
+            return selectedTxs
+        }
+
+        unselect_all() {
+            this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
+                item.unselect()
+            })
+        }
+
         /**
          * Listens to changes on the following attributes:
          * - blockhash: Should show blockhash column. Either "true" or "false"
@@ -559,7 +602,7 @@
                         let summaryPrice = 0;
                         for (let tx of txlist) {
                             let txRow = document.createRange().createContextualFragment(`
-                            <tx-row
+                            <tx-row class="txrowitem"
                                 data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
                                 data-price="${this.price ? this.price : 0}"
                                 data-symbol="${this.symbol ? this.symbol : ''}"
@@ -567,7 +610,9 @@
                                 data-wallet="${(this.wallet ? this.wallet : tx.wallet_alias)}"
                                 data-show-blockhash="${showBlockhash}"
                                 data-mode="${this.getAttribute('type') + (this.wallet ? "" : "-overview")}"
-                                data-hide-sensitive-info="${this.hideSensitiveInfo}">
+                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                                hide-columns="${this.hideColumns}">
+                                <slot name="customaction" slot="customaction"></slot>
                                 </tx-row>
                             `)
                             this.tbody.append(txRow);
