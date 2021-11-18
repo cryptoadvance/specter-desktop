@@ -812,9 +812,15 @@ def settings(wallet_alias):
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
-        elif action == "import_electrum_label_export":
-            electrum_label_export = request.form["import_electrum_labels_json"]
-            wallet.import_electrum_label_export(electrum_label_export)
+        elif action == "import_address_labels":
+            address_labels = request.form["address_labels_data"]
+            imported_addresses_len = wallet.import_address_labels(address_labels)
+            if imported_addresses_len > 1:
+                flash(f"Successfully imported {imported_addresses_len} address labels.")
+            elif imported_addresses_len == 1:
+                flash(f"Successfully imported {imported_addresses_len} address label.")
+            else:
+                flash("No address labels were imported.")
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)

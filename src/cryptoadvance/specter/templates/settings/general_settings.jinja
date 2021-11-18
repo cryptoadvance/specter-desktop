@@ -181,52 +181,53 @@
 		}
 	}
 	function updateFeeEstimator() {
-			if (document.getElementById('fee_estimator_custom_option').checked) {
-				document.getElementById('fee_estimator_custom_url').classList.remove('hidden');
-			} else {
-				document.getElementById('fee_estimator_custom_url').classList.add('hidden');
-			}
+		if (document.getElementById('fee_estimator_custom_option').checked) {
+			document.getElementById('fee_estimator_custom_url').classList.remove('hidden');
+		} else {
+			document.getElementById('fee_estimator_custom_url').classList.add('hidden');
 		}
-		document.addEventListener("DOMContentLoaded", function(){
-			updateFeeEstimator();
-			var el = document.getElementById("file");
+	}
+	document.addEventListener("DOMContentLoaded", function(){
+		updateFeeEstimator();
+		var el = document.getElementById("file");
 
-			if (el != null) {
-				el.addEventListener("change", (e) => {
-					let wallets = []
-					let devices = []
-					files = e.currentTarget.files;
-					if (e.currentTarget.files.length == 1 && e.currentTarget.files[0].type == 'application/zip') {
-						showError(`{{ _("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder") }}`, 10000);
-						return;
-					}
-					console.log(files);
-					for(let i=0; i<files.length; i++){
-						if (files[i].type == 'application/json'){
-							let reader = new FileReader();
-							reader.onload = function(e) {
-								if (files[i].webkitRelativePath.indexOf('devices/') != -1) {
-									console.log(files[i].name);
-									devices.push(JSON.parse(reader.result));
-									document.getElementById('restoredevices').value = JSON.stringify(devices);
-									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
-									document.getElementById('restore').style.display = 'block';
-								} else if (files[i].webkitRelativePath.indexOf('wallets/') != -1) {
-									console.log(files[i].name);
-									wallets.push(JSON.parse(reader.result));
-									document.getElementById('restorewallets').value = JSON.stringify(wallets);
-									document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
-									document.getElementById('restore').style.display = 'block';
-								}
+		if (el != null) {
+			el.addEventListener("change", (e) => {
+				let wallets = []
+				let devices = []
+				files = e.currentTarget.files;
+				if (e.currentTarget.files.length == 1 && e.currentTarget.files[0].type == 'application/zip') {
+					showError(`{{ _("Cannot upload as ZIP file, please unzip the file and upload by selecting the extracted folder") }}`, 10000);
+					return;
+				}
+				console.log(files);
+				for(let i=0; i<files.length; i++){
+					if (files[i].type == 'application/json'){
+						let reader = new FileReader();
+						reader.onload = function(e) {
+							if (files[i].webkitRelativePath.indexOf('devices/') != -1) {
+								console.log(files[i].name);
+								devices.push(JSON.parse(reader.result));
+								document.getElementById('restoredevices').value = JSON.stringify(devices);
+								document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+								document.getElementById('restore').style.display = 'block';
+							} else if (files[i].webkitRelativePath.indexOf('wallets/') != -1) {
+								console.log(files[i].name);
+								wallets.push(JSON.parse(reader.result));
+								document.getElementById('restorewallets').value = JSON.stringify(wallets);
+								document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
+								document.getElementById('restore').style.display = 'block';
 							}
-							reader.readAsText(files[i]);
 						}
+						reader.readAsText(files[i]);
 					}
-				});
-			}
-		});
+				}
+			});
+		}
+	});
 
 	function updateAutoHideSensitiveInfoTimeout() {
+		console.log("autohide_sensitive_info_timeout");
 		if (document.getElementById('autohide_sensitive_info_timeout').value == "CUSTOM") {
 			document.getElementById('custom_autohide_sensitive_info_timeout').classList.remove('hidden');
 		} else {
@@ -234,19 +235,20 @@
 		}
 	}
 	document.addEventListener("DOMContentLoaded", function(){
+		// Setup initial show/hide state
 		updateAutoHideSensitiveInfoTimeout();
 	});
 
-
 	{% if specter.config.auth.method != "none" %}
 		function updateAutoLogoutTimeout() {
-			if (document.getElementById('autologout_timeout') !=== null && document.getElementById('autologout_timeout').value == "CUSTOM") {
+			if (document.getElementById('autologout_timeout') !== null && document.getElementById('autologout_timeout').value == "CUSTOM") {
 				document.getElementById('custom_autologout_timeout').classList.remove('hidden');
 			} else {
 				document.getElementById('custom_autologout_timeout').classList.add('hidden');
 			}
 		}
 		document.addEventListener("DOMContentLoaded", function(){
+			// Setup initial show/hide state
 			updateAutoLogoutTimeout();
 		});
 	{% endif %}
