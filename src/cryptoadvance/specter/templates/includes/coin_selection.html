@@ -1,0 +1,177 @@
+<template id="file-upload">
+    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coinselection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+    <br>
+    <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
+        <div class="errorMessagesDiv">
+            <message-box type="error" style="display: none;"></message-box>
+        </div>
+        <tx-table
+            class="txtable"
+            btc-unit="{{ specter.unit }}"
+            hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+            type="utxo" hide-columns="category txid time confirmations action" 
+            blockhash="true" hide-switcher="true">
+        </tx-table>
+    </div> 
+</template>
+
+
+<script type="module">
+
+    class CoinSelection extends HTMLElement {
+        constructor() {
+            super();
+            var shadow = this.attachShadow({mode: 'open'});
+            var style = document.getElementById('file-upload').content;
+            var clone = style.cloneNode(true);
+            
+            this.coinselectionDiv = clone.querySelector(".coinselection_div")
+            this.txtable = clone.querySelector(".txtable")
+
+            // ErrorMessages
+            this.errorMessagesDiv = clone.querySelector(".errorMessagesDiv");
+
+            // toggler
+            this.toggler = clone.querySelector(".toggle_coinselection")
+            this.toggler.addEventListener('click', (event) => {
+                this.toggleCoinselection()
+			});
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+        /**
+         * Browser calls this method when the element is added to the document
+         * (can be called many times if an element is repeatedly added/removed)
+        */
+        connectedCallback() {
+            this.wallet_alias_name = this.getAttribute('wallet-alias');
+            this.spendableAmount = this.getAttribute("spendable-amount") ?? 0
+            this.assetBalances = this.fetchAssetBalances()
+        }
+    
+        handleError(errorText) {
+            console.log(errorText)
+            const messageBox = document.createElement('message-box');
+            //messageBox.setType("error")
+            messageBox.textContent = errorText
+            this.errorMessagesDiv.appendChild(messageBox)
+        }
+
+        isCoinSelectionActive() {
+            return this.coinselectionDiv.style.display !== 'none';
+        }
+
+        getSpendableAmount(unit) {
+            let spendableAmount;
+            if (!this.isCoinSelectionActive()) {
+                if(unit == 'btc' || unit == 'sat'){
+                    spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
+                }else{
+                    if(unit in assetBalances){
+                        return assetBalances[unit].balance;
+                    }else{
+                        return 0;
+                    }
+                }
+            } else {
+                spendableAmount = this.getCoinSelectedAmount;
+            }
+    
+            return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
+        }
+
+        getCoinSelectedAmount() {
+            var sum = 0
+            this.txtable.getSelectedTxs().forEach( (tx) => {
+                sum = sum + tx.amount
+            })
+            return sum
+        }
+    
+        toggleCoinselection() {
+            if (this.coinselectionDiv.style.display === 'block') {
+                this.coinselectionDiv.style.display = 'none';
+                this.toggler.innerHTML = `{{ _("Coinselection") }} &#9654;`;
+                if (this.isCoinSelectionActive()) {
+                    toggleExpand();
+                }
+            } else {
+                this.coinselectionDiv.style.display = 'block';
+                this.toggler.innerHTML = `{{ _("Coinselection") }} &#9660;`;
+            }
+        }
+
+        /*
+        * Removes all coin_selection if it's no longer active
+        */
+        toggleExpand() {
+            if (this.isCoinSelectionActive()) {
+                setVisibility('coinselection', 'none');
+            } else {
+                setVisibility('coinselection', 'block');
+
+                let coins = document.getElementsByClassName('coin_select_checkbox');
+                // unselect all choices
+                for(var i = 0; i < coins.length; i++){
+                    coins[i].checked = false;
+                }
+            }
+            validateForm();
+        }
+
+        /**
+        * Fetches assetBalance from the Specter API 
+        */
+        async fetchAssetBalances(wallet_alias) {
+            let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            var formData = new FormData();
+            formData.append('address', this.address);
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                if (jsonResponse.success) {
+                    console.log(jsonResponse);
+                }
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
+            }
+        }
+        
+        shouldSelectMoreCoins(unit, amount) {
+            return (unit == 'sat' ? amount / 100000000 : amount) > this.getCoinSelectedAmount() && this.isCoinSelectionActive()
+        }
+    }
+
+
+    customElements.define('coin-selection', CoinSelection);
+
+    
+</script>
+
+
+
+<script>
+    
+    /** 
+     * This will get called whenever someone un-/checks a checkbox in the first column of the tx-table
+     * Don't know how to pass a callback and putting this in the <script type="module"> tag didn't work
+     */
+    function updateCoinSelect(coin, amount) {
+        // Simply calling validateForm from the wallet_send template
+        validateForm();
+    }
+
+</script>

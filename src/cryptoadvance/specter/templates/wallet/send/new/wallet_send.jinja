@@ -102,10 +102,17 @@
 					{% endif %}
 				{% endif %}
 				</div><br>
-				{% with selected_coins=selected_coins %}
-					{% include "wallet/send/new/components/coin_selection.jinja" %}
-				{% endwith %}
 			</div>
+			{% include "includes/tx-row.html" %}
+			{% include "includes/tx-data.html" %}
+			{% include "includes/explorer-link.html" %}
+			{% include "includes/tx-table.html" %}
+			{% include "includes/coin_selection.html" %}
+			<coin-selection  
+				id="coinselection-webcomponent"
+				wallet-alias="{{wallet.alias}}"
+				spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
+			</coin-selection>
 			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction') }}</button>
 		</div>
 	</form>
@@ -386,16 +393,16 @@
 
 		// Form validation
 		function validateAmount(unit, amount, i, allowZero=false) {
+			coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
 			if (isNaN(amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = `{{ _("Amount entered is invalid!") }}`;
 				return false;
 			}
-
 			if (i) {
 				let amountInput = document.getElementById('amount_' + i);
-				amountInput.max = getSpendableAmount(unit);
+				amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
 			}
 			if (!amount && !allowZero) {
 				return false;
@@ -405,7 +412,7 @@
 				document.getElementById('amount_errors_container')
 					.innerHTML = `{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`;
 				return false;
-			} else if (shouldSelectMoreCoins(unit, amount)) {
+			} else if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
 					.innerHTML = `{{ _("You need to select more coins to match your amount!") }}`;
@@ -507,9 +514,6 @@
 			if (advancedSettings.style.display === 'block') {
 				advancedSettings.style.display = 'none';
 				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
-				if (isCoinSelectionActive()) {
-					toggleExpand();
-				}
 			} else {
 				advancedSettings.style.display = 'block';
 				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;

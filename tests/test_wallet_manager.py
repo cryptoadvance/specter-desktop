@@ -291,6 +291,16 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     address_balance = wallet.fullbalance
     assert len(wallet.full_utxo) == 20
 
+    print(wallet.full_utxo[4])
+    # Something like:
+    # { 'txid': 'fab823558781745179916b4bfdfd65b382bfc0e70e85188f1b9538604202f537',
+    #   'vout': 0, 'address': 'bcrt1qmlrraffw0evkjy2yrxmt263ksgfgv2gqhcddrt',
+    #   'label': 'Random label', 'scriptPubKey': '0014dfc63ea52e7e5969114419b6b56a368212862900',
+    #   'amount': 50.0, 'confirmations': 101, 'spendable': False, 'solvable': True,
+    #   'desc': "wpkh([08686ac6/48'/1'/0'/2'/0/0]02fa445808af849209038f422a22e335754fa07a2ece42fc483660606dcda3e0e9)#8q60z40m",
+    #   'safe': True, 'time': 1637091575, 'category': 'generate', 'locked': False
+    # }
+
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, "")
     wallet.rpc.generatetoaddress(20, new_address)

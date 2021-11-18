@@ -541,6 +541,43 @@ def utxo_csv(wallet_alias):
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/asset_balances")
+@login_required
+def asset_balances(wallet_alias):
+    try:
+        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        if app.specter.is_testnet:
+            label = "tBTC"
+        elif app.specter.is_liquid:
+            label = "LBTC"
+        else:
+            label = "BTC"
+
+        amounts = []
+        textUnit = app.specter.unit
+        asset_balances = {
+            "btc": {
+                "balance": wallet.full_available_balance,
+                "label": label,
+            },
+            "sat": {
+                "balance": int(wallet.full_available_balance * 1e8),
+                "label": "sat",
+            },
+        }
+        for asset in wallet.balance.get("assets", {}).keys():
+            asset_balances["asset"] = {
+                "balance": wallet.balance.get("assets", {})
+                .get(asset, {})
+                .get("trusted", 0),
+                "label": "{{{% endfor %} asset | assetlabel }}",
+            }
+        return asset_balances
+    except Exception as e:
+        handle_exception(e)
+        return _("Failed to list asses_balances. Error: {}").format(e), 500
+
+
 # Export all wallets transaction history combined
 @wallets_endpoint_api.route("/wallets_overview/full_transactions.csv")
 @login_required
